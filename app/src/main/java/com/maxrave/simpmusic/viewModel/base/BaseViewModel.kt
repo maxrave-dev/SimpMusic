@@ -63,7 +63,7 @@ abstract class BaseViewModel(
      */
     protected fun log(
         message: String,
-        logType: Int,
+        logType: Int = Log.WARN,
     ) {
         when (logType) {
             Log.ASSERT -> Log.wtf(tag, message)

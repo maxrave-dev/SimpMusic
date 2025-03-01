@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +62,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -133,7 +135,7 @@ fun Modifier.angledGradientBackground(
     colors: List<Color>,
     degrees: Float,
 ) = this.then(
-    drawBehind {
+    Modifier.drawBehind {
         /*
         Have to compute length of gradient vector so that it lies within
         the visible rectangle.
@@ -482,6 +484,26 @@ fun Context.findActivity(): ComponentActivity {
         context = context.baseContext
     }
     throw IllegalStateException("Picture in picture should be called in the context of an Activity")
+}
+
+fun Modifier.isElementVisible(onVisibilityChanged: (Boolean) -> Unit) =
+    composed {
+        val isVisible by remember { derivedStateOf { mutableStateOf(false) } }
+        LaunchedEffect(isVisible.value) { onVisibilityChanged.invoke(isVisible.value) }
+        this.onGloballyPositioned { layoutCoordinates ->
+            isVisible.value = layoutCoordinates.parentLayoutCoordinates?.let {
+                val parentBounds = it.boundsInWindow()
+                val childBounds = layoutCoordinates.boundsInWindow()
+                parentBounds.overlaps(childBounds)
+            } == true
+        }
+    }
+
+fun Color.rgbFactor(factor: Float): Color {
+    val r = min(red * factor, 255f)
+    val g = min(green * factor, 255f)
+    val b = min(blue * factor, 255f)
+    return Color(r, g, b, alpha)
 }
 
 @RequiresOptIn(

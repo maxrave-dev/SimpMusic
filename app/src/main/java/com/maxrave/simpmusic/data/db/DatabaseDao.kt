@@ -158,6 +158,12 @@ interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSong(song: SongEntity): Long
 
+    @Query("UPDATE song SET canvasUrl = :canvasUrl WHERE videoId = :videoId")
+    suspend fun updateCanvasUrl(
+        videoId: String,
+        canvasUrl: String,
+    )
+
     @Query("UPDATE song SET thumbnails = :thumbnails WHERE videoId = :videoId")
     suspend fun updateThumbnailsSongEntity(
         thumbnails: String,
@@ -197,6 +203,9 @@ interface DatabaseDao {
         offset: Int,
     ): List<SongEntity>
 
+    @Query("SELECT * FROM song WHERE canvasUrl IS NOT NULL ORDER BY totalPlayTime DESC LIMIT :max")
+    suspend fun getCanvasSong(max: Int): List<SongEntity>
+
     @Query("SELECT videoId FROM song WHERE videoId IN (:primaryKeyList) AND downloadState = 3")
     fun getDownloadedVideoIdByListVideoId(primaryKeyList: List<String>): Flow<List<String>>
 
@@ -212,6 +221,12 @@ interface DatabaseDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertArtist(artist: ArtistEntity)
+
+    @Query("UPDATE artist SET thumbnails = :thumbnails WHERE channelId = :channelId")
+    suspend fun updateArtistImage(
+        channelId: String,
+        thumbnails: String,
+    )
 
     @Query("UPDATE artist SET followed = :followed WHERE channelId = :channelId")
     suspend fun updateFollowed(

@@ -11,6 +11,10 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
@@ -31,11 +35,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -57,6 +63,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -87,10 +94,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -123,6 +132,7 @@ import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.service.RepeatState
@@ -134,6 +144,7 @@ import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
+import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
@@ -143,6 +154,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import com.moriatsushi.insetsx.statusBars
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -197,6 +209,10 @@ fun NowPlayingScreen(
     }
 
     var showInfoBottomSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var shouldShowToolbar by remember {
         mutableStateOf(false)
     }
 
@@ -420,7 +436,7 @@ fun NowPlayingScreen(
     val hazeState = remember { HazeState() }
 
     Box {
-        if (blurBg) {
+        if (blurBg && screenDataState.canvasData == null) {
             AsyncImage(
                 model =
                     ImageRequest
@@ -469,7 +485,7 @@ fun NowPlayingScreen(
                     }
                 }.then(
                     if (showHideMiddleLayout) {
-                        if (blurBg) {
+                        if (blurBg && screenDataState.canvasData == null) {
                             Modifier
                                 .background(Color.Transparent)
                                 .hazeEffect(hazeState, style = CupertinoMaterials.thin())
@@ -548,7 +564,7 @@ fun NowPlayingScreen(
                                             Brush.verticalGradient(
                                                 colorStops =
                                                     arrayOf(
-                                                        0.8f to overlay,
+                                                        0.2f to overlay,
                                                         1f to Color.Black,
                                                     ),
                                             ),
@@ -877,6 +893,31 @@ fun NowPlayingScreen(
                                                 .padding(horizontal = 40.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
+                                        AnimatedVisibility(screenDataState.canvasData != null) {
+                                            AsyncImage(
+                                                model =
+                                                    ImageRequest
+                                                        .Builder(LocalContext.current)
+                                                        .data(screenDataState.thumbnailURL)
+                                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                                        .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
+                                                        .crossfade(true)
+                                                        .build(),
+                                                placeholder = painterResource(R.drawable.holder),
+                                                error = painterResource(R.drawable.holder),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.FillWidth,
+                                                modifier =
+                                                    Modifier
+                                                        .heightIn(0.dp, 55.dp)
+                                                        .width(55.dp)
+                                                        .padding(end = 10.dp)
+                                                        .clip(
+                                                            RoundedCornerShape(4.dp),
+                                                        ).align(Alignment.CenterVertically),
+                                            )
+                                        }
+
                                         Column(Modifier.weight(1f)) {
                                             Text(
                                                 text = screenDataState.nowPlayingTitle,
@@ -945,7 +986,10 @@ fun NowPlayingScreen(
                                         Modifier
                                             .padding(
                                                 top = 15.dp,
-                                            ).padding(horizontal = 40.dp),
+                                            ).padding(horizontal = 40.dp)
+                                            .isElementVisible {
+                                                shouldShowToolbar = !it
+                                            },
                                     ) {
                                         Box(
                                             modifier =
@@ -986,7 +1030,10 @@ fun NowPlayingScreen(
                                                                         RoundedCornerShape(8.dp),
                                                                     ),
                                                             color = Color.Gray,
-                                                            trackColor = Color.DarkGray,
+                                                            trackColor =
+                                                                Color.Gray.copy(
+                                                                    alpha = 0.6f,
+                                                                ),
                                                             strokeCap = StrokeCap.Round,
                                                             drawStopIndicator = {},
                                                         )
@@ -1680,6 +1727,143 @@ fun NowPlayingScreen(
                                 Modifier.height(
                                     with(localDensity) { WindowInsets.systemBars.getBottom(localDensity).toDp() },
                                 ),
+                        )
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = shouldShowToolbar,
+            enter = fadeIn() + slideInVertically(),
+            exit = fadeOut() + slideOutVertically(),
+        ) {
+            ElevatedCard(
+                elevation = CardDefaults.elevatedCardElevation(10.dp),
+                shape = RectangleShape,
+                colors =
+                    CardDefaults.elevatedCardColors(
+                        containerColor =
+                            startColor.value
+                                .copy(
+                                    red = startColor.value.red - 0.05f,
+                                    green = startColor.value.green - 0.05f,
+                                    blue = startColor.value.blue - 0.05f,
+                                ),
+                    ),
+                modifier =
+                    Modifier
+                        .clipToBounds()
+                        .wrapContentHeight()
+                        .fillMaxWidth(),
+            ) {
+                Box(
+                    modifier =
+                        Modifier.padding(
+                            top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() },
+                        ),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier =
+                            Modifier
+                                .padding(
+                                    vertical = 8.dp,
+                                    horizontal = 15.dp,
+                                ).fillMaxWidth(),
+                    ) {
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Box(modifier = Modifier.weight(1F)) {
+                            Column(
+                                Modifier
+                                    .wrapContentHeight(),
+                            ) {
+                                Text(
+                                    text = screenDataState.nowPlayingTitle,
+                                    style = typo.bodyMedium,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(
+                                                align = Alignment.CenterVertically,
+                                            ).basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                )
+                                LazyRow(verticalAlignment = Alignment.CenterVertically) {
+                                    item {
+                                        androidx.compose.animation.AnimatedVisibility(visible = screenDataState.isExplicit) {
+                                            ExplicitBadge(
+                                                modifier =
+                                                    Modifier
+                                                        .size(20.dp)
+                                                        .padding(end = 4.dp)
+                                                        .weight(1f),
+                                            )
+                                        }
+                                    }
+                                    item {
+                                        Text(
+                                            text = screenDataState.artistName,
+                                            style = typo.bodySmall,
+                                            maxLines = 1,
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .wrapContentHeight(
+                                                        align = Alignment.CenterVertically,
+                                                    ).basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        animationMode = MarqueeAnimationMode.Immediately,
+                                                    ).focusable(),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(15.dp))
+                        HeartCheckBox(checked = controllerState.isLiked, size = 30) {
+                            sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                        }
+                        Spacer(modifier = Modifier.width(15.dp))
+                        Crossfade(targetState = timelineState.loading, label = "") {
+                            if (it) {
+                                Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp),
+                                        color = Color.LightGray,
+                                        strokeWidth = 3.dp,
+                                    )
+                                }
+                            } else {
+                                PlayPauseButton(isPlaying = controllerState.isPlaying, modifier = Modifier.size(48.dp)) {
+                                    sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                }
+                            }
+                        }
+                    }
+                    Box(
+                        modifier =
+                            Modifier
+                                .wrapContentSize(Alignment.Center)
+                                .align(Alignment.BottomCenter),
+                    ) {
+                        LinearProgressIndicator(
+                            progress = { timelineState.current.toFloat() / timelineState.total },
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(
+                                        color = Color.Transparent,
+                                        shape = RoundedCornerShape(4.dp),
+                                    ),
+                            color = Color.White,
+                            trackColor = Color.Gray.copy(alpha = 0.4f),
+                            strokeCap = StrokeCap.Round,
+                            drawStopIndicator = {},
                         )
                     }
                 }

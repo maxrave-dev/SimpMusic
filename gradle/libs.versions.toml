@@ -154,7 +154,7 @@ haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-material = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
 androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "ui-text-android" }
-newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version = "aa673635530e131c48762c9eb8b610bea9249495" }
+newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version = "v0.24.5" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

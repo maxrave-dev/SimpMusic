@@ -315,6 +315,11 @@ class MainRepository(
             emit(localDataSource.getLibrarySongs())
         }.flowOn(Dispatchers.IO)
 
+    fun getCanvasSong(max: Int): Flow<List<SongEntity>> =
+        flow {
+            emit(localDataSource.getCanvasSong(max))
+        }.flowOn(Dispatchers.IO)
+
     fun getSongById(id: String): Flow<SongEntity?> =
         flow {
             emit(localDataSource.getSong(id))
@@ -333,6 +338,13 @@ class MainRepository(
         withContext(Dispatchers.IO) {
             localDataSource.updateListenCount(videoId)
         }
+
+    suspend fun updateCanvasUrl(
+        videoId: String,
+        canvasUrl: String,
+    ) = withContext(Dispatchers.IO) {
+        localDataSource.updateCanvasUrl(videoId, canvasUrl)
+    }
 
     suspend fun updateLikeStatus(
         videoId: String,
@@ -380,6 +392,18 @@ class MainRepository(
         withContext(Dispatchers.IO) {
             localDataSource.insertArtist(artistEntity)
         }
+
+    suspend fun updateArtistImage(
+        channelId: String,
+        thumbnail: String,
+    ) = withContext(
+        Dispatchers.Main,
+    ) {
+        localDataSource.updateArtistImage(
+            channelId,
+            thumbnail,
+        )
+    }
 
     suspend fun updateFollowedStatus(
         channelId: String,
@@ -1643,7 +1667,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getAlbumMore(
+    fun getAlbumMore(
         browseId: String,
         params: String,
     ): Flow<BrowseResult?> =
@@ -1661,13 +1685,13 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getArtistData(channelId: String): Flow<Resource<ArtistBrowse>> =
+    fun getArtistData(channelId: String): Flow<Resource<ArtistBrowse>> =
         flow {
             runCatching {
                 youTube
                     .artist(channelId)
                     .onSuccess { result ->
-                        emit(Resource.Success<ArtistBrowse>(parseArtistData(result, context)))
+                        emit(Resource.Success<ArtistBrowse>(parseArtistData(result)))
                     }.onFailure { e ->
                         Log.d("Artist", "Error: ${e.message}")
                         emit(Resource.Error<ArtistBrowse>(e.message.toString()))
@@ -1675,7 +1699,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getSearchDataSong(query: String): Flow<Resource<ArrayList<SongsResult>>> =
+    fun getSearchDataSong(query: String): Flow<Resource<ArrayList<SongsResult>>> =
         flow {
             runCatching {
                 youTube
@@ -1943,6 +1967,20 @@ class MainRepository(
                     }
             }
         }.flowOn(Dispatchers.IO)
+
+    suspend fun getRadioArtist(endpoint: WatchEndpoint): Flow<Resource<Pair<List<Track>, String?>>> =
+        flow {
+            runCatching {
+                youTube
+                    .next(endpoint)
+                    .onSuccess { next ->
+                        emit(Resource.Success(Pair(next.items.toListTrack(), next.continuation)))
+                    }.onFailure {
+                        it.printStackTrace()
+                        emit(Resource.Error(it.message ?: it.localizedMessage ?: "Error"))
+                    }
+            }
+        }
 
     suspend fun getRelatedData(videoId: String): Flow<Resource<Pair<ArrayList<Track>, String?>>> =
         flow {

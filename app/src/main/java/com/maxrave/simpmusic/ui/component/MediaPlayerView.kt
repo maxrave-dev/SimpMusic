@@ -91,31 +91,32 @@ fun MediaPlayerView(
             }
         }
 
-    val cacheSink =
-        CacheDataSink
-            .Factory()
-            .setCache(canvasCache)
-    val upstreamFactory = DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory())
-    val downStreamFactory = FileDataSource.Factory()
-    val cacheDataSourceFactory =
-        CacheDataSource
-            .Factory()
-            .setCache(canvasCache)
-            .setCacheWriteDataSinkFactory(cacheSink)
-            .setCacheReadDataSourceFactory(downStreamFactory)
-            .setUpstreamDataSourceFactory(upstreamFactory)
-            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
-
     // Initialize ExoPlayer
     val exoPlayer =
-        ExoPlayer
-            .Builder(context)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(cacheDataSourceFactory),
-            ).build()
-            .apply {
-                addListener(playerListener)
-            }
+        remember {
+            val cacheSink =
+                CacheDataSink
+                    .Factory()
+                    .setCache(canvasCache)
+            val upstreamFactory = DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory())
+            val downStreamFactory = FileDataSource.Factory()
+            val cacheDataSourceFactory =
+                CacheDataSource
+                    .Factory()
+                    .setCache(canvasCache)
+                    .setCacheWriteDataSinkFactory(cacheSink)
+                    .setCacheReadDataSourceFactory(downStreamFactory)
+                    .setUpstreamDataSourceFactory(upstreamFactory)
+                    .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+            ExoPlayer
+                .Builder(context)
+                .setMediaSourceFactory(
+                    DefaultMediaSourceFactory(cacheDataSourceFactory),
+                ).build()
+                .apply {
+                    addListener(playerListener)
+                }
+        }
 
     // Create a MediaSource
     val mediaSource =

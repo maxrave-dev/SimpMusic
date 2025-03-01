@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -362,34 +361,30 @@ fun MiniPlayer(
                                                     animationMode = MarqueeAnimationMode.Immediately,
                                                 ).focusable(),
                                     )
-                                    LazyRow(verticalAlignment = Alignment.CenterVertically) {
-                                        item {
-                                            androidx.compose.animation.AnimatedVisibility(visible = songEntity?.isExplicit == true) {
-                                                ExplicitBadge(
-                                                    modifier =
-                                                        Modifier
-                                                            .size(20.dp)
-                                                            .padding(end = 4.dp)
-                                                            .weight(1f),
-                                                )
-                                            }
-                                        }
-                                        item {
-                                            Text(
-                                                text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
-                                                style = typo.bodySmall,
-                                                maxLines = 1,
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        androidx.compose.animation.AnimatedVisibility(visible = songEntity?.isExplicit == true) {
+                                            ExplicitBadge(
                                                 modifier =
                                                     Modifier
-                                                        .fillMaxWidth()
-                                                        .wrapContentHeight(
-                                                            align = Alignment.CenterVertically,
-                                                        ).basicMarquee(
-                                                            iterations = Int.MAX_VALUE,
-                                                            animationMode = MarqueeAnimationMode.Immediately,
-                                                        ).focusable(),
+                                                        .size(20.dp)
+                                                        .padding(end = 4.dp)
+                                                        .weight(1f),
                                             )
                                         }
+                                        Text(
+                                            text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
+                                            style = typo.bodySmall,
+                                            maxLines = 1,
+                                            modifier =
+                                                Modifier
+                                                    .weight(1f)
+                                                    .wrapContentHeight(
+                                                        align = Alignment.CenterVertically,
+                                                    ).basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        animationMode = MarqueeAnimationMode.Immediately,
+                                                    ).focusable(),
+                                        )
                                     }
                                 }
                             }

@@ -39,6 +39,7 @@ import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
 import com.maxrave.simpmusic.data.model.browse.artist.ResultVideo
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
@@ -53,6 +54,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
+import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
@@ -119,7 +121,7 @@ fun ResultVideo.toTrack(): Track =
         thumbnails = this.thumbnails,
         title = this.title,
         videoId = this.videoId,
-        videoType = null,
+        videoType = this.views,
         category = null,
         feedbackTokens = null,
         resultType = null,
@@ -553,6 +555,29 @@ fun Collection<SongEntity>.toVideoIdList(): List<String> {
     }
     return list
 }
+
+fun ArtistBrowse.toArtistScreenData(): ArtistScreenData =
+    ArtistScreenData(
+        title = this.name,
+        imageUrl = this.thumbnails?.lastOrNull()?.url,
+        subscribers = this.subscribers,
+        playCount = this.views,
+        isChannel = this.songs == null,
+        channelId = this.channelId,
+        radioParam = this.radioId,
+        shuffleParam = this.shuffleId,
+        description = this.description,
+        listSongParam = this.songs?.browseId,
+        popularSongs = this.songs?.results?.map { it.toTrack() } ?: emptyList(),
+        singles = this.singles,
+        albums = this.albums,
+        video =
+            this.video?.let { video ->
+                ArtistBrowse.Videos(video.map { it.toTrack() }, this.videoList)
+            },
+        related = this.related,
+        featuredOn = this.featuredOn ?: emptyList(),
+    )
 
 fun setEnabledAll(
     v: View,

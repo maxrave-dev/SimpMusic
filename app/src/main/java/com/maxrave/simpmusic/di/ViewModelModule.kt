@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.di
 
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
+import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
@@ -41,6 +42,11 @@ val viewModelModule =
         }
         viewModel {
             SettingsViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            ArtistViewModel(
                 application = androidApplication(),
             )
         }

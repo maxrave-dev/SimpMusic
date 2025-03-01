@@ -465,17 +465,39 @@ class SharedViewModel(
                 mainRepository.getCanvas(videoId, duration).cancellable().collect { response ->
                     _canvas.value = response
                     Log.w(tag, "Canvas is $response")
-                    if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                canvasData =
-                                    response?.canvases?.firstOrNull()?.canvas_url?.let { canvasUrl ->
-                                        NowPlayingScreenData.CanvasData(
-                                            isVideo = canvasUrl.contains(".mp4"),
-                                            url = canvasUrl,
-                                        )
-                                    },
-                            )
+                    if (response != null) {
+                        if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                            _nowPlayingScreenData.update {
+                                it.copy(
+                                    canvasData =
+                                        response.canvases.firstOrNull()?.canvas_url?.let { canvasUrl ->
+                                            NowPlayingScreenData.CanvasData(
+                                                isVideo = canvasUrl.contains(".mp4"),
+                                                url = canvasUrl,
+                                            )
+                                        },
+                                )
+                            }
+                            if (response
+                                    .canvases
+                                    .firstOrNull()
+                                    ?.canvas_url
+                                    ?.contains(".mp4") == true
+                            ) {
+                                mainRepository.updateCanvasUrl(videoId, response.canvases.first().canvas_url)
+                            }
+                        } else {
+                            nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
+                                _nowPlayingScreenData.update {
+                                    it.copy(
+                                        canvasData =
+                                            NowPlayingScreenData.CanvasData(
+                                                isVideo = url.contains(".mp4"),
+                                                url = url,
+                                            ),
+                                    )
+                                }
+                            }
                         }
                     }
                 }

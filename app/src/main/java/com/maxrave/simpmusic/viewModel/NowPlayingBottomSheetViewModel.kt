@@ -5,7 +5,9 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.LRCLIB
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.MUSIXMATCH
@@ -16,8 +18,11 @@ import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.SleepTimerState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
+import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.utils.collectLatestResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -247,6 +252,40 @@ class NowPlayingBottomSheetViewModel(
                         }
                     application.startActivity(chooserIntent)
                 }
+
+                is NowPlayingBottomSheetUIEvent.StartRadio -> {
+                    mainRepository
+                        .getRadioArtist(
+                            WatchEndpoint(
+                                videoId = ev.videoId,
+                                playlistId = "RDAMVM${ev.videoId}",
+                            ),
+                        ).collectLatest { res ->
+                            val data = res.data
+                            when (res) {
+                                is Resource.Success if (data != null && data.first.isNotEmpty()) -> {
+                                    setQueueData(
+                                        QueueData(
+                                            listTracks = data.first,
+                                            firstPlayedTrack = data.first.first(),
+                                            playlistId = "RDAMVM${ev.videoId}",
+                                            playlistName = ev.name,
+                                            playlistType = PlaylistType.RADIO,
+                                            continuation = data.second,
+                                        ),
+                                    )
+                                    loadMediaItem(
+                                        data.first.first(),
+                                        Config.PLAYLIST_CLICK,
+                                        0,
+                                    )
+                                }
+                                else -> {
+                                    makeToast(res.message ?: getString(R.string.error))
+                                }
+                            }
+                        }
+                }
             }
         }
     }
@@ -299,6 +338,11 @@ sealed class NowPlayingBottomSheetUIEvent {
     data class ChangePlaybackSpeedPitch(
         val speed: Float,
         val pitch: Int,
+    ) : NowPlayingBottomSheetUIEvent()
+
+    data class StartRadio(
+        val videoId: String,
+        val name: String,
     ) : NowPlayingBottomSheetUIEvent()
 
     data object Share : NowPlayingBottomSheetUIEvent()

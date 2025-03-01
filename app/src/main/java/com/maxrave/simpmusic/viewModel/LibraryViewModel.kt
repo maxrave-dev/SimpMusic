@@ -2,8 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.R
@@ -57,23 +55,9 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val downloadedPlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _downloadedPlaylist
 
-    private var _listRecentlyAdded: MutableLiveData<List<Any>> = MutableLiveData()
-    val listRecentlyAdded: LiveData<List<Any>> = _listRecentlyAdded
-
-    private var _listPlaylistFavorite: MutableLiveData<List<Any>> = MutableLiveData()
-    val listPlaylistFavorite: LiveData<List<Any>> = _listPlaylistFavorite
-
-    private var _listDownloadedPlaylist: MutableLiveData<List<Any>> = MutableLiveData()
-    val listDownloadedPlaylist: LiveData<List<Any>> = _listDownloadedPlaylist
-
-    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
-    val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
-
-    private var _listYouTubePlaylist: MutableLiveData<List<Any>?> = MutableLiveData()
-    val listYouTubePlaylist: LiveData<List<Any>?> = _listYouTubePlaylist
-
-    private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
-    val songEntity: LiveData<SongEntity?> = _songEntity
+    private val _listCanvasSong: MutableStateFlow<LocalResource<List<SongEntity>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val listCanvasSong: StateFlow<LocalResource<List<SongEntity>>> get() = _listCanvasSong
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
@@ -152,6 +136,15 @@ class LibraryViewModel(
         }
     }
 
+    fun getCanvasSong() {
+        _listCanvasSong.value = LocalResource.Loading()
+        viewModelScope.launch {
+            mainRepository.getCanvasSong(max = 5).collect { data ->
+                _listCanvasSong.value = LocalResource.Success(data)
+            }
+        }
+    }
+
     fun getLocalPlaylist() {
         _yourLocalPlaylist.value = LocalResource.Loading()
         viewModelScope.launch {
@@ -166,14 +159,6 @@ class LibraryViewModel(
         viewModelScope.launch {
             mainRepository.getAllDownloadedPlaylist().collect { values ->
                 _downloadedPlaylist.value = LocalResource.Success(values)
-            }
-        }
-    }
-
-    fun getSongEntity(videoId: String) {
-        viewModelScope.launch {
-            mainRepository.getSongById(videoId).collect { values ->
-                _songEntity.value = values
             }
         }
     }

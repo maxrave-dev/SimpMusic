@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.model.browse.artist
 
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
+import com.maxrave.simpmusic.data.type.HomeContentType
 
 data class ResultAlbum(
     @SerializedName("browseId")
@@ -14,4 +15,4 @@ data class ResultAlbum(
     val title: String,
     @SerializedName("year")
     val year: String,
-)
+) : HomeContentType

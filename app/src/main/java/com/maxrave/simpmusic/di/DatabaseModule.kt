@@ -143,6 +143,11 @@ val databaseModule =
                             }
                         }
                     },
+                    object : Migration(12, 13) {
+                        override fun migrate(database: SupportSQLiteDatabase) {
+                            database.execSQL("ALTER TABLE song ADD COLUMN canvasUrl TEXT")
+                        }
+                    },
                 ).addCallback(
                     object : RoomDatabase.Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) {

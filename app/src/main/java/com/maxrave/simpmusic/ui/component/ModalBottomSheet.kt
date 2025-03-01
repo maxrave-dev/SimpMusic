@@ -1156,6 +1156,8 @@ fun NowPlayingBottomSheet(
     onDelete: (() -> Unit)? = null,
     dataStoreManager: DataStoreManager = koinInject(),
 ) {
+    val context = LocalContext.current
+
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -1580,17 +1582,13 @@ fun NowPlayingBottomSheet(
                         icon = painterResource(id = R.drawable.baseline_sensors_24),
                         text = R.string.start_radio,
                     ) {
-                        val args = Bundle()
-                        args.putString("radioId", "RDAMVM${uiState.songUIState.videoId}")
-                        args.putString(
-                            "videoId",
-                            uiState.songUIState.videoId,
+                        viewModel.onUIEvent(
+                            NowPlayingBottomSheetUIEvent.StartRadio(
+                                videoId = uiState.songUIState.videoId,
+                                name = "${uiState.songUIState.title} ${context.getString(R.string.radio)}",
+                            ),
                         )
                         hideModalBottomSheet()
-                        navController.navigateSafe(
-                            R.id.action_global_playlistFragment,
-                            args,
-                        )
                     }
                     Crossfade(targetState = changeMainLyricsProviderEnable) {
                         if (it) {

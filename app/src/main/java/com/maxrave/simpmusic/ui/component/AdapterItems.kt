@@ -64,6 +64,9 @@ import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
+import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
+import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
 import com.maxrave.simpmusic.data.model.home.Content
@@ -297,6 +300,9 @@ fun HomeItemContentPlaylist(
                     is PlaylistsResult -> data.thumbnails.lastOrNull()?.url
                     is AlbumEntity -> data.thumbnails
                     is PlaylistEntity -> data.thumbnails
+                    is ResultSingle -> data.thumbnails.lastOrNull()?.url
+                    is ResultAlbum -> data.thumbnails.lastOrNull()?.url
+                    is ResultPlaylist -> data.thumbnails.lastOrNull()?.url
                     else -> null
                 }
             AsyncImage(
@@ -329,6 +335,9 @@ fun HomeItemContentPlaylist(
                         is PlaylistsResult -> data.title
                         is AlbumEntity -> data.title
                         is PlaylistEntity -> data.title
+                        is ResultSingle -> data.title
+                        is ResultAlbum -> data.title
+                        is ResultPlaylist -> data.title
                         else -> ""
                     },
                 style = typo.titleSmall,
@@ -371,6 +380,9 @@ fun HomeItemContentPlaylist(
                         is PlaylistsResult -> data.author
                         is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(id = R.string.album)
                         is PlaylistEntity -> data.author ?: stringResource(id = R.string.playlist)
+                        is ResultSingle -> data.year
+                        is ResultAlbum -> data.year
+                        is ResultPlaylist -> data.author
                         else -> ""
                     },
                 style = typo.bodySmall,
@@ -707,7 +719,7 @@ fun HomeItemVideo(
                         .padding(vertical = 3.dp),
             )
             Text(
-                text = stringResource(id = R.string.videos),
+                text = if (data.views != null) data.views else stringResource(id = R.string.videos),
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier =
@@ -782,7 +794,7 @@ fun HomeItemArtist(
                         ).focusable(),
             )
             Text(
-                text = stringResource(id = R.string.artists),
+                text = if (data.description != null) data.description else stringResource(id = R.string.artists),
                 style = typo.bodySmall,
                 maxLines = 1,
                 textAlign = TextAlign.Center,

@@ -46,6 +46,8 @@ class LocalDataSource(
         offset: Int,
     ) = databaseDao.getSongByListVideoId(primaryKeyList, offset)
 
+    suspend fun getCanvasSong(max: Int) = databaseDao.getCanvasSong(max)
+
     suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>) = databaseDao.getSongByListVideoIdFull(primaryKeyList)
 
     suspend fun getDownloadedSongs() = databaseDao.getDownloadedSongs()
@@ -73,6 +75,11 @@ class LocalDataSource(
 
     suspend fun updateListenCount(videoId: String) = databaseDao.updateTotalPlayTime(videoId)
 
+    suspend fun updateCanvasUrl(
+        videoId: String,
+        canvasUrl: String,
+    ) = databaseDao.updateCanvasUrl(videoId, canvasUrl)
+
     suspend fun updateLiked(
         liked: Int,
         videoId: String,
@@ -98,6 +105,11 @@ class LocalDataSource(
     suspend fun getAllArtists() = databaseDao.getAllArtists()
 
     suspend fun insertArtist(artist: ArtistEntity) = databaseDao.insertArtist(artist)
+
+    suspend fun updateArtistImage(
+        channelId: String,
+        thumbnails: String,
+    ) = databaseDao.updateArtistImage(channelId, thumbnails)
 
     suspend fun updateFollowed(
         followed: Int,

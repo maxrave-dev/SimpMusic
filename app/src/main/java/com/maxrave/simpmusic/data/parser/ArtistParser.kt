@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.parser
 
-import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.ArtistItem
@@ -23,10 +22,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
-fun parseArtistData(
-    data: ArtistPage,
-    context: Context,
-): ArtistBrowse {
+fun parseArtistData(data: ArtistPage): ArtistBrowse {
     for (i in data.sections) {
         Log.d("data", "title: ${i.title}")
         Log.d("data", "items: ${i.items}")
@@ -153,14 +149,14 @@ fun parseArtistData(
         channelId = data.artist.id,
         description = data.description,
         name = data.artist.title,
-        radioId = data.artist.radioEndpoint?.playlistId,
+        radioId = data.artist.radioEndpoint,
         related = Related(browseId = "", results = listRelated),
-        shuffleId = data.artist.shuffleEndpoint?.playlistId,
+        shuffleId = data.artist.shuffleEndpoint,
         singles = Singles(browseId = "", params = "", results = listSingle),
         songs = Songs(browseId = songSection?.moreEndpoint?.browseId, results = listSong),
         subscribed = false,
         subscribers = data.subscribers,
-        thumbnails = listOf(Thumbnail(2880, data.artist.thumbnail, 1200)),
+        thumbnails = listOf(Thumbnail(617, data.artist.thumbnail.replace("w1483", "w617"), 617)),
         views = data.view,
         video = listVideo,
         videoList = videoSection?.moreEndpoint?.browseId,

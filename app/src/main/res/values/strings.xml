@@ -396,4 +396,5 @@
     <string name="ok">OK</string>
     <string name="to_download_folder">" to Download folder"</string>
     <string name="download_speed">Download speed:  %1$s </string>
+    <string name="shuffle">Shuffle</string>
 </resources>
