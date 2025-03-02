@@ -397,4 +397,5 @@
     <string name="to_download_folder">" to Download folder"</string>
     <string name="download_speed">Download speed:  %1$s </string>
     <string name="shuffle">Shuffle</string>
+    <string name="other_version">Other version</string>
 </resources>

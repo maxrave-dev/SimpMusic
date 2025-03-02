@@ -452,6 +452,20 @@ class YouTube {
                         ?.thumbnail
                         ?.musicThumbnailRenderer
                         ?.thumbnail,
+                otherVersion =
+                    response.contents
+                        .twoColumnBrowseResultsRenderer
+                        .secondaryContents
+                        ?.sectionListRenderer
+                        ?.contents
+                        ?.lastOrNull()
+                        ?.musicCarouselShelfRenderer
+                        ?.contents
+                        ?.mapNotNull {
+                            AlbumPage.fromMusicTwoRowItemRenderer(
+                                it.musicTwoRowItemRenderer,
+                            )
+                        } ?: emptyList(),
             )
         }
 

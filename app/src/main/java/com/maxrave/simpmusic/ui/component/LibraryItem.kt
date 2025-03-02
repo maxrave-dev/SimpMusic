@@ -259,7 +259,7 @@ fun LibraryItem(
                                                             listTracks = arrayListOf(firstQueue),
                                                             firstPlayedTrack = firstQueue,
                                                             playlistId = "RDAMVM${firstQueue.videoId}",
-                                                            playlistName = "${song.title} ${context.getString(R.string.radio)}",
+                                                            playlistName = "\"${song.title}\" ${context.getString(R.string.radio)}",
                                                             playlistType = com.maxrave.simpmusic.service.PlaylistType.RADIO,
                                                             continuation = null,
                                                         ),

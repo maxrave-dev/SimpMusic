@@ -27,10 +27,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
 import org.koin.core.component.inject
 import java.time.LocalDateTime
-
 
 @UnstableApi
 class AlbumViewModel(
@@ -69,6 +67,7 @@ class AlbumViewModel(
                                     description = data.description,
                                     length = data.duration ?: "",
                                     listTrack = data.tracks,
+                                    otherVersion = data.otherVersion,
                                     loadState = LocalPlaylistState.PlaylistLoadState.Success,
                                 )
                             }
@@ -154,7 +153,7 @@ class AlbumViewModel(
 
     fun setAlbumLike() {
         viewModelScope.launch {
-            mainRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0 )
+            mainRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0)
             _uiState.update {
                 it.copy(
                     liked = !it.liked,

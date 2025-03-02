@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,6 +58,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
@@ -80,6 +83,7 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
+import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
@@ -419,7 +423,7 @@ fun AlbumScreen(
                     }
                     items(count = uiState.trackCount, key = { index ->
                         val item = uiState.listTrack.getOrNull(index)
-                        item?.videoId ?: "item_$index"
+                        item?.videoId + "item_$index"
                     }) { index ->
                         val item = uiState.listTrack.getOrNull(index)
                         if (item != null) {
@@ -436,6 +440,41 @@ fun AlbumScreen(
                                 },
                                 modifier = Modifier.animateItem(),
                             )
+                        }
+                    }
+                    item(contentType = "other_version") {
+                        AnimatedVisibility(uiState.otherVersion.isNotEmpty()) {
+                            Column {
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    text = stringResource(R.string.other_version),
+                                    style = typo.labelMedium,
+                                    modifier =
+                                        Modifier.padding(
+                                            horizontal = 24.dp,
+                                            vertical = 8.dp,
+                                        ),
+                                )
+                                LazyRow(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                ) {
+                                    items(uiState.otherVersion) { album ->
+                                        HomeItemContentPlaylist(
+                                            onClick = {
+                                                navController.navigateSafe(
+                                                    R.id.action_global_albumFragment,
+                                                    bundleOf(
+                                                        "browseId" to album.browseId,
+                                                    ),
+                                                )
+                                            },
+                                            data = album,
+                                            thumbSize = 180.dp,
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                     item {

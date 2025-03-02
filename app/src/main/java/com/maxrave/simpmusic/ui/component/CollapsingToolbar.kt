@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -74,9 +73,6 @@ import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-@OptIn(ExperimentalMaterial3Api::class)
-private val toolbarHeight = TopAppBarDefaults.MediumAppBarExpandedHeight
-
 private val paddingMedium = 16.dp
 
 private val titlePaddingStart = 20.dp
@@ -85,6 +81,7 @@ private val titlePaddingEnd = 72.dp
 private const val TITLE_FONT_SCALE_START = 1f
 private const val TITLE_FONT_SCALE_END = 0.46f
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @ExperimentalMaterial3Api
 fun CollapsingToolbarParallaxEffect(
@@ -96,11 +93,15 @@ fun CollapsingToolbarParallaxEffect(
         @Composable()
         ((color: Color) -> Unit) = {},
 ) {
+    val density = LocalDensity.current
+    val toolbarHeight =
+        TopAppBarDefaults.TopAppBarExpandedHeight + with(density) { WindowInsets.statusBars.getTop(this).toDp() * 2 }
+
     val scroll: ScrollState = rememberScrollState(0)
     val headerHeight = getScreenSizeInfo().hDP.dp * 2 / 5
 
-    val headerHeightPx = with(LocalDensity.current) { headerHeight.toPx() }
-    val toolbarHeightPx = with(LocalDensity.current) { toolbarHeight.toPx() }
+    val headerHeightPx = with(density) { headerHeight.toPx() }
+    val toolbarHeightPx = with(density) { toolbarHeight.toPx() }
 
     val paletteState = rememberPaletteState()
     var bitmap by remember {
@@ -162,11 +163,12 @@ fun CollapsingToolbarParallaxEffect(
             scroll = scroll,
             title = title,
             headerHeight = headerHeight,
+            toolbarHeight = toolbarHeight,
         )
         AnimatedVisibility(
             showBackButton,
             enter = fadeIn() + slideInHorizontally(),
-            exit = fadeOut() + slideOutHorizontally(),
+            exit = fadeOut(),
         ) {
             Box(
                 modifier =
@@ -175,7 +177,7 @@ fun CollapsingToolbarParallaxEffect(
                         .wrapContentSize()
                         .align(Alignment.TopStart)
                         .padding(
-                            top = with(LocalDensity.current) { WindowInsets.statusBars.getTop(this).toDp() },
+                            top = with(density) { WindowInsets.statusBars.getTop(this).toDp() },
                         ).padding(
                             12.dp,
                         ),
@@ -364,6 +366,7 @@ private fun Title(
     scroll: ScrollState,
     modifier: Modifier = Modifier,
     headerHeight: Dp,
+    toolbarHeight: Dp,
     title: String,
 ) {
     var titleHeightPx by remember { mutableFloatStateOf(0f) }

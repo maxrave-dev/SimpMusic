@@ -1585,7 +1585,7 @@ fun NowPlayingBottomSheet(
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.StartRadio(
                                 videoId = uiState.songUIState.videoId,
-                                name = "${uiState.songUIState.title} ${context.getString(R.string.radio)}",
+                                name = "\"${uiState.songUIState.title}\" ${context.getString(R.string.radio)}",
                             ),
                         )
                         hideModalBottomSheet()

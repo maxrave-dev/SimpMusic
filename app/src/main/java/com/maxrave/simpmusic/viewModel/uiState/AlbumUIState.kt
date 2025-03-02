@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.viewModel.uiState
 import androidx.compose.ui.graphics.Color
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import java.time.LocalDateTime
@@ -24,6 +25,7 @@ data class AlbumUIState(
     val description: String? = null,
     val length: String = "",
     val listTrack: List<Track> = emptyList(),
+    val otherVersion: List<ResultAlbum> = emptyList(),
     val loadState: LocalPlaylistState.PlaylistLoadState = LocalPlaylistState.PlaylistLoadState.Loading,
 ) {
     companion object {

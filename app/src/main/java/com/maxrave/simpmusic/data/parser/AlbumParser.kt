@@ -4,8 +4,10 @@ import android.util.Log
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 fun parseAlbumData(data: AlbumPage): AlbumBrowse {
     val artist: ArrayList<Artist> = arrayListOf()
@@ -66,5 +68,15 @@ fun parseAlbumData(data: AlbumPage): AlbumBrowse {
         tracks = songs,
         type = "Album",
         year = data.album.year.toString(),
+        otherVersion =
+            data.otherVersion.map {
+                ResultAlbum(
+                    browseId = it.browseId,
+                    isExplicit = it.explicit,
+                    thumbnails = listOf(Thumbnail(800, it.thumbnail, 800)),
+                    title = it.title,
+                    year = data.album.year.toString(),
+                )
+            },
     )
 }
