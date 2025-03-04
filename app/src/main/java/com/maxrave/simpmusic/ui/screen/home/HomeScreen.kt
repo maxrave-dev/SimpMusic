@@ -253,22 +253,24 @@ fun HomeScreen(
                     .padding(vertical = 8.dp, horizontal = 15.dp),
         ) {
             Config.listOfHomeChip.forEach { id ->
+                val isSelected =
+                    when (params) {
+                        Constants.HOME_PARAMS_RELAX -> id == R.string.relax
+                        Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
+                        Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
+                        Constants.HOME_PARAMS_SAD -> id == R.string.sad
+                        Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
+                        Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
+                        Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
+                        Constants.HOME_PARAMS_PARTY -> id == R.string.party
+                        Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
+                        Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
+                        else -> id == R.string.all
+                    }
                 Spacer(modifier = Modifier.width(4.dp))
                 Chip(
-                    isSelected =
-                        when (params) {
-                            Constants.HOME_PARAMS_RELAX -> id == R.string.relax
-                            Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
-                            Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
-                            Constants.HOME_PARAMS_SAD -> id == R.string.sad
-                            Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
-                            Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
-                            Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
-                            Constants.HOME_PARAMS_PARTY -> id == R.string.party
-                            Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
-                            Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
-                            else -> id == R.string.all
-                        },
+                    isAnimated = loading,
+                    isSelected = isSelected,
                     text = stringResource(id = id),
                 ) {
                     when (id) {
