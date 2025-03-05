@@ -30,10 +30,12 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,6 +75,7 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItemArtist
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeItemVideo
+import com.maxrave.simpmusic.ui.component.LimitedBorderAnimationView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
@@ -170,60 +174,84 @@ fun ArtistScreen(
                                 AnimatedVisibility(canvasUrl != null) {
                                     Row {
                                         val canvas = canvasUrl ?: return@Row
-                                        MediaPlayerView(
-                                            url = canvas.first,
-                                            modifier =
-                                                Modifier
-                                                    .width(28.dp)
-                                                    .height(ButtonDefaults.MinHeight)
-                                                    .align(Alignment.CenterVertically)
-                                                    .border(
-                                                        width = 0.5.dp,
-                                                        color =
-                                                            Color.White.copy(
-                                                                alpha = 0.8f,
-                                                            ),
-                                                        shape = RoundedCornerShape(4.dp),
-                                                    ).clip(RoundedCornerShape(4.dp))
-                                                    .clickable {
-                                                        val firstQueue: Track = canvas.second.toTrack()
-                                                        viewModel.setQueueData(
-                                                            QueueData(
-                                                                listTracks = arrayListOf(firstQueue),
-                                                                firstPlayedTrack = firstQueue,
-                                                                playlistId = "RDAMVM${firstQueue.videoId}",
-                                                                playlistName = "\"${(state.data.title ?: "")}\" ${context.getString(
-                                                                    R.string.popular,
-                                                                )}",
-                                                                playlistType = PlaylistType.RADIO,
-                                                                continuation = null,
-                                                            ),
-                                                        )
-                                                        viewModel.loadMediaItem(
-                                                            firstQueue,
-                                                            type = Config.SONG_CLICK,
-                                                        )
-                                                    },
-                                        )
+                                        LimitedBorderAnimationView(
+                                            isAnimated = true,
+                                            brush = Brush.sweepGradient(listOf(Color.Transparent, Color.White)),
+                                            backgroundColor = Color.Transparent,
+                                            contentPadding = 2.dp,
+                                            borderWidth = 1.dp,
+                                            shape = RoundedCornerShape(4.dp),
+                                            oneCircleDurationMillis = 3000,
+                                            interactionNumber = 1,
+                                        ) {
+                                            MediaPlayerView(
+                                                url = canvas.first,
+                                                modifier =
+                                                    Modifier
+                                                        .width(28.dp)
+                                                        .height(ButtonDefaults.MinHeight)
+                                                        .align(Alignment.CenterVertically)
+                                                        .border(
+                                                            width = 0.5.dp,
+                                                            color =
+                                                                Color.White.copy(
+                                                                    alpha = 0.8f,
+                                                                ),
+                                                            shape = RoundedCornerShape(4.dp),
+                                                        ).clip(RoundedCornerShape(4.dp))
+                                                        .clickable {
+                                                            val firstQueue: Track = canvas.second.toTrack()
+                                                            viewModel.setQueueData(
+                                                                QueueData(
+                                                                    listTracks = arrayListOf(firstQueue),
+                                                                    firstPlayedTrack = firstQueue,
+                                                                    playlistId = "RDAMVM${firstQueue.videoId}",
+                                                                    playlistName = "\"${(state.data.title ?: "")}\" ${context.getString(
+                                                                        R.string.popular,
+                                                                    )}",
+                                                                    playlistType = PlaylistType.RADIO,
+                                                                    continuation = null,
+                                                                ),
+                                                            )
+                                                            viewModel.loadMediaItem(
+                                                                firstQueue,
+                                                                type = Config.SONG_CLICK,
+                                                            )
+                                                        },
+                                            )
+                                        }
                                         Spacer(Modifier.width(12.dp))
                                     }
                                 }
-                                OutlinedButton(
-                                    onClick = {
-                                        viewModel.updateFollowed(
-                                            if (isFollowed) 0 else 1,
-                                            state.data.channelId ?: return@OutlinedButton,
-                                        )
-                                    },
-                                    colors =
-                                        ButtonDefaults.outlinedButtonColors().copy(
-                                            contentColor = Color.White,
-                                        ),
+                                LimitedBorderAnimationView(
+                                    isAnimated = !isFollowed,
+                                    brush = Brush.sweepGradient(listOf(Color.Gray, Color.White)),
+                                    backgroundColor = Color.Transparent,
+                                    contentPadding = 0.dp,
+                                    borderWidth = 2.dp,
+                                    shape = ButtonDefaults.outlinedShape,
+                                    oneCircleDurationMillis = 3000,
+                                    interactionNumber = 1,
                                 ) {
-                                    if (isFollowed) {
-                                        Text(text = stringResource(R.string.followed))
-                                    } else {
-                                        Text(text = stringResource(R.string.follow))
+                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                        OutlinedButton(
+                                            onClick = {
+                                                viewModel.updateFollowed(
+                                                    if (isFollowed) 0 else 1,
+                                                    state.data.channelId ?: return@OutlinedButton,
+                                                )
+                                            },
+                                            colors =
+                                                ButtonDefaults.outlinedButtonColors().copy(
+                                                    contentColor = Color.White,
+                                                ),
+                                        ) {
+                                            if (isFollowed) {
+                                                Text(text = stringResource(R.string.followed))
+                                            } else {
+                                                Text(text = stringResource(R.string.follow))
+                                            }
+                                        }
                                     }
                                 }
                                 Spacer(Modifier.width(4.dp))
