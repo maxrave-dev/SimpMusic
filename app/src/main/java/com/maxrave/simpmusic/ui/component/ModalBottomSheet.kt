@@ -1935,7 +1935,7 @@ fun AddToPlaylistModalBottomSheet(
                                         .fillMaxWidth()
                                         .padding(vertical = 3.dp)
                                         .clickable(
-                                            enabled = playlist.tracks?.contains(videoId) == false,
+                                            enabled = playlist.tracks?.contains(videoId) != true,
                                             onClick = {
                                                 onClick(playlist)
                                                 hideModalBottomSheet()
