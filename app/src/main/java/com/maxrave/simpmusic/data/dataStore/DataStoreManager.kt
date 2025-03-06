@@ -12,6 +12,7 @@ import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
+import com.maxrave.simpmusic.utils.VersionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -24,6 +25,48 @@ import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 class DataStoreManager(
     private val settingsDataStore: DataStore<Preferences>,
 ) {
+    val appVersion: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[APP_VERSION] ?: VersionManager.getVersionName()
+        }
+
+    suspend fun setAppVersion(version: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[APP_VERSION] = version
+            }
+        }
+    }
+
+    val openAppTime: Flow<Int> =
+        settingsDataStore.data.map { preferences ->
+            preferences[OPEN_APP_TIME] ?: 0
+        }
+
+    suspend fun openApp() {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[OPEN_APP_TIME] = openAppTime.first() + 1
+            }
+        }
+    }
+
+    suspend fun resetOpenAppTime() {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[OPEN_APP_TIME] = 0
+            }
+        }
+    }
+
+    suspend fun doneOpenAppTime() {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[OPEN_APP_TIME] = 31
+            }
+        }
+    }
+
     val location: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[LOCATION] ?: "VN"
@@ -773,6 +816,7 @@ class DataStoreManager(
     }
 
     companion object Settings {
+        val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
         val LOCATION = stringPreferencesKey("location")
@@ -820,6 +864,7 @@ class DataStoreManager(
         val BLUR_PLAYER_BACKGROUND = stringPreferencesKey("blur_player_background")
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val PITCH = intPreferencesKey("pitch")
+        val OPEN_APP_TIME = intPreferencesKey("open_app_time")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

@@ -63,6 +63,7 @@ import com.maxrave.simpmusic.service.SleepTimerState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import kotlinx.coroutines.Dispatchers
@@ -143,8 +144,8 @@ class SharedViewModel(
     private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
     val format: SharedFlow<NewFormatEntity?> = _format.asSharedFlow()
 
-    private var _canvas: MutableStateFlow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> = MutableStateFlow(null)
-    val canvas: StateFlow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> = _canvas
+    private var _canvas: MutableStateFlow<CanvasResponse?> = MutableStateFlow(null)
+    val canvas: StateFlow<CanvasResponse?> = _canvas
 
     private var canvasJob: Job? = null
 
@@ -154,11 +155,7 @@ class SharedViewModel(
 
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    private var _listYouTubeLiked: MutableStateFlow<ArrayList<String>?> = MutableStateFlow(null)
-    val listYouTubeLiked: SharedFlow<ArrayList<String>?> = _listYouTubeLiked.asSharedFlow()
-
     var isFullScreen: Boolean = false
-    var isSubtitle: Boolean = true
 
     private var _nowPlayingState = MutableStateFlow<NowPlayingTrackState?>(null)
     val nowPlayingState: StateFlow<NowPlayingTrackState?> = _nowPlayingState
@@ -207,9 +204,18 @@ class SharedViewModel(
     private var _likeStatus = MutableStateFlow<Boolean>(false)
     val likeStatus: StateFlow<Boolean> = _likeStatus
 
+    val openAppTime: StateFlow<Int> = dataStoreManager.openAppTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
+
     init {
         mainRepository.initYouTube(viewModelScope)
         viewModelScope.launch {
+            if (dataStoreManager.appVersion.first() != VersionManager.getVersionName()) {
+                dataStoreManager.resetOpenAppTime()
+                dataStoreManager.setAppVersion(
+                    VersionManager.getVersionName(),
+                )
+            }
+            dataStoreManager.openApp()
             val timeLineJob =
                 launch {
                     combine(
@@ -422,9 +428,6 @@ class SharedViewModel(
             sleepTimerJob.join()
             playlistNameJob.join()
         }
-        if (runBlocking { dataStoreManager.loggedIn.first() } == TRUE) {
-            getYouTubeLiked()
-        }
     }
 
     fun blurFullscreenLyrics(): Boolean = runBlocking { dataStoreManager.blurFullscreenLyrics.first() == TRUE }
@@ -436,19 +439,6 @@ class SharedViewModel(
                 mainRepository.getLikeStatus(videoId).collectLatest { status ->
                     _likeStatus.value = status
                 }
-            }
-        }
-    }
-
-    private fun getYouTubeLiked() {
-        viewModelScope.launch {
-            mainRepository.getPlaylistData("VLLM").collect { response ->
-                val list =
-                    response.data
-                        ?.tracks
-                        ?.map { it.videoId }
-                        ?.toCollection(ArrayList())
-                _listYouTubeLiked.value = list
             }
         }
     }
@@ -1537,6 +1527,12 @@ class SharedViewModel(
 
     fun downloadFileDone() {
         _downloadFileProgress.value = DownloadProgress.INIT
+    }
+
+    fun onDoneReview() {
+        viewModelScope.launch {
+            dataStoreManager.doneOpenAppTime()
+        }
     }
 }
 

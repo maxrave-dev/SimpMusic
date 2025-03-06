@@ -100,6 +100,7 @@ import com.maxrave.simpmusic.ui.component.ItemTrackChart
 import com.maxrave.simpmusic.ui.component.ItemVideoChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
+import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -142,6 +143,12 @@ fun HomeScreen(
 
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsState()
 
+    val openAppTime by sharedViewModel.openAppTime.collectAsState()
+
+    var showReviewDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val onRefresh: () -> Unit = {
         isRefreshing = true
         viewModel.getHomeItemList()
@@ -170,6 +177,22 @@ fun HomeScreen(
     }
     LaunchedEffect(key1 = homeData) {
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
+    }
+    LaunchedEffect(openAppTime) {
+        if (openAppTime >= 10 && openAppTime % 10 == 0 && openAppTime <= 30) {
+            showReviewDialog = true
+        }
+    }
+
+    if (showReviewDialog) {
+        ReviewDialog(
+            onDismissRequest = {
+                showReviewDialog = false
+            },
+            onDoneReview = {
+                sharedViewModel.onDoneReview()
+            },
+        )
     }
 
     if (shouldShowLogInAlert) {

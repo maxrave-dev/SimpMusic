@@ -398,4 +398,10 @@
     <string name="download_speed">Download speed:  %1$s </string>
     <string name="shuffle">Shuffle</string>
     <string name="other_version">Other version</string>
+    <string name="later">Later</string>
+    <string name="give_a_star">Give a star</string>
+    <string name="enjoying_simpmusic">Enjoying SimpMusic</string>
+    <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">If you enjoy using SimpMusic, star SimpMusic on GitHub or leave a review on</string>
+    <string name="if_you_love_my_work_consider">"If you love my work, consider "</string>
+    <string name="buying_me_a_coffee">buying me a coffee.</string>
 </resources>
