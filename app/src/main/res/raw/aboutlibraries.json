@@ -13,14 +13,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.10.0",
+            "artifactVersion": "1.10.1",
             "description": "Provides the base Activity subclass and the relevant hooks to build a composable structure on top.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Activity",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.10.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.10.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -38,14 +38,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.10.0",
+            "artifactVersion": "1.10.1",
             "description": "Compose integration with Activity",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Activity Compose",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.10.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.10.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -63,14 +63,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.10.0",
+            "artifactVersion": "1.10.1",
             "description": "Kotlin extensions for 'activity' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Activity Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.10.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.10.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -908,14 +908,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.2.0",
+            "artifactVersion": "2.2.1",
             "description": "This library offers a flexible and adaptable way to position and animate widgets",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "ConstraintLayout",
-            "website": "https://developer.android.com/jetpack/androidx/releases/constraintlayout#2.2.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/constraintlayout#2.2.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -933,14 +933,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.0",
+            "artifactVersion": "1.1.1",
             "description": "This library offers a flexible and adaptable way to position and animate widgets in Compose",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "ConstraintLayout Compose",
-            "website": "https://developer.android.com/jetpack/androidx/releases/constraintlayout#1.1.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/constraintlayout#1.1.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -958,14 +958,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.0",
+            "artifactVersion": "1.1.1",
             "description": "This library contains engines and algorithms for constraint based layout and complex animations (it is used by the ConstraintLayout library)",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "ConstraintLayout Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/constraintlayout#1.1.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/constraintlayout#1.1.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1038,6 +1038,31 @@
             },
             "name": "Core Kotlin Extensions",
             "website": "https://developer.android.com/jetpack/androidx/releases/core#1.15.0",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "name": "The Android Open Source Project"
+            }
+        },
+        {
+            "uniqueId": "androidx.core:core-viewtree",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "The Android Open Source Project"
+                }
+            ],
+            "artifactVersion": "1.0.0",
+            "description": "Provides ViewTree extensions packaged for use by other core androidx libraries",
+            "scm": {
+                "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
+                "url": "https://cs.android.com/androidx/platform/frameworks/support"
+            },
+            "name": "androidx.core:core-viewtree",
+            "website": "https://developer.android.com/jetpack/androidx/releases/core#1.0.0",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1186,7 +1211,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "8.8.1",
+            "artifactVersion": "8.8.2",
             "description": "",
             "name": "androidx.databinding:viewbinding",
             "licenses": [
@@ -1203,14 +1228,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.2",
+            "artifactVersion": "1.1.3",
             "description": "Android DataStore - contains the underlying store used by each serialization method along with components that require an Android dependency",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "DataStore",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1228,14 +1253,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.2",
+            "artifactVersion": "1.1.3",
             "description": "Android DataStore Core - contains the underlying store used by each serialization method",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "DataStore Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1253,14 +1278,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.2",
+            "artifactVersion": "1.1.3",
             "description": "Android DataStore Core Okio- contains APIs to use datastore-core in multiplatform via okio",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "DataStore Core Okio",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1278,14 +1303,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.2",
+            "artifactVersion": "1.1.3",
             "description": "Android Preferences DataStore",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences DataStore",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1303,14 +1328,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.2",
+            "artifactVersion": "1.1.3",
             "description": "Android Preferences DataStore without the Android Dependencies",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences DataStore Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1328,14 +1353,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.2",
+            "artifactVersion": "1.1.3",
             "description": "Repackaged proto-lite dependency for use by datastore preferences",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences External Protobuf",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
             "licenses": [
                 "BSD-3-Clause"
             ],
@@ -1353,14 +1378,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.2",
+            "artifactVersion": "1.1.3",
             "description": "Jarjar the generated proto for use by datastore-preferences.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences DataStore Proto",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2504,14 +2529,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-Common",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Common",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2529,14 +2554,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-Common-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Common Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2554,14 +2579,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-Fragment",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Fragment",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2579,14 +2604,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-Fragment-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Fragment Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2604,14 +2629,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2629,14 +2654,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-Runtime-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Runtime Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2654,14 +2679,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-UI",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation UI",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2679,14 +2704,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.7",
+            "artifactVersion": "2.8.8",
             "description": "Android Navigation-UI-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation UI Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.7",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -3903,26 +3928,59 @@
             ]
         },
         {
-            "uniqueId": "com.github.teamnewpipe.NewPipeExtractor:NewPipeExtractor",
+            "uniqueId": "com.github.spotbugs:spotbugs-annotations",
             "funding": [
                 
             ],
             "developers": [
                 {
-                    "name": "Team NewPipe"
+                    "name": "Juan Mart\u00edn Sotuyo Dodero"
+                },
+                {
+                    "name": "Dave Brosius"
+                },
+                {
+                    
+                },
+                {
+                    "name": "Kengo TODA"
+                },
+                {
+                    "name": "Andrey Loskutov"
+                },
+                {
+                    
+                },
+                {
+                    "name": "Andreas Sewe"
                 }
             ],
-            "artifactVersion": "aa673635530e131c48762c9eb8b610bea9249495",
-            "description": "NewPipe's core library for extracting data from streaming sites",
+            "artifactVersion": "4.8.6",
+            "description": "Annotations the SpotBugs tool supports",
             "scm": {
-                "connection": "scm:git://github.com/TeamNewPipe/NewPipeExtractor.git",
-                "url": "git://github.com/TeamNewPipe/NewPipeExtractor.git",
-                "developerConnection": "scm:git://github.com/TeamNewPipe/NewPipeExtractor.git"
+                "connection": "scm:git:git@github.com:spotbugs/spotbugs.git",
+                "url": "https://github.com/spotbugs/spotbugs/",
+                "developerConnection": "scm:git:git@github.com:spotbugs/spotbugs.git"
             },
-            "name": "TeamNewPipe/NewPipeExtractor",
-            "website": "https://github.com/TeamNewPipe/NewPipeExtractor",
+            "name": "SpotBugs Annotations",
+            "website": "https://spotbugs.github.io/",
             "licenses": [
-                "GPL-3.0-only"
+                "661262633bc6fbb1ae2446f60a5bb0e0"
+            ]
+        },
+        {
+            "uniqueId": "com.github.teamnewpipe.NewPipeExtractor:NewPipeExtractor",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "v0.24.5",
+            "description": "",
+            "name": "com.github.teamnewpipe.NewPipeExtractor:NewPipeExtractor",
+            "licenses": [
+                
             ]
         },
         {
@@ -3931,21 +3989,13 @@
                 
             ],
             "developers": [
-                {
-                    "name": "Team NewPipe"
-                }
+                
             ],
-            "artifactVersion": "aa673635530e131c48762c9eb8b610bea9249495",
-            "description": "NewPipe's core library for extracting data from streaming sites",
-            "scm": {
-                "connection": "scm:git://github.com/TeamNewPipe/NewPipeExtractor.git",
-                "url": "git://github.com/TeamNewPipe/NewPipeExtractor.git",
-                "developerConnection": "scm:git://github.com/TeamNewPipe/NewPipeExtractor.git"
-            },
-            "name": "TeamNewPipe/NewPipeExtractor",
-            "website": "https://github.com/TeamNewPipe/NewPipeExtractor",
+            "artifactVersion": "v0.24.5",
+            "description": "",
+            "name": "com.github.teamnewpipe.NewPipeExtractor:extractor",
             "licenses": [
-                "GPL-3.0-only"
+                
             ]
         },
         {
@@ -3954,21 +4004,13 @@
                 
             ],
             "developers": [
-                {
-                    "name": "Team NewPipe"
-                }
+                
             ],
-            "artifactVersion": "aa673635530e131c48762c9eb8b610bea9249495",
-            "description": "NewPipe's core library for extracting data from streaming sites",
-            "scm": {
-                "connection": "scm:git://github.com/TeamNewPipe/NewPipeExtractor.git",
-                "url": "git://github.com/TeamNewPipe/NewPipeExtractor.git",
-                "developerConnection": "scm:git://github.com/TeamNewPipe/NewPipeExtractor.git"
-            },
-            "name": "TeamNewPipe/NewPipeExtractor",
-            "website": "https://github.com/TeamNewPipe/NewPipeExtractor",
+            "artifactVersion": "v0.24.5",
+            "description": "",
+            "name": "com.github.teamnewpipe.NewPipeExtractor:timeago-parser",
             "licenses": [
-                "GPL-3.0-only"
+                
             ]
         },
         {
@@ -3979,7 +4021,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "aa673635530e131c48762c9eb8b610bea9249495",
+            "artifactVersion": "v0.24.5",
             "description": "",
             "name": "com.github.teamnewpipe:NewPipeExtractor",
             "licenses": [
@@ -6260,7 +6302,7 @@
                     "name": "Jonathan Hedley"
                 }
             ],
-            "artifactVersion": "1.18.3",
+            "artifactVersion": "1.17.2",
             "description": "jsoup is a Java library that simplifies working with real-world HTML and XML. It offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM API methods, CSS, and xpath selectors. jsoup implements the WHATWG HTML5 specification, and parses HTML to the same DOM as modern browsers.",
             "scm": {
                 "connection": "scm:git:https://github.com/jhy/jsoup.git",
@@ -6464,6 +6506,11 @@
         }
     ],
     "licenses": {
+        "661262633bc6fbb1ae2446f60a5bb0e0": {
+            "hash": "661262633bc6fbb1ae2446f60a5bb0e0",
+            "url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
+            "name": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1"
+        },
         "7e0a5c95226b9000fe743af89c8a434f": {
             "hash": "7e0a5c95226b9000fe743af89c8a434f",
             "url": "https://www.gnu.org/licenses/lgpl-3.0.txt",
@@ -6492,13 +6539,6 @@
             "url": "https://spdx.org/licenses/BSD-3-Clause.html",
             "spdxId": "BSD-3-Clause",
             "name": "BSD 3-Clause \"New\" or \"Revised\" License"
-        },
-        "GPL-3.0-only": {
-            "hash": "GPL-3.0-only",
-            "internalHash": "GPL-3.0-only",
-            "url": "https://api.github.com/licenses/gpl-3.0",
-            "spdxId": "GPL-3.0-only",
-            "name": "GNU General Public License v3.0"
         },
         "MIT": {
             "content": "MIT License\n\nCopyright (c) <year> <copyright holders>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
