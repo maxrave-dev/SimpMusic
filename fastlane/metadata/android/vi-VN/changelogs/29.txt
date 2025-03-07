@@ -1,0 +1,5 @@
+- Cập nhật một số hiệu ứng giao diện người dùng mới
+- Tự động lưu lời bài hát
+- Mục canvas mới trong màn hình Thư viện
+- Các phiên bản khác của một album
+- Sửa nút `thêm vào danh sách phát`
