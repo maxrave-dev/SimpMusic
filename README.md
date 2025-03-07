@@ -9,6 +9,8 @@
 <br>
 <a href="https://apt.izzysoft.de/packages/com.maxrave.simpmusic/"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80"></a>
 <a href="https://f-droid.org/en/packages/com.maxrave.simpmusic/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80"></a>
+<a href="https://www.openapk.net/simpmusic/com.maxrave.simpmusic/"><img src="https://www.openapk.net/images/openapk-badge.png" height="80"></a>
+<a href="https://www.androidfreeware.net/download-simpmusic-apk.html"><img src="https://www.androidfreeware.net/images/androidfreeware-badge.png" height="80"></a>
 <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a>
 <a href="https://www.producthunt.com/posts/simpmusic?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-simpmusic" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=797736&theme=light&t=1737299913224" alt="SimpMusic - A&#0032;FOSS&#0032;YouTube&#0032;Music&#0032;client&#0032;for&#0032;Android&#0032;with&#0032;many&#0032;features | Product Hunt" style="width: 250px; height: 80px;" width="250" height="80" /></a>
 <h3>Nightly Build<h3>
