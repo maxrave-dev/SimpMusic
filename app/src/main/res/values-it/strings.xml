@@ -99,7 +99,7 @@
     <string name="chart">Classifica</string>
     <string name="global">Globale</string>
     <string name="top_tracks">Top tracce</string>
-    <string name="top_artists">Top artistsdalartistsdall</string>
+    <string name="top_artists">Top artisti</string>
     <string name="your_playlist">La tua playlist</string>
     <string name="lyrics">Testi</string>
     <string name="all">Tutto</string>
@@ -110,7 +110,7 @@
     <string name="downloaded_cache">Cache dei Download</string>
     <string name="thumbnail_cache">Cache delle Copertine</string>
     <string name="backup">Backup</string>
-    <string name="backup_your_data">MPlaylist • %1$s</string>
+    <string name="backup_your_data">Fai un backup dei tuoi dati</string>
     <string name="save_all_your_playlist_data">Salva tutti i dati delle tue playlist</string>
     <string name="restore_your_data">Ripristina i tuoi dati</string>
     <string name="restore_your_saved_data">Ripristina i tuoi dati salvari</string>
@@ -138,7 +138,7 @@
     <string name="crash_log">SimpMusic è crashato. Ci scusiamo per questo problema. Invia il log del crash allo sviluppatore</string>
     <string name="crash">Crash</string>
     <string name="send">Invia</string>
-    <string name="mail_subject">Riporta il Crash</string>
+    <string name="mail_subject">Segnala Crash</string>
     <string name="delete_song_from_playlist">Elimina questa canzone dalla playlist</string>
     <string name="log_in">Accedi</string>
     <string name="log_in_to_YouTube">Accedi to YouTube</string>
@@ -188,7 +188,7 @@
     <string name="poi_highlight">Evidenziare</string>
     <string name="filler">Riempitivo</string>
     <string name="sponsorBlock">SponsorBlock</string>
-    <string name="enable_sponsor_block">Abilitare SponsorBlock</string>
+    <string name="enable_sponsor_block">Abilita SponsorBlock</string>
     <string name="categories_sponsor_block">Seleziona il comportamento di salto del segmento</string>
     <string name="what_segments_will_be_skipped">Quali segmenti verranno saltati</string>
     <string name="save">Salva</string>
@@ -198,9 +198,9 @@
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Si è verificato un errore imprevisto. Ci dispiace per l\'inconvenienza.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Riavvia l\'app</string>
     <string name="customactivityoncrash_error_activity_close_app">Chiudi l\'app</string>
-    <string name="customactivityoncrash_error_activity_error_details">Dettagli circa l\'errore</string>
-    <string name="customactivityoncrash_error_activity_error_details_title">Dettagli circa l\'errore</string>
-    <string name="customactivityoncrash_error_activity_error_details_close">Vicino</string>
+    <string name="customactivityoncrash_error_activity_error_details">Dettagli errore</string>
+    <string name="customactivityoncrash_error_activity_error_details_title">Dettagli errore</string>
+    <string name="customactivityoncrash_error_activity_error_details_close">Chiudi</string>
     <string name="customactivityoncrash_error_activity_error_details_copy">Copia negli appunti</string>
     <string name="customactivityoncrash_error_activity_error_details_copied">Copiato negli appunti</string>
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Informazioni sull\'errore</string>
@@ -210,7 +210,7 @@
     <string name="sleep_minutes">Tempo del conto alla rovescia (minuti)</string>
     <string name="set">Impostato</string>
     <string name="sleep_timer_off_done">Interruzione del timer di spegnimento completata</string>
-    <string name="sleep_timer_set_error">Si prega di impostare l\'ora del formato corretta</string>
+    <string name="sleep_timer_set_error">Si prega di impostare l\'ora nel formato corretto</string>
     <string name="sleep_timer_warning">Rimuovere il timer di spegnimento?</string>
     <string name="yes">SÌ</string>
     <string name="welcome_back">Bentornato,</string>
@@ -281,7 +281,7 @@
     </plurals>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENUTO</string>
-    <string name="play_video_instead_of_audio_warning">Questa azione eliminerà la cache del giocatore. Continuare?</string>
+    <string name="play_video_instead_of_audio_warning">Questa azione eliminerà la cache del lettore. Continuare?</string>
     <string name="quality_video">Qualità video</string>
     <string name="add_to_queue">Aggiungi alla coda</string>
     <string name="added_to_queue">Aggiunto alla coda</string>
@@ -357,6 +357,14 @@
     <string name="updating">Aggiornando</string>
     <string name="go_to_log_in_page">Vai alla pagina di accesso</string>
     <string name="log_in_warning">YouTube Music ora richiede di accedere per riprodurre musica, quindi l\'istanza Piped potrebbe occasionalmente non funzionare. Si consiglia di accedere a YouTube per ottenere un\'esperienza migliore con SimpMusic.</string>
+    <string name="spotify_canvas_cache">Cache di Spotify Canvas</string>
+    <string name="clear_canvas_cache">Pulisci la cache di Spotify Canvas</string>
+    <string name="proxy">Proxy</string>
+    <string name="proxy_description">Usa il proxy per bypassare il blocco dei contenuti</string>
+    <string name="proxy_type">Tipo di Proxy</string>
+    <string name="http">HTTP</string>
+    <string name="socks">Socks</string>
+    <string name="proxy_host">Host Proxy</string>
     <string name="invalid_host">Host non valido</string>
     <string name="proxy_port">Porta proxy</string>
     <string name="invalid_port">Porta non valida</string>
@@ -370,7 +378,21 @@
     <string name="auto_check_for_update">Controllo automatico degli aggiornamenti</string>
     <string name="auto_check_for_update_description">Controllo degli aggiornamenti all\'apertura dell\'app</string>
     <string name="blur_fullscreen_lyrics">Sfoca effetto testo a schermo intero</string>
+    <string name="blur_fullscreen_lyrics_description">Sfoca lo sfondo dell\'effetto Schermo intero del testo</string>
     <string name="playback_speed_pitch"><![CDATA[Velocità di riproduzione e tono]]></string>
     <string name="playback_speed">Velocità di riproduzione</string>
     <string name="pitch">Tono</string>
+    <string name="blur_player_background">Sfoca lo sfondo del Player</string>
+    <string name="blur_player_background_description">Sfoca lo sfondo dell\'effetto della schermata di riproduzione</string>
+    <string name="merging_audio_and_video">Unione di audio e video</string>
+    <string name="error_occurred">C\'è stato un problema</string>
+    <string name="downloading_audio">Download dell\'audio in corso: %1$s </string>
+    <string name="downloading_video">Download del video in corso: %1$s </string>
+    <string name="ok">OK</string>
+    <string name="to_download_folder">" alla cartella dei Download"</string>
+    <string name="download_speed">Velocità di download: %1$s </string>
+    <string name="shuffle">Shuffle</string>
+    <string name="other_version">Altra versione</string>
+    <string name="later">Dopo</string>
+    <string name="give_a_star">Dai una stella</string>
 </resources>

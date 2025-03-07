@@ -391,4 +391,12 @@
     <string name="ok">OK</string>
     <string name="to_download_folder">" vers le dossier de téléchargement"</string>
     <string name="download_speed">Vitesse de téléchargement:  %1$s </string>
+    <string name="shuffle">Jouer aléatoirement</string>
+    <string name="other_version">Autre version</string>
+    <string name="later">Plus tard</string>
+    <string name="give_a_star">Donner une étoile</string>
+    <string name="enjoying_simpmusic">Vous appréciez SimpMusic</string>
+    <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">Si vous aimez utiliser SimpMusic, donnez une étoile à SimpMusic sur GitHub ou laissez un avis sur</string>
+    <string name="if_you_love_my_work_consider">"Si vous aimez mon travail, considérez "</string>
+    <string name="buying_me_a_coffee">m\'offrir un café.</string>
 </resources>

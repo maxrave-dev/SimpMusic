@@ -390,4 +390,6 @@
     <string name="ok">ตกลง</string>
     <string name="to_download_folder">" ไปที่โฟลเดอร์ดาวน์โหลด"</string>
     <string name="download_speed">ความเร็วในการดาวน์โหลด: %1$s </string>
+    <string name="shuffle">สลับ</string>
+    <string name="other_version">เวอร์ชั่นอื่น</string>
 </resources>

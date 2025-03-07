@@ -331,4 +331,10 @@
     <string name="hour_s_ago">%1$d godz. temu</string>
     <string name="no_notification">Brak powiadomienia</string>
     <string name="created_at">Utworzono: %1$s</string>
+    <string name="user_interface">Interfejs</string>
+    <string name="donation">Jeśli lubisz moją pracę, kup mi kawę</string>
+    <string name="relax">Relaksujący</string>
+    <string name="sleep">Sen</string>
+    <string name="sad">Smutne</string>
+    <string name="party">Impreza</string>
 </resources>

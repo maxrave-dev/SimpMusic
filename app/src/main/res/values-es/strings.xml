@@ -186,6 +186,7 @@
     <string name="preview">Vista previa</string>
     <string name="music_off_topic">Musica Off-topic</string>
     <string name="poi_highlight">Resaltar POI</string>
+    <string name="filler">Relleno</string>
     <string name="sponsorBlock">Bloqueo de patrocinadores</string>
     <string name="enable_sponsor_block">Activar SponsorBlock</string>
     <string name="categories_sponsor_block">Seleccionar segmentos a saltar</string>
@@ -377,7 +378,13 @@
     <string name="auto_check_for_update">Comprobar actualizaciones automáticamente</string>
     <string name="auto_check_for_update_description">Comprobando actualizaciones al abrir la aplicación</string>
     <string name="blur_fullscreen_lyrics">Efecto de desenfoque de letra a pantalla completa</string>
+    <string name="blur_fullscreen_lyrics_description">Efecto de desenfoque del fondo de la pantalla de letras en pantalla completa</string>
+    <string name="playback_speed_pitch"><![CDATA[Velocidad de reproducción y tono]]></string>
     <string name="playback_speed">Velocidad de reproducción</string>
+    <string name="pitch">Tono</string>
+    <string name="blur_player_background">Desenfocar el fondo del reproductor</string>
+    <string name="blur_player_background_description">Efecto de desenfoque del fondo de la pantalla de reproducción actual</string>
+    <string name="merging_audio_and_video">Combinando audio y vídeo</string>
     <string name="error_occurred">Ocurrió un error</string>
     <string name="downloading_audio">Descargando audio: %1$s </string>
     <string name="downloading_video">Descargando video: %1$s </string>
