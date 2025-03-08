@@ -785,10 +785,10 @@ class SimpleMediaServiceHandler(
         mediaItem: MediaItem?,
         reason: Int,
     ) {
-        Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
+        Log.w(TAG, "Smooth Switching Transition Current Position: ${player.currentPosition}")
         mayBeNormalizeVolume()
-        Log.w("REASON", "onMediaItemTransition: $reason")
-        Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+        Log.w(TAG, "REASON onMediaItemTransition: $reason")
+        Log.d(TAG, "Media Item Transition Media Item: ${mediaItem?.mediaMetadata?.title}")
         if (mediaItem?.mediaId != _nowPlaying.value?.mediaId) {
             _nowPlaying.value = mediaItem
         }
@@ -1158,25 +1158,44 @@ class SimpleMediaServiceHandler(
         }
 
         player.currentMediaItem?.mediaId?.let { songId ->
+            val videoId =
+                if (songId.contains("Video")) {
+                    songId.removePrefix("Video")
+                } else {
+                    songId
+                }
             volumeNormalizationJob?.cancel()
             volumeNormalizationJob =
                 coroutineScope.launch(Dispatchers.Main) {
-                    mainRepository.getNewFormat(songId).cancellable().first().let { format ->
-                        if (format != null) {
-                            try {
-                                loudnessEnhancer?.setTargetGain(
-                                    -((format.loudnessDb ?: 0f) * 100).toInt() + 500,
-                                )
-                                Log.w(
-                                    "Loudness",
-                                    "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}",
-                                )
-                                loudnessEnhancer?.enabled = true
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                    fun Float?.toMb() = ((this ?: 0f) * 100).toInt()
+                    mainRepository
+                        .getFormatFlow(videoId)
+                        .cancellable()
+                        .distinctUntilChanged()
+                        .collectLatest { format ->
+                            if (format != null) {
+                                val loudnessMb =
+                                    format.loudnessDb.toMb().let {
+                                        if (it !in -2000..2000) {
+                                            0
+                                        } else {
+                                            it
+                                        }
+                                    }
+                                Log.d(TAG, "Loudness: ${format.loudnessDb} db, $loudnessMb")
+                                try {
+                                    loudnessEnhancer?.setTargetGain(0f.toMb() - loudnessMb)
+                                    loudnessEnhancer?.enabled = true
+                                    Log.w(
+                                        TAG,
+                                        "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}",
+                                    )
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
+                                    e.printStackTrace()
+                                }
                             }
                         }
-                    }
                 }
         }
     }
