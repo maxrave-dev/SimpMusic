@@ -127,6 +127,8 @@ class SettingsViewModel(
     val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
     private var _blurPlayerBackground = MutableStateFlow(false)
     val blurPlayerBackground: StateFlow<Boolean> = _blurPlayerBackground
+    private var _fadeAudioEffect = MutableStateFlow(0)
+    val fadeAudioEffect: StateFlow<Int> = _fadeAudioEffect
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -178,6 +180,21 @@ class SettingsViewModel(
         getBlurPlayerBackground()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getFadeDuration() {
+        viewModelScope.launch {
+            dataStoreManager.fadeVolume.collect { fadeAudioEffect ->
+                _fadeAudioEffect.value = fadeAudioEffect
+            }
+        }
+    }
+
+    fun setFadeDuration(fadeDuration: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setFadeVolume(fadeDuration)
+            getFadeDuration()
         }
     }
 

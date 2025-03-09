@@ -404,4 +404,9 @@
     <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">If you enjoy using SimpMusic, star SimpMusic on GitHub or leave a review on</string>
     <string name="if_you_love_my_work_consider">"If you love my work, consider "</string>
     <string name="buying_me_a_coffee">buying me a coffee.</string>
+    <string name="fade_audio_effect">Fade audio effect</string>
+    <string name="disabled">Disable</string>
+    <string name="fade_audio_effect_duration">Fade audio effect duration (ms) (Set to 0 for disable)</string>
+    <string name="duration">Duration</string>
+    <string name="invalid_number">Invalid number</string>
 </resources>

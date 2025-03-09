@@ -191,6 +191,7 @@ fun SettingScreen(
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
     val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
+    val fadeAudioEffect by viewModel.fadeAudioEffect.collectAsStateWithLifecycle()
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
@@ -560,6 +561,30 @@ fun SettingScreen(
                     title = stringResource(R.string.skip_silent),
                     subtitle = stringResource(R.string.skip_no_music_part),
                     switch = (skipSilent to { viewModel.setSkipSilent(it) }),
+                )
+                SettingItem(
+                    title = stringResource(R.string.fade_audio_effect),
+                    subtitle = if (fadeAudioEffect > 0) "$fadeAudioEffect ms" else stringResource(R.string.disabled),
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.fade_audio_effect_duration),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.duration),
+                                        value = "$fadeAudioEffect",
+                                        verifyCodeBlock = {
+                                            (it.toIntOrNull() != null) to context.getString(R.string.invalid_number)
+                                        },
+                                    ),
+                                message = "",
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setFadeDuration(state.textField?.value?.toIntOrNull() ?: 0)
+                                    },
+                            ),
+                        )
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.open_system_equalizer),

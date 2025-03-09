@@ -815,6 +815,19 @@ class DataStoreManager(
         }
     }
 
+    val fadeVolume =
+        settingsDataStore.data.map { preferences ->
+            preferences[FADE_VOLUME] ?: 0
+        }
+
+    suspend fun setFadeVolume(fadeDuration: Int) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[FADE_VOLUME] = fadeDuration
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -865,6 +878,7 @@ class DataStoreManager(
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val PITCH = intPreferencesKey("pitch")
         val OPEN_APP_TIME = intPreferencesKey("open_app_time")
+        val FADE_VOLUME = intPreferencesKey("fade_volume")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"
