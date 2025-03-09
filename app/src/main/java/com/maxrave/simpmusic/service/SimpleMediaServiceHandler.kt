@@ -261,7 +261,6 @@ class SimpleMediaServiceHandler(
                                 runBlocking {
                                     dataStoreManager.fadeVolume.first()
                                 }
-                            val delay = fadeDuration / 20
                             if (duration - current <= fadeDuration && !fading) {
                                 Log.w(TAG, "Fade out $current $duration $fadeDuration $fading")
                                 isFading.value = true
@@ -269,16 +268,6 @@ class SimpleMediaServiceHandler(
                                     (duration - current),
                                     20,
                                     false,
-                                ) {
-                                    isFading.value = false
-                                }
-                            } else if (current >= 0 && current < delay && !fading) {
-                                Log.w(TAG, "Fade in $current $duration $fadeDuration $fading")
-                                isFading.value = true
-                                startFadeAnimator(
-                                    fadeDuration.toLong(),
-                                    20,
-                                    true,
                                 ) {
                                     isFading.value = false
                                 }
@@ -853,7 +842,6 @@ class SimpleMediaServiceHandler(
         reason: Int,
     ) {
         Log.w(TAG, "Smooth Switching Transition Current Position: ${player.currentPosition}")
-        player.volume = 1f
         mayBeNormalizeVolume()
         Log.w(TAG, "REASON onMediaItemTransition: $reason")
         Log.d(TAG, "Media Item Transition Media Item: ${mediaItem?.mediaMetadata?.title}")
@@ -880,6 +868,7 @@ class SimpleMediaServiceHandler(
         }
         updateNextPreviousTrackAvailability()
         updateNotification()
+        mayBeFadeInVolume()
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
@@ -1205,6 +1194,16 @@ class SimpleMediaServiceHandler(
             startBufferedUpdate()
         } else {
             stopBufferedUpdate()
+        }
+    }
+
+    private fun mayBeFadeInVolume() {
+        if (shouldFadeAudio.value) {
+            startFadeAnimator(
+                runBlocking { dataStoreManager.fadeVolume.first() }.toLong(),
+                20,
+                true,
+            )
         }
     }
 
@@ -2118,7 +2117,7 @@ class SimpleMediaServiceHandler(
         _stateFlow.value = StateSource.STATE_INITIALIZED
     }
 
-    fun startFadeAnimator(
+    private fun startFadeAnimator(
         duration: Long,
         steps: Int = 10,
         fadeIn: Boolean,
@@ -2138,6 +2137,17 @@ class SimpleMediaServiceHandler(
                 if (fadeIn) player.volume = startValue
                 var currentAnim = 0f
                 while (currentAnim <= duration) {
+                    if (fadeIn && player.currentPosition > duration) {
+                        player.volume = endValue
+                        Log.w(TAG, "startFadeAnimator current value: $endValue")
+                        callback.invoke()
+                        return@launch
+                    } else if (!fadeIn && (player.duration - player.currentPosition) > duration) {
+                        player.volume = endValue
+                        Log.w(TAG, "startFadeAnimator current value: $endValue")
+                        callback.invoke()
+                        return@launch
+                    }
                     currentAnim += delay
                     Log.w(TAG, "startFadeAnimator anim $currentAnim")
                     startValue =
