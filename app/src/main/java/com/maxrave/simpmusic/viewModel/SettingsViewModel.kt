@@ -176,6 +176,7 @@ class SettingsViewModel(
         getAutoCheckUpdate()
         getBlurFullscreenLyrics()
         getBlurPlayerBackground()
+        getFadeDuration()
         viewModelScope.launch {
             calculateDataFraction()
         }
@@ -184,6 +185,7 @@ class SettingsViewModel(
     private fun getFadeDuration() {
         viewModelScope.launch {
             dataStoreManager.fadeVolume.collect { fadeAudioEffect ->
+                log("getFadeDuration: $fadeAudioEffect")
                 _fadeAudioEffect.value = fadeAudioEffect
             }
         }
