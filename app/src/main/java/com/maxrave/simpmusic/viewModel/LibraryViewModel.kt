@@ -32,9 +32,6 @@ import java.time.LocalDateTime
 class LibraryViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "LibraryViewModel"
-
     private val _recentlyAdded: MutableStateFlow<LocalResource<List<RecentlyType>>> =
         MutableStateFlow(LocalResource.Loading())
     val recentlyAdded: StateFlow<LocalResource<List<RecentlyType>>> get() = _recentlyAdded

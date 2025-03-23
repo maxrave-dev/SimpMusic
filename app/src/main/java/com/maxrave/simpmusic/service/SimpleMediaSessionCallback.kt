@@ -290,11 +290,11 @@ class SimpleMediaSessionCallback(
                                     val playlistId = parentId.split("/").getOrNull(3)
                                     if (playlistId != null) {
                                         val playlist =
-                                            mainRepository.getPlaylistData(playlistId).first()
+                                            mainRepository.getFullPlaylistData(playlistId).first()
                                         if (playlist.data?.tracks.isNullOrEmpty()) {
                                             emptyList()
                                         } else {
-                                            mainRepository.insertAndReplacePlaylist(playlist.data!!.toPlaylistEntity())
+                                            mainRepository.insertAndReplacePlaylist(playlist.data.toPlaylistEntity())
                                             playlist.data.tracks.map { track ->
                                                 track
                                                     .toSongEntity()

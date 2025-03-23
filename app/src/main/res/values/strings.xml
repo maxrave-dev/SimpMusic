@@ -409,4 +409,6 @@
     <string name="fade_audio_effect_duration">Fade audio effect duration (ms) (Set to 0 for disable)</string>
     <string name="duration">Duration</string>
     <string name="invalid_number">Invalid number</string>
+    <string name="shuffle_not_available">Shuffle endpoint is not available</string>
+    <string name="radio_not_available">Radio Endpoint is not available</string>
 </resources>

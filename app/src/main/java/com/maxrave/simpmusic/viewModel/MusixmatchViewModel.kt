@@ -11,15 +11,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
 @UnstableApi
-
 class MusixmatchViewModel(
     application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "MusixmatchViewModel"
-
     var loading: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     fun login(
@@ -31,16 +26,24 @@ class MusixmatchViewModel(
             mainRepository.loginToMusixMatch(email, password).collect { data ->
                 if (data != null) {
                     Log.w("MusixmatchFragment", data.toString())
-                    if (data.message.body.firstOrNull()
-                            ?.credential?.error == null &&
-                        data.message.body.firstOrNull()
-                            ?.credential?.account != null
+                    if (data.message.body
+                            .firstOrNull()
+                            ?.credential
+                            ?.error == null &&
+                        data.message.body
+                            .firstOrNull()
+                            ?.credential
+                            ?.account != null
                     ) {
                         mainRepository.getMusixmatchCookie()?.let { saveCookie(it) }
                     } else {
-                        makeToast(data.message.body.firstOrNull()
-                            ?.credential?.error
-                            ?.description ?: getString(R.string.error))
+                        makeToast(
+                            data.message.body
+                                .firstOrNull()
+                                ?.credential
+                                ?.error
+                                ?.description ?: getString(R.string.error),
+                        )
                     }
                 } else {
                     makeToast(getString(R.string.error))

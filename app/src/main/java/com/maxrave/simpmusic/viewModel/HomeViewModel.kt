@@ -40,9 +40,6 @@ import java.time.LocalDateTime
 class HomeViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "HomeViewModel"
-
     private val _homeItemList: MutableStateFlow<ArrayList<HomeItem>> =
         MutableStateFlow(arrayListOf())
     val homeItemList: StateFlow<ArrayList<HomeItem>> = _homeItemList

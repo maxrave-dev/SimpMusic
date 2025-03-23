@@ -4,15 +4,14 @@ import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.launch
 
+@UnstableApi
 class LogInViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "LogInViewModel"
-
     private val _spotifyStatus: MutableLiveData<Boolean> = MutableLiveData(false)
     var spotifyStatus: LiveData<Boolean> = _spotifyStatus
 

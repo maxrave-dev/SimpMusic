@@ -39,9 +39,6 @@ import org.koin.core.component.inject
 class NowPlayingBottomSheetViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "NowPlayingBottomSheetViewModel"
-
     private val downloadUtils: DownloadUtils by inject()
     private val localPlaylistManager: LocalPlaylistManager by inject()
 

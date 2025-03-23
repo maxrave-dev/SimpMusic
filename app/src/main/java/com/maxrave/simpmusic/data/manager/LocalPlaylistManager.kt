@@ -19,7 +19,6 @@ import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.manager.base.BaseManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.parser.parseSetVideoId
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toListVideoId
@@ -28,6 +27,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.pagination.localPlaylistPaging.LocalPlaylistPagingSource
 import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.viewModel.FilterState
+import com.maxrave.simpmusic.viewModel.PlaylistState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -40,8 +40,6 @@ class LocalPlaylistManager(
     context: Context,
     private val youTube: YouTube,
 ) : BaseManager(context) {
-    override val tag: String = this.javaClass.simpleName
-
     suspend fun getLocalPlaylist(id: Long) =
         wrapDataResource {
             localDataSource.getLocalPlaylist(id)
@@ -167,15 +165,18 @@ class LocalPlaylistManager(
         localDataSource.updateLocalPlaylistDownloadState(id = id, downloadState = downloadState)
     }
 
-    suspend fun syncYouTubePlaylistToLocalPlaylist(playlist: PlaylistBrowse): Flow<LocalResource<String>> =
+    fun syncYouTubePlaylistToLocalPlaylist(
+        playlist: PlaylistState,
+        tracks: List<Track>,
+    ): Flow<LocalResource<String>> =
         flow<LocalResource<String>> {
             emit(LocalResource.Loading())
             val localPlaylistEntity =
                 LocalPlaylistEntity(
                     title = playlist.title,
-                    thumbnail = playlist.thumbnails.lastOrNull()?.url,
+                    thumbnail = playlist.thumbnail,
                     youtubePlaylistId = playlist.id,
-                    tracks = playlist.tracks.toListVideoId(),
+                    tracks = tracks.toListVideoId(),
                     downloadState = DownloadState.STATE_NOT_DOWNLOADED,
                     syncState = Syncing,
                 )
@@ -183,7 +184,7 @@ class LocalPlaylistManager(
             val localPlaylistId =
                 localDataSource.getLocalPlaylistByYoutubePlaylistId(playlist.id)?.id
                     ?: throw Exception(getString(R.string.error))
-            playlist.tracks.forEachIndexed { i, track ->
+            tracks.forEachIndexed { i, track ->
                 runBlocking {
                     localDataSource.insertSong(
                         track.toSongEntity(),

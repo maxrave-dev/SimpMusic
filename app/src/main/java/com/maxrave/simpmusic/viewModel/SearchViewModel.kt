@@ -35,18 +35,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
 @UnstableApi
-
 class SearchViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "SearchViewModel"
-
     private val downloadUtils: DownloadUtils by inject()
 
     var searchType: MutableLiveData<String> = MutableLiveData("all")

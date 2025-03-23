@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.utils.Resource
@@ -15,14 +16,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-
-
+@UnstableApi
 class MoodViewModel(
     application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "MoodViewModel"
-
     private val _moodsMomentObject: MutableStateFlow<MoodsMomentObject?> = MutableStateFlow(null)
     var moodsMomentObject: StateFlow<MoodsMomentObject?> = _moodsMomentObject
     var loading = MutableStateFlow<Boolean>(false)

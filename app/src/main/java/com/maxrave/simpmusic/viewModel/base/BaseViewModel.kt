@@ -10,6 +10,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
 import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK
+import com.maxrave.simpmusic.common.Config.RADIO_CLICK
 import com.maxrave.simpmusic.common.Config.RECOVER_TRACK_QUEUE
 import com.maxrave.simpmusic.common.Config.SHARE
 import com.maxrave.simpmusic.common.Config.SONG_CLICK
@@ -56,7 +57,7 @@ abstract class BaseViewModel(
     /**
      * Tag for logging
      */
-    abstract val tag: String
+    protected val tag: String = javaClass.simpleName
 
     /**
      * Log with viewModel tag
@@ -154,7 +155,7 @@ abstract class BaseViewModel(
                 SONG_CLICK, VIDEO_CLICK, SHARE -> {
                     simpleMediaServiceHandler.getRelated(track.videoId)
                 }
-                PLAYLIST_CLICK, ALBUM_CLICK -> {
+                PLAYLIST_CLICK, ALBUM_CLICK, RADIO_CLICK -> {
                     simpleMediaServiceHandler.loadPlaylistOrAlbum(index)
                 }
             }

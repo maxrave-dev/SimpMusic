@@ -1110,14 +1110,14 @@ class SimpleMediaServiceHandler(
             } else {
                 coroutineScope.launch {
                     _stateFlow.value = StateSource.STATE_INITIALIZING
-                    Log.w("Check loadMore continuation", continuation.toString())
+                    Log.w(TAG, "Check loadMore continuation $continuation")
                     mainRepository
                         .getContinueTrack(playlistId, continuation)
                         .singleOrNull()
                         .let { response ->
                             val list = response?.first
                             if (list != null) {
-                                Log.w("Check loadMore response", response.toString())
+                                Log.w(TAG, "Check loadMore response $response")
                                 loadMoreCatalog(list)
                                 _queueData.value =
                                     _queueData.value?.copy(

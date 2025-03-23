@@ -23,6 +23,8 @@ import com.maxrave.kotlinytmusicscraper.pages.NextPage
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
+import com.maxrave.kotlinytmusicscraper.parser.getPlaylistRadioEndpoint
+import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
 import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.lyricsproviders.models.response.MusixmatchCredential
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
@@ -119,6 +121,7 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.File
 import java.time.LocalDateTime
+import kotlin.collections.firstOrNull
 import kotlin.math.abs
 
 class MainRepository(
@@ -484,7 +487,17 @@ class MainRepository(
 
     suspend fun insertAndReplacePlaylist(playlistEntity: PlaylistEntity) =
         withContext(Dispatchers.IO) {
-            localDataSource.insertAndReplacePlaylist(playlistEntity)
+            val oldPlaylist = getPlaylist(playlistEntity.id).firstOrNull()
+            if (oldPlaylist != null) {
+                localDataSource.insertAndReplacePlaylist(
+                    playlistEntity.copy(
+                        downloadState = oldPlaylist.downloadState,
+                        liked = oldPlaylist.liked,
+                    ),
+                )
+            } else {
+                localDataSource.insertAndReplacePlaylist(playlistEntity)
+            }
         }
 
     suspend fun insertRadioPlaylist(playlistEntity: PlaylistEntity) =
@@ -996,31 +1009,72 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getContinueTrack(
+    fun getContinueTrack(
         playlistId: String,
         continuation: String,
+        fromPlaylist: Boolean = false,
     ): Flow<Pair<ArrayList<Track>?, String?>> =
         flow {
             runCatching {
                 var newContinuation: String? = null
                 newContinuation = null
-                youTube
-                    .next(
-                        if (playlistId.startsWith("RRDAMVM")) {
-                            WatchEndpoint(videoId = playlistId.removePrefix("RRDAMVM"))
-                        } else {
-                            WatchEndpoint(playlistId = playlistId)
-                        },
-                        continuation = continuation,
-                    ).onSuccess { next ->
-                        val data: ArrayList<SongItem> = arrayListOf()
-                        data.addAll(next.items)
-                        newContinuation = next.continuation
-                        emit(Pair(data.toListTrack(), newContinuation))
-                    }.onFailure { exception ->
-                        exception.printStackTrace()
-                        emit(Pair(null, null))
-                    }
+                Log.d("getContinueTrack", "playlistId: $playlistId")
+                Log.d("getContinueTrack", "continuation: $continuation")
+                if (!fromPlaylist) {
+                    youTube
+                        .next(
+                            if (playlistId.startsWith("RRDAMVM")) {
+                                WatchEndpoint(videoId = playlistId.removePrefix("RRDAMVM"))
+                            } else {
+                                WatchEndpoint(playlistId = playlistId)
+                            },
+                            continuation = continuation,
+                        ).onSuccess { next ->
+                            val data: ArrayList<SongItem> = arrayListOf()
+                            data.addAll(next.items)
+                            newContinuation = next.continuation
+                            emit(Pair(data.toListTrack(), newContinuation))
+                        }.onFailure { exception ->
+                            exception.printStackTrace()
+                            emit(Pair(null, null))
+                        }
+                } else {
+                    youTube
+                        .customQuery(
+                            browseId = null,
+                            continuation = continuation,
+                            setLogin = true,
+                        ).onSuccess { values ->
+                            Log.d("getPlaylistData", "continue: $continuation")
+                            Log.d(
+                                "getPlaylistData",
+                                "values: ${values.onResponseReceivedActions}",
+                            )
+                            val dataMore: List<SongItem> =
+                                values.onResponseReceivedActions
+                                    ?.firstOrNull()
+                                    ?.appendContinuationItemsAction
+                                    ?.continuationItems
+                                    ?.apply {
+                                        Log.w("getContinueTrack", "dataMore: ${this.size}")
+                                    }?.mapNotNull {
+                                        NextPage.fromMusicResponsiveListItemRenderer(
+                                            it.musicResponsiveListItemRenderer ?: return@mapNotNull null,
+                                        )
+                                    } ?: emptyList()
+                            newContinuation =
+                                values.getPlaylistContinuation()
+                            emit(
+                                Pair<ArrayList<Track>?, String?>(
+                                    dataMore.toListTrack(),
+                                    newContinuation,
+                                ),
+                            )
+                        }.onFailure {
+                            Log.e("getContinueTrack", "Error: ${it.message}")
+                            emit(Pair(null, null))
+                        }
+                }
             }
         }
 
@@ -1029,75 +1083,79 @@ class MainRepository(
         originalTrack: SongEntity? = null,
         artist: ArtistEntity? = null,
     ): Flow<Resource<Pair<PlaylistBrowse, String?>>> =
-        flow {
-            runCatching {
-                youTube
-                    .next(endpoint = WatchEndpoint(playlistId = radioId))
-                    .onSuccess { next ->
-                        Log.w("Radio", "Title: ${next.title}")
-                        val data: ArrayList<SongItem> = arrayListOf()
-                        data.addAll(next.items)
-                        var continuation = next.continuation
-                        Log.w("Radio", "data: ${data.size}")
-                        var count = 0
-                        while (continuation != null && count < 3) {
-                            youTube
-                                .next(
-                                    endpoint = WatchEndpoint(playlistId = radioId),
-                                    continuation = continuation,
-                                ).onSuccess { nextContinue ->
-                                    data.addAll(nextContinue.items)
-                                    continuation = nextContinue.continuation
-                                    if (data.size >= 50) {
+        if (radioId.startsWith("RDAT")) {
+            getRDATRadioData(radioId)
+        } else {
+            flow {
+                runCatching {
+                    youTube
+                        .next(endpoint = WatchEndpoint(playlistId = radioId))
+                        .onSuccess { next ->
+                            Log.w("Radio", "Title: ${next.title}")
+                            val data: ArrayList<SongItem> = arrayListOf()
+                            data.addAll(next.items)
+                            var continuation = next.continuation
+                            Log.w("Radio", "data: ${data.size}")
+                            var count = 0
+                            while (continuation != null && count < 3) {
+                                youTube
+                                    .next(
+                                        endpoint = WatchEndpoint(playlistId = radioId),
+                                        continuation = continuation,
+                                    ).onSuccess { nextContinue ->
+                                        data.addAll(nextContinue.items)
+                                        continuation = nextContinue.continuation
+                                        if (data.size >= 50) {
+                                            count = 3
+                                        }
+                                        Log.w("Radio", "data: ${data.size}")
+                                        count++
+                                    }.onFailure {
                                         count = 3
                                     }
-                                    Log.w("Radio", "data: ${data.size}")
-                                    count++
-                                }.onFailure {
-                                    count = 3
-                                }
-                        }
-                        val listTrackResult = data.toListTrack()
-                        if (originalTrack != null) {
-                            listTrackResult.add(0, originalTrack.toTrack())
-                        }
-                        Log.w("Repository", "data: ${data.size}")
-                        val playlistBrowse =
-                            PlaylistBrowse(
-                                author = Author(id = "", name = "YouTube Music"),
-                                description =
-                                    context.getString(
-                                        R.string.auto_created_by_youtube_music,
-                                    ),
-                                duration = "",
-                                durationSeconds = 0,
-                                id = radioId,
-                                privacy = "PRIVATE",
-                                thumbnails =
-                                    listOf(
-                                        Thumbnail(
-                                            544,
-                                            originalTrack?.thumbnails ?: artist?.thumbnails ?: "",
-                                            544,
+                            }
+                            val listTrackResult = data.toListTrack()
+                            if (originalTrack != null) {
+                                listTrackResult.add(0, originalTrack.toTrack())
+                            }
+                            Log.w("Repository", "data: ${data.size}")
+                            val playlistBrowse =
+                                PlaylistBrowse(
+                                    author = Author(id = "", name = "YouTube Music"),
+                                    description =
+                                        context.getString(
+                                            R.string.auto_created_by_youtube_music,
                                         ),
-                                    ),
-                                title = "${originalTrack?.title ?: artist?.name} ${
-                                    context.getString(
-                                        R.string.radio,
-                                    )
-                                }",
-                                trackCount = listTrackResult.size,
-                                tracks = listTrackResult,
-                                year = LocalDateTime.now().year.toString(),
-                            )
-                        Log.w("Repository", "playlistBrowse: $playlistBrowse")
-                        emit(Resource.Success<Pair<PlaylistBrowse, String?>>(Pair(playlistBrowse, continuation)))
-                    }.onFailure { exception ->
-                        exception.printStackTrace()
-                        emit(Resource.Error<Pair<PlaylistBrowse, String?>>(exception.message.toString()))
-                    }
-            }
-        }.flowOn(Dispatchers.IO)
+                                    duration = "",
+                                    durationSeconds = 0,
+                                    id = radioId,
+                                    privacy = "PRIVATE",
+                                    thumbnails =
+                                        listOf(
+                                            Thumbnail(
+                                                544,
+                                                originalTrack?.thumbnails ?: artist?.thumbnails ?: "",
+                                                544,
+                                            ),
+                                        ),
+                                    title = "${originalTrack?.title ?: artist?.name} ${
+                                        context.getString(
+                                            R.string.radio,
+                                        )
+                                    }",
+                                    trackCount = listTrackResult.size,
+                                    tracks = listTrackResult,
+                                    year = LocalDateTime.now().year.toString(),
+                                )
+                            Log.w("Repository", "playlistBrowse: $playlistBrowse")
+                            emit(Resource.Success<Pair<PlaylistBrowse, String?>>(Pair(playlistBrowse, continuation)))
+                        }.onFailure { exception ->
+                            exception.printStackTrace()
+                            emit(Resource.Error<Pair<PlaylistBrowse, String?>>(exception.message.toString()))
+                        }
+                }
+            }.flowOn(Dispatchers.IO)
+        }
 
     suspend fun reloadSuggestionPlaylist(reloadParams: String): Flow<Pair<String?, ArrayList<Track>?>?> =
         flow {
@@ -1428,8 +1486,8 @@ class MainRepository(
             }
         }
 
-    suspend fun getRDATRadioData(radioId: String): Flow<Resource<Pair<PlaylistBrowse, String>>> =
-        flow<Resource<Pair<PlaylistBrowse, String>>> {
+    suspend fun getRDATRadioData(radioId: String): Flow<Resource<Pair<PlaylistBrowse, String?>>> =
+        flow<Resource<Pair<PlaylistBrowse, String?>>> {
             runCatching {
                 val id =
                     if (radioId.startsWith("VL")) {
@@ -1524,7 +1582,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> =
+    fun getFullPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> =
         flow {
             runCatching {
                 var id = ""
@@ -1649,6 +1707,113 @@ class MainRepository(
                     }.onFailure { e ->
                         Log.e("getPlaylistData", e.message ?: "Error")
                         emit(Resource.Error<PlaylistBrowse>(e.message.toString()))
+                    }
+            }
+        }.flowOn(Dispatchers.IO)
+
+    fun getPlaylistData(playlistId: String): Flow<Resource<Pair<PlaylistBrowse, String?>>> =
+        flow {
+            runCatching {
+                var id = ""
+                id +=
+                    if (!playlistId.startsWith("VL")) {
+                        "VL$playlistId"
+                    } else {
+                        playlistId
+                    }
+                Log.d("getPlaylistData", "playlist id: $id")
+                youTube
+                    .customQuery(browseId = id, setLogin = true)
+                    .onSuccess { result ->
+                        val listContent: ArrayList<Track> = arrayListOf()
+                        val data: List<MusicShelfRenderer.Content>? =
+                            result.contents
+                                ?.singleColumnBrowseResultsRenderer
+                                ?.tabs
+                                ?.get(
+                                    0,
+                                )?.tabRenderer
+                                ?.content
+                                ?.sectionListRenderer
+                                ?.contents
+                                ?.get(
+                                    0,
+                                )?.musicPlaylistShelfRenderer
+                                ?.contents
+                                ?: result.contents
+                                    ?.twoColumnBrowseResultsRenderer
+                                    ?.secondaryContents
+                                    ?.sectionListRenderer
+                                    ?.contents
+                                    ?.get(0)
+                                    ?.musicPlaylistShelfRenderer
+                                    ?.contents
+                        if (data != null) {
+                            Log.d("getPlaylistData", "data: $data")
+                            Log.d("getPlaylistData", "data size: ${data.size}")
+                        }
+                        val header =
+                            result.header?.musicDetailHeaderRenderer
+                                ?: result.header?.musicEditablePlaylistDetailHeaderRenderer
+                                ?: result.contents
+                                    ?.twoColumnBrowseResultsRenderer
+                                    ?.tabs
+                                    ?.get(0)
+                                    ?.tabRenderer
+                                    ?.content
+                                    ?.sectionListRenderer
+                                    ?.contents
+                                    ?.get(0)
+                                    ?.musicResponsiveHeaderRenderer
+                                ?: result.contents
+                                    ?.twoColumnBrowseResultsRenderer
+                                    ?.tabs
+                                    ?.get(0)
+                                    ?.tabRenderer
+                                    ?.content
+                                    ?.sectionListRenderer
+                                    ?.contents
+                                    ?.get(0)
+                                    ?.musicEditablePlaylistDetailHeaderRenderer
+                                    ?.header
+                                    ?.musicResponsiveHeaderRenderer
+                        Log.d("getPlaylistData", "header: $header")
+                        val continueParam =
+                            result.getPlaylistContinuation()
+                        val radioEndpoint =
+                            result.getPlaylistRadioEndpoint()
+                        val shuffleEndpoint =
+                            result.getPlaylistShuffleEndpoint()
+                        Log.d("getPlaylistData", "Endpoint: $radioEndpoint $shuffleEndpoint")
+                        parsePlaylistData(header, data ?: emptyList(), playlistId, context)?.let { playlist ->
+                            emit(
+                                Resource.Success<Pair<PlaylistBrowse, String?>>(
+                                    Pair(
+                                        playlist.copy(
+                                            tracks =
+                                                playlist.tracks.toMutableList().apply {
+                                                    addAll(listContent)
+                                                },
+                                            trackCount = (playlist.trackCount + listContent.size),
+                                            shuffleEndpoint = shuffleEndpoint,
+                                            radioEndpoint = radioEndpoint,
+                                        ),
+                                        continueParam,
+                                    ),
+                                ),
+                            )
+                        } ?: emit(
+                            Resource.Error<
+                                Pair<PlaylistBrowse, String?>,
+                            >("Error"),
+                        )
+                    }.onFailure { e ->
+                        Log.e("getPlaylistData", e.message ?: "Error")
+                        emit(
+                            Resource.Error<
+                                Pair<PlaylistBrowse, String?>,
+                            >(e.message.toString()),
+                        )
                     }
             }
         }.flowOn(Dispatchers.IO)

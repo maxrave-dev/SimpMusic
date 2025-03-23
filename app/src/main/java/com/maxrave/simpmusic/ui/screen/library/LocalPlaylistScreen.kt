@@ -132,7 +132,7 @@ import java.time.format.DateTimeFormatter
     ExperimentalCoroutinesApi::class,
 )
 @Composable
-fun PlaylistScreen(
+fun LocalPlaylistScreen(
     id: Long,
     sharedViewModel: SharedViewModel,
     viewModel: LocalPlaylistViewModel,

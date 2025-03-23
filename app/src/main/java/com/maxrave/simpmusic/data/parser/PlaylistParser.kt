@@ -17,6 +17,7 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
+import java.time.LocalDateTime
 
 fun parsePlaylistData(
     header: Any?,
@@ -30,7 +31,8 @@ fun parsePlaylistData(
         var duration = ""
         var description = ""
         val listThumbnails: ArrayList<Thumbnail> = arrayListOf()
-        var year = ""
+        var year = LocalDateTime.now().year.toString()
+        var trackCount = 0
         when (header) {
             is BrowseResponse.Header.MusicDetailHeaderRenderer -> {
                 title +=
@@ -67,10 +69,10 @@ fun parsePlaylistData(
                     }
                 }
                 if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 4) {
-                    year +=
+                    year =
                         header.subtitle.runs
                             ?.get(4)
-                            ?.text
+                            ?.text ?: LocalDateTime.now().year.toString()
                 }
                 header.thumbnail.croppedSquareThumbnailRenderer
                     ?.thumbnail
@@ -158,6 +160,20 @@ fun parsePlaylistData(
                         ?.firstOrNull()
                         ?.text
                 Log.d("PlaylistParser", "title: $title")
+                trackCount =
+                    header.secondSubtitle
+                        ?.runs
+                        ?.firstOrNull()
+                        ?.text
+                        ?.split(" ")
+                        ?.firstOrNull()
+                        ?.toInt() ?: 0
+                year =
+                    header.subtitle
+                        ?.runs
+                        ?.lastOrNull()
+                        ?.text
+                        ?: LocalDateTime.now().year.toString()
                 val author =
                     Author(
                         id =
@@ -322,6 +338,8 @@ fun parsePlaylistData(
             }
         }
         Log.d("PlaylistParser", "description: $description")
+        Log.d("PlaylistParser", "trackCount: $trackCount")
+        Log.d("PlaylistParser", "year: $year")
         return PlaylistBrowse(
             author = listAuthor.firstOrNull() ?: Author("", "YouTube Music"),
             description = description,
@@ -331,7 +349,7 @@ fun parsePlaylistData(
             privacy = "PUBLIC",
             thumbnails = listThumbnails,
             title = title,
-            trackCount = listContent.size,
+            trackCount = if (trackCount == 0) listContent.size else trackCount,
             tracks = listTrack,
             year = year,
         )

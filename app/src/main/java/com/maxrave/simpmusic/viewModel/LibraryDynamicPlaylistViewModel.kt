@@ -22,9 +22,6 @@ import kotlinx.coroutines.launch
 class LibraryDynamicPlaylistViewModel(
     application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "LibraryDynamicPlaylistViewModel"
-
     private val _listFavoriteSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
     val listFavoriteSong: StateFlow<List<SongEntity>> get() = _listFavoriteSong
 

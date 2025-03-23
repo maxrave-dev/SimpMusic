@@ -123,6 +123,7 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.extension.navigateSafe
@@ -2169,6 +2170,119 @@ fun ArtistModalBottomSheet(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+@ExperimentalMaterial3Api
+fun PlaylistBottomSheet(
+    onDismiss: () -> Unit,
+    playlistId: String,
+    isYourYouTubePlaylist: Boolean,
+    onSaveToLocal: () -> Unit,
+    onAddToQueue: (() -> Unit)? = null,
+    mainRepository: MainRepository = koinInject(),
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var isSavedToLocal by remember { mutableStateOf(false) }
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val hideModalBottomSheet: () -> Unit =
+        {
+            coroutineScope.launch {
+                modelBottomSheetState.hide()
+                onDismiss()
+            }
+        }
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        mainRepository.getAllLocalPlaylists().collect {
+            isSavedToLocal = it.any { playlist -> playlist.youtubePlaylistId == playlistId }
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(5.dp))
+                if (onAddToQueue != null) {
+                    ActionButton(icon = painterResource(id = R.drawable.baseline_queue_music_24), text = R.string.add_to_queue) {
+                        onAddToQueue()
+                        hideModalBottomSheet()
+                    }
+                }
+                if (isYourYouTubePlaylist) {
+                    ActionButton(
+                        icon =
+                            if (isSavedToLocal) {
+                                painterResource(id = R.drawable.baseline_sync_disabled_24)
+                            } else {
+                                painterResource(id = R.drawable.baseline_sync_24)
+                            },
+                        text =
+                            if (isSavedToLocal) {
+                                R.string.saved_to_local_playlist
+                            } else {
+                                R.string.save_to_local_playlist
+                            },
+                        enable = !isSavedToLocal,
+                    ) {
+                        onSaveToLocal.invoke()
+                        hideModalBottomSheet()
+                    }
+                }
+                ActionButton(
+                    icon = painterResource(id = R.drawable.baseline_share_24),
+                    text = R.string.share,
+                ) {
+                    val shareIntent = Intent(Intent.ACTION_SEND)
+                    shareIntent.type = "text/plain"
+                    val url = "https://music.youtube.com/playlist?list=${
+                        playlistId.replaceFirst(
+                            "VL",
+                            "",
+                        )
+                    }"
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                    val chooserIntent =
+                        Intent.createChooser(shareIntent, context.getString(R.string.share_url))
+                    context.startActivity(chooserIntent)
+                }
+                EndOfModalBottomSheet()
             }
         }
     }

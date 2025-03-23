@@ -58,8 +58,6 @@ import java.util.zip.ZipEntry
 class SettingsViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String = "SettingsViewModel"
-
     private val databasePath: String? = mainRepository.getDatabasePath()
     private val playerCache: SimpleCache by inject(qualifier = named(Config.PLAYER_CACHE))
     private val downloadCache: SimpleCache by inject(qualifier = named(Config.DOWNLOAD_CACHE))

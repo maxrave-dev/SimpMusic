@@ -58,6 +58,7 @@ data class SectionListRenderer(
             val title: Title?,
             val secondSubtitle: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer.Subtitle?,
             val facepile: Facepile?,
+            val buttons: List<Button>?,
         ) {
             @Serializable
             data class Facepile(

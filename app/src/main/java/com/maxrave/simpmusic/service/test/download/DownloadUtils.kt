@@ -110,7 +110,11 @@ class DownloadUtils(
                 ),
             )
         }
-    private val downloads = MutableStateFlow<Map<String, Pair<Download?, Download?>>>(emptyMap())
+    private var _downloads = MutableStateFlow<Map<String, Pair<Download?, Download?>>>(emptyMap())
+
+    // Audio / Video
+    val downloads: StateFlow<Map<String, Pair<Download?, Download?>>>
+        get() = _downloads
     private val _downloadTask = MutableStateFlow<Map<String, Int>>(emptyMap())
     val downloadTask: StateFlow<Map<String, Int>> get() = _downloadTask
     val downloadingVideoIds = MutableStateFlow<MutableSet<String>>(mutableSetOf())
@@ -180,7 +184,7 @@ class DownloadUtils(
     }
 
     fun removeAllDownloads() {
-        downloads.value = emptyMap()
+        _downloads.value = emptyMap()
         _downloadTask.value = emptyMap()
         downloadingVideoIds.value = mutableSetOf()
         downloadManager.removeAllDownloads()
@@ -258,7 +262,7 @@ class DownloadUtils(
                     result[songId]?.copy(first = cursor.download) ?: Pair(cursor.download, null)
                 }
         }
-        downloads.value = result
+        _downloads.value = result
         downloadManager.addListener(
             object : DownloadManager.Listener {
                 override fun onDownloadChanged(
@@ -275,7 +279,7 @@ class DownloadUtils(
                             } else {
                                 id
                             }
-                        downloads.update { map ->
+                        _downloads.update { map ->
                             map.toMutableMap().apply {
                                 val current = map.getOrDefault(songId, null)
                                 if (isVideo) {

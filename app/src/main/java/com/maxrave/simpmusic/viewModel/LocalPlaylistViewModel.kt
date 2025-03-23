@@ -16,6 +16,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DESC
+import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADED
 import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADING
 import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
@@ -33,10 +34,10 @@ import com.maxrave.simpmusic.pagination.PagingActions
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.utils.collectLatestResource
 import com.maxrave.simpmusic.utils.collectResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
-import com.maxrave.simpmusic.viewModel.uiState.LocalPlaylistState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -58,9 +59,6 @@ import java.time.LocalDateTime
 class LocalPlaylistViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = this.javaClass.simpleName
-
     private val localPlaylistManager: LocalPlaylistManager by inject()
 
     private val downloadUtils: DownloadUtils by inject()
@@ -141,8 +139,9 @@ class LocalPlaylistViewModel(
                                                 uiState.value.downloadState != STATE_DOWNLOADING
                                             ) {
                                                 updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                                            } else if (uiState.value.downloadState != STATE_NOT_DOWNLOADED) {
-                                                updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
+                                            } else if (uiState.value.downloadState == STATE_DOWNLOADED) {
+                                                updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
+                                                downloadTracks(notDownloadedList)
                                             }
                                         }
                                 }
@@ -972,4 +971,61 @@ sealed class LocalPlaylistUIEvent {
     data object PlayClick : LocalPlaylistUIEvent()
 
     data object ShuffleClick : LocalPlaylistUIEvent()
+}
+
+data class LocalPlaylistState(
+    val id: Long,
+    val title: String,
+    val thumbnail: String? = null,
+    val colors: List<Color> =
+        listOf(
+            Color.Black,
+            md_theme_dark_background,
+        ),
+    val inLibrary: LocalDateTime? = null,
+    val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
+    val syncState: Int = LocalPlaylistEntity.YouTubeSyncState.NotSynced,
+    val ytPlaylistId: String? = null,
+    val trackCount: Int = 0,
+    val page: Int = 0,
+    val isLoadedFull: Boolean = false,
+    val loadState: PlaylistLoadState = PlaylistLoadState.Loading,
+    val filterState: FilterState = FilterState.OlderFirst,
+    val suggestions: SuggestionSongs? = null,
+) {
+    sealed class SuggestionState {
+        data object Loading : SuggestionState()
+
+        data object Error : SuggestionState()
+
+        data class Success(
+            val suggestSongs: SuggestionSongs,
+        ) : SuggestionState()
+    }
+
+    sealed class PlaylistLoadState {
+        data object Loading : PlaylistLoadState()
+
+        data object Error : PlaylistLoadState()
+
+        data object Success : PlaylistLoadState()
+    }
+
+    data class SuggestionSongs(
+        val reloadParams: String,
+        val songs: List<Track>,
+    )
+
+    companion object {
+        fun initial(): LocalPlaylistState =
+            LocalPlaylistState(
+                id = 0,
+                title = "",
+                thumbnail = null,
+                inLibrary = null,
+                downloadState = 0,
+                syncState = 0,
+                trackCount = 0,
+            )
+    }
 }

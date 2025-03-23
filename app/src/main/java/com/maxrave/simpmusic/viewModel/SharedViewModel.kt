@@ -105,8 +105,6 @@ class SharedViewModel(
     var showedUpdateDialog: Boolean = false
     var showOrHideMiniplayer: MutableSharedFlow<Boolean> = MutableSharedFlow()
 
-    override val tag = "SharedViewModel"
-
     private val downloadedCache: SimpleCache by inject(qualifier = named(DOWNLOAD_CACHE))
 
     private val downloadUtils: DownloadUtils by inject()

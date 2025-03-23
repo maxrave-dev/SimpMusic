@@ -7,6 +7,7 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
+import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
@@ -47,6 +48,11 @@ val viewModelModule =
         }
         viewModel {
             ArtistViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            PlaylistViewModel(
                 application = androidApplication(),
             )
         }
