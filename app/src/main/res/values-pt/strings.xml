@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">Também pode encontrar-nos com: música de dança electrónica 2023 edm melhores músicas de dança electrónicas 2023 músicas edm música edm 2023 música de dança electrónica a melhor música de dança electrónica músicas edm populares top músicas músicas edm 2023 música edm top músicas edm 2023 top músicas de dança electrónicas edm 2023 músicas edm populares 2023 as melhores músicas de dança electro 2023  Pode sempre ouvir boa música, independentemente de como o seu dia estiver a correr:  1. Playlist de Sucessos EDM - Êxitos populares EDM em 2023 -  Gostaríamos que fique connosco por muitos anos! Portanto, no próximo ano, poderá encontrar a nossa playlist assim: EDM 2024 ♫ Melhores músicas EDM 2024</string>
     <string name="Song_and_artist_name">Música • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Álbum • %1$s</string>
@@ -18,7 +17,7 @@
     <string name="downloading">Baixando</string>
     <string name="preparing">Preparando</string>
     <string name="hide">Ocultar</string>
-    <string name="show">Mostrar</string>
+    <string name="show">Exibir</string>
     <string name="na_na">NA:NA</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">Favoritos</string>
@@ -36,7 +35,7 @@
     <string name="everything_you_need">Tudo que você precisa</string>
     <string name="restore_failed">Falha ao restaurar!</string>
     <string name="restore_success">Restauração bem-sucedida</string>
-    <string name="search">Procurar</string>
+    <string name="search">Buscar</string>
     <string name="songs">Músicas</string>
     <string name="albums">Álbuns</string>
     <string name="playlists">Playlists</string>
@@ -58,7 +57,7 @@
     <string name="good_night">Boa Noite</string>
     <string name="quick_picks">Escolhas rápidas</string>
     <string name="this_song_is_not_available">Esta música não está disponível</string>
-    <string name="in_charts">nos Gráficos</string>
+    <string name="in_charts">nas Paradas</string>
     <string name="playlist_name_cannot_be_empty">O nome da playlist não pode estar vazio</string>
     <string name="this_app_needs_to_access_your_notification">Este aplicativo precisa de acesso às suas notificações</string>
     <string name="shared">Compartilhado</string>
@@ -147,9 +146,9 @@
     <string name="login_success">Login efetuado com sucesso</string>
     <string name="log_out">Sair do YouTube</string>
     <string name="logged_in">Sessão iniciada</string>
-    <string name="logged_out">Desconectado</string>
+    <string name="logged_out">Sessão finalizada</string>
     <string name="playlist">Playlist</string>
-    <string name="restart_app">Reinicie o aplicativo para que as alterações sejam aplicadas</string>
+    <string name="restart_app">Reinicie o aplicativo para aplicar as alterações</string>
     <string name="balance_media_loudness">Equilibrar som da música</string>
     <string name="normalize_volume">Normalizar Volume</string>
     <string name="audio">Áudio</string>
@@ -187,7 +186,6 @@
     <string name="preview">Pré-visualização</string>
     <string name="music_off_topic">Música Off-topic</string>
     <string name="poi_highlight">Destaque de POI</string>
-    <string name="filter">Filtro</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Ativar o Sponsorblock</string>
     <string name="categories_sponsor_block">Selecione o comportamento \"pula-segmentos\"</string>
@@ -331,23 +329,23 @@
     <string name="hour_s_ago">Há %1$d hora(s) atrás</string>
     <string name="no_notification">Sem notificação</string>
     <string name="created_at">Criado em: %1$s</string>
-    <string name="unknown">Unknown</string>
-    <string name="repeat_one">Repeat One</string>
-    <string name="repeat_all">Repeat All</string>
-    <string name="repeat_off">Repeat Off</string>
-    <string name="youtube_transcript">YouTube Transcript</string>
+    <string name="unknown">Desconhecido</string>
+    <string name="repeat_one">Repetir Uma</string>
+    <string name="repeat_all">Repetir Todas</string>
     <string name="user_interface">Interface</string>
-    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
-    <string name="donation">If you love my work, give me a coffee</string>
-    <string name="relax">Relax</string>
-    <string name="sleep">Sleep</string>
-    <string name="energize">Energize</string>
-    <string name="sad">Sad</string>
+    <string name="translucent_bottom_navigation_bar">Barra de navegação inferior translúcida</string>
+    <string name="donation">Se curtiu o meu trabalho, me paga um café</string>
+    <string name="relax">Relaxante</string>
+    <string name="sad">Triste</string>
     <string name="romance">Romance</string>
-    <string name="feel_good">Feel Good</string>
-    <string name="workout">Workout</string>
-    <string name="party">Party</string>
-    <string name="commute">Commute</string>
-    <string name="focus">Focus</string>
+    <string name="feel_good">Sinta-se Bem</string>
+    <string name="party">Festa</string>
+    <string name="focus">Foco</string>
+    <string name="loading">Carregando</string>
+    <string name="updating">Atualizando</string>
+    <string name="http">HTTP</string>
+    <string name="invalid_host">Hospedeiro Inválido</string>
+    <string name="five_seconds">Cinco segundos</string>
+    <string name="endless_queue">Fila infinita</string>
+    <string name="do_not_show_again">Não mostrar novamente</string>
 </resources>

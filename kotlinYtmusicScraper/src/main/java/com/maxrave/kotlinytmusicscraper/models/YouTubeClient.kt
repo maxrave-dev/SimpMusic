@@ -57,7 +57,7 @@ data class YouTubeClient(
                 userAgent = USER_AGENT_ANDROID,
                 osName = "Android",
                 osVersion = "11",
-                xClientName = 21
+                xClientName = 21,
             )
 
         val ANDROID =
@@ -79,18 +79,35 @@ data class YouTubeClient(
         val WEB_REMIX =
             YouTubeClient(
                 clientName = "WEB_REMIX",
-                clientVersion = "1.20220606.03.00",
+                clientVersion = "1.20250212.01.00",
                 api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30",
                 userAgent = USER_AGENT_WEB,
                 referer = REFERER_YOUTUBE_MUSIC,
             )
 
-        val TVHTML5 =
+        val WEB_EMBEDDED =
+            YouTubeClient(
+                clientName = "WEB_EMBEDDED_PLAYER",
+                clientVersion = "1.20250310.01.00",
+                api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30",
+                userAgent = USER_AGENT_WEB,
+                referer = REFERER_YOUTUBE_MUSIC,
+            )
+
+        val TVHTML5_SIMPLY =
             YouTubeClient(
                 clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
                 clientVersion = "2.0",
                 api_key = "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8",
-                userAgent = "Mozilla/5.0 (PlayStation 4 5.55) AppleWebKit/601.2 (KHTML, like Gecko)",
+                userAgent = "Mozilla/5.0 (PlayStation; PlayStation 4/12.00) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15",
+            )
+
+        val TVHTML5 =
+            YouTubeClient(
+                clientName = "TVHTML5",
+                clientVersion = "7.20250312.16.00",
+                api_key = "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8",
+                userAgent = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
             )
 
         val IOS =
@@ -105,17 +122,18 @@ data class YouTubeClient(
                 osVersion = "17.5.1.21F90",
                 timeZone = "UTC",
                 utcOffsetMinutes = 0,
-                xClientName = 5
+                xClientName = 5,
             )
 
-        val MWEB = YouTubeClient(
-            clientName = "MWEB",
-            clientVersion = "2.20241202.07.00",
-            api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
-            userAgent = USER_AGENT_MWEB,
-            timeZone = "UTC",
-            utcOffsetMinutes = 0,
-            xClientName = 2
-        )
+        val MWEB =
+            YouTubeClient(
+                clientName = "MWEB",
+                clientVersion = "2.20241202.07.00",
+                api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
+                userAgent = USER_AGENT_MWEB,
+                timeZone = "UTC",
+                utcOffsetMinutes = 0,
+                xClientName = 2,
+            )
     }
 }

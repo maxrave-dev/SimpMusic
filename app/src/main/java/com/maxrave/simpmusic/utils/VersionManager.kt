@@ -19,6 +19,14 @@ object VersionManager {
 
 
     fun getVersionName(): String {
-        return versionName ?: String()
+        return removeDevSuffix(versionName ?: String())
+    }
+
+    private fun removeDevSuffix(versionName: String): String {
+        return if (versionName.endsWith("-dev")) {
+            versionName.replace("-dev", "")
+        } else {
+            versionName
+        }
     }
 }

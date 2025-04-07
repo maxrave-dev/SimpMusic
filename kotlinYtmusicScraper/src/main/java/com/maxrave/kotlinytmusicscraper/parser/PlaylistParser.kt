@@ -4,6 +4,7 @@ import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.getContinuation
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
@@ -99,19 +100,83 @@ fun BrowseResponse.fromPlaylistContinuationToTrackWithSetVideoId(): List<Pair<So
     } ?: emptyList()
 
 fun BrowseResponse.getPlaylistContinuation(): String? =
-    this.contents
-        ?.singleColumnBrowseResultsRenderer
-        ?.tabs
+    this.onResponseReceivedActions
         ?.firstOrNull()
-        ?.tabRenderer
-        ?.content
-        ?.sectionListRenderer
-        ?.continuations
-        ?.getContinuation()
+        ?.appendContinuationItemsAction
+        ?.continuationItems
+        ?.lastOrNull()
+        ?.continuationItemRenderer
+        ?.continuationEndpoint
+        ?.continuationCommand
+        ?.token
         ?: this.contents
             ?.twoColumnBrowseResultsRenderer
             ?.secondaryContents
             ?.sectionListRenderer
+            ?.contents
+            ?.lastOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.contents
+            ?.lastOrNull()
+            ?.continuationItemRenderer
+            ?.continuationEndpoint
+            ?.continuationCommand
+            ?.token
+        ?: this.contents
+            ?.singleColumnBrowseResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.continuations
+            ?.getContinuation()
+        ?: this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents
+            ?.sectionListRenderer
+            ?.continuations
+            ?.getContinuation()
+        ?: this.contents
+            ?.singleColumnBrowseResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.continuations
+            ?.firstOrNull()
+            ?.nextContinuationData
+            ?.continuation
+        ?: this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.continuations
+            ?.firstOrNull()
+            ?.nextContinuationData
+            ?.continuation
+        ?: this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.contents
+            ?.lastOrNull()
+            ?.continuationItemRenderer
+            ?.continuationEndpoint
+            ?.continuationCommand
+            ?.token
+        ?: this.continuationContents
+            ?.musicPlaylistShelfContinuation
             ?.continuations
             ?.getContinuation()
 
@@ -120,6 +185,83 @@ fun BrowseResponse.getContinuePlaylistContinuation(): String? =
         ?.musicPlaylistShelfContinuation
         ?.continuations
         ?.getContinuation()
+
+fun BrowseResponse.getPlaylistRadioEndpoint(): WatchEndpoint? {
+    val header =
+        this.header?.musicDetailHeaderRenderer
+            ?: this.header
+                ?.musicEditablePlaylistDetailHeaderRenderer
+                ?.header
+                ?.musicDetailHeaderRenderer
+    if (header != null) {
+        return header.menu.menuRenderer.items
+            .find {
+                it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
+            }?.menuNavigationItemRenderer
+            ?.navigationEndpoint
+            ?.watchPlaylistEndpoint
+    } else {
+        return this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicEditablePlaylistDetailHeaderRenderer
+            ?.header
+            ?.musicResponsiveHeaderRenderer
+            ?.buttons
+            ?.lastOrNull()
+            ?.menuRenderer
+            ?.items
+            ?.find {
+                it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
+            }?.menuNavigationItemRenderer
+            ?.navigationEndpoint
+            ?.watchPlaylistEndpoint
+    }
+}
+
+fun BrowseResponse.getPlaylistShuffleEndpoint(): WatchEndpoint? {
+    val header =
+        this.header?.musicDetailHeaderRenderer
+            ?: this.header
+                ?.musicEditablePlaylistDetailHeaderRenderer
+                ?.header
+                ?.musicDetailHeaderRenderer
+    if (header != null) {
+        return header.menu.menuRenderer.topLevelButtons
+            ?.firstOrNull()
+            ?.buttonRenderer
+            ?.navigationEndpoint
+            ?.watchPlaylistEndpoint
+    } else {
+        return return this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicEditablePlaylistDetailHeaderRenderer
+            ?.header
+            ?.musicResponsiveHeaderRenderer
+            ?.buttons
+            ?.lastOrNull()
+            ?.menuRenderer
+            ?.items
+            ?.find {
+                it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
+            }?.menuNavigationItemRenderer
+            ?.navigationEndpoint
+            ?.watchPlaylistEndpoint
+    }
+}
 
 fun MusicShelfRenderer.Content.toPlaylistItemData(): MusicResponsiveListItemRenderer.PlaylistItemData? =
     this.musicResponsiveListItemRenderer?.playlistItemData

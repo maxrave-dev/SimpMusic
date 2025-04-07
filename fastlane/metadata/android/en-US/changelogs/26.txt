@@ -1,0 +1,9 @@
+- Fixed Proxy issue
+- Remove bottom padding of bottom sheet
+- Separate LRCLIB to new lyrics provider
+- Improve YouTube API using NewPipeExtractor
+- Improve Video Player
+- Remove PiP because of buggy
+- Fixed some bugs in Local Playlist and Library screen
+- Update translations
+- Please re-login if you have issue with YouTube API

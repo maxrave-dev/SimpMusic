@@ -63,6 +63,7 @@ data class PlayerResponse(
             val audioChannels: Int?,
             val loudnessDb: Double?,
             val lastModified: Long?,
+            val signatureCipher: String?,
         ) {
             val isAudio: Boolean
                 get() = width == null
@@ -72,14 +73,14 @@ data class PlayerResponse(
     @Serializable
     data class VideoDetails(
         val videoId: String,
-        val title: String,
-        val author: String,
+        val title: String?,
+        val author: String?,
         val channelId: String,
         val authorAvatar: String?,
         val authorSubCount: String?,
         val lengthSeconds: String,
         val musicVideoType: String?,
-        val viewCount: String,
+        val viewCount: String?,
         val thumbnail: Thumbnails,
         val description: String?,
     )

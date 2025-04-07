@@ -1,13 +1,11 @@
 package com.maxrave.simpmusic.extension
 
 import android.app.Activity
-import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Point
 import android.os.Build
 import android.util.Log
-import android.util.Rational
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
@@ -46,7 +44,6 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
@@ -54,7 +51,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.toRect
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
@@ -66,6 +62,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -138,7 +135,7 @@ fun Modifier.angledGradientBackground(
     colors: List<Color>,
     degrees: Float,
 ) = this.then(
-    drawBehind {
+    Modifier.drawBehind {
         /*
         Have to compute length of gradient vector so that it lies within
         the visible rectangle.
@@ -489,49 +486,25 @@ fun Context.findActivity(): ComponentActivity {
     throw IllegalStateException("Picture in picture should be called in the context of an Activity")
 }
 
-@Composable
-fun PipListenerPreAPI12() {
-    // [START android_compose_pip_pre12_listener]
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-        val context = LocalContext.current
-        DisposableEffect(context) {
-            val onUserLeaveBehavior: () -> Unit = {
-                context
-                    .findActivity()
-                    .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
-            }
-            context.findActivity().addOnUserLeaveHintListener(
-                onUserLeaveBehavior,
-            )
-            onDispose {
-                context.findActivity().removeOnUserLeaveHintListener(
-                    onUserLeaveBehavior,
-                )
-            }
+fun Modifier.isElementVisible(onVisibilityChanged: (Boolean) -> Unit) =
+    composed {
+        val isVisible by remember { derivedStateOf { mutableStateOf(false) } }
+        LaunchedEffect(isVisible.value) { onVisibilityChanged.invoke(isVisible.value) }
+        this.onGloballyPositioned { layoutCoordinates ->
+            isVisible.value = layoutCoordinates.parentLayoutCoordinates?.let {
+                val parentBounds = it.boundsInWindow()
+                val childBounds = layoutCoordinates.boundsInWindow()
+                parentBounds.overlaps(childBounds)
+            } == true
         }
-    } else {
-        Log.i("PiP info", "API does not support PiP")
     }
-    // [END android_compose_pip_pre12_listener]
-}
 
-/**
- * Android 12 and above Picture in Picture mode
- */
-fun Modifier.pipModifier(context: Context) =
-    this.onGloballyPositioned { layoutCoordinates ->
-        val builder = PictureInPictureParams.Builder()
-        val sourceRect = layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
-        builder.setSourceRectHint(sourceRect)
-        builder.setAspectRatio(
-            Rational(16, 9),
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setAutoEnterEnabled(true)
-        }
-        Log.w("PiP info", "layoutCoordinates: $layoutCoordinates")
-        context.findActivity().setPictureInPictureParams(builder.build())
-    }
+fun Color.rgbFactor(factor: Float): Color {
+    val r = min(red * factor, 255f)
+    val g = min(green * factor, 255f)
+    val b = min(blue * factor, 255f)
+    return Color(r, g, b, alpha)
+}
 
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,

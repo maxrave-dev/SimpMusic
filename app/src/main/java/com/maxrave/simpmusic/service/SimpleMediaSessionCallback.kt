@@ -45,10 +45,17 @@ class SimpleMediaSessionCallback(
     private val context: Context,
     private val mainRepository: MainRepository,
 ) : MediaLibrarySession.Callback {
+    private val tag = "AndroidAuto"
     var toggleLike: () -> Unit = {}
     private val scope = CoroutineScope(Dispatchers.Main + Job())
-    val searchTempList = mutableListOf<Track>()
-    val listHomeItem = mutableListOf<HomeItem>()
+    private val searchTempList = mutableListOf<Track>()
+    private val listHomeItem = mutableListOf<HomeItem>()
+
+    init {
+        if (!mainRepository.init) {
+            mainRepository.initYouTube(scope)
+        }
+    }
 
     override fun onConnect(
         session: MediaSession,
@@ -283,11 +290,11 @@ class SimpleMediaSessionCallback(
                                     val playlistId = parentId.split("/").getOrNull(3)
                                     if (playlistId != null) {
                                         val playlist =
-                                            mainRepository.getPlaylistData(playlistId).first()
+                                            mainRepository.getFullPlaylistData(playlistId).first()
                                         if (playlist.data?.tracks.isNullOrEmpty()) {
                                             emptyList()
                                         } else {
-                                            mainRepository.insertPlaylist(playlist.data!!.toPlaylistEntity())
+                                            mainRepository.insertAndReplacePlaylist(playlist.data.toPlaylistEntity())
                                             playlist.data.tracks.map { track ->
                                                 track
                                                     .toSongEntity()
@@ -307,14 +314,18 @@ class SimpleMediaSessionCallback(
                                 if (playlistId != null) {
                                     val playlist =
                                         mainRepository.getLocalPlaylist(playlistId.toLong()).first()
-                                    Log.w("SimpleMediaSessionCallback", "onGetChildren: $playlist")
-                                    if (playlist.tracks.isNullOrEmpty()) {
-                                        emptyList()
+                                    if (playlist != null) {
+                                        Log.w(tag, "onGetChildren: $playlist")
+                                        if (playlist.tracks.isNullOrEmpty()) {
+                                            emptyList()
+                                        } else {
+                                            mainRepository
+                                                .getSongsByListVideoId(playlist.tracks)
+                                                .first()
+                                                .map { it.toMediaItem(parentId) }
+                                        }
                                     } else {
-                                        mainRepository
-                                            .getSongsByListVideoId(playlist.tracks)
-                                            .first()
-                                            .map { it.toMediaItem(parentId) }
+                                        emptyList()
                                     }
                                 } else {
                                     emptyList()
@@ -387,16 +398,16 @@ class SimpleMediaSessionCallback(
                 PLAYLIST -> {
                     val songId = path.getOrNull(2) ?: return@future defaultResult
                     val playlistId = path.getOrNull(1) ?: return@future defaultResult
-                    Log.d("SimpleMediaSessionCallback", "onSetMediaItems: $playlistId")
+                    Log.d("SimpleMediaSessionCallback", "onSetMediaItems playlistId: $playlistId")
                     val songs =
                         mainRepository
                             .getLocalPlaylist(playlistId.toLong())
                             .first()
-                            .tracks
+                            ?.tracks
                             ?.let {
                                 mainRepository.getSongsByListVideoId(it)
                             }?.first()
-                    Log.w("SimpleMediaSessionCallback", "onSetMediaItems: $songs")
+                    Log.w("SimpleMediaSessionCallback", "onSetMediaItems songs: $songs")
                     if (songs.isNullOrEmpty()) {
                         defaultResult
                     } else {
@@ -432,16 +443,22 @@ class SimpleMediaSessionCallback(
                     } else if (type == PLAYLIST) {
                         val songId = path.getOrNull(4) ?: return@future defaultResult
                         val playlistId = path.getOrNull(3) ?: return@future defaultResult
+                        Log.d(tag, "onSetMediaItems playlistId: $playlistId")
                         val playlistEntity = mainRepository.getPlaylist(playlistId).first()
+                        Log.w(tag, "onSetMediaItems playlistEntity: $playlistEntity")
                         if (playlistEntity?.tracks.isNullOrEmpty()) {
                             defaultResult
                         } else if (playlistEntity?.tracks?.isNotEmpty() == true) {
                             playlistEntity.tracks
-                                .let { it ->
+                                .let { tracks ->
                                     mainRepository
-                                        .getSongsByListVideoId(it)
+                                        .getSongsByListVideoId(tracks)
                                         .first()
-                                        .map { it.toMediaItem() }
+                                        .sortedBy {
+                                            tracks.indexOf(it.videoId)
+                                        }.also {
+                                            Log.w(tag, "onSetMediaItems list songs: $it")
+                                        }.map { it.toMediaItem() }
                                 }.let { mediaItemList ->
                                     MediaSession.MediaItemsWithStartPosition(
                                         mediaItemList,

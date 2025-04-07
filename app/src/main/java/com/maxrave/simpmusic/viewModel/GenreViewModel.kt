@@ -14,14 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-
-
 class GenreViewModel(
     application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "GenreViewModel"
-
     private val _genreObject: MutableLiveData<Resource<GenreObject>> = MutableLiveData()
     var genreObject: LiveData<Resource<GenreObject>> = _genreObject
     var loading = MutableLiveData<Boolean>()

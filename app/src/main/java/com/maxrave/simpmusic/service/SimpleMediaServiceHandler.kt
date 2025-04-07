@@ -18,6 +18,7 @@ import androidx.media3.common.MediaItem.SubtitleConfiguration
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
@@ -62,11 +63,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -75,11 +78,13 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
+import kotlin.math.pow
 
 @UnstableApi
 class SimpleMediaServiceHandler(
@@ -136,6 +141,9 @@ class SimpleMediaServiceHandler(
         )
     val controlState = _controlState.asStateFlow()
 
+    private val isFading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val shouldFadeAudio = dataStoreManager.fadeVolume.map { it > 0 }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(5000L), false)
+
     private var _stateFlow = MutableStateFlow<StateSource>(StateSource.STATE_CREATED)
     val stateFlow = _stateFlow.asStateFlow()
     private var _currentSongIndex = MutableStateFlow<Int>(player.currentMediaItemIndex)
@@ -165,6 +173,8 @@ class SimpleMediaServiceHandler(
     private var progressJob: Job? = null
 
     private var bufferedJob: Job? = null
+
+    private var fadeJob: Job? = null
 
     private var updateNotificationJob: Job? = null
 
@@ -218,6 +228,53 @@ class SimpleMediaServiceHandler(
         }
         mayBeRestoreQueue()
         coroutineScope.launch {
+            val shouldFadeJob =
+                launch {
+                    shouldFadeAudio.collectLatest {
+                        if (!it) {
+                            fadeJob?.cancel()
+                            isFading.value = false
+                            player.volume = 1f
+                        }
+                    }
+                }
+            val fadeJob =
+                launch {
+                    combine(
+                        simpleMediaState
+                            .filter { it is SimpleMediaState.Progress }
+                            .map {
+                                val current = (it as SimpleMediaState.Progress).progress
+                                val duration = player.duration
+                                if (duration > 0L) {
+                                    Pair(current, player.duration)
+                                } else {
+                                    Pair(-1L, player.duration)
+                                }
+                            }.filter { it.first >= 0 && it.second > 0 },
+                        isFading,
+                    ) { (current, duration), fading ->
+                        Triple(current, duration, fading)
+                    }.collectLatest { (current, duration, fading) ->
+                        if (shouldFadeAudio.value) {
+                            val fadeDuration =
+                                runBlocking {
+                                    dataStoreManager.fadeVolume.first()
+                                }
+                            if (duration - current <= fadeDuration && !fading) {
+                                Log.w(TAG, "Fade out $current $duration $fadeDuration $fading")
+                                isFading.value = true
+                                startFadeAnimator(
+                                    (duration - current),
+                                    20,
+                                    false,
+                                ) {
+                                    isFading.value = false
+                                }
+                            }
+                        }
+                    }
+                }
             val skipSegmentsJob =
                 launch {
                     simpleMediaState
@@ -291,8 +348,25 @@ class SimpleMediaServiceHandler(
                         }
                     }
                 }
+            val playbackSpeedPitchJob =
+                launch {
+                    combine(dataStoreManager.playbackSpeed, dataStoreManager.pitch) { speed, pitch ->
+                        Pair(speed, pitch)
+                    }.collectLatest { pair ->
+                        Log.w(TAG, "Playback speed: ${pair.first}, Pitch: ${pair.second}")
+                        player.playbackParameters =
+                            PlaybackParameters(
+                                pair.first,
+                                2f.pow(pair.second.toFloat() / 12),
+                            )
+                        Log.w(TAG, "Playback current speed: ${player.playbackParameters.speed}, Pitch: ${player.playbackParameters.pitch}")
+                    }
+                }
             skipSegmentsJob.join()
             playbackJob.join()
+            playbackSpeedPitchJob.join()
+            shouldFadeJob.join()
+            fadeJob.join()
         }
     }
 
@@ -553,7 +627,7 @@ class SimpleMediaServiceHandler(
 
     fun removeMediaItem(position: Int) {
         player.removeMediaItem(position)
-        val temp = _queueData.value?.listTracks
+        val temp = _queueData.value?.listTracks?.toMutableList()
         temp?.removeAt(position)
         _queueData.value =
             _queueData.value?.copy(
@@ -572,7 +646,7 @@ class SimpleMediaServiceHandler(
         player.playWhenReady = playWhenReady
     }
 
-    fun addMediaItemNotSet(mediaItem: MediaItem) {
+    private fun addMediaItemNotSet(mediaItem: MediaItem) {
         player.addMediaItem(mediaItem)
         if (player.mediaItemCount == 1) {
             player.prepare()
@@ -610,7 +684,9 @@ class SimpleMediaServiceHandler(
         player.playWhenReady = true
     }
 
-    fun moveMediaItem(
+    fun currentSongIndex(): Int = player.currentMediaItemIndex
+
+    private fun moveMediaItem(
         fromIndex: Int,
         newIndex: Int,
     ) {
@@ -765,10 +841,10 @@ class SimpleMediaServiceHandler(
         mediaItem: MediaItem?,
         reason: Int,
     ) {
-        Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
+        Log.w(TAG, "Smooth Switching Transition Current Position: ${player.currentPosition}")
         mayBeNormalizeVolume()
-        Log.w("REASON", "onMediaItemTransition: $reason")
-        Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+        Log.w(TAG, "REASON onMediaItemTransition: $reason")
+        Log.d(TAG, "Media Item Transition Media Item: ${mediaItem?.mediaMetadata?.title}")
         if (mediaItem?.mediaId != _nowPlaying.value?.mediaId) {
             _nowPlaying.value = mediaItem
         }
@@ -781,7 +857,7 @@ class SimpleMediaServiceHandler(
             }
         }
         _queueData.value?.listTracks?.let { list ->
-            if (list.size > 3 &&
+            if ((list.size > 3 || runBlocking { dataStoreManager.endlessQueue.first() == TRUE }) &&
                 list.size - player.currentMediaItemIndex < 3 &&
                 list.size - player.currentMediaItemIndex >= 0 &&
                 _stateFlow.value == StateSource.STATE_INITIALIZED
@@ -792,6 +868,7 @@ class SimpleMediaServiceHandler(
         }
         updateNextPreviousTrackAvailability()
         updateNotification()
+        mayBeFadeInVolume()
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
@@ -943,7 +1020,12 @@ class SimpleMediaServiceHandler(
             if (playlistId.startsWith(LOCAL_PLAYLIST_ID)) {
                 coroutineScope.launch {
                     _stateFlow.value = StateSource.STATE_INITIALIZING
-                    val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
+                    val longId =
+                        try {
+                            playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
+                        } catch (e: NumberFormatException) {
+                            return@launch
+                        }
                     Log.w("Check loadMore", longId.toString())
                     if (continuation.startsWith("SHUFFLE")) {
                         val regex = Regex("(?<=SHUFFLE)\\d+(?=_)")
@@ -1028,29 +1110,41 @@ class SimpleMediaServiceHandler(
             } else {
                 coroutineScope.launch {
                     _stateFlow.value = StateSource.STATE_INITIALIZING
-                    Log.w("Check loadMore continuation", continuation.toString())
+                    Log.w(TAG, "Check loadMore continuation $continuation")
                     mainRepository
                         .getContinueTrack(playlistId, continuation)
                         .singleOrNull()
                         .let { response ->
                             val list = response?.first
                             if (list != null) {
-                                Log.w("Check loadMore response", response.toString())
+                                Log.w(TAG, "Check loadMore response $response")
                                 loadMoreCatalog(list)
+                                _queueData.value =
+                                    _queueData.value?.copy(
+                                        continuation = response.second,
+                                    )
+                            } else {
+                                _queueData.value =
+                                    _queueData.value?.copy(
+                                        continuation = null,
+                                    )
+                                if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
+                                    Log.w(TAG, "loadMore: Endless Queue")
+                                    val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return@launch
+                                    getRelated(lastTrack.videoId)
+                                }
                             }
-                            _queueData.value =
-                                _queueData.value?.copy(
-                                    continuation = response?.second,
-                                )
-//                            loadingMore.value = false
                         }
                 }
             }
+        } else if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
+            Log.w(TAG, "loadMore: Endless Queue")
+            val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return
+            getRelated(lastTrack.videoId)
         }
     }
 
     fun getRelated(videoId: String) {
-//            Queue.clear()
         coroutineScope.launch {
             mainRepository.getRelatedData(videoId).collect { response ->
                 when (response) {
@@ -1103,6 +1197,16 @@ class SimpleMediaServiceHandler(
         }
     }
 
+    private fun mayBeFadeInVolume() {
+        if (shouldFadeAudio.value) {
+            startFadeAnimator(
+                runBlocking { dataStoreManager.fadeVolume.first() }.toLong(),
+                20,
+                true,
+            )
+        }
+    }
+
     private fun mayBeNormalizeVolume() {
         runBlocking {
             normalizeVolume = dataStoreManager.normalizeVolume.first() == TRUE
@@ -1121,25 +1225,44 @@ class SimpleMediaServiceHandler(
         }
 
         player.currentMediaItem?.mediaId?.let { songId ->
+            val videoId =
+                if (songId.contains("Video")) {
+                    songId.removePrefix("Video")
+                } else {
+                    songId
+                }
             volumeNormalizationJob?.cancel()
             volumeNormalizationJob =
                 coroutineScope.launch(Dispatchers.Main) {
-                    mainRepository.getNewFormat(songId).cancellable().first().let { format ->
-                        if (format != null) {
-                            try {
-                                loudnessEnhancer?.setTargetGain(
-                                    -((format.loudnessDb ?: 0f) * 100).toInt() + 500,
-                                )
-                                Log.w(
-                                    "Loudness",
-                                    "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}",
-                                )
-                                loudnessEnhancer?.enabled = true
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                    fun Float?.toMb() = ((this ?: 0f) * 100).toInt()
+                    mainRepository
+                        .getFormatFlow(videoId)
+                        .cancellable()
+                        .distinctUntilChanged()
+                        .collectLatest { format ->
+                            if (format != null) {
+                                val loudnessMb =
+                                    format.loudnessDb.toMb().let {
+                                        if (it !in -2000..2000) {
+                                            0
+                                        } else {
+                                            it
+                                        }
+                                    }
+                                Log.d(TAG, "Loudness: ${format.loudnessDb} db, $loudnessMb")
+                                try {
+                                    loudnessEnhancer?.setTargetGain(0f.toMb() - loudnessMb)
+                                    loudnessEnhancer?.enabled = true
+                                    Log.w(
+                                        TAG,
+                                        "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}",
+                                    )
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
+                                    e.printStackTrace()
+                                }
                             }
                         }
-                    }
                 }
         }
     }
@@ -1425,14 +1548,15 @@ class SimpleMediaServiceHandler(
     @UnstableApi
     suspend fun moveItemUp(position: Int) {
         moveMediaItem(position, position - 1)
-        queueData.first()?.listTracks?.let { list ->
+        queueData.first()?.listTracks?.toMutableList()?.let { list ->
             val temp = list[position]
             list[position] = list[position - 1]
             list[position - 1] = temp
-            _queueData.value =
-                queueData.first()?.copy(
+            _queueData.update {
+                it?.copy(
                     listTracks = list,
                 )
+            }
         }
         _currentSongIndex.value = player.currentMediaItemIndex
     }
@@ -1440,14 +1564,15 @@ class SimpleMediaServiceHandler(
     @UnstableApi
     suspend fun moveItemDown(position: Int) {
         moveMediaItem(position, position + 1)
-        queueData.first()?.listTracks?.let { list ->
+        queueData.first()?.listTracks?.toMutableList()?.let { list ->
             val temp = list[position]
             list[position] = list[position + 1]
             list[position + 1] = temp
-            _queueData.value =
-                queueData.first()?.copy(
+            _queueData.update {
+                it?.copy(
                     listTracks = list,
                 )
+            }
         }
         _currentSongIndex.value = player.currentMediaItemIndex
     }
@@ -1877,7 +2002,7 @@ class SimpleMediaServiceHandler(
 
     suspend fun playNext(track: Track) {
         _stateFlow.value = StateSource.STATE_INITIALIZING
-        val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks ?: arrayListOf()
+        val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks?.toCollection(arrayListOf()) ?: arrayListOf()
         var thumbUrl =
             track.thumbnails?.lastOrNull()?.url
                 ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
@@ -1991,6 +2116,61 @@ class SimpleMediaServiceHandler(
         }
         _stateFlow.value = StateSource.STATE_INITIALIZED
     }
+
+    private fun startFadeAnimator(
+        duration: Long,
+        steps: Int = 10,
+        fadeIn: Boolean,
+        callback: suspend () -> Unit = {},
+    ) {
+        fadeJob?.cancel()
+        fadeJob =
+            coroutineScope.launch(Dispatchers.Main) {
+                Log.w(TAG, "startFadeAnimator")
+                val delay = duration / steps
+                if (duration == 0L) {
+                    callback.invoke()
+                    return@launch
+                }
+                var startValue = if (fadeIn) 0f else 1f
+                val endValue = if (fadeIn) 1f else 0f
+                if (fadeIn) player.volume = startValue
+                var currentAnim = 0f
+                while (currentAnim <= duration) {
+                    if (fadeIn && player.currentPosition > duration) {
+                        player.volume = endValue
+                        Log.w(TAG, "startFadeAnimator current value: $endValue")
+                        callback.invoke()
+                        return@launch
+                    } else if (!fadeIn && (player.duration - player.currentPosition) > duration) {
+                        player.volume = endValue
+                        Log.w(TAG, "startFadeAnimator current value: $endValue")
+                        callback.invoke()
+                        return@launch
+                    }
+                    currentAnim += delay
+                    Log.w(TAG, "startFadeAnimator anim $currentAnim")
+                    startValue =
+                        if (fadeIn) {
+                            (currentAnim / duration).toFloat()
+                        } else {
+                            1f - (currentAnim / duration).toFloat()
+                        }
+                    player.volume =
+                        if (startValue > 1f) {
+                            1f
+                        } else if (startValue < 0f) {
+                            0f
+                        } else {
+                            startValue
+                        }
+                    Log.w(TAG, "startFadeAnimator current value: $startValue")
+                    delay(delay)
+                }
+                player.volume = endValue
+                callback.invoke()
+            }
+    }
 }
 
 sealed class RepeatState {
@@ -2082,7 +2262,7 @@ data class ControlState(
 )
 
 data class QueueData(
-    val listTracks: ArrayList<Track> = arrayListOf(),
+    val listTracks: List<Track> = arrayListOf(),
     val firstPlayedTrack: Track? = null,
     val playlistId: String? = null,
     val playlistName: String? = null,
@@ -2090,7 +2270,7 @@ data class QueueData(
     val continuation: String? = null,
 ) {
     fun addTrackList(tracks: Collection<Track>): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.addAll(tracks)
         return this.copy(
             listTracks = temp,
@@ -2101,7 +2281,7 @@ data class QueueData(
         track: Track,
         index: Int,
     ): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.add(index, track)
         return this.copy(
             listTracks = temp,
@@ -2109,7 +2289,7 @@ data class QueueData(
     }
 
     fun removeFirstTrackForPlaylistAndAlbum(): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.removeAt(0)
         return this.copy(
             listTracks = temp,
@@ -2117,7 +2297,7 @@ data class QueueData(
     }
 
     fun removeTrackWithIndex(index: Int): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.removeAt(index)
         return this.copy(
             listTracks = temp,

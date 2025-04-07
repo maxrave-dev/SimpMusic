@@ -110,10 +110,6 @@
         app:enterAnim="@anim/bottom_to_top"
         app:exitAnim="@anim/top_to_bottom"
         app:popExitAnim="@anim/top_to_bottom" />
-    <dialog
-        android:id="@+id/queueFragment"
-        android:name="com.maxrave.simpmusic.ui.fragment.player.QueueFragment"
-        android:label="QueueFragment" />
     <fragment
         android:id="@+id/favoriteFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.library.FavoriteFragment"
@@ -183,13 +179,6 @@
     <action
         android:id="@+id/action_global_infoFragment"
         app:destination="@id/infoFragment"
-        app:enterAnim="@anim/bottom_to_top"
-        app:exitAnim="@anim/top_to_bottom"
-        app:popEnterAnim="@anim/bottom_to_top"
-        app:popExitAnim="@anim/top_to_bottom" />
-    <action
-        android:id="@+id/action_global_queueFragment"
-        app:destination="@id/queueFragment"
         app:enterAnim="@anim/bottom_to_top"
         app:exitAnim="@anim/top_to_bottom"
         app:popEnterAnim="@anim/bottom_to_top"

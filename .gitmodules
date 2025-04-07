@@ -1,0 +1,3 @@
+[submodule "MediaServiceCore"]
+	path = MediaServiceCore
+	url = https://github.com/maxrave-dev/MediaServiceCore

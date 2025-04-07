@@ -9,10 +9,13 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.text.Html
+import android.text.Spanned
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.compose.ui.text.fromHtml
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
@@ -22,10 +25,10 @@ import androidx.navigation.NavController
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
-import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
+import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
@@ -36,6 +39,7 @@ import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
 import com.maxrave.simpmusic.data.model.browse.artist.ResultVideo
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
@@ -50,6 +54,10 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
+import com.maxrave.simpmusic.viewModel.ArtistScreenData
+import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -113,7 +121,7 @@ fun ResultVideo.toTrack(): Track =
         thumbnails = this.thumbnails,
         title = this.title,
         videoId = this.videoId,
-        videoType = null,
+        videoType = this.views,
         category = null,
         feedbackTokens = null,
         resultType = null,
@@ -548,6 +556,29 @@ fun Collection<SongEntity>.toVideoIdList(): List<String> {
     return list
 }
 
+fun ArtistBrowse.toArtistScreenData(): ArtistScreenData =
+    ArtistScreenData(
+        title = this.name,
+        imageUrl = this.thumbnails?.lastOrNull()?.url,
+        subscribers = this.subscribers,
+        playCount = this.views,
+        isChannel = this.songs == null,
+        channelId = this.channelId,
+        radioParam = this.radioId,
+        shuffleParam = this.shuffleId,
+        description = this.description,
+        listSongParam = this.songs?.browseId,
+        popularSongs = this.songs?.results?.map { it.toTrack() } ?: emptyList(),
+        singles = this.singles,
+        albums = this.albums,
+        video =
+            this.video?.let { video ->
+                ArtistBrowse.Videos(video.map { it.toTrack() }, this.videoList)
+            },
+        related = this.related,
+        featuredOn = this.featuredOn ?: emptyList(),
+    )
+
 fun setEnabledAll(
     v: View,
     enabled: Boolean,
@@ -593,7 +624,7 @@ fun <T> Iterable<T>.indexMap(): Map<T, Int> {
     return map
 }
 
-fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
+fun com.maxrave.lyricsproviders.models.lyrics.Lyrics.toLyrics(): Lyrics {
     val lines: ArrayList<Line> = arrayListOf()
     if (this.lyrics != null) {
         this.lyrics?.lines?.forEach {
@@ -865,7 +896,10 @@ fun LocalDateTime.formatTimeAgo(context: Context): String {
     }
 }
 
-fun formatDuration(duration: Long, context: Context): String {
+fun formatDuration(
+    duration: Long,
+    context: Context,
+): String {
     if (duration < 0L) return context.getString(R.string.na_na)
     val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
     val seconds: Long = (
@@ -959,4 +993,13 @@ fun isNetworkAvailable(context: Context?): Boolean {
         // else return false
         else -> false
     }
+}
+
+fun markdownToHtml(markdown: String): Spanned {
+    val src = markdown.trimIndent()
+    val flavour = CommonMarkFlavourDescriptor()
+    val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(src)
+    val html = HtmlGenerator(src, parsedTree, flavour).generateHtml()
+    Log.w("markdownToHtml", html)
+    return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
 }

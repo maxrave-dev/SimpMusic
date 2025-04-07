@@ -1,0 +1,5 @@
+Thanks for using SimpMusic! We update the app regularly to make it better for you. This version includes new features, several bug fixes and performance improvements.
+- Fixed YouTube Playlist API changes
+- Download videos, audio files from YouTube (experimental, will add more customization in the future)
+- Improved performance
+- Update translations

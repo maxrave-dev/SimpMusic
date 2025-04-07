@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -38,6 +39,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,6 +67,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -90,6 +93,7 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.GetDataSyncIdBottomSheet
 import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
@@ -97,11 +101,13 @@ import com.maxrave.simpmusic.ui.component.ItemTrackChart
 import com.maxrave.simpmusic.ui.component.ItemVideoChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
+import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -111,11 +117,9 @@ import java.util.Calendar
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel =
-        androidx.lifecycle.viewmodel.compose
-            .viewModel(),
+        koinViewModel(),
     sharedViewModel: SharedViewModel =
-        androidx.lifecycle.viewmodel.compose
-            .viewModel(),
+        viewModel(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -139,6 +143,24 @@ fun HomeScreen(
     val params by viewModel.params.collectAsState()
 
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsState()
+
+    val openAppTime by sharedViewModel.openAppTime.collectAsState()
+
+    var showReviewDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val dataSyncId by viewModel.dataSyncId.collectAsState()
+    val youTubeCookie by viewModel.youTubeCookie.collectAsState()
+    var shouldShowGetDataSyncIdBottomSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(dataSyncId, youTubeCookie) {
+        Log.d("HomeScreen", "dataSyncId: $dataSyncId, youTubeCookie: $youTubeCookie")
+        if (dataSyncId.isEmpty() && youTubeCookie.isNotEmpty()) {
+            shouldShowGetDataSyncIdBottomSheet = true
+        }
+    }
 
     val onRefresh: () -> Unit = {
         isRefreshing = true
@@ -169,18 +191,72 @@ fun HomeScreen(
     LaunchedEffect(key1 = homeData) {
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
+    LaunchedEffect(openAppTime) {
+        if (openAppTime >= 10 && openAppTime % 10 == 0 && openAppTime <= 30) {
+            showReviewDialog = true
+        }
+    }
+
+    if (shouldShowGetDataSyncIdBottomSheet) {
+        GetDataSyncIdBottomSheet(
+            cookie = youTubeCookie,
+            onDismissRequest = {
+                shouldShowGetDataSyncIdBottomSheet = false
+            },
+        )
+    }
+
+    if (showReviewDialog) {
+        ReviewDialog(
+            onDismissRequest = {
+                sharedViewModel.onDoneReview(
+                    isDismissOnly = true,
+                )
+                showReviewDialog = false
+            },
+            onDoneReview = {
+                sharedViewModel.onDoneReview(
+                    isDismissOnly = false,
+                )
+                showReviewDialog = false
+            },
+        )
+    }
 
     if (shouldShowLogInAlert) {
+        var doNotShowAgain by rememberSaveable {
+            mutableStateOf(false)
+        }
         AlertDialog(
             title = {
                 Text(stringResource(R.string.warning))
             },
             text = {
-                Text(text = stringResource(R.string.log_in_warning))
+                Column {
+                    Text(text = stringResource(R.string.log_in_warning))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier =
+                            Modifier
+                                .clickable {
+                                    doNotShowAgain = !doNotShowAgain
+                                }.fillMaxWidth(),
+                    ) {
+                        Checkbox(
+                            checked = doNotShowAgain,
+                            onCheckedChange = {
+                                doNotShowAgain = it
+                            },
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(stringResource(R.string.do_not_show_again))
+                    }
+                }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.doneShowLogInAlert()
+                    viewModel.doneShowLogInAlert(doNotShowAgain)
                     navController.navigateSafe(R.id.action_global_logInFragment)
                 }) {
                     Text(stringResource(R.string.go_to_log_in_page))
@@ -188,7 +264,7 @@ fun HomeScreen(
             },
             dismissButton = {
                 TextButton(onClick = {
-                    viewModel.doneShowLogInAlert()
+                    viewModel.doneShowLogInAlert(doNotShowAgain)
                 }) {
                     Text(stringResource(R.string.cancel))
                 }
@@ -228,22 +304,24 @@ fun HomeScreen(
                     .padding(vertical = 8.dp, horizontal = 15.dp),
         ) {
             Config.listOfHomeChip.forEach { id ->
+                val isSelected =
+                    when (params) {
+                        Constants.HOME_PARAMS_RELAX -> id == R.string.relax
+                        Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
+                        Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
+                        Constants.HOME_PARAMS_SAD -> id == R.string.sad
+                        Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
+                        Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
+                        Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
+                        Constants.HOME_PARAMS_PARTY -> id == R.string.party
+                        Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
+                        Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
+                        else -> id == R.string.all
+                    }
                 Spacer(modifier = Modifier.width(4.dp))
                 Chip(
-                    isSelected =
-                        when (params) {
-                            Constants.HOME_PARAMS_RELAX -> id == R.string.relax
-                            Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
-                            Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
-                            Constants.HOME_PARAMS_SAD -> id == R.string.sad
-                            Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
-                            Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
-                            Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
-                            Constants.HOME_PARAMS_PARTY -> id == R.string.party
-                            Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
-                            Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
-                            else -> id == R.string.all
-                        },
+                    isAnimated = loading,
+                    isSelected = isSelected,
                     text = stringResource(id = id),
                 ) {
                     when (id) {
@@ -310,12 +388,30 @@ fun HomeScreen(
                             ) {
                                 QuickPicks(
                                     homeItem =
-                                        homeData.find {
-                                            it.title ==
-                                                context.getString(
-                                                    R.string.quick_picks,
-                                                )
-                                        } ?: return@AnimatedVisibility,
+                                        (
+                                            homeData.find {
+                                                it.title ==
+                                                    context.getString(
+                                                        R.string.quick_picks,
+                                                    )
+                                            } ?: return@AnimatedVisibility
+                                        ).let { content ->
+                                            content.copy(
+                                                contents =
+                                                    content.contents.mapNotNull { ct ->
+                                                        ct?.copy(
+                                                            artists =
+                                                                ct.artists?.let { art ->
+                                                                    if (art.size > 1) {
+                                                                        art.dropLast(1)
+                                                                    } else {
+                                                                        art
+                                                                    }
+                                                                },
+                                                        )
+                                                    },
+                                            )
+                                        },
                                     viewModel = viewModel,
                                 )
                             }
@@ -323,7 +419,6 @@ fun HomeScreen(
                         items(homeData, key = { it.hashCode() }) {
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
-                                    homeViewModel = viewModel,
                                     navController = navController,
                                     data = it,
                                 )
@@ -334,7 +429,6 @@ fun HomeScreen(
                                 visible = newRelease.isNotEmpty(),
                             ) {
                                 HomeItem(
-                                    homeViewModel = viewModel,
                                     navController = navController,
                                     data = it,
                                 )
@@ -530,7 +624,7 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
-    viewModel: HomeViewModel,
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     val lazyListState = rememberLazyGridState()
     val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState, snapPosition = SnapPosition.Start))
@@ -742,7 +836,7 @@ fun ChartData(
                         state = lazyListState1,
                         flingBehavior = snapperFlingBehavior1,
                     ) {
-                        items(chart.songs, key = { it.videoId }) {
+                        items(chart.songs, key = { it.hashCode() }) {
                             ItemTrackChart(onClick = {
                                 viewModel.setQueueData(
                                     QueueData(
@@ -777,7 +871,7 @@ fun ChartData(
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
-            items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId }) {
+            items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId + index }) {
                 val data = chart.videos.items[it]
                 ItemVideoChart(
                     onClick = {
@@ -819,7 +913,7 @@ fun ChartData(
         ) {
             items(chart.artists.itemArtists.size, key = { index ->
                 val item = chart.artists.itemArtists[index]
-                item.title + item.browseId
+                item.title + item.browseId + index
             }) {
                 val data = chart.artists.itemArtists[it]
                 ItemArtistChart(onClick = {

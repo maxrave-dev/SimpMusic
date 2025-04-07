@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.tasks.CompileArtProfileTask
-import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 
 plugins {
     alias(libs.plugins.android.application)
@@ -10,6 +9,13 @@ plugins {
     alias(libs.plugins.aboutlibraries)
 }
 
+kotlin {
+    jvmToolchain(17) // or appropriate version
+    compilerOptions {
+        freeCompilerArgs.add("-Xwhen-guards")
+    }
+}
+
 android {
     namespace = "com.maxrave.simpmusic"
     compileSdk = 35
@@ -18,8 +24,13 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = libs.versions.version.code.get().toInt()
-        versionName = libs.versions.version.name.get()
+        versionCode =
+            libs.versions.version.code
+                .get()
+                .toInt()
+        versionName =
+            libs.versions.version.name
+                .get()
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -28,7 +39,7 @@ android {
             arg("KOIN_USE_COMPOSE_VIEWMODEL", "true")
         }
 
-        resourceConfigurations +=
+        androidResources.localeFilters +=
             listOf(
                 "en",
                 "vi",
@@ -65,6 +76,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            splits {
+                abi {
+                    isEnable = true
+                    reset()
+                    isUniversalApk = true
+                    include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+                }
+            }
         }
         debug {
             isMinifyEnabled = false
@@ -88,11 +107,6 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
-    }
-    composeCompiler {
-        featureFlags = setOf(
-            ComposeFeatureFlag.StrongSkipping
-        )
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -184,6 +198,7 @@ android {
 
 dependencies {
 
+    implementation(project(":lyricsProviders"))
     // Compose
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
@@ -318,6 +333,13 @@ dependencies {
 
     // Store5
     implementation(libs.store)
+
+    // Jetbrains Markdown
+    api(libs.markdown)
+
+    // Blur Haze
+    implementation(libs.haze)
+    implementation(libs.haze.material)
 }
 aboutLibraries {
     prettyPrint = true

@@ -116,6 +116,13 @@ android {
                 "META-INF/*.kotlin_module",
             )
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
 
 dependencies {
@@ -123,9 +130,11 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.ui.text.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
+    coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -143,6 +152,10 @@ dependencies {
 
     implementation(libs.ksoup.html)
     implementation(libs.ksoup.entities)
+
+    implementation(libs.ffmpeg.kit.min)
+    implementation(project(mapOf("path" to ":youtubeapi")))
+    implementation(project(mapOf("path" to ":sharedutils")))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

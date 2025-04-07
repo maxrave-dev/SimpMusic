@@ -33,6 +33,7 @@ data class SongItem(
     val thumbnails: Thumbnails? = null,
     val badges: List<SongBadges>? = null,
     val likeStatus: LikeStatus = LikeStatus.INDIFFERENT,
+    val setVideoId: String? = null,
 ) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
@@ -58,6 +59,7 @@ data class VideoItem(
     val duration: Int? = null,
     val view: String? = null,
     val likeStatus: LikeStatus = LikeStatus.INDIFFERENT,
+    val setVideoId: String? = null,
 ) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"

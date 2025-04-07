@@ -1,7 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
-import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
@@ -10,65 +9,38 @@ import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
+import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 
 fun main() {
     runBlocking {
-//        val ytMusic = Ytmusic()
-//        val jsonDeserializer = Json {
-//            ignoreUnknownKeys = true
-//            encodeDefaults = true
-//            coerceInputValues = true
-//            useArrayPolymorphism = true
-//        }
-//        ytMusic.createPoTokenChallenge().bodyAsText().let {
-//            jsonDeserializer.decodeFromString<List<String?>>(it)
-//        }.let {
-//            println(it)
-//            val challenge = it.getOrNull(1)
-//            challenge?.let {
-//                ytMusic.generatePoToken(challenge).bodyAsText().let {
-//                    println(it)
-//                    it.replace("[", "").replace("]", "")
-//                        .split(",")
-//                        .findLast { it.contains("\"") }
-//                        ?.replace("\"", "")
-//                        ?.let {
-//                            println("Token: $it")
-//                        }
-//                }
-//            }
-//        }
-        testPlayer()
+        val yt = Ytmusic()
+        yt
+            .browse(WEB_REMIX, "VLPL_pRLf9CPBPEvMTXA4rb-RNECtiH9C2NP")
+            .body<BrowseResponse>()
+            .let { res ->
+                val continuation =
+                    res.getPlaylistContinuation()
+                println("Continuation: $continuation")
+                yt.browse(WEB_REMIX, continuation = continuation).bodyAsText().let {
+                    println(it)
+                }
+            }
     }
 }
 
 fun testPlayer() {
     runBlocking {
-        val yt = YouTube()
-        yt.player(
-                "iqgYmB5vPfI",
-            ).onSuccess {
-                it.second.streamingData?.let { data ->
-                    data.adaptiveFormats.forEach { format ->
-                        println("${format.itag} ${format.url}")
-                    }
-                    data.formats?.forEach { format ->
-                        println("${format.itag} ${format.url}")
-                    }
-                }
-                it.second.responseContext.serviceTrackingParams?.find { it.service == "GFEEDBACK" }
-                    ?.params?.find { it.key == "logged_in" }?.let {
-                        println("Logged in: ${it.value}")
-                    }
-                println("Tracking: ${it.second.playbackTracking}")
-            }.onFailure {
-                it.printStackTrace()
-            }
+        val yt = Ytmusic()
+        val id = "VLPL_pRLf9CPBPEvMTXA4rb-RNECtiH9C2NP"
+        yt
+            .browse(WEB_REMIX, id, null, null, "VN", true)
+            .bodyAsText()
     }
 }
 

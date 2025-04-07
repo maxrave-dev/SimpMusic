@@ -26,6 +26,7 @@ abstract class BaseAppWidget : AppWidgetProvider() {
     /**
      * Handle a change notification coming over from [MusicService]
      */
+    @UnstableApi
     fun notifyChange(
         context: Context,
         handler: SimpleMediaServiceHandler,
@@ -43,11 +44,15 @@ abstract class BaseAppWidget : AppWidgetProvider() {
         appWidgetIds: IntArray?,
         views: RemoteViews,
     ) {
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        if (appWidgetIds != null) {
-            appWidgetManager.updateAppWidget(appWidgetIds, views)
-        } else {
-            appWidgetManager.updateAppWidget(ComponentName(context, javaClass), views)
+        try {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            if (appWidgetIds != null) {
+                appWidgetManager.updateAppWidget(appWidgetIds, views)
+            } else {
+                appWidgetManager.updateAppWidget(ComponentName(context, javaClass), views)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -55,11 +60,15 @@ abstract class BaseAppWidget : AppWidgetProvider() {
         context: Context,
         views: RemoteViews,
     ) {
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        appWidgetManager.partiallyUpdateAppWidget(
-            appWidgetManager.getAppWidgetIds(ComponentName(context, javaClass)),
-            views,
-        )
+        try {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            appWidgetManager.partiallyUpdateAppWidget(
+                appWidgetManager.getAppWidgetIds(ComponentName(context, javaClass)),
+                views,
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -94,6 +103,7 @@ abstract class BaseAppWidget : AppWidgetProvider() {
         appWidgetIds: IntArray,
     )
 
+    @UnstableApi
     abstract fun performUpdate(
         context: Context,
         handler: SimpleMediaServiceHandler,

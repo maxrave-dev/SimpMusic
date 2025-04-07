@@ -22,7 +22,7 @@ abstract class BaseManager(
     /**
      * Tag for logging
      */
-    protected abstract val tag: String
+    protected val tag: String = javaClass.simpleName
 
     protected fun getString(resId: Int): String = context.getString(resId)
 

@@ -11,14 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
-
 class PodcastViewModel(
     application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "PodcastViewModel"
-
     var gradientDrawable: MutableLiveData<GradientDrawable?> = MutableLiveData()
     var loading = MutableLiveData<Boolean>()
     var id = MutableLiveData<String>()

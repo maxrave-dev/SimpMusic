@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -11,6 +12,7 @@ import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
+import com.maxrave.simpmusic.utils.VersionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -23,6 +25,48 @@ import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 class DataStoreManager(
     private val settingsDataStore: DataStore<Preferences>,
 ) {
+    val appVersion: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[APP_VERSION] ?: VersionManager.getVersionName()
+        }
+
+    suspend fun setAppVersion(version: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[APP_VERSION] = version
+            }
+        }
+    }
+
+    val openAppTime: Flow<Int> =
+        settingsDataStore.data.map { preferences ->
+            preferences[OPEN_APP_TIME] ?: 0
+        }
+
+    suspend fun openApp() {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[OPEN_APP_TIME] = openAppTime.first() + 1
+            }
+        }
+    }
+
+    suspend fun resetOpenAppTime() {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[OPEN_APP_TIME] = 0
+            }
+        }
+    }
+
+    suspend fun doneOpenAppTime() {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[OPEN_APP_TIME] = 31
+            }
+        }
+    }
+
     val location: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[LOCATION] ?: "VN"
@@ -562,6 +606,7 @@ class DataStoreManager(
         settingsDataStore.data.map { preferences ->
             preferences[USING_PROXY] ?: FALSE
         }
+
     suspend fun setUsingProxy(usingProxy: Boolean) {
         withContext(Dispatchers.IO) {
             if (usingProxy) {
@@ -575,30 +620,36 @@ class DataStoreManager(
             }
         }
     }
+
     val proxyType =
-        settingsDataStore.data.map { preferences ->
-            preferences[PROXY_TYPE]
-        }.map {
-            when (it) {
-                PROXY_TYPE_HTTP -> ProxyType.PROXY_TYPE_HTTP
-                PROXY_TYPE_SOCKS -> ProxyType.PROXY_TYPE_SOCKS
-                else -> ProxyType.PROXY_TYPE_HTTP
+        settingsDataStore.data
+            .map { preferences ->
+                preferences[PROXY_TYPE]
+            }.map {
+                when (it) {
+                    PROXY_TYPE_HTTP -> ProxyType.PROXY_TYPE_HTTP
+                    PROXY_TYPE_SOCKS -> ProxyType.PROXY_TYPE_SOCKS
+                    else -> ProxyType.PROXY_TYPE_HTTP
+                }
             }
-        }
+
     suspend fun setProxyType(proxyType: ProxyType) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
-                settings[PROXY_TYPE] = when (proxyType) {
-                    ProxyType.PROXY_TYPE_HTTP -> PROXY_TYPE_HTTP
-                    ProxyType.PROXY_TYPE_SOCKS -> PROXY_TYPE_SOCKS
-                }
+                settings[PROXY_TYPE] =
+                    when (proxyType) {
+                        ProxyType.PROXY_TYPE_HTTP -> PROXY_TYPE_HTTP
+                        ProxyType.PROXY_TYPE_SOCKS -> PROXY_TYPE_SOCKS
+                    }
             }
         }
     }
+
     val proxyHost =
         settingsDataStore.data.map { preferences ->
             preferences[PROXY_HOST] ?: ""
         }
+
     suspend fun setProxyHost(proxyHost: String) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
@@ -606,10 +657,12 @@ class DataStoreManager(
             }
         }
     }
+
     val proxyPort =
         settingsDataStore.data.map { preferences ->
             preferences[PROXY_PORT] ?: 8000
         }
+
     suspend fun setProxyPort(proxyPort: Int) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
@@ -630,7 +683,7 @@ class DataStoreManager(
                             ProxyType.PROXY_TYPE_HTTP -> Proxy.Type.HTTP
                             ProxyType.PROXY_TYPE_SOCKS -> Proxy.Type.SOCKS
                         },
-                        java.net.InetSocketAddress(proxyHost, proxyPort)
+                        java.net.InetSocketAddress(proxyHost, proxyPort),
                     )
                 } else {
                     return@runBlocking null
@@ -641,7 +694,168 @@ class DataStoreManager(
             }
         }
 
+    val endlessQueue =
+        settingsDataStore.data.map { preferences ->
+            preferences[ENDLESS_QUEUE] ?: FALSE
+        }
+
+    suspend fun setEndlessQueue(endlessQueue: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (endlessQueue) {
+                settingsDataStore.edit { settings ->
+                    settings[ENDLESS_QUEUE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[ENDLESS_QUEUE] = FALSE
+                }
+            }
+        }
+    }
+
+    val shouldShowLogInRequiredAlert =
+        settingsDataStore.data.map { preferences ->
+            preferences[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] ?: TRUE
+        }
+
+    suspend fun setShouldShowLogInRequiredAlert(shouldShow: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (shouldShow) {
+                settingsDataStore.edit { settings ->
+                    settings[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] = FALSE
+                }
+            }
+        }
+    }
+
+    val autoCheckForUpdates =
+        settingsDataStore.data.map { preferences ->
+            preferences[AUTO_CHECK_FOR_UPDATES] ?: TRUE
+        }
+
+    suspend fun setAutoCheckForUpdates(autoCheck: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (autoCheck) {
+                settingsDataStore.edit { settings ->
+                    settings[AUTO_CHECK_FOR_UPDATES] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[AUTO_CHECK_FOR_UPDATES] = FALSE
+                }
+            }
+        }
+    }
+
+    val blurFullscreenLyrics =
+        settingsDataStore.data.map { preferences ->
+            preferences[BLUR_FULLSCREEN_LYRICS] ?: FALSE
+        }
+
+    suspend fun setBlurFullscreenLyrics(blur: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (blur) {
+                settingsDataStore.edit { settings ->
+                    settings[BLUR_FULLSCREEN_LYRICS] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[BLUR_FULLSCREEN_LYRICS] = FALSE
+                }
+            }
+        }
+    }
+
+    val blurPlayerBackground =
+        settingsDataStore.data.map { preferences ->
+            preferences[BLUR_PLAYER_BACKGROUND] ?: FALSE
+        }
+
+    suspend fun setBlurPlayerBackground(blur: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (blur) {
+                settingsDataStore.edit { settings ->
+                    settings[BLUR_PLAYER_BACKGROUND] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[BLUR_PLAYER_BACKGROUND] = FALSE
+                }
+            }
+        }
+    }
+
+    val playbackSpeed =
+        settingsDataStore.data.map { preferences ->
+            preferences[PLAYBACK_SPEED] ?: 1.0f
+        }
+
+    fun setPlaybackSpeed(speed: Float) {
+        runBlocking {
+            settingsDataStore.edit { settings ->
+                settings[PLAYBACK_SPEED] = speed
+            }
+        }
+    }
+
+    val pitch =
+        settingsDataStore.data.map { preferences ->
+            preferences[PITCH] ?: 0
+        }
+
+    fun setPitch(pitch: Int) {
+        runBlocking {
+            settingsDataStore.edit { settings ->
+                settings[PITCH] = pitch
+            }
+        }
+    }
+
+    val fadeVolume =
+        settingsDataStore.data.map { preferences ->
+            preferences[FADE_VOLUME] ?: 0
+        }
+
+    suspend fun setFadeVolume(fadeDuration: Int) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[FADE_VOLUME] = fadeDuration
+            }
+        }
+    }
+
+    val dataSyncId =
+        settingsDataStore.data.map { preferences ->
+            preferences[DATA_SYNC_ID] ?: ""
+        }
+
+    suspend fun setDataSyncId(dataSyncId: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[DATA_SYNC_ID] = dataSyncId
+            }
+        }
+    }
+
+    val visitorData =
+        settingsDataStore.data.map { preferences ->
+            preferences[VISITOR_DATA] ?: ""
+        }
+
+    suspend fun setVisitorData(visitorData: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[VISITOR_DATA] = visitorData
+            }
+        }
+    }
+
     companion object Settings {
+        val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
         val LOCATION = stringPreferencesKey("location")
@@ -659,6 +873,7 @@ class DataStoreManager(
         val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
         const val YOUTUBE = "youtube"
         const val MUSIXMATCH = "musixmatch"
+        const val LRCLIB = "lrclib"
         val LYRICS_PROVIDER = stringPreferencesKey("lyrics_provider")
         val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
@@ -681,6 +896,17 @@ class DataStoreManager(
         val PROXY_TYPE = stringPreferencesKey("proxy_type")
         val PROXY_HOST = stringPreferencesKey("proxy_host")
         val PROXY_PORT = intPreferencesKey("proxy_port")
+        val ENDLESS_QUEUE = stringPreferencesKey("endless_queue")
+        val SHOULD_SHOW_LOG_IN_REQUIRED_ALERT = stringPreferencesKey("should_show_log_in_required_alert")
+        val AUTO_CHECK_FOR_UPDATES = stringPreferencesKey("auto_check_for_updates")
+        val BLUR_FULLSCREEN_LYRICS = stringPreferencesKey("blur_fullscreen_lyrics")
+        val BLUR_PLAYER_BACKGROUND = stringPreferencesKey("blur_player_background")
+        val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
+        val PITCH = intPreferencesKey("pitch")
+        val OPEN_APP_TIME = intPreferencesKey("open_app_time")
+        val FADE_VOLUME = intPreferencesKey("fade_volume")
+        val DATA_SYNC_ID = stringPreferencesKey("data_sync_id")
+        val VISITOR_DATA = stringPreferencesKey("visitor_data")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"
@@ -688,10 +914,11 @@ class DataStoreManager(
         const val FALSE = "FALSE"
         const val PROXY_TYPE_HTTP = "http"
         const val PROXY_TYPE_SOCKS = "socks"
+
         // Proxy type
         enum class ProxyType {
             PROXY_TYPE_HTTP,
-            PROXY_TYPE_SOCKS
+            PROXY_TYPE_SOCKS,
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.os.Build
 import android.util.Log
 import android.view.TextureView
 import androidx.compose.animation.Crossfade
@@ -29,6 +28,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
@@ -37,18 +37,16 @@ import androidx.media3.datasource.FileDataSource
 import androidx.media3.datasource.cache.CacheDataSink
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.toCoilUri
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.extension.KeepScreenOn
-import com.maxrave.simpmusic.extension.PipListenerPreAPI12
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
-import com.maxrave.simpmusic.extension.pipModifier
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 import kotlin.math.roundToInt
@@ -94,31 +92,37 @@ fun MediaPlayerView(
             }
         }
 
-    val cacheSink =
-        CacheDataSink
-            .Factory()
-            .setCache(canvasCache)
-    val upstreamFactory = DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory())
-    val downStreamFactory = FileDataSource.Factory()
-    val cacheDataSourceFactory =
-        CacheDataSource
-            .Factory()
-            .setCache(canvasCache)
-            .setCacheWriteDataSinkFactory(cacheSink)
-            .setCacheReadDataSourceFactory(downStreamFactory)
-            .setUpstreamDataSourceFactory(upstreamFactory)
-            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
-
     // Initialize ExoPlayer
     val exoPlayer =
-        ExoPlayer
-            .Builder(context)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(cacheDataSourceFactory),
-            ).build()
-            .apply {
-                addListener(playerListener)
-            }
+        remember {
+            val cacheSink =
+                CacheDataSink
+                    .Factory()
+                    .setCache(canvasCache)
+            val upstreamFactory = DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory())
+            val downStreamFactory = FileDataSource.Factory()
+            val cacheDataSourceFactory =
+                CacheDataSource
+                    .Factory()
+                    .setCache(canvasCache)
+                    .setCacheWriteDataSinkFactory(cacheSink)
+                    .setCacheReadDataSourceFactory(downStreamFactory)
+                    .setUpstreamDataSourceFactory(upstreamFactory)
+                    .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+            ExoPlayer
+                .Builder(context)
+                .setLoadControl(
+                    DefaultLoadControl
+                        .Builder()
+                        .setPrioritizeTimeOverSizeThresholds(false)
+                        .build(),
+                ).setMediaSourceFactory(
+                    DefaultMediaSourceFactory(cacheDataSourceFactory),
+                ).build()
+                .apply {
+                    addListener(playerListener)
+                }
+        }
 
     // Create a MediaSource
     val mediaSource =
@@ -169,9 +173,7 @@ fun MediaPlayerView(
 fun MediaPlayerView(
     player: ExoPlayer,
     modifier: Modifier = Modifier,
-    pipSupport: Boolean = false,
 ) {
-    val context = LocalContext.current
     var videoRatio by rememberSaveable {
         mutableFloatStateOf(16f / 9)
     }
@@ -184,27 +186,41 @@ fun MediaPlayerView(
         mutableStateOf(false)
     }
 
-    if (pipSupport) {
-        PipListenerPreAPI12()
+    var artworkUri by rememberSaveable {
+        mutableStateOf<String?>(null)
     }
 
     val playerListener =
         remember {
             object : Player.Listener {
-                override fun onVideoSizeChanged(videoSize: VideoSize) {
-                    super.onVideoSizeChanged(videoSize)
-                    Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
-                    if (videoSize.width != 0 && videoSize.height != 0) {
-                        showArtwork = false
-                        videoRatio = videoSize.width.toFloat() / videoSize.height.toFloat()
-                    } else if (videoSize.width == 0) {
-                        showArtwork = true
-                    }
+                override fun onMediaItemTransition(
+                    mediaItem: MediaItem?,
+                    reason: Int,
+                ) {
+                    super.onMediaItemTransition(mediaItem, reason)
+                    artworkUri = mediaItem?.mediaMetadata?.artworkUri?.toString()
                 }
 
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    super.onIsPlayingChanged(isPlaying)
-                    keepScreenOn = isPlaying
+                override fun onTracksChanged(tracks: Tracks) {
+                    super.onTracksChanged(tracks)
+                    if (!tracks.groups.isEmpty()) {
+                        for (arrayIndex in 0 until tracks.groups.size) {
+                            var done = false
+                            for (groupIndex in 0 until tracks.groups[arrayIndex].length) {
+                                val sampleMimeType = tracks.groups[arrayIndex].getTrackFormat(groupIndex).sampleMimeType
+                                if (sampleMimeType != null && sampleMimeType.contains("video")) {
+                                    showArtwork = false
+                                    done = true
+                                    break
+                                } else {
+                                    showArtwork = true
+                                }
+                            }
+                            if (done) {
+                                break
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -218,24 +234,9 @@ fun MediaPlayerView(
     LaunchedEffect(player) {
         player.addListener(playerListener)
     }
-    LaunchedEffect(true) {
-        player.videoSize.let {
-            if (it.width == 0) {
-                showArtwork = true
-            } else {
-                showArtwork = false
-            }
-        }
-    }
 
     Box(
-        modifier.then(
-            if (pipSupport && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                Modifier.pipModifier(context)
-            } else {
-                Modifier
-            },
-        ),
+        modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
         if (keepScreenOn) {
@@ -248,16 +249,10 @@ fun MediaPlayerView(
                         ImageRequest
                             .Builder(LocalContext.current)
                             .data(
-                                player.currentMediaItem
-                                    ?.mediaMetadata
-                                    ?.artworkUri
-                                    ?.toCoilUri(),
+                                artworkUri,
                             ).diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(
-                                player.currentMediaItem
-                                    ?.mediaMetadata
-                                    ?.artworkUri
-                                    ?.toString(),
+                                artworkUri,
                             ).crossfade(550)
                             .build(),
                     contentDescription = null,

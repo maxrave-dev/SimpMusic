@@ -11,9 +11,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.text.util.Linkify
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -43,6 +48,7 @@ import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
+import com.maxrave.simpmusic.extension.markdownToHtml
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
@@ -108,9 +114,6 @@ class MainActivity : AppCompatActivity() {
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        if (viewModel.simpleMediaServiceHandler == null) {
-//            startMusicService()
-//        }
         VersionManager.initialize(applicationContext)
         checkForUpdate()
         if (viewModel.recreateActivity.value == true) {
@@ -173,10 +176,10 @@ class MainActivity : AppCompatActivity() {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge(
             navigationBarStyle =
-            SystemBarStyle.auto(
-                lightScrim = Color.Transparent.toArgb(),
-                darkScrim = Color.Transparent.toArgb(),
-            ),
+                SystemBarStyle.auto(
+                    lightScrim = Color.Transparent.toArgb(),
+                    darkScrim = Color.Transparent.toArgb(),
+                ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
@@ -216,15 +219,15 @@ class MainActivity : AppCompatActivity() {
             binding.miniplayer.visibility = View.GONE
         }
         binding.root.addOnLayoutChangeListener {
-                _,
-                left,
-                top,
-                right,
-                bottom,
-                oldLeft,
-                oldTop,
-                oldRight,
-                oldBottom,
+            _,
+            left,
+            top,
+            right,
+            bottom,
+            oldLeft,
+            oldTop,
+            oldRight,
+            oldBottom,
             ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
@@ -294,7 +297,7 @@ class MainActivity : AppCompatActivity() {
 
                 R.id.bottom_navigation_item_library,
                 R.id.favoriteFragment, R.id.localPlaylistFragment,
-                    -> {
+                -> {
                     binding.bottomNavigationView.menu
                         .findItem(
                             R.id.bottom_navigation_item_library,
@@ -307,7 +310,7 @@ class MainActivity : AppCompatActivity() {
                     when (currentBackStack) {
                         R.id.bottom_navigation_item_library,
                         R.id.favoriteFragment, R.id.localPlaylistFragment,
-                            -> {
+                        -> {
                             binding.bottomNavigationView.menu
                                 .findItem(
                                     R.id.bottom_navigation_item_library,
@@ -346,7 +349,7 @@ class MainActivity : AppCompatActivity() {
                         "fragment_log_in",
                         "MusixmatchFragment",
                     )
-                    ).contains(destination.label)
+                ).contains(destination.label)
             ) {
                 lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
@@ -546,7 +549,7 @@ class MainActivity : AppCompatActivity() {
                                         "fragment_log_in",
                                         "MusixmatchFragment",
                                     )
-                                    ).contains(navController.currentDestination?.label) &&
+                                ).contains(navController.currentDestination?.label) &&
                                 it.nowPlayingTitle.isNotEmpty() &&
                                 binding.miniplayer.visibility != View.VISIBLE
                             ) {
@@ -685,40 +688,92 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     private fun checkForUpdate() {
-        viewModel.checkForUpdate()
-        viewModel.githubResponse.observe(this) { response ->
-            if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
-                if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
-                    viewModel.showedUpdateDialog = true
-                    val inputFormat =
-                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                    val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                    val formatted =
-                        response.publishedAt?.let { input ->
-                            inputFormat
-                                .parse(input)
-                                ?.let { outputFormat.format(it) }
-                        }
+        if (viewModel.shouldCheckForUpdate()) {
+            viewModel.checkForUpdate()
+            viewModel.githubResponse.observe(this) { response ->
+                if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
+                    Log.w("MainActivity", "Check for update")
+                    Log.w("MainActivity", "Current version: ${getString(R.string.version_format, VersionManager.getVersionName())}")
+                    if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
+                        viewModel.showedUpdateDialog = true
+                        val inputFormat =
+                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                        val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                        val formatted =
+                            response.publishedAt?.let { input ->
+                                inputFormat
+                                    .parse(input)
+                                    ?.let { outputFormat.format(it) }
+                            }
+                        val scrollView =
+                            ScrollView(this)
+                                .apply {
+                                    layoutParams =
+                                        LinearLayout.LayoutParams(
+                                            LinearLayout.LayoutParams.MATCH_PARENT,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                        )
+                                }
+                        val layout =
+                            LinearLayout(this).apply {
+                                orientation = LinearLayout.VERTICAL
+                                layoutParams =
+                                    LinearLayout.LayoutParams(
+                                        LinearLayout.LayoutParams.MATCH_PARENT,
+                                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                                    )
+                                setPadding(24, 24, 24, 12)
+                            }
+                        layout.addView(
+                            TextView(this).apply {
+                                text =
+                                    getString(
+                                        R.string.update_message,
+                                        response.tagName,
+                                        formatted,
+                                        "",
+                                    )
+                                textSize = 13f
+                                layoutParams =
+                                    MarginLayoutParams(
+                                        MarginLayoutParams.MATCH_PARENT,
+                                        MarginLayoutParams.WRAP_CONTENT,
+                                    ).apply {
+                                        setMargins(42, 8, 42, 0)
+                                    }
+                            },
+                        )
+                        layout.addView(
+                            TextView(this).apply {
+                                text = markdownToHtml(response.body ?: "")
+                                textSize = 13f
+                                autoLinkMask = Linkify.ALL
+                                setLineSpacing(0f, 1.2f)
+                                layoutParams =
+                                    MarginLayoutParams(
+                                        MarginLayoutParams.MATCH_PARENT,
+                                        MarginLayoutParams.WRAP_CONTENT,
+                                    ).apply {
+                                        setMargins(42, 0, 42, 24)
+                                    }
+                            },
+                        )
+                        scrollView.addView(layout)
 
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle(getString(R.string.update_available))
-                        .setMessage(
-                            getString(
-                                R.string.update_message,
-                                response.tagName,
-                                formatted,
-                                response.body,
-                            ),
-                        ).setPositiveButton(getString(R.string.download)) { _, _ ->
-                            val browserIntent =
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
-                                )
-                            startActivity(browserIntent)
-                        }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                            dialog.dismiss()
-                        }.show()
+                        MaterialAlertDialogBuilder(this)
+                            .setTitle(getString(R.string.update_available))
+                            .setView(scrollView)
+                            .setPositiveButton(getString(R.string.download)) { _, _ ->
+                                val browserIntent =
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
+                                    )
+                                startActivity(browserIntent)
+                            }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                dialog.dismiss()
+                            }.show()
+                    }
                 }
             }
         }

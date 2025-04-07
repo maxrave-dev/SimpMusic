@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">Puoi trovarci anche con: musica dance elettronica 2023 edm top canzoni dance elettroniche 2023 canzoni edm musica edm 2023 musica dance elettronica migliore musica electro dance popolare canzoni edm top canzoni edm 2023 musica edm top canzoni dance elettroniche 2023 canzoni edm popolari 2023 migliore musica electro dance 2023 Non importa come sia la tua giornata, puoi sempre ascoltare buona musica: 1. EDM Hits Playlist - Popular EDM Hits in 2023 - Vorremmo tenerti con noi per molti anni a partire da ora! Quindi, nel prossimo anno, potreste trovare la nostra playlist in questo modo: EDM 2024 ♫ Top EDM Songs 2024</string>
     <string name="Song_and_artist_name">Brano • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
@@ -8,11 +7,11 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s tracce  %2$s</string>
     <string name="view_count">%1$s visualizzazioni</string>
-    <string name="lyrics_provider">Testi  forniti da Musixmatch</string>
+    <string name="lyrics_provider">Testi forniti da Musixmatch</string>
     <string name="clear_search_history">Cancella la cronologia delle ricerche</string>
     <string name="liked">Salvato</string>
     <string name="like">Mi piace</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_blank_fragment">Rimuovi frammenti vuoti</string>
     <string name="download">Scarica</string>
     <string name="downloaded">Scaricato/i</string>
     <string name="downloading">In Download</string>
@@ -32,7 +31,7 @@
     <string name="your_playlists">Le tue playlist</string>
     <string name="no_playlists_added">Nessuna playlist aggiunta</string>
     <string name="recently_added">Aggiunti di recente</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Cerca brani, artisti, album, playlist e molto altro ancora.</string>
+    <string name="search_for_songs_artists_albums_playlists_and_more">Cerca brani, artisti, album, playlist e altro</string>
     <string name="everything_you_need">Tutto ciò che ti serve</string>
     <string name="restore_failed">Ripristino Fallito</string>
     <string name="restore_success">Ripristino Effettuato</string>
@@ -64,7 +63,7 @@
     <string name="shared">Condivisi</string>
     <string name="line_synced">Linea Sincronizzata</string>
     <string name="unsynced">Non sincronizzato</string>
-    <string name="playlist_is_empty">La playlist è vuora</string>
+    <string name="playlist_is_empty">La playlist è vuota</string>
     <string name="option">Opzioni</string>
     <string name="no_description">Nessuna descrizione</string>
     <string name="in_search">nella Ricerca</string>
@@ -139,7 +138,7 @@
     <string name="crash_log">SimpMusic è crashato. Ci scusiamo per questo problema. Invia il log del crash allo sviluppatore</string>
     <string name="crash">Crash</string>
     <string name="send">Invia</string>
-    <string name="mail_subject">Riporta il Crash</string>
+    <string name="mail_subject">Segnala Crash</string>
     <string name="delete_song_from_playlist">Elimina questa canzone dalla playlist</string>
     <string name="log_in">Accedi</string>
     <string name="log_in_to_YouTube">Accedi to YouTube</string>
@@ -187,9 +186,9 @@
     <string name="preview">Anteprima</string>
     <string name="music_off_topic">Musica fuori tema</string>
     <string name="poi_highlight">Evidenziare</string>
-    <string name="filter">Filtro</string>
+    <string name="filler">Riempitivo</string>
     <string name="sponsorBlock">SponsorBlock</string>
-    <string name="enable_sponsor_block">Abilitare SponsorBlock</string>
+    <string name="enable_sponsor_block">Abilita SponsorBlock</string>
     <string name="categories_sponsor_block">Seleziona il comportamento di salto del segmento</string>
     <string name="what_segments_will_be_skipped">Quali segmenti verranno saltati</string>
     <string name="save">Salva</string>
@@ -199,9 +198,9 @@
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Si è verificato un errore imprevisto. Ci dispiace per l\'inconvenienza.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Riavvia l\'app</string>
     <string name="customactivityoncrash_error_activity_close_app">Chiudi l\'app</string>
-    <string name="customactivityoncrash_error_activity_error_details">Dettagli circa l\'errore</string>
-    <string name="customactivityoncrash_error_activity_error_details_title">Dettagli circa l\'errore</string>
-    <string name="customactivityoncrash_error_activity_error_details_close">Vicino</string>
+    <string name="customactivityoncrash_error_activity_error_details">Dettagli errore</string>
+    <string name="customactivityoncrash_error_activity_error_details_title">Dettagli errore</string>
+    <string name="customactivityoncrash_error_activity_error_details_close">Chiudi</string>
     <string name="customactivityoncrash_error_activity_error_details_copy">Copia negli appunti</string>
     <string name="customactivityoncrash_error_activity_error_details_copied">Copiato negli appunti</string>
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Informazioni sull\'errore</string>
@@ -211,7 +210,7 @@
     <string name="sleep_minutes">Tempo del conto alla rovescia (minuti)</string>
     <string name="set">Impostato</string>
     <string name="sleep_timer_off_done">Interruzione del timer di spegnimento completata</string>
-    <string name="sleep_timer_set_error">Si prega di impostare l\'ora del formato corretta</string>
+    <string name="sleep_timer_set_error">Si prega di impostare l\'ora nel formato corretto</string>
     <string name="sleep_timer_warning">Rimuovere il timer di spegnimento?</string>
     <string name="yes">SÌ</string>
     <string name="welcome_back">Bentornato,</string>
@@ -282,7 +281,7 @@
     </plurals>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENUTO</string>
-    <string name="play_video_instead_of_audio_warning">Questa azione eliminerà la cache del giocatore. Continuare?</string>
+    <string name="play_video_instead_of_audio_warning">Questa azione eliminerà la cache del lettore. Continuare?</string>
     <string name="quality_video">Qualità video</string>
     <string name="add_to_queue">Aggiungi alla coda</string>
     <string name="added_to_queue">Aggiunto alla coda</string>
@@ -350,4 +349,50 @@
     <string name="party">Party</string>
     <string name="commute">In viaggio</string>
     <string name="focus">Concentrazione</string>
+    <string name="updated">Aggiornato</string>
+    <string name="updated_to_youtube_playlist">Aggiornato alla playlist di YouTube</string>
+    <string name="can_t_add_to_youtube_playlist">Impossibile aggiungere alla playlist di YouTube</string>
+    <string name="can_t_delete_from_youtube_playlist">Impossibile eliminare il brano dalla playlist di YouTube</string>
+    <string name="loading">Caricamento</string>
+    <string name="updating">Aggiornando</string>
+    <string name="go_to_log_in_page">Vai alla pagina di accesso</string>
+    <string name="log_in_warning">YouTube Music ora richiede di accedere per riprodurre musica, quindi l\'istanza Piped potrebbe occasionalmente non funzionare. Si consiglia di accedere a YouTube per ottenere un\'esperienza migliore con SimpMusic.</string>
+    <string name="spotify_canvas_cache">Cache di Spotify Canvas</string>
+    <string name="clear_canvas_cache">Pulisci la cache di Spotify Canvas</string>
+    <string name="proxy">Proxy</string>
+    <string name="proxy_description">Usa il proxy per bypassare il blocco dei contenuti</string>
+    <string name="proxy_type">Tipo di Proxy</string>
+    <string name="http">HTTP</string>
+    <string name="socks">Socks</string>
+    <string name="proxy_host">Host Proxy</string>
+    <string name="invalid_host">Host non valido</string>
+    <string name="proxy_port">Porta proxy</string>
+    <string name="invalid_port">Porta non valida</string>
+    <string name="proxy_host_message">Inserisci il tuo host proxy</string>
+    <string name="proxy_port_message">Inserisci la tua porta proxy</string>
+    <string name="five_seconds">Cinque secondi</string>
+    <string name="lyrics_provider_lrc">Testi forniti da LRCLIB</string>
+    <string name="sync_first">Sincronizza prima questa playlist con YouTube Music</string>
+    <string name="endless_queue">Coda infinita</string>
+    <string name="do_not_show_again">Non mostrare più</string>
+    <string name="auto_check_for_update">Controllo automatico degli aggiornamenti</string>
+    <string name="auto_check_for_update_description">Controllo degli aggiornamenti all\'apertura dell\'app</string>
+    <string name="blur_fullscreen_lyrics">Sfoca effetto testo a schermo intero</string>
+    <string name="blur_fullscreen_lyrics_description">Sfoca lo sfondo dell\'effetto Schermo intero del testo</string>
+    <string name="playback_speed_pitch"><![CDATA[Velocità di riproduzione e tono]]></string>
+    <string name="playback_speed">Velocità di riproduzione</string>
+    <string name="pitch">Tono</string>
+    <string name="blur_player_background">Sfoca lo sfondo del Player</string>
+    <string name="blur_player_background_description">Sfoca lo sfondo dell\'effetto della schermata di riproduzione</string>
+    <string name="merging_audio_and_video">Unione di audio e video</string>
+    <string name="error_occurred">C\'è stato un problema</string>
+    <string name="downloading_audio">Download dell\'audio in corso: %1$s </string>
+    <string name="downloading_video">Download del video in corso: %1$s </string>
+    <string name="ok">OK</string>
+    <string name="to_download_folder">" alla cartella dei Download"</string>
+    <string name="download_speed">Velocità di download: %1$s </string>
+    <string name="shuffle">Shuffle</string>
+    <string name="other_version">Altra versione</string>
+    <string name="later">Dopo</string>
+    <string name="give_a_star">Dai una stella</string>
 </resources>

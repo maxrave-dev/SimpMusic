@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.screen.library
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -42,6 +43,7 @@ fun LibraryScreen(
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsState()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsState()
+    val listCanvasSong by viewModel.listCanvasSong.collectAsState()
     val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsState()
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsState()
     val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsState()
@@ -51,6 +53,7 @@ fun LibraryScreen(
         if (youTubePlaylist.data.isNullOrEmpty()) {
             viewModel.getYouTubePlaylist()
         }
+        viewModel.getCanvasSong()
         viewModel.getLocalPlaylist()
         viewModel.getPlaylistFavorite()
         viewModel.getDownloadedPlaylist()
@@ -69,6 +72,19 @@ fun LibraryScreen(
         }
         item {
             LibraryTilingBox(navController)
+        }
+        item {
+            AnimatedVisibility(!listCanvasSong.data.isNullOrEmpty()) {
+                LibraryItem(
+                    state =
+                        LibraryItemState(
+                            type = LibraryItemType.CanvasSong,
+                            data = listCanvasSong.data ?: emptyList(),
+                            isLoading = listCanvasSong is LocalResource.Loading,
+                        ),
+                    navController = navController,
+                )
+            }
         }
         item {
             LibraryItem(

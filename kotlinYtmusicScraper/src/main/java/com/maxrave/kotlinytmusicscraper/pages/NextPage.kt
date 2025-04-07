@@ -38,8 +38,20 @@ object NextPage {
                 ?.text
                 ?.runs
                 ?.firstOrNull()
+        val setVideoId =
+            renderer.menu
+                ?.menuRenderer
+                ?.items
+                ?.find { it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_PLAYLIST" }
+                ?.menuServiceItemRenderer
+                ?.serviceEndpoint
+                ?.playlistEditEndpoint
+                ?.actions
+                ?.firstOrNull()
+                ?.setVideoId
         return SongItem(
             id = videoId,
+            setVideoId = setVideoId,
             title =
                 renderer.flexColumns
                     .firstOrNull()

@@ -70,13 +70,13 @@ data class SearchSummaryPage(
                         thumbnail = renderer.thumbnail.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         shuffleEndpoint =
                             renderer.buttons
-                                .find { it.buttonRenderer.icon?.iconType == "MUSIC_SHUFFLE" }
+                                .find { it.buttonRenderer?.icon?.iconType == "MUSIC_SHUFFLE" }
                                 ?.buttonRenderer
                                 ?.command
                                 ?.watchPlaylistEndpoint ?: return null,
                         radioEndpoint =
                             renderer.buttons
-                                .find { it.buttonRenderer.icon?.iconType == "MIX" }
+                                .find { it.buttonRenderer?.icon?.iconType == "MIX" }
                                 ?.buttonRenderer
                                 ?.command
                                 ?.watchPlaylistEndpoint ?: return null,

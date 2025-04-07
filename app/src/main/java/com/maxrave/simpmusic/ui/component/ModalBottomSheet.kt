@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.component
 
 import android.app.Activity
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -11,20 +10,28 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,25 +39,41 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,44 +81,1067 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.text.isDigitsOnly
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
+import com.maxrave.simpmusic.service.StateSource
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.moriatsushi.insetsx.systemBars
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
+
+@UnstableApi
+@ExperimentalMaterial3Api
+@Composable
+fun InfoPlayerBottomSheet(
+    onDismiss: () -> Unit,
+    sharedViewModel: SharedViewModel = viewModel(),
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val localDensity = LocalDensity.current
+    val windowInsets = WindowInsets.systemBars
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val scrollState = rememberScrollState()
+
+    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
+    val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
+    val format by sharedViewModel.format.collectAsState(null)
+    val downloadProgress by sharedViewModel.downloadFileProgress.collectAsState()
+
+    if (downloadProgress != DownloadProgress.INIT) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            BasicAlertDialog(
+                onDismissRequest = { },
+                modifier = Modifier.wrapContentSize(),
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large,
+                    color = Color(0xFF242424),
+                    tonalElevation = AlertDialogDefaults.TonalElevation,
+                    shadowElevation = 1.dp,
+                ) {
+                    Column(
+                        Modifier.padding(
+                            horizontal = 20.dp,
+                            vertical = 20.dp,
+                        ),
+                    ) {
+                        Text(
+                            stringResource(R.string.downloading),
+                            style = typo.headlineMedium,
+                        )
+                        Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (!downloadProgress.isDone && !downloadProgress.isError) {
+                                CircularProgressIndicator()
+                                Spacer(Modifier.size(15.dp))
+                            }
+                            Crossfade(downloadProgress) {
+                                if (it.isMerging) {
+                                    Text(
+                                        text = stringResource(R.string.merging_audio_and_video),
+                                        modifier = Modifier.padding(vertical = 5.dp),
+                                        style = typo.bodyMedium,
+                                    )
+                                } else if (it.isError) {
+                                    Column {
+                                        Text(
+                                            text = stringResource(R.string.error_occurred),
+                                            modifier = Modifier.padding(vertical = 5.dp),
+                                            style = typo.bodyMedium,
+                                        )
+                                        Text(
+                                            text = downloadProgress.errorMessage,
+                                            modifier = Modifier.padding(bottom = 5.dp),
+                                            maxLines = 2,
+                                            style = typo.bodyMedium,
+                                        )
+                                    }
+                                } else if (it.isDone) {
+                                    Text(
+                                        text = stringResource(R.string.downloaded) + stringResource(R.string.to_download_folder),
+                                        modifier = Modifier.padding(vertical = 5.dp),
+                                        style = typo.bodyMedium,
+                                    )
+                                } else {
+                                    Column {
+                                        if (it.audioDownloadProgress != 0f) {
+                                            Text(
+                                                text =
+                                                    stringResource(
+                                                        R.string.downloading_audio,
+                                                        (downloadProgress.audioDownloadProgress * 100).toString() + "%",
+                                                    ),
+                                                modifier = Modifier.padding(vertical = 5.dp),
+                                                style = typo.bodyMedium,
+                                            )
+                                        }
+                                        if (it.videoDownloadProgress != 0f) {
+                                            Text(
+                                                text =
+                                                    stringResource(
+                                                        R.string.downloading_video,
+                                                        (downloadProgress.videoDownloadProgress * 100).toString() + "%",
+                                                    ),
+                                                modifier = Modifier.padding(vertical = 5.dp),
+                                                style = typo.bodyMedium,
+                                            )
+                                        }
+                                        if (downloadProgress.downloadSpeed != 0) {
+                                            Text(
+                                                text =
+                                                    stringResource(
+                                                        R.string.download_speed,
+                                                        downloadProgress.downloadSpeed.toString() + " kb/s",
+                                                    ),
+                                                modifier = Modifier.padding(vertical = 5.dp),
+                                                style = typo.bodyMedium,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Crossfade(downloadProgress) {
+                            if (it.isError) {
+                                Column {
+                                    Spacer(Modifier.height(10.dp))
+                                    OutlinedButton(onClick = {
+                                        sharedViewModel.downloadFileDone()
+                                    }) { Text(stringResource(R.string.ok)) }
+                                }
+                            }
+                            if (it.isDone) {
+                                Column {
+                                    Spacer(Modifier.height(10.dp))
+                                    OutlinedButton(onClick = {
+                                        sharedViewModel.downloadFileDone()
+                                    }) { Text(stringResource(R.string.ok)) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss()
+        },
+        containerColor = Color.Black,
+        contentColor = Color.Transparent,
+        dragHandle = {},
+        scrimColor = Color.Black.copy(alpha = .5f),
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxHeight(),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        shape = RectangleShape,
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+            shape = RectangleShape,
+            colors = CardDefaults.cardColors().copy(containerColor = Color.Black),
+        ) {
+            Column(
+                modifier =
+                    Modifier
+                        .verticalScroll(scrollState)
+                        .nestedScroll(rememberNestedScrollInteropConnection())
+                        .padding(
+                            top =
+                                with(localDensity) {
+                                    windowInsets.getTop(localDensity).toDp()
+                                },
+                        ),
+            ) {
+                TopAppBar(
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    colors =
+                        TopAppBarDefaults.topAppBarColors().copy(
+                            containerColor = Color.Transparent,
+                        ),
+                    title = {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.now_playing_upper),
+                                style = typo.bodyMedium,
+                                color = Color.White,
+                            )
+                            Text(
+                                text = screenDataState.nowPlayingTitle,
+                                style = typo.labelMedium,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(align = Alignment.CenterVertically)
+                                        .basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                onDismiss()
+                            }
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
+                                contentDescription = "",
+                                tint = Color.White,
+                            )
+                        }
+                    },
+                    actions = {
+                        Box(
+                            modifier = Modifier.size(48.dp),
+                        )
+                    },
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.title),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = screenDataState.nowPlayingTitle,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .padding(horizontal = 10.dp)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.artists),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = screenDataState.artistName,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.album),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = songEntity?.albumName ?: stringResource(R.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.itag),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = format?.itag?.toString() ?: stringResource(R.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.mime_type),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = format?.mimeType ?: stringResource(R.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.codec),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = format?.codecs ?: stringResource(R.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.bitrate),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = format?.bitrate?.toString() ?: stringResource(R.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.plays),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = screenDataState.songInfoData?.viewCount?.toString() ?: stringResource(R.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.like),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text =
+                        stringResource(
+                            R.string.like_and_dislike,
+                            screenDataState.songInfoData?.like ?: 0,
+                            screenDataState.songInfoData?.dislike ?: 0,
+                        ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.description),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text = screenDataState.songInfoData?.description ?: stringResource(R.string.no_description),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .padding(horizontal = 10.dp),
+                    style = typo.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(R.string.youtube_url),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo.labelMedium,
+                )
+                Text(
+                    text =
+                        buildAnnotatedString {
+                            withLink(
+                                LinkAnnotation.Url(
+                                    "https://music.youtube.com/watch?v=${songEntity?.videoId}",
+                                    TextLinkStyles(style = SpanStyle(textDecoration = TextDecoration.Underline)),
+                                ),
+                            ) {
+                                append("https://music.youtube.com/watch?v=${songEntity?.videoId}")
+                            }
+                        },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable(),
+                    style = typo.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+                OutlinedButton(
+                    onClick = {
+                        sharedViewModel.downloadFile()
+                    },
+                    modifier =
+                        Modifier
+                            .wrapContentSize()
+                            .align(Alignment.CenterHorizontally)
+                            .padding(vertical = 10.dp),
+                ) {
+                    Text(text = "Download this song/video file to your device")
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+
+                EndOfModalBottomSheet()
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class, ExperimentalFoundationApi::class)
+@UnstableApi
+@Composable
+fun QueueBottomSheet(
+    onDismiss: () -> Unit,
+    sharedViewModel: SharedViewModel = viewModel<SharedViewModel>(),
+    musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
+    dataStoreManager: DataStoreManager = koinInject(),
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val localDensity = LocalDensity.current
+    val windowInsets = WindowInsets.systemBars
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val nestedScrollInterop = rememberNestedScrollInteropConnection()
+    val lazyListState = rememberLazyListState()
+    val dragDropState =
+        rememberDragDropState(lazyListState) { from, to ->
+            coroutineScope.launch {
+                musicServiceHandler.swap(from, to)
+            }
+        }
+    var overscrollJob by remember { mutableStateOf<Job?>(null) }
+    var shouldShowQueueItemBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var clickMoreIndex by rememberSaveable { mutableIntStateOf(0) }
+    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
+    val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
+    val queue by musicServiceHandler.queueData
+        .mapLatest { it?.listTracks?.toList() ?: emptyList() }
+        .collectAsState(emptyList())
+    val loadMoreState by musicServiceHandler.stateFlow.collectAsState()
+    val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
+
+    val shouldLoadMore =
+        remember {
+            derivedStateOf {
+                val layoutInfo = lazyListState.layoutInfo
+                val lastVisibleItem =
+                    layoutInfo.visibleItemsInfo.lastOrNull()
+                        ?: return@derivedStateOf true
+
+                lastVisibleItem.index >= layoutInfo.totalItemsCount - 3 && layoutInfo.totalItemsCount > 0
+            }
+        }
+
+    // Convert the state into a cold flow and collect
+    LaunchedEffect(shouldLoadMore) {
+        snapshotFlow { shouldLoadMore.value }
+            .collect {
+                // if should load more, then invoke loadMore
+                if (it && loadMoreState == StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore()
+            }
+    }
+
+    LaunchedEffect(queue) {
+        Log.w("QueueBottomSheet", "queue: $queue")
+    }
+
+    DisposableEffect(Unit) {
+        val currentSongIndex = musicServiceHandler.currentSongIndex()
+        Log.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
+        coroutineScope.launch {
+            lazyListState.requestScrollToItem(
+                currentSongIndex,
+            )
+        }
+        onDispose { }
+    }
+
+    val showQueueItemBottomSheet: (Int) -> Unit = { index ->
+        clickMoreIndex = index
+        shouldShowQueueItemBottomSheet = true
+    }
+
+    if (shouldShowQueueItemBottomSheet) {
+        QueueItemBottomSheet(
+            onDismiss = { shouldShowQueueItemBottomSheet = false },
+            index = clickMoreIndex,
+            musicServiceHandler = musicServiceHandler,
+        )
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss()
+        },
+        containerColor = Color.Black,
+        contentColor = Color.Transparent,
+        dragHandle = {},
+        scrimColor = Color.Black.copy(alpha = .5f),
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxHeight(),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        shape = RectangleShape,
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+            shape = RectangleShape,
+            colors = CardDefaults.cardColors().copy(containerColor = Color.Black),
+        ) {
+            Column(
+                modifier =
+                    Modifier.padding(
+                        top =
+                            with(localDensity) {
+                                windowInsets.getTop(localDensity).toDp()
+                            },
+                    ),
+            ) {
+                TopAppBar(
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    colors =
+                        TopAppBarDefaults.topAppBarColors().copy(
+                            containerColor = Color.Transparent,
+                        ),
+                    title = {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.now_playing_upper),
+                                style = typo.bodyMedium,
+                                color = Color.White,
+                            )
+                            Text(
+                                text = screenDataState.playlistName,
+                                style = typo.labelMedium,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(align = Alignment.CenterVertically)
+                                        .basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                onDismiss()
+                            }
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
+                                contentDescription = "",
+                                tint = Color.White,
+                            )
+                        }
+                    },
+                    actions = {
+                        Box(
+                            modifier = Modifier.size(32.dp),
+                        )
+                    },
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = stringResource(R.string.now_playing),
+                    style = typo.titleMedium,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
+                SongFullWidthItems(
+                    songEntity = songEntity,
+                    isPlaying = false,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.queue),
+                        style = typo.titleMedium,
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 20.dp)
+                                .weight(1f),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.endless_queue),
+                            style = typo.bodySmall,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                        )
+                        Switch(
+                            checked = endlessQueueEnable,
+                            onCheckedChange = {
+                                coroutineScope.launch {
+                                    dataStoreManager.setEndlessQueue(it)
+                                }
+                            },
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                LazyColumn(
+                    horizontalAlignment = Alignment.Start,
+                    state = lazyListState,
+                    modifier =
+                        Modifier
+                            .nestedScroll(nestedScrollInterop)
+                            .pointerInput(Unit) {
+                                detectDragGesturesAfterLongPress(
+                                    onDrag = { change, offset ->
+                                        Log.d("QueueBottomSheet", "onDrag $offset")
+                                        change.consume()
+                                        dragDropState.onDrag(offset = offset)
+
+                                        if (overscrollJob?.isActive == true) {
+                                            return@detectDragGesturesAfterLongPress
+                                        }
+
+                                        dragDropState
+                                            .checkForOverScroll()
+                                            .takeIf { it != 0f }
+                                            ?.let {
+                                                overscrollJob =
+                                                    coroutineScope.launch {
+                                                        dragDropState.state.animateScrollBy(
+                                                            it * 1.3f,
+                                                            tween(easing = FastOutLinearInEasing),
+                                                        )
+                                                    }
+                                            }
+                                            ?: run { overscrollJob?.cancel() }
+                                    },
+                                    onDragStart = { offset ->
+                                        Log.d("QueueBottomSheet", "onDragStart $offset")
+                                        dragDropState.onDragStart(offset)
+                                    },
+                                    onDragEnd = {
+                                        Log.d("QueueBottomSheet", "onDragEnd")
+                                        dragDropState.onDragInterrupted(true)
+                                        overscrollJob?.cancel()
+                                    },
+                                    onDragCancel = {
+                                        Log.d("QueueBottomSheet", "onDragCancel")
+                                        dragDropState.onDragInterrupted()
+                                        overscrollJob?.cancel()
+                                    },
+                                )
+                            },
+                ) {
+                    itemsIndexed(
+                        queue,
+                        key = { i, t -> i.toString() + t.videoId },
+                    ) { index, track ->
+                        if (index != -1) {
+                            DraggableItem(
+                                dragDropState = dragDropState,
+                                index = index,
+                                modifier = Modifier,
+                            ) { _ ->
+                                SongFullWidthItems(
+                                    track = track,
+                                    isPlaying = track.videoId == songEntity?.videoId,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 10.dp),
+                                    onClickListener = { videoId ->
+                                        if (videoId == track.videoId) {
+                                            musicServiceHandler.playMediaItemInMediaSource(index)
+                                        }
+                                    },
+                                    onMoreClickListener = {
+                                        showQueueItemBottomSheet(index)
+                                    },
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        if (loadMoreState == StateSource.STATE_INITIALIZING) {
+                            CenterLoadingBox(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp),
+                            )
+                        }
+                    }
+                    item {
+                        EndOfPage()
+                    }
+                }
+            }
+        }
+    }
+}
+
+private enum class QueueItemAction {
+    UP,
+    DOWN,
+    DELETE,
+}
+
+@Composable
+@UnstableApi
+@ExperimentalMaterial3Api
+fun QueueItemBottomSheet(
+    onDismiss: () -> Unit,
+    index: Int,
+    musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val hideModalBottomSheet: () -> Unit =
+        {
+            coroutineScope.launch {
+                modelBottomSheetState.hide()
+                onDismiss()
+            }
+        }
+    val listAction =
+        listOf(
+            QueueItemAction.UP,
+            QueueItemAction.DOWN,
+            QueueItemAction.DELETE,
+        )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(5.dp))
+                LazyColumn {
+                    val canMoveUp =
+                        index > 0 &&
+                            index < (
+                                musicServiceHandler.queueData.value
+                                    ?.listTracks
+                                    ?.size ?: 0
+                            )
+                    val canMoveDown =
+                        index >= 0 &&
+                            index < (
+                                musicServiceHandler.queueData.value
+                                    ?.listTracks
+                                    ?.size ?: 0
+                            ) - 1
+                    items(listAction) { action ->
+                        val disable =
+                            when (action) {
+                                QueueItemAction.UP -> !canMoveUp
+                                QueueItemAction.DOWN -> !canMoveDown
+                                QueueItemAction.DELETE -> false
+                            }
+                        if (disable) return@items
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        hideModalBottomSheet()
+                                        when (action) {
+                                            QueueItemAction.UP -> {
+                                                coroutineScope.launch {
+                                                    musicServiceHandler.moveItemUp(index)
+                                                }
+                                            }
+
+                                            QueueItemAction.DOWN -> {
+                                                coroutineScope.launch {
+                                                    musicServiceHandler.moveItemDown(index)
+                                                }
+                                            }
+
+                                            QueueItemAction.DELETE -> {
+                                                musicServiceHandler.removeMediaItem(index)
+                                            }
+                                        }
+                                    },
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier =
+                                    Modifier
+                                        .padding(20.dp)
+                                        .align(Alignment.CenterStart),
+                            ) {
+                                when (action) {
+                                    QueueItemAction.UP -> {
+                                        Image(
+                                            painter =
+                                                painterResource(
+                                                    id = R.drawable.baseline_keyboard_double_arrow_up_24,
+                                                ),
+                                            contentDescription = "Move up",
+                                        )
+                                    }
+                                    QueueItemAction.DOWN -> {
+                                        Image(
+                                            painter =
+                                                painterResource(
+                                                    id = R.drawable.baseline_keyboard_double_arrow_down_24,
+                                                ),
+                                            contentDescription = "Move down",
+                                        )
+                                    }
+                                    QueueItemAction.DELETE -> {
+                                        Image(
+                                            painter =
+                                                painterResource(
+                                                    id = R.drawable.baseline_delete_24,
+                                                ),
+                                            contentDescription = "Delete",
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text =
+                                        stringResource(
+                                            when (action) {
+                                                QueueItemAction.UP -> R.string.move_up
+                                                QueueItemAction.DOWN -> R.string.move_down
+                                                QueueItemAction.DELETE -> R.string.delete
+                                            },
+                                        ),
+                                    style = typo.labelSmall,
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        EndOfModalBottomSheet()
+                    }
+                }
+            }
+        }
+    }
+}
 
 @UnstableApi
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -109,7 +1155,10 @@ fun NowPlayingBottomSheet(
     changeMainLyricsProviderEnable: Boolean = false,
     // Delete is specific to playlist
     onDelete: (() -> Unit)? = null,
+    dataStoreManager: DataStoreManager = koinInject(),
 ) {
+    val context = LocalContext.current
+
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -136,6 +1185,7 @@ fun NowPlayingBottomSheet(
         mutableStateOf(false)
     }
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
+    var changePlaybackSpeedPitch by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
         if (uiState.songUIState.videoId.isNotEmpty() && !isBottomSheetVisible) {
@@ -145,6 +1195,23 @@ fun NowPlayingBottomSheet(
 
     LaunchedEffect(key1 = song) {
         viewModel.setSongEntity(song)
+    }
+
+    if (changePlaybackSpeedPitch) {
+        val playbackSpeed by dataStoreManager.playbackSpeed.collectAsState(1f)
+        val pitch by dataStoreManager.pitch.collectAsState(0)
+        PlaybackSpeedPitchBottomSheet(
+            onDismiss = { changePlaybackSpeedPitch = false },
+            playbackSpeed = playbackSpeed,
+            pitch = pitch,
+        ) { speed, p ->
+            viewModel.onUIEvent(
+                NowPlayingBottomSheetUIEvent.ChangePlaybackSpeedPitch(
+                    speed = speed,
+                    pitch = p,
+                ),
+            )
+        }
     }
 
     if (addToAPlaylist) {
@@ -213,7 +1280,12 @@ fun NowPlayingBottomSheet(
     if (mainLyricsProvider) {
         var selected by remember {
             mutableIntStateOf(
-                if (uiState.mainLyricsProvider == DataStoreManager.MUSIXMATCH) 0 else 1,
+                when (uiState.mainLyricsProvider) {
+                    DataStoreManager.MUSIXMATCH -> 0
+                    DataStoreManager.YOUTUBE -> 1
+                    DataStoreManager.LRCLIB -> 2
+                    else -> 0
+                },
             )
         }
 
@@ -260,6 +1332,22 @@ fun NowPlayingBottomSheet(
                         Spacer(modifier = Modifier.size(10.dp))
                         Text(text = stringResource(id = R.string.youtube_transcript), style = typo.labelSmall)
                     }
+                    Row(
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 4.dp)
+                                .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selected == 2,
+                            onClick = {
+                                selected = 2
+                            },
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(text = stringResource(id = R.string.lrclib), style = typo.labelSmall)
+                    }
                 }
             },
             confirmButton = {
@@ -267,7 +1355,12 @@ fun NowPlayingBottomSheet(
                     onClick = {
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.ChangeLyricsProvider(
-                                if (selected == 0) DataStoreManager.MUSIXMATCH else DataStoreManager.YOUTUBE,
+                                when (selected) {
+                                    0 -> DataStoreManager.MUSIXMATCH
+                                    1 -> DataStoreManager.YOUTUBE
+                                    2 -> DataStoreManager.LRCLIB
+                                    else -> DataStoreManager.MUSIXMATCH
+                                },
                             ),
                         )
                         mainLyricsProvider = false
@@ -296,6 +1389,7 @@ fun NowPlayingBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -308,7 +1402,7 @@ fun NowPlayingBottomSheet(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.verticalScroll(rememberScrollState())
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(
@@ -489,17 +1583,13 @@ fun NowPlayingBottomSheet(
                         icon = painterResource(id = R.drawable.baseline_sensors_24),
                         text = R.string.start_radio,
                     ) {
-                        val args = Bundle()
-                        args.putString("radioId", "RDAMVM${uiState.songUIState.videoId}")
-                        args.putString(
-                            "videoId",
-                            uiState.songUIState.videoId,
+                        viewModel.onUIEvent(
+                            NowPlayingBottomSheetUIEvent.StartRadio(
+                                videoId = uiState.songUIState.videoId,
+                                name = "\"${uiState.songUIState.title}\" ${context.getString(R.string.radio)}",
+                            ),
                         )
                         hideModalBottomSheet()
-                        navController.navigateSafe(
-                            R.id.action_global_playlistFragment,
-                            args,
-                        )
                     }
                     Crossfade(targetState = changeMainLyricsProviderEnable) {
                         if (it) {
@@ -536,12 +1626,24 @@ fun NowPlayingBottomSheet(
                             }
                         }
                     }
+                    Crossfade(targetState = setSleepTimerEnable) {
+                        if (it) {
+                            // Sleep timer is enabled, so this screen is player screen
+                            ActionButton(
+                                icon = painterResource(R.drawable.round_speed_24),
+                                text = R.string.playback_speed_pitch,
+                            ) {
+                                changePlaybackSpeedPitch = true
+                            }
+                        }
+                    }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_share_24),
                         text = R.string.share,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Share)
                     }
+                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -685,6 +1787,91 @@ fun HeartCheckBox(
     }
 }
 
+@ExperimentalMaterial3Api
+@Composable
+fun PlaybackSpeedPitchBottomSheet(
+    onDismiss: () -> Unit,
+    playbackSpeed: Float,
+    pitch: Int,
+    onSet: (playbackSpeed: Float, pitch: Int) -> Unit,
+) {
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 10.dp),
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.playback_speed) + " ${playbackSpeed}x",
+                    style = typo.labelSmall,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Slider(
+                    value = playbackSpeed,
+                    onValueChange = {
+                        onSet(it, pitch)
+                    },
+                    modifier = Modifier,
+                    enabled = true,
+                    valueRange = 0.25f..2f,
+                    steps = 13,
+                    onValueChangeFinished = {},
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = stringResource(R.string.pitch) + " $pitch",
+                    style = typo.labelSmall,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Slider(
+                    value = pitch.toFloat(),
+                    onValueChange = {
+                        onSet(playbackSpeed, it.toInt())
+                    },
+                    modifier = Modifier,
+                    enabled = true,
+                    valueRange = -12f..12f,
+                    steps = 23,
+                    onValueChangeFinished = {},
+                )
+                EndOfModalBottomSheet()
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddToPlaylistModalBottomSheet(
@@ -714,6 +1901,7 @@ fun AddToPlaylistModalBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -747,10 +1935,13 @@ fun AddToPlaylistModalBottomSheet(
                                     Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 3.dp)
-                                        .clickable {
-                                            onClick(playlist)
-                                            hideModalBottomSheet()
-                                        },
+                                        .clickable(
+                                            enabled = playlist.tracks?.contains(videoId) != true,
+                                            onClick = {
+                                                onClick(playlist)
+                                                hideModalBottomSheet()
+                                            },
+                                        ),
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -759,33 +1950,35 @@ fun AddToPlaylistModalBottomSheet(
                                             .padding(12.dp)
                                             .align(Alignment.CenterStart),
                                 ) {
-                                    Image(
-                                        painter =
-                                            painterResource(
-                                                id = R.drawable.baseline_playlist_add_24,
-                                            ),
-                                        contentDescription = "",
-                                    )
+                                    Crossfade(
+                                        targetState = playlist.tracks?.contains(videoId) == true,
+                                    ) {
+                                        if (it) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.done),
+                                                contentDescription = "",
+                                            )
+                                        } else {
+                                            Image(
+                                                painter =
+                                                    painterResource(
+                                                        id = R.drawable.baseline_playlist_add_24,
+                                                    ),
+                                                contentDescription = "",
+                                            )
+                                        }
+                                    }
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(
                                         text = playlist.title,
                                         style = typo.labelSmall,
+                                        color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
                                     )
-                                }
-                                Crossfade(
-                                    targetState = playlist.tracks?.contains(videoId) == true,
-                                ) {
-                                    if (it) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.done),
-                                            contentDescription = "",
-                                            modifier = Modifier.align(Alignment.CenterEnd),
-                                        )
-                                    }
                                 }
                             }
                         }
                     }
+                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -814,6 +2007,7 @@ fun SleepTimerBottomSheet(
         contentColor = Color.Transparent,
         dragHandle = null,
         scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
         Card(
             modifier =
@@ -843,7 +2037,10 @@ fun SleepTimerBottomSheet(
                 Spacer(modifier = Modifier.height(5.dp))
                 OutlinedTextField(
                     value = minutes.toString(),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
                     onValueChange = { if (it.isDigitsOnly() && it.isNotEmpty() && it.isNotBlank()) minutes = it.toInt() },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 )
@@ -868,6 +2065,7 @@ fun SleepTimerBottomSheet(
                     Text(text = stringResource(R.string.set), style = typo.labelSmall)
                 }
                 Spacer(modifier = Modifier.height(5.dp))
+                EndOfModalBottomSheet()
             }
         }
     }
@@ -901,6 +2099,7 @@ fun ArtistModalBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -966,8 +2165,124 @@ fun ArtistModalBottomSheet(
                                 }
                             }
                         }
+                        item {
+                            EndOfModalBottomSheet()
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+@ExperimentalMaterial3Api
+fun PlaylistBottomSheet(
+    onDismiss: () -> Unit,
+    playlistId: String,
+    isYourYouTubePlaylist: Boolean,
+    onSaveToLocal: () -> Unit,
+    onAddToQueue: (() -> Unit)? = null,
+    mainRepository: MainRepository = koinInject(),
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var isSavedToLocal by remember { mutableStateOf(false) }
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val hideModalBottomSheet: () -> Unit =
+        {
+            coroutineScope.launch {
+                modelBottomSheetState.hide()
+                onDismiss()
+            }
+        }
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        mainRepository.getAllLocalPlaylists().collect {
+            isSavedToLocal = it.any { playlist -> playlist.youtubePlaylistId == playlistId }
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(5.dp))
+                if (onAddToQueue != null) {
+                    ActionButton(icon = painterResource(id = R.drawable.baseline_queue_music_24), text = R.string.add_to_queue) {
+                        onAddToQueue()
+                        hideModalBottomSheet()
+                    }
+                }
+                if (isYourYouTubePlaylist) {
+                    ActionButton(
+                        icon =
+                            if (isSavedToLocal) {
+                                painterResource(id = R.drawable.baseline_sync_disabled_24)
+                            } else {
+                                painterResource(id = R.drawable.baseline_sync_24)
+                            },
+                        text =
+                            if (isSavedToLocal) {
+                                R.string.saved_to_local_playlist
+                            } else {
+                                R.string.save_to_local_playlist
+                            },
+                        enable = !isSavedToLocal,
+                    ) {
+                        onSaveToLocal.invoke()
+                        hideModalBottomSheet()
+                    }
+                }
+                ActionButton(
+                    icon = painterResource(id = R.drawable.baseline_share_24),
+                    text = R.string.share,
+                ) {
+                    val shareIntent = Intent(Intent.ACTION_SEND)
+                    shareIntent.type = "text/plain"
+                    val url = "https://music.youtube.com/playlist?list=${
+                        playlistId.replaceFirst(
+                            "VL",
+                            "",
+                        )
+                    }"
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                    val chooserIntent =
+                        Intent.createChooser(shareIntent, context.getString(R.string.share_url))
+                    context.startActivity(chooserIntent)
+                }
+                EndOfModalBottomSheet()
             }
         }
     }
@@ -1047,6 +2362,7 @@ fun LocalPlaylistBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -1101,6 +2417,7 @@ fun LocalPlaylistBottomSheet(
                     ) {
                         Text(text = stringResource(id = R.string.save))
                     }
+                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -1113,6 +2430,7 @@ fun LocalPlaylistBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -1178,18 +2496,44 @@ fun LocalPlaylistBottomSheet(
                         onDelete()
                         hideModalBottomSheet()
                     }
+                    ActionButton(
+                        icon = painterResource(id = R.drawable.baseline_share_24),
+                        text = if (ytPlaylistId != null) R.string.share else R.string.sync_first,
+                        enable = (ytPlaylistId != null),
+                    ) {
+                        val shareIntent = Intent(Intent.ACTION_SEND)
+                        shareIntent.type = "text/plain"
+                        val url = "https://music.youtube.com/playlist?list=${
+                            ytPlaylistId?.replaceFirst(
+                                "VL",
+                                "",
+                            )
+                        }"
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                        val chooserIntent =
+                            Intent.createChooser(shareIntent, context.getString(R.string.share_url))
+                        context.startActivity(chooserIntent)
+                    }
+                    EndOfModalBottomSheet()
                 }
             }
         }
     }
 }
 
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true,
-    name = "Dark Mode",
-    group = "Local Playlist",
-)
 @Composable
-fun LocalPlaylistBottomSheetPreview() {
+fun EndOfModalBottomSheet() {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(
+                    WindowInsets.navigationBars
+                        .asPaddingValues()
+                        .calculateBottomPadding()
+                        .value
+                        .toInt()
+                        .dp + 8.dp,
+                ),
+    ) {}
 }

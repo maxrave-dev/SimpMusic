@@ -4,6 +4,7 @@ import com.maxrave.kotlinytmusicscraper.models.Album
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
+import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.Thumbnails
@@ -16,8 +17,47 @@ data class AlbumPage(
     val description: String?,
     val thumbnails: Thumbnails?,
     val duration: String?,
+    val otherVersion: List<AlbumItem>,
 ) {
     companion object {
+        fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer?): AlbumItem? {
+            if (renderer == null) {
+                return null
+            }
+            return AlbumItem(
+                browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
+                playlistId =
+                    renderer.thumbnailOverlay
+                        ?.musicItemThumbnailOverlayRenderer
+                        ?.content
+                        ?.musicPlayButtonRenderer
+                        ?.playNavigationEndpoint
+                        ?.watchPlaylistEndpoint
+                        ?.playlistId ?: return null,
+                title =
+                    renderer.title.runs
+                        ?.firstOrNull()
+                        ?.text ?: return null,
+                artists =
+                    renderer.subtitle
+                        ?.runs
+                        ?.lastOrNull()
+                        ?.let {
+                            Artist(
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId,
+                                name = it.text,
+                            )
+                        }?.let { listOf(it) } ?: emptyList(),
+                year = null,
+                isSingle = false,
+                thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: "",
+                explicit =
+                    renderer.subtitleBadges?.find {
+                        it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+                    } != null,
+            )
+        }
+
         fun fromMusicResponsiveListItemRenderer(
             renderer: MusicResponsiveListItemRenderer?,
             album: AlbumItem,

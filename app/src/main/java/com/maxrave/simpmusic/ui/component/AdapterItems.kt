@@ -64,6 +64,9 @@ import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
+import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
+import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
 import com.maxrave.simpmusic.data.model.home.Content
@@ -82,11 +85,12 @@ import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @UnstableApi
 @Composable
 fun HomeItem(
-    homeViewModel: HomeViewModel,
+    homeViewModel: HomeViewModel = koinViewModel(),
     navController: NavController,
     data: HomeItem,
 ) {
@@ -296,6 +300,9 @@ fun HomeItemContentPlaylist(
                     is PlaylistsResult -> data.thumbnails.lastOrNull()?.url
                     is AlbumEntity -> data.thumbnails
                     is PlaylistEntity -> data.thumbnails
+                    is ResultSingle -> data.thumbnails.lastOrNull()?.url
+                    is ResultAlbum -> data.thumbnails.lastOrNull()?.url
+                    is ResultPlaylist -> data.thumbnails.lastOrNull()?.url
                     else -> null
                 }
             AsyncImage(
@@ -328,6 +335,9 @@ fun HomeItemContentPlaylist(
                         is PlaylistsResult -> data.title
                         is AlbumEntity -> data.title
                         is PlaylistEntity -> data.title
+                        is ResultSingle -> data.title
+                        is ResultAlbum -> data.title
+                        is ResultPlaylist -> data.title
                         else -> ""
                     },
                 style = typo.titleSmall,
@@ -370,6 +380,9 @@ fun HomeItemContentPlaylist(
                         is PlaylistsResult -> data.author
                         is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(id = R.string.album)
                         is PlaylistEntity -> data.author ?: stringResource(id = R.string.playlist)
+                        is ResultSingle -> data.year
+                        is ResultAlbum -> data.year
+                        is ResultPlaylist -> data.author
                         else -> ""
                     },
                 style = typo.bodySmall,
@@ -485,20 +498,34 @@ fun QuickPicksItem(
                                 bottom = 3.dp,
                             ),
                 )
-
-                Text(
-                    text = data.artists.toListName().connectArtists(),
-                    style = typo.bodySmall,
-                    maxLines = 1,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
-                )
+                LazyRow(verticalAlignment = Alignment.CenterVertically) {
+                    item {
+                        androidx.compose.animation.AnimatedVisibility(visible = data.isExplicit == true) {
+                            ExplicitBadge(
+                                modifier =
+                                    Modifier
+                                        .size(20.dp)
+                                        .padding(end = 4.dp)
+                                        .weight(1f),
+                            )
+                        }
+                    }
+                    item {
+                        Text(
+                            text = data.artists.toListName().connectArtists(),
+                            style = typo.bodySmall,
+                            maxLines = 1,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                    .basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                    ).focusable(),
+                        )
+                    }
+                }
             }
         }
     }
@@ -573,20 +600,31 @@ fun HomeItemSong(
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
             )
-            Text(
-                text = data.artists.toListName().connectArtists(),
-                style = typo.bodySmall,
-                maxLines = 1,
-                modifier =
-                    Modifier
-                        .width(180.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable()
-                        .padding(vertical = 3.dp),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AnimatedVisibility(visible = data.isExplicit == true) {
+                    ExplicitBadge(
+                        modifier =
+                            Modifier
+                                .size(20.dp)
+                                .padding(end = 4.dp)
+                                .weight(1f),
+                    )
+                }
+                Text(
+                    text = data.artists.toListName().connectArtists(),
+                    style = typo.bodySmall,
+                    maxLines = 1,
+                    modifier =
+                        Modifier
+                            .width(180.dp)
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(vertical = 3.dp),
+                )
+            }
             Text(
                 text = data.album?.name ?: stringResource(id = R.string.songs),
                 style = typo.bodySmall,
@@ -681,7 +719,7 @@ fun HomeItemVideo(
                         .padding(vertical = 3.dp),
             )
             Text(
-                text = stringResource(id = R.string.videos),
+                text = if (data.views != null) data.views else stringResource(id = R.string.videos),
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier =
@@ -756,7 +794,7 @@ fun HomeItemArtist(
                         ).focusable(),
             )
             Text(
-                text = stringResource(id = R.string.artists),
+                text = if (data.description != null) data.description else stringResource(id = R.string.artists),
                 style = typo.bodySmall,
                 maxLines = 1,
                 textAlign = TextAlign.Center,

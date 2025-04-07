@@ -25,9 +25,6 @@ import java.time.LocalDateTime
 class MostPlayedViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    override val tag: String
-        get() = "MostPlayedViewModel"
-
     private val downloadUtils: DownloadUtils by inject()
 
     private var _listMostPlayedSong: MutableLiveData<ArrayList<SongEntity>> = MutableLiveData()
