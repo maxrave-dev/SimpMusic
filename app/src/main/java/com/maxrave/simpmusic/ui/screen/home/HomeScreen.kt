@@ -93,6 +93,7 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.GetDataSyncIdBottomSheet
 import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
@@ -149,6 +150,18 @@ fun HomeScreen(
         mutableStateOf(false)
     }
 
+    val dataSyncId by viewModel.dataSyncId.collectAsState()
+    val youTubeCookie by viewModel.youTubeCookie.collectAsState()
+    var shouldShowGetDataSyncIdBottomSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(dataSyncId, youTubeCookie) {
+        Log.d("HomeScreen", "dataSyncId: $dataSyncId, youTubeCookie: $youTubeCookie")
+        if (dataSyncId.isEmpty() && youTubeCookie.isNotEmpty()) {
+            shouldShowGetDataSyncIdBottomSheet = true
+        }
+    }
+
     val onRefresh: () -> Unit = {
         isRefreshing = true
         viewModel.getHomeItemList()
@@ -184,13 +197,28 @@ fun HomeScreen(
         }
     }
 
+    if (shouldShowGetDataSyncIdBottomSheet) {
+        GetDataSyncIdBottomSheet(
+            cookie = youTubeCookie,
+            onDismissRequest = {
+                shouldShowGetDataSyncIdBottomSheet = false
+            },
+        )
+    }
+
     if (showReviewDialog) {
         ReviewDialog(
             onDismissRequest = {
+                sharedViewModel.onDoneReview(
+                    isDismissOnly = true,
+                )
                 showReviewDialog = false
             },
             onDoneReview = {
-                sharedViewModel.onDoneReview()
+                sharedViewModel.onDoneReview(
+                    isDismissOnly = false,
+                )
+                showReviewDialog = false
             },
         )
     }

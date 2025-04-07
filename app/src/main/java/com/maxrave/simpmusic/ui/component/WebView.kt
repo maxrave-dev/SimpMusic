@@ -1,70 +1,158 @@
 package com.maxrave.simpmusic.ui.component
 
+import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.LogInViewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
-fun WebView(
-    modifier: Modifier = Modifier,
-    url: String,
-    onFinished: () -> Unit,
+fun GetDataSyncIdBottomSheet(
+    cookie: String,
+    onDismissRequest: () -> Unit,
+    viewModel: LogInViewModel = koinViewModel(),
 ) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            WebView(context).apply {
-                webViewClient =
-                    object : WebViewClient() {
-                        override fun onPageFinished(
-                            view: WebView?,
-                            url: String?,
-                        ) {
-                            onFinished()
-                        }
-                    }
-//                settings.javaScriptEnabled = true
-                loadUrl(url)
-            }
-        },
-    )
-}
-
-@Preview
-@Composable
-fun WebViewPreview() {
-    Column {
-        NormalAppBar(
-            title = {
-                Text(text = "Title")
-            },
-            leftIcon = {
-                IconButton(onClick = { }) {
-                    Icon(
-                        painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                        contentDescription = "Back",
-                    )
-                }
-            },
-            rightIcon = {
-                IconButton(onClick = { }) {
-                    Icon(
-                        painterResource(id = R.drawable.baseline_more_vert_24),
-                        contentDescription = "Back",
-                    )
-                }
-            },
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
         )
-        WebView(modifier = Modifier.fillMaxSize(), url = "https://www.google.com", onFinished = {})
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        containerColor = Color.Black,
+        contentColor = Color.Transparent,
+        dragHandle = {},
+        scrimColor = Color.Black.copy(alpha = .5f),
+        sheetState = sheetState,
+        modifier =
+            Modifier
+                .fillMaxHeight(),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        shape = RectangleShape,
+    ) {
+        Column {
+            TopAppBar(
+                colors =
+                    TopAppBarDefaults.topAppBarColors().copy(
+                        containerColor = Color.Transparent,
+                    ),
+                title = {
+                    Text(
+                        text = stringResource(R.string.retrieve_youtube_data),
+                        style = typo.bodyMedium,
+                        color = Color.White,
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            onDismissRequest()
+                        }
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
+                            contentDescription = "",
+                            tint = Color.White,
+                        )
+                    }
+                },
+            )
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    CookieManager.getInstance().setCookie(
+                        Config.YOUTUBE_MUSIC_MAIN_URL,
+                        cookie,
+                    )
+                    WebView(context).apply {
+                        webViewClient =
+                            object : WebViewClient() {
+                                override fun onPageFinished(
+                                    view: WebView?,
+                                    url: String?,
+                                ) {
+                                    loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
+                                    loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
+                                }
+                            }
+                        settings.javaScriptEnabled = true
+                        settings.domStorageEnabled = true
+                        addJavascriptInterface(
+                            object {
+                                @JavascriptInterface
+                                @UnstableApi
+                                fun onRetrieveVisitorData(newVisitorData: String?) {
+                                    if (newVisitorData != null) {
+                                        viewModel.setVisitorData(newVisitorData)
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                context.getString(R.string.visitor_data_retrieved),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                        // Clear all the cookies
+                                        CookieManager.getInstance().removeAllCookies(null)
+                                        CookieManager.getInstance().flush()
+                                    }
+                                }
+
+                                @JavascriptInterface
+                                @UnstableApi
+                                fun onRetrieveDataSyncId(newDataSyncId: String?) {
+                                    if (newDataSyncId != null) {
+                                        viewModel.setDataSyncId(newDataSyncId.substringBefore("||"))
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                context.getString(R.string.data_sync_id_retrieved),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                        // Clear all the cookies
+                                        CookieManager.getInstance().removeAllCookies(null)
+                                        CookieManager.getInstance().flush()
+                                    }
+                                }
+                            },
+                            "Android",
+                        )
+                        loadUrl(Config.YOUTUBE_MUSIC_MAIN_URL)
+                    }
+                },
+            )
+        }
     }
 }

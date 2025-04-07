@@ -96,7 +96,8 @@ class Ytmusic {
             gl = Locale.getDefault().country,
             hl = Locale.getDefault().toLanguageTag(),
         )
-    var visitorData: String = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
+    var visitorData: String? = null
+    var dataSyncId: String? = null
     private var poTokenChallengeRequestKey = "O43z0dpjhgX20SCx4KAo"
     var cookie: String? = null
         set(value) {

@@ -828,6 +828,32 @@ class DataStoreManager(
         }
     }
 
+    val dataSyncId =
+        settingsDataStore.data.map { preferences ->
+            preferences[DATA_SYNC_ID] ?: ""
+        }
+
+    suspend fun setDataSyncId(dataSyncId: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[DATA_SYNC_ID] = dataSyncId
+            }
+        }
+    }
+
+    val visitorData =
+        settingsDataStore.data.map { preferences ->
+            preferences[VISITOR_DATA] ?: ""
+        }
+
+    suspend fun setVisitorData(visitorData: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[VISITOR_DATA] = visitorData
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -879,6 +905,8 @@ class DataStoreManager(
         val PITCH = intPreferencesKey("pitch")
         val OPEN_APP_TIME = intPreferencesKey("open_app_time")
         val FADE_VOLUME = intPreferencesKey("fade_volume")
+        val DATA_SYNC_ID = stringPreferencesKey("data_sync_id")
+        val VISITOR_DATA = stringPreferencesKey("visitor_data")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -46,6 +47,7 @@ class LogInFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(
         view: View,
         savedInstanceState: Bundle?,
@@ -70,6 +72,8 @@ class LogInFragment : Fragment() {
                         view: WebView?,
                         url: String?,
                     ) {
+                        loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
+                        loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
                         if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
                             CookieManager.getInstance().getCookie(url)?.let {
                                 settingsViewModel.addAccount(it)
@@ -96,6 +100,26 @@ class LogInFragment : Fragment() {
                 }
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            addJavascriptInterface(
+                object {
+                    @JavascriptInterface
+                    @UnstableApi
+                    fun onRetrieveVisitorData(newVisitorData: String?) {
+                        if (newVisitorData != null) {
+                            viewModel.setVisitorData(newVisitorData)
+                        }
+                    }
+
+                    @JavascriptInterface
+                    @UnstableApi
+                    fun onRetrieveDataSyncId(newDataSyncId: String?) {
+                        if (newDataSyncId != null) {
+                            viewModel.setDataSyncId(newDataSyncId.substringBefore("||"))
+                        }
+                    }
+                },
+                "Android",
+            )
             loadUrl(Config.LOG_IN_URL)
         }
         binding.topAppBar.setNavigationOnClickListener {

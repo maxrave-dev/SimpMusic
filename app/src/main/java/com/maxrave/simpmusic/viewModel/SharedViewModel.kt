@@ -1527,9 +1527,13 @@ class SharedViewModel(
         _downloadFileProgress.value = DownloadProgress.INIT
     }
 
-    fun onDoneReview() {
+    fun onDoneReview(isDismissOnly: Boolean = true) {
         viewModelScope.launch {
-            dataStoreManager.doneOpenAppTime()
+            if (!isDismissOnly) {
+                dataStoreManager.doneOpenAppTime()
+            } else {
+                dataStoreManager.openApp()
+            }
         }
     }
 }

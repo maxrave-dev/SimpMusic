@@ -29,4 +29,16 @@ class LogInViewModel(
                 }
         }
     }
+
+    fun setVisitorData(visitorData: String) {
+        viewModelScope.launch {
+            dataStoreManager.setVisitorData(visitorData)
+        }
+    }
+
+    fun setDataSyncId(dataSyncId: String) {
+        viewModelScope.launch {
+            dataStoreManager.setDataSyncId(dataSyncId)
+        }
+    }
 }

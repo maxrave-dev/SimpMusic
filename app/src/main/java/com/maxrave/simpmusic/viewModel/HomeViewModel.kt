@@ -25,12 +25,14 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -72,6 +74,15 @@ class HomeViewModel(
     // For showing alert that should log in to YouTube
     private val _showLogInAlert: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val showLogInAlert: StateFlow<Boolean> = _showLogInAlert
+
+    val dataSyncId =
+        dataStoreManager
+            .dataSyncId
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+    val youTubeCookie =
+        dataStoreManager
+            .cookie
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
     init {
         if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&

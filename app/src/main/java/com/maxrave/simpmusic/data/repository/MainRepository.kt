@@ -237,11 +237,25 @@ class MainRepository(
                         }
                     }
                 }
+            val dataSyncIdJob =
+                launch {
+                    dataStoreManager.dataSyncId.collectLatest { dataSyncId ->
+                        youTube.dataSyncId = dataSyncId
+                    }
+                }
+            val visitorDataJob =
+                launch {
+                    dataStoreManager.visitorData.collectLatest { visitorData ->
+                        youTube.visitorData = visitorData
+                    }
+                }
 
             localeJob.join()
             ytCookieJob.join()
             musixmatchCookieJob.join()
             usingProxy.join()
+            dataSyncIdJob.join()
+            visitorDataJob.join()
         }
     }
 
@@ -2868,6 +2882,11 @@ class MainRepository(
                     if (format == null) {
                         format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
                     }
+                    val superFormat =
+                        response.streamingData?.adaptiveFormats?.find {
+                            it.quality == "AUDIO_QUALITY_HIGH"
+                        }
+                    Log.w("Stream", "Super format: $superFormat")
                     Log.w("Stream", "format: $format")
                     Log.d("Stream", "expireInSeconds ${response.streamingData?.expiresInSeconds}")
                     Log.w("Stream", "expired at ${LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L)}")

@@ -116,6 +116,13 @@ android {
                 "META-INF/*.kotlin_module",
             )
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
 
 dependencies {
@@ -138,8 +145,6 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.xml)
     implementation(libs.ktor.serialization.kotlinx.protobuf)
 
-    implementation(libs.newpipe.extractor)
-
     implementation(libs.brotli.dec)
 
     implementation(libs.kotlin.reflect)
@@ -149,6 +154,8 @@ dependencies {
     implementation(libs.ksoup.entities)
 
     implementation(libs.ffmpeg.kit.min)
+    implementation(project(mapOf("path" to ":youtubeapi")))
+    implementation(project(mapOf("path" to ":sharedutils")))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

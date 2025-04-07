@@ -1,8 +1,12 @@
 package com.maxrave.kotlinytmusicscraper
 
+import android.content.Context
 import android.util.Log
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
+import com.liskovsoft.sharedutils.prefs.GlobalPreferences
+import com.liskovsoft.youtubeapi.app.AppService
+import com.liskovsoft.youtubeapi.service.internal.MediaServiceData
 import com.maxrave.kotlinytmusicscraper.extension.toListFormat
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
@@ -14,6 +18,7 @@ import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicCarouselShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
+import com.maxrave.kotlinytmusicscraper.models.PoToken
 import com.maxrave.kotlinytmusicscraper.models.ReturnYouTubeDislikeResponse
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
@@ -22,7 +27,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -69,7 +74,7 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getReloadParams
 import com.maxrave.kotlinytmusicscraper.parser.getSuggestionSongItems
 import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
-import com.maxrave.kotlinytmusicscraper.utils.CustomNewPipeDownloader
+import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.PoTokenGenerator
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
@@ -79,8 +84,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.onFailure
-import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -96,10 +99,8 @@ import okio.FileSystem
 import okio.IOException
 import okio.Path.Companion.toPath
 import org.json.JSONArray
-import org.schabi.newpipe.extractor.NewPipe
-import org.schabi.newpipe.extractor.exceptions.ParsingException
-import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import java.io.File
+import java.net.Proxy
 import kotlin.random.Random
 
 /**
@@ -110,14 +111,15 @@ import kotlin.random.Random
  * Using YouTube Internal API
  * @author maxrave-dev
  */
-class YouTube {
+class YouTube(
+    private val context: Context,
+) {
     private val ytMusic = Ytmusic()
-    private val newPipeDownloader = CustomNewPipeDownloader(ytMusic.proxy)
-
-    // Init NewPipe
-    init {
-        NewPipe.init(newPipeDownloader)
-    }
+    private val mAppService = AppService.instance()
+    private val poTokenGenerator =
+        PoTokenGenerator(
+            context = context,
+        )
 
     var cachePath: File?
         get() = ytMusic.cachePath
@@ -149,10 +151,16 @@ class YouTube {
     /**
      * Set custom visitorData for client (default is @see [DEFAULT_VISITOR_DATA])
      */
-    var visitorData: String
+    var visitorData: String?
         get() = ytMusic.visitorData
         set(value) {
             ytMusic.visitorData = value
+        }
+
+    var dataSyncId: String?
+        get() = ytMusic.dataSyncId
+        set(value) {
+            ytMusic.dataSyncId = value
         }
 
     /**
@@ -190,8 +198,6 @@ class YouTube {
      */
     fun removeProxy() {
         ytMusic.proxy = null
-        newPipeDownloader.updateProxy(null)
-        NewPipe.init(newPipeDownloader)
     }
 
     /**
@@ -206,8 +212,6 @@ class YouTube {
             if (isHttp) ProxyBuilder.http("$host:$port") else ProxyBuilder.socks(host, port)
         }.onSuccess {
             ytMusic.proxy = it
-            newPipeDownloader.updateProxy(it)
-            NewPipe.init(newPipeDownloader)
         }.onFailure {
             it.printStackTrace()
         }
@@ -1165,7 +1169,7 @@ class YouTube {
             println("Visitor Data $visitorData")
             println("New Cookie $cookie")
             println("Playback Tracking $playbackTracking")
-            return Triple(cookie, visitorData ?: this@YouTube.visitorData, playbackTracking)
+            return Triple(cookie, visitorData ?: this@YouTube.visitorData ?: "", playbackTracking)
         } catch (e: Exception) {
             e.printStackTrace()
             return Triple("", "", null)
@@ -1187,17 +1191,60 @@ class YouTube {
                             ),
                         ]
                     }.joinToString("")
-            val sigTimestamp = getSignatureTimestamp(videoId)
-            val listClients = listOf(TVHTML5)
+//            val sessionId = dataSyncId ?: visitorData ?: visitorData() ?: getVisitorData(videoId, null).second
+//            // If logged in, use dataSyncId else use visitorData
+//            val (webPlayerPot, webStreamingPot) =
+//                getWebClientPoTokenOrNull(videoId, sessionId)?.let {
+//                    Pair(it.playerRequestPoToken, it.streamingDataPoToken)
+//                } ?: Pair(null, null).also {
+//                    Log.w("YouTube", "[$videoId] No po token")
+//                }
+            var webPlayerPot = ""
+            try {
+                if (GlobalPreferences.sInstance == null) {
+                    GlobalPreferences.instance(context)
+                }
+                val mediaServiceData = MediaServiceData.instance()
+                mediaServiceData.visitorCookie = cookie
+                mAppService.resetClientPlaybackNonce()
+                mAppService.clientPlaybackNonce?.let {
+                    println("Client playback nonce $it")
+                }
+                mAppService.refreshCacheIfNeeded()
+                mAppService.refreshPoTokenIfNeeded()
+                webPlayerPot = mAppService.sessionPoToken
+                println("YouTube poToken $webPlayerPot")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            val sigTimestamp =
+                try {
+                    mAppService.signatureTimestamp?.toInt()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            val listClients = listOf(YouTubeClient.TVHTML5)
             var sigResponse: PlayerResponse? = null
+            var currentClient = listClients.first()
             for (client in listClients) {
                 println("YouTube Client $client")
-                val tempRes = ytMusic.player(client, videoId, playlistId, cpn, signatureTimestamp = sigTimestamp).body<PlayerResponse>()
+                val tempRes =
+                    ytMusic
+                        .player(
+                            client,
+                            videoId,
+                            playlistId,
+                            cpn,
+                            signatureTimestamp = sigTimestamp,
+                            poToken = webPlayerPot,
+                        ).body<PlayerResponse>()
                 println("YouTube TempRes ${tempRes.playabilityStatus}")
                 if (tempRes.playabilityStatus.status != "OK") {
                     continue
                 } else {
                     sigResponse = tempRes
+                    currentClient = client
                     break
                 }
             }
@@ -1206,17 +1253,31 @@ class YouTube {
                     streamingData =
                         sigResponse.streamingData?.copy(
                             formats =
-                                sigResponse.streamingData?.formats?.map { format ->
+                                sigResponse.streamingData.formats?.map { format ->
                                     format.copy(
-                                        url = format.signatureCipher?.let { decodeSignatureCipher(videoId, it) },
+                                        url =
+                                            format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                                if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                    "$url&pot=$webPlayerPot"
+                                                } else {
+                                                    url
+                                                }
+                                            },
                                     )
                                 },
                             adaptiveFormats =
-                                sigResponse.streamingData?.adaptiveFormats?.map { adaptiveFormats ->
+                                sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
                                     adaptiveFormats.copy(
-                                        url = adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(videoId, it) },
+                                        url =
+                                            adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                                if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                    "$url&pot=$webPlayerPot"
+                                                } else {
+                                                    url
+                                                }
+                                            },
                                     )
-                                } ?: emptyList(),
+                                },
                         ),
                 )
             val listUrlSig =
@@ -1345,6 +1406,47 @@ class YouTube {
                 )
             }
         }
+
+    private fun decodeSignatureCipher(signatureCipher: String): String? =
+        try {
+            val params = parseQueryString(signatureCipher)
+            val cipher = params["s"] ?: throw Exception("Could not parse cipher signature")
+            val signatureParam = params["sp"] ?: throw Exception("Could not parse cipher signature parameter")
+            val url = params["url"]?.let { URLBuilder(it) } ?: throw Exception("Could not parse cipher url")
+//            url.parameters[signatureParam] = YoutubeJavaScriptPlayerManager.deobfuscateSignature(videoId, obfuscatedSignature)
+            print("URL $url")
+            val nSigParam = url.parameters["n"] ?: throw Exception("Could not parse cipher signature parameter")
+//            YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url.toString())
+            val decodedCipher = mAppService.decipher(cipher)
+            val fixedThrottling = mAppService.fixThrottling(nSigParam)
+            val newUrl = URLBuilder(url.toString())
+            newUrl.parameters["n"] = fixedThrottling
+            newUrl.parameters[signatureParam] = decodedCipher
+            newUrl.toString()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+    /**
+     * Wrapper around the [PoTokenGenerator.getWebClientPoToken] function which reports exceptions
+     */
+    private fun getWebClientPoTokenOrNull(
+        videoId: String,
+        sessionId: String?,
+        proxy: Proxy? = ytMusic.proxy,
+    ): PoToken? {
+        if (sessionId == null) {
+            Log.d("YouTube", "[$videoId] Session identifier is null")
+            return null
+        }
+        try {
+            return poTokenGenerator.getWebClientPoToken(videoId, sessionId, proxy)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
 
     suspend fun updateWatchTime(
         watchtimeUrl: String,
@@ -1912,34 +2014,6 @@ class YouTube {
                     trySend(DownloadProgress.failed(it.message ?: "Player response is null"))
                 }
         }.flowOn(Dispatchers.IO)
-
-    /**
-     * NewPipeExtractor implement
-     */
-    private fun getSignatureTimestamp(videoId: String): Int? =
-        try {
-            YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-
-    private fun decodeSignatureCipher(
-        videoId: String,
-        signatureCipher: String,
-    ): String? =
-        try {
-            val params = parseQueryString(signatureCipher)
-            val obfuscatedSignature = params["s"] ?: throw ParsingException("Could not parse cipher signature")
-            val signatureParam = params["sp"] ?: throw ParsingException("Could not parse cipher signature parameter")
-            val url = params["url"]?.let { URLBuilder(it) } ?: throw ParsingException("Could not parse cipher url")
-            url.parameters[signatureParam] = YoutubeJavaScriptPlayerManager.deobfuscateSignature(videoId, obfuscatedSignature)
-            print("URL $url")
-            YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url.toString())
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
 
     companion object {
         const val MAX_GET_QUEUE_SIZE = 1000

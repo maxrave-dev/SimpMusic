@@ -184,7 +184,7 @@ val databaseModule =
 
         // Move YouTube from Singleton to Koin DI
         single(createdAtStart = true) {
-            YouTube()
+            YouTube(androidContext())
         }
 
         single(createdAtStart = true) {

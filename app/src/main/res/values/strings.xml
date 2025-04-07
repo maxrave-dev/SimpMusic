@@ -411,4 +411,7 @@
     <string name="invalid_number">Invalid number</string>
     <string name="shuffle_not_available">Shuffle endpoint is not available</string>
     <string name="radio_not_available">Radio Endpoint is not available</string>
+    <string name="visitor_data_retrieved">Visitor Data Retrieved</string>
+    <string name="data_sync_id_retrieved">DataSyncId retrieved</string>
+    <string name="retrieve_youtube_data">Retrieve YouTube Data</string>
 </resources>
