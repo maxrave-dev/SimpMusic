@@ -200,7 +200,7 @@ data class ArtistPage(
                             renderer.subtitleBadges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null,
-                        isSingle = renderer.subtitle?.runs?.size == 1,
+                        isSingle = renderer.subtitle?.runs?.size != 1,
                     )
                 }
 
