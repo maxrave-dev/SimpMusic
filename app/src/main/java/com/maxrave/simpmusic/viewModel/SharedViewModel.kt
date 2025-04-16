@@ -68,7 +68,6 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -259,9 +258,16 @@ class SharedViewModel(
                         _getVideo.value = it == TRUE
                     }
                 }
+            val lyricsProviderJob =
+                launch {
+                    dataStoreManager.lyricsProvider.distinctUntilChanged().collectLatest {
+                        setLyricsProvider()
+                    }
+                }
             timeLineJob.join()
             downloadedJob.join()
             checkGetVideoJob.join()
+            lyricsProviderJob.join()
         }
     }
 
@@ -1318,10 +1324,8 @@ class SharedViewModel(
 
     fun getLyricsProvider(): String = runBlocking { dataStoreManager.lyricsProvider.first() }
 
-    fun setLyricsProvider(provider: String) {
+    fun setLyricsProvider() {
         viewModelScope.launch {
-            dataStoreManager.setLyricsProvider(provider)
-            delay(500)
             nowPlayingState.value?.songEntity?.let {
                 getLyricsFromFormat(it, timeline.value.total.toInt() / 1000)
             }
