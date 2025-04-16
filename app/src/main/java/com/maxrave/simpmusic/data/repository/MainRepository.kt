@@ -167,6 +167,13 @@ class MainRepository(
             }
         youTube.cachePath = File(context.cacheDir, "http-cache")
         scope.launch {
+            val resetSpotifyToken =
+                launch {
+                    dataStoreManager.setSpotifyClientToken("")
+                    dataStoreManager.setSpotifyPersonalToken("")
+                    dataStoreManager.setSpotifyClientTokenExpires(System.currentTimeMillis())
+                    dataStoreManager.setSpotifyPersonalTokenExpires(System.currentTimeMillis())
+                }
             val localeJob =
                 launch {
                     combine(dataStoreManager.location, dataStoreManager.language) { location, language ->
@@ -256,6 +263,7 @@ class MainRepository(
             usingProxy.join()
             dataSyncIdJob.join()
             visitorDataJob.join()
+            resetSpotifyToken.join()
         }
     }
 
@@ -2220,17 +2228,36 @@ class MainRepository(
                             .replace(".", " ")
                             .replace("  ", " ")
                     var spotifyPersonalToken = ""
+                    var spotifyClientToken = ""
                     if (dataStoreManager.spotifyPersonalToken
                             .first()
                             .isNotEmpty() &&
+                        dataStoreManager.spotifyClientToken.first().isNotEmpty() &&
                         dataStoreManager.spotifyPersonalTokenExpires.first() > System.currentTimeMillis() &&
-                        dataStoreManager.spotifyPersonalTokenExpires.first() != 0L
+                        dataStoreManager.spotifyPersonalTokenExpires.first() != 0L &&
+                        dataStoreManager.spotifyClientTokenExpires.first() > System.currentTimeMillis() &&
+                        dataStoreManager.spotifyClientTokenExpires.first() != 0L
                     ) {
                         spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
+                        spotifyClientToken = dataStoreManager.spotifyClientToken.first()
                         Log.d("Canvas", "spotifyPersonalToken: $spotifyPersonalToken")
+                        Log.d("Canvas", "spotifyClientToken: $spotifyClientToken")
                     } else if (dataStoreManager.spdc.first().isNotEmpty()) {
                         spotify
-                            .getPersonalToken(dataStoreManager.spdc.first())
+                            .getClientToken()
+                            .onSuccess {
+                                Log.d("Canvas", "clientToken: ${it.grantedToken.token}")
+                                dataStoreManager.setSpotifyClientTokenExpires(
+                                    (it.grantedToken.expiresAfterSeconds * 1000L),
+                                )
+                                dataStoreManager.setSpotifyClientToken(it.grantedToken.token)
+                                spotifyClientToken = it.grantedToken.token
+                            }.onFailure {
+                                it.printStackTrace()
+                                emit(null)
+                            }
+                        spotify
+                            .getPersonalTokenWithTotp(dataStoreManager.spdc.first())
                             .onSuccess {
                                 spotifyPersonalToken = it.accessToken
                                 dataStoreManager.setSpotifyPersonalToken(spotifyPersonalToken)
@@ -2243,10 +2270,10 @@ class MainRepository(
                                 emit(null)
                             }
                     }
-                    if (spotifyPersonalToken.isNotEmpty()) {
+                    if (spotifyPersonalToken.isNotEmpty() && spotifyClientToken.isNotEmpty()) {
                         val authToken = spotifyPersonalToken
                         spotify
-                            .searchSpotifyTrack(q, authToken)
+                            .searchSpotifyTrack(q, authToken, spotifyClientToken)
                             .onSuccess { searchResponse ->
                                 Log.w("Canvas", "searchSpotifyResponse: $searchResponse")
                                 val track =
@@ -2278,10 +2305,12 @@ class MainRepository(
                                             ?.firstOrNull()
                                     }
                                 if (track != null) {
+                                    Log.w("Canvas", "track: $track")
                                     spotify
                                         .getSpotifyCanvas(
                                             track.item?.data?.id ?: "",
                                             spotifyPersonalToken,
+                                            spotifyClientToken,
                                         ).onSuccess {
                                             Log.w("Canvas", "canvas: $it")
                                             emit(it)
@@ -2323,34 +2352,56 @@ class MainRepository(
                         .replace("  ", " ")
                 Log.d("Lyrics", "query: $q")
                 var spotifyPersonalToken = ""
+                var spotifyClientToken = ""
                 if (dataStoreManager.spotifyPersonalToken
                         .first()
                         .isNotEmpty() &&
                     dataStoreManager.spotifyPersonalTokenExpires.first() > System.currentTimeMillis() &&
-                    dataStoreManager.spotifyPersonalTokenExpires.first() != 0L
+                    dataStoreManager.spotifyPersonalTokenExpires.first() != 0L &&
+                    dataStoreManager.spotifyClientTokenExpires.first() > System.currentTimeMillis() &&
+                    dataStoreManager.spotifyClientTokenExpires.first() != 0L
                 ) {
                     spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
+                    spotifyClientToken = dataStoreManager.spotifyClientToken.first()
                     Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                    Log.d("Lyrics", "spotifyClientToken: $spotifyClientToken")
                 } else if (dataStoreManager.spdc.first().isNotEmpty()) {
-                    spotify
-                        .getPersonalToken(dataStoreManager.spdc.first())
-                        .onSuccess {
-                            spotifyPersonalToken = it.accessToken
-                            dataStoreManager.setSpotifyPersonalToken(spotifyPersonalToken)
-                            dataStoreManager.setSpotifyPersonalTokenExpires(
-                                it.accessTokenExpirationTimestampMs,
-                            )
-                            Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
-                        }.onFailure {
-                            it.printStackTrace()
-                            emit(Resource.Error<Lyrics>("Not found"))
-                        }
+                    runBlocking {
+                        spotify
+                            .getClientToken()
+                            .onSuccess {
+                                Log.d("Canvas", "clientToken: ${it.grantedToken.token}")
+                                dataStoreManager.setSpotifyClientTokenExpires(
+                                    (it.grantedToken.expiresAfterSeconds * 1000L),
+                                )
+                                dataStoreManager.setSpotifyClientToken(it.grantedToken.token)
+                                spotifyClientToken = it.grantedToken.token
+                            }.onFailure {
+                                it.printStackTrace()
+                                emit(Resource.Error<Lyrics>("Not found"))
+                            }
+                    }
+                    runBlocking {
+                        spotify
+                            .getPersonalTokenWithTotp(dataStoreManager.spdc.first())
+                            .onSuccess {
+                                spotifyPersonalToken = it.accessToken
+                                dataStoreManager.setSpotifyPersonalToken(spotifyPersonalToken)
+                                dataStoreManager.setSpotifyPersonalTokenExpires(
+                                    it.accessTokenExpirationTimestampMs,
+                                )
+                                Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                            }.onFailure {
+                                it.printStackTrace()
+                                emit(Resource.Error<Lyrics>("Not found"))
+                            }
+                    }
                 }
-                if (spotifyPersonalToken.isNotEmpty()) {
+                if (spotifyPersonalToken.isNotEmpty() && spotifyClientToken.isNotEmpty()) {
                     val authToken = spotifyPersonalToken
                     Log.d("Lyrics", "authToken: $authToken")
                     spotify
-                        .searchSpotifyTrack(q, authToken)
+                        .searchSpotifyTrack(q, authToken, spotifyClientToken)
                         .onSuccess { searchResponse ->
                             val track =
                                 if (duration != 0 && duration != null) {
@@ -2383,7 +2434,7 @@ class MainRepository(
                             Log.d("Lyrics", "track: $track")
                             if (track != null) {
                                 spotify
-                                    .getSpotifyLyrics(track.item?.data?.id ?: "", spotifyPersonalToken)
+                                    .getSpotifyLyrics(track.item?.data?.id ?: "", spotifyPersonalToken, spotifyClientToken)
                                     .onSuccess {
                                         emit(Resource.Success<Lyrics>(it.toLyrics()))
                                     }.onFailure {

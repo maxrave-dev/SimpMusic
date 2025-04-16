@@ -531,6 +531,32 @@ class DataStoreManager(
         }
     }
 
+    val spotifyClientToken: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[SPOTIFY_CLIENT_TOKEN] ?: ""
+        }
+
+    suspend fun setSpotifyClientToken(token: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPOTIFY_CLIENT_TOKEN] = token
+            }
+        }
+    }
+
+    val spotifyClientTokenExpires: Flow<Long> =
+        settingsDataStore.data.map { preferences ->
+            preferences[SPOTIFY_CLIENT_TOKEN_EXPIRES] ?: 0
+        }
+
+    suspend fun setSpotifyClientTokenExpires(expires: Long) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPOTIFY_CLIENT_TOKEN_EXPIRES] = expires
+            }
+        }
+    }
+
     val spotifyPersonalToken: Flow<String> =
         settingsDataStore.data.map { preferences ->
             preferences[SPOTIFY_PERSONAL_TOKEN] ?: ""
@@ -887,6 +913,8 @@ class DataStoreManager(
         val SPDC = stringPreferencesKey("sp_dc")
         val SPOTIFY_LYRICS = stringPreferencesKey("spotify_lyrics")
         val SPOTIFY_CANVAS = stringPreferencesKey("spotify_canvas")
+        val SPOTIFY_CLIENT_TOKEN = stringPreferencesKey("spotify_client_token")
+        val SPOTIFY_CLIENT_TOKEN_EXPIRES = longPreferencesKey("spotify_client_token_expires")
         val SPOTIFY_PERSONAL_TOKEN = stringPreferencesKey("spotify_personal_token")
         val SPOTIFY_PERSONAL_TOKEN_EXPIRES = longPreferencesKey("spotify_personal_token_expires")
         val HOME_LIMIT = intPreferencesKey("home_limit")
