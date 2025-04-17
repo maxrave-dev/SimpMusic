@@ -587,6 +587,11 @@ class SimpleMediaServiceHandler(
         updateNotification()
     }
 
+    fun resetSongAndQueue() {
+        player.clearMediaItems()
+        _queueData.value = null
+    }
+
     // Set sleep timer
     fun sleepStart(minutes: Int) {
         sleepTimerJob?.cancel()

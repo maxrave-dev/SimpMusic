@@ -2677,6 +2677,7 @@ class MainRepository(
                                 "item lyrics $track",
                             )
                             if (id != "" && track != null) {
+                                delay(1000)
                                 lyricsClient
                                     .getMusixmatchLyricsByQ(track, musixMatchUserToken!!)
                                     .onSuccess {
@@ -2713,6 +2714,7 @@ class MainRepository(
                                         val trackX = it.message.body.track
                                         Log.w(tag, "Fix Search Musixmatch: $trackX")
                                         if (trackX != null && (abs(trackX.track_length - (durationInt ?: 0)) <= 10)) {
+                                            delay(1000)
                                             lyricsClient
                                                 .getMusixmatchLyricsByQ(trackX, musixMatchUserToken!!)
                                                 .onSuccess {

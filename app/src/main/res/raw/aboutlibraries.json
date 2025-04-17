@@ -4,6 +4,28 @@
     },
     "libraries": [
         {
+            "uniqueId": "com.yuliskov.smarttube",
+            "funding": [
+
+            ],
+            "developers": [
+                {
+                    "name": "yuliskov"
+                }
+            ],
+            "artifactVersion": "",
+            "description": "Advanced player for set-top boxes and tvs running Android OS",
+            "scm": {
+                "connection": "https://github.com/yuliskov/SmartTube.git",
+                "url": "https://github.com/yuliskov/SmartTube"
+            },
+            "name": "SmartTube",
+            "website": "https://github.com/yuliskov/SmartTube",
+            "licenses": [
+                "GPL-v3"
+            ]
+        },
+        {
             "uniqueId": "androidx.activity:activity",
             "funding": [
                 
@@ -846,7 +868,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "2025.02.00",
+            "artifactVersion": "2025.03.01",
             "description": "A compatible set of Jetpack Compose libraries.",
             "name": "Jetpack Compose Libraries BOM",
             "website": "https://developer.android.com/jetpack",
@@ -1228,14 +1250,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.3",
+            "artifactVersion": "1.1.4",
             "description": "Android DataStore - contains the underlying store used by each serialization method along with components that require an Android dependency",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "DataStore",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1253,14 +1275,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.3",
+            "artifactVersion": "1.1.4",
             "description": "Android DataStore Core - contains the underlying store used by each serialization method",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "DataStore Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1278,14 +1300,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.3",
+            "artifactVersion": "1.1.4",
             "description": "Android DataStore Core Okio- contains APIs to use datastore-core in multiplatform via okio",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "DataStore Core Okio",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1303,14 +1325,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.3",
+            "artifactVersion": "1.1.4",
             "description": "Android Preferences DataStore",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences DataStore",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1328,14 +1350,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.3",
+            "artifactVersion": "1.1.4",
             "description": "Android Preferences DataStore without the Android Dependencies",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences DataStore Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1353,14 +1375,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.3",
+            "artifactVersion": "1.1.4",
             "description": "Repackaged proto-lite dependency for use by datastore preferences",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences External Protobuf",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.4",
             "licenses": [
                 "BSD-3-Clause"
             ],
@@ -1378,14 +1400,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.1.3",
+            "artifactVersion": "1.1.4",
             "description": "Jarjar the generated proto for use by datastore-preferences.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Preferences DataStore Proto",
-            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/datastore#1.1.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2189,7 +2211,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 common module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2210,7 +2232,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 Container module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2231,7 +2253,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 database module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2252,7 +2274,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 DataSource module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2273,7 +2295,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 OkHttp DataSource module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2294,7 +2316,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 decoder module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2315,7 +2337,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 ExoPlayer module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2336,7 +2358,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 ExoPlayer DASH module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2357,7 +2379,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 ExoPlayer HLS module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2378,7 +2400,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 ExoPlayer RTSP module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2399,7 +2421,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 ExoPlayer SmoothStreaming module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2420,7 +2442,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 ExoPlayer WorkManager module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2441,7 +2463,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 Extractor module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2462,7 +2484,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 Session module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2483,7 +2505,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.1",
+            "artifactVersion": "1.6.0",
             "description": "Media3 UI module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2529,14 +2551,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-Common",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Common",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2554,14 +2576,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-Common-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Common Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2579,14 +2601,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-Fragment",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Fragment",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2604,14 +2626,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-Fragment-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Fragment Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2629,14 +2651,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2654,14 +2676,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-Runtime-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation Runtime Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2679,14 +2701,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-UI",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation UI",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2704,14 +2726,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.8",
+            "artifactVersion": "2.8.9",
             "description": "Android Navigation-UI-Ktx",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Navigation UI Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.8",
+            "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.8.9",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -3429,6 +3451,31 @@
             ]
         },
         {
+            "uniqueId": "androidx.webkit:webkit",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "The Android Open Source Project"
+                }
+            ],
+            "artifactVersion": "1.13.0",
+            "description": "The WebKit Support Library is a static library you can add to your Android application in order to use android.webkit APIs that are not available for older platform versions.",
+            "scm": {
+                "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
+                "url": "https://cs.android.com/androidx/platform/frameworks/support"
+            },
+            "name": "WebKit",
+            "website": "https://developer.android.com/jetpack/androidx/releases/webkit#1.13.0",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "name": "The Android Open Source Project"
+            }
+        },
+        {
             "uniqueId": "androidx.window:window",
             "funding": [
                 
@@ -3777,6 +3824,29 @@
             ]
         },
         {
+            "uniqueId": "com.eclipsesource.j2v8:j2v8",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "R. Ian Bull"
+                }
+            ],
+            "artifactVersion": "6.2.0",
+            "description": "J2V8 is a set of Java bindings for V8",
+            "scm": {
+                "connection": "scm:git:git@github.com:eclipsesource/J2V8.git",
+                "url": "scm:git:git@github.com:eclipsesource/J2V8.git",
+                "developerConnection": "scm:git:git@github.com:eclipsesource/J2V8.git"
+            },
+            "name": "j2v8",
+            "website": "https://github.com/eclipsesource/j2v8",
+            "licenses": [
+                "b5b8e0d1ac3e8459f14bd43c123bc999"
+            ]
+        },
+        {
             "uniqueId": "com.facebook.fbui.textlayoutbuilder:staticlayout-proxy",
             "funding": [
                 
@@ -3823,24 +3893,27 @@
             ]
         },
         {
-            "uniqueId": "com.github.TeamNewPipe:nanojson",
+            "uniqueId": "com.github.florianingerl.util:regex",
             "funding": [
                 
             ],
             "developers": [
-                
+                {
+                    "organisationUrl": "https://github.com/florianingerl",
+                    "name": "Florian Ingerl"
+                }
             ],
-            "artifactVersion": "1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751",
-            "description": "Sonatype helps open source projects to set up Maven repositories on https://oss.sonatype.org/",
+            "artifactVersion": "1.1.11",
+            "description": "This is a Regular Expressions library for Java. Compared to java.util.regex, it supports Recursive and Conditional Regular Expressions, Capture Trees and Plugins.",
             "scm": {
-                "connection": "scm:git:git@github.com:mmastrac/nanojson.git",
-                "url": "scm:git:git@github.com:mmastrac/nanojson.git",
-                "developerConnection": "scm:git:git@github.com:mmastrac/nanojson.git"
+                "connection": "scm:git:git://github.com/florianingerl/com.florianingerl.util.regex.git",
+                "url": "http://github.com/florianingerl/com.florianingerl.util.regex/tree/master",
+                "developerConnection": "scm:git:ssh://github.com/florianingerl/com.florianingerl.util.regex.git"
             },
-            "name": "nanojson",
-            "website": "http://nexus.sonatype.org/oss-repository-hosting.html",
+            "name": "com.github.florianingerl.util:regex",
+            "website": "https://github.com/florianingerl/com.florianingerl.util.regex",
             "licenses": [
-                
+                "ce1fe21b50b0261a99fc6d04ed5d0319"
             ]
         },
         {
@@ -3925,107 +3998,6 @@
             "website": "https://github.com/skydoves/balloon/",
             "licenses": [
                 "Apache-2.0"
-            ]
-        },
-        {
-            "uniqueId": "com.github.spotbugs:spotbugs-annotations",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "Juan Mart\u00edn Sotuyo Dodero"
-                },
-                {
-                    "name": "Dave Brosius"
-                },
-                {
-                    
-                },
-                {
-                    "name": "Kengo TODA"
-                },
-                {
-                    "name": "Andrey Loskutov"
-                },
-                {
-                    
-                },
-                {
-                    "name": "Andreas Sewe"
-                }
-            ],
-            "artifactVersion": "4.8.6",
-            "description": "Annotations the SpotBugs tool supports",
-            "scm": {
-                "connection": "scm:git:git@github.com:spotbugs/spotbugs.git",
-                "url": "https://github.com/spotbugs/spotbugs/",
-                "developerConnection": "scm:git:git@github.com:spotbugs/spotbugs.git"
-            },
-            "name": "SpotBugs Annotations",
-            "website": "https://spotbugs.github.io/",
-            "licenses": [
-                "661262633bc6fbb1ae2446f60a5bb0e0"
-            ]
-        },
-        {
-            "uniqueId": "com.github.teamnewpipe.NewPipeExtractor:NewPipeExtractor",
-            "funding": [
-                
-            ],
-            "developers": [
-                
-            ],
-            "artifactVersion": "v0.24.5",
-            "description": "",
-            "name": "com.github.teamnewpipe.NewPipeExtractor:NewPipeExtractor",
-            "licenses": [
-                
-            ]
-        },
-        {
-            "uniqueId": "com.github.teamnewpipe.NewPipeExtractor:extractor",
-            "funding": [
-                
-            ],
-            "developers": [
-                
-            ],
-            "artifactVersion": "v0.24.5",
-            "description": "",
-            "name": "com.github.teamnewpipe.NewPipeExtractor:extractor",
-            "licenses": [
-                
-            ]
-        },
-        {
-            "uniqueId": "com.github.teamnewpipe.NewPipeExtractor:timeago-parser",
-            "funding": [
-                
-            ],
-            "developers": [
-                
-            ],
-            "artifactVersion": "v0.24.5",
-            "description": "",
-            "name": "com.github.teamnewpipe.NewPipeExtractor:timeago-parser",
-            "licenses": [
-                
-            ]
-        },
-        {
-            "uniqueId": "com.github.teamnewpipe:NewPipeExtractor",
-            "funding": [
-                
-            ],
-            "developers": [
-                
-            ],
-            "artifactVersion": "v0.24.5",
-            "description": "",
-            "name": "com.github.teamnewpipe:NewPipeExtractor",
-            "licenses": [
-                
             ]
         },
         {
@@ -4146,7 +4118,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "2.10.1",
+            "artifactVersion": "2.12.1",
             "description": "Gson JSON library",
             "scm": {
                 "connection": "scm:git:https://github.com/google/gson.git",
@@ -4167,7 +4139,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "2.28.0",
+            "artifactVersion": "2.36.0",
             "description": "Error Prone is a static analysis tool for Java that catches common programming mistakes at compile-time.",
             "scm": {
                 "connection": "scm:git:https://github.com/google/error-prone.git",
@@ -4272,6 +4244,42 @@
             ]
         },
         {
+            "uniqueId": "com.google.net.cronet:cronet-okhttp",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "0.1.0",
+            "description": "This package allows OkHttp and Retrofit users to use Cronet as their transport layer, benefiting from features like QUIC/HTTP3 support or connection migration.",
+            "name": "Cronet Transport for OkHttp",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "com.grack:nanojson",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "1.7",
+            "description": "Sonatype helps open source projects to set up Maven repositories on https://oss.sonatype.org/",
+            "scm": {
+                "connection": "scm:git:git@github.com:mmastrac/nanojson.git",
+                "url": "scm:git:git@github.com:mmastrac/nanojson.git",
+                "developerConnection": "scm:git:git@github.com:mmastrac/nanojson.git"
+            },
+            "name": "nanojson",
+            "website": "http://nexus.sonatype.org/oss-repository-hosting.html",
+            "licenses": [
+                
+            ]
+        },
+        {
             "uniqueId": "com.intuit.sdp:sdp-android",
             "funding": [
                 
@@ -4315,6 +4323,56 @@
             "website": "https://github.com/intuit/ssp",
             "licenses": [
                 "MIT"
+            ]
+        },
+        {
+            "uniqueId": "com.jakewharton:disklrucache",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Jake Wharton"
+                }
+            ],
+            "artifactVersion": "2.0.2",
+            "description": "A disk-based implementaion of a least-recently used cache.",
+            "scm": {
+                "connection": "scm:git:git://github.com/JakeWharton/DiskLruCache.git",
+                "url": "http://github.com/JakeWharton/DiskLruCache/",
+                "developerConnection": "scm:git:git@github.com:JakeWharton/DiskLruCache.git"
+            },
+            "name": "Disk LRU Cache",
+            "website": "https://github.com/JakeWharton/DiskLruCache/",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "url": "http://jakewharton.com",
+                "name": "Jake Wharton"
+            }
+        },
+        {
+            "uniqueId": "com.jayway.jsonpath:json-path",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Kalle Stenflo"
+                }
+            ],
+            "artifactVersion": "2.4.0",
+            "description": "Java port of Stefan Goessner JsonPath.",
+            "scm": {
+                "connection": "scm:git:git://github.com/jayway/JsonPath.git",
+                "url": "scm:git:git://github.com/jayway/JsonPath.git",
+                "developerConnection": "scm:git:git://github.com/jayway/JsonPath.git"
+            },
+            "name": "project ':json-path'",
+            "website": "https://github.com/jayway/JsonPath",
+            "licenses": [
+                "Apache-2.0"
             ]
         },
         {
@@ -4384,6 +4442,32 @@
             "website": "https://github.com/jordond/kmpalette",
             "licenses": [
                 "MIT"
+            ]
+        },
+        {
+            "uniqueId": "com.localebro:okhttpprofiler",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Ievgenii Tkachenko"
+                },
+                {
+                    "name": "LocaleBro"
+                }
+            ],
+            "artifactVersion": "1.0.8",
+            "description": "This library is using for Android Studio plugin Okhttp Profiler",
+            "scm": {
+                "connection": "scm:git:github.com/itkacher/OkHttpProfiler.git",
+                "url": "https://github.com/itkacher/OkHttpProfiler",
+                "developerConnection": "scm:git:ssh://github.com/itkacher/OkHttpProfiler.git"
+            },
+            "name": "okhttpprofiler",
+            "website": "https://github.com/itkacher/OkHttpProfiler",
+            "licenses": [
+                "Apache-2.0"
             ]
         },
         {
@@ -4758,6 +4842,50 @@
             ]
         },
         {
+            "uniqueId": "com.squareup.okhttp3:okhttp-brotli",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Square, Inc."
+                }
+            ],
+            "artifactVersion": "4.1.0",
+            "description": "",
+            "scm": {
+                "connection": "scm:git:https://github.com/square/okhttp.git",
+                "url": "https://github.com/square/okhttp",
+                "developerConnection": "scm:git:ssh://git@github.com/square/okhttp.git"
+            },
+            "name": "okhttp-brotli",
+            "website": "https://github.com/square/okhttp",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "com.squareup.okhttp3:okhttp-dnsoverhttps",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "3.12.13",
+            "description": "An HTTP+HTTP/2 client for Android and Java applications",
+            "scm": {
+                "connection": "scm:git:https://github.com/square/okhttp.git",
+                "url": "https://github.com/square/okhttp/",
+                "developerConnection": "scm:git:git@github.com:square/okhttp.git"
+            },
+            "name": "OkHttp DNS over HTTPS",
+            "website": "https://github.com/square/okhttp",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
             "uniqueId": "com.squareup.okhttp3:okhttp-sse",
             "funding": [
                 
@@ -4790,7 +4918,7 @@
                     "name": "Square, Inc."
                 }
             ],
-            "artifactVersion": "3.9.1",
+            "artifactVersion": "3.10.2",
             "description": "A modern I/O library for Android, Java, and Kotlin Multiplatform.",
             "scm": {
                 "connection": "scm:git:git://github.com/square/okio.git",
@@ -4802,6 +4930,118 @@
             "licenses": [
                 "Apache-2.0"
             ]
+        },
+        {
+            "uniqueId": "com.squareup.retrofit2:converter-gson",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "2.5.0",
+            "description": "Type-safe HTTP client for Android and Java by Square, Inc.",
+            "scm": {
+                "connection": "scm:git:git://github.com/square/retrofit.git",
+                "url": "https://github.com/square/retrofit",
+                "developerConnection": "scm:git:ssh://git@github.com/square/retrofit.git"
+            },
+            "name": "Converter: Gson",
+            "website": "https://github.com/square/retrofit/",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "url": "https://squareup.com",
+                "name": "Square, Inc."
+            }
+        },
+        {
+            "uniqueId": "com.squareup.retrofit2:retrofit",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "2.5.0",
+            "description": "Type-safe HTTP client for Android and Java by Square, Inc.",
+            "scm": {
+                "connection": "scm:git:git://github.com/square/retrofit.git",
+                "url": "https://github.com/square/retrofit",
+                "developerConnection": "scm:git:ssh://git@github.com/square/retrofit.git"
+            },
+            "name": "Retrofit",
+            "website": "https://github.com/square/retrofit/",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "url": "https://squareup.com",
+                "name": "Square, Inc."
+            }
+        },
+        {
+            "uniqueId": "commons-codec:commons-codec",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Henri Yandell"
+                },
+                {
+                    "name": "Tim OBrien"
+                },
+                {
+                    "name": "Scott Sanders"
+                },
+                {
+                    "name": "Rodney Waldhoff"
+                },
+                {
+                    "name": "Daniel Rall"
+                },
+                {
+                    "name": "Jon S. Stevens"
+                },
+                {
+                    "organisationUrl": "https://www.apache.org/",
+                    "name": "Gary Gregory"
+                },
+                {
+                    "name": "David Graham"
+                },
+                {
+                    "organisationUrl": "http://juliusdavies.ca/",
+                    "name": "Julius Davies"
+                },
+                {
+                    "name": "Thomas Neidhart"
+                },
+                {
+                    "name": "Rob Tompkins"
+                },
+                {
+                    "name": "Matt Sicker"
+                }
+            ],
+            "artifactVersion": "1.18.0",
+            "description": "The Apache Commons Codec component contains encoders and decoders for\n     formats such as Base16, Base32, Base64, digest, and Hexadecimal. In addition to these\n     widely used encoders and decoders, the codec package also maintains a\n     collection of phonetic encoding utilities.",
+            "scm": {
+                "connection": "scm:git:https://gitbox.apache.org/repos/asf/commons-codec",
+                "url": "https://github.com/apache/commons-codec",
+                "developerConnection": "scm:git:https://gitbox.apache.org/repos/asf/commons-codec"
+            },
+            "name": "Apache Commons Codec",
+            "website": "https://commons.apache.org/proper/commons-codec/",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "url": "https://www.apache.org/",
+                "name": "The Apache Software Foundation"
+            }
         },
         {
             "uniqueId": "dev.chrisbanes.haze:haze-android",
@@ -4914,6 +5154,51 @@
             },
             "name": "Poko Annotations",
             "website": "https://github.com/drewhamilton/Poko",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "dev.turingcomplete:kotlin-onetimepassword",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Marcel Kliemannel"
+                }
+            ],
+            "artifactVersion": "2.4.1",
+            "description": "A Kotlin one-time password library to generate \"Google Authenticator\", \"Time-based One-time Password\" (TOTP) and \"HMAC-based One-time Password\" (HOTP) codes based on RFC 4226 and 6238.",
+            "scm": {
+                "connection": "scm:git:git://github.com:marcelkliemannel/kotlin-onetimepassword.git",
+                "url": "https://github.com/marcelkliemannel/kotlin-onetimepassword",
+                "developerConnection": "scm:git:ssh://github.com:marcelkliemannel/kotlin-onetimepassword.git"
+            },
+            "name": "Kotlin One-Time Password Library",
+            "website": "https://github.com/marcelkliemannel/kotlin-onetimepassword",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "info.guardianproject.netcipher:netcipher",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Guardian Project"
+                }
+            ],
+            "artifactVersion": "2.1.0",
+            "description": "NetCipher is a library for Android that provides multiple means to improve network security in mobile applications. It provides best practices TLS settings using the standard Android HTTP methods, HttpURLConnection and Apache HTTP Client, provides simple Tor integration, makes it easy to configure proxies for HTTP connections and `WebView` instances.",
+            "scm": {
+                "connection": "scm:git:https://gitlab.com/guardianproject/netcipher.git",
+                "url": "https://gitlab.com/guardianproject/netcipher"
+            },
+            "name": "NetCipher",
+            "website": "https://guardianproject.info/code/netcipher",
             "licenses": [
                 "Apache-2.0"
             ]
@@ -5245,7 +5530,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5267,7 +5552,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5289,7 +5574,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5311,12 +5596,34 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
             },
             "name": "ktor-client-encoding",
+            "website": "https://github.com/ktorio/ktor",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "io.ktor:ktor-client-logging-jvm",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "organisationUrl": "https://www.jetbrains.com",
+                    "name": "Jetbrains Team"
+                }
+            ],
+            "artifactVersion": "3.1.1",
+            "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
+            "scm": {
+                "url": "https://github.com/ktorio/ktor.git"
+            },
+            "name": "ktor-client-logging",
             "website": "https://github.com/ktorio/ktor",
             "licenses": [
                 "Apache-2.0"
@@ -5333,7 +5640,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5355,7 +5662,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5377,7 +5684,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5399,7 +5706,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5421,7 +5728,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5443,7 +5750,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5465,7 +5772,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5487,7 +5794,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5509,7 +5816,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5531,7 +5838,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5553,7 +5860,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5575,7 +5882,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5597,7 +5904,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5619,7 +5926,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5641,7 +5948,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5663,7 +5970,7 @@
                     "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "3.0.3",
+            "artifactVersion": "3.1.1",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5673,6 +5980,115 @@
             "licenses": [
                 "Apache-2.0"
             ]
+        },
+        {
+            "uniqueId": "io.reactivex.rxjava2:rxandroid",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Jake Wharton"
+                },
+                {
+                    "name": "Matthias K\u00e4ppler"
+                },
+                {
+                    "name": "Dan Lew"
+                }
+            ],
+            "artifactVersion": "2.1.1",
+            "description": "RxAndroid",
+            "scm": {
+                "connection": "scm:git:https://github.com/ReactiveX/RxAndroid.git",
+                "url": "https://github.com/ReactiveX/RxAndroid",
+                "developerConnection": "scm:git:git@github.com:ReactiveX/RxAndroid.git"
+            },
+            "name": "RxAndroid",
+            "website": "https://github.com/ReactiveX/RxAndroid",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "io.reactivex.rxjava2:rxjava",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "David Karnok"
+                }
+            ],
+            "artifactVersion": "2.2.21",
+            "description": "Reactive Extensions for Java",
+            "scm": {
+                "connection": "scm:git:git@github.com:ReactiveX/RxJava.git",
+                "url": "scm:git:git@github.com:ReactiveX/RxJava.git",
+                "developerConnection": "scm:git:git@github.com:ReactiveX/RxJava.git"
+            },
+            "name": "RxJava",
+            "website": "https://github.com/ReactiveX/RxJava",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "net.minidev:accessors-smart",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Uriel Chemouni"
+                }
+            ],
+            "artifactVersion": "1.2",
+            "description": "Java reflect give poor performance on getter setter an constructor calls, accessors-smart use ASM to speed up those calls.",
+            "scm": {
+                "connection": "scm:git:https://github.com/netplex/json-smart-v2.git",
+                "url": "https://github.com/netplex/json-smart-v2",
+                "developerConnection": "scm:git:https://github.com/netplex/json-smart-v2.git"
+            },
+            "name": "ASM based accessors helper used by json-smart",
+            "website": "http://www.minidev.net/",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "url": "http://www.minidev.net/",
+                "name": "Chemouni Uriel"
+            }
+        },
+        {
+            "uniqueId": "net.minidev:json-smart",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Uriel Chemouni"
+                },
+                {
+                    "name": "Eitan Raviv"
+                }
+            ],
+            "artifactVersion": "2.3",
+            "description": "JSON (JavaScript Object Notation) is a lightweight data-interchange format. It is easy for humans to read and write. It is easy for machines to parse and generate. It is based on a subset of the JavaScript Programming Language, Standard ECMA-262 3rd Edition - December 1999. JSON is a text format that is completely language independent but uses conventions that are familiar to programmers of the C-family of languages, including C, C++, C#, Java, JavaScript, Perl, Python, and many others. These properties make JSON an ideal data-interchange language.",
+            "scm": {
+                "connection": "scm:git:https://github.com/netplex/json-smart-v2.git",
+                "url": "https://github.com/netplex/json-smart-v2",
+                "developerConnection": "scm:git:https://github.com/netplex/json-smart-v2.git"
+            },
+            "name": "JSON Small and Fast Parser",
+            "website": "http://www.minidev.net/",
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "organization": {
+                "url": "http://www.minidev.net/",
+                "name": "Chemouni Uriel"
+            }
         },
         {
             "uniqueId": "org.brotli:dec",
@@ -5721,6 +6137,51 @@
             "website": "https://checkerframework.org/",
             "licenses": [
                 "MIT"
+            ]
+        },
+        {
+            "uniqueId": "org.chromium.net:cronet-api",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "98.4758.101",
+            "description": "Cronet API. Does not contain implementation.",
+            "name": "Cronet",
+            "licenses": [
+                "35df4f908f88ae82a45cfb82b5aaad79"
+            ]
+        },
+        {
+            "uniqueId": "org.chromium.net:cronet-common",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "98.4758.101",
+            "description": "Cronet shared implementation. Not a complete implementation; apps and libraries should not depend on this target directly.",
+            "name": "Cronet",
+            "licenses": [
+                "35df4f908f88ae82a45cfb82b5aaad79"
+            ]
+        },
+        {
+            "uniqueId": "org.chromium.net:cronet-embedded",
+            "funding": [
+                
+            ],
+            "developers": [
+                
+            ],
+            "artifactVersion": "98.4758.101",
+            "description": "High performance implementation of Cronet using native libraries.",
+            "name": "Cronet",
+            "licenses": [
+                "37eaae019ca46d1a55944658f275b4b9"
             ]
         },
         {
@@ -5854,7 +6315,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "2.1.0",
+            "artifactVersion": "2.1.10",
             "description": "Kotlin Standard Library",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -5878,7 +6339,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "1.9.0",
+            "artifactVersion": "2.1.0",
             "description": "Kotlin Standard Library JDK 7 extension",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -5910,6 +6371,30 @@
                 "developerConnection": "scm:git:https://github.com/JetBrains/kotlin.git"
             },
             "name": "Kotlin Stdlib Jdk8",
+            "website": "https://kotlinlang.org/",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "org.jetbrains.kotlin:kotlin-test",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "organisationUrl": "https://www.jetbrains.com",
+                    "name": "Kotlin Team"
+                }
+            ],
+            "artifactVersion": "2.1.0",
+            "description": "Kotlin Test Multiplatform library",
+            "scm": {
+                "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
+                "url": "https://github.com/JetBrains/kotlin",
+                "developerConnection": "scm:git:https://github.com/JetBrains/kotlin.git"
+            },
+            "name": "Kotlin Test",
             "website": "https://kotlinlang.org/",
             "licenses": [
                 "Apache-2.0"
@@ -6102,7 +6587,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "0.5.4",
+            "artifactVersion": "0.6.0",
             "description": "IO support for Kotlin",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx-io"
@@ -6124,7 +6609,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "0.5.4",
+            "artifactVersion": "0.6.0",
             "description": "IO support for Kotlin",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx-io"
@@ -6146,7 +6631,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.7.3",
+            "artifactVersion": "1.8.0",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -6168,7 +6653,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.7.3",
+            "artifactVersion": "1.8.0",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -6190,7 +6675,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.7.3",
+            "artifactVersion": "1.8.0",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -6212,7 +6697,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.7.3",
+            "artifactVersion": "1.8.0",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -6234,7 +6719,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.7.3",
+            "artifactVersion": "1.8.0",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -6291,32 +6776,6 @@
             "licenses": [
                 "Apache-2.0"
             ]
-        },
-        {
-            "uniqueId": "org.jsoup:jsoup",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "Jonathan Hedley"
-                }
-            ],
-            "artifactVersion": "1.17.2",
-            "description": "jsoup is a Java library that simplifies working with real-world HTML and XML. It offers an easy-to-use API for URL fetching, data parsing, extraction, and manipulation using DOM API methods, CSS, and xpath selectors. jsoup implements the WHATWG HTML5 specification, and parses HTML to the same DOM as modern browsers.",
-            "scm": {
-                "connection": "scm:git:https://github.com/jhy/jsoup.git",
-                "url": "https://github.com/jhy/jsoup"
-            },
-            "name": "jsoup Java HTML Parser",
-            "website": "https://jsoup.org/",
-            "licenses": [
-                "MIT"
-            ],
-            "organization": {
-                "url": "https://jhy.io/",
-                "name": "Jonathan Hedley"
-            }
         },
         {
             "uniqueId": "org.jspecify:jspecify",
@@ -6434,29 +6893,51 @@
             ]
         },
         {
-            "uniqueId": "org.mozilla:rhino",
+            "uniqueId": "org.ow2.asm:asm",
             "funding": [
                 
             ],
             "developers": [
                 
             ],
-            "artifactVersion": "1.7.15",
-            "description": "Rhino is an open-source implementation of JavaScript written entirely in Java.\n    It is typically embedded into Java applications to provide scripting to end users.\n    Full jar including tools, excluding the JSR-223 Script Engine wrapper.",
+            "artifactVersion": "5.0.4",
+            "description": "A very small and fast Java bytecode manipulation framework",
             "scm": {
-                "connection": "scm:git:git@github.com:mozilla/rhino.git",
-                "url": "git@github.com:mozilla/rhino.git",
-                "developerConnection": "scm:git:git@github.com:mozilla/rhino.git"
+                "connection": "scm:svn:svn://svn.forge.objectweb.org/svnroot/asm/trunk",
+                "url": "http://svn.forge.objectweb.org/cgi-bin/viewcvs.cgi/asm/trunk/",
+                "developerConnection": "scm:svn:svn+ssh://${maven.username}@svn.forge.objectweb.org/svnroot/asm/trunk"
             },
-            "name": "Sonatype OSS Parent",
-            "website": "https://mozilla.github.io/rhino/",
+            "name": "ASM Core",
+            "website": "http://asm.objectweb.org/",
             "licenses": [
-                "a7cda7c0440d6bcd280aadde789f5366"
+                "f8108ff300fedfa1eb0a548bb6a4a853"
             ],
             "organization": {
-                "url": "http://www.mozilla.org",
-                "name": "The Mozilla Foundation"
+                "url": "http://www.objectweb.org/",
+                "name": "ObjectWeb"
             }
+        },
+        {
+            "uniqueId": "org.reactivestreams:reactive-streams",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Reactive Streams SIG"
+                }
+            ],
+            "artifactVersion": "1.0.3",
+            "description": "A Protocol for Asynchronous Non-Blocking Data Sequence",
+            "scm": {
+                "connection": "scm:git:git@github.com:reactive-streams/reactive-streams.git",
+                "url": "git@github.com:reactive-streams/reactive-streams.git"
+            },
+            "name": "reactive-streams",
+            "website": "http://www.reactive-streams.org/",
+            "licenses": [
+                "CC0-1.0"
+            ]
         },
         {
             "uniqueId": "org.slf4j:slf4j-api",
@@ -6506,10 +6987,15 @@
         }
     ],
     "licenses": {
-        "661262633bc6fbb1ae2446f60a5bb0e0": {
-            "hash": "661262633bc6fbb1ae2446f60a5bb0e0",
-            "url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
-            "name": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1"
+        "35df4f908f88ae82a45cfb82b5aaad79": {
+            "hash": "35df4f908f88ae82a45cfb82b5aaad79",
+            "url": "https://storage.cloud.google.com/chromium-cronet/android/98.0.4758.101/Release/cronet/LICENSE",
+            "name": "Chromium and built-in dependencies"
+        },
+        "37eaae019ca46d1a55944658f275b4b9": {
+            "hash": "37eaae019ca46d1a55944658f275b4b9",
+            "url": "https://storage.cloud.google.com/chromium-cronet/android/@98.0.4758.101/Release/cronet/LICENSE",
+            "name": "Chromium and built-in dependencies"
         },
         "7e0a5c95226b9000fe743af89c8a434f": {
             "hash": "7e0a5c95226b9000fe743af89c8a434f",
@@ -6540,6 +7026,14 @@
             "spdxId": "BSD-3-Clause",
             "name": "BSD 3-Clause \"New\" or \"Revised\" License"
         },
+        "CC0-1.0": {
+            "content": "Creative Commons CC0 1.0 Universal\n\n<<beginOptional;name=ccOptionalIntro>> CREATIVE COMMONS CORPORATION IS NOT A LAW FIRM AND DOES NOT PROVIDE LEGAL SERVICES. DISTRIBUTION OF THIS DOCUMENT DOES NOT CREATE AN ATTORNEY-CLIENT RELATIONSHIP. CREATIVE COMMONS PROVIDES THIS INFORMATION ON AN \"AS-IS\" BASIS. CREATIVE COMMONS MAKES NO WARRANTIES REGARDING THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS PROVIDED HEREUNDER, AND DISCLAIMS LIABILITY FOR DAMAGES RESULTING FROM THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS PROVIDED HEREUNDER.  <<endOptional>>\n\nStatement of Purpose\n\nThe laws of most jurisdictions throughout the world automatically confer exclusive Copyright and Related Rights (defined below) upon the creator and subsequent owner(s) (each and all, an \"owner\") of an original work of authorship and/or a database (each, a \"Work\").\n\nCertain owners wish to permanently relinquish those rights to a Work for the purpose of contributing to a commons of creative, cultural and scientific works (\"Commons\") that the public can reliably and without fear of later claims of infringement build upon, modify, incorporate in other works, reuse and redistribute as freely as possible in any form whatsoever and for any purposes, including without limitation commercial purposes. These owners may contribute to the Commons to promote the ideal of a free culture and the further production of creative, cultural and scientific works, or to gain reputation or greater distribution for their Work in part through the use and efforts of others.\n\nFor these and/or other purposes and motivations, and without any expectation of additional consideration or compensation, the person associating CC0 with a Work (the \"Affirmer\"), to the extent that he or she is an owner of Copyright and Related Rights in the Work, voluntarily elects to apply CC0 to the Work and publicly distribute the Work under its terms, with knowledge of his or her Copyright and Related Rights in the Work and the meaning and intended legal effect of CC0 on those rights.\n\n1. Copyright and Related Rights. A Work made available under CC0 may be protected by copyright and related or neighboring rights (\"Copyright and Related Rights\"). Copyright and Related Rights include, but are not limited to, the following:\n\n     i. the right to reproduce, adapt, distribute, perform, display, communicate, and translate a Work;\n\n     ii. moral rights retained by the original author(s) and/or performer(s);\n\n     iii. publicity and privacy rights pertaining to a person's image or likeness depicted in a Work;\n\n     iv. rights protecting against unfair competition in regards to a Work, subject to the limitations in paragraph 4(a), below;\n\n     v. rights protecting the extraction, dissemination, use and reuse of data in a Work;\n\n     vi. database rights (such as those arising under Directive 96/9/EC of the European Parliament and of the Council of 11 March 1996 on the legal protection of databases, and under any national implementation thereof, including any amended or successor version of such directive); and\n\n     vii. other similar, equivalent or corresponding rights throughout the world based on applicable law or treaty, and any national implementations thereof.\n\n2. Waiver. To the greatest extent permitted by, but not in contravention of, applicable law, Affirmer hereby overtly, fully, permanently, irrevocably and unconditionally waives, abandons, and surrenders all of Affirmer's Copyright and Related Rights and associated claims and causes of action, whether now known or unknown (including existing as well as future claims and causes of action), in the Work (i) in all territories worldwide, (ii) for the maximum duration provided by applicable law or treaty (including future time extensions), (iii) in any current or future medium and for any number of copies, and (iv) for any purpose whatsoever, including without limitation commercial, advertising or promotional purposes (the \"Waiver\"). Affirmer makes the Waiver for the benefit of each member of the public at large and to the detriment of Affirmer's heirs and successors, fully intending that such Waiver shall not be subject to revocation, rescission, cancellation, termination, or any other legal or equitable action to disrupt the quiet enjoyment of the Work by the public as contemplated by Affirmer's express Statement of Purpose.\n\n3. Public License Fallback. Should any part of the Waiver for any reason be judged legally invalid or ineffective under applicable law, then the Waiver shall be preserved to the maximum extent permitted taking into account Affirmer's express Statement of Purpose. In addition, to the extent the Waiver is so judged Affirmer hereby grants to each affected person a royalty-free, non transferable, non sublicensable, non exclusive, irrevocable and unconditional license to exercise Affirmer's Copyright and Related Rights in the Work (i) in all territories worldwide, (ii) for the maximum duration provided by applicable law or treaty (including future time extensions), (iii) in any current or future medium and for any number of copies, and (iv) for any purpose whatsoever, including without limitation commercial, advertising or promotional purposes (the \"License\"). The License shall be deemed effective as of the date CC0 was applied by Affirmer to the Work. Should any part of the License for any reason be judged legally invalid or ineffective under applicable law, such partial invalidity or ineffectiveness shall not invalidate the remainder of the License, and in such case Affirmer hereby affirms that he or she will not (i) exercise any of his or her remaining Copyright and Related Rights in the Work or (ii) assert any associated claims and causes of action with respect to the Work, in either case contrary to Affirmer's express Statement of Purpose.\n\n4. Limitations and Disclaimers.\n\n     a. No trademark or patent rights held by Affirmer are waived, abandoned, surrendered, licensed or otherwise affected by this document.\n\n     b. Affirmer offers the Work as-is and makes no representations or warranties of any kind concerning the Work, express, implied, statutory or otherwise, including without limitation warranties of title, merchantability, fitness for a particular purpose, non infringement, or the absence of latent or other defects, accuracy, or the present or absence of errors, whether or not discoverable, all to the greatest extent permissible under applicable law.\n\n     c. Affirmer disclaims responsibility for clearing rights of other persons that may apply to the Work or any use thereof, including without limitation any person's Copyright and Related Rights in the Work. Further, Affirmer disclaims responsibility for obtaining any necessary consents, permissions or other rights required for any use of the Work.\n\n     d. Affirmer understands and acknowledges that Creative Commons is not a party to this document and has no duty or obligation with respect to this CC0 or use of the Work. ",
+            "hash": "CC0-1.0",
+            "internalHash": "CC0-1.0",
+            "url": "https://spdx.org/licenses/CC0-1.0.html",
+            "spdxId": "CC0-1.0",
+            "name": "Creative Commons Zero v1.0 Universal"
+        },
         "MIT": {
             "content": "MIT License\n\nCopyright (c) <year> <copyright holders>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
             "hash": "MIT",
@@ -6548,10 +7042,20 @@
             "spdxId": "MIT",
             "name": "MIT License"
         },
-        "a7cda7c0440d6bcd280aadde789f5366": {
-            "hash": "a7cda7c0440d6bcd280aadde789f5366",
-            "url": "http://www.mozilla.org/MPL/2.0/index.txt",
-            "name": "Mozilla Public License, Version 2.0"
+        "b5b8e0d1ac3e8459f14bd43c123bc999": {
+            "hash": "b5b8e0d1ac3e8459f14bd43c123bc999",
+            "url": "https://www.eclipse.org/legal/epl-v10.html",
+            "name": "Eclipse Public License - v 1.0"
+        },
+        "ce1fe21b50b0261a99fc6d04ed5d0319": {
+            "hash": "ce1fe21b50b0261a99fc6d04ed5d0319",
+            "url": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html",
+            "name": "GNU General Public License, version 2"
+        },
+        "f8108ff300fedfa1eb0a548bb6a4a853": {
+            "hash": "f8108ff300fedfa1eb0a548bb6a4a853",
+            "url": "http://asm.objectweb.org/license.html",
+            "name": "BSD"
         }
     }
 }

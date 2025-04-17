@@ -538,6 +538,7 @@ class MainActivity : AppCompatActivity() {
                 launch {
                     repeatOnLifecycle(Lifecycle.State.CREATED) {
                         viewModel.nowPlayingScreenData.collect {
+                            Log.d("MainActivity", "NowPlayingScreenData: $it")
                             Log.w("MainActivity", "Current Destination: ${navController.currentDestination?.label}")
                             if (!(
                                     listOf(
@@ -551,7 +552,11 @@ class MainActivity : AppCompatActivity() {
                                     )
                                 ).contains(navController.currentDestination?.label) &&
                                 it.nowPlayingTitle.isNotEmpty() &&
-                                binding.miniplayer.visibility != View.VISIBLE
+                                binding.miniplayer.visibility != View.VISIBLE &&
+                                (
+                                    viewModel.nowPlayingState.value?.mediaItem != MediaItem.EMPTY ||
+                                        viewModel.nowPlayingState.value?.mediaItem != null
+                                )
                             ) {
                                 Log.w("MainActivity", "Show Miniplayer")
                                 binding.miniplayer.animation =

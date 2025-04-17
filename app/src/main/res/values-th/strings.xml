@@ -391,5 +391,21 @@
     <string name="to_download_folder">" ไปที่โฟลเดอร์ดาวน์โหลด"</string>
     <string name="download_speed">ความเร็วในการดาวน์โหลด: %1$s </string>
     <string name="shuffle">สลับ</string>
-    <string name="other_version">เวอร์ชั่นอื่น</string>
+    <string name="other_version">เวอร์ชั่นอื่นๆ</string>
+    <string name="later">ไว้ที่หลังนะ</string>
+    <string name="give_a_star">ให้ดาว</string>
+    <string name="enjoying_simpmusic">กำลังเพลิดเพลินกับ SimpMusic</string>
+    <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">หากสนุกกับการใช้ SimpMusic กรุณากดดาวที่ SimpMusic บน GitHub หรือเขียนรีวิวให้ด้วยนะ</string>
+    <string name="if_you_love_my_work_consider">"ถ้าคุณชอบผลงานของฉัน ลองพิจารณา "</string>
+    <string name="buying_me_a_coffee">เลี้ยงกาแฟฉัน</string>
+    <string name="fade_audio_effect">เอฟเฟกต์การจางเสียง</string>
+    <string name="disabled">ปิดการใช้งาน</string>
+    <string name="fade_audio_effect_duration">ระยะเวลาเอฟเฟกต์การจางเสียง (มิลลิวินาที) (ตั้งค่าเป็น 0 เพื่อปิดการใช้งาน)</string>
+    <string name="duration">ระยะเวลา</string>
+    <string name="invalid_number">ตัวเลขไม่ถูกต้อง</string>
+    <string name="shuffle_not_available">จุดสิ้นสุดของการสุ่มไม่สามารถใช้งานได้</string>
+    <string name="radio_not_available">จุดสิ้นสุดของวิทยุไม่สามารถใช้งานได้</string>
+    <string name="visitor_data_retrieved">ข้อมูลผู้เยี่ยมชมที่ดึงมา</string>
+    <string name="data_sync_id_retrieved">DataSyncId ถูกดึงมาแล้ว</string>
+    <string name="retrieve_youtube_data">ดึงข้อมูลจาก YouTube</string>
 </resources>

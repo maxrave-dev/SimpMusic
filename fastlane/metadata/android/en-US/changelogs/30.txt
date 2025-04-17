@@ -1,0 +1,7 @@
+- Fix "Time out, check your internet connection" error (thanks for yuliskov/SmartTube)
+- Fade animation when switching songs
+- New Playlist screen (paging, radio, shuffle mode, etc.)
+- Fix location of the "Single" and "Album" sections in the Artist screen
+- Fix Spotify Canvas
+- Improve mini-player
+- Update translations (new فارسی and català languages)

@@ -391,4 +391,22 @@
     <string name="ok">OK</string>
     <string name="to_download_folder">" a la carpeta de Descargas"</string>
     <string name="download_speed">Velocidad de descarga:  %1$s </string>
+    <string name="shuffle">Aleatorio</string>
+    <string name="other_version">Otra versión</string>
+    <string name="later">Más tarde</string>
+    <string name="give_a_star">Da una estrella</string>
+    <string name="enjoying_simpmusic">Disfrutando SimpMusic</string>
+    <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">Si te gusta usar SimpMusic, da una estrella a SimpMusic en gituhb o deja una reseña</string>
+    <string name="if_you_love_my_work_consider">"Si amas mi trabajo, considera "</string>
+    <string name="buying_me_a_coffee">comprame un café.</string>
+    <string name="fade_audio_effect">Efecto de desvanecimiento de audio</string>
+    <string name="disabled">Desactivar</string>
+    <string name="fade_audio_effect_duration">Duración del efecto de audio Fade (ms) (Establecer en 0 para desactivar)</string>
+    <string name="duration">Duración</string>
+    <string name="invalid_number">Número no válido</string>
+    <string name="shuffle_not_available">El endpoint del modo aleatorio no está disponible</string>
+    <string name="radio_not_available">El endpoint de radio no está disponible</string>
+    <string name="visitor_data_retrieved">Datos de visitantes recuperados</string>
+    <string name="data_sync_id_retrieved">DataSyncId recuperado</string>
+    <string name="retrieve_youtube_data">Recuperar datos de YouTube</string>
 </resources>

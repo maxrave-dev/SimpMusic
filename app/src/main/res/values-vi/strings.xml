@@ -398,4 +398,14 @@
     <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">Nếu bạn yêu thích SimpMusic, sao SimpMusic trên GitHub hoặc để lại một đánh giá trên</string>
     <string name="if_you_love_my_work_consider">"Nếu bạn cảm thấy yêu thích những gì tôi làm, có thể "</string>
     <string name="buying_me_a_coffee">mua cho tôi một ly cà phê.</string>
+    <string name="fade_audio_effect">Hiệu ứng làm mờ âm thanh</string>
+    <string name="disabled">Tắt</string>
+    <string name="fade_audio_effect_duration">Thời gian làm mờ âm thanh (ms) (Đưa về 0 để tắt)</string>
+    <string name="duration">Thời lượng</string>
+    <string name="invalid_number">Số không hợp lệ</string>
+    <string name="shuffle_not_available">Dữ liệu trộn bài không khả dụng</string>
+    <string name="radio_not_available">Dữ liệu đài phát không khả dụng</string>
+    <string name="visitor_data_retrieved">Đã lấy dữ liệu người xem</string>
+    <string name="data_sync_id_retrieved">Đã lấy dữ liệu dataSyncId</string>
+    <string name="retrieve_youtube_data">Lấy dữ liệu từ YouTube</string>
 </resources>

@@ -39,32 +39,37 @@ android {
             arg("KOIN_USE_COMPOSE_VIEWMODEL", "true")
         }
 
-        androidResources.localeFilters +=
-            listOf(
-                "en",
-                "vi",
-                "it",
-                "de",
-                "ru",
-                "tr",
-                "fi",
-                "pl",
-                "pt",
-                "fr",
-                "es",
-                "zh",
-                "in",
-                "ar",
-                "ja",
-                "b+zh+Hant+TW",
-                "uk",
-                "iw",
-                "az",
-                "hi",
-                "th",
-                "nl",
-                "ko",
-            )
+        @Suppress("UnstableApiUsage")
+        androidResources {
+            localeFilters +=
+                listOf(
+                    "en",
+                    "vi",
+                    "it",
+                    "de",
+                    "ru",
+                    "tr",
+                    "fi",
+                    "pl",
+                    "pt",
+                    "fr",
+                    "es",
+                    "zh",
+                    "in",
+                    "ar",
+                    "ja",
+                    "b+zh+Hant+TW",
+                    "uk",
+                    "iw",
+                    "az",
+                    "hi",
+                    "th",
+                    "nl",
+                    "ko",
+                    "ca",
+                    "fa",
+                )
+        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
