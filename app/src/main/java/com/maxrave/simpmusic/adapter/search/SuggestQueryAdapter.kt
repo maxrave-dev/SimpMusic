@@ -27,6 +27,8 @@ class SuggestQueryAdapter(
         mCopyListener = listener
     }
 
+    fun getCurrentList(): ArrayList<String> = suggestQuery
+
     inner class ViewHolder(
         val binding: ItemSuggestQueryBinding,
         listener: onItemClickListener,

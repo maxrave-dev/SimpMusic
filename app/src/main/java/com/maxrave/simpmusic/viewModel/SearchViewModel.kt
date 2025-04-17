@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
+import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -45,10 +46,10 @@ class SearchViewModel(
     private val downloadUtils: DownloadUtils by inject()
 
     var searchType: MutableLiveData<String> = MutableLiveData("all")
-    var searchAllResult: MutableLiveData<ArrayList<Any>> = MutableLiveData()
+    var searchAllResult: MutableLiveData<ArrayList<Any>> = MutableLiveData(arrayListOf())
 
-    var searchHistory: MutableLiveData<ArrayList<String>> = MutableLiveData()
-    var searchResult: MutableLiveData<ArrayList<Any>> = MutableLiveData()
+    var searchHistory: MutableLiveData<ArrayList<String>> = MutableLiveData(arrayListOf())
+    var searchResult: MutableLiveData<ArrayList<Any>> = MutableLiveData(arrayListOf())
 
     private var _songsSearchResult: MutableLiveData<Resource<ArrayList<SongsResult>>> = MutableLiveData()
     val songsSearchResult: LiveData<Resource<ArrayList<SongsResult>>> = _songsSearchResult
@@ -77,7 +78,16 @@ class SearchViewModel(
         MutableLiveData()
     val podcastSearchResult: LiveData<Resource<ArrayList<PlaylistsResult>>> = _podcastSearchResult
 
-    var loading = MutableLiveData<Boolean>()
+    var loading = MutableLiveData<Boolean>(false)
+
+    var searchText = MutableLiveData<String>("")
+    var resultList = MutableLiveData<ArrayList<Any>>(arrayListOf())
+    var suggestList = MutableLiveData<ArrayList<String>>(arrayListOf())
+    var suggestYTItemList = MutableLiveData<ArrayList<YTItem>>(arrayListOf())
+    var searchSubmitted = MutableLiveData<Boolean>(false)
+
+    private val _errorMessage = MutableLiveData<String>()
+    val errorMessage: LiveData<String> get() = _errorMessage
 
     private var _suggestQuery: MutableLiveData<Resource<SearchSuggestions>> = MutableLiveData()
     val suggestQuery: LiveData<Resource<SearchSuggestions>> = _suggestQuery
@@ -142,52 +152,92 @@ class SearchViewModel(
         searchAllResult.value?.clear()
         loading.value = true
         viewModelScope.launch {
-            val job1 =
-                launch {
-                    mainRepository.getSearchDataSong(query).collect { values ->
-                        _songsSearchResult.value = values
+            var song = ArrayList<SongsResult>()
+            val video = ArrayList<VideosResult>()
+            var album = ArrayList<AlbumsResult>()
+            var artist = ArrayList<ArtistsResult>()
+            var playlist = ArrayList<PlaylistsResult>()
+            var featuredPlaylist = ArrayList<PlaylistsResult>()
+            var podcast = ArrayList<PlaylistsResult>()
+            val temp: ArrayList<Any> = ArrayList()
+
+            val job1 = launch {
+                mainRepository.getSearchDataSong(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> values.data?.let { song = it }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
                     }
+                    _songsSearchResult.value = values
                 }
-            val job2 =
-                launch {
-                    mainRepository.getSearchDataArtist(query).collect { values ->
-                        _artistsSearchResult.value = values
+            }
+            val job2 = launch {
+                mainRepository.getSearchDataArtist(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> values.data?.let { artist = it }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
                     }
+                    _artistsSearchResult.value = values
                 }
-            val job3 =
-                launch {
-                    mainRepository.getSearchDataAlbum(query).collect { values ->
-                        _albumsSearchResult.value = values
+            }
+            val job3 = launch {
+                mainRepository.getSearchDataAlbum(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> values.data?.let { album = it }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
                     }
+                    _albumsSearchResult.value = values
                 }
-            val job4 =
-                launch {
-                    mainRepository.getSearchDataPlaylist(query).collect { values ->
-                        _playlistSearchResult.value = values
-                        Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
+            }
+            val job4 = launch {
+                mainRepository.getSearchDataPlaylist(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
+                            values.data?.let { playlist = it }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
                     }
+                    _playlistSearchResult.value = values
                 }
-            val job5 =
-                launch {
-                    mainRepository.getSearchDataVideo(query).collect { values ->
-                        _videoSearchResult.value = values
-                        Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
+            }
+            val job5 = launch {
+                mainRepository.getSearchDataVideo(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
+                            values.data?.let {
+                                video.addAll(it)
+                            }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
                     }
+                    _videoSearchResult.value = values
                 }
-            val job6 =
-                launch {
-                    mainRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
-                        Log.d("SearchViewModel", "featured: $values")
-                        _featuredPlaylistSearchResult.value = values
+            }
+            val job6 = launch {
+                mainRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "featured: $values")
+                            values.data?.let { featuredPlaylist = it }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
                     }
+                    _featuredPlaylistSearchResult.value = values
                 }
-            val job7 =
-                launch {
-                    mainRepository.getSearchDataPodcast(query).collect { values ->
-                        Log.d("SearchViewModel", "podcast: ${values.data}")
-                        _podcastSearchResult.value = values
+            }
+            val job7 = launch {
+                mainRepository.getSearchDataPodcast(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "podcast: ${values.data}")
+                            values.data?.let { podcast = it }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
                     }
+                    _podcastSearchResult.value = values
                 }
+            }
             job1.join()
             job2.join()
             job3.join()
@@ -196,7 +246,44 @@ class SearchViewModel(
             job6.join()
             job7.join()
             withContext(Dispatchers.Main) {
-                loading.value = false
+                try {
+                    if (artist.size >= 3) {
+                        for (i in 0..2) {
+                            temp += artist[i]
+                        }
+                        for (i in 0 until song.size) {
+                            temp += song[i]
+                        }
+                        for (i in 0 until video.size) {
+                            temp += video[i]
+                        }
+                        for (i in 0 until album.size) {
+                            temp += album[i]
+                        }
+                        for (i in 0 until playlist.size) {
+                            temp += playlist[i]
+                        }
+                        for (i in 0 until featuredPlaylist.size) {
+                            temp += featuredPlaylist[i]
+                        }
+                        for (i in 0 until podcast.size) {
+                            temp += podcast[i]
+                        }
+                    } else {
+                        temp.addAll(song)
+                        temp.addAll(video)
+                        temp.addAll(artist)
+                        temp.addAll(album)
+                        temp.addAll(playlist)
+                        temp.addAll(featuredPlaylist)
+                        temp.addAll(podcast)
+                    }
+                } catch (e: Exception) {
+                    _errorMessage.postValue(e.message!!)
+                } finally {
+                    searchAllResult.value = temp
+                    loading.value = false
+                }
             }
         }
     }
