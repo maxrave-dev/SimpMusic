@@ -186,13 +186,13 @@ interface DatabaseDao {
     )
 
     @Query("SELECT * FROM song WHERE downloadState = 3")
-    suspend fun getDownloadedSongs(): List<SongEntity>?
+    suspend fun getDownloadedSongs(): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE downloadState = 3 LIMIT 1000 OFFSET :offset")
-    fun getDownloadedSongsAsFlow(offset: Int): Flow<List<SongEntity>?>
+    fun getDownloadedSongsAsFlow(offset: Int): Flow<List<SongEntity>>
 
     @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
-    suspend fun getDownloadingSongs(): List<SongEntity>?
+    suspend fun getDownloadingSongs(): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList) LIMIT 1000")
     suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>): List<SongEntity>
@@ -245,7 +245,7 @@ interface DatabaseDao {
     suspend fun getAllAlbums(): List<AlbumEntity>
 
     @Query("SELECT * FROM album WHERE browseId = :browseId")
-    suspend fun getAlbum(browseId: String): AlbumEntity
+    suspend fun getAlbum(browseId: String): AlbumEntity?
 
     @Query("SELECT * FROM album WHERE browseId = :browseId")
     fun getAlbumAsFlow(browseId: String): Flow<AlbumEntity?>
@@ -382,7 +382,7 @@ interface DatabaseDao {
     fun getDownloadStateFlowOfLocalPlaylist(id: Long): Flow<Int>
 
     @Query("SELECT tracks FROM local_playlist WHERE id = :id")
-    fun getListTracksFlowOfLocalPlaylist(id: Long): Flow<List<String>?>
+    fun getListTracksFlowOfLocalPlaylist(id: Long): Flow<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLyrics(lyrics: LyricsEntity)
@@ -425,7 +425,7 @@ interface DatabaseDao {
     suspend fun deleteQueue()
 
     @Query("SELECT * FROM queue")
-    suspend fun getQueue(): List<QueueEntity>?
+    suspend fun getQueue(): List<QueueEntity>
 
     @Query("SELECT * FROM local_playlist WHERE youtubePlaylistId = :youtubePlaylistId")
     suspend fun getLocalPlaylistByYoutubePlaylistId(youtubePlaylistId: String): LocalPlaylistEntity?
@@ -441,13 +441,13 @@ interface DatabaseDao {
     suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist)
 
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId")
-    suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
+    suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>
 
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position in (:positionList)")
     suspend fun getPlaylistPairSongByListPosition(
         playlistId: Long,
         positionList: List<Int>,
-    ): List<PairSongLocalPlaylist>?
+    ): List<PairSongLocalPlaylist>
 
     @Query(
         "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +
@@ -456,7 +456,7 @@ interface DatabaseDao {
     suspend fun getPlaylistPairSongByOffsetAsc(
         playlistId: Long,
         offset: Int,
-    ): List<PairSongLocalPlaylist>?
+    ): List<PairSongLocalPlaylist>
 
     @Query(
         "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position >= :offset ORDER BY position " +
@@ -465,7 +465,7 @@ interface DatabaseDao {
     suspend fun getPlaylistPairSongByOffsetDesc(
         playlistId: Long,
         offset: Int,
-    ): List<PairSongLocalPlaylist>?
+    ): List<PairSongLocalPlaylist>
 
     @Query(
         "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position >= :from AND position < :to ORDER BY position " +
@@ -475,7 +475,7 @@ interface DatabaseDao {
         playlistId: Long,
         from: Int,
         to: Int,
-    ): List<PairSongLocalPlaylist>?
+    ): List<PairSongLocalPlaylist>
 
     @Query(
         "DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId",
@@ -490,7 +490,7 @@ interface DatabaseDao {
     suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity)
 
     @Query("SELECT * FROM googleaccountentity")
-    suspend fun getAllGoogleAccount(): List<GoogleAccountEntity>?
+    suspend fun getAllGoogleAccount(): List<GoogleAccountEntity>
 
     @Query("SELECT * FROM googleaccountentity WHERE isUsed = 1")
     suspend fun getUsedGoogleAccount(): GoogleAccountEntity?
@@ -520,13 +520,13 @@ interface DatabaseDao {
     suspend fun deleteFollowedArtistSingleAndAlbum(channelId: String)
 
     @Query("SELECT * FROM followed_artist_single_and_album")
-    suspend fun getAllFollowedArtistSingleAndAlbum(): List<FollowedArtistSingleAndAlbum>?
+    suspend fun getAllFollowedArtistSingleAndAlbum(): List<FollowedArtistSingleAndAlbum>
 
     @Insert
     suspend fun insertNotification(notificationEntity: NotificationEntity)
 
     @Query("SELECT * FROM notification")
-    suspend fun getAllNotification(): List<NotificationEntity>?
+    suspend fun getAllNotification(): List<NotificationEntity>
 
     @Query("DELETE FROM notification WHERE id = :id")
     suspend fun deleteNotification(id: Long)

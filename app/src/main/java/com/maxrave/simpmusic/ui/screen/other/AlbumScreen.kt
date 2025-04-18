@@ -8,8 +8,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -261,6 +264,7 @@ fun AlbumScreen(
                                                 text = uiState.title,
                                                 style = typo.titleLarge,
                                                 color = Color.White,
+                                                maxLines = 2
                                             )
                                             Column(
                                                 modifier = Modifier.padding(vertical = 8.dp),
@@ -491,6 +495,15 @@ fun AlbumScreen(
                             Text(
                                 text = uiState.title,
                                 style = typo.titleMedium,
+                                maxLines = 1,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(
+                                        align = Alignment.CenterVertically,
+                                    ).basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                    ).focusable(),
                             )
                         },
                         navigationIcon = {

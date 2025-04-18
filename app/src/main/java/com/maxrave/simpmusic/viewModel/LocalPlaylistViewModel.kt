@@ -132,14 +132,14 @@ class LocalPlaylistViewModel(
                                                 updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
                                             } else if (
                                                 downloadUtils.downloadTask.value
-                                                    .filter { it.value != STATE_DOWNLOADED }
+                                                    .filter { it.value == STATE_DOWNLOADING }
                                                     .map { it.key }
                                                     .containsAll(notDownloadedList) &&
                                                 notDownloadedList.isNotEmpty() &&
                                                 uiState.value.downloadState != STATE_DOWNLOADING
                                             ) {
                                                 updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                                            } else if (uiState.value.downloadState == STATE_DOWNLOADED) {
+                                            } else if (uiState.value.downloadState == STATE_DOWNLOADED && notDownloadedList.isNotEmpty()) {
                                                 updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
                                                 downloadTracks(notDownloadedList)
                                             }

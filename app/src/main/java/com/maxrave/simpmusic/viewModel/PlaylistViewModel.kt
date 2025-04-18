@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
+import com.maxrave.kotlinytmusicscraper.test.main
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
@@ -24,6 +25,7 @@ import com.maxrave.simpmusic.data.model.browse.playlist.Author
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.extension.toListVideoId
 import com.maxrave.simpmusic.extension.toPlaylistEntity
+import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.extension.toVideoIdList
 import com.maxrave.simpmusic.service.PlaylistType
@@ -33,6 +35,7 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.utils.collectLatestResource
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +45,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
@@ -85,11 +89,12 @@ class PlaylistViewModel(
 
     private var playlistEntityJob: Job? = null
     private var newUpdateJob: Job? = null
+    private var checkDownloadedPlaylist: Job? = null
 
     init {
         viewModelScope.launch {
             val listTrackStringJob =
-                launch {
+                launch(Dispatchers.IO) {
                     downloadState
                         .collectLatest { state ->
                             newUpdateJob?.cancel()
@@ -114,8 +119,6 @@ class PlaylistViewModel(
                                                     }
                                                     if (count == tracks.size) {
                                                         updatePlaylistDownloadState(id, STATE_DOWNLOADED)
-                                                    } else {
-                                                        updatePlaylistDownloadState(id, STATE_NOT_DOWNLOADED)
                                                     }
                                                 }
                                             }
@@ -147,6 +150,8 @@ class PlaylistViewModel(
         _listTrack.value = emptyList()
         _downloadedList.value = emptyList()
         _listColors.value = emptyList()
+        checkDownloadedPlaylist?.cancel()
+        checkDownloadedPlaylist = null
     }
 
     fun getData(id: String) {
@@ -266,53 +271,67 @@ class PlaylistViewModel(
         playlistEntityJob?.cancel()
         playlistEntityJob =
             viewModelScope.launch {
-                if (playlistBrowse != null) {
-                    runBlocking {
-                        mainRepository.insertAndReplacePlaylist(
-                            playlistBrowse.toPlaylistEntity(),
-                        )
+                val playlistEntity = mainRepository.getPlaylist(id).firstOrNull()
+                if (playlistBrowse != null && playlistEntity == null) {
+                    mainRepository.insertAndReplacePlaylist(
+                        playlistBrowse.toPlaylistEntity(),
+                    )
+                    delay(500)
+                    playlistBrowse.tracks.forEach { tracks ->
+                        mainRepository.insertSong(tracks.toSongEntity().copy(
+                            inLibrary = Config.REMOVED_SONG_DATE_TIME
+                        )).firstOrNull()?.let {
+                            log("Insert song: $it")
+                        }
                     }
                     mainRepository.getPlaylist(id).collectLatest { playlist ->
                         _playlistEntity.value = playlist
                     }
-                } else {
-                    mainRepository.getPlaylist(id).collectLatest { playlist ->
-                        if (playlist != null) {
-                            _playlistEntity.value = playlist
-                            _uiState.value =
-                                Success(
-                                    data =
-                                        PlaylistState(
-                                            id = playlist.id,
-                                            title = playlist.title,
-                                            isRadio = false,
-                                            author =
-                                                Author(
-                                                    id = "",
-                                                    name = playlist.author ?: "",
-                                                ),
-                                            thumbnail = playlist.thumbnails,
-                                            description = playlist.description,
-                                            trackCount = playlist.trackCount,
-                                            year = playlist.year ?: LocalDateTime.now().year.toString(),
+                } else if (playlistEntity != null) {
+                    _playlistEntity.value = playlistEntity
+                    _uiState.value =
+                        Success(
+                            data =
+                                PlaylistState(
+                                    id = playlistEntity.id,
+                                    title = playlistEntity.title,
+                                    isRadio = false,
+                                    author =
+                                        Author(
+                                            id = "",
+                                            name = playlistEntity.author ?: "",
                                         ),
-                                )
-                            _tracksListState.value = ListState.LOADING
-                            runBlocking {
-                                playlist.tracks?.let {
-                                    mainRepository
-                                        .getSongsByListVideoId(it)
-                                        .singleOrNull()
-                                        ?.let { song ->
-                                            _tracks.value = song.map { it.toTrack() }
-                                        }
-                                }
+                                    thumbnail = playlistEntity.thumbnails,
+                                    description = playlistEntity.description,
+                                    trackCount = playlistEntity.trackCount,
+                                    year = playlistEntity.year ?: LocalDateTime.now().year.toString(),
+                                ),
+                        )
+                    _tracksListState.value = ListState.LOADING
+                    playlistEntity.tracks?.let {
+                        mainRepository
+                            .getSongsByListVideoId(it)
+                            .singleOrNull()
+                            ?.let { song ->
+                                _tracks.value = song.map { it.toTrack() }
                             }
-                            _tracksListState.value = ListState.PAGINATION_EXHAUST
-                        } else {
-                            _uiState.value = Error("Empty response")
+                    }
+                    _tracksListState.value = ListState.PAGINATION_EXHAUST
+                    if (playlistEntity.downloadState != STATE_DOWNLOADED) {
+                        checkDownloadedPlaylist = launch {
+                            val listSong = mainRepository.getSongsByListVideoId(
+                                playlistEntity.tracks ?: emptyList(),
+                            ).firstOrNull()
+                            Log.d(tag, "List song: $listSong")
+                            if (!listSong.isNullOrEmpty() && listSong.size == playlistEntity.tracks?.size && listSong.all {
+                                it.downloadState == STATE_DOWNLOADED
+                                }) {
+                                updatePlaylistDownloadState(playlistEntity.id, STATE_DOWNLOADED)
+                            }
                         }
                     }
+                } else {
+                    _uiState.value = Error("Empty response")
                 }
             }
     }

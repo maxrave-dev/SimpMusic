@@ -81,7 +81,9 @@ class AlbumViewModel(
                                     mainRepository.insertAlbum(data.toAlbumEntity(browseId)).singleOrNull().let {
                                         log("Insert Album $it", Log.DEBUG)
                                         data.tracks.forEach { track ->
-                                            mainRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
+                                            mainRepository.insertSong(track.toSongEntity().copy(
+                                                inLibrary = Config.REMOVED_SONG_DATE_TIME
+                                            )).singleOrNull()?.let {
                                                 log("Insert Song $it", Log.DEBUG)
                                             }
                                         }

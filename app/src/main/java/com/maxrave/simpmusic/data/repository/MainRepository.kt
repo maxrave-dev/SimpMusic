@@ -454,7 +454,7 @@ class MainRepository(
             emit(localDataSource.getAllAlbums())
         }.flowOn(Dispatchers.IO)
 
-    fun getAlbum(id: String): Flow<AlbumEntity> =
+    fun getAlbum(id: String): Flow<AlbumEntity?> =
         flow {
             emit(localDataSource.getAlbum(id))
         }.flowOn(Dispatchers.IO)
