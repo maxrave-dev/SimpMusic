@@ -160,14 +160,23 @@ fun parsePlaylistData(
                         ?.firstOrNull()
                         ?.text
                 Log.d("PlaylistParser", "title: $title")
-                trackCount =
-                    header.secondSubtitle
-                        ?.runs
-                        ?.firstOrNull()
-                        ?.text
-                        ?.split(" ")
-                        ?.firstOrNull()
-                        ?.toInt() ?: 0
+                val secondSubtitle = header.secondSubtitle?.runs
+                if (!secondSubtitle.isNullOrEmpty()) {
+                    trackCount = if (secondSubtitle.size >= 5) {
+                        secondSubtitle.getOrNull(2)
+                            ?.text
+                            ?.split(" ")
+                            ?.firstOrNull()
+                            ?.toInt() ?: 0
+                    } else {
+                        secondSubtitle
+                            .firstOrNull()
+                            ?.text
+                            ?.split(" ")
+                            ?.firstOrNull()
+                            ?.toInt() ?: 0
+                    }
+                }
                 year =
                     header.subtitle
                         ?.runs
@@ -201,11 +210,10 @@ fun parsePlaylistData(
                                     ?.avatarStackViewModel
                                     ?.text
                                     ?.content
-                                ?: "",
+                                ?: "YouTube Music",
                     )
                 listAuthor.add(author)
                 Log.d("PlaylistParser", "author: $author")
-                val secondSubtitle = header.secondSubtitle?.runs
                 Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
                 if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 4) {
                     duration += secondSubtitle.getOrNull(4)?.text

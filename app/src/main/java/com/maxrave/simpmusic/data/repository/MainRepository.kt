@@ -1807,28 +1807,37 @@ class MainRepository(
                         val shuffleEndpoint =
                             result.getPlaylistShuffleEndpoint()
                         Log.d("getPlaylistData", "Endpoint: $radioEndpoint $shuffleEndpoint")
-                        parsePlaylistData(header, data ?: emptyList(), playlistId, context)?.let { playlist ->
-                            emit(
-                                Resource.Success<Pair<PlaylistBrowse, String?>>(
-                                    Pair(
-                                        playlist.copy(
-                                            tracks =
+                        try {
+                            parsePlaylistData(header, data ?: emptyList(), playlistId, context)?.let { playlist ->
+                                emit(
+                                    Resource.Success<Pair<PlaylistBrowse, String?>>(
+                                        Pair(
+                                            playlist.copy(
+                                                tracks =
                                                 playlist.tracks.toMutableList().apply {
                                                     addAll(listContent)
                                                 },
-                                            trackCount = (playlist.trackCount + listContent.size),
-                                            shuffleEndpoint = shuffleEndpoint,
-                                            radioEndpoint = radioEndpoint,
+                                                trackCount = (playlist.trackCount + listContent.size),
+                                                shuffleEndpoint = shuffleEndpoint,
+                                                radioEndpoint = radioEndpoint,
+                                            ),
+                                            continueParam,
                                         ),
-                                        continueParam,
                                     ),
-                                ),
+                                )
+                            } ?: emit(
+                                Resource.Error<
+                                    Pair<PlaylistBrowse, String?>,
+                                    >("Error"),
                             )
-                        } ?: emit(
-                            Resource.Error<
-                                Pair<PlaylistBrowse, String?>,
-                            >("Error"),
-                        )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            emit(
+                                Resource.Error<
+                                    Pair<PlaylistBrowse, String?>,
+                                    >(e.message.toString()),
+                            )
+                        }
                     }.onFailure { e ->
                         Log.e("getPlaylistData", e.message ?: "Error")
                         emit(

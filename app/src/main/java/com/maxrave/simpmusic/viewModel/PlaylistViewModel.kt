@@ -198,6 +198,7 @@ class PlaylistViewModel(
                     when (res) {
                         is Resource.Success if (data != null) -> {
                             Log.d(tag, "Playlist data: $data")
+                            log("Playlist endpoint: ${data.first.shuffleEndpoint}")
                             _uiState.value =
                                 Success(
                                     data =
@@ -272,11 +273,26 @@ class PlaylistViewModel(
         playlistEntityJob =
             viewModelScope.launch {
                 val playlistEntity = mainRepository.getPlaylist(id).firstOrNull()
-                if (playlistBrowse != null && playlistEntity == null) {
-                    mainRepository.insertAndReplacePlaylist(
-                        playlistBrowse.toPlaylistEntity(),
-                    )
-                    delay(500)
+                if (playlistBrowse != null) {
+                    if (playlistEntity == null) {
+                        mainRepository.insertAndReplacePlaylist(
+                            playlistBrowse.toPlaylistEntity(),
+                        )
+                        delay(500)
+                        mainRepository.getPlaylist(id).collectLatest { playlist ->
+                            _playlistEntity.value = playlist
+                            mainRepository.updatePlaylistInLibrary(
+                                playlistId = id,
+                                inLibrary = LocalDateTime.now(),
+                            )
+                        }
+                    } else {
+                        _playlistEntity.value = playlistEntity
+                        mainRepository.updatePlaylistInLibrary(
+                            playlistId = id,
+                            inLibrary = LocalDateTime.now(),
+                        )
+                    }
                     playlistBrowse.tracks.forEach { tracks ->
                         mainRepository.insertSong(tracks.toSongEntity().copy(
                             inLibrary = Config.REMOVED_SONG_DATE_TIME
@@ -284,11 +300,12 @@ class PlaylistViewModel(
                             log("Insert song: $it")
                         }
                     }
-                    mainRepository.getPlaylist(id).collectLatest { playlist ->
-                        _playlistEntity.value = playlist
-                    }
                 } else if (playlistEntity != null) {
                     _playlistEntity.value = playlistEntity
+                    mainRepository.updatePlaylistInLibrary(
+                        playlistId = id,
+                        inLibrary = LocalDateTime.now(),
+                    )
                     _uiState.value =
                         Success(
                             data =

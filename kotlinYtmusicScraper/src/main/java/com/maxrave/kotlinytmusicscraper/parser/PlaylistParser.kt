@@ -222,6 +222,25 @@ fun BrowseResponse.getPlaylistRadioEndpoint(): WatchEndpoint? {
             }?.menuNavigationItemRenderer
             ?.navigationEndpoint
             ?.watchPlaylistEndpoint
+            ?: this.contents
+                ?.twoColumnBrowseResultsRenderer
+                ?.tabs
+                ?.firstOrNull()
+                ?.tabRenderer
+                ?.content
+                ?.sectionListRenderer
+                ?.contents
+                ?.firstOrNull()
+                ?.musicResponsiveHeaderRenderer
+                ?.buttons
+                ?.findLast { it.menuRenderer != null }
+                ?.menuRenderer
+                ?.items
+                ?.find {
+                    it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
+                }?.menuNavigationItemRenderer
+                ?.navigationEndpoint
+                ?.watchPlaylistEndpoint
     }
 }
 
@@ -260,6 +279,25 @@ fun BrowseResponse.getPlaylistShuffleEndpoint(): WatchEndpoint? {
             }?.menuNavigationItemRenderer
             ?.navigationEndpoint
             ?.watchPlaylistEndpoint
+            ?: this.contents
+                ?.twoColumnBrowseResultsRenderer
+                ?.tabs
+                ?.firstOrNull()
+                ?.tabRenderer
+                ?.content
+                ?.sectionListRenderer
+                ?.contents
+                ?.firstOrNull()
+                ?.musicResponsiveHeaderRenderer
+                ?.buttons
+                ?.findLast { it.menuRenderer != null }
+                ?.menuRenderer
+                ?.items
+                ?.find {
+                    it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
+                }?.menuNavigationItemRenderer
+                ?.navigationEndpoint
+                ?.watchPlaylistEndpoint
     }
 }
 
