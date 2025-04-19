@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -53,4 +55,7 @@ dependencies {
     implementation(libs.brotli.dec)
 
     implementation(libs.kotlin.reflect)
+}
+tasks.withType<CompileArtProfileTask> {
+    enabled = false
 }
