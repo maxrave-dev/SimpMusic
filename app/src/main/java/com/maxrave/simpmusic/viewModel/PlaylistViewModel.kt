@@ -103,6 +103,17 @@ class PlaylistViewModel(
                                 getFullTracks { tracks ->
                                     newUpdateJob =
                                         launch {
+                                            val listSongs = mainRepository.getSongsByListVideoId(tracks.toListVideoId()).firstOrNull() ?: emptyList()
+                                            if (state == STATE_DOWNLOADED && listSongs.isNotEmpty()) {
+                                                listSongs.filter { it.downloadState != STATE_DOWNLOADED }.let { notDownloaded ->
+                                                    if (notDownloaded.isNotEmpty()) {
+                                                        downloadTracks(notDownloaded.map { it.videoId })
+                                                        updatePlaylistDownloadState(id, STATE_DOWNLOADING)
+                                                    } else {
+                                                        updatePlaylistDownloadState(id, STATE_DOWNLOADED)
+                                                    }
+                                                }
+                                            }
                                             downloadUtils.downloads.collectLatest { downloads ->
                                                 var count = 0
                                                 tracks.forEachIndexed { index, track ->
@@ -140,6 +151,18 @@ class PlaylistViewModel(
             delay(500)
             _playlistEntity.update {
                 it?.copy(downloadState = state)
+            }
+        }
+    }
+
+    private fun downloadTracks(listJob: List<String>) {
+        viewModelScope.launch {
+            listJob.forEach { videoId ->
+                mainRepository.getSongById(videoId).singleOrNull()?.let { song ->
+                    if (song.downloadState != STATE_DOWNLOADED) {
+                        downloadUtils.downloadTrack(videoId, song.title, song.thumbnails ?: "")
+                    }
+                }
             }
         }
     }
