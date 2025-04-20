@@ -1064,7 +1064,7 @@ class SimpleMediaServiceHandler(
                                     }
                                 }
                             }
-                    } else {
+                    } else if (continuation.startsWith(ASC) || continuation.startsWith(DESC)) {
                         val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
                         val offset =
                             if (filter == FilterState.OlderFirst) {
@@ -1129,13 +1129,20 @@ class SimpleMediaServiceHandler(
                                         continuation = response.second,
                                     )
                             } else {
-                                _queueData.value =
-                                    _queueData.value?.copy(
+                                _queueData.update {
+                                    it?.copy(
                                         continuation = null,
                                     )
+                                }
                                 if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
                                     Log.w(TAG, "loadMore: Endless Queue")
                                     val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return@launch
+                                    _queueData.update {
+                                        it?.copy(
+                                            playlistId = "RDAMVM${lastTrack.videoId}",
+                                        )
+                                    }
+                                    Log.d("Check loadMore", "queueData: ${queueData.value}")
                                     getRelated(lastTrack.videoId)
                                 }
                             }
@@ -1145,6 +1152,12 @@ class SimpleMediaServiceHandler(
         } else if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
             Log.w(TAG, "loadMore: Endless Queue")
             val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return
+            _queueData.update {
+                it?.copy(
+                    playlistId = "RDAMVM${lastTrack.videoId}",
+                )
+            }
+            Log.d("Check loadMore", "queueData: ${queueData.value}")
             getRelated(lastTrack.videoId)
         }
     }
