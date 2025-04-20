@@ -248,6 +248,16 @@ class PlaylistViewModel(
                         continuation,
                         fromPlaylist = true,
                     ).collectLatest { res ->
+                        res.first?.forEach { track ->
+                            mainRepository.insertSong(
+                                track.toSongEntity()
+                                    .copy(
+                                        inLibrary = Config.REMOVED_SONG_DATE_TIME
+                                    )
+                            ).singleOrNull()?.let {
+                                log("Insert song: $it")
+                            }
+                        }
                         _tracks.update {
                             val newList = it.toMutableList()
                             newList.addAll(res.first ?: emptyList())
