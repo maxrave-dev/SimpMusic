@@ -2,6 +2,7 @@ package com.maxrave.kotlinytmusicscraper
 
 import android.content.Context
 import android.util.Log
+import android.webkit.CookieManager
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.liskovsoft.sharedutils.prefs.GlobalPreferences
@@ -28,6 +29,7 @@ import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -169,6 +171,7 @@ class YouTube(
     var cookie: String?
         get() = ytMusic.cookie
         set(value) {
+            CookieManager.getInstance().setCookie("https://www.youtube.com", value)
             ytMusic.cookie = value
         }
 
@@ -1224,10 +1227,14 @@ class YouTube(
                     e.printStackTrace()
                     null
                 }
-            val listClients = listOf(YouTubeClient.TVHTML5)
+            val listUrlSig = mutableListOf<String>()
+            var decodedSigResponse: PlayerResponse? = null
+            val listClients = listOf(WEB_REMIX, TVHTML5)
             var sigResponse: PlayerResponse? = null
             var currentClient = listClients.first()
             for (client in listClients) {
+                listUrlSig.removeAll(listUrlSig)
+                decodedSigResponse = null
                 println("YouTube Client $client")
                 val tempRes =
                     ytMusic
@@ -1245,72 +1252,75 @@ class YouTube(
                 } else {
                     sigResponse = tempRes
                     currentClient = client
-                    break
                 }
-            }
-            val decodedSigResponse =
-                sigResponse?.copy(
-                    streamingData =
+                decodedSigResponse =
+                    sigResponse.copy(
+                        streamingData =
                         sigResponse.streamingData?.copy(
                             formats =
-                                sigResponse.streamingData.formats?.map { format ->
-                                    format.copy(
-                                        url =
-                                            format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                                if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
-                                                    "$url&pot=$webPlayerPot"
-                                                } else {
-                                                    url
-                                                }
-                                            },
-                                    )
-                                },
+                            sigResponse.streamingData.formats?.map { format ->
+                                format.copy(
+                                    url =
+                                    format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                            "$url&pot=$webPlayerPot"
+                                        } else {
+                                            url
+                                        }
+                                    },
+                                )
+                            },
                             adaptiveFormats =
-                                sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
-                                    adaptiveFormats.copy(
-                                        url =
-                                            adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                                if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
-                                                    "$url&pot=$webPlayerPot"
-                                                } else {
-                                                    url
-                                                }
-                                            },
-                                    )
-                                },
+                            sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                adaptiveFormats.copy(
+                                    url =
+                                    adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                            "$url&pot=$webPlayerPot"
+                                        } else {
+                                            url
+                                        }
+                                    },
+                                )
+                            },
                         ),
-                )
-            val listUrlSig =
-                (
-                    decodedSigResponse
-                        ?.streamingData
-                        ?.adaptiveFormats
-                        ?.mapNotNull { it.url }
-                        ?.toMutableList() ?: mutableListOf()
-                ).apply {
-                    decodedSigResponse
-                        ?.streamingData
-                        ?.formats
-                        ?.mapNotNull { it.url }
-                        ?.let { addAll(it) }
-                }
-            println("YouTube URL ${decodedSigResponse?.streamingData?.formats?.mapNotNull { it.url }}")
-            val listFormat =
-                (
-                    decodedSigResponse
-                        ?.streamingData
-                        ?.formats
-                        ?.mapNotNull { Pair(it.itag, it.url) }
-                        ?.toMutableList() ?: mutableListOf()
-                ).apply {
-                    addAll(
-                        decodedSigResponse?.streamingData?.adaptiveFormats?.map {
-                            Pair(it.itag, it.url)
-                        } ?: emptyList(),
                     )
+                listUrlSig.addAll(
+                    (
+                        decodedSigResponse
+                            .streamingData
+                            ?.adaptiveFormats
+                            ?.mapNotNull { it.url }
+                            ?.toMutableList() ?: mutableListOf()
+                        ).apply {
+                            decodedSigResponse
+                                .streamingData
+                                ?.formats
+                                ?.mapNotNull { it.url }
+                                ?.let { addAll(it) }
+                        }
+                )
+                println("YouTube URL ${decodedSigResponse.streamingData?.formats?.mapNotNull { it.url }}")
+                val listFormat =
+                    (
+                        decodedSigResponse
+                            .streamingData
+                            ?.formats
+                            ?.mapNotNull { Pair(it.itag, it.url) }
+                            ?.toMutableList() ?: mutableListOf()
+                        ).apply {
+                            addAll(
+                                decodedSigResponse.streamingData?.adaptiveFormats?.map {
+                                    Pair(it.itag, it.url)
+                                } ?: emptyList(),
+                            )
+                        }
+                listFormat.forEach {
+                    println("YouTube Format ${it.first} ${it.second}")
                 }
-            listFormat.forEach {
-                println("YouTube Format ${it.first} ${it.second}")
+                if (listUrlSig.isNotEmpty()) {
+                    break
+                }
             }
             if (listUrlSig.isEmpty() || decodedSigResponse == null) {
                 val (tempCookie, visitorData, playbackTracking) = getVisitorData(videoId, playlistId)

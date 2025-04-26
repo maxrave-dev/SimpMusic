@@ -63,6 +63,7 @@ class LogInFragment : Fragment() {
         val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
         bottom.visibility = View.GONE
         miniplayer.visibility = View.GONE
+        CookieManager.getInstance().removeAllCookies(null)
         binding.webView.apply {
             webViewClient =
                 object : WebViewClient() {
