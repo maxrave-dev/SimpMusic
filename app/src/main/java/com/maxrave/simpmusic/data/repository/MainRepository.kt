@@ -2954,7 +2954,7 @@ class MainRepository(
                             }?.let { highFormat ->
                                 highFormat.firstOrNull {
                                     it.itag == 774
-                                } ?: highFormat.first()
+                                } ?: highFormat.firstOrNull()
                             }
                     if (!isVideo && superFormat != null) {
                         format = superFormat

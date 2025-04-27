@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -98,56 +99,63 @@ class LocalPlaylistViewModel(
             val listTrackStringJob =
                 launch {
                     uiState
-                        .map { it.id }
+                        .map { it.downloadState }
                         .distinctUntilChanged()
-                        .collectLatest { id ->
-                            _uiState.update {
-                                it.copy(
-                                    suggestions = null,
-                                )
+                        .collectLatest { downloadState ->
+                            if (downloadState == STATE_DOWNLOADED || downloadState == STATE_DOWNLOADING) {
+                                newUpdateJob?.cancel()
+                                newUpdateJob =
+                                    launch(Dispatchers.IO) {
+                                        localPlaylistManager
+                                            .listTrackFlow(uiState.value.id)
+                                            .distinctUntilChanged()
+                                            .collectLatest { list ->
+                                                delay(500)
+                                                val currentList = uiState.value.trackCount
+                                                val newList = list.size
+                                                log("newList: $list", Log.DEBUG)
+                                                log("currentList: $currentList, newList: $newList", Log.DEBUG)
+                                                if (newList > currentList) {
+                                                    updatePlaylistState(uiState.value.id, refresh = true)
+                                                }
+                                                delay(500)
+                                                val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = uiState.value.id)
+                                                val notDownloadedList =
+                                                    fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
+                                                if (fullTracks.isEmpty()) {
+                                                    updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
+                                                } else if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } &&
+                                                    downloadState != STATE_DOWNLOADED
+                                                ) {
+                                                    updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
+                                                } else if (
+                                                    fullTracks.filter { it.downloadState == STATE_DOWNLOADING }.isNotEmpty() &&
+                                                    notDownloadedList.isNotEmpty() &&
+                                                    downloadState != STATE_DOWNLOADING
+                                                ) {
+                                                    updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
+                                                } else if (notDownloadedList.isNotEmpty()) {
+                                                    updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
+                                                    downloadTracks(notDownloadedList)
+                                                }
+                                            }
+                                    }
                             }
-                            newUpdateJob?.cancel()
-                            newUpdateJob =
-                                launch {
-                                    localPlaylistManager
-                                        .listTrackFlow(id)
-                                        .distinctUntilChanged()
-                                        .collectLatest { list ->
-                                            delay(500)
-                                            val currentList = uiState.value.trackCount
-                                            val newList = list.size
-                                            log("newList: $list", Log.DEBUG)
-                                            log("currentList: $currentList, newList: $newList", Log.DEBUG)
-                                            if (newList > currentList) {
-                                                updatePlaylistState(uiState.value.id, refresh = true)
-                                            }
-                                            delay(500)
-                                            val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = id)
-                                            val notDownloadedList = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
-                                            if (fullTracks.isEmpty()) {
-                                                updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
-                                            } else if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } &&
-                                                uiState.value.downloadState != STATE_DOWNLOADED
-                                            ) {
-                                                updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
-                                            } else if (
-                                                downloadUtils.downloadTask.value
-                                                    .filter { it.value == STATE_DOWNLOADING }
-                                                    .map { it.key }
-                                                    .containsAll(notDownloadedList) &&
-                                                notDownloadedList.isNotEmpty() &&
-                                                uiState.value.downloadState != STATE_DOWNLOADING
-                                            ) {
-                                                updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                                            } else if (uiState.value.downloadState == STATE_DOWNLOADED && notDownloadedList.isNotEmpty()) {
-                                                updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                                                downloadTracks(notDownloadedList)
-                                            }
-                                        }
-                                }
                         }
                 }
+            val resetSuggestions = launch {
+                uiState.map {
+                    it.id
+                }.distinctUntilChanged().collectLatest {
+                    _uiState.update {
+                        it.copy(
+                            suggestions = null
+                        )
+                    }
+                }
+            }
             listTrackStringJob.join()
+            resetSuggestions.join()
         }
     }
 
