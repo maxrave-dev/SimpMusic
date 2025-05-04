@@ -42,6 +42,7 @@ val sharedDir =
     }
 
 include(":mediaserviceinterfaces", ":youtubeapi", ":googleapi", ":sharedtests", ":commons-io-2.8.0", ":sharedutils")
+include(":ffmpeg-kit")
 project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
 project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
 project(":googleapi").projectDir = File(mediaServiceCore, "googleapi")

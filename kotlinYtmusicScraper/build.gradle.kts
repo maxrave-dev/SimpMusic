@@ -156,7 +156,7 @@ dependencies {
     implementation(project(mapOf("path" to ":sharedutils")))
 
     implementation(libs.smart.exception)
-    implementation(files("aar/ffmpeg-kit-release.aar"))
+    api(project(":ffmpeg-kit"))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false
