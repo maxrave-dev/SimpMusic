@@ -39,6 +39,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.sharp.Sort
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -114,6 +117,7 @@ import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -732,25 +736,23 @@ fun LocalPlaylistScreen(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
-                                            painter = painterResource(R.drawable.baseline_sort_24),
+                                            imageVector = Icons.AutoMirrored.Sharp.Sort,
                                             contentDescription = "Sort playlist",
                                             tint = Color.White,
+                                            modifier = Modifier.size(24.dp)
                                         )
+                                        Spacer(modifier = Modifier.size(4.dp))
                                         Text(
-                                            text = stringResource(id = R.string.sort),
-                                            style = typo.bodySmall,
-                                            color = Color.White
-                                        )
-                                        if (sortBottomSheetShow) {
-                                            SortPlaylistBottomSheet(
-                                                selectedState = uiState.filterState,
-                                                onDismiss = { sortBottomSheetShow = false },
-                                                onSortChanged = {
-                                                    viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter(it))
-                                                    sortBottomSheetShow = false
+                                            text = stringResource(id = R.string.sort_by) + ": " + stringResource(id =
+                                                when (uiState.filterState) {
+                                                    FilterState.Title -> R.string.title
+                                                    FilterState.NewerFirst -> R.string.newer_first
+                                                    FilterState.OlderFirst -> R.string.older_first
                                                 }
-                                            )
-                                        }
+                                            ),
+                                            style = typo.bodySmall,
+                                            color = Color.Gray
+                                        )
                                     }
                                 }
                             }
@@ -895,6 +897,16 @@ fun LocalPlaylistScreen(
                     Text(text = stringResource(id = R.string.cancel))
                 }
             },
+        )
+    }
+    if (sortBottomSheetShow) {
+        SortPlaylistBottomSheet(
+            selectedState = uiState.filterState,
+            onDismiss = { sortBottomSheetShow = false },
+            onSortChanged = {
+                viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter(it))
+                sortBottomSheetShow = false
+            }
         )
     }
     AnimatedVisibility(
