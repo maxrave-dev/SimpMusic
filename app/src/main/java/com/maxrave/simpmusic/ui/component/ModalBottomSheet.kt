@@ -23,6 +23,7 @@ import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -84,7 +85,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -102,12 +102,12 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
@@ -132,6 +132,7 @@ import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.StateSource
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -346,7 +347,8 @@ fun InfoPlayerBottomSheet(
                                         .basicMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                        )
+                                        .focusable(),
                             )
                         }
                     },
@@ -391,7 +393,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -415,7 +418,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -439,7 +443,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -463,7 +468,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -487,7 +493,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -511,7 +518,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -535,7 +543,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -559,7 +568,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -588,7 +598,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
+                            )
+                            .focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     textAlign = TextAlign.Center,
@@ -640,7 +651,8 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
+                            )
+                            .focusable(),
                     style = typo.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
@@ -808,7 +820,8 @@ fun QueueBottomSheet(
                                         .basicMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                        )
+                                        .focusable(),
                             )
                         }
                     },
@@ -1039,16 +1052,16 @@ fun QueueItemBottomSheet(
                     val canMoveUp =
                         index > 0 &&
                             index < (
-                                musicServiceHandler.queueData.value
-                                    ?.listTracks
-                                    ?.size ?: 0
+                            musicServiceHandler.queueData.value
+                                ?.listTracks
+                                ?.size ?: 0
                             )
                     val canMoveDown =
                         index >= 0 &&
                             index < (
-                                musicServiceHandler.queueData.value
-                                    ?.listTracks
-                                    ?.size ?: 0
+                            musicServiceHandler.queueData.value
+                                ?.listTracks
+                                ?.size ?: 0
                             ) - 1
                     items(listAction) { action ->
                         val disable =
@@ -1100,6 +1113,7 @@ fun QueueItemBottomSheet(
                                             contentDescription = "Move up",
                                         )
                                     }
+
                                     QueueItemAction.DOWN -> {
                                         Image(
                                             painter =
@@ -1109,6 +1123,7 @@ fun QueueItemBottomSheet(
                                             contentDescription = "Move down",
                                         )
                                     }
+
                                     QueueItemAction.DELETE -> {
                                         Image(
                                             painter =
@@ -1444,7 +1459,8 @@ fun NowPlayingBottomSheet(
                                     .align(Alignment.CenterVertically)
                                     .clip(
                                         RoundedCornerShape(10.dp),
-                                    ).size(60.dp),
+                                    )
+                                    .size(60.dp),
                         )
                         Spacer(modifier = Modifier.width(20.dp))
                         Column(
@@ -1459,7 +1475,8 @@ fun NowPlayingBottomSheet(
                                         .wrapContentHeight(Alignment.CenterVertically)
                                         .basicMarquee(
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                        )
+                                        .focusable(),
                             )
                             Text(
                                 text =
@@ -1473,7 +1490,8 @@ fun NowPlayingBottomSheet(
                                         .wrapContentHeight(Alignment.CenterVertically)
                                         .basicMarquee(
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                        )
+                                        .focusable(),
                             )
                         }
                     }
@@ -1680,7 +1698,8 @@ fun ActionButton(
                     Modifier
                         .wrapContentSize(
                             Alignment.Center,
-                        ).padding(12.dp),
+                        )
+                        .padding(12.dp),
                 colorFilter =
                     if (enable) {
                         ColorFilter.tint(iconColor)
@@ -1758,7 +1777,8 @@ fun HeartCheckBox(
                 .size(size.dp)
                 .clip(
                     CircleShape,
-                ).clickable {
+                )
+                .clickable {
                     onStateChange?.invoke()
                 },
     ) {
@@ -2520,6 +2540,107 @@ fun LocalPlaylistBottomSheet(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SortPlaylistBottomSheet(
+    selectedState: FilterState,
+    onDismiss: () -> Unit,
+    onSortChanged: (FilterState) -> Unit
+) {
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val filterOptions = remember {
+        listOf(
+            FilterState.NewerFirst,
+            FilterState.OlderFirst,
+            FilterState.Title,
+        )
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Text(
+                    stringResource(R.string.sort_by),
+                    style = typo.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 16.dp, bottom = 24.dp)
+                        .align(Alignment.Start),
+                )
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                ) {
+                    items(filterOptions, key = { filterOption -> filterOption.displayNameRes }) { filterOption ->
+                        val isSelected = filterOption == selectedState
+                        Row(
+                            Modifier
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    onSortChanged(filterOption)
+                                    onDismiss()
+                                }
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(filterOption.displayNameRes),
+                                style = typo.labelMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isSelected) seed else Color.White,
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            if (isSelected) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.done),
+                                    contentDescription = "Selected",
+                                    colorFilter = ColorFilter.tint(seed),
+                                    modifier = Modifier.size(32.dp),
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.size(32.dp))
+                            }
+                        }
+                    }
+
+                }
+                EndOfModalBottomSheet()
+            }
+        }
+    }
+}
+
 
 @Composable
 fun EndOfModalBottomSheet() {

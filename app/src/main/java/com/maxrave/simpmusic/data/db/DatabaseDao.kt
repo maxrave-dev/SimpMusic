@@ -478,6 +478,15 @@ interface DatabaseDao {
     ): List<PairSongLocalPlaylist>
 
     @Query(
+        "SELECT p.* FROM pair_song_local_playlist p JOIN song s ON p.songId = s.videoId WHERE" +
+                " p.playlistId = :playlistId ORDER BY s.title ASC LIMIT 50 OFFSET :offset",
+    )
+    suspend fun getPlaylistPairSongByTitle(
+        playlistId: Long,
+        offset: Int,
+    ): List<PairSongLocalPlaylist>
+
+    @Query(
         "DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId",
     )
     suspend fun deletePairSongLocalPlaylist(

@@ -268,6 +268,10 @@
     <string name="free_space">Free space</string>
     <string name="suggest">Suggestion</string>
     <string name="reload">Reload</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort">Sort</string>
+    <string name="older_first">Older First</string>
+    <string name="newer_first">Newer First</string>
     <string name="added_date">Added date</string>
     <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Issue Tracker</string>

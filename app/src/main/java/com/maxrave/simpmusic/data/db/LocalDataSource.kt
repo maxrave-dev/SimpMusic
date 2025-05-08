@@ -278,6 +278,11 @@ class LocalDataSource(
             playlistId,
             offset * 50,
         )
+    } else if (filterState == FilterState.Title) {
+        databaseDao.getPlaylistPairSongByTitle(
+            playlistId,
+            offset * 50,
+        )
     } else {
         Log.w("Pair LocalPlaylistViewModel", "getPlaylistPairSongByOffset: ${totalCount - (offset + 1) * 50}")
         if ((totalCount - (offset + 1) * 50) > 0) {
