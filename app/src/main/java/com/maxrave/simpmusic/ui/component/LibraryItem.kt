@@ -32,6 +32,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -270,13 +272,22 @@ fun LibraryItem(
                                                     )
                                                 },
                                         ) {
-                                            MediaPlayerView(
-                                                url = song.canvasUrl ?: "",
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxSize()
-                                                        .clip(RoundedCornerShape(8.dp)),
-                                            )
+                                            var shouldShowAndPlayCanvasVideo by remember { mutableStateOf(false) }
+                                            DisposableEffect(true) {
+                                                shouldShowAndPlayCanvasVideo = true
+                                                onDispose {
+                                                    shouldShowAndPlayCanvasVideo = false
+                                                }
+                                            }
+                                            if (shouldShowAndPlayCanvasVideo) {
+                                                MediaPlayerView(
+                                                    url = song.canvasUrl ?: "",
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxSize()
+                                                            .clip(RoundedCornerShape(8.dp)),
+                                                )
+                                            }
                                             Column(
                                                 Modifier
                                                     .fillMaxWidth()

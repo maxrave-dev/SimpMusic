@@ -1,0 +1,2 @@
+- Hotfix in Release version
+- Fixed crash of Endless queue in Local playlist

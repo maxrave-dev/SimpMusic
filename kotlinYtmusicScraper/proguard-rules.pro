@@ -96,3 +96,21 @@
 
 # With R8 full mode generic signatures are stripped for classes that are not kept.
 -keep,allowobfuscation,allowshrinking class retrofit2.Response
+# JSR 305 annotations are for embedding nullability information.
+-dontwarn javax.annotation.**
+
+# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+
+# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
+# May be used with robolectric or deliberate use of Bouncy Castle on Android
+-dontwarn okhttp3.internal.platform.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+-keep class com.liskovsoft.youtubeapi.** { *; }
+-keep interface com.liskovsoft.youtubeapi.** { *; }
+-keep class com.liskovsoft.googleapi.** { *; }
+-keep interface com.liskovsoft.googleapi.** { *; }
+-keep class com.eclipsesource.v8.** { *; }

@@ -329,6 +329,9 @@ class Ytmusic {
         parameter("prettyPrint", false)
     }
 
+    suspend fun test403Error(url: String): Boolean =
+        httpClient.get(url).status.value in 200..299
+
     suspend fun player(
         client: YouTubeClient,
         videoId: String,

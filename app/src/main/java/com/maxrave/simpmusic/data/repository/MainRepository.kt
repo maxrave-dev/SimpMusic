@@ -2945,9 +2945,20 @@ class MainRepository(
                         format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
                     }
                     val superFormat =
-                        response.streamingData?.adaptiveFormats?.find {
-                            it.quality == "AUDIO_QUALITY_HIGH"
-                        }
+                        response.streamingData?.let { streamData ->
+                            streamData.adaptiveFormats.apply {
+                                plus(streamData.formats)
+                            }
+                        }?.filter {
+                                it.audioQuality == "AUDIO_QUALITY_HIGH"
+                            }?.let { highFormat ->
+                                highFormat.firstOrNull {
+                                    it.itag == 774
+                                } ?: highFormat.firstOrNull()
+                            }
+                    if (!isVideo && superFormat != null) {
+                        format = superFormat
+                    }
                     Log.w("Stream", "Super format: $superFormat")
                     Log.w("Stream", "format: $format")
                     Log.d("Stream", "expireInSeconds ${response.streamingData?.expiresInSeconds}")
