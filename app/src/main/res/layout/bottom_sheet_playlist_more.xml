@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="60sp"
             android:layout_height="4sp"
@@ -21,6 +22,7 @@
             android:layout_marginBottom="5sp">
 
         </com.google.android.material.card.MaterialCardView>
+
         <LinearLayout
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
@@ -83,6 +85,7 @@
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>
+
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -92,6 +95,7 @@
             android:layout_marginHorizontal="20sp">
 
         </com.google.android.material.divider.MaterialDivider>
+
         <RelativeLayout
             android:id="@+id/btSync"
             android:layout_width="match_parent"
@@ -100,6 +104,7 @@
             android:clickable="true"
             android:foreground="?android:attr/selectableItemBackground"
             android:paddingHorizontal="20sp">
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -109,6 +114,7 @@
                 android:src="@drawable/baseline_sync_24">
 
             </ImageView>
+
             <TextView
                 android:id="@+id/tvSync"
                 android:layout_width="wrap_content"
@@ -121,6 +127,40 @@
 
             </TextView>
         </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/btAddToQueue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:id="@+id/ivAddToQueue"
+                android:padding="12sp"
+                android:src="@drawable/baseline_queue_music_24"
+                app:tint="@android:color/white">
+
+            </ImageView>
+
+            <TextView
+                android:id="@+id/tvAddToQueue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/ivAddToQueue"
+                android:text="@string/add_to_queue"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+
         <RelativeLayout
             android:id="@+id/btShare"
             android:layout_width="match_parent"
@@ -129,6 +169,7 @@
             android:clickable="true"
             android:foreground="?android:attr/selectableItemBackground"
             android:paddingHorizontal="20sp">
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -138,6 +179,7 @@
                 android:src="@drawable/baseline_share_24">
 
             </ImageView>
+
             <TextView
                 android:id="@+id/tvShare"
                 android:layout_width="wrap_content"

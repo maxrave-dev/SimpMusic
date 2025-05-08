@@ -1,0 +1,13 @@
+- Phát nhạc với chất lượng 256kps (nếu sử dụng tài khoản YT Music Premium)
+- Thông báo về các bài hát mới của tất cả các nghệ sĩ mà bạn theo dõi (Độc quyền)
+- Thêm tất cả các bài hát của playlist vào hàng đợi
+- Xóa bài hát khỏi danh sách đã phát gần đây
+- Lưu quốc gia của bảng xếp hạng
+- Lưu bài hát hiện tại và hàng đợi khi ứng dụng bị crash
+- Thêm bản dịch tiếng Nhật và tiếng Ả Rập
+- Sửa lỗi trong miniplayer cho màn hình nhỏ
+- Sửa lỗi không thể đăng xuất khỏi Spotify
+- Sửa lỗi hiệu ứng phát nhạc khi tạm dừng
+- Sửa lỗi không có album và single trong trang nghệ sĩ
+- Sửa lỗi thích bài hát hoàn toàn
+- Sửa lỗi click vào lời bài hát để tua

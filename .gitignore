@@ -14,3 +14,9 @@
 .cxx
 local.properties
 /app/release/
+crowdin.yml
+# Kotlin 2.0
+.kotlin/
+.idea
+/build_and_sign_apk.sh
+/simpmusic.jks

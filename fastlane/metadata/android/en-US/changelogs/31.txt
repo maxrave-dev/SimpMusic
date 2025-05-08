@@ -1,0 +1,1 @@
+- Hotfix some bugs in v0.2.13 (Albums screen & Playlists screen)

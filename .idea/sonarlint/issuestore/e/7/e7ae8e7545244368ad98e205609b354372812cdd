@@ -1,11 +1,0 @@
-
-6kotlin:S125˜"Remove this commented out code.(ÏıP
-ikotlin:S117q"SRename this local variable to match the regular expression ^`?[_a-z][a-zA-Z0-9]*`?$(ß˜È"
-=kotlin:S6305 " Don't expose mutable flow types.(¢óû±ıÿÿÿÿ
-2kotlin:S1128"Remove this unused import.(åğ•
-7kotlin:S1128	"Remove this unused import.(òóªøÿÿÿÿ
-7kotlin:S1128"Remove this unused import.(Ô±Î¶üÿÿÿÿ
-1kotlin:S1128"Remove this unused import.(÷«í;
-2kotlin:S1128"Remove this unused import.(“µ…”
-okotlin:S3776h"RRefactor this method to reduce its Cognitive Complexity from 24 to the 15 allowed.(¤Îú™üÿÿÿÿ
-Ykotlin:S6510i"AMove "return" statements from all branches before "if" statement.(úŸ÷

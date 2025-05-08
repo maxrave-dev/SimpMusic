@@ -1,132 +1,129 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.graphics.drawable.GradientDrawable
-import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.Albums
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
-import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.data.model.browse.artist.Related
+import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
+import com.maxrave.simpmusic.data.model.browse.artist.Singles
+import com.maxrave.simpmusic.extension.toArtistScreenData
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import com.maxrave.simpmusic.viewModel.ArtistScreenState.Error
+import com.maxrave.simpmusic.viewModel.ArtistScreenState.Loading
+import com.maxrave.simpmusic.viewModel.ArtistScreenState.Success
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class ArtistViewModel @Inject constructor(private val application: Application, private val mainRepository: MainRepository, private var dataStoreManager: DataStoreManager): AndroidViewModel(application){
-    var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
-    private val _artistBrowse: MutableStateFlow<Resource<ArtistBrowse>?> = MutableStateFlow(null)
-    var artistBrowse: StateFlow<Resource<ArtistBrowse>?> = _artistBrowse
-    var loading = MutableLiveData<Boolean>()
-    private var _artistEntity: MutableLiveData<ArtistEntity> = MutableLiveData()
-    var artistEntity: LiveData<ArtistEntity> = _artistEntity
+@UnstableApi
+class ArtistViewModel(
+    private val application: Application,
+) : BaseViewModel(application) {
+    // It is dynamic and can be changed by the user, so separate it from the ArtistScreenData
+    private var _canvasUrl: MutableStateFlow<Pair<String, SongEntity>?> = MutableStateFlow(null)
+    var canvasUrl: StateFlow<Pair<String, SongEntity>?> = _canvasUrl
+
     private var _followed: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var followed: StateFlow<Boolean> = _followed
 
-    private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
-    val songEntity: LiveData<SongEntity?> = _songEntity
-    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
-    val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+    private val _artistScreenState: MutableStateFlow<ArtistScreenState> = MutableStateFlow(Loading)
+    val artistScreenState: StateFlow<ArtistScreenState> = _artistScreenState
 
-
-    private var regionCode: String? = null
-    private var language: String? = null
-
-    init {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-    }
-
-    fun browseArtist(channelId: String){
-        loading.value = true
-        _artistBrowse.value = null
+    fun browseArtist(channelId: String) {
+        _artistScreenState.value = Loading
+        _canvasUrl.value = null
+        _followed.value = false
         viewModelScope.launch {
-            Log.d("ArtistViewModel", "lang: $language")
-//            mainRepository.browseArtist(channelId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
-//                _artistBrowse.value = values
-//            }
-            mainRepository.getArtistData(channelId).collect {
-                _artistBrowse.emit(it)
-            }
-            withContext(Dispatchers.Main){
-                loading.value = false
+            mainRepository.getArtistData(channelId).collect { browse ->
+                when (browse) {
+                    is Resource.Success if (browse.data != null) -> {
+                        browse.data.channelId?.let { channelId ->
+                            insertArtist(
+                                ArtistEntity(
+                                    channelId,
+                                    browse.data.name,
+                                    browse.data.thumbnails
+                                        ?.lastOrNull()
+                                        ?.url,
+                                ),
+                            )
+                        }
+                        _artistScreenState.value =
+                            Success(browse.data.toArtistScreenData())
+                        browse.data.songs?.results?.forEach { song ->
+                            mainRepository.getSongById(song.videoId).firstOrNull()?.let { entity ->
+                                if (entity.canvasUrl != null) {
+                                    _canvasUrl.value = Pair(entity.canvasUrl, entity)
+                                    log("CanvasUrl: ${entity.canvasUrl}")
+                                    return@forEach
+                                }
+                            }
+                        }
+                    }
+                    is Resource.Error ->
+                        _artistScreenState.value = Error(browse.message ?: "Error")
+
+                    else -> {
+                        _artistScreenState.value = Error("Error")
+                    }
+                }
             }
         }
     }
 
-    fun insertArtist(artist: ArtistEntity){
+    fun insertArtist(artist: ArtistEntity) {
         viewModelScope.launch {
             mainRepository.insertArtist(artist)
             mainRepository.updateArtistInLibrary(LocalDateTime.now(), artist.channelId)
-            mainRepository.getArtistById(artist.channelId).collect{
-                _artistEntity.value = it
-                _followed.value = it.followed
-                Log.d("ArtistViewModel", "insertArtist: ${it.followed}")
+            delay(100)
+            mainRepository.getArtistById(artist.channelId).collect { artistEntity ->
+                artist.thumbnails?.let {
+                    mainRepository.updateArtistImage(artistEntity.channelId, artist.thumbnails)
+                }
+                _followed.value = artistEntity.followed
+                log("insertArtist: ${artistEntity.followed}")
             }
         }
     }
 
-    fun updateFollowed(followed: Int, channelId: String){
+    fun updateFollowed(
+        followed: Int,
+        channelId: String,
+    ) {
         viewModelScope.launch {
-            _followed.value = followed == 1
+            _followed.value = (followed == 1)
             mainRepository.updateFollowedStatus(channelId, followed)
-            Log.d("ArtistViewModel", "updateFollowed: ${_followed.value}")
-        }
-    }
-    fun getLocation() {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-    }
-
-    fun getSongEntity(song: SongEntity) {
-        viewModelScope.launch {
-            mainRepository.insertSong(song).first().let {
-                println("Insert Song $it")
-            }
-            mainRepository.getSongById(song.videoId).collect { values ->
-                _songEntity.value = values
-            }
+            log("updateFollowed: ${_followed.value}")
         }
     }
 
-    fun updateLikeStatus(videoId: String, likeStatus: Int) {
-        viewModelScope.launch {
-            mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
-        }
-    }
-
-    fun getLocalPlaylist() {
-        viewModelScope.launch {
-            mainRepository.getAllLocalPlaylists().collect { values ->
-                _listLocalPlaylist.postValue(values)
-            }
-        }
-    }
-
-    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+    fun updateLocalPlaylistTracks(
+        list: List<String>,
+        id: Long,
+    ) {
         viewModelScope.launch {
             mainRepository.getSongsByListVideoId(list).collect { values ->
                 var count = 0
                 values.forEach { song ->
-                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
                         count++
                     }
                 }
@@ -134,22 +131,25 @@ class ArtistViewModel @Inject constructor(private val application: Application, 
                 Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
-                }
-                else {
+                } else {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
                 }
             }
         }
     }
-    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+
+    fun addToYouTubePlaylist(
+        localPlaylistId: Long,
+        youtubePlaylistId: String,
+        videoId: String,
+    ) {
         viewModelScope.launch {
             mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
             mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
                 if (response == "STATUS_SUCCEEDED") {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
                     Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
-                }
-                else {
+                } else {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
                     Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
@@ -157,16 +157,97 @@ class ArtistViewModel @Inject constructor(private val application: Application, 
         }
     }
 
-    fun updateInLibrary(videoId: String) {
+    fun onRadioClick(endpoint: WatchEndpoint) {
         viewModelScope.launch {
-            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+            mainRepository.getRadioArtist(endpoint).collectLatest { res ->
+                val data = res.data
+                when (res) {
+                    is Resource.Success if data != null && data.first.isNotEmpty() == true -> {
+                        setQueueData(
+                            QueueData(
+                                listTracks = data.first,
+                                firstPlayedTrack = data.first.first(),
+                                playlistId = endpoint.playlistId,
+                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(R.string.radio)}",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = data.second,
+                            ),
+                        )
+                        loadMediaItem(
+                            data.first.first(),
+                            Config.PLAYLIST_CLICK,
+                            0,
+                        )
+                    }
+                    else -> {
+                        makeToast(res.message)
+                    }
+                }
+            }
         }
     }
 
-    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
+    fun onShuffleClick(endpoint: WatchEndpoint) {
         viewModelScope.launch {
-            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
+            mainRepository.getRadioArtist(endpoint).collectLatest { res ->
+                val data = res.data
+                when (res) {
+                    is Resource.Success if data != null && data.first.isNotEmpty() == true -> {
+                        setQueueData(
+                            QueueData(
+                                listTracks = data.first,
+                                firstPlayedTrack = data.first.first(),
+                                playlistId = endpoint.playlistId,
+                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(R.string.shuffle)}",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = data.second,
+                            ),
+                        )
+                        loadMediaItem(
+                            data.first.first(),
+                            Config.PLAYLIST_CLICK,
+                            0,
+                        )
+                    }
+                    else -> {
+                        makeToast(res.message)
+                    }
+                }
+            }
         }
     }
+}
 
+data class ArtistScreenData(
+    val title: String? = null,
+    val imageUrl: String? = null,
+    val subscribers: String? = null,
+    val playCount: String? = null,
+    val isChannel: Boolean = false,
+    val channelId: String? = null,
+    val radioParam: WatchEndpoint? = null,
+    val shuffleParam: WatchEndpoint? = null,
+    val description: String? = null,
+    val listSongParam: String? = null,
+    val popularSongs: List<Track> = emptyList(),
+    val singles: Singles? = null,
+    val albums: Albums? = null,
+    val video: ArtistBrowse.Videos? = null,
+    val related: Related? = null,
+    val featuredOn: List<ResultPlaylist> = emptyList(),
+)
+
+sealed class ArtistScreenState(
+    val data: ArtistScreenData = ArtistScreenData(),
+    val message: String? = null,
+) {
+    data object Loading : ArtistScreenState()
+
+    class Success(
+        data: ArtistScreenData,
+    ) : ArtistScreenState(data)
+
+    class Error(
+        message: String,
+    ) : ArtistScreenState(message = message)
 }

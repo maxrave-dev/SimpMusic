@@ -10,8 +10,7 @@ data class ReturnYouTubeDislikeResponse(
     val dislikes: Int? = null,
     val rating: Double? = null,
     val viewCount: Int? = null,
-    val deleted: Boolean? = null
-
+    val deleted: Boolean? = null,
 )
 //  "id": "WPb2j3GU8Kc",
 //  "dateCreated": "2024-02-05T04:55:16.031426Z",

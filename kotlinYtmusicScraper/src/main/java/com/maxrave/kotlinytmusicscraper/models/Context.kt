@@ -11,9 +11,16 @@ data class Context(
     data class Client(
         val clientName: String,
         val clientVersion: String,
+        val deviceMake: String? = null,
+        val deviceModel: String? = null,
+        val userAgent: String,
         val gl: String,
         val hl: String,
         val visitorData: String?,
+        val osName: String? = null,
+        val osVersion: String?,
+        val timeZone: String? = null,
+        val utcOffsetMinutes: Int? = null,
     )
 
     @Serializable

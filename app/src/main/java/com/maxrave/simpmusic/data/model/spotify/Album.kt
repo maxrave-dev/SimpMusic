@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.spotify
 
-
 import com.google.gson.annotations.SerializedName
 
 data class Album(
@@ -29,5 +28,5 @@ data class Album(
     @SerializedName("type")
     val type: String,
     @SerializedName("uri")
-    val uri: String
+    val uri: String,
 )

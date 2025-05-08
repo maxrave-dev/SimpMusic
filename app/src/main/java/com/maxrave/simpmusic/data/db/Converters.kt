@@ -25,6 +25,17 @@ class Converters {
         return gson.toJson(list)
     }
 
+    // No use in database
+    fun fromListIntToString(list: List<Int>?): String? {
+        val gson = Gson()
+        return gson.toJson(list)
+    }
+
+    fun fromStringToListInt(value: String?): List<Int>? {
+        val listType: Type = object : TypeToken<ArrayList<Int?>?>() {}.type
+        return Gson().fromJson(value, listType)
+    }
+
     @TypeConverter
     fun fromStringToListTrack(value: String?): List<Track>? {
         val listType: Type = object : TypeToken<List<Track?>?>() {}.type
@@ -75,10 +86,24 @@ class Converters {
 
     @TypeConverter
     fun fromTimestamp(value: Long?): LocalDateTime? =
-        if (value != null) LocalDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneOffset.UTC)
-        else null
+        if (value != null) {
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneOffset.UTC)
+        } else {
+            null
+        }
 
     @TypeConverter
-    fun dateToTimestamp(date: LocalDateTime?): Long? =
-        date?.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+    fun dateToTimestamp(date: LocalDateTime?): Long? = date?.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+
+    @TypeConverter
+    fun fromListMapToString(list: List<Map<String, String>>): String {
+        val gson = Gson()
+        return gson.toJson(list)
+    }
+
+    @TypeConverter
+    fun fromStringToListMap(value: String): List<Map<String, String>> {
+        val listType: Type = object : TypeToken<ArrayList<Map<String, String>>>() {}.type
+        return Gson().fromJson(value, listType)
+    }
 }

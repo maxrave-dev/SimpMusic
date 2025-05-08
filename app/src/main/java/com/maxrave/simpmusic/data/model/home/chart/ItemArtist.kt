@@ -1,9 +1,10 @@
 package com.maxrave.simpmusic.data.model.home.chart
 
-
+import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
+@Immutable
 data class ItemArtist(
     @SerializedName("browseId")
     val browseId: String,
@@ -16,5 +17,5 @@ data class ItemArtist(
     @SerializedName("title")
     val title: String,
     @SerializedName("trend")
-    val trend: String
+    val trend: String,
 )

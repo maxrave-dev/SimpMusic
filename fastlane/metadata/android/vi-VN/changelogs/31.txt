@@ -1,0 +1,1 @@
+- Sửa lỗi nghiêm trọng trong phiên bản v0.2.13 (Albums screen & Playlists screen)

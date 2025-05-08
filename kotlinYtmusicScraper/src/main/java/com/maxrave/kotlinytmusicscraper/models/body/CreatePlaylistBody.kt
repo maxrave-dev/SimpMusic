@@ -9,7 +9,7 @@ data class CreatePlaylistBody(
     val title: String,
     val description: String? = "Created by SimpMusic",
     val privacyStatus: String = PrivacyStatus.PRIVATE,
-    val videoIds: List<String>? = null
+    val videoIds: List<String>? = null,
 ) {
     object PrivacyStatus {
         const val PRIVATE = "PRIVATE"

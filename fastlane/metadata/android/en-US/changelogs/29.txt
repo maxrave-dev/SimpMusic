@@ -1,0 +1,5 @@
+- Update some new UI animations
+- Auto-save lyrics
+- New canvas section in Library screen
+- Other-versions of an album
+- Fixed `add to playlist` button

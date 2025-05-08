@@ -31,11 +31,12 @@ class InteractiveTextMaker private constructor(
         return this
     }
 
-    fun setSpecialTextFontFamilyRes(@FontRes fontId: Int): InteractiveTextMaker {
+    fun setSpecialTextFontFamilyRes(
+        @FontRes fontId: Int,
+    ): InteractiveTextMaker {
         specialTextFontFamily = ResourcesCompat.getFont(context, fontId)!!
         return this
     }
-
 
     fun setSpecialTextFontFamily(font: Typeface): InteractiveTextMaker {
         specialTextFontFamily = font
@@ -47,7 +48,9 @@ class InteractiveTextMaker private constructor(
         return this
     }
 
-    fun setSpecialTextColorRes(@ColorRes colorId: Int): InteractiveTextMaker {
+    fun setSpecialTextColorRes(
+        @ColorRes colorId: Int,
+    ): InteractiveTextMaker {
         val color = ContextCompat.getColor(context, colorId)
         specialTextColor = color
         specialTextHighLightColor = ColorUtils.setAlphaComponent(color, 50)
@@ -65,7 +68,9 @@ class InteractiveTextMaker private constructor(
         return this
     }
 
-    fun setSpecialTextHighlightColorRes(@ColorRes color: Int): InteractiveTextMaker {
+    fun setSpecialTextHighlightColorRes(
+        @ColorRes color: Int,
+    ): InteractiveTextMaker {
         specialTextHighLightColor = ContextCompat.getColor(context, color)
         return this
     }
@@ -82,7 +87,7 @@ class InteractiveTextMaker private constructor(
         if (words.toList().isEmpty()) {
             Log.w(
                 TAG,
-                "initialize: WARNING can't found in ${textView.text} to make it interactive."
+                "initialize: WARNING can't found in ${textView.text} to make it interactive.",
             )
             return
         }
@@ -91,7 +96,7 @@ class InteractiveTextMaker private constructor(
             val endIndex = wordResult.range.last + 1
             Log.i(
                 TAG,
-                "initialize: text:'${textView.text}' startIndex:$startIndex endIndex:$endIndex"
+                "initialize: text:'${textView.text}' startIndex:$startIndex endIndex:$endIndex",
             )
             span.setSpan(
                 object : ClickableSpan() {
@@ -109,7 +114,7 @@ class InteractiveTextMaker private constructor(
                 },
                 startIndex,
                 endIndex,
-                0
+                0,
             )
             textView.linksClickable = true
             textView.isClickable = true
@@ -119,10 +124,8 @@ class InteractiveTextMaker private constructor(
         }
     }
 
-
     companion object {
-        fun of(textView: TextView): InteractiveTextMaker =
-            InteractiveTextMaker(textView, textView.context)
+        fun of(textView: TextView): InteractiveTextMaker = InteractiveTextMaker(textView, textView.context)
 
         // Will be used at debugging.
         private const val TAG = "InteractiveTextMaker"

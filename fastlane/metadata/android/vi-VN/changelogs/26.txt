@@ -1,0 +1,10 @@
+- Sửa lỗi proxy
+- Xóa khoảng trắng dưới của bottom sheet
+- Tách LRCLIB thành nhà cung cấp lời bài hát mới
+- Cải thiện API YouTube bằng cách sử dụng NewPipeExtractor
+- Improve Video Player
+- Cải thiện trình phát video
+- Xóa PiP vì lỗi
+- Sửa một số lỗi trong màn hình Local Playlist và Library
+- Cập nhật bản dịch
+- Vui lòng đăng nhập lại nếu bạn gặp vấn đề với API YouTube

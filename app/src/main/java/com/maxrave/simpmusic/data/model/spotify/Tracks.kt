@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.spotify
 
-
 import com.google.gson.annotations.SerializedName
 
 data class Tracks(
@@ -17,5 +16,5 @@ data class Tracks(
     @SerializedName("previous")
     val previous: Any?,
     @SerializedName("total")
-    val total: Int?
+    val total: Int?,
 )

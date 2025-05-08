@@ -1,6 +1,11 @@
 package com.maxrave.simpmusic.extension
 
-fun levenshtein(lhs : CharSequence, rhs : CharSequence) : Int {
+import android.util.Log
+
+fun levenshtein(
+    lhs: CharSequence,
+    rhs: CharSequence,
+): Int {
     val lhsLength = lhs.length
     val rhsLength = rhs.length
 
@@ -11,7 +16,7 @@ fun levenshtein(lhs : CharSequence, rhs : CharSequence) : Int {
         newCost[0] = i
 
         for (j in 1..lhsLength) {
-            val editCost= if(lhs[j - 1] == rhs[i - 1]) 0 else 1
+            val editCost = if (lhs[j - 1] == rhs[i - 1]) 0 else 1
 
             val costReplace = cost[j - 1] + editCost
             val costInsert = cost[j] + 1
@@ -28,18 +33,26 @@ fun levenshtein(lhs : CharSequence, rhs : CharSequence) : Int {
     return cost[lhsLength]
 }
 
-fun bestMatchingIndex(s: String, list: List<String>): Int {
+fun bestMatchingIndex(
+    s: String,
+    list: List<String>,
+): Int? {
     val listCost = ArrayList<Int>()
-    for (i in list.indices){
+    for (i in list.indices) {
         listCost.add(levenshtein(s, list[i]))
     }
-    return listCost.indexOf(listCost.minOrNull())
+    Log.d("Lyrics", "Best cost " + listCost.minOrNull().toString())
+    val min = listCost.minOrNull()
+    return if (min != null && min < 20) listCost.indexOf(listCost.minOrNull()) else null
 }
 
-fun get3MatchingIndex(s: String, list: List<String>): ArrayList<Int> {
+fun get3MatchingIndex(
+    s: String,
+    list: List<String>,
+): ArrayList<Int> {
     val listIndex = ArrayList<Int>()
     val listCost = ArrayList<Int>()
-    for (i in list.indices){
+    for (i in list.indices) {
         listCost.add(levenshtein(s, list[i]))
     }
     listIndex.add(listCost.indexOf(listCost.minOrNull()))
@@ -48,7 +61,7 @@ fun get3MatchingIndex(s: String, list: List<String>): ArrayList<Int> {
         val cloneList = ArrayList(list)
         cloneList.remove(list[listIndex.last()])
         listCost.clear()
-        for (i in list.indices){
+        for (i in list.indices) {
             if (listIndex.contains(i)) continue
             listCost.add(levenshtein(s, list[i]))
         }

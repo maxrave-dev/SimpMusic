@@ -1,7 +1,0 @@
-
-;kotlin:S125W"Remove this commented out code.(±¶şŒüÿÿÿÿ
-:kotlin:S6310ú"Avoid hardcoded dispatchers.(äÕ”øÿÿÿÿ
-:kotlin:S6310©"Avoid hardcoded dispatchers.(äÕ”øÿÿÿÿ
-okotlin:S6311ú"QRemove this dispatcher. It is pointless when used with only suspending functions.(äÕ”øÿÿÿÿ
-okotlin:S6311©"QRemove this dispatcher. It is pointless when used with only suspending functions.(äÕ”øÿÿÿÿ
-ykotlin:S3923¬"[Remove this conditional structure or edit its code blocks so that they're not all the same.(´¾Âùÿÿÿÿÿ

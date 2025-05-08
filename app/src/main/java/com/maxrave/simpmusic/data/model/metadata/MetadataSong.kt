@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.metadata
 
-
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -30,5 +29,5 @@ data class MetadataSong(
     @SerializedName("videoType")
     val videoType: String,
     @SerializedName("year")
-    val year: Any
+    val year: Any,
 )

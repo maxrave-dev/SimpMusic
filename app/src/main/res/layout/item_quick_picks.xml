@@ -33,7 +33,7 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:text=""
+                    android:text="Test"
                     android:id="@+id/tvSongTitle"
                     android:fontFamily="@font/roboto"
                     android:textStyle="bold"
@@ -51,7 +51,7 @@
                 </TextView>
 
                 <TextView
-                    android:text=""
+                    android:text="test"
                     android:id="@+id/tvSongArtist"
                     android:fontFamily="@font/roboto"
                     android:textStyle="normal"

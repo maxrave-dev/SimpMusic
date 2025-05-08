@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.spotify
 
-
 import com.google.gson.annotations.SerializedName
 
 data class Image(
@@ -9,5 +8,5 @@ data class Image(
     @SerializedName("url")
     val url: String,
     @SerializedName("width")
-    val width: Int
+    val width: Int,
 )

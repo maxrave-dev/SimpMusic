@@ -4,7 +4,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
-data class ResultSong (
+data class ResultSong(
     @SerializedName("videoId")
     val videoId: String,
     @SerializedName("title")

@@ -106,7 +106,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5sp"
                         android:fontFamily="@font/roboto"
-                        android:text="@string/year_and_category"
                         android:textSize="15sp"
                         android:textStyle="normal" />
 
@@ -210,7 +209,6 @@
                         android:maxLines="10"
                         app:expandAction="More"
                         app:limitedMaxLines="3"
-                        app:originalText="@string/demo_description"
                         android:fontFamily="@font/roboto"
                         android:textStyle="normal"
                         android:textSize="15sp" />
@@ -222,7 +220,6 @@
                         android:layout_marginTop="5sp"
                         android:layout_marginBottom="5sp"
                         android:fontFamily="@font/roboto"
-                        android:text="@string/album_length"
                         android:textSize="15sp"
                         android:textStyle="bold" />
                 </LinearLayout>

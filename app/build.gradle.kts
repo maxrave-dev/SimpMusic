@@ -1,74 +1,117 @@
+import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("androidx.navigation.safeargs")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
-    id("com.mikepenz.aboutlibraries.plugin")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.navigation.safeargs)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.aboutlibraries)
+}
+
+kotlin {
+    jvmToolchain(17) // or appropriate version
+    compilerOptions {
+        freeCompilerArgs.add("-Xwhen-guards")
+    }
 }
 
 android {
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 16
-        versionName = "0.2.0"
+        targetSdk = 35
+        versionCode =
+            libs.versions.version.code
+                .get()
+                .toInt()
+        versionName =
+            libs.versions.version.name
+                .get()
         vectorDrawables.useSupportLibrary = true
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
+            arg("KOIN_CONFIG_CHECK", "true")
+            arg("KOIN_USE_COMPOSE_VIEWMODEL", "true")
         }
 
-        resourceConfigurations +=
-            listOf(
-                "en",
-                "vi",
-                "it",
-                "de",
-                "ru",
-                "tr",
-                "fi",
-                "pl",
-                "pt",
-                "fr",
-                "es",
-                "zh",
-                "in",
-            )
+        @Suppress("UnstableApiUsage")
+        androidResources {
+            localeFilters +=
+                listOf(
+                    "en",
+                    "vi",
+                    "it",
+                    "de",
+                    "ru",
+                    "tr",
+                    "fi",
+                    "pl",
+                    "pt",
+                    "fr",
+                    "es",
+                    "zh",
+                    "in",
+                    "ar",
+                    "ja",
+                    "b+zh+Hant+TW",
+                    "uk",
+                    "iw",
+                    "az",
+                    "hi",
+                    "th",
+                    "nl",
+                    "ko",
+                    "ca",
+                    "fa",
+                )
+        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            splits {
+                abi {
+                    isEnable = true
+                    reset()
+                    isUniversalApk = true
+                    include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+                }
+            }
         }
         debug {
+            isMinifyEnabled = false
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin {
+        jvmToolchain(17)
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
+        jvmTarget = "17"
     }
     // enable view binding
     buildFeatures {
         viewBinding = true
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -160,123 +203,154 @@ android {
 
 dependencies {
 
+    implementation(project(":lyricsProviders"))
     // Compose
-    val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
+    val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui")
+    implementation(libs.compose.material3.lib)
+    implementation(libs.compose.material3.sizeclass)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material.ripple)
+    implementation(libs.compose.material.icons.core)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.ui.viewbinding)
+    implementation(libs.constraintlayout.compose)
 
     // Android Studio Preview support
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.activity.compose)
     // Optional - Integration with ViewModels
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation(libs.lifecycle.viewmodel.compose)
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    // material design3
-    implementation("com.google.android.material:material:1.11.0")
-    // runtime
-    implementation("androidx.startup:startup-runtime:1.1.1")
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
+
+    implementation(libs.work.runtime.ktx)
+    androidTestImplementation(libs.work.testing)
+
+    // Material Design 3
+    implementation(libs.material)
+    // Runtime
+    implementation(libs.startup.runtime)
+    // Other module
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation(project(mapOf("path" to ":spotify")))
+
+    implementation(libs.lifecycle.livedata.ktx)
+    implementation(libs.lifecycle.viewmodel.ktx)
+    debugImplementation(libs.ui.tooling)
 
     // ExoPlayer
-    val media3_version = "1.3.0"
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
+    implementation(libs.media3.exoplayer.dash)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.exoplayer.rtsp)
+    implementation(libs.media3.exoplayer.smoothstreaming)
+    implementation(libs.media3.exoplayer.workmanager)
+    implementation(libs.media3.datasource.okhttp)
+    implementation(libs.okhttp3.logging.interceptor)
 
-    implementation("androidx.media3:media3-exoplayer:$media3_version")
-    implementation("androidx.media3:media3-ui:$media3_version")
-    implementation("androidx.media3:media3-session:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-dash:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-hls:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-rtsp:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-workmanager:$media3_version")
-    implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
+    // Palette Color
+    implementation(libs.palette.ktx)
+    // Expandable Text View
+    implementation(libs.expandable.text)
 
-    // palette color
-    implementation("androidx.palette:palette-ktx:1.0.0")
-    // expandable text view
-    implementation("com.github.giangpham96:expandable-text:2.0.0")
+    implementation(libs.constraintlayout)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.espresso.core)
 
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     // Legacy Support
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation(libs.legacy.support.v4)
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.8.0")
+    implementation(libs.coroutines.android)
+    implementation(libs.coroutines.guava)
     // Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
 
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
     // Coil
-    implementation("io.coil-kt:coil:2.6.0")
-    // Glide
-    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.kmpalette.core)
     // Easy Permissions
-    implementation("pub.devrel:easypermissions:3.0.0")
+    implementation(libs.easypermissions)
     // Palette Color
-    implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation(libs.palette.ktx)
 
     // Preference
-    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation(libs.preference.ktx)
 
-    // fragment ktx
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    ksp("com.google.dagger:hilt-compiler:2.50")
-    ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.8.0")
+    // Fragment KTX
+    implementation(libs.fragment.ktx)
+    ksp(libs.kotlinx.metadata.jvm)
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.datastore.preferences)
     // Swipe To Refresh
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
+    implementation(libs.swiperefreshlayout)
     // Insetter
-    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
-    implementation("dev.chrisbanes.insetter:insetter-dbx:0.6.1")
+    implementation(libs.insetter)
+    implementation(libs.insetter.dbx)
 
     // Shimmer
-    implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation(libs.shimmer)
 
     // Lottie
-    val lottieVersion = "6.3.0"
-    implementation("com.airbnb.android:lottie:$lottieVersion")
+    implementation(libs.lottie)
+    implementation(libs.lottie.compose)
 
     // Paging 3
-    val paging_version = "3.2.1"
-    implementation("androidx.paging:paging-runtime-ktx:$paging_version")
-
-    implementation("com.daimajia.swipelayout:library:1.2.0@aar")
+    implementation(libs.paging.runtime.ktx)
+    implementation(libs.paging.compose)
 
     // Custom Activity On Crash
-    implementation("cat.ereza:customactivityoncrash:2.4.0")
+    implementation(libs.customactivityoncrash)
 
-    implementation("com.intuit.sdp:sdp-android:1.1.0")
-    implementation("com.intuit.ssp:ssp-android:1.1.0")
+    implementation(libs.sdp.android)
+    implementation(libs.ssp.android)
 
-    val latestAboutLibsRelease = "10.10.0"
-    implementation("com.mikepenz:aboutlibraries:$latestAboutLibsRelease")
+    implementation(libs.aboutlibraries)
+    implementation(libs.aboutlibraries.compose.m3)
 
-    implementation("com.google.android.flexbox:flexbox:3.0.0")
-    implementation("com.github.skydoves:balloon:1.6.4")
-}
-hilt {
-    enableAggregatingTask = true
+    implementation(libs.flexbox)
+    implementation(libs.balloon)
+
+    // InsetsX
+    implementation(libs.insetsx)
+
+    coreLibraryDesugaring(libs.desugaring)
+
+    // Koin
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.workmanager)
+    implementation(libs.koin.androidx.compose)
+
+    // Store5
+    implementation(libs.store)
+
+    // Jetbrains Markdown
+    api(libs.markdown)
+
+    // Blur Haze
+    implementation(libs.haze)
+    implementation(libs.haze.material)
 }
 aboutLibraries {
     prettyPrint = true
     registerAndroidTasks = false
     excludeFields = arrayOf("generated")
+}
+tasks.withType<CompileArtProfileTask> {
+    enabled = false
 }

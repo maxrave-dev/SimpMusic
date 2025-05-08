@@ -1,0 +1,5 @@
+Cảm ơn bạn đã sử dụng SimpMusic! Chúng tôi cập nhật ứng dụng thường xuyên để làm cho nó tốt hơn cho bạn. Phiên bản này bao gồm các tính năng mới, một số sửa lỗi và cải thiện hiệu suất.
+- Sửa lỗi YouTube Playlist API
+- Tải video, tệp âm thanh từ YouTube (thử nghiệm, sẽ thêm nhiều tùy chỉnh trong tương lai)
+- Cải thiện hiệu suất
+- Cập nhật bản dịch

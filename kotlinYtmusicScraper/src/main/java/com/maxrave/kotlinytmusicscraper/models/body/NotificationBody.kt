@@ -7,5 +7,4 @@ import kotlinx.serialization.Serializable
 data class NotificationBody(
     val context: Context,
     val notificationsMenuRequestType: String = "NOTIFICATIONS_MENU_REQUEST_TYPE_INBOX",
-) {
-}
+)

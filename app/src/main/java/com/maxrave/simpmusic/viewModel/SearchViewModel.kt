@@ -3,17 +3,16 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
+import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
@@ -24,44 +23,43 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toQueryList
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class SearchViewModel @Inject constructor(private val mainRepository: MainRepository, private val application: Application, private var dataStoreManager: DataStoreManager) : AndroidViewModel(application) {
-    @Inject
-    lateinit var downloadUtils: DownloadUtils
+@UnstableApi
+class SearchViewModel(
+    private val application: Application,
+) : BaseViewModel(application) {
+    private val downloadUtils: DownloadUtils by inject()
 
     var searchType: MutableLiveData<String> = MutableLiveData("all")
-    var searchAllResult: MutableLiveData<ArrayList<Any>> = MutableLiveData()
+    var searchAllResult: MutableLiveData<ArrayList<Any>> = MutableLiveData(arrayListOf())
 
-    var searchHistory: MutableLiveData<ArrayList<String>> = MutableLiveData()
-    var searchResult: MutableLiveData<ArrayList<Any>> = MutableLiveData()
+    var searchHistory: MutableLiveData<ArrayList<String>> = MutableLiveData(arrayListOf())
+    var searchResult: MutableLiveData<ArrayList<Any>> = MutableLiveData(arrayListOf())
 
-    private var _songSearchResult: MutableLiveData<Resource<ArrayList<SongsResult>>> = MutableLiveData()
-    val songsSearchResult: LiveData<Resource<ArrayList<SongsResult>>> = _songSearchResult
+    private var _songsSearchResult: MutableLiveData<Resource<ArrayList<SongsResult>>> = MutableLiveData()
+    val songsSearchResult: LiveData<Resource<ArrayList<SongsResult>>> = _songsSearchResult
 
-    private var _artistSearchResult: MutableLiveData<Resource<ArrayList<ArtistsResult>>> = MutableLiveData()
-    val artistsSearchResult: LiveData<Resource<ArrayList<ArtistsResult>>> = _artistSearchResult
+    private var _artistsSearchResult: MutableLiveData<Resource<ArrayList<ArtistsResult>>> = MutableLiveData()
+    val artistsSearchResult: LiveData<Resource<ArrayList<ArtistsResult>>> = _artistsSearchResult
 
-    private var _albumSearchResult: MutableLiveData<Resource<ArrayList<AlbumsResult>>> =
+    private var _albumsSearchResult: MutableLiveData<Resource<ArrayList<AlbumsResult>>> =
         MutableLiveData()
-    val albumsSearchResult: LiveData<Resource<ArrayList<AlbumsResult>>> = _albumSearchResult
+    val albumsSearchResult: LiveData<Resource<ArrayList<AlbumsResult>>> = _albumsSearchResult
 
     private var _playlistSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> =
         MutableLiveData()
@@ -80,12 +78,19 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         MutableLiveData()
     val podcastSearchResult: LiveData<Resource<ArrayList<PlaylistsResult>>> = _podcastSearchResult
 
-    var loading = MutableLiveData<Boolean>()
+    var loading = MutableLiveData<Boolean>(false)
+
+    var searchText = MutableLiveData<String>("")
+    var resultList = MutableLiveData<ArrayList<Any>>(arrayListOf())
+    var suggestList = MutableLiveData<ArrayList<String>>(arrayListOf())
+    var suggestYTItemList = MutableLiveData<ArrayList<YTItem>>(arrayListOf())
+    var searchSubmitted = MutableLiveData<Boolean>(false)
+
+    private val _errorMessage = MutableLiveData<String>()
+    val errorMessage: LiveData<String> get() = _errorMessage
 
     private var _suggestQuery: MutableLiveData<Resource<SearchSuggestions>> = MutableLiveData()
     val suggestQuery: LiveData<Resource<SearchSuggestions>> = _suggestQuery
-
-    var errorMessage = MutableLiveData<String>()
 
     private val _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
     val songEntity: LiveData<SongEntity?> = _songEntity
@@ -100,7 +105,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     fun getSearchHistory() {
         viewModelScope.launch {
-            mainRepository.getSearchHistory().collect{ values ->
+            mainRepository.getSearchHistory().collect { values ->
                 if (values.isNotEmpty()) {
                     values.toQueryList().let { list ->
                         searchHistory.value = list
@@ -123,7 +128,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     }
 
     fun searchSongs(query: String) {
-        if (loading.value == false){
+        if (loading.value == false) {
             loading.value = true
             viewModelScope.launch {
 //                mainRepository.searchSongs(query, "songs", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
@@ -134,8 +139,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 //                    }
 //                }
                 mainRepository.getSearchDataSong(query).collect {
-                    _songSearchResult.value = it
-                    Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
+                    _songsSearchResult.value = it
                     withContext(Dispatchers.Main) {
                         loading.value = false
                     }
@@ -143,49 +147,94 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
             }
         }
     }
+
     fun searchAll(query: String) {
         searchAllResult.value?.clear()
         loading.value = true
         viewModelScope.launch {
+            var song = ArrayList<SongsResult>()
+            val video = ArrayList<VideosResult>()
+            var album = ArrayList<AlbumsResult>()
+            var artist = ArrayList<ArtistsResult>()
+            var playlist = ArrayList<PlaylistsResult>()
+            var featuredPlaylist = ArrayList<PlaylistsResult>()
+            var podcast = ArrayList<PlaylistsResult>()
+            val temp: ArrayList<Any> = ArrayList()
+
             val job1 = launch {
-                mainRepository.getSearchDataSong(query).collect {values ->
-                    _songSearchResult.value = values
-                    Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
+                mainRepository.getSearchDataSong(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> values.data?.let { song = it }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
+                    }
+                    _songsSearchResult.value = values
                 }
             }
             val job2 = launch {
-                mainRepository.getSearchDataArtist(query).collect {values ->
-                    _artistSearchResult.value = values
-                    Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
+                mainRepository.getSearchDataArtist(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> values.data?.let { artist = it }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
+                    }
+                    _artistsSearchResult.value = values
                 }
             }
             val job3 = launch {
-                mainRepository.getSearchDataAlbum(query).collect {values ->
-                    _albumSearchResult.value = values
-                    Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
+                mainRepository.getSearchDataAlbum(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> values.data?.let { album = it }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
+                    }
+                    _albumsSearchResult.value = values
                 }
             }
             val job4 = launch {
-                mainRepository.getSearchDataPlaylist(query).collect {values ->
+                mainRepository.getSearchDataPlaylist(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
+                            values.data?.let { playlist = it }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
+                    }
                     _playlistSearchResult.value = values
-                    Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
                 }
             }
             val job5 = launch {
                 mainRepository.getSearchDataVideo(query).collect { values ->
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
+                            values.data?.let {
+                                video.addAll(it)
+                            }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
+                    }
                     _videoSearchResult.value = values
-                    Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
                 }
             }
             val job6 = launch {
                 mainRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
-                    Log.d("SearchViewModel", "featured: $values")
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "featured: $values")
+                            values.data?.let { featuredPlaylist = it }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
+                    }
                     _featuredPlaylistSearchResult.value = values
                 }
             }
             val job7 = launch {
                 mainRepository.getSearchDataPodcast(query).collect { values ->
-                    Log.d("SearchViewModel", "podcast: ${values.data.toString()}")
+                    when (values) {
+                        is Resource.Success -> {
+                            Log.d("SearchViewModel", "podcast: ${values.data}")
+                            values.data?.let { podcast = it }
+                        }
+                        is Resource.Error -> _errorMessage.postValue(values.message!!)
+                    }
                     _podcastSearchResult.value = values
                 }
             }
@@ -197,27 +246,63 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
             job6.join()
             job7.join()
             withContext(Dispatchers.Main) {
-                loading.value = false
+                try {
+                    if (artist.size >= 3) {
+                        for (i in 0..2) {
+                            temp += artist[i]
+                        }
+                        for (i in 0 until song.size) {
+                            temp += song[i]
+                        }
+                        for (i in 0 until video.size) {
+                            temp += video[i]
+                        }
+                        for (i in 0 until album.size) {
+                            temp += album[i]
+                        }
+                        for (i in 0 until playlist.size) {
+                            temp += playlist[i]
+                        }
+                        for (i in 0 until featuredPlaylist.size) {
+                            temp += featuredPlaylist[i]
+                        }
+                        for (i in 0 until podcast.size) {
+                            temp += podcast[i]
+                        }
+                    } else {
+                        temp.addAll(song)
+                        temp.addAll(video)
+                        temp.addAll(artist)
+                        temp.addAll(album)
+                        temp.addAll(playlist)
+                        temp.addAll(featuredPlaylist)
+                        temp.addAll(podcast)
+                    }
+                } catch (e: Exception) {
+                    _errorMessage.postValue(e.message!!)
+                } finally {
+                    searchAllResult.value = temp
+                    loading.value = false
+                }
             }
         }
     }
-    fun suggestQuery(query: String){
-            viewModelScope.launch {
-                mainRepository.getSuggestQuery(query).collect{ values ->
-                    Log.d("SearchViewModel", "suggestQuery: $values")
-                    _suggestQuery.value = values
-                }
+
+    fun suggestQuery(query: String) {
+        viewModelScope.launch {
+            mainRepository.getSuggestQuery(query).collect { values ->
+                Log.d("SearchViewModel", "suggestQuery: $values")
+                _suggestQuery.value = values
+            }
         }
     }
-
 
     fun searchAlbums(query: String) {
         if (loading.value == false) {
             loading.value = true
             viewModelScope.launch {
                 mainRepository.getSearchDataAlbum(query).collect { values ->
-                    _albumSearchResult.value = values
-                    Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
+                    _albumsSearchResult.value = values
                     withContext(Dispatchers.Main) {
                         loading.value = false
                     }
@@ -234,7 +319,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
                     _featuredPlaylistSearchResult.value = values
                     Log.d(
                         "SearchViewModel",
-                        "searchFeaturedPlaylist: ${_featuredPlaylistSearchResult.value}"
+                        "searchFeaturedPlaylist: ${_featuredPlaylistSearchResult.value}",
                     )
                     withContext(Dispatchers.Main) {
                         loading.value = false
@@ -264,27 +349,30 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
             loading.value = true
             viewModelScope.launch {
                 mainRepository.getSearchDataArtist(query).collect { values ->
-                    _artistSearchResult.value = values
-                    Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
+                    _artistsSearchResult.value = values
                     withContext(Dispatchers.Main) {
                         loading.value = false
+                    }
                 }
-            } }
+            }
         }
     }
 
     fun searchPlaylists(query: String) {
-        if (loading.value == false){
+        if (loading.value == false) {
             loading.value = true
-            viewModelScope.launch { mainRepository.getSearchDataPlaylist(query).collect {values ->
-                _playlistSearchResult.value = values
-                Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
-                withContext(Dispatchers.Main) {
-                    loading.value = false
+            viewModelScope.launch {
+                mainRepository.getSearchDataPlaylist(query).collect { values ->
+                    _playlistSearchResult.value = values
+                    Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
                 }
-            } }
+            }
         }
     }
+
     fun searchVideos(query: String) {
         if (loading.value == false) {
             loading.value = true
@@ -300,12 +388,14 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         }
     }
 
-    fun updateLikeStatus(videoId: String, b: Boolean) {
+    fun updateLikeStatus(
+        videoId: String,
+        b: Boolean,
+    ) {
         viewModelScope.launch {
-            if (b){
+            if (b) {
                 mainRepository.updateLikeStatus(videoId, 1)
-            }
-            else {
+            } else {
                 mainRepository.updateLikeStatus(videoId, 0)
             }
         }
@@ -324,6 +414,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+
     fun getAllLocalPlaylist() {
         viewModelScope.launch {
             mainRepository.getAllLocalPlaylists().collect { values ->
@@ -332,7 +423,10 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         }
     }
 
-    fun updateDownloadState(videoId: String, state: Int) {
+    fun updateDownloadState(
+        videoId: String,
+        state: Int,
+    ) {
         viewModelScope.launch {
             mainRepository.getSongById(videoId).collect { songEntity ->
                 _songEntity.value = songEntity
@@ -346,71 +440,43 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     @UnstableApi
     fun getDownloadStateFromService(videoId: String) {
-        viewModelScope.launch {
-            downloadState = downloadUtils.getDownload(videoId).stateIn(viewModelScope)
-            downloadState.collect { down ->
-                if (down != null) {
-                    when (down.state) {
-                        Download.STATE_COMPLETED -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
-                                }
-                            }
-                            Log.d("Check Downloaded", "Downloaded")
-                        }
-                        Download.STATE_FAILED -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                }
-                            }
-                            Log.d("Check Downloaded", "Failed")
-                        }
-                        Download.STATE_DOWNLOADING -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
-                                }
-                            }
-                            Log.d("Check Downloaded", "Downloading ${down.percentDownloaded}")
-                        }
-                    }
-                }
-            }
-        }
     }
 
-    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+    fun updateLocalPlaylistTracks(
+        list: List<String>,
+        id: Long,
+    ) {
         viewModelScope.launch {
             mainRepository.getSongsByListVideoId(list).collect { values ->
                 var count = 0
                 values.forEach { song ->
-                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
                         count++
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), application.getString (R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
+                Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
-                }
-                else {
+                } else {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
                 }
             }
         }
     }
 
-    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+    fun addToYouTubePlaylist(
+        localPlaylistId: Long,
+        youtubePlaylistId: String,
+        videoId: String,
+    ) {
         viewModelScope.launch {
             mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
             mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
                 if (response == "STATUS_SUCCEEDED") {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
                     Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
-                }
-                else {
+                } else {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
                     Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }

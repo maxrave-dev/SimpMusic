@@ -1,13 +1,17 @@
 package com.maxrave.simpmusic.data.parser
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 fun parseAlbumData(data: AlbumPage): AlbumBrowse {
     val artist: ArrayList<Artist> = arrayListOf()
+    Log.w("AlbumParser", "Parsing album data \n$data")
     data.album.artists?.forEach {
         artist.add(Artist(it.id, it.name))
     }
@@ -15,17 +19,27 @@ fun parseAlbumData(data: AlbumPage): AlbumBrowse {
     data.songs.forEach { songItem ->
         songs.add(
             Track(
-                album = Album(
-                    id = data.album.id,
-                    name = data.album.title
-                ),
-                artists = songItem.artists.map { artistItem ->
-                    Artist(
-                        id = artistItem.id,
-                        name = artistItem.name
-                    )
-                },
-                duration = if (songItem.duration != null) "%02d:%02d".format(songItem.duration!! / 60, songItem.duration!! % 60) else "",
+                album =
+                    Album(
+                        id = data.album.id,
+                        name = data.album.title,
+                    ),
+                artists =
+                    songItem.artists.map { artistItem ->
+                        Artist(
+                            id = artistItem.id,
+                            name = artistItem.name,
+                        )
+                    },
+                duration =
+                    if (songItem.duration != null) {
+                        "%02d:%02d".format(
+                            (songItem.duration ?: 0) / 60,
+                            (songItem.duration ?: 0) % 60,
+                        )
+                    } else {
+                        ""
+                    },
                 durationSeconds = songItem.duration ?: 0,
                 isAvailable = false,
                 isExplicit = songItem.explicit,
@@ -37,8 +51,8 @@ fun parseAlbumData(data: AlbumPage): AlbumBrowse {
                 category = null,
                 feedbackTokens = null,
                 resultType = null,
-                year = data.album.year.toString()
-            )
+                year = data.album.year.toString(),
+            ),
         )
     }
 
@@ -53,6 +67,16 @@ fun parseAlbumData(data: AlbumPage): AlbumBrowse {
         trackCount = songs.size,
         tracks = songs,
         type = "Album",
-        year = data.album.year.toString()
+        year = data.album.year.toString(),
+        otherVersion =
+            data.otherVersion.map {
+                ResultAlbum(
+                    browseId = it.browseId,
+                    isExplicit = it.explicit,
+                    thumbnails = listOf(Thumbnail(800, it.thumbnail, 800)),
+                    title = it.title,
+                    year = data.album.year.toString(),
+                )
+            },
     )
 }

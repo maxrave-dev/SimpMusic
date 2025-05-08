@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.streams
 
-
 import com.google.gson.annotations.SerializedName
 
 data class RelatedStream(
@@ -31,5 +30,5 @@ data class RelatedStream(
     @SerializedName("url")
     val url: String?,
     @SerializedName("views")
-    val views: Any
+    val views: Any,
 )

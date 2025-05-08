@@ -10,6 +10,6 @@ data class LikeBody(
 ) {
     @Serializable
     data class Target(
-        val videoId: String
+        val videoId: String,
     )
 }

@@ -26,5 +26,5 @@ data class ResultVideo(
     @SerializedName("views")
     val views: String?,
     @SerializedName("year")
-    val year: Any
+    val year: Any,
 )

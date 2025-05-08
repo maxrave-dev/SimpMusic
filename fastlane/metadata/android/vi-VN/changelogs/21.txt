@@ -1,0 +1,3 @@
+- Sửa lỗi cập nhật
+- Sửa lỗi trong danh sách phát cục bộ
+- Thêm cảnh báo cho người dùng không đăng nhập

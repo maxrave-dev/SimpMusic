@@ -10,5 +10,5 @@ data class GoogleAccountEntity(
     val name: String = "",
     val thumbnailUrl: String = "",
     val cache: String? = null,
-    val isUsed: Boolean = false
+    val isUsed: Boolean = false,
 )

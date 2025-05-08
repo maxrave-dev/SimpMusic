@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.searchResult.songs
 
-
 import com.google.gson.annotations.SerializedName
 
 data class Thumbnail(
@@ -9,5 +8,5 @@ data class Thumbnail(
     @SerializedName("url")
     val url: String,
     @SerializedName("width")
-    val width: Int
+    val width: Int,
 )

@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.models.simpmusic
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -43,5 +42,5 @@ data class GithubResponse(
     @SerialName("url")
     val url: String?,
     @SerialName("zipball_url")
-    val zipballUrl: String?
+    val zipballUrl: String?,
 )

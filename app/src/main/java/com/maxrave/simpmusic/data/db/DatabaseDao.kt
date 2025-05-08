@@ -6,13 +6,16 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.Transaction
+import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
+import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
@@ -20,6 +23,8 @@ import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
+import com.maxrave.simpmusic.data.type.PlaylistType
+import com.maxrave.simpmusic.data.type.RecentlyType
 import com.maxrave.simpmusic.extension.toSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
@@ -28,14 +33,14 @@ import java.time.LocalDateTime
 interface DatabaseDao {
     // Transaction request with multiple queries
     @Transaction
-    suspend fun getAllRecentData(): List<Any> {
-        val a = mutableListOf<Any>()
+    suspend fun getAllRecentData(): List<RecentlyType> {
+        val a = mutableListOf<RecentlyType>()
         a.addAll(getAllSongs())
         a.addAll(getAllArtists())
         a.addAll(getAllAlbums())
         a.addAll(getAllPlaylists())
         val sortedList =
-            a.sortedWith<Any>(
+            a.sortedWith<RecentlyType>(
                 Comparator { p0, p1 ->
                     val timeP0: LocalDateTime? =
                         when (p0) {
@@ -69,12 +74,12 @@ interface DatabaseDao {
     }
 
     @Transaction
-    suspend fun getAllDownloadedPlaylist(): List<Any> {
-        val a = mutableListOf<Any>()
+    suspend fun getAllDownloadedPlaylist(): List<PlaylistType> {
+        val a = mutableListOf<PlaylistType>()
         a.addAll(getDownloadedAlbums())
         a.addAll(getDownloadedPlaylists())
         val sortedList =
-            a.sortedWith<Any>(
+            a.sortedWith<PlaylistType>(
                 Comparator { p0, p1 ->
                     val timeP0: LocalDateTime? =
                         when (p0) {
@@ -124,13 +129,16 @@ interface DatabaseDao {
     suspend fun getAllSongs(): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE liked = 1")
-    suspend fun getLikedSongs(): List<SongEntity>
+    fun getLikedSongs(): Flow<List<SongEntity>>
 
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL")
     suspend fun getLibrarySongs(): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE videoId = :videoId")
     suspend fun getSong(videoId: String): SongEntity?
+
+    @Query("SELECT * FROM song WHERE videoId = :videoId")
+    fun getSongAsFlow(videoId: String): Flow<SongEntity?>
 
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + 1 WHERE videoId = :videoId")
     suspend fun updateTotalPlayTime(videoId: String)
@@ -139,7 +147,7 @@ interface DatabaseDao {
     suspend fun updateSongInLibrary(
         inLibrary: LocalDateTime,
         videoId: String,
-    )
+    ): Int
 
     @Query("UPDATE song SET liked = :liked WHERE videoId = :videoId")
     suspend fun updateLiked(
@@ -150,8 +158,20 @@ interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSong(song: SongEntity): Long
 
-    @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 20")
-    suspend fun getMostPlayedSongs(): List<SongEntity>
+    @Query("UPDATE song SET canvasUrl = :canvasUrl WHERE videoId = :videoId")
+    suspend fun updateCanvasUrl(
+        videoId: String,
+        canvasUrl: String,
+    )
+
+    @Query("UPDATE song SET thumbnails = :thumbnails WHERE videoId = :videoId")
+    suspend fun updateThumbnailsSongEntity(
+        thumbnails: String,
+        videoId: String,
+    ): Int
+
+    @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 50")
+    fun getMostPlayedSongs(): Flow<List<SongEntity>>
 
     @Query("UPDATE song SET downloadState = :downloadState WHERE videoId = :videoId")
     suspend fun updateDownloadState(
@@ -166,16 +186,28 @@ interface DatabaseDao {
     )
 
     @Query("SELECT * FROM song WHERE downloadState = 3")
-    suspend fun getDownloadedSongs(): List<SongEntity>?
+    suspend fun getDownloadedSongs(): List<SongEntity>
 
-    @Query("SELECT * FROM song WHERE downloadState = 3")
-    fun getDownloadedSongsAsFlow(): Flow<List<SongEntity>?>
+    @Query("SELECT * FROM song WHERE downloadState = 3 LIMIT 1000 OFFSET :offset")
+    fun getDownloadedSongsAsFlow(offset: Int): Flow<List<SongEntity>>
 
     @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
-    suspend fun getDownloadingSongs(): List<SongEntity>?
+    suspend fun getDownloadingSongs(): List<SongEntity>
 
-    @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList)")
-    fun getSongByListVideoId(primaryKeyList: List<String>): List<SongEntity>
+    @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList) LIMIT 1000")
+    suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>): List<SongEntity>
+
+    @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList) LIMIT 50 OFFSET :offset")
+    suspend fun getSongByListVideoId(
+        primaryKeyList: List<String>,
+        offset: Int,
+    ): List<SongEntity>
+
+    @Query("SELECT * FROM song WHERE canvasUrl IS NOT NULL ORDER BY totalPlayTime DESC LIMIT :max")
+    suspend fun getCanvasSong(max: Int): List<SongEntity>
+
+    @Query("SELECT videoId FROM song WHERE videoId IN (:primaryKeyList) AND downloadState = 3")
+    fun getDownloadedVideoIdByListVideoId(primaryKeyList: List<String>): Flow<List<String>>
 
     // Artist
     @Query("SELECT * FROM artist")
@@ -185,10 +217,16 @@ interface DatabaseDao {
     suspend fun getArtist(channelId: String): ArtistEntity
 
     @Query("SELECT * FROM artist WHERE followed = 1")
-    suspend fun getFollowedArtists(): List<ArtistEntity>
+    fun getFollowedArtists(): Flow<List<ArtistEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertArtist(artist: ArtistEntity)
+
+    @Query("UPDATE artist SET thumbnails = :thumbnails WHERE channelId = :channelId")
+    suspend fun updateArtistImage(
+        channelId: String,
+        thumbnails: String,
+    )
 
     @Query("UPDATE artist SET followed = :followed WHERE channelId = :channelId")
     suspend fun updateFollowed(
@@ -207,13 +245,16 @@ interface DatabaseDao {
     suspend fun getAllAlbums(): List<AlbumEntity>
 
     @Query("SELECT * FROM album WHERE browseId = :browseId")
-    suspend fun getAlbum(browseId: String): AlbumEntity
+    suspend fun getAlbum(browseId: String): AlbumEntity?
+
+    @Query("SELECT * FROM album WHERE browseId = :browseId")
+    fun getAlbumAsFlow(browseId: String): Flow<AlbumEntity?>
 
     @Query("SELECT * FROM album WHERE liked = 1")
     suspend fun getLikedAlbums(): List<AlbumEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAlbum(album: AlbumEntity)
+    suspend fun insertAlbum(album: AlbumEntity): Long
 
     @Query("UPDATE album SET liked = :liked WHERE browseId = :browseId")
     suspend fun updateAlbumLiked(
@@ -250,6 +291,9 @@ interface DatabaseDao {
     suspend fun insertPlaylist(playlist: PlaylistEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAndReplacePlaylist(playlist: PlaylistEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRadioPlaylist(playlist: PlaylistEntity)
 
     @Query("UPDATE playlist SET liked = :liked WHERE id = :playlistId")
@@ -278,7 +322,7 @@ interface DatabaseDao {
     suspend fun getAllLocalPlaylists(): List<LocalPlaylistEntity>
 
     @Query("SELECT * FROM local_playlist WHERE id = :id")
-    suspend fun getLocalPlaylist(id: Long): LocalPlaylistEntity
+    suspend fun getLocalPlaylist(id: Long): LocalPlaylistEntity?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertLocalPlaylist(localPlaylist: LocalPlaylistEntity)
@@ -325,17 +369,20 @@ interface DatabaseDao {
         youtubePlaylistId: String?,
     )
 
-    @Query("UPDATE local_playlist SET synced_with_youtube_playlist = :synced WHERE id = :id")
-    suspend fun updateLocalPlaylistYouTubePlaylistSynced(
-        id: Long,
-        synced: Int,
-    )
-
     @Query("UPDATE local_playlist SET youtube_sync_state = :state WHERE id = :id")
     suspend fun updateLocalPlaylistYouTubePlaylistSyncState(
         id: Long,
         state: Int,
     )
+
+    @Query("UPDATE local_playlist SET youtube_sync_state = 0, youtubePlaylistId = NULL WHERE id = :id")
+    suspend fun unsyncLocalPlaylist(id: Long)
+
+    @Query("SELECT downloadState FROM local_playlist WHERE id = :id")
+    fun getDownloadStateFlowOfLocalPlaylist(id: Long): Flow<Int>
+
+    @Query("SELECT tracks FROM local_playlist WHERE id = :id")
+    fun getListTracksFlowOfLocalPlaylist(id: Long): Flow<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLyrics(lyrics: LyricsEntity)
@@ -356,8 +403,14 @@ interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNewFormat(format: NewFormatEntity)
 
+    @Update
+    suspend fun updateNewFormat(format: NewFormatEntity)
+
     @Query("SELECT * FROM new_format WHERE videoId = :videoId")
     suspend fun getNewFormat(videoId: String): NewFormatEntity?
+
+    @Query("SELECT * FROM new_format WHERE videoId = :videoId")
+    fun getNewFormatAsFlow(videoId: String): Flow<NewFormatEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSongInfo(songInfo: SongInfoEntity)
@@ -372,7 +425,7 @@ interface DatabaseDao {
     suspend fun deleteQueue()
 
     @Query("SELECT * FROM queue")
-    suspend fun getQueue(): List<QueueEntity>?
+    suspend fun getQueue(): List<QueueEntity>
 
     @Query("SELECT * FROM local_playlist WHERE youtubePlaylistId = :youtubePlaylistId")
     suspend fun getLocalPlaylistByYoutubePlaylistId(youtubePlaylistId: String): LocalPlaylistEntity?
@@ -388,9 +441,45 @@ interface DatabaseDao {
     suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist)
 
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId")
-    suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
+    suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>
 
-    @Query("DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId")
+    @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position in (:positionList)")
+    suspend fun getPlaylistPairSongByListPosition(
+        playlistId: Long,
+        positionList: List<Int>,
+    ): List<PairSongLocalPlaylist>
+
+    @Query(
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +
+            "ASC LIMIT 50 OFFSET :offset",
+    )
+    suspend fun getPlaylistPairSongByOffsetAsc(
+        playlistId: Long,
+        offset: Int,
+    ): List<PairSongLocalPlaylist>
+
+    @Query(
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position >= :offset ORDER BY position " +
+            "LIMIT 50",
+    )
+    suspend fun getPlaylistPairSongByOffsetDesc(
+        playlistId: Long,
+        offset: Int,
+    ): List<PairSongLocalPlaylist>
+
+    @Query(
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position >= :from AND position < :to ORDER BY position " +
+            "LIMIT 50",
+    )
+    suspend fun getPlaylistPairSongByFromToDesc(
+        playlistId: Long,
+        from: Int,
+        to: Int,
+    ): List<PairSongLocalPlaylist>
+
+    @Query(
+        "DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId",
+    )
     suspend fun deletePairSongLocalPlaylist(
         playlistId: Long,
         videoId: String,
@@ -401,7 +490,7 @@ interface DatabaseDao {
     suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity)
 
     @Query("SELECT * FROM googleaccountentity")
-    suspend fun getAllGoogleAccount(): List<GoogleAccountEntity>?
+    suspend fun getAllGoogleAccount(): List<GoogleAccountEntity>
 
     @Query("SELECT * FROM googleaccountentity WHERE isUsed = 1")
     suspend fun getUsedGoogleAccount(): GoogleAccountEntity?
@@ -410,7 +499,7 @@ interface DatabaseDao {
     suspend fun updateGoogleAccountUsed(
         isUsed: Boolean,
         email: String,
-    )
+    ): Int
 
     @Query("DELETE FROM googleaccountentity WHERE email = :email")
     suspend fun deleteGoogleAccount(email: String)
@@ -420,4 +509,25 @@ interface DatabaseDao {
         videoId: String,
         inLibrary: LocalDateTime,
     )
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum)
+
+    @Query("SELECT * FROM followed_artist_single_and_album WHERE channelId = :channelId")
+    suspend fun getFollowedArtistSingleAndAlbum(channelId: String): FollowedArtistSingleAndAlbum?
+
+    @Query("DELETE FROM followed_artist_single_and_album WHERE channelId = :channelId")
+    suspend fun deleteFollowedArtistSingleAndAlbum(channelId: String)
+
+    @Query("SELECT * FROM followed_artist_single_and_album")
+    suspend fun getAllFollowedArtistSingleAndAlbum(): List<FollowedArtistSingleAndAlbum>
+
+    @Insert
+    suspend fun insertNotification(notificationEntity: NotificationEntity)
+
+    @Query("SELECT * FROM notification")
+    suspend fun getAllNotification(): List<NotificationEntity>
+
+    @Query("DELETE FROM notification WHERE id = :id")
+    suspend fun deleteNotification(id: Long)
 }

@@ -1,32 +1,0 @@
-
-Ukotlin:S1172˜"5Use "_" instead of this unused lambda parameter "cb".(•¼ ù8‰ø¦œ“1
->kotlin:S125Å"Remove this commented out code.(¼û½8—ø¦œ“1
->kotlin:S125È"Remove this commented out code.(±›ÉÜ8˜ø¦œ“1
->kotlin:S125é"Remove this commented out code.(¼û½8™ø¦œ“1
->kotlin:S125ì"Remove this commented out code.(±›ÉÜ8™ø¦œ“1
->kotlin:S125“"Remove this commented out code.(¼û½8šø¦œ“1
->kotlin:S125–"Remove this commented out code.(±›ÉÜ8›ø¦œ“1
->kotlin:S125¾"Remove this commented out code.(­ÃÆ…8›ø¦œ“1
-Ckotlin:S125î"Remove this commented out code.(‘íÃ‰şÿÿÿÿ8œø¦œ“1
->kotlin:S125¼"Remove this commented out code.(¨úòî8ø¦œ“1
-Ckotlin:S125†"Remove this commented out code.(‰®ÙÆùÿÿÿÿ8Ÿø¦œ“1
-Ckotlin:S125ç"Remove this commented out code.(‰®ÙÆùÿÿÿÿ8 ø¦œ“1
-Ckotlin:S125Í"Remove this commented out code.(‰®ÙÆùÿÿÿÿ8¡ø¦œ“1
-akotlin:S1144Ù"ARemove this unused private "observerMetadataAndLoadMedia" method.(ƒŞ¢Ó8¿ø¦œ“1
-Ukotlin:S1144­"5Remove this unused private "observerMetadata" method.(€Íà8Âø¦œ“1
-skotlin:S1192‡"UDefine a constant instead of duplicating this literal "Now Playing Fragment" 5 times.(Íœµøúÿÿÿÿ
-ikotlin:S1192‡"KDefine a constant instead of duplicating this literal "BÃªn trÃªn" 4 times.(Íœµøúÿÿÿÿ
-kkotlin:S1192ñ"KDefine a constant instead of duplicating this literal "Update UI" 11 times.(êÀ°ğ8‚Ö­œ“1
-jkotlin:S1192ü"JDefine a constant instead of duplicating this literal "onStart: " 3 times.(¯•÷‹8‚Ö­œ“1
-qkotlin:S1192‚"LDefine a constant instead of duplicating this literal "onSuccess: " 3 times.(¹¼á”øÿÿÿÿ8‚Ö­œ“1
-tkotlin:S1192‘"ODefine a constant instead of duplicating this literal "updateUI: NULL" 3 times.(úù—üÿÿÿÿ8‚Ö­œ“1
-wkotlin:S1192"RDefine a constant instead of duplicating this literal "Check Start Color" 6 times.(¿Ğª‹ùÿÿÿÿ8‚Ö­œ“1
-kkotlin:S1871ÿ"MThis branch's code block is the same as the block for the branch on line 213.(¾ú÷ ûÿÿÿÿ
-Hkotlin:S1874¨"#Deprecated code should not be used.(Ğ÷…øüÿÿÿÿ8ˆÖ­œ“1
-Ckotlin:S1874©"#Deprecated code should not be used.(ˆó¦8ˆÖ­œ“1
-kkotlin:S3776k"SRefactor this method to reduce its Cognitive Complexity from 156 to the 15 allowed.(ëü«
-wkotlin:S3776ê"RRefactor this method to reduce its Cognitive Complexity from 36 to the 15 allowed.(”—¯½ıÿÿÿÿ8ŠÖ­œ“1
-wkotlin:S3776Ó"RRefactor this method to reduce its Cognitive Complexity from 23 to the 15 allowed.(Ö„ºÛşÿÿÿÿ8‹Ö­œ“1
-qkotlin:S3776º"RRefactor this method to reduce its Cognitive Complexity from 25 to the 15 allowed.(Ğê’O8‹Ö­œ“1
-kotlin:S1186ö"ZAdd a nested comment explaining why this function is empty or complete the implementation.(´´ Éûÿÿÿÿ8“Ö­œ“1
-Nkotlin:S1066¶".Merge this "if" statement with the nested one.(Éƒ×€8”Ö­œ“1

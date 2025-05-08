@@ -1,0 +1,7 @@
+- Sửa lỗi "Hết thời gian, vui lòng kiểm tra kết nối internet" (cảm ơn yuliskov/SmartTube)
+- Hiệu ứng làm mờ khi chuyển bài hát
+- Giao diện Playlist mới (cuộn trang, radio, chế độ ngẫu nhiên, v.v.)
+- Sửa vị trí của phần "Single" và "Album" trong màn hình Artist
+- Sửa lỗi Spotify Canvas
+- Cải thiện trình phát thu nhỏ
+- Cập nhật bản dịch (mới tiếng فارسی và tiếng català)

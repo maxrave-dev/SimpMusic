@@ -1,311 +1,295 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.graphics.drawable.GradientDrawable
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.Download
+import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.db.entities.AlbumEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
+import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.simpmusic.extension.toAlbumEntity
+import com.maxrave.simpmusic.extension.toArrayListTrack
+import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import javax.inject.Inject
+import org.koin.core.component.inject
+import java.time.LocalDateTime
 
-@HiltViewModel
-class AlbumViewModel @Inject constructor(
-    private var dataStoreManager: DataStoreManager,
-    private val mainRepository: MainRepository,
-    application: Application
-): AndroidViewModel(application) {
-    @Inject
-    lateinit var downloadUtils: DownloadUtils
+@UnstableApi
+class AlbumViewModel(
+    private val application: Application,
+) : BaseViewModel(application) {
+    private val downloadUtils: DownloadUtils by inject()
+    private val _uiState: MutableStateFlow<AlbumUIState> = MutableStateFlow(AlbumUIState.initial())
+    val uiState: StateFlow<AlbumUIState> = _uiState
 
-    var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
-    private var _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    var loading: MutableStateFlow<Boolean> = _loading
+    private var job: Job? = null
+    private var collectDownloadStateJob: Job? = null
 
-    private var _albumBrowse: MutableStateFlow<Resource<AlbumBrowse>?> = MutableStateFlow(null)
-    val albumBrowse: StateFlow<Resource<AlbumBrowse>?> = _albumBrowse
-
-    private var _browseId: MutableStateFlow<String?> = MutableStateFlow(null)
-    val browseId: StateFlow<String?> = _browseId
-
-    private var _albumEntity: MutableStateFlow<AlbumEntity?> = MutableStateFlow(null)
-    val albumEntity: StateFlow<AlbumEntity?> = _albumEntity
-
-    private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    var liked: MutableStateFlow<Boolean> = _liked
-    private var regionCode: String? = null
-    private var language: String? = null
-
-    init {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-    }
-
-    fun updateBrowseId(browseId: String){
-        _browseId.value = browseId
-    }
-    fun browseAlbum(browseId: String){
-        loading.value = true
+    fun updateBrowseId(browseId: String) {
         viewModelScope.launch {
-            mainRepository.getAlbumData(browseId).collect { values ->
-                _albumBrowse.value = values
-            }
-            withContext(Dispatchers.Main){
-                loading.value = false
-            }
-        }
-    }
-
-    fun insertAlbum(albumEntity: AlbumEntity){
-        viewModelScope.launch {
-            mainRepository.insertAlbum(albumEntity)
-            mainRepository.getAlbum(albumEntity.browseId).collect{ values ->
-                _liked.value = values.liked
-                val list = values.tracks
-                var count = 0
-                list?.forEach { track ->
-                    mainRepository.getSongById(track).collect { song ->
-                        if (song != null) {
-                            if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                count++
+            _uiState.update { it.copy(browseId = browseId) }
+            mainRepository.getAlbumData(browseId).collectLatest { res ->
+                when (res) {
+                    is Resource.Success -> {
+                        val data = res.data
+                        if (data != null) {
+                            _uiState.update {
+                                it.copy(
+                                    browseId = browseId,
+                                    title = data.title,
+                                    thumbnail = data.thumbnails?.lastOrNull()?.url,
+                                    artist =
+                                        data.artists.firstOrNull() ?: Artist(
+                                            id = null,
+                                            name = "",
+                                        ),
+                                    year = data.year ?: LocalDateTime.now().year.toString(),
+                                    trackCount = data.trackCount,
+                                    description = data.description,
+                                    length = data.duration ?: "",
+                                    listTrack = data.tracks,
+                                    otherVersion = data.otherVersion,
+                                    loadState = LocalPlaylistState.PlaylistLoadState.Success,
+                                )
+                            }
+                            mainRepository.getAlbum(browseId).singleOrNull().let { album ->
+                                if (album != null) {
+                                    _uiState.update {
+                                        it.copy(
+                                            downloadState = album.downloadState,
+                                            liked = album.liked,
+                                        )
+                                    }
+                                    mainRepository.updateAlbumInLibrary(LocalDateTime.now(), browseId)
+                                } else {
+                                    mainRepository.insertAlbum(data.toAlbumEntity(browseId)).singleOrNull().let {
+                                        log("Insert Album $it", Log.DEBUG)
+                                        data.tracks.forEach { track ->
+                                            mainRepository.insertSong(track.toSongEntity().copy(
+                                                inLibrary = Config.REMOVED_SONG_DATE_TIME
+                                            )).singleOrNull()?.let {
+                                                log("Insert Song $it", Log.DEBUG)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            getAlbumFlow(browseId)
+                        } else {
+                            makeToast(getString(R.string.error) + ": Null data")
+                            _uiState.update {
+                                it.copy(
+                                    loadState = LocalPlaylistState.PlaylistLoadState.Error,
+                                )
+                            }
+                        }
+                    }
+                    is Resource.Error -> {
+                        mainRepository.getAlbum(browseId).singleOrNull().let { albumEntity ->
+                            if (albumEntity != null) {
+                                _uiState.update {
+                                    it.copy(
+                                        browseId = browseId,
+                                        title = albumEntity.title,
+                                        thumbnail = albumEntity.thumbnails,
+                                        artist =
+                                            Artist(
+                                                id = albumEntity.artistId?.firstOrNull(),
+                                                name = albumEntity.artistName?.firstOrNull() ?: "",
+                                            ),
+                                        year = albumEntity.year ?: LocalDateTime.now().year.toString(),
+                                        trackCount = albumEntity.trackCount,
+                                        description = albumEntity.description,
+                                        length = albumEntity.duration ?: "",
+                                        listTrack =
+                                            (
+                                                mainRepository
+                                                    .getSongsByListVideoId(albumEntity.tracks ?: emptyList())
+                                                    .singleOrNull() ?: emptyList()
+                                            ).toArrayListTrack(),
+                                        loadState = LocalPlaylistState.PlaylistLoadState.Success,
+                                    )
+                                }
+                            } else {
+                                log("Error: ${res.message}", Log.ERROR)
+                                makeToast(getString(R.string.error) + ": ${res.message}")
+                                _uiState.update {
+                                    it.copy(
+                                        loadState = LocalPlaylistState.PlaylistLoadState.Error,
+                                    )
+                                }
                             }
                         }
                     }
                 }
-                if (count == list?.size) {
-                    updateAlbumDownloadState(albumEntity.browseId, DownloadState.STATE_DOWNLOADED)
-                }
-                else {
-                    updateAlbumDownloadState(albumEntity.browseId, DownloadState.STATE_NOT_DOWNLOADED)
-                }
-                mainRepository.getAlbum(albumEntity.browseId).collect { album ->
-                    _albumEntity.value = values
-                }
             }
         }
     }
 
-    fun getAlbum(browseId: String){
+    fun setBrush(brush: List<Color>) {
+        _uiState.update {
+            it.copy(
+                colors = brush,
+            )
+        }
+    }
+
+    fun setAlbumLike() {
         viewModelScope.launch {
-            mainRepository.getAlbum(browseId).collect{ values ->
-                _liked.value = values.liked
-                val list = values.tracks
-                var count = 0
-                list?.forEach { track ->
-                    mainRepository.getSongById(track).collect { song ->
-                        if (song != null) {
-                            if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                count++
-                            }
+            mainRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0)
+            _uiState.update {
+                it.copy(
+                    liked = !it.liked,
+                )
+            }
+        }
+    }
+
+    private fun getAlbumFlow(browseId: String) {
+        job?.cancel()
+        collectDownloadStateJob?.cancel()
+        job =
+            viewModelScope.launch {
+                mainRepository.getAlbumAsFlow(browseId).collectLatest { album ->
+                    if (album != null) {
+                        _uiState.update {
+                            it.copy(
+                                downloadState = album.downloadState,
+                                liked = album.liked,
+                            )
                         }
                     }
                 }
-                if (count == list?.size) {
-                    updateAlbumDownloadState(browseId, DownloadState.STATE_DOWNLOADED)
-                }
-                else {
-                    updateAlbumDownloadState(browseId, DownloadState.STATE_NOT_DOWNLOADED)
-                }
-                mainRepository.getAlbum(browseId).collect { album ->
-                    _albumEntity.value = album
-                }
             }
-        }
-    }
-
-    fun updateAlbumLiked(liked: Boolean, browseId: String){
-        viewModelScope.launch {
-            val tempLiked = if(liked) 1 else 0
-            mainRepository.updateAlbumLiked(browseId, tempLiked)
-            mainRepository.getAlbum(browseId).collect{ values ->
-                _albumEntity.value = values
-                _liked.value = values.liked
-            }
-        }
-    }
-    val albumDownloadState: MutableStateFlow<Int> = MutableStateFlow(DownloadState.STATE_NOT_DOWNLOADED)
-
-
-    private fun updateAlbumDownloadState(browseId: String, state: Int) {
-        viewModelScope.launch {
-            mainRepository.getAlbum(browseId).collect { album ->
-                _albumEntity.value = album
-                mainRepository.updateAlbumDownloadState(browseId, state)
-                albumDownloadState.value = state
-            }
-        }
-    }
-
-    fun checkAllSongDownloaded(list: ArrayList<Track>) {
-        viewModelScope.launch {
-            var count = 0
-            list.forEach { track ->
-                mainRepository.getSongById(track.videoId).collect { song ->
-                    if (song != null) {
-                        if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
+        collectDownloadStateJob =
+            viewModelScope.launch {
+                downloadUtils.downloadTask.collectLatest { downloadTask ->
+                    var count = 0
+                    uiState.value.listTrack.forEach { track ->
+                        if (downloadTask.get(track.videoId) == DownloadState.STATE_DOWNLOADED) {
                             count++
                         }
                     }
-                }
-            }
-            if (count == list.size) {
-                updateAlbumDownloadState(browseId.value!!, DownloadState.STATE_DOWNLOADED)
-            }
-            mainRepository.getAlbum(browseId.value!!).collect { album ->
-                if (albumEntity.value?.downloadState != album.downloadState) {
-                    _albumEntity.value = album
-                }
-            }
-        }
-    }
-    val listJob: MutableStateFlow<ArrayList<SongEntity>> = MutableStateFlow(arrayListOf())
-
-    fun updatePlaylistDownloadState(id: String, state: Int) {
-        viewModelScope.launch {
-            mainRepository.getAlbum(id).collect { playlist ->
-                _albumEntity.value = playlist
-                mainRepository.updateAlbumDownloadState(id, state)
-                albumDownloadState.value = state
-            }
-        }
-    }
-    fun updateDownloadState(videoId: String, state: Int) {
-        viewModelScope.launch {
-            mainRepository.updateDownloadState(videoId, state)
-        }
-    }
-
-    @UnstableApi
-    fun getDownloadStateFromService(videoId: String) {
-        viewModelScope.launch {
-            val downloadState = downloadUtils.getDownload(videoId).stateIn(viewModelScope)
-            downloadState.collect { down ->
-                if (down != null) {
-                    when (down.state) {
-                        Download.STATE_COMPLETED -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
-                                }
-                            }
-                        }
-                        Download.STATE_FAILED -> {
-                            mainRepository.getSongById(videoId).collect {song ->
-                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                }
-                            }
-                        }
-                        Download.STATE_DOWNLOADING -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
-                                }
-                            }
-                        }
-                        Download.STATE_QUEUED -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                }
-                            }
-                        }
-
-                        else -> {
-                            Log.d("Check Downloaded", "Not Downloaded")
+                    if (count == uiState.value.listTrack.size) {
+                        mainRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADED)
+                        _uiState.update {
+                            it.copy(
+                                downloadState = DownloadState.STATE_DOWNLOADED,
+                            )
                         }
                     }
                 }
             }
-        }
     }
 
-    private var _listTrack: MutableStateFlow<List<SongEntity>?> = MutableStateFlow(null)
-    var listTrack: StateFlow<List<SongEntity>?> = _listTrack
+    fun playTrack(track: Track) {
+        setQueueData(
+            QueueData(
+                listTracks = uiState.value.listTrack.toCollection(ArrayList()),
+                firstPlayedTrack = track,
+                playlistId = uiState.value.browseId.replaceFirst("VL", ""),
+                playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
+                playlistType = PlaylistType.PLAYLIST,
+                continuation = null,
+            ),
+        )
+        val index = uiState.value.listTrack.indexOf(track)
+        loadMediaItem(track, Config.ALBUM_CLICK, if (index == -1) 0 else index)
+    }
 
-    fun getListTrack(tracks: List<String>?) {
+    fun shuffle() {
+        if (uiState.value.listTrack.isEmpty()) {
+            makeToast(getString(R.string.playlist_is_empty))
+            return
+        }
+        val shuffleList = uiState.value.listTrack.shuffled()
+        val randomIndex = shuffleList.indices.random()
+        setQueueData(
+            QueueData(
+                listTracks = shuffleList.toCollection(ArrayList()),
+                firstPlayedTrack = shuffleList[randomIndex],
+                playlistId = uiState.value.browseId.replaceFirst("VL", ""),
+                playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
+                playlistType = PlaylistType.PLAYLIST,
+                continuation = null,
+            ),
+        )
+        loadMediaItem(shuffleList[randomIndex], Config.ALBUM_CLICK, randomIndex)
+    }
+
+    fun downloadFullAlbum() {
         viewModelScope.launch {
-            mainRepository.getSongsByListVideoId(tracks!!).collect { values ->
-                _listTrack.value = values
+            // Insert all song to database
+            uiState.value.listTrack.forEach { track ->
+                mainRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
+                    log("Insert Song $it", Log.DEBUG)
+                }
+            }
+            val fullListSong =
+                mainRepository
+                    .getSongsByListVideoId(uiState.value.listTrack.map { it.videoId })
+                    .singleOrNull() ?: emptyList()
+            log("Full list song: $fullListSong", Log.DEBUG)
+            if (fullListSong.isEmpty()) {
+                makeToast(getString(R.string.playlist_is_empty))
+                return@launch
+            }
+            val listJob = fullListSong.filter { it.downloadState != DownloadState.STATE_DOWNLOADED }
+            log("List job: $listJob", Log.DEBUG)
+            if (listJob.isEmpty()) {
+                makeToast(getString(R.string.downloaded))
+                return@launch
+            }
+            mainRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADING)
+            listJob.forEach {
+                log("Download: ${it.videoId} ${it.thumbnails}", Log.DEBUG)
+                downloadUtils.downloadTrack(
+                    it.videoId,
+                    it.title,
+                    it.thumbnails ?: "",
+                )
             }
         }
     }
+}
 
-    private var _listTrackForDownload: MutableStateFlow<List<SongEntity>?> = MutableStateFlow(null)
-    var listTrackForDownload: StateFlow<List<SongEntity>?> = _listTrackForDownload
-
-    fun getListTrackForDownload(tracks: List<String>?) {
-        viewModelScope.launch {
-            mainRepository.getSongsByListVideoId(tracks!!).collect { values ->
-                _listTrackForDownload.value = values
-            }
-        }
-    }
-
-    fun clearAlbumBrowse() {
-        _albumBrowse.value = null
-        _albumEntity.value = null
-    }
-
-    fun getLocation() {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-    }
-
-    fun insertSong(songEntity: SongEntity) {
-        viewModelScope.launch {
-            mainRepository.insertSong(songEntity).collect {
-                println("Insert Song $it")
-            }
-        }
-    }
-
-    @UnstableApi
-    fun downloadFullAlbumState(browseId: String) {
-        viewModelScope.launch {
-            downloadUtils.downloads.collect { download ->
-                albumDownloadState.value =
-                    if (listJob.value.all { download[it.videoId]?.state == Download.STATE_COMPLETED }) {
-                        mainRepository.updateAlbumDownloadState(
-                            browseId,
-                            DownloadState.STATE_DOWNLOADED
-                        )
-                        DownloadState.STATE_DOWNLOADED
-                    } else if (listJob.value.all {
-                            download[it.videoId]?.state == Download.STATE_QUEUED
-                                    || download[it.videoId]?.state == Download.STATE_DOWNLOADING
-                                    || download[it.videoId]?.state == Download.STATE_COMPLETED
-                        }) {
-                        mainRepository.updateAlbumDownloadState(
-                            browseId,
-                            DownloadState.STATE_DOWNLOADING
-                        )
-                        DownloadState.STATE_DOWNLOADING
-                    } else {
-                        mainRepository.updateAlbumDownloadState(browseId, DownloadState.STATE_NOT_DOWNLOADED)
-                        DownloadState.STATE_NOT_DOWNLOADED
-                    }
-            }
-        }
+data class AlbumUIState(
+    val browseId: String = "",
+    val title: String = "",
+    val thumbnail: String? = null,
+    val colors: List<Color> = listOf(Color.Black, md_theme_dark_background),
+    val artist: Artist =
+        Artist(
+            id = null,
+            name = "",
+        ),
+    val year: String = LocalDateTime.now().year.toString(),
+    val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
+    val liked: Boolean = false,
+    val trackCount: Int = 0,
+    val description: String? = null,
+    val length: String = "",
+    val listTrack: List<Track> = emptyList(),
+    val otherVersion: List<ResultAlbum> = emptyList(),
+    val loadState: LocalPlaylistState.PlaylistLoadState = LocalPlaylistState.PlaylistLoadState.Loading,
+) {
+    companion object {
+        fun initial(): AlbumUIState = AlbumUIState()
     }
 }

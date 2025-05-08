@@ -28,6 +28,7 @@ fun List<Run>.splitBySeparator(): List<List<Run>> {
     return res
 }
 
-fun List<Run>.oddElements() = filterIndexed { index, _ ->
-    index % 2 == 0
-}
+fun List<Run>.oddElements() =
+    filterIndexed { index, _ ->
+        index % 2 == 0
+    }

@@ -11,5 +11,4 @@ data class SongInfo(
     val viewCount: Int? = null,
     val like: Int? = null,
     val dislike: Int? = null,
-) {
-}
+)

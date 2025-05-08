@@ -1,0 +1,7 @@
+- Giao diện lời bài hát toàn màn hình mới
+- Chơi nhạc nền mà không cần mở ứng dụng
+- Bộ lọc trang chủ
+- Tùy chọn thay đổi nền của thanh điều hướng dưới cùng
+- Cải thiện giao diện người dùng trên một số màn hình
+- Sửa một số lỗi do thay đổi API của YouTube
+- Sửa lỗi danh sách phát cục bộ

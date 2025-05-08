@@ -29,14 +29,38 @@ data class MusicResponsiveListItemRenderer(
     val isSong: Boolean
         get() = navigationEndpoint == null || navigationEndpoint.watchEndpoint != null || navigationEndpoint.watchPlaylistEndpoint != null
     val isVideo: Boolean
-        get() = navigationEndpoint?.watchEndpoint?.watchEndpointMusicSupportedConfigs?.watchEndpointMusicConfig?.musicVideoType != null
+        get() =
+            navigationEndpoint
+                ?.watchEndpoint
+                ?.watchEndpointMusicSupportedConfigs
+                ?.watchEndpointMusicConfig
+                ?.musicVideoType != null
     val isPlaylist: Boolean
-        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_PLAYLIST
+        get() =
+            navigationEndpoint
+                ?.browseEndpoint
+                ?.browseEndpointContextSupportedConfigs
+                ?.browseEndpointContextMusicConfig
+                ?.pageType == MUSIC_PAGE_TYPE_PLAYLIST
     val isAlbum: Boolean
-        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_ALBUM ||
-                navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_AUDIOBOOK
+        get() =
+            navigationEndpoint
+                ?.browseEndpoint
+                ?.browseEndpointContextSupportedConfigs
+                ?.browseEndpointContextMusicConfig
+                ?.pageType == MUSIC_PAGE_TYPE_ALBUM ||
+                navigationEndpoint
+                    ?.browseEndpoint
+                    ?.browseEndpointContextSupportedConfigs
+                    ?.browseEndpointContextMusicConfig
+                    ?.pageType == MUSIC_PAGE_TYPE_AUDIOBOOK
     val isArtist: Boolean
-        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_ARTIST
+        get() =
+            navigationEndpoint
+                ?.browseEndpoint
+                ?.browseEndpointContextSupportedConfigs
+                ?.browseEndpointContextMusicConfig
+                ?.pageType == MUSIC_PAGE_TYPE_ARTIST
 
     @Serializable
     data class FlexColumn(
@@ -46,7 +70,57 @@ data class MusicResponsiveListItemRenderer(
         @Serializable
         data class MusicResponsiveListItemFlexColumnRenderer(
             val text: Runs?,
-        )
+        ) {
+            fun toAlbum(): Album? {
+                val run = text?.runs?.firstOrNull()
+                if (run != null && isAlbum()) {
+                    return Album(
+                        name = run.text,
+                        id = run.navigationEndpoint?.browseEndpoint?.browseId ?: return null,
+                    )
+                }
+                return null
+            }
+
+            fun toArtist(): Artist? {
+                val run = text?.runs?.firstOrNull()
+                if (run != null && isArtist()) {
+                    return Artist(
+                        name = run.text,
+                        id = run.navigationEndpoint?.browseEndpoint?.browseId ?: "",
+                    )
+                }
+                return null
+            }
+
+            fun isAlbum(): Boolean =
+                text
+                    ?.runs
+                    ?.firstOrNull()
+                    ?.navigationEndpoint
+                    ?.browseEndpoint
+                    ?.isAlbumEndpoint == true
+
+            fun isArtist(): Boolean =
+                text
+                    ?.runs
+                    ?.firstOrNull()
+                    ?.navigationEndpoint
+                    ?.browseEndpoint
+                    ?.isArtistEndpoint == true ||
+                    (
+                        text
+                            ?.runs
+                            ?.firstOrNull()
+                            ?.navigationEndpoint
+                            ?.watchEndpoint == null &&
+                            text
+                                ?.runs
+                                ?.firstOrNull()
+                                ?.navigationEndpoint
+                                ?.browseEndpoint == null
+                    )
+        }
     }
 
     @Serializable

@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.searchResult.artists
 
-
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
@@ -18,5 +17,5 @@ data class ArtistsResult(
     @SerializedName("shuffleId")
     val shuffleId: String,
     @SerializedName("thumbnails")
-    val thumbnails: List<Thumbnail>
+    val thumbnails: List<Thumbnail>,
 )

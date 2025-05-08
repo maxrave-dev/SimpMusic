@@ -1,7 +1,9 @@
 package com.maxrave.simpmusic.data.db.entities
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDateTime
 
 @Entity(tableName = "new_format")
 data class NewFormatEntity(
@@ -17,5 +19,7 @@ data class NewFormatEntity(
     val playbackTrackingVideostatsPlaybackUrl: String?,
     val playbackTrackingAtrUrl: String?,
     val playbackTrackingVideostatsWatchtimeUrl: String?,
+    @ColumnInfo(name = "expired_time", defaultValue = "0")
+    val expiredTime: LocalDateTime = LocalDateTime.now(),
     val cpn: String?,
 )

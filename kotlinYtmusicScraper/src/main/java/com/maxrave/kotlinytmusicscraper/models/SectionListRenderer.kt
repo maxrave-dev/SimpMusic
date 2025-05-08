@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.models
 
+import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
@@ -24,7 +25,7 @@ data class SectionListRenderer(
             ) {
                 @Serializable
                 data class ChipCloudChipRenderer(
-                    val isSelected: Boolean,
+                    val isSelected: Boolean? = null,
                     val navigationEndpoint: NavigationEndpoint,
                     // The close button doesn't have the following two fields
                     val text: Runs?,
@@ -44,6 +45,7 @@ data class SectionListRenderer(
         val musicPlaylistShelfRenderer: MusicPlaylistShelfRenderer?,
         val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
         val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?,
+        val musicEditablePlaylistDetailHeaderRenderer: BrowseResponse.Header.MusicEditablePlaylistDetailHeaderRenderer?,
         val gridRenderer: GridRenderer?,
     ) {
         @Serializable
@@ -51,9 +53,70 @@ data class SectionListRenderer(
             val description: Description?,
             val straplineTextOne: StraplineTextOne?,
             val straplineThumbnail: StraplineThumbnail?,
+            val subtitle: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer.Subtitle?,
             val thumbnail: ThumbnailRenderer?,
             val title: Title?,
+            val secondSubtitle: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer.Subtitle?,
+            val facepile: Facepile?,
+            val buttons: List<Button>?,
         ) {
+            @Serializable
+            data class Facepile(
+                val avatarStackViewModel: AvatarStackViewModel?,
+            ) {
+                @Serializable
+                data class AvatarStackViewModel(
+                    val avatars: List<Avatar>?,
+                    val rendererContext: RendererContext?,
+                    val text: Text?,
+                ) {
+                    @Serializable
+                    data class Text(
+                        val content: String?,
+                    )
+
+                    @Serializable
+                    data class RendererContext(
+                        val commandContext: CommandContext?,
+                    ) {
+                        @Serializable
+                        data class CommandContext(
+                            val onTap: OnTap?,
+                        ) {
+                            @Serializable
+                            data class OnTap(
+                                val innertubeCommand: InnertubeCommand?,
+                            ) {
+                                @Serializable
+                                data class InnertubeCommand(
+                                    val browseEndpoint: BrowseEndpoint?,
+                                )
+                            }
+                        }
+                    }
+
+                    @Serializable
+                    data class Avatar(
+                        val avatarViewModel: AvatarViewModel?,
+                    ) {
+                        @Serializable
+                        data class AvatarViewModel(
+                            val image: Image?,
+                        ) {
+                            @Serializable
+                            data class Image(
+                                val sources: List<Source>?,
+                            ) {
+                                @Serializable
+                                data class Source(
+                                    val url: String?,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             @Serializable
             data class Description(
                 val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
