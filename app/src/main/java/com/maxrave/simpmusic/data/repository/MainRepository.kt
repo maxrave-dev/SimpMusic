@@ -371,6 +371,13 @@ class MainRepository(
         localDataSource.updateCanvasUrl(videoId, canvasUrl)
     }
 
+    suspend fun updateCanvasThumbUrl(
+        videoId: String,
+        canvasThumbUrl: String,
+    ) = withContext(Dispatchers.IO) {
+        localDataSource.updateCanvasThumbUrl(videoId, canvasThumbUrl)
+    }
+
     suspend fun updateLikeStatus(
         videoId: String,
         likeStatus: Int,
@@ -2217,7 +2224,7 @@ class MainRepository(
             }
         }
 
-    suspend fun getCanvas(
+    fun getCanvas(
         videoId: String,
         duration: Int,
     ): Flow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> =
@@ -2889,7 +2896,7 @@ class MainRepository(
     }
 
     @UnstableApi
-    suspend fun getStream(
+    fun getStream(
         videoId: String,
         isVideo: Boolean,
     ): Flow<String?> =
@@ -2926,20 +2933,19 @@ class MainRepository(
                     )
 
                     Log.w("Stream", "Get stream for video $isVideo")
+                    val videoFormat = response.streamingData?.formats?.find { it.itag == videoItag }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
+                        ?: response.streamingData?.formats?.find { it.itag == 136 }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
+                        ?: response.streamingData?.formats?.find { it.itag == 134 }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
+                    val audioFormat = response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == itag }
                     var format =
                         if (isVideo) {
-                            response.streamingData?.formats?.find { it.itag == videoItag }
-                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
-                                ?: response.streamingData?.formats?.find { it.itag == 136 }
-                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
-                                ?: response.streamingData?.formats?.find { it.itag == 134 }
-                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
+                            videoFormat
                         } else {
-                            if (response.streamingData?.adaptiveFormats?.find { it.itag == 141 } != null) {
-                                response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
-                            } else {
-                                response.streamingData?.adaptiveFormats?.find { it.itag == itag }
-                            }
+                            audioFormat
                         }
                     if (format == null) {
                         format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
@@ -3006,6 +3012,8 @@ class MainRepository(
                                     ),
                                 cpn = data.first,
                                 expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
+                                audioUrl = superFormat?.url ?: audioFormat?.url,
+                                videoUrl = videoFormat?.url
                             ),
                         )
                     }

@@ -81,7 +81,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
@@ -477,6 +476,16 @@ class SharedViewModel(
                                 ?.contains(".mp4") == true
                         ) {
                             mainRepository.updateCanvasUrl(videoId, response.canvases.first().canvas_url)
+                        }
+                        val canvasThumbs = response.canvases.firstOrNull()?.thumbsOfCanva
+                        if (!canvasThumbs.isNullOrEmpty()) {
+                            (canvasThumbs.let {
+                                it.maxByOrNull {
+                                    (it.height ?: 0) + (it.width ?: 0)
+                                }?.url
+                            } ?: canvasThumbs.first().url)?.let { thumb ->
+                                mainRepository.updateCanvasThumbUrl(videoId, thumb)
+                            }
                         }
                     } else {
                         nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->

@@ -1510,7 +1510,13 @@ class SimpleMediaServiceHandler(
                 setNotificationLayout?.invoke(
                     listOf(
                         CommandButton
-                            .Builder()
+                            .Builder(
+                                if (liked) {
+                                    CommandButton.ICON_HEART_FILLED
+                                } else {
+                                    CommandButton.ICON_HEART_UNFILLED
+                                }
+                            )
                             .setDisplayName(
                                 if (liked) {
                                     context.getString(R.string.liked)
@@ -1519,11 +1525,18 @@ class SimpleMediaServiceHandler(
                                         R.string.like,
                                     )
                                 },
-                            ).setIconResId(if (liked) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
-                            .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
+                            ).setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
                             .build(),
                         CommandButton
-                            .Builder()
+                            .Builder(
+                                when (player.repeatMode) {
+                                    Player.REPEAT_MODE_ONE -> CommandButton.ICON_REPEAT_ONE
+
+                                    Player.REPEAT_MODE_ALL -> CommandButton.ICON_REPEAT_ALL
+
+                                    else -> CommandButton.ICON_REPEAT_OFF
+                                }
+                            )
                             .setDisplayName(
                                 when (player.repeatMode) {
                                     Player.REPEAT_MODE_ONE -> context.getString(R.string.repeat_one)
@@ -1537,12 +1550,6 @@ class SimpleMediaServiceHandler(
                                     MEDIA_CUSTOM_COMMAND.REPEAT,
                                     Bundle(),
                                 ),
-                            ).setIconResId(
-                                when (player.repeatMode) {
-                                    Player.REPEAT_MODE_ONE -> R.drawable.baseline_repeat_one_24
-                                    Player.REPEAT_MODE_ALL -> R.drawable.repeat_on
-                                    else -> R.drawable.baseline_repeat_24_enable
-                                },
                             ).build(),
                     ),
                 )
@@ -1552,16 +1559,6 @@ class SimpleMediaServiceHandler(
     fun getPlayerDuration(): Long = player.duration
 
     fun getProgress(): Long = player.currentPosition
-
-//    fun changeAddedState() {
-//        added.value = false
-//    }
-//
-//    fun addFirstMetadata(it: Track) {
-//        added.value = true
-//        catalogMetadata.add(0, it)
-//        Log.d("MusicSource", "addFirstMetadata: ${it.title}, ${catalogMetadata.size}")
-//    }
 
     @UnstableApi
     suspend fun moveItemUp(position: Int) {

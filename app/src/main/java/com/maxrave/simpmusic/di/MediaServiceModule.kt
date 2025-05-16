@@ -45,6 +45,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -54,6 +55,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.net.Proxy
+import java.time.LocalDateTime
 
 @UnstableApi
 val mediaServiceModule =
@@ -217,6 +219,14 @@ private fun provideResolvingDataSourceFactory(
         runBlocking(Dispatchers.IO) {
             if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
                 val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                mainRepository.getNewFormat(id).firstOrNull()?.let {
+                    if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        Log.d("Stream", it.videoUrl)
+                        Log.w("Stream", "Video from format")
+                        dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                        return@runBlocking
+                    }
+                }
                 mainRepository
                     .getStream(
                         id,
@@ -228,6 +238,14 @@ private fun provideResolvingDataSourceFactory(
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
                     }
             } else {
+                mainRepository.getNewFormat(mediaId).firstOrNull()?.let {
+                    if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        Log.d("Stream", it.audioUrl)
+                        Log.w("Stream", "Audio from format")
+                        dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                        return@runBlocking
+                    }
+                }
                 mainRepository
                     .getStream(
                         mediaId,

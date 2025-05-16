@@ -80,6 +80,11 @@ class LocalDataSource(
         canvasUrl: String,
     ) = databaseDao.updateCanvasUrl(videoId, canvasUrl)
 
+    suspend fun updateCanvasThumbUrl(
+        videoId: String,
+        canvasThumbUrl: String,
+    ) = databaseDao.updateCanvasThumbUrl(videoId, canvasThumbUrl)
+
     suspend fun updateLiked(
         liked: Int,
         videoId: String,
