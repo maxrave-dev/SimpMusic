@@ -209,6 +209,12 @@ class MainRepository(
                         lyricsClient.musixmatchCookie = cookie
                     }
                 }
+            val musixmatchTokenJob =
+                launch {
+                    dataStoreManager.musixmatchUserToken.collectLatest { token ->
+                        lyricsClient.musixmatchUserToken = token
+                    }
+                }
             val usingProxy =
                 launch {
                     combine(
@@ -260,6 +266,7 @@ class MainRepository(
             localeJob.join()
             ytCookieJob.join()
             musixmatchCookieJob.join()
+            musixmatchTokenJob.join()
             usingProxy.join()
             dataSyncIdJob.join()
             visitorDataJob.join()

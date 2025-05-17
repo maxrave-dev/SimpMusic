@@ -435,6 +435,18 @@ class DataStoreManager(
         }
     }
 
+    val musixmatchUserToken =
+        settingsDataStore.data.map { preferences ->
+            preferences[MUSIXMATCH_USER_TOKEN] ?: ""
+        }
+    suspend fun setMusixmatchUserToken(token: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[MUSIXMATCH_USER_TOKEN] = token
+            }
+        }
+    }
+
     val maxSongCacheSize =
         settingsDataStore.data.map { preferences ->
             preferences[MAX_SONG_CACHE_SIZE] ?: -1
@@ -904,6 +916,7 @@ class DataStoreManager(
         val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
         val MUSIXMATCH_COOKIE = stringPreferencesKey("musixmatch_cookie")
+        val MUSIXMATCH_USER_TOKEN = stringPreferencesKey("musixmatch_user_token")
         const val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")

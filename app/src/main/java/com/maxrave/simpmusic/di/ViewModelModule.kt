@@ -7,6 +7,7 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.LogInViewModel
+import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -59,6 +60,11 @@ val viewModelModule =
         }
         viewModel {
             LogInViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            MusixmatchViewModel(
                 application = androidApplication(),
             )
         }
