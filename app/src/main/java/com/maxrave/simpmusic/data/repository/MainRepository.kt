@@ -2245,6 +2245,9 @@ class MainRepository(
                             .replace("  ", " ")
                     var spotifyPersonalToken = ""
                     var spotifyClientToken = ""
+                    Log.w("Lyrics", "getSpotifyLyrics: ${dataStoreManager.spotifyPersonalTokenExpires.first()}")
+                    Log.w("Lyrics",  "getSpotifyLyrics ${dataStoreManager.spotifyClientTokenExpires.first()}")
+                    Log.w("Lyrics", "getSpotifyLyrics now: ${System.currentTimeMillis()}")
                     if (dataStoreManager.spotifyPersonalToken
                             .first()
                             .isNotEmpty() &&
@@ -2262,9 +2265,9 @@ class MainRepository(
                         spotify
                             .getClientToken()
                             .onSuccess {
-                                Log.d("Canvas", "clientToken: ${it.grantedToken.token}")
+                                Log.d("Canvas", "Request clientToken: ${it.grantedToken.token}")
                                 dataStoreManager.setSpotifyClientTokenExpires(
-                                    (it.grantedToken.expiresAfterSeconds * 1000L),
+                                    (it.grantedToken.expiresAfterSeconds * 1000L) + System.currentTimeMillis(),
                                 )
                                 dataStoreManager.setSpotifyClientToken(it.grantedToken.token)
                                 spotifyClientToken = it.grantedToken.token
@@ -2280,7 +2283,7 @@ class MainRepository(
                                 dataStoreManager.setSpotifyPersonalTokenExpires(
                                     it.accessTokenExpirationTimestampMs,
                                 )
-                                Log.d("Canvas", "spotifyPersonalToken: $spotifyPersonalToken")
+                                Log.d("Canvas", "Request spotifyPersonalToken: $spotifyPersonalToken")
                             }.onFailure {
                                 it.printStackTrace()
                                 emit(null)
@@ -2348,7 +2351,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getSpotifyLyrics(
+    fun getSpotifyLyrics(
         query: String,
         duration: Int?,
     ): Flow<Resource<Lyrics>> =
@@ -2369,6 +2372,7 @@ class MainRepository(
                 Log.d("Lyrics", "query: $q")
                 var spotifyPersonalToken = ""
                 var spotifyClientToken = ""
+                Log.w("Lyrics", "getSpotifyLyrics: ${dataStoreManager.spotifyPersonalTokenExpires.first()}")
                 if (dataStoreManager.spotifyPersonalToken
                         .first()
                         .isNotEmpty() &&
@@ -2386,9 +2390,9 @@ class MainRepository(
                         spotify
                             .getClientToken()
                             .onSuccess {
-                                Log.d("Canvas", "clientToken: ${it.grantedToken.token}")
+                                Log.d("Canvas", "Request clientToken: ${it.grantedToken.token}")
                                 dataStoreManager.setSpotifyClientTokenExpires(
-                                    (it.grantedToken.expiresAfterSeconds * 1000L),
+                                    (it.grantedToken.expiresAfterSeconds * 1000L) + System.currentTimeMillis(),
                                 )
                                 dataStoreManager.setSpotifyClientToken(it.grantedToken.token)
                                 spotifyClientToken = it.grantedToken.token
@@ -2406,7 +2410,7 @@ class MainRepository(
                                 dataStoreManager.setSpotifyPersonalTokenExpires(
                                     it.accessTokenExpirationTimestampMs,
                                 )
-                                Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                                Log.d("Lyrics", "REQUEST spotifyPersonalToken: $spotifyPersonalToken")
                             }.onFailure {
                                 it.printStackTrace()
                                 emit(Resource.Error<Lyrics>("Not found"))
