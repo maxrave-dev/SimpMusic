@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
@@ -46,9 +47,9 @@ import kotlin.random.Random
 @UnstableApi
 class PodcastFragment : Fragment() {
     private val viewModel by activityViewModels<PodcastViewModel>()
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
+    private val sharedViewModel by activityViewModel<SharedViewModel>()
     private var _binding: FragmentPodcastBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private var gradientDrawable: GradientDrawable? = null
     private var toolbarBackground: Int? = null

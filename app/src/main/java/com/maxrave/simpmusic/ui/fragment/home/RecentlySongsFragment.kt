@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
@@ -38,7 +38,7 @@ class RecentlySongsFragment : Fragment() {
     val binding get() = _binding!!
 
     private val viewModel by viewModels<RecentlySongsViewModel>()
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
+    private val sharedViewModel by activityViewModel<SharedViewModel>()
 
     private lateinit var mainAdapter: RecentPagingAdapter
     private lateinit var loadAdapter: RecentLoadStateAdapter

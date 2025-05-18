@@ -10,7 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
@@ -19,7 +19,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 
 @UnstableApi
 class NowPlayingFragment : Fragment() {
-    val viewModel by activityViewModels<SharedViewModel>()
+    val viewModel by activityViewModel<SharedViewModel>()
     private lateinit var composeView: ComposeView
 
     override fun onCreateView(

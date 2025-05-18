@@ -150,7 +150,7 @@ import org.koin.compose.koinInject
 @Composable
 fun InfoPlayerBottomSheet(
     onDismiss: () -> Unit,
-    sharedViewModel: SharedViewModel = viewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
@@ -681,7 +681,7 @@ fun InfoPlayerBottomSheet(
 @Composable
 fun QueueBottomSheet(
     onDismiss: () -> Unit,
-    sharedViewModel: SharedViewModel = viewModel<SharedViewModel>(),
+    sharedViewModel: SharedViewModel = koinInject(),
     musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
     dataStoreManager: DataStoreManager = koinInject(),
 ) {

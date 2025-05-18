@@ -61,7 +61,7 @@ import java.time.LocalDateTime
 val mediaServiceModule =
     module {
         // Cache
-        single<DatabaseProvider> {
+        single<DatabaseProvider>(createdAtStart = true) {
             StandaloneDatabaseProvider(androidContext())
         }
         // Player Cache
@@ -113,7 +113,7 @@ val mediaServiceModule =
         }
 
         // AudioAttributes
-        single<AudioAttributes> {
+        single<AudioAttributes>(createdAtStart = true) {
             AudioAttributes
                 .Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -122,7 +122,7 @@ val mediaServiceModule =
         }
 
         // ExoPlayer
-        single<ExoPlayer> {
+        single<ExoPlayer>(createdAtStart = true) {
             ExoPlayer
                 .Builder(androidContext())
                 .setAudioAttributes(get(), true)
@@ -146,19 +146,19 @@ val mediaServiceModule =
                 }
         }
         // CoilBitmapLoader
-        single<CoilBitmapLoader> {
+        single<CoilBitmapLoader>(createdAtStart = true) {
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
         }
 
         // MediaSessionCallback
-        single<SimpleMediaSessionCallback> {
+        single<SimpleMediaSessionCallback>(createdAtStart = true) {
             SimpleMediaSessionCallback(
                 androidContext(),
                 get(),
             )
         }
         // MediaServiceHandler
-        single<SimpleMediaServiceHandler> {
+        single<SimpleMediaServiceHandler>(createdAtStart = true) {
             SimpleMediaServiceHandler(
                 player = get(),
                 dataStoreManager = get(),

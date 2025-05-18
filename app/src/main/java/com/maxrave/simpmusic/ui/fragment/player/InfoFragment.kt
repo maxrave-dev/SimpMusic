@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 class InfoFragment : BottomSheetDialogFragment() {
     private var _binding: InfoFragmentBinding? = null
     val binding get() = _binding!!
-    private val viewModel by activityViewModels<SharedViewModel>()
+    private val viewModel by activityViewModel<SharedViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

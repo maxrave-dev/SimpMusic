@@ -110,7 +110,7 @@ import org.koin.compose.koinInject
 fun FullscreenPlayer(
     navController: NavController,
     player: ExoPlayer = koinInject(),
-    sharedViewModel: SharedViewModel = viewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val context = LocalContext.current
     var isFullScreen by remember { mutableStateOf(true) }

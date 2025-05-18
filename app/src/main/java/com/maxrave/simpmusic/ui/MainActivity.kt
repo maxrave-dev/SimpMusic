@@ -22,7 +22,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.graphics.Color
@@ -47,6 +46,7 @@ import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
+import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.markdownToHtml
 import com.maxrave.simpmusic.extension.navigateSafe
@@ -61,6 +61,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.context.loadKoinModules
+import org.koin.core.context.unloadKoinModules
 import pub.devrel.easypermissions.EasyPermissions
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -69,7 +72,7 @@ import java.util.Locale
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    val viewModel by viewModels<SharedViewModel>()
+    val viewModel by viewModel<SharedViewModel>()
     private var action: String? = null
     private var data: Uri? = null
 
@@ -114,9 +117,12 @@ class MainActivity : AppCompatActivity() {
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Recreate view model to fix the issue of view model not getting data from the service
+        unloadKoinModules(viewModelModule)
+        loadKoinModules(viewModelModule)
         VersionManager.initialize(applicationContext)
         checkForUpdate()
-        if (viewModel.recreateActivity.value == true) {
+        if (viewModel.recreateActivity.value == true || viewModel.isServiceRunning.value == true) {
             viewModel.activityRecreateDone()
         } else {
             startMusicService()
@@ -620,21 +626,12 @@ class MainActivity : AppCompatActivity() {
             showHideJob.join()
             bottomNavBarJob.join()
         }
-//        binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
-//        binding.cbFavorite.setOnClickListener {
-//            viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-//                viewModel.updateLikeStatus(
-//                    nowPlayingSong.mediaId,
-//                    !runBlocking { viewModel.liked.first() },
-//                )
-//            }
-//        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-//        stopService()
         Log.w("MainActivity", "onDestroy: ")
+        unloadKoinModules(viewModelModule)
     }
 
     override fun onRestart() {

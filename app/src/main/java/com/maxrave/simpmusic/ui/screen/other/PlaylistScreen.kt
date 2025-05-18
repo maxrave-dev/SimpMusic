@@ -117,7 +117,7 @@ import org.koin.androidx.compose.koinViewModel
 @UnstableApi
 fun PlaylistScreen(
     viewModel: PlaylistViewModel = koinViewModel(),
-    sharedViewModel: SharedViewModel = viewModel<SharedViewModel>(),
+    sharedViewModel: SharedViewModel = koinViewModel(),
     playlistId: String,
     isYourYouTubePlaylist: Boolean,
     navController: NavController,

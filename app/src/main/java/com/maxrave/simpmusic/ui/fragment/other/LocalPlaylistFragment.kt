@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
 import com.maxrave.simpmusic.R
@@ -25,7 +26,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 @ExperimentalFoundationApi
 class LocalPlaylistFragment : Fragment() {
     private val viewModel by activityViewModels<LocalPlaylistViewModel>()
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
+    private val sharedViewModel by activityViewModel<SharedViewModel>()
 
     private var playlistId: Long? = null
     private lateinit var composeView: ComposeView

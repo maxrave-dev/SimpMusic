@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
@@ -35,7 +36,7 @@ class SpotifyLogInFragment : Fragment() {
 
     private val viewModel by viewModels<LogInViewModel>()
     private val settingsViewModel by activityViewModels<SettingsViewModel>()
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
+    private val sharedViewModel by activityViewModel<SharedViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

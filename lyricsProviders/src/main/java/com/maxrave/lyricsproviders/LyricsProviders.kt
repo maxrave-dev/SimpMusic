@@ -74,7 +74,7 @@ class LyricsProviders(
             install(CustomRedirectConfig) {
                 checkHttpMethod = false
                 allowHttpsDowngrade = true
-                defaultHostUrl = "https://apic-desktop.musixmatch.com"
+                defaultHostUrl = "https://apic.musixmatch.com"
             }
             install(ContentNegotiation) {
                 register(
@@ -93,7 +93,7 @@ class LyricsProviders(
                 deflate(0.8F)
             }
             defaultRequest {
-                url("https://apic-desktop.musixmatch.com/ws/1.1/")
+                url("https://apic.musixmatch.com/ws/1.1/")
             }
             if (proxy != null) {
                 engine {
@@ -106,20 +106,11 @@ class LyricsProviders(
         lyricsClient.get("token.get?app_id=android-player-v1.0") {
             contentType(ContentType.Application.Json)
             headers {
-                header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+                header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
                 header(HttpHeaders.Accept, "*/*")
                 header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
                 header(HttpHeaders.Connection, "keep-alive")
-                if (musixmatchCookie != null) {
-                    val listCookies = fromString(musixmatchCookie, commonJson)
-                    if (!listCookies.isNullOrEmpty()) {
-                        val appendCookie =
-                            listCookies.joinToString(separator = "; ") { eachCookie ->
-                                eachCookie
-                            }
-                        header(HttpHeaders.Cookie, appendCookie)
-                    }
-                }
+                header(HttpHeaders.Cookie, musixmatchCookie ?: "")
             }
         }
 
@@ -130,7 +121,7 @@ class LyricsProviders(
     ) = lyricsClient.post("https://apic.musixmatch.com/ws/1.1/credential.post") {
         contentType(ContentType.Application.Json)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
@@ -158,20 +149,11 @@ class LyricsProviders(
     ) = lyricsClient.get("macro.search?app_id=android-player-v1.0&page_size=5&page=1&s_track_rating=desc&quorum_factor=1.0") {
         contentType(ContentType.Application.Json)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
-            if (musixmatchCookie != null) {
-                val listCookies = fromString(musixmatchCookie, commonJson)
-                if (!listCookies.isNullOrEmpty()) {
-                    val appendCookie =
-                        listCookies.joinToString(separator = "; ") { eachCookie ->
-                            eachCookie
-                        }
-                    header(HttpHeaders.Cookie, appendCookie)
-                }
-            }
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
         }
 
         parameter("q", q)
@@ -193,20 +175,11 @@ class LyricsProviders(
         parameter("q_track", q_track)
         parameter("q_duration", q_duration)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
-            if (musixmatchCookie != null) {
-                val listCookies = fromString(musixmatchCookie, commonJson)
-                if (!listCookies.isNullOrEmpty()) {
-                    val appendCookie =
-                        listCookies.joinToString(separator = "; ") { eachCookie ->
-                            eachCookie
-                        }
-                    header(HttpHeaders.Cookie, appendCookie)
-                }
-            }
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
         }
     }
 
@@ -216,20 +189,11 @@ class LyricsProviders(
     ) = lyricsClient.get("track.subtitle.get?app_id=android-player-v1.0&subtitle_format=id3") {
         contentType(ContentType.Application.Json)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
-            if (musixmatchCookie != null) {
-                val listCookies = fromString(musixmatchCookie, commonJson)
-                if (!listCookies.isNullOrEmpty()) {
-                    val appendCookie =
-                        listCookies.joinToString(separator = "; ") { eachCookie ->
-                            eachCookie
-                        }
-                    header(HttpHeaders.Cookie, appendCookie)
-                }
-            }
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
         }
 
         parameter("usertoken", userToken)
@@ -242,20 +206,11 @@ class LyricsProviders(
     ) = lyricsClient.get("https://apic.musixmatch.com/ws/1.1/track.subtitles.get") {
         contentType(ContentType.Application.Json)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
-            if (musixmatchCookie != null) {
-                val listCookies = fromString(musixmatchCookie, commonJson)
-                if (!listCookies.isNullOrEmpty()) {
-                    val appendCookie =
-                        listCookies.joinToString(separator = "; ") { eachCookie ->
-                            eachCookie
-                        }
-                    header(HttpHeaders.Cookie, appendCookie)
-                }
-            }
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
         }
 
         parameter("usertoken", userToken)
@@ -282,20 +237,11 @@ class LyricsProviders(
     ) = lyricsClient.get("track.lyrics.get?app_id=android-player-v1.0&subtitle_format=id3") {
         contentType(ContentType.Application.Json)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
-            if (musixmatchCookie != null) {
-                val listCookies = fromString(musixmatchCookie, commonJson)
-                if (!listCookies.isNullOrEmpty()) {
-                    val appendCookie =
-                        listCookies.joinToString(separator = "; ") { eachCookie ->
-                            eachCookie
-                        }
-                    header(HttpHeaders.Cookie, appendCookie)
-                }
-            }
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
         }
         parameter("usertoken", userToken)
         parameter("track_id", trackId)
@@ -307,7 +253,7 @@ class LyricsProviders(
     ) = lyricsClient.get("https://lrclib.net/api/search") {
         contentType(ContentType.Application.Json)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
@@ -322,20 +268,11 @@ class LyricsProviders(
     ) = lyricsClient.get("https://apic.musixmatch.com/ws/1.1/crowd.track.translations.get") {
         contentType(ContentType.Application.Json)
         headers {
-            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
             header(HttpHeaders.Accept, "*/*")
             header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
             header(HttpHeaders.Connection, "keep-alive")
-            if (musixmatchCookie != null) {
-                val listCookies = fromString(musixmatchCookie, commonJson)
-                if (!listCookies.isNullOrEmpty()) {
-                    val appendCookie =
-                        listCookies.joinToString(separator = "; ") { eachCookie ->
-                            eachCookie
-                        }
-                    header(HttpHeaders.Cookie, appendCookie)
-                }
-            }
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
         }
         parameters {
             parameter("translation_fields_set", "minimal")

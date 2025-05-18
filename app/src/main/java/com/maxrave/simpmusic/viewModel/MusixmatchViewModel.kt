@@ -23,7 +23,7 @@ class MusixmatchViewModel(
                     userToken
                 )
                 val cookie =
-                    "x-mxm-user-id=${userId.replace(":", "%253A")}; path=%2F; x-mxm-token-guid=${
+                    "x-mxm-user-id=${userId.replace(":", "%3A")}; path=%2F; x-mxm-token-guid=${
                         userToken
                     }; mxm-encrypted-token="
                 saveCookie(cookie)

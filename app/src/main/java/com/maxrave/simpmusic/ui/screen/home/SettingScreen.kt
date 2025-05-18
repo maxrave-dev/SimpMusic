@@ -115,6 +115,7 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
@@ -130,7 +131,7 @@ fun SettingScreen(
     innerPadding: PaddingValues,
     navController: NavController,
     viewModel: SettingsViewModel = koinViewModel(),
-    sharedViewModel: SharedViewModel = viewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val context = LocalContext.current
     val localDensity = LocalDensity.current

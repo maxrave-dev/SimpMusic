@@ -27,7 +27,7 @@ class DataStoreManager(
 ) {
     val appVersion: Flow<String> =
         settingsDataStore.data.map { preferences ->
-            preferences[APP_VERSION] ?: VersionManager.getVersionName()
+            preferences[APP_VERSION] ?: ""
         }
 
     suspend fun setAppVersion(version: String) {

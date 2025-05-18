@@ -82,6 +82,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -227,14 +228,16 @@ class SharedViewModel(
                         val nowPlaying = it.second
                         val timeline = it.first
                         if (timeline.total > 0 && nowPlaying?.songEntity != null) {
-                            if (nowPlaying.mediaItem.isSong()) {
+                            if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.canvasData == null) {
                                 Log.w(tag, "Duration is ${timeline.total}")
                                 Log.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
                                 getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
                             }
                             nowPlaying.songEntity.let { song ->
-                                Log.w(tag, "Get lyrics from format")
-                                getLyricsFromFormat(song, (timeline.total / 1000).toInt())
+                                if (nowPlayingScreenData.value.lyricsData == null) {
+                                    Log.w(tag, "Get lyrics from format")
+                                    getLyricsFromFormat(song, (timeline.total / 1000).toInt())
+                                }
                             }
                         }
                     }

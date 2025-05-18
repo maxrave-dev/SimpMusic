@@ -10,7 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -24,7 +24,7 @@ import kotlinx.coroutines.runBlocking
 
 class MusixmatchFragment : Fragment() {
     private lateinit var composeView: ComposeView
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
+    private val sharedViewModel by activityViewModel<SharedViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

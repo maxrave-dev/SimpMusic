@@ -11,6 +11,7 @@ import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -18,6 +19,11 @@ import org.koin.dsl.module
 @UnstableApi
 val viewModelModule =
     module {
+        single(createdAtStart = true) {
+            SharedViewModel(
+                androidApplication()
+            )
+        }
         viewModel {
             NowPlayingBottomSheetViewModel(
                 application = androidApplication(),

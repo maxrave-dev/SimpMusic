@@ -11,7 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
@@ -25,7 +25,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 @ExperimentalMaterial3Api
 class HomeFragment : Fragment() {
     private val viewModel by viewModels<HomeViewModel>()
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
+    private val sharedViewModel by activityViewModel<SharedViewModel>()
 
     private lateinit var composeView: ComposeView
 
