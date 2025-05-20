@@ -39,6 +39,7 @@ data class SearchMusixmatchResponse(
         @Serializable
         data class Header(
             val status_code: Int,
+            val hint: String? = null,
         )
     }
 }

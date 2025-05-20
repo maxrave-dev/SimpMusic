@@ -43,6 +43,7 @@ import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
+import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.isSong
 import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toArrayListTrack
@@ -103,6 +104,8 @@ class SharedViewModel(
     var isFirstSuggestions: Boolean = false
     var showedUpdateDialog: Boolean = false
     var showOrHideMiniplayer: MutableSharedFlow<Boolean> = MutableSharedFlow()
+    private val _showMusixmatchCaptchaWebView: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val showMusixmatchCaptchaWebView: StateFlow<Boolean> get() = _showMusixmatchCaptchaWebView
 
     private val downloadedCache: SimpleCache by inject(qualifier = named(DOWNLOAD_CACHE))
 
@@ -448,6 +451,12 @@ class SharedViewModel(
             }
         }
     }
+
+    fun resolvedMusixmatchCaptcha() {
+        _showMusixmatchCaptchaWebView.value = false
+    }
+
+    fun getMusixmatchCookie() = runBlocking { dataStoreManager.musixmatchCookie.first() }
 
     private fun getCanvas(
         videoId: String,
@@ -1150,7 +1159,7 @@ class SharedViewModel(
 
                         when (response.second) {
                             is Resource.Success -> {
-                                if (response.second.data != null) {
+                                if (response.second.data != null && response.second.data?.captchaRequired == false) {
                                     Log.d(tag, "Get Lyrics Data Success")
                                     updateLyrics(
                                         videoId,
@@ -1181,6 +1190,8 @@ class SharedViewModel(
                                                 }
                                             }
                                     }
+                                } else if (response.second.data?.captchaRequired == true) {
+                                    _showMusixmatchCaptchaWebView.value = true
                                 } else if (dataStoreManager.spotifyLyrics.first() == TRUE) {
                                     getSpotifyLyrics(
                                         song.toTrack().copy(
@@ -1204,10 +1215,10 @@ class SharedViewModel(
                                             duration,
                                         )
                                     } else {
-                                        getSavedLyrics(
-                                            song.toTrack().copy(
-                                                durationSeconds = duration,
-                                            ),
+                                        getLrclibLyrics(
+                                            song,
+                                            (artist ?: "").toString(),
+                                            duration,
                                         )
                                     }
                                 }
@@ -1215,36 +1226,11 @@ class SharedViewModel(
                         }
                     }
             } else if (dataStoreManager.lyricsProvider.first() == DataStoreManager.LRCLIB) {
-                mainRepository
-                    .getLrclibLyricsData(
-                        (artist ?: "").toString(),
-                        song.title,
-                        duration,
-                    ).collectLatest { res ->
-                        when (res) {
-                            is Resource.Success -> {
-                                Log.d(tag, "Get Lyrics Data Success")
-                                updateLyrics(
-                                    videoId,
-                                    res.data,
-                                    false,
-                                    LyricsProvider.LRCLIB,
-                                )
-                                insertLyrics(
-                                    res.data?.toLyricsEntity(
-                                        videoId,
-                                    ) ?: return@collectLatest,
-                                )
-                            }
-                            is Resource.Error -> {
-                                getSavedLyrics(
-                                    song.toTrack().copy(
-                                        durationSeconds = duration,
-                                    ),
-                                )
-                            }
-                        }
-                    }
+                getLrclibLyrics(
+                    song,
+                    (artist ?: "").toString(),
+                    duration,
+                )
             } else if (dataStoreManager.lyricsProvider.first() == DataStoreManager.YOUTUBE) {
                 mainRepository.getYouTubeCaption(videoId).cancellable().collect { response ->
                     _lyrics.value = response
@@ -1286,10 +1272,10 @@ class SharedViewModel(
                                         duration,
                                     )
                                 } else {
-                                    getSavedLyrics(
-                                        song.toTrack().copy(
-                                            durationSeconds = duration,
-                                        ),
+                                    getLrclibLyrics(
+                                        song,
+                                        (artist ?: "").toString(),
+                                        duration,
                                     )
                                 }
                             }
@@ -1297,6 +1283,45 @@ class SharedViewModel(
                     }
                 }
             }
+        }
+    }
+
+    private fun getLrclibLyrics(
+        song: SongEntity,
+        artist: String,
+        duration: Int
+    ) {
+        viewModelScope.launch {
+            mainRepository
+                .getLrclibLyricsData(
+                    artist,
+                    song.title,
+                    duration,
+                ).collectLatest { res ->
+                    when (res) {
+                        is Resource.Success -> {
+                            Log.d(tag, "Get Lyrics Data Success")
+                            updateLyrics(
+                                song.videoId,
+                                res.data,
+                                false,
+                                LyricsProvider.LRCLIB,
+                            )
+                            insertLyrics(
+                                res.data?.toLyricsEntity(
+                                    song.videoId,
+                                ) ?: return@collectLatest,
+                            )
+                        }
+                        is Resource.Error -> {
+                            getSavedLyrics(
+                                song.toTrack().copy(
+                                    durationSeconds = duration,
+                                ),
+                            )
+                        }
+                    }
+                }
         }
     }
 
@@ -1325,8 +1350,10 @@ class SharedViewModel(
 
                     is Resource.Error -> {
                         if (_lyrics.value?.message != "reset") {
-                            getSavedLyrics(
-                                track,
+                            getLrclibLyrics(
+                                track.toSongEntity(),
+                                track.artists.toListName().firstOrNull() ?: "",
+                                duration ?: 0,
                             )
                         }
                     }

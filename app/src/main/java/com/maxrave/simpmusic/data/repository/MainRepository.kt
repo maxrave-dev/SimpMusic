@@ -26,9 +26,9 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistRadioEndpoint
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
 import com.maxrave.lyricsproviders.LyricsClient
-import com.maxrave.lyricsproviders.models.response.MusixmatchCredential
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
 import com.maxrave.lyricsproviders.models.response.SearchMusixmatchResponse
+import com.maxrave.lyricsproviders.utils.CaptchaException
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -2721,14 +2721,7 @@ class MainRepository(
                                         }
                                     }.onFailure { throwable ->
                                         throwable.printStackTrace()
-                                        lyricsClient
-                                            .getLrclibLyrics(qtrack, qartist, durationInt)
-                                            .onSuccess {
-                                                it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
-                                            }.onFailure {
-                                                it.printStackTrace()
-                                                emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                            }
+                                        emit("" to Resource.Error<Lyrics>("Not found"))
                                     }
                             } else {
                                 lyricsClient
@@ -2755,7 +2748,6 @@ class MainRepository(
                                                         )
                                                     } else {
                                                         Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                                        lyricsClient.getLrclibLyrics(qtrack, qartist, durationInt)
                                                         emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                                     }
                                                 }.onFailure {
@@ -2763,26 +2755,11 @@ class MainRepository(
                                                     emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                                 }
                                         } else {
-                                            lyricsClient
-                                                .getLrclibLyrics(qtrack, qartist, durationInt)
-                                                .onSuccess {
-                                                    it?.let { emit(Pair(trackX?.track_id.toString(), Resource.Success<Lyrics>(it.toLyrics()))) }
-                                                }.onFailure {
-                                                    it.printStackTrace()
-                                                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                                }
+                                            emit("" to Resource.Error<Lyrics>("Not found"))
                                         }
                                     }.onFailure {
                                         Log.e(tag, "Fix musixmatch search" + it.message.toString())
-                                        lyricsClient
-                                            .getLrclibLyrics(qtrack, qartist, durationInt)
-                                            .onSuccess {
-                                                Log.w(tag, "Liblrc Item lyrics ${it?.lyrics?.syncType}")
-                                                it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
-                                            }.onFailure {
-                                                Log.e(tag, "Liblrc Error: ${it.message}")
-                                                emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                            }
+                                        emit("" to Resource.Error<Lyrics>("Not found"))
                                     }
                             }
                         } else {
@@ -2790,12 +2767,41 @@ class MainRepository(
                         }
                     }.onFailure { throwable ->
                         throwable.printStackTrace()
-                        emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                        /**
+                         * I can not handle the 401 captcha error right now, hope I can do it later
+                         */
+//                        if (throwable is CaptchaException) {
+//                            Log.w(tag, "CaptchaException: ${throwable.message}")
+//                            emit("" to Resource.Success<Lyrics>(
+//                                Lyrics(true, null, null, true)
+//                            ))
+//                        }
+                        lyricsClient.macroSubtitle(
+                            q_track = qtrack,
+                            q_artist = qartist,
+                            userToken = musixMatchUserToken,
+                        ).onSuccess {
+                            Log.w(tag, "Macro subtitle Item lyrics ${it?.second?.lyrics?.syncType}")
+                            if (it != null) {
+                                emit(
+                                    Pair(
+                                        it.first.toString(),
+                                        Resource.Success<Lyrics>(it.second.toLyrics()),
+                                    ),
+                                )
+                            } else {
+                                Log.w("Lyrics", "Error: Lỗi getLyrics $it")
+                                emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                            }
+                        }.onFailure {
+                            Log.e(tag, "Error: ${it.message}")
+                            emit("" to Resource.Error<Lyrics>("Not found"))
+                        }
                     }
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =
+    fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =
         flow {
             runCatching {
                 lyricsClient.musixmatchUserToken?.let {
@@ -3264,51 +3270,6 @@ class MainRepository(
         }
     }
 
-    suspend fun loginToMusixMatch(
-        email: String,
-        password: String,
-    ): Flow<MusixmatchCredential?> =
-        flow {
-            runCatching {
-                val userToken = lyricsClient.musixmatchUserToken
-                if (!userToken.isNullOrEmpty()) {
-                    lyricsClient
-                        .postMusixmatchCredentials(
-                            email,
-                            password,
-                            userToken,
-                        ).onSuccess { response ->
-                            emit(response)
-                        }.onFailure {
-                            it.printStackTrace()
-                            emit(null)
-                        }
-                } else {
-                    lyricsClient
-                        .getMusixmatchUserToken()
-                        .onSuccess { usertoken ->
-                            lyricsClient.musixmatchUserToken = usertoken.message.body.user_token
-                            val newUserToken = usertoken.message.body.user_token
-                            delay(2000)
-                            lyricsClient
-                                .postMusixmatchCredentials(
-                                    email,
-                                    password,
-                                    newUserToken,
-                                ).onSuccess { response ->
-                                    emit(response)
-                                }.onFailure {
-                                    it.printStackTrace()
-                                    emit(null)
-                                }
-                        }.onFailure { throwable ->
-                            throwable.printStackTrace()
-                            emit(null)
-                        }
-                }
-            }
-        }
-
     suspend fun updateWatchTime(
         playbackTrackingVideostatsWatchtimeUrl: String,
         watchTimeList: ArrayList<Float>,
@@ -3389,4 +3350,8 @@ class MainRepository(
         videoId: String,
         isVideo: Boolean,
     ): Flow<DownloadProgress> = youTube.download(path, videoId, isVideo)
+
+    fun is403Url(
+        url: String
+    ) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
 }

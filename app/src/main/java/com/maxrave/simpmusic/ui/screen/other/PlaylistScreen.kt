@@ -111,13 +111,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
 @UnstableApi
 fun PlaylistScreen(
     viewModel: PlaylistViewModel = koinViewModel(),
-    sharedViewModel: SharedViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
     playlistId: String,
     isYourYouTubePlaylist: Boolean,
     navController: NavController,

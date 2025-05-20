@@ -16,6 +16,7 @@ class MusixmatchViewModel(
     fun login(
         userId: String,
         userToken: String,
+        deviceId: String
     ) {
         viewModelScope.launch {
             runBlocking(Dispatchers.IO) {
@@ -24,7 +25,7 @@ class MusixmatchViewModel(
                 )
                 val cookie =
                     "x-mxm-user-id=${userId.replace(":", "%3A")}; path=%2F; x-mxm-token-guid=${
-                        userToken
+                        deviceId
                     }; mxm-encrypted-token="
                 saveCookie(cookie)
             }

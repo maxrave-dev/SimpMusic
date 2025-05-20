@@ -2,24 +2,28 @@ package com.maxrave.lyricsproviders
 
 import android.content.Context
 import android.util.Log
+import com.maxrave.lyricsproviders.models.lyrics.Lyrics
 import com.maxrave.lyricsproviders.models.response.LrclibObject
 import com.maxrave.lyricsproviders.models.response.MusixmatchCredential
-import com.maxrave.lyricsproviders.models.response.MusixmatchLyricsReponse
+import com.maxrave.lyricsproviders.models.response.MusixmatchLyricsResponse
 import com.maxrave.lyricsproviders.models.response.MusixmatchLyricsResponseByQ
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
 import com.maxrave.lyricsproviders.models.response.SearchMusixmatchResponse
 import com.maxrave.lyricsproviders.models.response.UserTokenResponse
 import com.maxrave.lyricsproviders.parser.parseMusixmatchLyrics
 import com.maxrave.lyricsproviders.parser.parseUnsyncedLyrics
+import com.maxrave.lyricsproviders.utils.CaptchaException
 import com.maxrave.lyricsproviders.utils.fromArrayListNull
 import io.ktor.client.call.body
 import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.engine.http
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.json.Json
 import kotlin.math.abs
 
 class LyricsClient(
-    private val context: Context,
+    context: Context,
 ) {
     private val commonJson = commonJson()
     private val lyricsProvider = LyricsProviders(context, commonJson)
@@ -104,11 +108,32 @@ class LyricsClient(
         query: String,
         userToken: String,
     ) = runCatching {
-//        val result = lyricsProvider.searchMusixmatchTrackId(query, userToken)
-//        Log.w("Lyrics", "Search Track $query: " + result.bodyAsText())
-//        Log.w("Lyrics", "Search Track $query: " + result.body<SearchMusixmatchResponse>().message.body.macro_result_list)
-//        return@runCatching result.body<SearchMusixmatchResponse>(),
-        lyricsProvider.searchMusixmatchTrackId(query, userToken).body<SearchMusixmatchResponse>()
+        lyricsProvider.searchMusixmatchTrackId(query, userToken).bodyWithoutCaptcha<SearchMusixmatchResponse>()
+    }
+
+    suspend fun macroSubtitle(
+        q_artist: String,
+        q_track: String,
+        userToken: String,
+    ): Result<Pair<Int, Lyrics>?> = runCatching {
+        val response = lyricsProvider.macroSubtitles(
+            usertoken = userToken,
+            q_track = q_track,
+            q_artist = q_artist,
+        ).bodyWithoutCaptcha<MusixmatchLyricsResponse>()
+        Log.w("Macro Subtitle Result", response.toString())
+        val trackId = response.message.body.macro_calls?.trackGet?.message?.body?.track?.track_id ?: return@runCatching null
+        val subtitleBody = response.message.body.macro_calls.trackSubtitlesGet?.message?.body?.subtitle_list?.firstOrNull()?.subtitle_body
+        val lyricsBody = response.message.body.macro_calls.trackLyricsGet?.message?.body?.lyrics?.lyrics_body
+        if (!subtitleBody.isNullOrEmpty()) {
+            return@runCatching trackId to parseMusixmatchLyrics(
+                subtitleBody
+            )
+        } else if (!lyricsBody.isNullOrEmpty()) {
+            return@runCatching trackId to parseUnsyncedLyrics(lyricsBody)
+        } else {
+            null
+        }
     }
 
     suspend fun fixSearchMusixmatch(
@@ -117,7 +142,7 @@ class LyricsClient(
         q_duration: String,
         userToken: String,
     ) = runCatching {
-        val rs = lyricsProvider.fixSearchMusixmatch(q_artist, q_track, q_duration, userToken).body<SearchMusixmatchResponse>()
+        val rs = lyricsProvider.fixSearchMusixmatch(q_artist, q_track, q_duration, userToken).bodyWithoutCaptcha<SearchMusixmatchResponse>()
         Log.w("Search Result", rs.toString())
         return@runCatching rs
     }
@@ -126,11 +151,11 @@ class LyricsClient(
         trackId: String,
         userToken: String,
     ) = runCatching {
-        val response = lyricsProvider.getMusixmatchLyrics(trackId, userToken).body<MusixmatchLyricsReponse>()
+        val response = lyricsProvider.getMusixmatchLyrics(trackId, userToken).bodyWithoutCaptcha<MusixmatchLyricsResponse>()
         if (response.message.body.subtitle != null) {
             return@runCatching parseMusixmatchLyrics(response.message.body.subtitle.subtitle_body)
         } else {
-            val unsyncedResponse = lyricsProvider.getMusixmatchUnsyncedLyrics(trackId, userToken).body<MusixmatchLyricsReponse>()
+            val unsyncedResponse = lyricsProvider.getMusixmatchUnsyncedLyrics(trackId, userToken).bodyWithoutCaptcha<MusixmatchLyricsResponse>()
             if (unsyncedResponse.message.body.lyrics != null && unsyncedResponse.message.body.lyrics.lyrics_body != "") {
                 return@runCatching parseUnsyncedLyrics(unsyncedResponse.message.body.lyrics.lyrics_body)
             } else {
@@ -143,8 +168,7 @@ class LyricsClient(
         track: SearchMusixmatchResponse.Message.Body.Track.TrackX,
         userToken: String,
     ) = runCatching {
-        val response = lyricsProvider.getMusixmatchLyricsByQ(track, userToken).body<MusixmatchLyricsResponseByQ>()
-
+        val response = lyricsProvider.getMusixmatchLyricsByQ(track, userToken).bodyWithoutCaptcha<MusixmatchLyricsResponseByQ>()
         if (!response.message.body.subtitle_list
                 .isNullOrEmpty() &&
             response.message.body.subtitle_list
@@ -159,7 +183,7 @@ class LyricsClient(
                     ?.subtitle_body!!,
             )
         } else {
-            val unsyncedResponse = lyricsProvider.getMusixmatchUnsyncedLyrics(track.track_id.toString(), userToken).body<MusixmatchLyricsReponse>()
+            val unsyncedResponse = lyricsProvider.getMusixmatchUnsyncedLyrics(track.track_id.toString(), userToken).body<MusixmatchLyricsResponse>()
             if (unsyncedResponse.message.body.lyrics != null && unsyncedResponse.message.body.lyrics.lyrics_body != "") {
                 return@runCatching parseUnsyncedLyrics(unsyncedResponse.message.body.lyrics.lyrics_body)
             } else {
@@ -175,7 +199,7 @@ class LyricsClient(
     ) = runCatching {
         lyricsProvider
             .getMusixmatchTranslateLyrics(trackId, userToken, language)
-            .body<MusixmatchTranslationLyricsResponse>()
+            .bodyWithoutCaptcha<MusixmatchTranslationLyricsResponse>()
     }
 
     suspend fun getLrclibLyrics(
@@ -209,4 +233,18 @@ class LyricsClient(
             null
         }
     }
+
+    private suspend inline fun <reified T> HttpResponse.bodyWithoutCaptcha() =
+        try {
+            this.body<T>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            val text = this.bodyAsText()
+            if (text.contains("captcha")) {
+                throw CaptchaException()
+            } else {
+                Log.e("LyricsClient", "Error: $text")
+                throw Exception("Error: $text")
+            }
+        }
 }

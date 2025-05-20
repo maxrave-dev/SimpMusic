@@ -223,8 +223,12 @@ private fun provideResolvingDataSourceFactory(
                     if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
                         Log.d("Stream", it.videoUrl)
                         Log.w("Stream", "Video from format")
-                        dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
-                        return@runBlocking
+                        val is403Url = mainRepository.is403Url(it.videoUrl).firstOrNull() != false
+                        Log.d("Stream", "is 403 $is403Url")
+                        if (!is403Url) {
+                            dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                            return@runBlocking
+                        }
                     }
                 }
                 mainRepository
@@ -242,8 +246,12 @@ private fun provideResolvingDataSourceFactory(
                     if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
                         Log.d("Stream", it.audioUrl)
                         Log.w("Stream", "Audio from format")
-                        dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
-                        return@runBlocking
+                        val is403Url = mainRepository.is403Url(it.audioUrl).firstOrNull() != false
+                        Log.d("Stream", "is 403 $is403Url")
+                        if (!is403Url) {
+                            dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                            return@runBlocking
+                        }
                     }
                 }
                 mainRepository

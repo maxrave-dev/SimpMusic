@@ -622,9 +622,23 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+            val musixmatchCaptchaJob = launch {
+                viewModel.showMusixmatchCaptchaWebView.collectLatest {
+                    if (it) {
+                        navController.navigateSafe(
+                            R.id.bottom_navigation_item_home,
+                            Bundle().apply {
+                                putString("dialog", "musixmatchCaptcha")
+                            },
+                        )
+                    }
+                }
+            }
+
             miniplayerJob.join()
             showHideJob.join()
             bottomNavBarJob.join()
+            musixmatchCaptchaJob.join()
         }
     }
 

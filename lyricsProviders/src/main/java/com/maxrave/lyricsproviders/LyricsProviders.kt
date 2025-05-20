@@ -30,6 +30,12 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import java.net.Proxy
+import java.nio.charset.StandardCharsets
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Base64
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 class LyricsProviders(
     private val context: Context,
@@ -112,6 +118,9 @@ class LyricsProviders(
                 header(HttpHeaders.Connection, "keep-alive")
                 header(HttpHeaders.Cookie, musixmatchCookie ?: "")
             }
+
+            parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+            parameter("signature_protocol", "sha1")
         }
 
     suspend fun postMusixmatchPostCredentials(
@@ -129,6 +138,9 @@ class LyricsProviders(
         parameter("app_id", "android-player-v1.0")
         parameter("usertoken", userToken)
         parameter("format", "json")
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
         setBody(
             MusixmatchCredentialsBody(
                 listOf(
@@ -158,6 +170,9 @@ class LyricsProviders(
 
         parameter("q", q)
         parameter("usertoken", userToken)
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
     }
 
     suspend fun fixSearchMusixmatch(
@@ -181,6 +196,29 @@ class LyricsProviders(
             header(HttpHeaders.Connection, "keep-alive")
             header(HttpHeaders.Cookie, musixmatchCookie ?: "")
         }
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
+    }
+
+    suspend fun macroSubtitles(
+        usertoken: String,
+        q_artist: String,
+        q_track: String,
+    ) = lyricsClient.get(
+        "https://apic.musixmatch.com/ws/1.1/macro.subtitles.get?tags=scrobbling%2Cnotifications&f_subtitle_length_max_deviation=1&subtitle_format=lrc&page_size=1&questions_id_list=track_esync_action%2Ctrack_sync_action%2Ctrack_translation_action%2Clyrics_ai_mood_analysis_v3&optional_calls=track.richsync%2Ccrowd.track.actions&q_artist=${q_artist}&q_track=${q_track}&usertoken=${usertoken}&app_id=android-player-v1.0&country=us&part=lyrics_crowd%2Cuser%2Clyrics_vote%2Clyrics_poll%2Ctrack_lyrics_translation_status%2Clyrics_verified_by%2Clabels%2Ctrack_structure%2Ctrack_performer_tagging%2C&scrobbling_package=com.maxrave.simpmusic.dev&language_iso_code=1&format=json"
+    ) {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
+        }
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
     }
 
     suspend fun getMusixmatchLyrics(
@@ -198,6 +236,9 @@ class LyricsProviders(
 
         parameter("usertoken", userToken)
         parameter("track_id", trackId)
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
     }
 
     suspend fun getMusixmatchLyricsByQ(
@@ -229,6 +270,9 @@ class LyricsProviders(
         parameter("language_iso_code", "1")
         parameter("format", "json")
         parameter("q_duration", track.track_length)
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
     }
 
     suspend fun getMusixmatchUnsyncedLyrics(
@@ -245,6 +289,9 @@ class LyricsProviders(
         }
         parameter("usertoken", userToken)
         parameter("track_id", trackId)
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
     }
 
     suspend fun searchLrclibLyrics(
@@ -259,6 +306,9 @@ class LyricsProviders(
             header(HttpHeaders.Connection, "keep-alive")
         }
         parameter("q", "$q_artist $q_track")
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
     }
 
     suspend fun getMusixmatchTranslateLyrics(
@@ -285,5 +335,19 @@ class LyricsProviders(
             parameter("app_id", "android-player-v1.0")
             parameter("tags", "playing")
         }
+
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
+    }
+
+    private fun getApiSignature(apiEndpoint: String, dateTime: LocalDateTime): String {
+        val key = "IEJ5E8XFaHQvIQNfs7IC"
+        val formattedDate = dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        val data = apiEndpoint + formattedDate
+        val hmacSha1 = Mac.getInstance("HmacSHA1")
+        val secretKey = SecretKeySpec(key.toByteArray(StandardCharsets.UTF_8), "HmacSHA1")
+        hmacSha1.init(secretKey)
+        val signatureBytes = hmacSha1.doFinal(data.toByteArray(StandardCharsets.UTF_8))
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(signatureBytes)
     }
 }

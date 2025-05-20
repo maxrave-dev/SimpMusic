@@ -76,8 +76,11 @@ class DownloadUtils(
                         if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
                             Log.d("Stream", it.videoUrl)
                             Log.w("Stream", "Video from format")
-                            dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri())
-                            return@runBlocking
+                            val is403Url = mainRepository.is403Url(it.videoUrl).firstOrNull() != false
+                            if (!is403Url) {
+                                dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri())
+                                return@runBlocking
+                            }
                         }
                     }
                     mainRepository
@@ -93,8 +96,11 @@ class DownloadUtils(
                         if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
                             Log.d("Stream", it.audioUrl)
                             Log.w("Stream", "Audio from format")
-                            dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri())
-                            return@runBlocking
+                            val is403Url = mainRepository.is403Url(it.audioUrl).firstOrNull() != false
+                            if (!is403Url) {
+                                dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri())
+                                return@runBlocking
+                            }
                         }
                     }
                     mainRepository

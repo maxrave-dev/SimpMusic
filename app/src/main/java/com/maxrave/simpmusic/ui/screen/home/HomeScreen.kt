@@ -100,6 +100,7 @@ import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.ItemTrackChart
 import com.maxrave.simpmusic.ui.component.ItemVideoChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
+import com.maxrave.simpmusic.ui.component.MusixmatchCaptchaWebView
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -108,6 +109,7 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -119,7 +121,7 @@ fun HomeScreen(
     viewModel: HomeViewModel =
         koinViewModel(),
     sharedViewModel: SharedViewModel =
-        viewModel(),
+        koinInject(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -145,6 +147,7 @@ fun HomeScreen(
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsState()
 
     val openAppTime by sharedViewModel.openAppTime.collectAsState()
+    val musixmatchCaptchaRequired by sharedViewModel.showMusixmatchCaptchaWebView.collectAsState()
 
     var showReviewDialog by rememberSaveable {
         mutableStateOf(false)
@@ -155,6 +158,7 @@ fun HomeScreen(
     var shouldShowGetDataSyncIdBottomSheet by rememberSaveable {
         mutableStateOf(false)
     }
+
     LaunchedEffect(dataSyncId, youTubeCookie) {
         Log.d("HomeScreen", "dataSyncId: $dataSyncId, youTubeCookie: $youTubeCookie")
         if (dataSyncId.isEmpty() && youTubeCookie.isNotEmpty()) {
@@ -203,6 +207,15 @@ fun HomeScreen(
             onDismissRequest = {
                 shouldShowGetDataSyncIdBottomSheet = false
             },
+        )
+    }
+
+    if (musixmatchCaptchaRequired) {
+        MusixmatchCaptchaWebView(
+            cookie = sharedViewModel.getMusixmatchCookie(),
+            onDismissRequest = {
+                sharedViewModel.resolvedMusixmatchCaptcha()
+            }
         )
     }
 

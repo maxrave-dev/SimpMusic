@@ -50,6 +50,7 @@ fun MusixmatchLoginScreen(
     var debugInfo by remember { mutableStateOf("") }
     var userId by remember { mutableStateOf("") }
     var userToken by remember { mutableStateOf("") }
+    var deviceId by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
     LaunchedEffect(
         debugInfo
@@ -62,12 +63,17 @@ fun MusixmatchLoginScreen(
             val userTokenRegex = """\[UserToken\]:\s*([a-f0-9]+)""".toRegex()
             val userTokenData = userTokenRegex.find(debugInfo)?.groupValues?.get(1)
 
-            if (fullUserId != null && userTokenData != null) {
+            val deviceIdRegex = """\[DeviceId\]:\s*([a-f0-9]+)""".toRegex()
+            val deviceIdData = deviceIdRegex.find(debugInfo)?.groupValues?.get(1)
+
+            if (fullUserId != null && userTokenData != null && deviceIdData != null) {
                 userId = fullUserId
                 userToken = userTokenData
+                deviceId = deviceIdData
             } else {
                 userId = ""
                 userToken = ""
+                deviceId = ""
             }
         }
     }
@@ -126,7 +132,7 @@ fun MusixmatchLoginScreen(
         )
         Spacer(Modifier.size(5.dp))
         Crossfade(
-            (userId.isNotEmpty() && userToken.isNotEmpty())
+            (userId.isNotEmpty() && userToken.isNotEmpty() && deviceId.isNotEmpty())
         ) {
             if (it) {
                 Column {
@@ -139,17 +145,23 @@ fun MusixmatchLoginScreen(
                         "Your userToken: $userToken",
                         style = typo.labelSmall
                     )
+                    Spacer(Modifier.size(5.dp))
+                    Text(
+                        "Your deviceId: $deviceId",
+                        style = typo.labelSmall
+                    )
                 }
             }
         }
         Spacer(Modifier.size(5.dp))
         ElevatedButton(
             modifier = Modifier.fillMaxWidth(),
-            enabled = userId.isNotEmpty() && userToken.isNotEmpty(),
+            enabled = userId.isNotEmpty() && userToken.isNotEmpty() && deviceId.isNotEmpty(),
             onClick = {
                 viewModel.login(
                     userId = userId,
                     userToken = userToken,
+                    deviceId = deviceId,
                 )
                 navController.navigateUp()
             }

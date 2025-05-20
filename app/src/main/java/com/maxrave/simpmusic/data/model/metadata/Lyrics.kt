@@ -9,4 +9,5 @@ data class Lyrics(
     val lines: List<Line>?,
     @SerializedName("syncType")
     val syncType: String?,
+    val captchaRequired: Boolean = false,
 )
