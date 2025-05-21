@@ -461,6 +461,8 @@ object CHART_SUPPORTED_COUNTRY {
 object MEDIA_CUSTOM_COMMAND {
     const val LIKE = "like"
     const val REPEAT = "repeat"
+    const val RADIO = "radio"
+    const val SHUFFLE = "shuffle"
 }
 
 object MEDIA_NOTIFICATION {

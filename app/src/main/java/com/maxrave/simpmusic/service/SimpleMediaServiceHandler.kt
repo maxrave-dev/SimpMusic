@@ -29,9 +29,18 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.placeholder
 import coil3.toBitmap
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
+import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
+import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK
+import com.maxrave.simpmusic.common.Config.RADIO_CLICK
+import com.maxrave.simpmusic.common.Config.RECOVER_TRACK_QUEUE
+import com.maxrave.simpmusic.common.Config.SHARE
+import com.maxrave.simpmusic.common.Config.SONG_CLICK
+import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DESC
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID_SAVED_QUEUE
@@ -83,6 +92,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import kotlin.math.pow
 
@@ -225,6 +235,7 @@ class SimpleMediaServiceHandler(
         _nowPlaying.value = player.currentMediaItem
         mediaSessionCallback.apply {
             toggleLike = ::toggleLike
+            toggleRadio = ::toggleRadio
         }
         mayBeRestoreQueue()
         coroutineScope.launch {
@@ -564,6 +575,45 @@ class SimpleMediaServiceHandler(
         }
     }
 
+    private fun toggleRadio() {
+        coroutineScope.launch {
+            val currentSong = nowPlayingState.value.songEntity ?: return@launch
+            Log.d(TAG, "toggleRadio: ${currentSong.title}")
+            mainRepository
+                .getRadioArtist(
+                    WatchEndpoint(
+                        videoId = currentSong.videoId,
+                        playlistId = "RDAMVM${currentSong.videoId}",
+                    ),
+                ).collectLatest { res ->
+                    val data = res.data
+                    when (res) {
+                        is Resource.Success if (data != null && data.first.isNotEmpty()) -> {
+                            setQueueData(
+                                QueueData(
+                                    listTracks = data.first,
+                                    firstPlayedTrack = data.first.first(),
+                                    playlistId = "RDAMVM${currentSong.videoId}",
+                                    playlistName = "\"${currentSong.title}\" Radio",
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = data.second,
+                                ),
+                            )
+                            clearMediaItems()
+                            currentSong.durationSeconds.let {
+                                mainRepository.updateDurationSeconds(it, currentSong.videoId)
+                            }
+                            addMediaItem(currentSong.toMediaItem(), playWhenReady = true)
+                            loadPlaylistOrAlbum(0)
+                        }
+                        else -> {
+                            Log.e(TAG, "toggleRadio: ${res.message}")
+                        }
+                    }
+                }
+        }
+    }
+
     private fun toggleLike() {
         Log.w(TAG, "toggleLike: ${nowPlayingState.value.mediaItem.mediaId}")
         toggleLikeJob?.cancel()
@@ -745,6 +795,7 @@ class SimpleMediaServiceHandler(
                     player.shuffleModeEnabled = true
                     _controlState.value = _controlState.value.copy(isShuffle = true)
                 }
+                updateNotification()
             }
 
             PlayerEvent.Repeat -> {
@@ -808,6 +859,9 @@ class SimpleMediaServiceHandler(
             } else {
                 sendCloseEqualizerIntent()
             }
+        }
+        if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) {
+            updateNotification()
         }
     }
 
@@ -1551,6 +1605,32 @@ class SimpleMediaServiceHandler(
                                     Bundle(),
                                 ),
                             ).build(),
+                        CommandButton
+                            .Builder(
+                                CommandButton.ICON_RADIO
+                            ).setDisplayName(context.getString(R.string.radio))
+                            .setSessionCommand(
+                                SessionCommand(
+                                    MEDIA_CUSTOM_COMMAND.RADIO,
+                                    Bundle(),
+                                )
+                            )
+                            .build(),
+                        CommandButton
+                            .Builder(
+                                if (player.shuffleModeEnabled) {
+                                    CommandButton.ICON_SHUFFLE_ON
+                                } else {
+                                    CommandButton.ICON_SHUFFLE_OFF
+                                }
+                            ).setDisplayName(context.getString(R.string.shuffle))
+                            .setSessionCommand(
+                                SessionCommand(
+                                    MEDIA_CUSTOM_COMMAND.SHUFFLE,
+                                    Bundle(),
+                                )
+                            )
+                            .build()
                     ),
                 )
             }
