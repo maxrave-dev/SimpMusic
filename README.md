@@ -1,20 +1,20 @@
 <div align="center">      
- <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/jetpack_compose/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike<br> <br> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total"></a> <br> <br> <a href="https://trendshift.io/repositories/13482" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13482" alt="maxrave-dev%2FSimpMusic | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a> <br> <h4>Download</h4> <a href="https://apt.izzysoft.de/packages/com.maxrave.simpmusic/"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80"></a> <a href="https://f-droid.org/en/packages/com.maxrave.simpmusic/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80"></a> <a href="https://www.openapk.net/simpmusic/com.maxrave.simpmusic/"><img src="https://www.openapk.net/images/openapk-badge.png" height="80"></a> <a href="https://www.androidfreeware.net/download-simpmusic-apk.html"><img src="https://www.androidfreeware.net/images/androidfreeware-badge.png" height="80"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a> <a href="https://www.producthunt.com/posts/simpmusic?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-simpmusic" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=797736&theme=light&t=1737299913224" alt="SimpMusic - A&#0032;FOSS&#0032;YouTube&#0032;Music&#0032;client&#0032;for&#0032;Android&#0032;with&#0032;many&#0032;features | Product Hunt" style="width: 250px; height: 80px;" width="250" height="80" /></a> <h4>Nightly Build</h4> <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/jetpack_compose/app.zip"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/> <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/jetpack_compose/app.zip"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a> </div>  
+ <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/jetpack_compose/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike<br> <br> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total"></a> <br> <br> <a href="https://trendshift.io/repositories/13482" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13482" alt="maxrave-dev%2FSimpMusic | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a> <br> <h4>Download</h4> <a href="https://apt.izzysoft.de/packages/com.maxrave.simpmusic/"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80"></a> <a href="https://f-droid.org/en/packages/com.maxrave.simpmusic/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80"></a> <a href="https://www.openapk.net/simpmusic/com.maxrave.simpmusic/"><img src="https://www.openapk.net/images/openapk-badge.png" height="80"></a> <a href="https://www.androidfreeware.net/download-simpmusic-apk.html"><img src="https://www.androidfreeware.net/images/androidfreeware-badge.png" height="80"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a> <a href="https://www.producthunt.com/posts/simpmusic?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-simpmusic" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=797736&theme=light&t=1737299913224" alt="SimpMusic - A&#0032;FOSS&#0032;YouTube&#0032;Music&#0032;client&#0032;for&#0032;Android&#0032;with&#0032;many&#0032;features | Product Hunt" style="width: 250px; height: 80px;" width="250" height="80" /></a> <h4>Nightly Build</h4> <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/> <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/jetpack_compose/app.zip"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a> </div>  
   
 ## Features ✨️  
   
-- Play music from YouTube Music or YouTube free without ads in the background  
+- Play music from YouTube Music or YouTube for free, without ads and in the background  
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed  
 - Search everything on YouTube  
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...  
 - Spotify Canvas supported  
 - Play 1080p video option with subtitle  
-- AI suggestions songs  
-- Notification from followed artists  
-- Caching and can save data for offline playback  
+- AI song suggestions  
+- Notifications from followed artists  
+- Caching and offline playback support  
 - Synced lyrics from Musixmatch, LRCLIB, Spotify (require login) and YouTube Transcript and translated lyrics (Community translation from Musixmatch)  
 - Personalize data (\*) and multi-YouTube-account support  
-- Support SponsorBlock, Return YouTube Dislike  
+- Supports SponsorBlock and Return YouTube Dislike  
 - Sleep Timer  
 - Android Auto with online content  
 - And many more!  
@@ -24,7 +24,7 @@
 > **Warning**  
   
 > This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,    
-> please create an issue or contact me via email or discord sever.  
+> please create an issue or contact me via email or Discord server.  
   
 ## Screenshots  
   
@@ -41,7 +41,7 @@
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.png?raw=true" width="200" />       
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/12.png?raw=true" width="200" /> </p>  
   
-#### More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.  
+#### More [screenshots](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.  
   
 ## Data  
   
@@ -72,11 +72,11 @@ see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31
   
 YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube"    
 videoId" parameter. So I need to use some "String Matcher" and "Duration" for search lyrics. So    
-sometimes, some songs or videos get the wrong lyric's  
+sometimes, some songs or videos get the wrong lyrics  
   
 #### 2. Why the name or brand is "SimpMusic"?  
   
-Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.  
+Simply, because I love the name. It's a combination of 'Simple' and 'Music'. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.  
   
 ## Developer/Team  
   
