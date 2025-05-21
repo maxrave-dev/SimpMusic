@@ -178,3 +178,4 @@ navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref 
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
+room = { id = "androidx.room", version.ref = "room" }

@@ -198,6 +198,7 @@ object SUPPORTED_LANGUAGE {
             "한국어",
             "Català",
             "فارسی",
+            "български"
         )
     val codes: Array<String> =
         arrayOf(
@@ -226,6 +227,7 @@ object SUPPORTED_LANGUAGE {
             "ko-KR",
             "ca-ES",
             "fa-AF",
+            "bg-BG",
         )
 
     fun getLanguageFromCode(code: String?): String {

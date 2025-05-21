@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.navigation.safeargs)
     alias(libs.plugins.ksp)
     alias(libs.plugins.aboutlibraries)
+    alias(libs.plugins.room)
 }
 
 kotlin {
@@ -20,6 +21,10 @@ android {
     namespace = "com.maxrave.simpmusic"
     compileSdk = 35
 
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
+
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
@@ -32,12 +37,6 @@ android {
             libs.versions.version.name
                 .get()
         vectorDrawables.useSupportLibrary = true
-
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-            arg("KOIN_CONFIG_CHECK", "true")
-            arg("KOIN_USE_COMPOSE_VIEWMODEL", "true")
-        }
 
         @Suppress("UnstableApiUsage")
         androidResources {
@@ -68,6 +67,7 @@ android {
                     "ko",
                     "ca",
                     "fa",
+                    "bg"
                 )
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

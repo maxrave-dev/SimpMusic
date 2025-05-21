@@ -190,7 +190,6 @@
                                 app:expandAction="@string/more"
                                 app:expandActionColor="@color/md_theme_dark_outlineVariant"
                                 app:limitedMaxLines="3"
-                                app:originalText="@string/demo_description"
                                 android:fontFamily="@font/roboto"
                                 android:textStyle="normal"
                                 android:textSize="15sp" />
