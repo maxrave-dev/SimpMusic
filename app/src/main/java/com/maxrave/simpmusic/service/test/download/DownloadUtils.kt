@@ -28,11 +28,13 @@ import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import java.time.LocalDateTime
 import java.util.concurrent.Executor
 
 @UnstableApi
@@ -70,6 +72,17 @@ class DownloadUtils(
             runBlocking(Dispatchers.IO) {
                 if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
                     val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                    mainRepository.getNewFormat(id).firstOrNull()?.let {
+                        if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
+                            Log.d("Stream", it.videoUrl)
+                            Log.w("Stream", "Video from format")
+                            val is403Url = mainRepository.is403Url(it.videoUrl).firstOrNull() != false
+                            if (!is403Url) {
+                                dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri())
+                                return@runBlocking
+                            }
+                        }
+                    }
                     mainRepository
                         .getStream(
                             id,
@@ -79,6 +92,17 @@ class DownloadUtils(
                             dataSpecReturn = dataSpec.withUri(it.toUri())
                         }
                 } else {
+                    mainRepository.getNewFormat(mediaId).firstOrNull()?.let {
+                        if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
+                            Log.d("Stream", it.audioUrl)
+                            Log.w("Stream", "Audio from format")
+                            val is403Url = mainRepository.is403Url(it.audioUrl).firstOrNull() != false
+                            if (!is403Url) {
+                                dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri())
+                                return@runBlocking
+                            }
+                        }
+                    }
                     mainRepository
                         .getStream(
                             mediaId,

@@ -47,6 +47,7 @@ class SimpleMediaSessionCallback(
 ) : MediaLibrarySession.Callback {
     private val tag = "AndroidAuto"
     var toggleLike: () -> Unit = {}
+    var toggleRadio: () -> Unit = {}
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private val searchTempList = mutableListOf<Track>()
     private val listHomeItem = mutableListOf<HomeItem>()
@@ -68,6 +69,8 @@ class SimpleMediaSessionCallback(
                 // Add custom commands
                 .add(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
                 .add(SessionCommand(MEDIA_CUSTOM_COMMAND.REPEAT, Bundle()))
+                .add(SessionCommand(MEDIA_CUSTOM_COMMAND.RADIO, Bundle()))
+                .add(SessionCommand(MEDIA_CUSTOM_COMMAND.SHUFFLE, Bundle()))
                 .build()
         return MediaSession.ConnectionResult.accept(
             sessionCommands,
@@ -86,6 +89,7 @@ class SimpleMediaSessionCallback(
             MEDIA_CUSTOM_COMMAND.LIKE -> {
                 toggleLike()
             }
+
             MEDIA_CUSTOM_COMMAND.REPEAT -> {
                 session.player.repeatMode =
                     when (session.player.repeatMode) {
@@ -94,6 +98,15 @@ class SimpleMediaSessionCallback(
                         ExoPlayer.REPEAT_MODE_ALL -> ExoPlayer.REPEAT_MODE_OFF
                         else -> ExoPlayer.REPEAT_MODE_OFF
                     }
+            }
+
+            MEDIA_CUSTOM_COMMAND.RADIO -> {
+                toggleRadio()
+            }
+
+            MEDIA_CUSTOM_COMMAND.SHUFFLE -> {
+                val isShuffle = session.player.shuffleModeEnabled
+                session.player.shuffleModeEnabled = !isShuffle
             }
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))

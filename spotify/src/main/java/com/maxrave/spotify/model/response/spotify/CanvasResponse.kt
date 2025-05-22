@@ -23,6 +23,8 @@ data class CanvasResponse(
         val other_id: String? = null,
         @ProtoNumber(11)
         val canvas_uri: String,
+        @ProtoNumber(13)
+        val thumbsOfCanva: List<ThumbOfCanva>? = null,
     ) {
         @Serializable
         data class Artist(
@@ -32,6 +34,16 @@ data class CanvasResponse(
             val artist_name: String,
             @ProtoNumber(3)
             val artist_img_url: String,
+        )
+
+        @Serializable
+        data class ThumbOfCanva(
+            @ProtoNumber(1)
+            val height: Int? = null,
+            @ProtoNumber(2)
+            val width: Int? = null,
+            @ProtoNumber(3)
+            val url: String? = null,
         )
     }
 }

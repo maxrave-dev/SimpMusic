@@ -22,4 +22,6 @@ data class NewFormatEntity(
     @ColumnInfo(name = "expired_time", defaultValue = "0")
     val expiredTime: LocalDateTime = LocalDateTime.now(),
     val cpn: String?,
+    val audioUrl : String? = null,
+    val videoUrl : String? = null,
 )

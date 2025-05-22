@@ -162,19 +162,29 @@ fun parsePlaylistData(
                 Log.d("PlaylistParser", "title: $title")
                 val secondSubtitle = header.secondSubtitle?.runs
                 if (!secondSubtitle.isNullOrEmpty()) {
-                    trackCount = if (secondSubtitle.size >= 5) {
-                        secondSubtitle.getOrNull(2)
-                            ?.text
-                            ?.split(" ")
-                            ?.firstOrNull()
-                            ?.toInt() ?: 0
-                    } else {
-                        secondSubtitle
-                            .firstOrNull()
-                            ?.text
-                            ?.split(" ")
-                            ?.firstOrNull()
-                            ?.toInt() ?: 0
+                    /**
+                     * Fuck Kotlin
+                     * Ref: https://stackoverflow.com/q/48379981/20605098
+                     */
+                    trackCount = try {
+                        if (secondSubtitle.size >= 5) {
+                            secondSubtitle.getOrNull(2)
+                                ?.text
+                                ?.split("\\s".toRegex())
+                                ?.firstOrNull()
+                                ?.toInt() ?: 0
+                        } else {
+                            secondSubtitle
+                                .firstOrNull()
+                                ?.text
+                                ?.split("\\s".toRegex())
+                                ?.firstOrNull()
+                                ?.toInt() ?: 0
+                        }
+                    } catch (e: Exception) {
+                        Log.e("PlaylistParser", "Error parsing track count: ${e.message}")
+                        e.printStackTrace()
+                        0
                     }
                 }
                 year =

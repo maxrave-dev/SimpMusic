@@ -1,5 +1,6 @@
 package com.maxrave.lyricsproviders.models.response
 
+import com.maxrave.lyricsproviders.models.response.MusixmatchLyricsResponse.Message.Header
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -12,6 +13,8 @@ data class MusixmatchLyricsResponseByQ(
     data class Message(
         @SerialName("body")
         val body: Body,
+        @SerialName("header")
+        val header: Header,
     ) {
         @Serializable
         data class Body(

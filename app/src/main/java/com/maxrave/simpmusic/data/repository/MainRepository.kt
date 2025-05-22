@@ -26,9 +26,9 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistRadioEndpoint
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
 import com.maxrave.lyricsproviders.LyricsClient
-import com.maxrave.lyricsproviders.models.response.MusixmatchCredential
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
 import com.maxrave.lyricsproviders.models.response.SearchMusixmatchResponse
+import com.maxrave.lyricsproviders.utils.CaptchaException
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -209,6 +209,12 @@ class MainRepository(
                         lyricsClient.musixmatchCookie = cookie
                     }
                 }
+            val musixmatchTokenJob =
+                launch {
+                    dataStoreManager.musixmatchUserToken.collectLatest { token ->
+                        lyricsClient.musixmatchUserToken = token
+                    }
+                }
             val usingProxy =
                 launch {
                     combine(
@@ -260,6 +266,7 @@ class MainRepository(
             localeJob.join()
             ytCookieJob.join()
             musixmatchCookieJob.join()
+            musixmatchTokenJob.join()
             usingProxy.join()
             dataSyncIdJob.join()
             visitorDataJob.join()
@@ -369,6 +376,13 @@ class MainRepository(
         canvasUrl: String,
     ) = withContext(Dispatchers.IO) {
         localDataSource.updateCanvasUrl(videoId, canvasUrl)
+    }
+
+    suspend fun updateCanvasThumbUrl(
+        videoId: String,
+        canvasThumbUrl: String,
+    ) = withContext(Dispatchers.IO) {
+        localDataSource.updateCanvasThumbUrl(videoId, canvasThumbUrl)
     }
 
     suspend fun updateLikeStatus(
@@ -2217,7 +2231,7 @@ class MainRepository(
             }
         }
 
-    suspend fun getCanvas(
+    fun getCanvas(
         videoId: String,
         duration: Int,
     ): Flow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> =
@@ -2238,6 +2252,9 @@ class MainRepository(
                             .replace("  ", " ")
                     var spotifyPersonalToken = ""
                     var spotifyClientToken = ""
+                    Log.w("Lyrics", "getSpotifyLyrics: ${dataStoreManager.spotifyPersonalTokenExpires.first()}")
+                    Log.w("Lyrics",  "getSpotifyLyrics ${dataStoreManager.spotifyClientTokenExpires.first()}")
+                    Log.w("Lyrics", "getSpotifyLyrics now: ${System.currentTimeMillis()}")
                     if (dataStoreManager.spotifyPersonalToken
                             .first()
                             .isNotEmpty() &&
@@ -2255,9 +2272,9 @@ class MainRepository(
                         spotify
                             .getClientToken()
                             .onSuccess {
-                                Log.d("Canvas", "clientToken: ${it.grantedToken.token}")
+                                Log.d("Canvas", "Request clientToken: ${it.grantedToken.token}")
                                 dataStoreManager.setSpotifyClientTokenExpires(
-                                    (it.grantedToken.expiresAfterSeconds * 1000L),
+                                    (it.grantedToken.expiresAfterSeconds * 1000L) + System.currentTimeMillis(),
                                 )
                                 dataStoreManager.setSpotifyClientToken(it.grantedToken.token)
                                 spotifyClientToken = it.grantedToken.token
@@ -2273,7 +2290,7 @@ class MainRepository(
                                 dataStoreManager.setSpotifyPersonalTokenExpires(
                                     it.accessTokenExpirationTimestampMs,
                                 )
-                                Log.d("Canvas", "spotifyPersonalToken: $spotifyPersonalToken")
+                                Log.d("Canvas", "Request spotifyPersonalToken: $spotifyPersonalToken")
                             }.onFailure {
                                 it.printStackTrace()
                                 emit(null)
@@ -2341,7 +2358,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getSpotifyLyrics(
+    fun getSpotifyLyrics(
         query: String,
         duration: Int?,
     ): Flow<Resource<Lyrics>> =
@@ -2362,6 +2379,7 @@ class MainRepository(
                 Log.d("Lyrics", "query: $q")
                 var spotifyPersonalToken = ""
                 var spotifyClientToken = ""
+                Log.w("Lyrics", "getSpotifyLyrics: ${dataStoreManager.spotifyPersonalTokenExpires.first()}")
                 if (dataStoreManager.spotifyPersonalToken
                         .first()
                         .isNotEmpty() &&
@@ -2379,9 +2397,9 @@ class MainRepository(
                         spotify
                             .getClientToken()
                             .onSuccess {
-                                Log.d("Canvas", "clientToken: ${it.grantedToken.token}")
+                                Log.d("Canvas", "Request clientToken: ${it.grantedToken.token}")
                                 dataStoreManager.setSpotifyClientTokenExpires(
-                                    (it.grantedToken.expiresAfterSeconds * 1000L),
+                                    (it.grantedToken.expiresAfterSeconds * 1000L) + System.currentTimeMillis(),
                                 )
                                 dataStoreManager.setSpotifyClientToken(it.grantedToken.token)
                                 spotifyClientToken = it.grantedToken.token
@@ -2399,7 +2417,7 @@ class MainRepository(
                                 dataStoreManager.setSpotifyPersonalTokenExpires(
                                     it.accessTokenExpirationTimestampMs,
                                 )
-                                Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                                Log.d("Lyrics", "REQUEST spotifyPersonalToken: $spotifyPersonalToken")
                             }.onFailure {
                                 it.printStackTrace()
                                 emit(Resource.Error<Lyrics>("Not found"))
@@ -2703,14 +2721,7 @@ class MainRepository(
                                         }
                                     }.onFailure { throwable ->
                                         throwable.printStackTrace()
-                                        lyricsClient
-                                            .getLrclibLyrics(qtrack, qartist, durationInt)
-                                            .onSuccess {
-                                                it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
-                                            }.onFailure {
-                                                it.printStackTrace()
-                                                emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                            }
+                                        emit("" to Resource.Error<Lyrics>("Not found"))
                                     }
                             } else {
                                 lyricsClient
@@ -2737,7 +2748,6 @@ class MainRepository(
                                                         )
                                                     } else {
                                                         Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                                        lyricsClient.getLrclibLyrics(qtrack, qartist, durationInt)
                                                         emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                                     }
                                                 }.onFailure {
@@ -2745,26 +2755,11 @@ class MainRepository(
                                                     emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                                 }
                                         } else {
-                                            lyricsClient
-                                                .getLrclibLyrics(qtrack, qartist, durationInt)
-                                                .onSuccess {
-                                                    it?.let { emit(Pair(trackX?.track_id.toString(), Resource.Success<Lyrics>(it.toLyrics()))) }
-                                                }.onFailure {
-                                                    it.printStackTrace()
-                                                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                                }
+                                            emit("" to Resource.Error<Lyrics>("Not found"))
                                         }
                                     }.onFailure {
                                         Log.e(tag, "Fix musixmatch search" + it.message.toString())
-                                        lyricsClient
-                                            .getLrclibLyrics(qtrack, qartist, durationInt)
-                                            .onSuccess {
-                                                Log.w(tag, "Liblrc Item lyrics ${it?.lyrics?.syncType}")
-                                                it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
-                                            }.onFailure {
-                                                Log.e(tag, "Liblrc Error: ${it.message}")
-                                                emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                            }
+                                        emit("" to Resource.Error<Lyrics>("Not found"))
                                     }
                             }
                         } else {
@@ -2772,12 +2767,41 @@ class MainRepository(
                         }
                     }.onFailure { throwable ->
                         throwable.printStackTrace()
-                        emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                        /**
+                         * I can not handle the 401 captcha error right now, hope I can do it later
+                         */
+//                        if (throwable is CaptchaException) {
+//                            Log.w(tag, "CaptchaException: ${throwable.message}")
+//                            emit("" to Resource.Success<Lyrics>(
+//                                Lyrics(true, null, null, true)
+//                            ))
+//                        }
+                        lyricsClient.macroSubtitle(
+                            q_track = qtrack,
+                            q_artist = qartist,
+                            userToken = musixMatchUserToken,
+                        ).onSuccess {
+                            Log.w(tag, "Macro subtitle Item lyrics ${it?.second?.lyrics?.syncType}")
+                            if (it != null) {
+                                emit(
+                                    Pair(
+                                        it.first.toString(),
+                                        Resource.Success<Lyrics>(it.second.toLyrics()),
+                                    ),
+                                )
+                            } else {
+                                Log.w("Lyrics", "Error: Lỗi getLyrics $it")
+                                emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                            }
+                        }.onFailure {
+                            Log.e(tag, "Error: ${it.message}")
+                            emit("" to Resource.Error<Lyrics>("Not found"))
+                        }
                     }
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =
+    fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =
         flow {
             runCatching {
                 lyricsClient.musixmatchUserToken?.let {
@@ -2889,7 +2913,7 @@ class MainRepository(
     }
 
     @UnstableApi
-    suspend fun getStream(
+    fun getStream(
         videoId: String,
         isVideo: Boolean,
     ): Flow<String?> =
@@ -2926,20 +2950,19 @@ class MainRepository(
                     )
 
                     Log.w("Stream", "Get stream for video $isVideo")
+                    val videoFormat = response.streamingData?.formats?.find { it.itag == videoItag }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
+                        ?: response.streamingData?.formats?.find { it.itag == 136 }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
+                        ?: response.streamingData?.formats?.find { it.itag == 134 }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
+                    val audioFormat = response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
+                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == itag }
                     var format =
                         if (isVideo) {
-                            response.streamingData?.formats?.find { it.itag == videoItag }
-                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
-                                ?: response.streamingData?.formats?.find { it.itag == 136 }
-                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
-                                ?: response.streamingData?.formats?.find { it.itag == 134 }
-                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
+                            videoFormat
                         } else {
-                            if (response.streamingData?.adaptiveFormats?.find { it.itag == 141 } != null) {
-                                response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
-                            } else {
-                                response.streamingData?.adaptiveFormats?.find { it.itag == itag }
-                            }
+                            audioFormat
                         }
                     if (format == null) {
                         format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
@@ -3006,6 +3029,8 @@ class MainRepository(
                                     ),
                                 cpn = data.first,
                                 expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
+                                audioUrl = superFormat?.url ?: audioFormat?.url,
+                                videoUrl = videoFormat?.url
                             ),
                         )
                     }
@@ -3245,51 +3270,6 @@ class MainRepository(
         }
     }
 
-    suspend fun loginToMusixMatch(
-        email: String,
-        password: String,
-    ): Flow<MusixmatchCredential?> =
-        flow {
-            runCatching {
-                val userToken = lyricsClient.musixmatchUserToken
-                if (!userToken.isNullOrEmpty()) {
-                    lyricsClient
-                        .postMusixmatchCredentials(
-                            email,
-                            password,
-                            userToken,
-                        ).onSuccess { response ->
-                            emit(response)
-                        }.onFailure {
-                            it.printStackTrace()
-                            emit(null)
-                        }
-                } else {
-                    lyricsClient
-                        .getMusixmatchUserToken()
-                        .onSuccess { usertoken ->
-                            lyricsClient.musixmatchUserToken = usertoken.message.body.user_token
-                            val newUserToken = usertoken.message.body.user_token
-                            delay(2000)
-                            lyricsClient
-                                .postMusixmatchCredentials(
-                                    email,
-                                    password,
-                                    newUserToken,
-                                ).onSuccess { response ->
-                                    emit(response)
-                                }.onFailure {
-                                    it.printStackTrace()
-                                    emit(null)
-                                }
-                        }.onFailure { throwable ->
-                            throwable.printStackTrace()
-                            emit(null)
-                        }
-                }
-            }
-        }
-
     suspend fun updateWatchTime(
         playbackTrackingVideostatsWatchtimeUrl: String,
         watchTimeList: ArrayList<Float>,
@@ -3370,4 +3350,8 @@ class MainRepository(
         videoId: String,
         isVideo: Boolean,
     ): Flow<DownloadProgress> = youTube.download(path, videoId, isVideo)
+
+    fun is403Url(
+        url: String
+    ) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
 }

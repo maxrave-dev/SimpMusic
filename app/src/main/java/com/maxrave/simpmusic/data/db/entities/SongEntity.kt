@@ -24,10 +24,11 @@ data class SongEntity(
     val category: String?,
     val resultType: String?,
     val liked: Boolean = false,
-    val totalPlayTime: Long = 0, // in milliseconds
+    val totalPlayTime: Long = 0,
     val downloadState: Int = STATE_NOT_DOWNLOADED,
     val inLibrary: LocalDateTime = LocalDateTime.now(),
     val canvasUrl: String? = null,
+    val canvasThumbUrl: String? = null,
 ) : RecentlyType {
     override fun objectType(): RecentlyType.Type = RecentlyType.Type.SONG
 

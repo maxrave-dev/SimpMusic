@@ -39,6 +39,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.sharp.Sort
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -110,6 +113,7 @@ import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
@@ -208,6 +212,10 @@ fun LocalPlaylistScreen(
         mutableStateOf(false)
     }
 
+    var sortBottomSheetShow by remember {
+        mutableStateOf(false)
+    }
+
     val trackPagingItems: LazyPagingItems<SongEntity> = viewModel.tracksPagingState.collectAsLazyPagingItems()
     LaunchedEffect(Unit) {
         snapshotFlow {
@@ -260,7 +268,7 @@ fun LocalPlaylistScreen(
     LaunchedEffect(key1 = uiState) {
         shouldShowSuggestButton =
             !uiState.ytPlaylistId.isNullOrEmpty() &&
-            uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced
+                uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced
     }
     LaunchedEffect(key1 = firstItemVisible) {
         shouldHideTopBar = !firstItemVisible
@@ -325,7 +333,8 @@ fun LocalPlaylistScreen(
                                 .aspectRatio(1f)
                                 .clip(
                                     RoundedCornerShape(8.dp),
-                                ).angledGradientBackground(uiState.colors, 25f),
+                                )
+                                .angledGradientBackground(uiState.colors, 25f),
                     )
                     Box(
                         modifier =
@@ -452,7 +461,8 @@ fun LocalPlaylistScreen(
                                                             .size(36.dp)
                                                             .clip(
                                                                 CircleShape,
-                                                            ).clickable {
+                                                            )
+                                                            .clickable {
                                                                 Toast
                                                                     .makeText(
                                                                         context,
@@ -480,7 +490,8 @@ fun LocalPlaylistScreen(
                                                             .size(36.dp)
                                                             .clip(
                                                                 CircleShape,
-                                                            ).clickable {
+                                                            )
+                                                            .clickable {
                                                                 Toast
                                                                     .makeText(
                                                                         context,
@@ -520,9 +531,11 @@ fun LocalPlaylistScreen(
                                                     .graphicsLayer {
                                                         compositingStrategy =
                                                             CompositingStrategy.Offscreen
-                                                    }.clickable {
+                                                    }
+                                                    .clickable {
                                                         shouldShowSuggestions = !shouldShowSuggestions
-                                                    }.drawWithCache {
+                                                    }
+                                                    .drawWithCache {
                                                         val width = size.width - 10
                                                         val height = size.height - 10
 
@@ -713,31 +726,33 @@ fun LocalPlaylistScreen(
                                     }
                                 }
                                 ElevatedButton(
-                                    contentPadding = PaddingValues(0.dp),
+                                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp),
                                     modifier =
                                         Modifier
                                             .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
                                     onClick = {
-                                        viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter)
+                                        sortBottomSheetShow = true
                                     },
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        if (uiState.filterState == FilterState.OlderFirst) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                                                contentDescription = "Older First",
-                                                tint = Color.White,
-                                            )
-                                        } else {
-                                            Icon(
-                                                painter = painterResource(R.drawable.baseline_arrow_drop_up_24),
-                                                contentDescription = "Newer First",
-                                                tint = Color.White,
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.size(3.dp))
-                                        Text(text = stringResource(id = R.string.added_date), style = typo.bodySmall, color = Color.White)
-                                        Spacer(modifier = Modifier.size(8.dp))
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                            contentDescription = "Sort playlist",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text(
+                                            text = stringResource(id = R.string.sort_by) + ": " + stringResource(id =
+                                                when (uiState.filterState) {
+                                                    FilterState.Title -> R.string.title
+                                                    FilterState.NewerFirst -> R.string.newer_first
+                                                    FilterState.OlderFirst -> R.string.older_first
+                                                }
+                                            ),
+                                            style = typo.bodySmall,
+                                            color = Color.Gray
+                                        )
                                     }
                                 }
                             }
@@ -882,6 +897,16 @@ fun LocalPlaylistScreen(
                     Text(text = stringResource(id = R.string.cancel))
                 }
             },
+        )
+    }
+    if (sortBottomSheetShow) {
+        SortPlaylistBottomSheet(
+            selectedState = uiState.filterState,
+            onDismiss = { sortBottomSheetShow = false },
+            onSortChanged = {
+                viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter(it))
+                sortBottomSheetShow = false
+            }
         )
     }
     AnimatedVisibility(

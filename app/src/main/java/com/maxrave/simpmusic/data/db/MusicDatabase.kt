@@ -27,7 +27,7 @@ import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
         SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class, FollowedArtistSingleAndAlbum::class,
         NotificationEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3), AutoMigration(
@@ -43,6 +43,7 @@ import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
         ), AutoMigration(8, 9),
         AutoMigration(9, 10),
         AutoMigration(from = 11, to = 12, spec = AutoMigration11_12::class),
+        AutoMigration(13, 14),
     ],
 )
 @TypeConverters(Converters::class)

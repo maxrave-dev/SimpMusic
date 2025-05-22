@@ -745,15 +745,9 @@ class LocalPlaylistViewModel(
     fun onUIEvent(ev: LocalPlaylistUIEvent) {
         when (ev) {
             is LocalPlaylistUIEvent.ChangeFilter -> {
-                val newFilter =
-                    if (uiState.value.filterState == FilterState.OlderFirst) {
-                        (FilterState.NewerFirst)
-                    } else {
-                        (FilterState.OlderFirst)
-                    }
-                setFilter(newFilter)
-                Log.w("PlaylistScreen", "new filterState: $newFilter")
-                getTracksPagingState(uiState.value.id, newFilter)
+                setFilter(ev.filterState)
+                Log.w("PlaylistScreen", "new filterState: ${ev.filterState}")
+                getTracksPagingState(uiState.value.id, ev.filterState)
             }
 
             is LocalPlaylistUIEvent.ItemClick -> {
@@ -789,6 +783,7 @@ class LocalPlaylistViewModel(
                     loadedList.indexOf(clickedSong),
                 )
             }
+
             is LocalPlaylistUIEvent.SuggestionsItemClick -> {
                 val suggestionsList = uiState.value.suggestions?.songs ?: return
                 val clickedSong = suggestionsList.find { it.videoId == ev.videoId } ?: return
@@ -815,6 +810,7 @@ class LocalPlaylistViewModel(
                     0,
                 )
             }
+
             is LocalPlaylistUIEvent.PlayClick -> {
                 val loadedList =
                     lazyTrackPagingItems.value?.itemSnapshotList?.toList().let {
@@ -855,6 +851,7 @@ class LocalPlaylistViewModel(
                     0,
                 )
             }
+
             is LocalPlaylistUIEvent.ShuffleClick -> {
                 viewModelScope.launch {
                     val listVideoId = localPlaylistManager.getListTrackVideoId(uiState.value.id)
@@ -959,14 +956,24 @@ class LocalPlaylistViewModel(
     }
 }
 
-sealed class FilterState {
-    data object OlderFirst : FilterState()
+sealed interface FilterState {
+    val displayNameRes: Int
 
-    data object NewerFirst : FilterState()
+    object OlderFirst : FilterState {
+        override val displayNameRes = R.string.older_first
+    }
+
+    object NewerFirst : FilterState {
+        override val displayNameRes = R.string.newer_first
+    }
+
+    object Title : FilterState {
+        override val displayNameRes = R.string.title
+    }
 }
 
 sealed class LocalPlaylistUIEvent {
-    data object ChangeFilter : LocalPlaylistUIEvent()
+    data class ChangeFilter(val filterState: FilterState) : LocalPlaylistUIEvent()
 
     data class ItemClick(
         val videoId: String,

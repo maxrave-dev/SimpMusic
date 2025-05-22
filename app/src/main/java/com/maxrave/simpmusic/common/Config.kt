@@ -198,6 +198,7 @@ object SUPPORTED_LANGUAGE {
             "한국어",
             "Català",
             "فارسی",
+            "български"
         )
     val codes: Array<String> =
         arrayOf(
@@ -226,6 +227,7 @@ object SUPPORTED_LANGUAGE {
             "ko-KR",
             "ca-ES",
             "fa-AF",
+            "bg-BG",
         )
 
     fun getLanguageFromCode(code: String?): String {
@@ -459,6 +461,8 @@ object CHART_SUPPORTED_COUNTRY {
 object MEDIA_CUSTOM_COMMAND {
     const val LIKE = "like"
     const val REPEAT = "repeat"
+    const val RADIO = "radio"
+    const val SHUFFLE = "shuffle"
 }
 
 object MEDIA_NOTIFICATION {

@@ -80,6 +80,11 @@ class LocalDataSource(
         canvasUrl: String,
     ) = databaseDao.updateCanvasUrl(videoId, canvasUrl)
 
+    suspend fun updateCanvasThumbUrl(
+        videoId: String,
+        canvasThumbUrl: String,
+    ) = databaseDao.updateCanvasThumbUrl(videoId, canvasThumbUrl)
+
     suspend fun updateLiked(
         liked: Int,
         videoId: String,
@@ -275,6 +280,11 @@ class LocalDataSource(
         totalCount: Int,
     ) = if (filterState == FilterState.OlderFirst) {
         databaseDao.getPlaylistPairSongByOffsetAsc(
+            playlistId,
+            offset * 50,
+        )
+    } else if (filterState == FilterState.Title) {
+        databaseDao.getPlaylistPairSongByTitle(
             playlistId,
             offset * 50,
         )

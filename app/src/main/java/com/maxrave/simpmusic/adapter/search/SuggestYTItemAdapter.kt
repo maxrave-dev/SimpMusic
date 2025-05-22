@@ -209,7 +209,6 @@ class SuggestYTItemAdapter(
             is PlaylistItem -> VIEW_TYPE_PLAYLIST
             is AlbumItem -> VIEW_TYPE_ALBUM
             is VideoItem -> VIEW_TYPE_VIDEO
-            else -> throw IllegalArgumentException("Unknown view type")
         }
 
     override fun onCreateViewHolder(

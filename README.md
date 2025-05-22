@@ -3,18 +3,18 @@
   
 ## Features ✨️  
   
-- Play music from YouTube Music or YouTube free without ads in the background  
+- Play music from YouTube Music or YouTube for free, without ads and in the background  
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed  
 - Search everything on YouTube  
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...  
 - Spotify Canvas supported  
 - Play 1080p video option with subtitle  
-- AI suggestions songs  
-- Notification from followed artists  
-- Caching and can save data for offline playback  
+- AI song suggestions  
+- Notifications from followed artists  
+- Caching and offline playback support  
 - Synced lyrics from Musixmatch, LRCLIB, Spotify (require login) and YouTube Transcript and translated lyrics (Community translation from Musixmatch)  
 - Personalize data (\*) and multi-YouTube-account support  
-- Support SponsorBlock, Return YouTube Dislike  
+- Supports SponsorBlock and Return YouTube Dislike  
 - Sleep Timer  
 - Android Auto with online content  
 - And many more!  
@@ -24,7 +24,7 @@
 > **Warning**  
   
 > This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,    
-> please create an issue or contact me via email or discord sever.  
+> please create an issue or contact me via email or Discord server.  
   
 ## Screenshots  
   
@@ -41,7 +41,7 @@
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.png?raw=true" width="200" />       
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/12.png?raw=true" width="200" /> </p>  
   
-#### More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.  
+#### More [screenshots](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.  
   
 ## Data  
   
@@ -72,11 +72,11 @@ see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31
   
 YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube"    
 videoId" parameter. So I need to use some "String Matcher" and "Duration" for search lyrics. So    
-sometimes, some songs or videos get the wrong lyric's  
+sometimes, some songs or videos get the wrong lyrics  
   
 #### 2. Why the name or brand is "SimpMusic"?  
   
-Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.  
+Simply, because I love the name. It's a combination of 'Simple' and 'Music'. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.  
   
 ## Developer/Team  
   

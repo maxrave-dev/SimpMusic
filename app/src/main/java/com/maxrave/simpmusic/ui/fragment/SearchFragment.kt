@@ -70,11 +70,13 @@ import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import java.time.LocalDateTime
 
+@UnstableApi
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     // Data Saved
     private lateinit var searchHistory: ArrayList<String>
@@ -84,7 +86,7 @@ class SearchFragment : Fragment() {
     //private lateinit var suggestYTItemList: ArrayList<YTItem>
 
     private val viewModel by activityViewModels<SearchViewModel>()
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
+    private val sharedViewModel by activityViewModel<SharedViewModel>()
     private lateinit var resultAdapter: SearchItemAdapter
     private lateinit var searchHistoryAdapter: SearchHistoryItemAdapter
     private lateinit var suggestAdapter: SuggestQueryAdapter

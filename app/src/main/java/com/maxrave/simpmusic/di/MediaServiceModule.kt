@@ -45,6 +45,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -54,12 +55,13 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.net.Proxy
+import java.time.LocalDateTime
 
 @UnstableApi
 val mediaServiceModule =
     module {
         // Cache
-        single<DatabaseProvider> {
+        single<DatabaseProvider>(createdAtStart = true) {
             StandaloneDatabaseProvider(androidContext())
         }
         // Player Cache
@@ -111,7 +113,7 @@ val mediaServiceModule =
         }
 
         // AudioAttributes
-        single<AudioAttributes> {
+        single<AudioAttributes>(createdAtStart = true) {
             AudioAttributes
                 .Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -120,7 +122,7 @@ val mediaServiceModule =
         }
 
         // ExoPlayer
-        single<ExoPlayer> {
+        single<ExoPlayer>(createdAtStart = true) {
             ExoPlayer
                 .Builder(androidContext())
                 .setAudioAttributes(get(), true)
@@ -144,19 +146,19 @@ val mediaServiceModule =
                 }
         }
         // CoilBitmapLoader
-        single<CoilBitmapLoader> {
+        single<CoilBitmapLoader>(createdAtStart = true) {
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
         }
 
         // MediaSessionCallback
-        single<SimpleMediaSessionCallback> {
+        single<SimpleMediaSessionCallback>(createdAtStart = true) {
             SimpleMediaSessionCallback(
                 androidContext(),
                 get(),
             )
         }
         // MediaServiceHandler
-        single<SimpleMediaServiceHandler> {
+        single<SimpleMediaServiceHandler>(createdAtStart = true) {
             SimpleMediaServiceHandler(
                 player = get(),
                 dataStoreManager = get(),
@@ -217,6 +219,18 @@ private fun provideResolvingDataSourceFactory(
         runBlocking(Dispatchers.IO) {
             if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
                 val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                mainRepository.getNewFormat(id).firstOrNull()?.let {
+                    if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        Log.d("Stream", it.videoUrl)
+                        Log.w("Stream", "Video from format")
+                        val is403Url = mainRepository.is403Url(it.videoUrl).firstOrNull() != false
+                        Log.d("Stream", "is 403 $is403Url")
+                        if (!is403Url) {
+                            dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                            return@runBlocking
+                        }
+                    }
+                }
                 mainRepository
                     .getStream(
                         id,
@@ -228,6 +242,18 @@ private fun provideResolvingDataSourceFactory(
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
                     }
             } else {
+                mainRepository.getNewFormat(mediaId).firstOrNull()?.let {
+                    if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        Log.d("Stream", it.audioUrl)
+                        Log.w("Stream", "Audio from format")
+                        val is403Url = mainRepository.is403Url(it.audioUrl).firstOrNull() != false
+                        Log.d("Stream", "is 403 $is403Url")
+                        if (!is403Url) {
+                            dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                            return@runBlocking
+                        }
+                    }
+                }
                 mainRepository
                     .getStream(
                         mediaId,

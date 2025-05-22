@@ -1,0 +1,8 @@
+- Update logic from SmartTube
+- Local build FFmpeg-kit
+- Add new local playlist filter
+- Fix Empty response in Playlist Screen
+- Improve loading video speed
+- Fix Musixmatch errors
+- Add radio and shuffle to Android Auto
+- Add Bugarian language

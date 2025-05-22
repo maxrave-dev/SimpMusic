@@ -164,6 +164,12 @@ interface DatabaseDao {
         canvasUrl: String,
     )
 
+    @Query("UPDATE song SET canvasThumbUrl = :canvasThumbUrl WHERE videoId = :videoId")
+    suspend fun updateCanvasThumbUrl(
+        videoId: String,
+        canvasThumbUrl: String,
+    )
+
     @Query("UPDATE song SET thumbnails = :thumbnails WHERE videoId = :videoId")
     suspend fun updateThumbnailsSongEntity(
         thumbnails: String,
@@ -203,7 +209,7 @@ interface DatabaseDao {
         offset: Int,
     ): List<SongEntity>
 
-    @Query("SELECT * FROM song WHERE canvasUrl IS NOT NULL ORDER BY totalPlayTime DESC LIMIT :max")
+    @Query("SELECT * FROM song WHERE canvasThumbUrl IS NOT NULL ORDER BY totalPlayTime DESC LIMIT :max")
     suspend fun getCanvasSong(max: Int): List<SongEntity>
 
     @Query("SELECT videoId FROM song WHERE videoId IN (:primaryKeyList) AND downloadState = 3")
@@ -475,6 +481,15 @@ interface DatabaseDao {
         playlistId: Long,
         from: Int,
         to: Int,
+    ): List<PairSongLocalPlaylist>
+
+    @Query(
+        "SELECT p.* FROM pair_song_local_playlist p JOIN song s ON p.songId = s.videoId WHERE" +
+                " p.playlistId = :playlistId ORDER BY s.title ASC LIMIT 50 OFFSET :offset",
+    )
+    suspend fun getPlaylistPairSongByTitle(
+        playlistId: Long,
+        offset: Int,
     ): List<PairSongLocalPlaylist>
 
     @Query(

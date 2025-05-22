@@ -7,9 +7,11 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.LogInViewModel
+import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -17,6 +19,11 @@ import org.koin.dsl.module
 @UnstableApi
 val viewModelModule =
     module {
+        single(createdAtStart = true) {
+            SharedViewModel(
+                androidApplication()
+            )
+        }
         viewModel {
             NowPlayingBottomSheetViewModel(
                 application = androidApplication(),
@@ -59,6 +66,11 @@ val viewModelModule =
         }
         viewModel {
             LogInViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            MusixmatchViewModel(
                 application = androidApplication(),
             )
         }

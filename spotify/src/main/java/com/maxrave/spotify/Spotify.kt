@@ -80,7 +80,11 @@ class Spotify {
         token: String,
         clientToken: String,
     ) = runCatching {
-        spotifyClient.getSpotifyLyrics(token, trackId, clientToken).body<SpotifyLyricsResponse>()
+        spotifyClient.getSpotifyLyrics(
+            token = token,
+            clientToken = clientToken,
+            trackId
+        ).body<SpotifyLyricsResponse>()
     }
 
     suspend fun getSpotifyCanvas(

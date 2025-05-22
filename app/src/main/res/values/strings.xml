@@ -1,5 +1,4 @@
 <resources>
-    <string name="demo_description" translatable="false">You can also find us with:  electronic dance music 2023 edm top electronic dance songs 2023 edm songs edm music 2023 electronic dance music best electro dance music popular edm songs top edm songs edm songs 2023 edm music top edm songs 2023 top electronic dance songs edm 2023 popular edm songs 2023 best electro dance music 2023  No matter how your day is, you can always listen to good music:  1. EDM Hits Playlist - Popular EDM Hits in 2023 -  We would like to keep you with us many years from now on! So, in the next year, you could find our playlist like this: EDM 2024 ♫ Top EDM Songs 2024</string>
     <string name="Song_and_artist_name">Song • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
@@ -268,6 +267,10 @@
     <string name="free_space">Free space</string>
     <string name="suggest">Suggestion</string>
     <string name="reload">Reload</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort">Sort</string>
+    <string name="older_first">Older First</string>
+    <string name="newer_first">Newer First</string>
     <string name="added_date">Added date</string>
     <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Issue Tracker</string>

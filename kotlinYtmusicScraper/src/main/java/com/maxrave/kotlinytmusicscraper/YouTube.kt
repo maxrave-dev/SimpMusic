@@ -1321,7 +1321,7 @@ class YouTube(
                 listFormat.forEach {
                     println("YouTube Format ${it.first} ${it.second}")
                 }
-                if (listUrlSig.isNotEmpty()) {
+                if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
                     break
                 }
             }
@@ -2027,6 +2027,10 @@ class YouTube(
                     trySend(DownloadProgress.failed(it.message ?: "Player response is null"))
                 }
         }.flowOn(Dispatchers.IO)
+
+    suspend fun is403Url(
+        url: String
+    ) = ytMusic.is403Url(url)
 
     companion object {
         const val MAX_GET_QUEUE_SIZE = 1000

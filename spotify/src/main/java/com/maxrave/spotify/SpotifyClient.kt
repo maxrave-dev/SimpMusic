@@ -159,8 +159,8 @@ class SpotifyClient {
 
     suspend fun getSpotifyLyrics(
         token: String,
-        trackId: String,
         clientToken: String,
+        trackId: String,
     ) = spotifyClient.get("https://spclient.wg.spotify.com/color-lyrics/v2/track/$trackId?format=json&vocalRemoval=false&market=from_token") {
         userAgent(USER_AGENT)
         contentType(ContentType.Application.Json)
