@@ -40,13 +40,13 @@
     <string name="playlists">Playlisty</string>
     <string name="artists">Artyści</string>
     <string name="library">Biblioteka</string>
-    <string name="home">Główna</string>
+    <string name="home">Strona główna</string>
     <string name="popular">Popularne</string>
     <string name="error">Błąd</string>
     <string name="follow">Obserwuj</string>
     <string name="retry">Ponów</string>
     <string name="removed_download">Usunięto pobieranie</string>
-    <string name="share_url">Udostępnij URL</string>
+    <string name="share_url">Udostępnij link</string>
     <string name="available_online">Dostępne online</string>
     <string name="unavailable">Niedostępne</string>
     <string name="you">Ty</string>
