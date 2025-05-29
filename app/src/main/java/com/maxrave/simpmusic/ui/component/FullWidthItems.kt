@@ -48,8 +48,11 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.data.type.ArtistType
 import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
@@ -327,11 +330,11 @@ fun PlaylistFullWidthItems(
         var secondSubtitle = ""
         var thirdRowSubtitle: String? = null
 
-        when (data.playlistType()) {
-            PlaylistType.Type.YOUTUBE_PLAYLIST -> firstSubtitle = stringResource(id = R.string.playlist)
-            PlaylistType.Type.RADIO -> firstSubtitle = stringResource(id = R.string.radio)
-            PlaylistType.Type.LOCAL -> firstSubtitle = stringResource(id = R.string.playlist)
-            PlaylistType.Type.ALBUM -> firstSubtitle = stringResource(id = R.string.album)
+        firstSubtitle = when (data.playlistType()) {
+            PlaylistType.Type.YOUTUBE_PLAYLIST -> stringResource(id = R.string.playlist)
+            PlaylistType.Type.RADIO -> stringResource(id = R.string.radio)
+            PlaylistType.Type.LOCAL -> stringResource(id = R.string.playlist)
+            PlaylistType.Type.ALBUM -> stringResource(id = R.string.album)
         }
         when (data) {
             is AlbumEntity -> {
@@ -354,6 +357,12 @@ fun PlaylistFullWidthItems(
                 title = data.title
                 thumb = data.thumbnails.lastOrNull()?.url ?: ""
                 secondSubtitle = data.author
+            }
+            is AlbumsResult -> {
+                title = data.title
+                thumb = data.thumbnails.lastOrNull()?.url ?: ""
+                secondSubtitle = data.artists.toListName().connectArtists()
+                thirdRowSubtitle = data.year
             }
         }
         Row(
@@ -419,7 +428,7 @@ fun PlaylistFullWidthItems(
 
                 if (thirdRowSubtitle != null) {
                     Text(
-                        text = "$thirdRowSubtitle",
+                        text = thirdRowSubtitle,
                         style = typo.bodyMedium,
                         maxLines = 1,
                         color = Color(0xC4FFFFFF),
@@ -440,10 +449,15 @@ fun PlaylistFullWidthItems(
 
 @Composable
 fun ArtistFullWidthItems(
-    data: ArtistEntity,
+    data: ArtistType,
     onClickListener: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val (name: String, thumbnails: String?) = when (data) {
+        is ArtistEntity -> Pair(data.name, data.thumbnails)
+        is ArtistsResult -> Pair(data.artist, data.thumbnails.lastOrNull()?.url)
+        else -> Pair("", null)
+    }
     Box(
         modifier
             .clickable {
@@ -461,9 +475,9 @@ fun ArtistFullWidthItems(
                     model =
                         ImageRequest
                             .Builder(LocalContext.current)
-                            .data(data.thumbnails)
+                            .data(thumbnails)
                             .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(data.thumbnails)
+                            .diskCacheKey(thumbnails)
                             .crossfade(true)
                             .build(),
                     placeholder = painterResource(R.drawable.holder),
@@ -483,7 +497,7 @@ fun ArtistFullWidthItems(
                     .align(Alignment.CenterVertically),
             ) {
                 Text(
-                    text = data.name,
+                    text = name,
                     style = typo.labelMedium,
                     maxLines = 1,
                     color = Color.White,

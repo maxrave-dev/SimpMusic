@@ -170,3 +170,64 @@ fun HomeShimmer() {
         }
     }
 }
+
+@Composable
+fun ShimmerSearchItem() {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .wrapContentHeight(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Thumbnail shimmer
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(shimmerBackground)
+                .shimmer()
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Text content shimmer
+        Column {
+            Box(
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(shimmerBackground)
+                    .shimmer()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .width(150.dp)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(shimmerBackground)
+                    .shimmer()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(shimmerBackground)
+                    .shimmer()
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ShimmerSearchItemPreview() {
+    ShimmerSearchItem()
+}

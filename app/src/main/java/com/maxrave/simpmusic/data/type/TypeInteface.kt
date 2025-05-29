@@ -34,6 +34,8 @@ interface PlaylistType :
     fun playlistType(): Type
 }
 
+interface ArtistType
+
 interface RecentlyType : LibraryType {
     enum class Type {
         SONG,

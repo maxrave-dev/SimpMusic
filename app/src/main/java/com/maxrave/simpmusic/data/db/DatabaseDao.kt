@@ -116,7 +116,7 @@ interface DatabaseDao {
     suspend fun deleteSearchHistory()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSearchHistory(searchHistory: SearchHistory)
+    suspend fun insertSearchHistory(searchHistory: SearchHistory): Long
 
     // Song
     @Query("SELECT * FROM song ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
