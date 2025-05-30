@@ -335,6 +335,7 @@ fun PlaylistFullWidthItems(
             PlaylistType.Type.RADIO -> stringResource(id = R.string.radio)
             PlaylistType.Type.LOCAL -> stringResource(id = R.string.playlist)
             PlaylistType.Type.ALBUM -> stringResource(id = R.string.album)
+            PlaylistType.Type.PODCAST -> stringResource(id = R.string.podcasts)
         }
         when (data) {
             is AlbumEntity -> {

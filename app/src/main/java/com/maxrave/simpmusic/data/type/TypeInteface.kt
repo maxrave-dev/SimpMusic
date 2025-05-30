@@ -29,6 +29,7 @@ interface PlaylistType :
         RADIO,
         LOCAL,
         ALBUM,
+        PODCAST
     }
 
     fun playlistType(): Type

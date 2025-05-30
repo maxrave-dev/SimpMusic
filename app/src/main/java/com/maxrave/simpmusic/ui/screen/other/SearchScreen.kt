@@ -227,17 +227,19 @@ fun SearchScreen(
                         )
                     },
                     trailingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_close_24),
-                            contentDescription = "Clear search",
+                        IconButton(
                             modifier = Modifier
-                                .clickable {
-                                    searchText = ""
-                                    isSearchSubmitted = false
-                                }
-                                .padding(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                        )
+                                .clip(CircleShape),
+                            onClick = {
+                                searchText = ""
+                                isSearchSubmitted = false
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_close_24),
+                                contentDescription = "Clear search",
+                            )
+                        }
                     }
                 )
             },
@@ -262,53 +264,6 @@ fun SearchScreen(
                             vertical = 10.dp
                         )
                     ) {
-                        items(searchScreenState.suggestQueries) { suggestion ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = ripple(),
-                                        onClick = {
-                                            searchText = suggestion
-                                            focusManager.clearFocus()
-                                            isSearchSubmitted = true
-                                            searchViewModel.insertSearchHistory(suggestion)
-                                            when (searchScreenState.searchType) {
-                                                SearchType.ALL -> searchViewModel.searchAll(suggestion)
-                                                SearchType.SONGS -> searchViewModel.searchSongs(suggestion)
-                                                SearchType.VIDEOS -> searchViewModel.searchVideos(suggestion)
-                                                SearchType.ALBUMS -> searchViewModel.searchAlbums(suggestion)
-                                                SearchType.ARTISTS -> searchViewModel.searchArtists(suggestion)
-                                                SearchType.PLAYLISTS -> searchViewModel.searchPlaylists(suggestion)
-                                                SearchType.FEATURED_PLAYLISTS -> searchViewModel.searchFeaturedPlaylist(suggestion)
-                                                SearchType.PODCASTS -> searchViewModel.searchPodcast(suggestion)
-                                            }
-                                        }
-                                    )
-                                    .padding(horizontal = 12.dp, vertical = 2.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = suggestion,
-                                    style = typo.bodyMedium
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                IconButton(
-                                    onClick = {
-                                        searchText = suggestion
-                                        focusRequester.requestFocus()
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.baseline_arrow_outward_24),
-                                        contentDescription = "Search suggestion",
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            }
-                        }
                         items(searchScreenState.suggestYTItems) { item ->
                             SuggestYTItemRow(
                                 ytItem = item,
@@ -359,6 +314,53 @@ fun SearchScreen(
                                 }
                             )
                         }
+                        items(searchScreenState.suggestQueries) { suggestion ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(),
+                                        onClick = {
+                                            searchText = suggestion
+                                            focusManager.clearFocus()
+                                            isSearchSubmitted = true
+                                            searchViewModel.insertSearchHistory(suggestion)
+                                            when (searchScreenState.searchType) {
+                                                SearchType.ALL -> searchViewModel.searchAll(suggestion)
+                                                SearchType.SONGS -> searchViewModel.searchSongs(suggestion)
+                                                SearchType.VIDEOS -> searchViewModel.searchVideos(suggestion)
+                                                SearchType.ALBUMS -> searchViewModel.searchAlbums(suggestion)
+                                                SearchType.ARTISTS -> searchViewModel.searchArtists(suggestion)
+                                                SearchType.PLAYLISTS -> searchViewModel.searchPlaylists(suggestion)
+                                                SearchType.FEATURED_PLAYLISTS -> searchViewModel.searchFeaturedPlaylist(suggestion)
+                                                SearchType.PODCASTS -> searchViewModel.searchPodcast(suggestion)
+                                            }
+                                        }
+                                    )
+                                    .padding(horizontal = 12.dp, vertical = 2.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = suggestion,
+                                    style = typo.bodyMedium
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                IconButton(
+                                    onClick = {
+                                        searchText = suggestion
+                                        focusRequester.requestFocus()
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_arrow_outward_24),
+                                        contentDescription = "Search suggestion",
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
                         item {
                             EndOfPage(
                                 withoutCredit = true
@@ -377,6 +379,27 @@ fun SearchScreen(
                             ),
                     ) {
                         LazyColumn {
+                            stickyHeader {
+                                Crossfade(
+                                    targetState = searchHistory.isNotEmpty()
+                                ) {
+                                    if (it) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth()
+                                                .background(Color.Black)
+                                        ) {
+                                            TextButton(
+                                                onClick = { searchViewModel.deleteSearchHistory() }
+                                            ) {
+                                                Text(
+                                                    text = stringResource(id = R.string.clear_search_history),
+                                                    color = MaterialTheme.colorScheme.onBackground
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             items(searchHistory) { historyItem ->
                                 Row(
                                     modifier = Modifier
@@ -422,22 +445,6 @@ fun SearchScreen(
                                             contentDescription = "Search suggestion",
                                             modifier = Modifier.size(24.dp)
                                         )
-                                    }
-                                }
-                            }
-                            item {
-                                Crossfade(
-                                    targetState = searchHistory.isNotEmpty()
-                                ) {
-                                    if (it) {
-                                        TextButton(
-                                            onClick = { searchViewModel.deleteSearchHistory() }
-                                        ) {
-                                            Text(
-                                                text = stringResource(id = R.string.clear_search_history),
-                                                color = MaterialTheme.colorScheme.onBackground
-                                            )
-                                        }
                                     }
                                 }
                             }
@@ -585,7 +592,8 @@ fun SearchScreen(
                                                                                 listTracks = arrayListOf(firstTrack),
                                                                                 firstPlayedTrack = firstTrack,
                                                                                 playlistId = "RDAMVM${result.videoId}",
-                                                                                playlistName = "\"${searchText}\" ${context.getString(R.string.in_search)}",
+                                                                                playlistName =
+                                                                                    "\"${searchText}\" ${context.getString(R.string.in_search)}",
                                                                                 playlistType = PlaylistType.RADIO,
                                                                                 continuation = null,
                                                                             )
@@ -608,7 +616,8 @@ fun SearchScreen(
                                                                                 listTracks = arrayListOf(firstTrack),
                                                                                 firstPlayedTrack = firstTrack,
                                                                                 playlistId = "RDAMVM${result.videoId}",
-                                                                                playlistName = "\"${searchText}\" ${context.getString(R.string.in_search)}",
+                                                                                playlistName =
+                                                                                    "\"${searchText}\" ${context.getString(R.string.in_search)}",
                                                                                 playlistType = PlaylistType.RADIO,
                                                                                 continuation = null,
                                                                             )
@@ -631,7 +640,8 @@ fun SearchScreen(
                                                                                 listTracks = arrayListOf(firstTrack),
                                                                                 firstPlayedTrack = firstTrack,
                                                                                 playlistId = "RDAMVM${result.id}",
-                                                                                playlistName = "\"${searchText}\" ${context.getString(R.string.in_search)}",
+                                                                                playlistName =
+                                                                                    "\"${searchText}\" ${context.getString(R.string.in_search)}",
                                                                                 playlistType = PlaylistType.RADIO,
                                                                                 continuation = null,
                                                                             )
@@ -654,7 +664,8 @@ fun SearchScreen(
                                                                                 listTracks = arrayListOf(firstTrack),
                                                                                 firstPlayedTrack = firstTrack,
                                                                                 playlistId = "RDAMVM${result.id}",
-                                                                                playlistName = "\"${searchText}\" ${context.getString(R.string.in_search)}",
+                                                                                playlistName =
+                                                                                    "\"${searchText}\" ${context.getString(R.string.in_search)}",
                                                                                 playlistType = PlaylistType.RADIO,
                                                                                 continuation = null,
                                                                             )
@@ -690,12 +701,21 @@ fun SearchScreen(
                                                                 is PlaylistsResult -> PlaylistFullWidthItems(
                                                                     data = result,
                                                                     onClickListener = {
-                                                                        navController.navigateSafe(
-                                                                            R.id.action_global_playlistFragment,
-                                                                            bundleOf(
-                                                                                "id" to result.browseId,
+                                                                        if (result.resultType == "Podcast") {
+                                                                            navController.navigateSafe(
+                                                                                R.id.action_global_podcastFragment,
+                                                                                bundleOf(
+                                                                                    "id" to result.browseId,
+                                                                                )
                                                                             )
-                                                                        )
+                                                                        } else {
+                                                                            navController.navigateSafe(
+                                                                                R.id.action_global_playlistFragment,
+                                                                                bundleOf(
+                                                                                    "id" to result.browseId,
+                                                                                )
+                                                                            )
+                                                                        }
                                                                     }
                                                                 )
 
