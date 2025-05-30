@@ -294,7 +294,9 @@ class MainRepository(
             emit(localDataSource.getSearchHistory())
         }.flowOn(Dispatchers.IO)
 
-    suspend fun insertSearchHistory(searchHistory: SearchHistory) = withContext(Dispatchers.IO) { localDataSource.insertSearchHistory(searchHistory) }
+    suspend fun insertSearchHistory(searchHistory: SearchHistory): Flow<Long> = flow {
+        emit(localDataSource.insertSearchHistory(searchHistory))
+    }.flowOn(Dispatchers.IO)
 
     suspend fun deleteSearchHistory() =
         withContext(Dispatchers.IO) {

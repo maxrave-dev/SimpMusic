@@ -10,6 +10,7 @@ import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
+import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.koin.android.ext.koin.androidApplication
@@ -22,6 +23,11 @@ val viewModelModule =
         single(createdAtStart = true) {
             SharedViewModel(
                 androidApplication()
+            )
+        }
+        single {
+            SearchViewModel(
+                application = androidApplication()
             )
         }
         viewModel {

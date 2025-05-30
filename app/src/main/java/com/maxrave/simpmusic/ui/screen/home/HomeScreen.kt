@@ -956,7 +956,7 @@ fun ChartData(
                     ) {
                         items(chart.trending.size, key = { index ->
                             val item = chart.trending[index]
-                            item.videoId
+                            item.videoId + index
                         }) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {
