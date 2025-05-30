@@ -230,7 +230,7 @@
     <string name="auto_created_by_youtube_music">Automatycznie utworzone przez YouTube Music</string>
     <string name="start_radio">Uruchom radio</string>
     <string name="saved_to_local_playlist">Zapisano do lokalnej playlisty</string>
-    <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">jeśli chcesz odzwichronizować tę playlistę, przejdź do lokalnej playlisty</string>
+    <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">jeśli chcesz odsynchronizować tę playlistę, przejdź do lokalnej playlisty</string>
     <string name="log_in_to_get_YouTube_playlist">Zaloguj się, aby uzyskać playlisty YouTube</string>
     <string name="sync_playlist_warning">SimpMusic automatycznie utworzy playlistę YouTube Music. Czy jesteś pewny?</string>
     <string name="syncing">Synchronizowanie</string>
