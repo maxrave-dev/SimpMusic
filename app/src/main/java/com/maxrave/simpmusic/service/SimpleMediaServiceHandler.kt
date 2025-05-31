@@ -1293,7 +1293,13 @@ class SimpleMediaServiceHandler(
         }
 
         if (loudnessEnhancer == null && player.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
-            loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+            try {
+                loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+            } catch (e: Exception) {
+                Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
+                e.printStackTrace()
+            }
+
         }
 
         player.currentMediaItem?.mediaId?.let { songId ->
