@@ -4,12 +4,10 @@ import android.app.Application
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
@@ -18,7 +16,6 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.extension.toQueryList
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.delay
@@ -30,8 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.koin.core.component.inject
-import java.time.LocalDateTime
 
 // State cho tìm kiếm
 data class SearchScreenState(
@@ -81,11 +76,9 @@ sealed class SearchScreenUIState {
     object Error : SearchScreenUIState()
 }
 
-@UnstableApi
 class SearchViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    private val downloadUtils: DownloadUtils by inject()
 
     private val _searchScreenUIState = MutableStateFlow<SearchScreenUIState>(SearchScreenUIState.Empty)
     val searchScreenUIState: StateFlow<SearchScreenUIState> get() = _searchScreenUIState.asStateFlow()
@@ -151,7 +144,6 @@ class SearchViewModel(
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
-                    else -> {}
                 }
             }
         }
@@ -275,15 +267,6 @@ class SearchViewModel(
         }
     }
 
-    fun clearSuggestQueries() {
-        _searchScreenState.update { state ->
-            state.copy(
-                suggestQueries = emptyList(),
-                suggestYTItems = emptyList()
-            )
-        }
-    }
-
     fun suggestQuery(query: String) {
         viewModelScope.launch {
             mainRepository.getSuggestQuery(query).collect { values ->
@@ -302,7 +285,6 @@ class SearchViewModel(
                         // Không cần xử lý lỗi đặc biệt cho gợi ý
                         Log.e("SearchViewModel", "Error fetching suggest queries: ${values.message}")
                     }
-                    else -> {}
                 }
             }
         }
@@ -327,7 +309,6 @@ class SearchViewModel(
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
-                    else -> {}
                 }
             }
         }
@@ -352,7 +333,6 @@ class SearchViewModel(
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
-                    else -> {}
                 }
             }
         }
@@ -377,7 +357,6 @@ class SearchViewModel(
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
-                    else -> {}
                 }
             }
         }
@@ -402,7 +381,6 @@ class SearchViewModel(
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
-                    else -> {}
                 }
             }
         }
@@ -427,7 +405,6 @@ class SearchViewModel(
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
-                    else -> {}
                 }
             }
         }
@@ -452,7 +429,6 @@ class SearchViewModel(
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
-                    else -> {}
                 }
             }
         }
@@ -469,11 +445,6 @@ class SearchViewModel(
                 mainRepository.updateLikeStatus(videoId, 0)
             }
         }
-    }
-
-    @UnstableApi
-    fun getDownloadStateFromService(videoId: String) {
-        // Implement if needed
     }
 
     fun updateLocalPlaylistTracks(
@@ -496,31 +467,6 @@ class SearchViewModel(
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
                 }
             }
-        }
-    }
-
-    fun addToYouTubePlaylist(
-        localPlaylistId: Long,
-        youtubePlaylistId: String,
-        videoId: String,
-    ) {
-        viewModelScope.launch {
-            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
-            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
-                if (response == "STATUS_SUCCEEDED") {
-                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
-                    Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
-                } else {
-                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
-                    Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    fun updateInLibrary(videoId: String) {
-        viewModelScope.launch {
-            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
         }
     }
 
