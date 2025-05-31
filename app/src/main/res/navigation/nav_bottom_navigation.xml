@@ -8,8 +8,7 @@
     <fragment
         android:id="@+id/bottom_navigation_item_search"
         android:name="com.maxrave.simpmusic.ui.fragment.SearchFragment"
-        android:label="fragment_search"
-        tools:layout="@layout/fragment_search">
+        android:label="fragment_search">
         <action
             android:id="@+id/action_bottom_navigation_item_search_to_artistFragment"
             app:destination="@id/artistFragment"
