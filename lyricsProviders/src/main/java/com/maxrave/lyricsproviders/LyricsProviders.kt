@@ -108,6 +108,42 @@ class LyricsProviders(
             }
         }
 
+    suspend fun userGet() = lyricsClient.get("user.get") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
+        }
+        parameter("app_id", "android-player-v1.0")
+        parameter("part", "oauthtoken_list_full,payment_widget_link")
+        parameter("usertoken", musixmatchUserToken ?: "")
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
+    }
+
+    suspend fun configGet(
+        guid: String
+    ) = lyricsClient.get("config.get") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
+        }
+        parameter("app_id", "android-player-v1.0")
+        parameter("timestamp", LocalDateTime.now().toString())
+        parameter("lang", "en-US_US")
+        parameter("guid", guid)
+        parameter("usertoken", musixmatchUserToken ?: "")
+        parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+        parameter("signature_protocol", "sha1")
+    }
+
     suspend fun getMusixmatchUserToken() =
         lyricsClient.get("token.get?app_id=android-player-v1.0") {
             contentType(ContentType.Application.Json)
@@ -153,6 +189,50 @@ class LyricsProviders(
                 ),
             ),
         )
+    }
+
+    suspend fun macroSearch(
+        q_artist: String,
+        q_track: String,
+        duration: Int,
+        userToken: String,
+        musixmatchCookie: String? = null,
+
+    ) = lyricsClient.get("macro.subtitles.get") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "Dalvik/2.1.0 (Linux; U; Android 14; Phone Build/UP1A.231105.003.A1)")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+            header(HttpHeaders.Cookie, musixmatchCookie ?: "")
+        }
+        parameters {
+            parameter("tags", "scrobbling%2Cnotifications")
+            parameter("f_subtitle_length_max_deviation", "1")
+            parameter("f_subtitle_length", duration.toString())
+            parameter("q_duration", duration.toString())
+
+            parameter("subtitle_format", "lrc")
+            parameter("page_size", "1")
+            parameter("questions_id_list", "track_esync_action%2Ctrack_sync_action%2Ctrack_translation_action%2Clyrics_ai_mood_analysis_v3")
+            parameter("optional_calls", "track.richsync%2Ccrowd.track.actions")
+            parameter("q_artist", q_artist)
+            parameter("q_track", q_track)
+            parameter("usertoken", userToken)
+            parameter("app_id", "android-player-v1.0")
+            parameter("country", "us")
+            parameter(
+                "part",
+                "lyrics_crowd%2Cuser%2Clyrics_vote%2Clyrics_poll%2Ctrack_lyrics_translation_status%2Clyrics_verified_by%2Clabels%2Ctrack_structure%2Ctrack_performer_tagging%2C"
+            )
+            parameter("scrobbling_package", "com.google.android.apps.youtube.music")
+            parameter("language_iso_code", "1")
+            parameter("format", "json")
+
+            parameter("signature", getApiSignature(url.toString(), LocalDateTime.now()))
+            parameter("signature_protocol", "sha1")
+        }
     }
 
     suspend fun searchMusixmatchTrackId(
@@ -206,7 +286,7 @@ class LyricsProviders(
         q_artist: String,
         q_track: String,
     ) = lyricsClient.get(
-        "https://apic.musixmatch.com/ws/1.1/macro.subtitles.get?tags=scrobbling%2Cnotifications&f_subtitle_length_max_deviation=1&subtitle_format=lrc&page_size=1&questions_id_list=track_esync_action%2Ctrack_sync_action%2Ctrack_translation_action%2Clyrics_ai_mood_analysis_v3&optional_calls=track.richsync%2Ccrowd.track.actions&q_artist=${q_artist}&q_track=${q_track}&usertoken=${usertoken}&app_id=android-player-v1.0&country=us&part=lyrics_crowd%2Cuser%2Clyrics_vote%2Clyrics_poll%2Ctrack_lyrics_translation_status%2Clyrics_verified_by%2Clabels%2Ctrack_structure%2Ctrack_performer_tagging%2C&scrobbling_package=com.maxrave.simpmusic.dev&language_iso_code=1&format=json"
+        "https://apic.musixmatch.com/ws/1.1/macro.subtitles.get?tags=scrobbling%2Cnotifications&f_subtitle_length_max_deviation=1&subtitle_format=lrc&page_size=1&questions_id_list=track_esync_action%2Ctrack_sync_action%2Ctrack_translation_action%2Clyrics_ai_mood_analysis_v3&optional_calls=track.richsync%2Ccrowd.track.actions&q_artist=${q_artist}&q_track=${q_track}&usertoken=${usertoken}&app_id=android-player-v1.0&country=us&part=lyrics_crowd%2Cuser%2Clyrics_vote%2Clyrics_poll%2Ctrack_lyrics_translation_status%2Clyrics_verified_by%2Clabels%2Ctrack_structure%2Ctrack_performer_tagging%2C&scrobbling_package=com.google.android.apps.youtube.music&language_iso_code=1&format=json"
     ) {
         contentType(ContentType.Application.Json)
         headers {

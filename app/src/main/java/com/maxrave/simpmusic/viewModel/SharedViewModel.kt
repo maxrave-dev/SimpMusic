@@ -81,6 +81,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.runningFold
@@ -209,6 +210,7 @@ class SharedViewModel(
     init {
         mainRepository.initYouTube(viewModelScope)
         viewModelScope.launch {
+            log("SharedViewModel init")
             if (dataStoreManager.appVersion.first() != VersionManager.getVersionName()) {
                 dataStoreManager.resetOpenAppTime()
                 dataStoreManager.setAppVersion(
@@ -219,15 +221,16 @@ class SharedViewModel(
             val timeLineJob =
                 launch {
                     combine(
-                        timeline.distinctUntilChangedBy {
-                            it.total
-                        },
-                        nowPlayingState.distinctUntilChangedBy {
-                            it?.songEntity?.videoId
-                        },
+                        timeline.filterNotNull(),
+                        nowPlayingState.filterNotNull()
                     ) { timeline, nowPlayingState ->
                         Pair(timeline, nowPlayingState)
-                    }.collectLatest {
+                    }.distinctUntilChanged { old, new ->
+                        (old.first.total.toString() + old.second?.songEntity?.videoId).hashCode() ==
+                            (new.first.total.toString() + new.second?.songEntity?.videoId).hashCode()
+                    }
+                        .collectLatest {
+                            log("Timeline job ${(it.first.total.toString() + it.second?.songEntity?.videoId).hashCode()}")
                         val nowPlaying = it.second
                         val timeline = it.first
                         if (timeline.total > 0 && nowPlaying?.songEntity != null) {
@@ -614,7 +617,7 @@ class SharedViewModel(
     private fun getSavedLyrics(track: Track) {
         viewModelScope.launch {
             resetLyrics()
-            mainRepository.getSavedLyrics(track.videoId).cancellable().collect { lyrics ->
+            mainRepository.getSavedLyrics(track.videoId).cancellable().collectLatest { lyrics ->
                 if (lyrics != null) {
                     val lyricsData = lyrics.toLyrics()
                     Log.d(tag, "Saved Lyrics $lyricsData")
@@ -627,9 +630,9 @@ class SharedViewModel(
                 } else {
                     resetLyrics()
                     mainRepository
-                        .getLyricsData(track.artists.toListName().firstOrNull() ?: "", track.title, track.durationSeconds)
+                        .getLyricsDataMacro(track.artists.toListName().firstOrNull() ?: "", track.title, track.durationSeconds ?: 0)
                         .cancellable()
-                        .collect { response ->
+                        .collectLatest { response ->
                             when (_lyrics.value) {
                                 is Resource.Success -> {
                                     _lyrics.value?.data?.let {
@@ -1149,12 +1152,12 @@ class SharedViewModel(
                 }
             if (dataStoreManager.lyricsProvider.first() == DataStoreManager.MUSIXMATCH) {
                 mainRepository
-                    .getLyricsData(
+                    .getLyricsDataMacro(
                         (artist ?: "").toString(),
                         song.title,
                         duration,
                     ).cancellable()
-                    .collect { response ->
+                    .collectLatest { response ->
                         Log.w(tag, response.second.data.toString())
 
                         when (response.second) {

@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.data.repository
 
 import android.content.Context
+import android.provider.Settings.Secure
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.YouTube
@@ -2519,6 +2520,67 @@ class MainRepository(
                 }
         }.flowOn(Dispatchers.IO)
 
+    fun getLyricsDataMacro(
+        sartist: String,
+        strack: String,
+        duration: Int
+    ): Flow<Pair<String, Resource<Lyrics>>> = flow {
+        val qartist =
+            sartist
+                .replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                    " ",
+                ).replace(
+                    Regex("( và | & | и | e | und |, |和| dan)"),
+                    " ",
+                ).replace("  ", " ")
+                .replace(Regex("([()])"), "")
+                .replace(".", " ")
+        val qtrack =
+            strack
+                .replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                    " ",
+                ).replace(
+                    Regex("( và | & | и | e | und |, |和| dan)"),
+                    " ",
+                ).replace("  ", " ")
+                .replace(Regex("([()])"), "")
+                .replace(".", " ")
+        val tag = "Lyrics"
+        Log.d(tag, "query: $qtrack $qartist")
+        lyricsClient.configGet().onSuccess {
+            Log.d(tag, "configGet: ${it}")
+        }.onFailure { throwable ->
+            Log.e(tag, "configGet Error: ${throwable.message}")
+        }
+        lyricsClient.userGet().onSuccess {
+            Log.d(tag, "userGet: ${it}")
+        }.onFailure { throwable ->
+            Log.e(tag, "userGet Error: ${throwable.message}")
+        }
+        lyricsClient.macroSearch(
+            q_track = qtrack,
+            q_artist = qartist,
+            duration = duration,
+            userToken = dataStoreManager.musixmatchUserToken.first()
+        ).onSuccess { res ->
+            if (res != null) {
+                Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
+                emit(
+                    res.first.toString() to Resource.Success(res.second.toLyrics())
+                )
+            } else {
+                Log.w(tag, "Error: Lỗi getLyrics $res")
+                emit("" to Resource.Error<Lyrics>("Not found"))
+            }
+        }.onFailure {
+            emit(
+                "" to Resource.Error<Lyrics>("Not found")
+            )
+        }
+    }.flowOn(Dispatchers.IO)
+
     fun getLyricsData(
         sartist: String,
         strack: String,
@@ -2554,6 +2616,16 @@ class MainRepository(
                 val q = "$qtrack $qartist"
                 Log.d(tag, "query: $q")
                 var musixMatchUserToken = lyricsClient.musixmatchUserToken
+                lyricsClient.configGet().onSuccess {
+                    Log.d(tag, "configGet: ${it}")
+                }.onFailure { throwable ->
+                    Log.e(tag, "configGet Error: ${throwable.message}")
+                }
+                lyricsClient.userGet().onSuccess {
+                    Log.d(tag, "userGet: ${it}")
+                }.onFailure { throwable ->
+                    Log.e(tag, "userGet Error: ${throwable.message}")
+                }
                 if (musixMatchUserToken == null) {
                     lyricsClient
                         .getMusixmatchUserToken()
@@ -2761,7 +2833,7 @@ class MainRepository(
                                         }
                                     }.onFailure {
                                         Log.e(tag, "Fix musixmatch search" + it.message.toString())
-                                        emit("" to Resource.Error<Lyrics>("Not found"))
+
                                     }
                             }
                         } else {

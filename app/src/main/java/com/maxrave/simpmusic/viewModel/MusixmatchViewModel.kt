@@ -8,11 +8,14 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @UnstableApi
 class MusixmatchViewModel(
     application: Application,
 ) : BaseViewModel(application) {
+    @OptIn(ExperimentalUuidApi::class)
     fun login(
         userId: String,
         userToken: String,
@@ -26,7 +29,7 @@ class MusixmatchViewModel(
                 val cookie =
                     "x-mxm-user-id=${userId.replace(":", "%3A")}; path=%2F; x-mxm-token-guid=${
                         deviceId
-                    }; mxm-encrypted-token="
+                    }; mxm-encrypted-token=; AWSELB=unknown"
                 saveCookie(cookie)
             }
             makeToast(
