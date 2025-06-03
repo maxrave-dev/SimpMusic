@@ -59,9 +59,15 @@ fun SettingItem(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start,
             ) {
-                Text(text = title, style = typo.labelMedium)
+                Text(text = title, style = typo.labelMedium.let {
+                    if (!isEnable) it.greyScale() else it
+                })
                 Spacer(Modifier.height(4.dp))
-                Text(text = subtitle, style = if (smallSubtitle) typo.bodySmall else typo.bodyMedium, maxLines = 2)
+                Text(text = subtitle, style = if (smallSubtitle) typo.bodySmall.let {
+                    if (!isEnable) it.greyScale() else it
+                } else typo.bodyMedium.let {
+                    if (!isEnable) it.greyScale() else it
+                }, maxLines = 2)
 
                 otherView?.let {
                     Spacer(Modifier.height(16.dp))
@@ -76,6 +82,7 @@ fun SettingItem(
                     onCheckedChange = {
                         switch.second.invoke(it)
                     },
+                    enabled = isEnable
                 )
             }
         }

@@ -65,6 +65,7 @@ smart-exception = "0.2.1"
 onetimepassword = "2.4.1"
 common = "1.18.0"
 json = "1.8.1"
+gemini-kotlin = "4.0.2"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -163,6 +164,7 @@ store = { module = "org.mobilenativefoundation.store:store5", version.ref = "sto
 androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "ui-text-android" }
 kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword", version.ref = "onetimepassword" }
 common = { module = "commons-codec:commons-codec", version.ref = "common" }
+gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

@@ -31,6 +31,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.FALSE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -627,53 +628,10 @@ class SharedViewModel(
                         false,
                         LyricsProvider.OFFLINE,
                     )
-                } else {
-                    resetLyrics()
-                    mainRepository
-                        .getLyricsDataMacro(track.artists.toListName().firstOrNull() ?: "", track.title, track.durationSeconds ?: 0)
-                        .cancellable()
-                        .collectLatest { response ->
-                            when (_lyrics.value) {
-                                is Resource.Success -> {
-                                    _lyrics.value?.data?.let {
-                                        updateLyrics(
-                                            track.videoId,
-                                            it,
-                                            false,
-                                            LyricsProvider.MUSIXMATCH,
-                                        )
-                                        insertLyrics(
-                                            it.toLyricsEntity(track.videoId),
-                                        )
-                                        if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
-                                            mainRepository
-                                                .getTranslateLyrics(response.first)
-                                                .cancellable()
-                                                .collect { translate ->
-                                                    if (translate != null) {
-                                                        updateLyrics(
-                                                            track.videoId,
-                                                            translate.toLyrics(
-                                                                it,
-                                                            ),
-                                                            true,
-                                                        )
-                                                    }
-                                                }
-                                        }
-                                    }
-                                }
-
-                                else -> {
-                                    Log.d("Check lyrics", "Loading")
-                                    updateLyrics(
-                                        track.videoId,
-                                        null,
-                                        false,
-                                    )
-                                }
-                            }
-                        }
+                    getAITranslationLyrics(
+                        track.videoId,
+                        lyricsData
+                    )
                 }
             }
         }
@@ -1192,6 +1150,11 @@ class SharedViewModel(
                                                     )
                                                 }
                                             }
+                                    } else {
+                                        getAITranslationLyrics(
+                                            videoId,
+                                            response.second.data ?: return@collectLatest,
+                                        )
                                     }
                                 } else if (response.second.data?.captchaRequired == true) {
                                     _showMusixmatchCaptchaWebView.value = true
@@ -1246,6 +1209,10 @@ class SharedViewModel(
                                     response.data,
                                     false,
                                     LyricsProvider.YOUTUBE,
+                                )
+                                getAITranslationLyrics(
+                                    videoId,
+                                    response.data,
                                 )
                             } else if (dataStoreManager.spotifyLyrics.first() == TRUE) {
                                 getSpotifyLyrics(
@@ -1315,6 +1282,10 @@ class SharedViewModel(
                                     song.videoId,
                                 ) ?: return@collectLatest,
                             )
+                            getAITranslationLyrics(
+                                song.videoId,
+                                res.data,
+                            )
                         }
                         is Resource.Error -> {
                             getSavedLyrics(
@@ -1322,6 +1293,39 @@ class SharedViewModel(
                                     durationSeconds = duration,
                                 ),
                             )
+                        }
+                    }
+                }
+        }
+    }
+
+    private suspend fun getAITranslationLyrics(
+        videoId: String,
+        lyrics: Lyrics,
+    ) {
+        if (dataStoreManager.useAITranslation.first() == TRUE
+            && dataStoreManager.aiApiKey.first().isNotEmpty()
+            && dataStoreManager.enableTranslateLyric.first() == FALSE
+        ) {
+            mainRepository.getAITranslationLyrics(
+                lyrics,
+                dataStoreManager.translationLanguage.first()
+            ).cancellable()
+                .collectLatest {
+                    val data = it.data
+                    when (it) {
+                        is Resource.Success if (data != null) -> {
+                            if (true) {
+                                Log.d(tag, "Get AI Translate Lyrics Success")
+                                updateLyrics(
+                                    videoId,
+                                    data,
+                                    true,
+                                )
+                            }
+                        }
+                        else -> {
+                            Log.w(tag, "Get AI Translate Lyrics Error: ${it.message}")
                         }
                     }
                 }
@@ -1347,6 +1351,10 @@ class SharedViewModel(
                                 response.data,
                                 false,
                                 LyricsProvider.SPOTIFY,
+                            )
+                            getAITranslationLyrics(
+                                track.videoId,
+                                response.data,
                             )
                         }
                     }

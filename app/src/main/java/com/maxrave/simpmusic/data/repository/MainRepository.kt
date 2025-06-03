@@ -95,6 +95,7 @@ import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
 import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.isNetworkAvailable
+import com.maxrave.simpmusic.extension.toLibraryLyrics
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toTrack
@@ -120,6 +121,8 @@ import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import org.simpmusic.aiservice.AIHost
+import org.simpmusic.aiservice.AiClient
 import java.io.File
 import java.time.LocalDateTime
 import kotlin.collections.firstOrNull
@@ -131,6 +134,7 @@ class MainRepository(
     private val youTube: YouTube,
     private val spotify: Spotify,
     private val lyricsClient: LyricsClient,
+    private val aiClient: AiClient,
     private val database: MusicDatabase,
     private val context: Context,
 ) {
@@ -263,6 +267,26 @@ class MainRepository(
                         youTube.visitorData = visitorData
                     }
                 }
+            val aiClientProviderJob =
+                launch {
+                    dataStoreManager.aiProvider.collectLatest { provider ->
+                        aiClient.host = when (provider) {
+                            DataStoreManager.AI_PROVIDER_GEMINI -> AIHost.GEMINI
+                            DataStoreManager.AI_PROVIDER_OPENAI -> AIHost.OPENAI
+                            else -> AIHost.GEMINI // Default to Gemini if not set
+                        }
+                    }
+                }
+            val aiClientApiKeyJob =
+                launch {
+                    dataStoreManager.aiApiKey.collectLatest { apiKey ->
+                        aiClient.apiKey = if (apiKey.isNotEmpty()) {
+                            apiKey
+                        } else {
+                            null
+                        }
+                    }
+                }
 
             localeJob.join()
             ytCookieJob.join()
@@ -272,6 +296,8 @@ class MainRepository(
             dataSyncIdJob.join()
             visitorDataJob.join()
             resetSpotifyToken.join()
+            aiClientProviderJob.join()
+            aiClientApiKeyJob.join()
         }
     }
 
@@ -2892,6 +2918,24 @@ class MainRepository(
                             emit(null)
                         }
                 }
+            }
+        }.flowOn(Dispatchers.IO)
+
+    fun getAITranslationLyrics(
+        lyrics: Lyrics,
+        targetLanguage: String,
+    ): Flow<Resource<Lyrics>> =
+        flow {
+            runCatching {
+                aiClient
+                    .translateLyrics(lyrics.toLibraryLyrics(), targetLanguage)
+                    .onSuccess { translatedLyrics ->
+                        Log.w("AI Translation", "translatedLyrics: $translatedLyrics")
+                        emit(Resource.Success(translatedLyrics.toLyrics()))
+                    }.onFailure { throwable ->
+                        Log.e("AI Translation", "Error: ${throwable.message}")
+                        emit(Resource.Error<Lyrics>("Translation failed"))
+                    }
             }
         }.flowOn(Dispatchers.IO)
 

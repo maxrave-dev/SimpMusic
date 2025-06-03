@@ -77,7 +77,6 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.annotation.ExperimentalCoilApi
@@ -193,6 +192,9 @@ fun SettingScreen(
     val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
     val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
     val fadeAudioEffect by viewModel.fadeAudioEffect.collectAsStateWithLifecycle()
+    val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
+    val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
+    val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
@@ -713,6 +715,75 @@ fun SettingScreen(
                         )
                     },
                     isEnable = useMusixmatchTranslation,
+                )
+            }
+        }
+        item(key = "AI") {
+            Column {
+                Text(text = stringResource(R.string.ai), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                SettingItem(
+                    title = stringResource(R.string.ai_provider),
+                    subtitle =
+                        when (aiProvider) {
+                            DataStoreManager.AI_PROVIDER_OPENAI -> stringResource(R.string.openai)
+                            DataStoreManager.AI_PROVIDER_GEMINI -> stringResource(R.string.gemini)
+                            else -> stringResource(R.string.unknown)
+                        },
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.ai_provider),
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            listOf(
+                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_OPENAI) to context.getString(R.string.openai),
+                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_GEMINI) to context.getString(R.string.gemini),
+                                            ),
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setAIProvider(
+                                            when (state.selectOne?.getSelected()) {
+                                                context.getString(R.string.openai) -> DataStoreManager.AI_PROVIDER_OPENAI
+                                                context.getString(R.string.gemini) -> DataStoreManager.AI_PROVIDER_GEMINI
+                                                else -> DataStoreManager.AI_PROVIDER_OPENAI
+                                            },
+                                        )
+                                    },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(R.string.ai_api_key),
+                    subtitle = if (isHasApiKey) "XXXXXXXXXX" else "N/A",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.ai_api_key),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.ai_api_key),
+                                        value = "",
+                                        verifyCodeBlock = {
+                                            (it.isNotEmpty()) to context.getString(androidx.media3.session.R.string.error_message_invalid_state)
+                                        },
+                                    ),
+                                message = "",
+                                confirm =
+                                    context.getString(R.string.set) to { state ->
+                                        viewModel.setAIApiKey(state.textField?.value ?: "")
+                                    },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(R.string.use_ai_translation),
+                    subtitle = stringResource(R.string.use_ai_translation_description),
+                    switch = (useAITranslation to { viewModel.setAITranslation(it) }),
+                    isEnable = !useMusixmatchTranslation && isHasApiKey,
                 )
             }
         }

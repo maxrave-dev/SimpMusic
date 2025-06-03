@@ -127,6 +127,12 @@ class SettingsViewModel(
     val blurPlayerBackground: StateFlow<Boolean> = _blurPlayerBackground
     private var _fadeAudioEffect = MutableStateFlow(0)
     val fadeAudioEffect: StateFlow<Int> = _fadeAudioEffect
+    private val _aiProvider = MutableStateFlow<String>(DataStoreManager.AI_PROVIDER_OPENAI)
+    val aiProvider: StateFlow<String> = _aiProvider
+    private val _isHasApiKey = MutableStateFlow<Boolean>(false)
+    val isHasApiKey: StateFlow<Boolean> = _isHasApiKey
+    private val _useAITranslation = MutableStateFlow<Boolean>(false)
+    val useAITranslation: StateFlow<Boolean> = _useAITranslation
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -177,8 +183,61 @@ class SettingsViewModel(
         getBlurFullscreenLyrics()
         getBlurPlayerBackground()
         getFadeDuration()
+        getAIProvider()
+        getAIApiKey()
+        getAITranslation()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getAIProvider() {
+        viewModelScope.launch {
+            dataStoreManager.aiProvider.collect { aiProvider ->
+                _aiProvider.value = aiProvider
+            }
+        }
+    }
+
+    fun setAIProvider(provider: String) {
+        viewModelScope.launch {
+            dataStoreManager.setAIProvider(provider)
+            getAIProvider()
+        }
+    }
+
+    private fun getAITranslation() {
+        viewModelScope.launch {
+            dataStoreManager.useAITranslation.collect { useAITranslation ->
+                _useAITranslation.value = useAITranslation == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setAITranslation(useAITranslation: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setUseAITranslation(useAITranslation)
+            getAITranslation()
+        }
+    }
+
+    private fun getAIApiKey() {
+        viewModelScope.launch {
+            dataStoreManager.aiApiKey.collect { aiApiKey ->
+                if (aiApiKey.isNotEmpty()) {
+                    _isHasApiKey.value = true
+                    log("getAIApiKey: $aiApiKey", Log.DEBUG)
+                } else {
+                    _isHasApiKey.value = false
+                }
+            }
+        }
+    }
+
+    fun setAIApiKey(apiKey: String) {
+        viewModelScope.launch {
+            dataStoreManager.setAIApiKey(apiKey)
+            getAIApiKey()
         }
     }
 

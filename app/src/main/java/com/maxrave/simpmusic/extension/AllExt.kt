@@ -654,6 +654,22 @@ fun com.maxrave.lyricsproviders.models.lyrics.Lyrics.toLyrics(): Lyrics {
     }
 }
 
+fun Lyrics.toLibraryLyrics(): com.maxrave.lyricsproviders.models.lyrics.Lyrics =
+    com.maxrave.lyricsproviders.models.lyrics.Lyrics(
+        lyrics =
+            com.maxrave.lyricsproviders.models.lyrics.Lyrics.LyricsX(
+                lines = this.lines?.map {
+                    com.maxrave.lyricsproviders.models.lyrics.Line(
+                        endTimeMs = it.endTimeMs,
+                        startTimeMs = it.startTimeMs,
+                        syllables = listOf(),
+                        words = it.words,
+                    )
+                },
+                syncType = this.syncType,
+            ),
+    )
+
 fun SpotifyLyricsResponse.toLyrics(): Lyrics {
     val lines: ArrayList<Line> = arrayListOf()
     this.lyrics.lines.forEach {
