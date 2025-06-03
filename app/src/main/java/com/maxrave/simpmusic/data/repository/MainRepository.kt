@@ -2927,6 +2927,7 @@ class MainRepository(
     ): Flow<Resource<Lyrics>> =
         flow {
             runCatching {
+                Log.w("AI Translation", "targetLanguage: $targetLanguage")
                 aiClient
                     .translateLyrics(lyrics.toLibraryLyrics(), targetLanguage)
                     .onSuccess { translatedLyrics ->

@@ -31,7 +31,13 @@ class AiClient() {
         inputLyrics: Lyrics,
         targetLanguage: String
     ): Result<Lyrics> = runCatching {
-        aiService?.translateLyrics(inputLyrics, targetLanguage)
+        aiService?.translateLyrics(inputLyrics, targetLanguage).also {
+            if (it?.lyrics?.lines?.map { it.words }?.containsAll(
+                inputLyrics.lyrics?.lines?.map { it.words } ?: emptyList()
+            ) == true) {
+                throw IllegalStateException("Translation failed or returned empty lyrics.")
+            }
+        }
             ?: throw IllegalStateException("AI service is not initialized. Please set host and apiKey.")
     }
 }

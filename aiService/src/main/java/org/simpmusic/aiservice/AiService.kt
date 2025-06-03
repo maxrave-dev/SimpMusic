@@ -48,9 +48,9 @@ class AiService(
             this.model = this@AiService.model
             responseFormat = ChatResponseFormat.jsonSchema(aiResponseJsonSchema)
             messages {
-                @Suppress("ktlint:standard:max-line-length")
                 system {
-                    content = "You are a translation assistant. Translate the below JSON-serialized lyrics into the target language while preserving the exact same JSON structure. Only translate the actual text fields such as `words` and `syllables` (if present). Do not change keys, nesting, timestamps, or any other metadata.\\n\\nThe output must be valid JSON with the same structure as the input. Do not include explanations or extra commentary—only return the resulting JSON."
+                    content =
+                        "You are a translation assistant. Translate the below JSON-serialized lyrics into the target language while preserving the exact same JSON structure. Only translate the actual text fields such as `words` and `syllables` (if present). Do not change keys, nesting, timestamps, or any other metadata.\\n\\nThe output must be valid JSON with the same structure as the input. Do not include explanations or extra commentary—only return the resulting JSON."
                 }
                 user {
                     content {

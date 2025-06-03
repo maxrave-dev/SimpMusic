@@ -714,7 +714,7 @@ fun SettingScreen(
                             ),
                         )
                     },
-                    isEnable = useMusixmatchTranslation,
+                    isEnable = useMusixmatchTranslation || useAITranslation,
                 )
             }
         }
