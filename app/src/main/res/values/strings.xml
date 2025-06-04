@@ -247,7 +247,9 @@
     <string name="only_support_email_and_password_type">Only support email and password type</string>
     <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. SimpMusic used Musixmatch Developer API. More information, go to https://github.com/maxrave-dev/SimpMusic or https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Use Musixmatch Translation</string>
+    <string name="use_ai_translation">Use AI Lyric Translation</string>
     <string name="use_musixmatch_translation_description">Enable lyrics translation using Musixmatch. Require Musixmatch Login</string>
+    <string name="use_ai_translation_description">Enable lyrics translation using AI. Turn off Musixmatch translation to use</string>
     <string name="translation_language">Translation Language</string>
     <string name="follow_app_language">Follow app language</string>
     <string name="email">Email</string>
@@ -418,4 +420,14 @@
     <string name="data_sync_id_retrieved">DataSyncId retrieved</string>
     <string name="retrieve_youtube_data">Retrieve YouTube Data</string>
     <string name="no_results_found">No results found</string>
+    <string name="ai">AI</string>
+    <string name="ai_provider">AI provider</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="ai_api_key">Your AI API Key</string>
+    <string name="invalid_api_key">Invalid API key</string>
+    <string name="custom_ai_model_id">Custom AI model ID</string>
+    <string name="default_models">Default models are \"gemini-2.0-flash-lite\" and \"gpt-4o\"</string>
+    <string name="invalid">Invalid</string>
+    <string name="custom_model_id_messages">Please enter the exactly model ID from your AI provider.</string>
 </resources>

@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.maxrave.lyricsproviders"
+    namespace = "org.simpmusic.aiservice"
     compileSdk = 35
 
     defaultConfig {
@@ -46,16 +46,10 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.encoding)
     implementation(libs.ktor.client.okhttp)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.gemini.kotlin)
 
-    implementation(libs.brotli.dec)
-
-    implementation(libs.kotlin.reflect)
+    implementation(project(":lyricsProviders"))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

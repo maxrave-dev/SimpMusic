@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -107,6 +108,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -316,7 +318,9 @@ fun FullscreenLyricsSheet(
         shape = RectangleShape,
     ) {
         Box {
-            val hazeState = remember { HazeState() }
+            val hazeState = rememberHazeState(
+                blurEnabled = true
+            )
             if (shouldHaze) {
                 Box(
                     modifier =
@@ -355,7 +359,9 @@ fun FullscreenLyricsSheet(
                                     Modifier.hazeEffect(
                                         hazeState,
                                         style = CupertinoMaterials.thin(),
-                                    )
+                                    ) {
+                                        blurEnabled = true
+                                    }
                                 } else {
                                     Modifier
                                 },

@@ -20,7 +20,7 @@ import org.koin.dsl.module
 @UnstableApi
 val viewModelModule =
     module {
-        single(createdAtStart = true) {
+        single {
             SharedViewModel(
                 androidApplication()
             )

@@ -61,7 +61,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.compose.koinInject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import pub.devrel.easypermissions.EasyPermissions
@@ -72,7 +74,7 @@ import java.util.Locale
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    val viewModel by viewModel<SharedViewModel>()
+    val viewModel: SharedViewModel by inject()
     private var action: String? = null
     private var data: Uri? = null
 
