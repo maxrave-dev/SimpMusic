@@ -195,6 +195,8 @@ fun SettingScreen(
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
+    val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
+
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
@@ -690,6 +692,11 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.use_musixmatch_translation_description),
                     switch = (useMusixmatchTranslation to { viewModel.setUseTranslation(it) }),
                     isEnable = musixmatchLoggedIn,
+                    onDisable = {
+                        if (useMusixmatchTranslation) {
+                            viewModel.setUseTranslation(false)
+                        }
+                    }
                 )
                 SettingItem(
                     title = stringResource(R.string.translation_language),
@@ -767,7 +774,7 @@ fun SettingScreen(
                                         label = context.getString(R.string.ai_api_key),
                                         value = "",
                                         verifyCodeBlock = {
-                                            (it.isNotEmpty()) to context.getString(androidx.media3.session.R.string.error_message_invalid_state)
+                                            (it.isNotEmpty()) to context.getString(R.string.invalid_api_key)
                                         },
                                     ),
                                 message = "",
@@ -780,10 +787,39 @@ fun SettingScreen(
                     },
                 )
                 SettingItem(
+                    title = stringResource(R.string.custom_ai_model_id),
+                    subtitle = if (customModelId.isNotEmpty()) customModelId else stringResource(R.string.default_models),
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.custom_ai_model_id),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.custom_ai_model_id),
+                                        value = "",
+                                        verifyCodeBlock = {
+                                            (it.isNotEmpty() && it.contains(" ")) to context.getString(R.string.invalid)
+                                        },
+                                    ),
+                                message = context.getString(R.string.custom_model_id_messages),
+                                confirm =
+                                    context.getString(R.string.set) to { state ->
+                                        viewModel.setCustomModelId(state.textField?.value ?: "")
+                                    },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
                     title = stringResource(R.string.use_ai_translation),
                     subtitle = stringResource(R.string.use_ai_translation_description),
                     switch = (useAITranslation to { viewModel.setAITranslation(it) }),
                     isEnable = !useMusixmatchTranslation && isHasApiKey,
+                    onDisable = {
+                        if (useAITranslation) {
+                            viewModel.setAITranslation(false)
+                        }
+                    }
                 )
             }
         }
@@ -811,12 +847,22 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.spotify_lyrícs_info),
                     switch = (spotifyLyrics to { viewModel.setSpotifyLyrics(it) }),
                     isEnable = spotifyLoggedIn,
+                    onDisable = {
+                        if (spotifyLyrics) {
+                            viewModel.setSpotifyLyrics(false)
+                        }
+                    }
                 )
                 SettingItem(
                     title = stringResource(R.string.enable_canvas),
                     subtitle = stringResource(R.string.canvas_info),
                     switch = (spotifyCanvas to { viewModel.setSpotifyCanvas(it) }),
                     isEnable = spotifyLoggedIn,
+                    onDisable = {
+                        if (spotifyCanvas) {
+                            viewModel.setSpotifyCanvas(false)
+                        }
+                    }
                 )
             }
         }
@@ -1019,9 +1065,11 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.otherApp * width).dp,
-                                        ).background(
+                                        )
+                                        .background(
                                             md_theme_dark_primary,
-                                        ).fillMaxHeight(),
+                                        )
+                                        .fillMaxHeight(),
                             )
                         }
                         item {
@@ -1030,9 +1078,11 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.downloadCache * width).dp,
-                                        ).background(
+                                        )
+                                        .background(
                                             Color(0xD540FF17),
-                                        ).fillMaxHeight(),
+                                        )
+                                        .fillMaxHeight(),
                             )
                         }
                         item {
@@ -1041,9 +1091,11 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.playerCache * width).dp,
-                                        ).background(
+                                        )
+                                        .background(
                                             Color(0xD5FFFF00),
-                                        ).fillMaxHeight(),
+                                        )
+                                        .fillMaxHeight(),
                             )
                         }
                         item {
@@ -1052,9 +1104,11 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.canvasCache * width).dp,
-                                        ).background(
+                                        )
+                                        .background(
                                             Color.Cyan,
-                                        ).fillMaxHeight(),
+                                        )
+                                        .fillMaxHeight(),
                             )
                         }
                         item {
@@ -1063,9 +1117,11 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.thumbCache * width).dp,
-                                        ).background(
+                                        )
+                                        .background(
                                             Color.Magenta,
-                                        ).fillMaxHeight(),
+                                        )
+                                        .fillMaxHeight(),
                             )
                         }
                         item {
@@ -1074,7 +1130,8 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.appDatabase * width).dp,
-                                        ).background(
+                                        )
+                                        .background(
                                             Color.White,
                                         ),
                             )
@@ -1085,9 +1142,11 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.freeSpace * width).dp,
-                                        ).background(
+                                        )
+                                        .background(
                                             Color.DarkGray,
-                                        ).fillMaxHeight(),
+                                        )
+                                        .fillMaxHeight(),
                             )
                         }
                     }
@@ -1576,7 +1635,8 @@ fun SettingScreen(
                                     .padding(vertical = 4.dp)
                                     .clickable {
                                         onSelect.invoke()
-                                    }.fillMaxWidth(),
+                                    }
+                                    .fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 RadioButton(
@@ -1617,7 +1677,8 @@ fun SettingScreen(
                                     .padding(vertical = 4.dp)
                                     .clickable {
                                         onCheck.invoke()
-                                    }.fillMaxWidth(),
+                                    }
+                                    .fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Checkbox(

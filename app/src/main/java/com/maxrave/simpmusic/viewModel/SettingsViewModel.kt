@@ -133,6 +133,8 @@ class SettingsViewModel(
     val isHasApiKey: StateFlow<Boolean> = _isHasApiKey
     private val _useAITranslation = MutableStateFlow<Boolean>(false)
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
+    private val _customModelId = MutableStateFlow<String>("")
+    val customModelId: StateFlow<String> = _customModelId
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -188,6 +190,21 @@ class SettingsViewModel(
         getAITranslation()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getCustomModelId() {
+        viewModelScope.launch {
+            dataStoreManager.customModelId.collect { customModelId ->
+                _customModelId.value = customModelId
+            }
+        }
+    }
+
+    fun setCustomModelId(modelId: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomModelId(modelId)
+            getCustomModelId()
         }
     }
 

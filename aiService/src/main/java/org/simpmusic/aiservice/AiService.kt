@@ -20,7 +20,8 @@ import kotlinx.serialization.json.putJsonObject
 
 class AiService(
     private val aiHost: AIHost = AIHost.GEMINI,
-    private val apiKey: String
+    private val apiKey: String,
+    private val customModelId: String? = null
 ) {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -34,9 +35,13 @@ class AiService(
     }
 
     private val model by lazy {
-        when (aiHost) {
-            AIHost.GEMINI -> ModelId("gemini-2.0-flash-lite")
-            AIHost.OPENAI -> ModelId("gpt-4o")
+        if (!customModelId.isNullOrEmpty()) {
+            ModelId(customModelId)
+        } else {
+            when (aiHost) {
+                AIHost.GEMINI -> ModelId("gemini-2.0-flash-lite")
+                AIHost.OPENAI -> ModelId("gpt-4o")
+            }
         }
     }
 

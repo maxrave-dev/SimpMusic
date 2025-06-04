@@ -26,6 +26,19 @@ class AiClient() {
                 null
             }
         }
+    var customModelId: String? = null
+        set(value) {
+            field = value
+            aiService = if (apiKey != null) {
+                AiService(
+                    aiHost = host,
+                    apiKey = apiKey!!,
+                    customModelId = value
+                )
+            } else {
+                null
+            }
+        }
 
     suspend fun translateLyrics(
         inputLyrics: Lyrics,

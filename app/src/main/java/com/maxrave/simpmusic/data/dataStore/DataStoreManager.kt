@@ -937,6 +937,19 @@ class DataStoreManager(
         }
     }
 
+    val customModelId =
+        settingsDataStore.data.map { preferences ->
+            preferences[CUSTOM_MODEL_ID] ?: ""
+        }
+
+    suspend fun setCustomModelId(modelId: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[CUSTOM_MODEL_ID] = modelId
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -1006,6 +1019,8 @@ class DataStoreManager(
 
         val AI_PROVIDER = stringPreferencesKey("ai_provider")
         val AI_API_KEY = stringPreferencesKey("ai_gemini_api_key")
+
+        val CUSTOM_MODEL_ID = stringPreferencesKey("custom_model_id")
 
         val USE_AI_TRANSLATION = stringPreferencesKey("use_ai_translation")
 

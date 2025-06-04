@@ -51,6 +51,7 @@ import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
+import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
@@ -121,6 +122,7 @@ import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import org.intellij.lang.annotations.Language
 import org.simpmusic.aiservice.AIHost
 import org.simpmusic.aiservice.AiClient
 import java.io.File
@@ -287,6 +289,16 @@ class MainRepository(
                         }
                     }
                 }
+            val aiCustomModelIdJob =
+                launch {
+                    dataStoreManager.customModelId.collectLatest { modelId ->
+                        aiClient.customModelId = if (modelId.isNotEmpty()) {
+                            modelId
+                        } else {
+                            null
+                        }
+                    }
+                }
 
             localeJob.join()
             ytCookieJob.join()
@@ -298,6 +310,7 @@ class MainRepository(
             resetSpotifyToken.join()
             aiClientProviderJob.join()
             aiClientApiKeyJob.join()
+            aiCustomModelIdJob.join()
         }
     }
 
@@ -815,6 +828,15 @@ class MainRepository(
         withContext(Dispatchers.IO) {
             localDataSource.deleteNotification(id)
         }
+
+    suspend fun insertTranslatedLyrics(
+        translatedLyrics: TranslatedLyricsEntity,
+    ) = withContext(Dispatchers.IO) {
+        localDataSource.insertTranslatedLyrics(translatedLyrics)
+    }
+
+    fun getSavedTranslatedLyrics(videoId: String, language: String = "en"): Flow<TranslatedLyricsEntity?> =
+        flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
 
     suspend fun getAccountInfo() =
         flow<AccountInfo?> {

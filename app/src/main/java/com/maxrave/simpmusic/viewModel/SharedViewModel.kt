@@ -41,6 +41,7 @@ import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
+import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
@@ -84,6 +85,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.singleOrNull
@@ -1134,22 +1136,35 @@ class SharedViewModel(
                                         ),
                                     )
                                     if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
-                                        mainRepository
-                                            .getTranslateLyrics(
-                                                response.first,
-                                            ).cancellable()
-                                            .collect { translate ->
-                                                if (translate != null) {
-                                                    Log.d(tag, "Get Translate Lyrics Success")
-                                                    updateLyrics(
-                                                        videoId,
-                                                        translate.toLyrics(
-                                                            response.second.data!!,
-                                                        ),
-                                                        true,
-                                                    )
+                                        val savedTranslatedLyrics = mainRepository.getSavedTranslatedLyrics(
+                                            videoId,
+                                            dataStoreManager.translationLanguage.first()
+                                        ).firstOrNull()
+                                        if (savedTranslatedLyrics != null) {
+                                            Log.d(tag, "Get Saved Translated Lyrics")
+                                            updateLyrics(
+                                                videoId,
+                                                savedTranslatedLyrics.toLyrics(),
+                                                true,
+                                            )
+                                        } else {
+                                            mainRepository
+                                                .getTranslateLyrics(
+                                                    response.first,
+                                                ).cancellable()
+                                                .collect { translate ->
+                                                    if (translate != null) {
+                                                        Log.d(tag, "Get Translate Lyrics Success")
+                                                        updateLyrics(
+                                                            videoId,
+                                                            translate.toLyrics(
+                                                                response.second.data!!,
+                                                            ),
+                                                            true,
+                                                        )
+                                                    }
                                                 }
-                                            }
+                                        }
                                     } else {
                                         getAITranslationLyrics(
                                             videoId,
@@ -1307,28 +1322,51 @@ class SharedViewModel(
             && dataStoreManager.aiApiKey.first().isNotEmpty()
             && dataStoreManager.enableTranslateLyric.first() == FALSE
         ) {
-            mainRepository.getAITranslationLyrics(
-                lyrics,
+            val savedTranslatedLyrics = mainRepository.getSavedTranslatedLyrics(
+                videoId,
                 dataStoreManager.translationLanguage.first()
-            ).cancellable()
-                .collectLatest {
-                    val data = it.data
-                    when (it) {
-                        is Resource.Success if (data != null) -> {
-                            if (true) {
-                                Log.d(tag, "Get AI Translate Lyrics Success")
-                                updateLyrics(
-                                    videoId,
-                                    data,
-                                    true,
-                                )
+            ).firstOrNull()
+            if (savedTranslatedLyrics != null) {
+                Log.d(tag, "Get Saved Translated Lyrics")
+                updateLyrics(
+                    videoId,
+                    savedTranslatedLyrics.toLyrics(),
+                    true,
+                )
+            } else {
+                mainRepository.getAITranslationLyrics(
+                    lyrics,
+                    dataStoreManager.translationLanguage.first()
+                ).cancellable()
+                    .collectLatest {
+                        val data = it.data
+                        when (it) {
+                            is Resource.Success if (data != null) -> {
+                                if (true) {
+                                    Log.d(tag, "Get AI Translate Lyrics Success")
+                                    mainRepository.insertTranslatedLyrics(
+                                        TranslatedLyricsEntity(
+                                            videoId = videoId,
+                                            language = dataStoreManager.translationLanguage.first(),
+                                            error = false,
+                                            lines = data.lines,
+                                            syncType = data.syncType,
+                                        ),
+                                    )
+                                    updateLyrics(
+                                        videoId,
+                                        data,
+                                        true,
+                                    )
+                                }
+                            }
+
+                            else -> {
+                                Log.w(tag, "Get AI Translate Lyrics Error: ${it.message}")
                             }
                         }
-                        else -> {
-                            Log.w(tag, "Get AI Translate Lyrics Error: ${it.message}")
-                        }
                     }
-                }
+            }
         }
     }
 

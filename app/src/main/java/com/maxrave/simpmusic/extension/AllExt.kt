@@ -38,6 +38,7 @@ import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
@@ -783,6 +784,14 @@ fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics
             )
         return translation
     }
+}
+
+fun TranslatedLyricsEntity.toLyrics(): Lyrics {
+    return Lyrics(
+        error = this.error,
+        lines = this.lines,
+        syncType = this.syncType,
+    )
 }
 
 fun Transcript.toLyrics(): Lyrics {
