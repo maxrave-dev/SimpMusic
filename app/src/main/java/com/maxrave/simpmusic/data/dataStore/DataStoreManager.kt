@@ -950,6 +950,19 @@ class DataStoreManager(
         }
     }
 
+    val localPlaylistFilter: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[LOCAL_PLAYLIST_FILTER] ?: LOCAL_PLAYLIST_FILTER_OLDER_FIRST
+        }
+
+    suspend fun setLocalPlaylistFilter(filter: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[LOCAL_PLAYLIST_FILTER] = filter
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -1023,6 +1036,12 @@ class DataStoreManager(
         val CUSTOM_MODEL_ID = stringPreferencesKey("custom_model_id")
 
         val USE_AI_TRANSLATION = stringPreferencesKey("use_ai_translation")
+
+        val LOCAL_PLAYLIST_FILTER = stringPreferencesKey("local_playlist_filter")
+        const val LOCAL_PLAYLIST_FILTER_OLDER_FIRST = "older_first"
+        const val LOCAL_PLAYLIST_FILTER_NEWER_FIRST = "newer_first"
+        const val LOCAL_PLAYLIST_FILTER_TITLE = "title"
+
 
         // Proxy type
         enum class ProxyType {

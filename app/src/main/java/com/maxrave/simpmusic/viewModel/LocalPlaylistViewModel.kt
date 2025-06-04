@@ -21,6 +21,7 @@ import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADED
 import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADING
 import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
@@ -96,6 +97,14 @@ class LocalPlaylistViewModel(
 
     init {
         viewModelScope.launch {
+            setFilter(
+                when(dataStoreManager.localPlaylistFilter.first()) {
+                    DataStoreManager.LOCAL_PLAYLIST_FILTER_OLDER_FIRST -> FilterState.OlderFirst
+                    DataStoreManager.LOCAL_PLAYLIST_FILTER_NEWER_FIRST -> FilterState.NewerFirst
+                    DataStoreManager.LOCAL_PLAYLIST_FILTER_TITLE -> FilterState.Title
+                    else -> FilterState.OlderFirst
+                }
+            )
             val listTrackStringJob =
                 launch {
                     uiState
@@ -745,6 +754,15 @@ class LocalPlaylistViewModel(
     fun onUIEvent(ev: LocalPlaylistUIEvent) {
         when (ev) {
             is LocalPlaylistUIEvent.ChangeFilter -> {
+                viewModelScope.launch {
+                    dataStoreManager.setLocalPlaylistFilter(
+                        when (ev.filterState) {
+                            FilterState.OlderFirst -> DataStoreManager.LOCAL_PLAYLIST_FILTER_OLDER_FIRST
+                            FilterState.NewerFirst -> DataStoreManager.LOCAL_PLAYLIST_FILTER_NEWER_FIRST
+                            FilterState.Title -> DataStoreManager.LOCAL_PLAYLIST_FILTER_TITLE
+                        },
+                    )
+                }
                 setFilter(ev.filterState)
                 Log.w("PlaylistScreen", "new filterState: ${ev.filterState}")
                 getTracksPagingState(uiState.value.id, ev.filterState)
