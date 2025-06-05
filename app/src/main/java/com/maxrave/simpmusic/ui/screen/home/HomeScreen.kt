@@ -168,7 +168,7 @@ fun HomeScreen(
 
     val onRefresh: () -> Unit = {
         isRefreshing = true
-        viewModel.getHomeItemList()
+        viewModel.getHomeItemList(params)
         Log.w("HomeScreen", "onRefresh")
     }
     LaunchedEffect(key1 = homeRefresh) {
@@ -849,15 +849,16 @@ fun ChartData(
                         state = lazyListState1,
                         flingBehavior = snapperFlingBehavior1,
                     ) {
-                        items(chart.songs, key = { it.hashCode() }) {
+                        items(chart.songs.size, key = {index -> "${chart.songs.getOrNull(index).hashCode()} $index" }) {
+                            val song = chart.songs[it]
                             ItemTrackChart(onClick = {
                                 viewModel.setQueueData(
                                     QueueData(
-                                        listTracks = arrayListOf(it),
-                                        firstPlayedTrack = it,
-                                        playlistName = "\"${it.title}\" ${context.getString(R.string.in_charts)}",
+                                        listTracks = arrayListOf(song),
+                                        firstPlayedTrack = song,
+                                        playlistName = "\"${song.title}\" ${context.getString(R.string.in_charts)}",
                                         playlistType = PlaylistType.RADIO,
-                                        playlistId = "RDAMVM${it.videoId}",
+                                        playlistId = "RDAMVM${song.videoId}",
                                         continuation = null,
                                     ),
                                 )
@@ -865,7 +866,7 @@ fun ChartData(
                                     data,
                                     type = Config.VIDEO_CLICK,
                                 )
-                            }, data = it, position = chart.songs.indexOf(it) + 1, widthDp = gridWidthDp)
+                            }, data = song, position = it + 1, widthDp = gridWidthDp)
                         }
                     }
                 }
@@ -956,7 +957,7 @@ fun ChartData(
                     ) {
                         items(chart.trending.size, key = { index ->
                             val item = chart.trending[index]
-                            item.videoId
+                            item.videoId + index
                         }) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {

@@ -25,6 +25,7 @@ include("app")
 include(":kotlinYtmusicScraper")
 include(":spotify")
 include(":lyricsProviders")
+include(":aiService")
 
 // prepare for git submodules
 val mediaServiceCore =

@@ -218,7 +218,7 @@ fun AlbumScreen(
                                     RippleIconButton(
                                         resId = R.drawable.baseline_arrow_back_ios_new_24,
                                     ) {
-                                        navController.navigateUp()
+                                        navController.popBackStack()
                                     }
                                 }
                                 Column(
@@ -514,7 +514,7 @@ fun AlbumScreen(
                                         .size(32.dp),
                                     true,
                                 ) {
-                                    navController.navigateUp()
+                                    navController.popBackStack()
                                 }
                             }
                         },
@@ -538,7 +538,7 @@ fun AlbumScreen(
             }
 
             LocalPlaylistState.PlaylistLoadState.Error -> {
-                navController.navigateUp()
+                navController.popBackStack()
             }
             LocalPlaylistState.PlaylistLoadState.Loading -> {
                 CenterLoadingBox(

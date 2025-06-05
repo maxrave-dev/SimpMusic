@@ -138,7 +138,7 @@ fun ArtistScreen(
                     title = state.data.title ?: "",
                     imageUrl = state.data.imageUrl,
                     onBack = {
-                        navController.navigateUp()
+                        navController.popBackStack()
                     },
                 ) { color ->
                     Column {
@@ -724,7 +724,7 @@ fun ArtistScreen(
             }
             is ArtistScreenState.Error -> {
                 Toast.makeText(LocalContext.current, state.message ?: stringResource(R.string.error), Toast.LENGTH_LONG).show()
-                navController.navigateUp()
+                navController.popBackStack()
             }
         }
     }

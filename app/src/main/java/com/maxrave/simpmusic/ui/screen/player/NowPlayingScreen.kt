@@ -2,6 +2,7 @@
 
 package com.maxrave.simpmusic.ui.screen.player
 
+import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.compose.animation.Animatable
@@ -160,6 +161,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -433,7 +435,9 @@ fun NowPlayingScreen(
         )
     }
 
-    val hazeState = remember { HazeState() }
+    val hazeState = rememberHazeState(
+        blurEnabled = true
+    )
 
     Box {
         if (blurBg && screenDataState.canvasData == null) {
@@ -488,7 +492,9 @@ fun NowPlayingScreen(
                         if (blurBg && screenDataState.canvasData == null) {
                             Modifier
                                 .background(Color.Transparent)
-                                .hazeEffect(hazeState, style = CupertinoMaterials.thin())
+                                .hazeEffect(hazeState, style = CupertinoMaterials.thin()) {
+                                    blurEnabled = true
+                                }
                         } else {
                             Modifier
                                 .background(
@@ -511,6 +517,7 @@ fun NowPlayingScreen(
             Box(modifier = Modifier.fillMaxWidth()) {
                 // Canvas Layout
                 Box(
+                    contentAlignment = Alignment.Center,
                     modifier =
                         Modifier
                             .height(screenInfo.hDP.dp)
@@ -528,7 +535,8 @@ fun NowPlayingScreen(
                                     modifier =
                                         Modifier
                                             .fillMaxHeight()
-                                            .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally),
+                                            .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
+                                            .align(Alignment.Center),
                                 )
                             }
                         } else if (isVideo == false) {
@@ -621,7 +629,7 @@ fun NowPlayingScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            navController.navigateUp()
+                            navController.popBackStack()
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),

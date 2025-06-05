@@ -15,9 +15,12 @@ import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
+import java.time.LocalDateTime
 
 @Composable
-fun EndOfPage() {
+fun EndOfPage(
+    withoutCredit: Boolean = false,
+) {
     Box(
         modifier =
         Modifier
@@ -25,19 +28,21 @@ fun EndOfPage() {
             .height(280.dp),
         contentAlignment = Alignment.TopCenter,
     ) {
-        Text(
-            "@2024 " + stringResource(R.string.app_name) + " " + stringResource(
-                R.string.version_format,
-                VersionManager.getVersionName()
-            ) + "\nmaxrave-dev",
-            style = typo.bodySmall,
-            textAlign = TextAlign.Center,
-            modifier =
-            Modifier
-                .padding(
-                    top = 20.dp,
-                )
-                .alpha(0.8f),
-        )
+        if (!withoutCredit) {
+            Text(
+                "@${LocalDateTime.now().year} " + stringResource(R.string.app_name) + " " + stringResource(
+                    R.string.version_format,
+                    VersionManager.getVersionName()
+                ) + "\nmaxrave-dev",
+                style = typo.bodySmall,
+                textAlign = TextAlign.Center,
+                modifier =
+                    Modifier
+                        .padding(
+                            top = 20.dp,
+                        )
+                        .alpha(0.8f),
+            )
+        }
     }
 }

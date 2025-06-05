@@ -49,6 +49,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.ColorUtils
 import com.kmpalette.palette.graphics.Palette
@@ -504,6 +505,12 @@ fun Color.rgbFactor(factor: Float): Color {
     val g = min(green * factor, 255f)
     val b = min(blue * factor, 255f)
     return Color(r, g, b, alpha)
+}
+
+fun TextStyle.greyScale(): TextStyle {
+    return this.copy(
+        color = Color.Gray,
+    )
 }
 
 @RequiresOptIn(

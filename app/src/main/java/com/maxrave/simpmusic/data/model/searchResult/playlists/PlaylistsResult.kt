@@ -21,7 +21,9 @@ data class PlaylistsResult(
     val title: String,
 ) : PlaylistType {
     override fun playlistType(): PlaylistType.Type =
-        if (browseId.startsWith("RDEM") || browseId.startsWith("RDAMVM") || browseId.startsWith("RDAT")) {
+        if (resultType == "Podcast") {
+            PlaylistType.Type.PODCAST
+        } else if (browseId.startsWith("RDEM") || browseId.startsWith("RDAMVM") || browseId.startsWith("RDAT")) {
             PlaylistType.Type.RADIO
         } else {
             PlaylistType.Type.YOUTUBE_PLAYLIST

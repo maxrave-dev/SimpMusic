@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.data.repository
 
 import android.content.Context
+import android.provider.Settings.Secure
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.YouTube
@@ -50,6 +51,7 @@ import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
+import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
@@ -94,6 +96,7 @@ import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
 import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.isNetworkAvailable
+import com.maxrave.simpmusic.extension.toLibraryLyrics
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toTrack
@@ -119,6 +122,9 @@ import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import org.intellij.lang.annotations.Language
+import org.simpmusic.aiservice.AIHost
+import org.simpmusic.aiservice.AiClient
 import java.io.File
 import java.time.LocalDateTime
 import kotlin.collections.firstOrNull
@@ -130,6 +136,7 @@ class MainRepository(
     private val youTube: YouTube,
     private val spotify: Spotify,
     private val lyricsClient: LyricsClient,
+    private val aiClient: AiClient,
     private val database: MusicDatabase,
     private val context: Context,
 ) {
@@ -262,6 +269,36 @@ class MainRepository(
                         youTube.visitorData = visitorData
                     }
                 }
+            val aiClientProviderJob =
+                launch {
+                    dataStoreManager.aiProvider.collectLatest { provider ->
+                        aiClient.host = when (provider) {
+                            DataStoreManager.AI_PROVIDER_GEMINI -> AIHost.GEMINI
+                            DataStoreManager.AI_PROVIDER_OPENAI -> AIHost.OPENAI
+                            else -> AIHost.GEMINI // Default to Gemini if not set
+                        }
+                    }
+                }
+            val aiClientApiKeyJob =
+                launch {
+                    dataStoreManager.aiApiKey.collectLatest { apiKey ->
+                        aiClient.apiKey = if (apiKey.isNotEmpty()) {
+                            apiKey
+                        } else {
+                            null
+                        }
+                    }
+                }
+            val aiCustomModelIdJob =
+                launch {
+                    dataStoreManager.customModelId.collectLatest { modelId ->
+                        aiClient.customModelId = if (modelId.isNotEmpty()) {
+                            modelId
+                        } else {
+                            null
+                        }
+                    }
+                }
 
             localeJob.join()
             ytCookieJob.join()
@@ -271,6 +308,9 @@ class MainRepository(
             dataSyncIdJob.join()
             visitorDataJob.join()
             resetSpotifyToken.join()
+            aiClientProviderJob.join()
+            aiClientApiKeyJob.join()
+            aiCustomModelIdJob.join()
         }
     }
 
@@ -294,7 +334,9 @@ class MainRepository(
             emit(localDataSource.getSearchHistory())
         }.flowOn(Dispatchers.IO)
 
-    suspend fun insertSearchHistory(searchHistory: SearchHistory) = withContext(Dispatchers.IO) { localDataSource.insertSearchHistory(searchHistory) }
+    suspend fun insertSearchHistory(searchHistory: SearchHistory): Flow<Long> = flow {
+        emit(localDataSource.insertSearchHistory(searchHistory))
+    }.flowOn(Dispatchers.IO)
 
     suspend fun deleteSearchHistory() =
         withContext(Dispatchers.IO) {
@@ -786,6 +828,15 @@ class MainRepository(
         withContext(Dispatchers.IO) {
             localDataSource.deleteNotification(id)
         }
+
+    suspend fun insertTranslatedLyrics(
+        translatedLyrics: TranslatedLyricsEntity,
+    ) = withContext(Dispatchers.IO) {
+        localDataSource.insertTranslatedLyrics(translatedLyrics)
+    }
+
+    fun getSavedTranslatedLyrics(videoId: String, language: String = "en"): Flow<TranslatedLyricsEntity?> =
+        flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
 
     suspend fun getAccountInfo() =
         flow<AccountInfo?> {
@@ -2517,6 +2568,67 @@ class MainRepository(
                 }
         }.flowOn(Dispatchers.IO)
 
+    fun getLyricsDataMacro(
+        sartist: String,
+        strack: String,
+        duration: Int
+    ): Flow<Pair<String, Resource<Lyrics>>> = flow {
+        val qartist =
+            sartist
+                .replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                    " ",
+                ).replace(
+                    Regex("( và | & | и | e | und |, |和| dan)"),
+                    " ",
+                ).replace("  ", " ")
+                .replace(Regex("([()])"), "")
+                .replace(".", " ")
+        val qtrack =
+            strack
+                .replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                    " ",
+                ).replace(
+                    Regex("( và | & | и | e | und |, |和| dan)"),
+                    " ",
+                ).replace("  ", " ")
+                .replace(Regex("([()])"), "")
+                .replace(".", " ")
+        val tag = "Lyrics"
+        Log.d(tag, "query: $qtrack $qartist")
+        lyricsClient.configGet().onSuccess {
+            Log.d(tag, "configGet: ${it}")
+        }.onFailure { throwable ->
+            Log.e(tag, "configGet Error: ${throwable.message}")
+        }
+        lyricsClient.userGet().onSuccess {
+            Log.d(tag, "userGet: ${it}")
+        }.onFailure { throwable ->
+            Log.e(tag, "userGet Error: ${throwable.message}")
+        }
+        lyricsClient.macroSearch(
+            q_track = qtrack,
+            q_artist = qartist,
+            duration = duration,
+            userToken = dataStoreManager.musixmatchUserToken.first()
+        ).onSuccess { res ->
+            if (res != null) {
+                Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
+                emit(
+                    res.first.toString() to Resource.Success(res.second.toLyrics())
+                )
+            } else {
+                Log.w(tag, "Error: Lỗi getLyrics $res")
+                emit("" to Resource.Error<Lyrics>("Not found"))
+            }
+        }.onFailure {
+            emit(
+                "" to Resource.Error<Lyrics>("Not found")
+            )
+        }
+    }.flowOn(Dispatchers.IO)
+
     fun getLyricsData(
         sartist: String,
         strack: String,
@@ -2552,6 +2664,16 @@ class MainRepository(
                 val q = "$qtrack $qartist"
                 Log.d(tag, "query: $q")
                 var musixMatchUserToken = lyricsClient.musixmatchUserToken
+                lyricsClient.configGet().onSuccess {
+                    Log.d(tag, "configGet: ${it}")
+                }.onFailure { throwable ->
+                    Log.e(tag, "configGet Error: ${throwable.message}")
+                }
+                lyricsClient.userGet().onSuccess {
+                    Log.d(tag, "userGet: ${it}")
+                }.onFailure { throwable ->
+                    Log.e(tag, "userGet Error: ${throwable.message}")
+                }
                 if (musixMatchUserToken == null) {
                     lyricsClient
                         .getMusixmatchUserToken()
@@ -2759,7 +2881,7 @@ class MainRepository(
                                         }
                                     }.onFailure {
                                         Log.e(tag, "Fix musixmatch search" + it.message.toString())
-                                        emit("" to Resource.Error<Lyrics>("Not found"))
+
                                     }
                             }
                         } else {
@@ -2818,6 +2940,25 @@ class MainRepository(
                             emit(null)
                         }
                 }
+            }
+        }.flowOn(Dispatchers.IO)
+
+    fun getAITranslationLyrics(
+        lyrics: Lyrics,
+        targetLanguage: String,
+    ): Flow<Resource<Lyrics>> =
+        flow {
+            runCatching {
+                Log.w("AI Translation", "targetLanguage: $targetLanguage")
+                aiClient
+                    .translateLyrics(lyrics.toLibraryLyrics(), targetLanguage)
+                    .onSuccess { translatedLyrics ->
+                        Log.w("AI Translation", "translatedLyrics: $translatedLyrics")
+                        emit(Resource.Success(translatedLyrics.toLyrics()))
+                    }.onFailure { throwable ->
+                        Log.e("AI Translation", "Error: ${throwable.message}")
+                        emit(Resource.Error<Lyrics>("Translation failed"))
+                    }
             }
         }.flowOn(Dispatchers.IO)
 

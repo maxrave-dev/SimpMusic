@@ -23,6 +23,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.sqlite.db.SimpleSQLiteQuery
+import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
@@ -37,6 +38,7 @@ import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
@@ -47,6 +49,7 @@ import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
+import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
@@ -55,6 +58,7 @@ import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
+import com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
@@ -651,7 +655,23 @@ fun com.maxrave.lyricsproviders.models.lyrics.Lyrics.toLyrics(): Lyrics {
     }
 }
 
-fun com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse.toLyrics(): Lyrics {
+fun Lyrics.toLibraryLyrics(): com.maxrave.lyricsproviders.models.lyrics.Lyrics =
+    com.maxrave.lyricsproviders.models.lyrics.Lyrics(
+        lyrics =
+            com.maxrave.lyricsproviders.models.lyrics.Lyrics.LyricsX(
+                lines = this.lines?.map {
+                    com.maxrave.lyricsproviders.models.lyrics.Line(
+                        endTimeMs = it.endTimeMs,
+                        startTimeMs = it.startTimeMs,
+                        syllables = listOf(),
+                        words = it.words,
+                    )
+                },
+                syncType = this.syncType,
+            ),
+    )
+
+fun SpotifyLyricsResponse.toLyrics(): Lyrics {
     val lines: ArrayList<Line> = arrayListOf()
     this.lyrics.lines.forEach {
         lines.add(
@@ -766,6 +786,14 @@ fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics
     }
 }
 
+fun TranslatedLyricsEntity.toLyrics(): Lyrics {
+    return Lyrics(
+        error = this.error,
+        lines = this.lines,
+        syncType = this.syncType,
+    )
+}
+
 fun Transcript.toLyrics(): Lyrics {
     val lines =
         this.text.map {
@@ -824,6 +852,29 @@ fun List<PodcastBrowse.EpisodeItem>.toListTrack(): ArrayList<Track> {
     }
     return listTrack
 }
+
+fun AlbumItem.toAlbumsResult(): AlbumsResult =
+    AlbumsResult(
+        artists = this.artists?.map {
+            Artist(
+                id = it.id ?: "",
+                name = it.name
+            )
+        } ?: emptyList(),
+        browseId = this.id,
+        category = this.title,
+        duration = "",
+        isExplicit = this.explicit,
+        resultType = "ALBUM",
+        thumbnails = listOf(Thumbnail(
+            width = 720,
+            url = this.thumbnail,
+            height = 720
+        )),
+        title = this.title,
+        type = "ALBUM",
+        year = this.year?.toString() ?: "",
+    )
 
 fun TextView.setTextAnimation(
     text: String,

@@ -64,7 +64,7 @@ class LocalPlaylistFragment : Fragment() {
                                 findNavController(),
                             )
                         } else {
-                            findNavController().navigateUp()
+                            findNavController().popBackStack()
                         }
                     }
                 }
@@ -470,7 +470,7 @@ class LocalPlaylistFragment : Fragment() {
 //        )
 //
 //        binding.topAppBar.setNavigationOnClickListener {
-//            findNavController().navigateUp()
+//            findNavController().popBackStack()
 //        }
 //        binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
 //            Log.d("Local Fragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
@@ -800,7 +800,7 @@ class LocalPlaylistFragment : Fragment() {
 //                viewModel.deletePlaylist(id!!)
 //                moreDialog.dismiss()
 //                Toast.makeText(requireContext(), "Playlist deleted", Toast.LENGTH_SHORT).show()
-//                findNavController().navigateUp()
+//                findNavController().popBackStack()
 //            }
 //
 //            moreDialogView.btEditThumbnail.setOnClickListener {

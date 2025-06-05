@@ -30,6 +30,8 @@ import com.maxrave.spotify.Spotify
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
+import org.simpmusic.aiservice.AiClient
+import org.simpmusic.aiservice.AiService
 import java.lang.reflect.Type
 import java.time.ZoneOffset
 
@@ -195,6 +197,10 @@ val databaseModule =
             LyricsClient(androidContext())
         }
 
+        single(createdAtStart = true) {
+            AiClient()
+        }
+
         // MainRepository
         single(createdAtStart = true) {
             MainRepository(
@@ -203,6 +209,7 @@ val databaseModule =
                 get<YouTube>(),
                 get<Spotify>(),
                 get<LyricsClient>(),
+                get<AiClient>(),
                 get<MusicDatabase>(),
                 androidContext(),
             )

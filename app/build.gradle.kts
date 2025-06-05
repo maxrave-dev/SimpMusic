@@ -237,6 +237,7 @@ dependencies {
     // Other module
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation(project(mapOf("path" to ":spotify")))
+    implementation(project(mapOf("path" to ":aiService")))
 
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)

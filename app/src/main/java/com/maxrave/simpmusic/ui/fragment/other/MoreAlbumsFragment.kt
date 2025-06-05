@@ -93,7 +93,7 @@ class MoreAlbumsFragment : Fragment() {
             },
         )
         binding.topAppBar.setNavigationOnClickListener {
-            findNavController().navigateUp()
+            findNavController().popBackStack()
         }
         lifecycleScope.launch {
             viewModel.browseResult.collect { data ->

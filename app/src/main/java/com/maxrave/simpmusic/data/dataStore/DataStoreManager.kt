@@ -892,6 +892,77 @@ class DataStoreManager(
         }
     }
 
+    suspend fun setAIProvider(provider: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[stringPreferencesKey("ai_provider")] = provider
+            }
+        }
+    }
+
+    val aiProvider: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[AI_PROVIDER] ?: AI_PROVIDER_GEMINI
+        }
+
+    suspend fun setAIApiKey(apiKey: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[AI_API_KEY] = apiKey
+            }
+        }
+    }
+
+    val aiApiKey: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[AI_API_KEY] ?: ""
+        }
+
+    val useAITranslation: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[USE_AI_TRANSLATION] ?: FALSE
+        }
+
+    suspend fun setUseAITranslation(use: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (use) {
+                settingsDataStore.edit { settings ->
+                    settings[USE_AI_TRANSLATION] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[USE_AI_TRANSLATION] = FALSE
+                }
+            }
+        }
+    }
+
+    val customModelId =
+        settingsDataStore.data.map { preferences ->
+            preferences[CUSTOM_MODEL_ID] ?: ""
+        }
+
+    suspend fun setCustomModelId(modelId: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[CUSTOM_MODEL_ID] = modelId
+            }
+        }
+    }
+
+    val localPlaylistFilter: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[LOCAL_PLAYLIST_FILTER] ?: LOCAL_PLAYLIST_FILTER_OLDER_FIRST
+        }
+
+    suspend fun setLocalPlaylistFilter(filter: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[LOCAL_PLAYLIST_FILTER] = filter
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -955,6 +1026,22 @@ class DataStoreManager(
         const val FALSE = "FALSE"
         const val PROXY_TYPE_HTTP = "http"
         const val PROXY_TYPE_SOCKS = "socks"
+        // AI
+        const val AI_PROVIDER_GEMINI = "gemini"
+        const val AI_PROVIDER_OPENAI = "openai"
+
+        val AI_PROVIDER = stringPreferencesKey("ai_provider")
+        val AI_API_KEY = stringPreferencesKey("ai_gemini_api_key")
+
+        val CUSTOM_MODEL_ID = stringPreferencesKey("custom_model_id")
+
+        val USE_AI_TRANSLATION = stringPreferencesKey("use_ai_translation")
+
+        val LOCAL_PLAYLIST_FILTER = stringPreferencesKey("local_playlist_filter")
+        const val LOCAL_PLAYLIST_FILTER_OLDER_FIRST = "older_first"
+        const val LOCAL_PLAYLIST_FILTER_NEWER_FIRST = "newer_first"
+        const val LOCAL_PLAYLIST_FILTER_TITLE = "title"
+
 
         // Proxy type
         enum class ProxyType {

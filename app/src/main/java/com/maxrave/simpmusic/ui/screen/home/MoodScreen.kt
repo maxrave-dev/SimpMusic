@@ -46,7 +46,7 @@ fun MoodScreen(
                 Text(text = moodData?.header ?: "")
             },
             leftIcon = {
-                IconButton(onClick = { navController.navigateUp() }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
                         contentDescription = "Back",

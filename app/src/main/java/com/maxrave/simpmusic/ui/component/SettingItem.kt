@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -27,8 +28,14 @@ fun SettingItem(
     isEnable: Boolean = true,
     onClick: (() -> Unit)? = null,
     switch: Pair<Boolean, ((Boolean) -> Unit)>? = null,
+    onDisable: (() -> Unit)? = null, // Callback when the item is disabled, switch off settings
     otherView: @Composable (() -> Unit)? = null,
 ) {
+    LaunchedEffect(Unit) {
+        if (!isEnable && onDisable != null) {
+            onDisable.invoke()
+        }
+    }
     Box(
         Modifier
             .then(
@@ -59,9 +66,15 @@ fun SettingItem(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start,
             ) {
-                Text(text = title, style = typo.labelMedium)
+                Text(text = title, style = typo.labelMedium.let {
+                    if (!isEnable) it.greyScale() else it
+                })
                 Spacer(Modifier.height(4.dp))
-                Text(text = subtitle, style = if (smallSubtitle) typo.bodySmall else typo.bodyMedium, maxLines = 2)
+                Text(text = subtitle, style = if (smallSubtitle) typo.bodySmall.let {
+                    if (!isEnable) it.greyScale() else it
+                } else typo.bodyMedium.let {
+                    if (!isEnable) it.greyScale() else it
+                }, maxLines = 2)
 
                 otherView?.let {
                     Spacer(Modifier.height(16.dp))
@@ -76,6 +89,7 @@ fun SettingItem(
                     onCheckedChange = {
                         switch.second.invoke(it)
                     },
+                    enabled = isEnable
                 )
             }
         }

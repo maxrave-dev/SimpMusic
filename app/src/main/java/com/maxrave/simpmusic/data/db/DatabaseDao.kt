@@ -23,6 +23,7 @@ import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
+import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
 import com.maxrave.simpmusic.extension.toSQLiteQuery
@@ -116,7 +117,7 @@ interface DatabaseDao {
     suspend fun deleteSearchHistory()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSearchHistory(searchHistory: SearchHistory)
+    suspend fun insertSearchHistory(searchHistory: SearchHistory): Long
 
     // Song
     @Query("SELECT * FROM song ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
@@ -545,4 +546,10 @@ interface DatabaseDao {
 
     @Query("DELETE FROM notification WHERE id = :id")
     suspend fun deleteNotification(id: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTranslatedLyrics(translatedLyricsEntity: TranslatedLyricsEntity)
+
+    @Query("SELECT * FROM translated_lyrics WHERE videoId = :videoId AND language = :language")
+    suspend fun getTranslatedLyrics(videoId: String, language: String = "en"): TranslatedLyricsEntity?
 }

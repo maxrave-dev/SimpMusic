@@ -29,10 +29,13 @@ interface PlaylistType :
         RADIO,
         LOCAL,
         ALBUM,
+        PODCAST
     }
 
     fun playlistType(): Type
 }
+
+interface ArtistType
 
 interface RecentlyType : LibraryType {
     enum class Type {

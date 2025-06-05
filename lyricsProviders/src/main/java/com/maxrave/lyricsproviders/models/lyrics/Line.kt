@@ -10,7 +10,7 @@ data class Line(
     @SerialName("startTimeMs")
     val startTimeMs: String,
     @SerialName("syllables")
-    val syllables: List<String>?,
+    val syllables: List<String>? = null,
     @SerialName("words")
     val words: String,
 )
