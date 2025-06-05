@@ -100,7 +100,7 @@ class PodcastFragment : Fragment() {
             fetchData(id)
         }
         binding.topAppBar.setNavigationOnClickListener {
-            findNavController().navigateUp()
+            findNavController().popBackStack()
         }
         binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
             if (abs(it.totalScrollRange) == abs(verticalOffset)) {
@@ -302,7 +302,7 @@ class PodcastFragment : Fragment() {
                 Snackbar
                     .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
                     .show()
-                findNavController().navigateUp()
+                findNavController().popBackStack()
             }
 
             else -> {
@@ -359,7 +359,7 @@ class PodcastFragment : Fragment() {
                     Snackbar
                         .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
                         .show()
-                    findNavController().navigateUp()
+                    findNavController().popBackStack()
                 }
 
                 else -> {

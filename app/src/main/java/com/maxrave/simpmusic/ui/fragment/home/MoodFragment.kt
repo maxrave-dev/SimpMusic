@@ -66,7 +66,7 @@ class MoodFragment : Fragment() {
 //        }
 //
 //        binding.topAppBar.setNavigationOnClickListener {
-//            findNavController().navigateUp()
+//            findNavController().popBackStack()
 //        }
         val params = requireArguments().getString("params")
 
@@ -100,7 +100,7 @@ class MoodFragment : Fragment() {
 //                    binding.contentLayout.visibility = View.GONE
 //                    binding.loadingLayout.visibility = View.GONE
 //                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
-//                    findNavController().navigateUp()
+//                    findNavController().popBackStack()
 //                }
 //            }
 //        })

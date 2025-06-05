@@ -317,7 +317,7 @@ fun PlaylistScreen(
                                     RippleIconButton(
                                         resId = R.drawable.baseline_arrow_back_ios_new_24,
                                     ) {
-                                        navController.navigateUp()
+                                        navController.popBackStack()
                                     }
                                 }
                                 Column(
@@ -708,7 +708,7 @@ fun PlaylistScreen(
                                         .size(32.dp),
                                     true,
                                 ) {
-                                    navController.navigateUp()
+                                    navController.popBackStack()
                                 }
                             }
                         },
@@ -740,7 +740,7 @@ fun PlaylistScreen(
                         "Error: ${state.message}",
                         Snackbar.LENGTH_SHORT,
                     ).show()
-                navController.navigateUp()
+                navController.popBackStack()
             }
         }
     }

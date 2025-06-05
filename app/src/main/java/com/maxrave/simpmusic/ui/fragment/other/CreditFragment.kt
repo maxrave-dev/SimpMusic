@@ -64,7 +64,7 @@ class CreditFragment : Fragment() {
             startActivity(urlIntent)
         }
         binding.topAppBar.setNavigationOnClickListener {
-            findNavController().navigateUp()
+            findNavController().popBackStack()
         }
     }
 }

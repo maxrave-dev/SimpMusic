@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
+import java.time.LocalDateTime
 
 @Composable
 fun EndOfPage(
@@ -29,7 +30,7 @@ fun EndOfPage(
     ) {
         if (!withoutCredit) {
             Text(
-                "@2024 " + stringResource(R.string.app_name) + " " + stringResource(
+                "@${LocalDateTime.now().year} " + stringResource(R.string.app_name) + " " + stringResource(
                     R.string.version_format,
                     VersionManager.getVersionName()
                 ) + "\nmaxrave-dev",

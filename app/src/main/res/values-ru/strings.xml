@@ -406,4 +406,9 @@
     <string name="fade_audio_effect_duration">Продолжительность эффекта затухания (мс) (Установите 0 для отключения)</string>
     <string name="duration">Продолжительность</string>
     <string name="invalid_number">Некорректное число</string>
+    <string name="shuffle_not_available">Точка подключения \"Играть в случайном порядке\" недоступна</string>
+    <string name="radio_not_available">Точка подключения к радио недоступна</string>
+    <string name="visitor_data_retrieved">Данные посетителя получены</string>
+    <string name="data_sync_id_retrieved">DataSyncId получен</string>
+    <string name="retrieve_youtube_data">Получить данные YouTube</string>
 </resources>

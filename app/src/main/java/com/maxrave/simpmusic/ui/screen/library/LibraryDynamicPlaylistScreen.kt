@@ -193,7 +193,7 @@ fun LibraryDynamicPlaylistScreen(
                             .size(32.dp),
                         true,
                     ) {
-                        navController.navigateUp()
+                        navController.popBackStack()
                     }
                 }
             },

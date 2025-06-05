@@ -105,7 +105,7 @@
     <string name="all">Tutto</string>
     <string name="videos">Video</string>
     <string name="content">Contenuto</string>
-    <string name="storage">Memoria</string>
+    <string name="storage">Archiviazione</string>
     <string name="player_cache">Cache del lettore</string>
     <string name="downloaded_cache">Cache dei Download</string>
     <string name="thumbnail_cache">Cache delle copertine</string>

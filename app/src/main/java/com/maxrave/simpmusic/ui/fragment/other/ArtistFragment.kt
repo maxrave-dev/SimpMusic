@@ -37,7 +37,7 @@ class ArtistFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val channelId = requireArguments().getString("channelId")
         if (channelId == null) {
-            findNavController().navigateUp()
+            findNavController().popBackStack()
         } else {
             composeView.apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)

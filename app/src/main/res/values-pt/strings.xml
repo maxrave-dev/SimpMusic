@@ -266,6 +266,7 @@
     <string name="free_space">Espaço livre</string>
     <string name="suggest">Sugestão</string>
     <string name="reload">Recarregar</string>
+    <string name="sort_by"></string>
     <string name="added_date">Data adicionada</string>
     <string name="credit_app">Um aplicativo de música simples que usa o YouTube Music como back-end \n\nO SimpMusic é um projeto de código aberto para transmitir músicas do YouTube e do YouTube Music sem anúncios e rastreamento. O SimpMusic oferece muitos recursos:\n\n - Streaming de música\n - Letras sincronizadas\n - Personalização de dados\n - etc... \n\nO SimpMusic é sempre gratuito e sem anúncios\n\nConstrua com ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Rastreador de problemas</string>

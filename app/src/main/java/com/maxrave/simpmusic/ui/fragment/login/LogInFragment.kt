@@ -96,7 +96,7 @@ class LogInFragment : Fragment() {
                                     R.string.login_success,
                                     Toast.LENGTH_SHORT,
                                 ).show()
-                            findNavController().navigateUp()
+                            findNavController().popBackStack()
                         }
                     }
                 }
@@ -125,7 +125,7 @@ class LogInFragment : Fragment() {
             loadUrl(Config.LOG_IN_URL)
         }
         binding.topAppBar.setNavigationOnClickListener {
-            findNavController().navigateUp()
+            findNavController().popBackStack()
         }
     }
 

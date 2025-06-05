@@ -629,7 +629,7 @@ fun NowPlayingScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            navController.navigateUp()
+                            navController.popBackStack()
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),

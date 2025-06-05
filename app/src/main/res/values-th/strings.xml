@@ -266,6 +266,10 @@
     <string name="free_space">เพื่มพื้นที่ว่าง</string>
     <string name="suggest">ข้อเสนอแนะ</string>
     <string name="reload">โหลดซ้ำ</string>
+    <string name="sort_by">เรียงตาม</string>
+    <string name="sort">เรียงลำดับ</string>
+    <string name="older_first">เรียงจากเก่าไปใหม่</string>
+    <string name="newer_first">เรียงจากใหม่ไปเก่า</string>
     <string name="added_date">เพิ่มวันที่</string>
     <string name="credit_app">แอปเพลงง่ายๆ ที่ใช้ YouTube Music สำหรับแบ็กเอนด์ \n\nSimpMusic เป็นโครงการโอเพ่นซอร์สสำหรับสตรีมเพลงจาก YouTube และ YouTube Music โดยไม่มีโฆษณาและการติดตาม SimpMusic มีคุณสมบัติมากมาย:\n\n - สตรีมเพลง \n - เนื้อเพลงที่ซิงค์กัน\n - ปรับแต่งข้อมูล\n - ฯลฯ…\n\nSimpMusic ฟรีเสมอและไม่มีโฆษณา\n\nสร้างด้วย ❤️ จาก Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">ติดตามปัญหา</string>
@@ -408,4 +412,5 @@
     <string name="visitor_data_retrieved">ข้อมูลผู้เยี่ยมชมที่ดึงมา</string>
     <string name="data_sync_id_retrieved">DataSyncId ถูกดึงมาแล้ว</string>
     <string name="retrieve_youtube_data">ดึงข้อมูลจาก YouTube</string>
+    <string name="no_results_found">ไม่พบผลลัพธ์</string>
 </resources>

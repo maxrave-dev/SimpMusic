@@ -266,10 +266,6 @@
     <string name="free_space">Свободно пространство</string>
     <string name="suggest">Предложение</string>
     <string name="reload">Презареди</string>
-    <string name="sort_by">Sort by</string>
-    <string name="sort">Sort</string>
-    <string name="older_first">Older First</string>
-    <string name="newer_first">Newer First</string>
     <string name="added_date">Дата на добавяне</string>
     <string name="credit_app">Опростено приложение за музика, което използва YouTube Music за бекенд \n\nSimpMusic е проект с отворен код, който стриймва музика от YouTube и YouTube Music без реклами и проследяване. SimpMusic идва с много функции:\n\n - Стрийминг \n - Текстове\n - Персонализиране на данните\n - и т. н… \n\nSimpMusic е безплатен и без реклами\n\nBuild с ❤️ от Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Тракър на задачи</string>

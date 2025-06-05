@@ -31,7 +31,7 @@
     <string name="your_playlists">Vos Playlists</string>
     <string name="no_playlists_added">Aucune playlist ajoutée</string>
     <string name="recently_added">Ajoutés récemment</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Rechercher des chansons, des artistes, des albums, des playlists et plus encore</string>
+    <string name="search_for_songs_artists_albums_playlists_and_more">Rechercher des titres, des artistes, des albums, des playlists et plus encore</string>
     <string name="everything_you_need">Tout ce dont vous avez besoin !</string>
     <string name="restore_failed">Échec de la restauration</string>
     <string name="restore_success">Restauration réussie</string>
@@ -171,7 +171,7 @@
     <string name="skip_no_music_part">Sauter la partie sans musique</string>
     <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délais écoulé. Vérifiez votre connexion internet.</string>
     <string name="save_last_played">Sauvegarder la dernière lecture</string>
-    <string name="save_last_played_track_and_queue">Sauvegarder la dernière piste jouée et la file d\'attente</string>
+    <string name="save_last_played_track_and_queue">Sauvegarder le dernier titre joué et la file d\'attente</string>
     <string name="update_available">Nouvelle mise à jour disponible !</string>
     <string name="update_message">"Version %1$s disponible\nVersion : %2$s\nJournaux des modifications :\n%3$s"</string>
     <string name="check_for_update">Vérifier la mise à jour</string>
@@ -266,6 +266,10 @@
     <string name="free_space">Espace libre</string>
     <string name="suggest">Suggestion</string>
     <string name="reload">Recharger</string>
+    <string name="sort_by">Trier par</string>
+    <string name="sort">Trier</string>
+    <string name="older_first">Les plus anciens d\'abord</string>
+    <string name="newer_first">Les plus récents d\'abord</string>
     <string name="added_date">Date d\'ajout</string>
     <string name="credit_app">Une application musicale simple utilisant YouTube Music pour le backend \n\nSimpMusic est un projet open source pour diffuser de la musique à partir de YouTube et YouTube Music sans publicité ni suivi. SimpMusic offre de nombreuses fonctionnalités :\n\n - Streaming de musique \n - Paroles synchronisées\n - Personnaliser les données\n - etc… \n\nSimpMusic est toujours gratuit et sans publicité\n\nConstruit avec ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Suivi des problèmes</string>
@@ -409,4 +413,5 @@
     <string name="visitor_data_retrieved">Données du visiteur récupérées</string>
     <string name="data_sync_id_retrieved">DataSyncId récupéré</string>
     <string name="retrieve_youtube_data">Récupérer les données de YouTube</string>
+    <string name="no_results_found">Aucun résultat trouvé</string>
 </resources>

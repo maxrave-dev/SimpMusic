@@ -266,6 +266,10 @@
     <string name="free_space">Còn trống</string>
     <string name="suggest">Đề xuất</string>
     <string name="reload">Làm mới</string>
+    <string name="sort_by">Sắp xếp theo</string>
+    <string name="sort">Sắp xếp</string>
+    <string name="older_first">Cũ trước</string>
+    <string name="newer_first">Mới trước</string>
     <string name="added_date">Ngày thêm vào</string>
     <string name="credit_app">Một ứng dụng âm nhạc đơn giản sử dụng dữ liệu từ YouTube Music \n\nSimpMusic là một dự án nguồn mở để phát nhạc từ YouTube và YouTube Music mà không bị quảng cáo và theo dõi. SimpMusic cung cấp nhiều tính năng:\n\n - Phát nhạc \n - Lời bài hát được đồng bộ hóa\n - Cá nhân hóa dữ liệu\n - v.v… \n\nSimpMusic luôn miễn phí và không có quảng cáo\n\nXây dựng với ❤️ bởi Nguyên Đức Tuấn Minh (maxrave-dev)</string>
     <string name="issue_tracker">Theo dõi lỗi</string>
@@ -408,4 +412,5 @@
     <string name="visitor_data_retrieved">Đã lấy dữ liệu người xem</string>
     <string name="data_sync_id_retrieved">Đã lấy dữ liệu dataSyncId</string>
     <string name="retrieve_youtube_data">Lấy dữ liệu từ YouTube</string>
+    <string name="no_results_found">Không tìm thấy kết quả</string>
 </resources>

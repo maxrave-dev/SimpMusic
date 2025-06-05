@@ -471,7 +471,7 @@ fun FullscreenPlayer(
                                         .size(32.dp),
                                     true,
                                 ) {
-                                    navController.navigateUp()
+                                    navController.popBackStack()
                                 }
                             }
                         },
@@ -721,7 +721,7 @@ fun FullscreenPlayer(
                                                 CircleShape,
                                             ),
                                     onClick = {
-                                        navController.navigateUp()
+                                        navController.popBackStack()
                                     },
                                 ) {
                                     Icon(

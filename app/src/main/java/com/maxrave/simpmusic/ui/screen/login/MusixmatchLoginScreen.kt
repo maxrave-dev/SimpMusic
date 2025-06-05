@@ -163,7 +163,7 @@ fun MusixmatchLoginScreen(
                     userToken = userToken,
                     deviceId = deviceId,
                 )
-                navController.navigateUp()
+                navController.popBackStack()
             }
         ) {
             Text(
@@ -181,7 +181,7 @@ fun MusixmatchLoginScreen(
         },
         navigationIcon = {
             IconButton(
-                onClick = { navController.navigateUp() }
+                onClick = { navController.popBackStack() }
             ) {
                 Icon(
                     Icons.Filled.ArrowBackIosNew,

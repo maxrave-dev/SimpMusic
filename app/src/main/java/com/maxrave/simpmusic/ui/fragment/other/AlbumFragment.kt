@@ -42,7 +42,7 @@ class AlbumFragment : Fragment() {
                         if (id != null) {
                             AlbumScreen(id, findNavController())
                         } else {
-                            findNavController().navigateUp()
+                            findNavController().popBackStack()
                         }
                     }
                 }
