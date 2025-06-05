@@ -11,6 +11,7 @@ Not a simple music player, it's SimpMusic
 - Login to YouTube Music account and support multiple accounts
 - Notification from followed artists
 - Synced lyrics from Musixmatch, YouTube Transcript, Spotify and translate lyrics (Community translation from Musixmatch)
+- AI Translation for lyrics
 - Spotify Canvas
 - Support SponsorBlock
 - Sleep Timer

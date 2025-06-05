@@ -11,6 +11,7 @@ Không chỉ là ứng dụng nghe nhạc, nó là SimpMusic
 - Nhận thông báo từ các nghệ sĩ đã theo dõi
 - Đăng nhập tài khoản YouTube và hỗ trợ đa tài khoản
 - Lời bài hát được đồng bộ từ Musixmatch, Spotify và YouTube Transcript, dịch lời bài hát với cộng đồng từ Musixmatch
+- Dịch lời bài hát bằng AI
 - Spotify Canvas
 - Hỗ trợ SponsorBlock
 - Hẹn giờ đi ngủ
