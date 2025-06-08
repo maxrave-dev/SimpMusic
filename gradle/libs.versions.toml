@@ -66,6 +66,7 @@ onetimepassword = "2.4.1"
 common = "1.18.0"
 json = "1.8.1"
 gemini-kotlin = "4.0.2"
+slf4j = "1.7.36"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -165,6 +166,7 @@ androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-andr
 kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword", version.ref = "onetimepassword" }
 common = { module = "commons-codec:commons-codec", version.ref = "common" }
 gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
+logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

@@ -12,7 +12,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -51,11 +53,12 @@ class SpotifyClient {
     @OptIn(ExperimentalSerializationApi::class)
     private fun createSpotifyClient(onlyJson: Boolean = false) =
         HttpClient(OkHttp) {
-            expectSuccess = true
-            followRedirects = false
+            followRedirects = true
+            expectSuccess = false
             install(HttpCache)
             install(Logging) {
-                level = LogLevel.BODY
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
             }
             install(HttpSend) {
                 maxSendCount = 100
