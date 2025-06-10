@@ -12,7 +12,6 @@ import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.utils.VersionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -439,6 +438,7 @@ class DataStoreManager(
         settingsDataStore.data.map { preferences ->
             preferences[MUSIXMATCH_USER_TOKEN] ?: ""
         }
+
     suspend fun setMusixmatchUserToken(token: String) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
@@ -1026,6 +1026,7 @@ class DataStoreManager(
         const val FALSE = "FALSE"
         const val PROXY_TYPE_HTTP = "http"
         const val PROXY_TYPE_SOCKS = "socks"
+
         // AI
         const val AI_PROVIDER_GEMINI = "gemini"
         const val AI_PROVIDER_OPENAI = "openai"
@@ -1041,7 +1042,6 @@ class DataStoreManager(
         const val LOCAL_PLAYLIST_FILTER_OLDER_FIRST = "older_first"
         const val LOCAL_PLAYLIST_FILTER_NEWER_FIRST = "newer_first"
         const val LOCAL_PLAYLIST_FILTER_TITLE = "title"
-
 
         // Proxy type
         enum class ProxyType {

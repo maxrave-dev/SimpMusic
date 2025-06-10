@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.data.repository
 
 import android.content.Context
-import android.provider.Settings.Secure
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.YouTube
@@ -29,7 +28,6 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
 import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
 import com.maxrave.lyricsproviders.models.response.SearchMusixmatchResponse
-import com.maxrave.lyricsproviders.utils.CaptchaException
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -122,7 +120,6 @@ import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import org.intellij.lang.annotations.Language
 import org.simpmusic.aiservice.AIHost
 import org.simpmusic.aiservice.AiClient
 import java.io.File
@@ -272,31 +269,34 @@ class MainRepository(
             val aiClientProviderJob =
                 launch {
                     dataStoreManager.aiProvider.collectLatest { provider ->
-                        aiClient.host = when (provider) {
-                            DataStoreManager.AI_PROVIDER_GEMINI -> AIHost.GEMINI
-                            DataStoreManager.AI_PROVIDER_OPENAI -> AIHost.OPENAI
-                            else -> AIHost.GEMINI // Default to Gemini if not set
-                        }
+                        aiClient.host =
+                            when (provider) {
+                                DataStoreManager.AI_PROVIDER_GEMINI -> AIHost.GEMINI
+                                DataStoreManager.AI_PROVIDER_OPENAI -> AIHost.OPENAI
+                                else -> AIHost.GEMINI // Default to Gemini if not set
+                            }
                     }
                 }
             val aiClientApiKeyJob =
                 launch {
                     dataStoreManager.aiApiKey.collectLatest { apiKey ->
-                        aiClient.apiKey = if (apiKey.isNotEmpty()) {
-                            apiKey
-                        } else {
-                            null
-                        }
+                        aiClient.apiKey =
+                            if (apiKey.isNotEmpty()) {
+                                apiKey
+                            } else {
+                                null
+                            }
                     }
                 }
             val aiCustomModelIdJob =
                 launch {
                     dataStoreManager.customModelId.collectLatest { modelId ->
-                        aiClient.customModelId = if (modelId.isNotEmpty()) {
-                            modelId
-                        } else {
-                            null
-                        }
+                        aiClient.customModelId =
+                            if (modelId.isNotEmpty()) {
+                                modelId
+                            } else {
+                                null
+                            }
                     }
                 }
 
@@ -334,9 +334,10 @@ class MainRepository(
             emit(localDataSource.getSearchHistory())
         }.flowOn(Dispatchers.IO)
 
-    suspend fun insertSearchHistory(searchHistory: SearchHistory): Flow<Long> = flow {
-        emit(localDataSource.insertSearchHistory(searchHistory))
-    }.flowOn(Dispatchers.IO)
+    suspend fun insertSearchHistory(searchHistory: SearchHistory): Flow<Long> =
+        flow {
+            emit(localDataSource.insertSearchHistory(searchHistory))
+        }.flowOn(Dispatchers.IO)
 
     suspend fun deleteSearchHistory() =
         withContext(Dispatchers.IO) {
@@ -829,14 +830,15 @@ class MainRepository(
             localDataSource.deleteNotification(id)
         }
 
-    suspend fun insertTranslatedLyrics(
-        translatedLyrics: TranslatedLyricsEntity,
-    ) = withContext(Dispatchers.IO) {
-        localDataSource.insertTranslatedLyrics(translatedLyrics)
-    }
+    suspend fun insertTranslatedLyrics(translatedLyrics: TranslatedLyricsEntity) =
+        withContext(Dispatchers.IO) {
+            localDataSource.insertTranslatedLyrics(translatedLyrics)
+        }
 
-    fun getSavedTranslatedLyrics(videoId: String, language: String = "en"): Flow<TranslatedLyricsEntity?> =
-        flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
+    fun getSavedTranslatedLyrics(
+        videoId: String,
+        language: String = "en",
+    ): Flow<TranslatedLyricsEntity?> = flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
 
     suspend fun getAccountInfo() =
         flow<AccountInfo?> {
@@ -1879,9 +1881,9 @@ class MainRepository(
                                         Pair(
                                             playlist.copy(
                                                 tracks =
-                                                playlist.tracks.toMutableList().apply {
-                                                    addAll(listContent)
-                                                },
+                                                    playlist.tracks.toMutableList().apply {
+                                                        addAll(listContent)
+                                                    },
                                                 trackCount = (playlist.trackCount + listContent.size),
                                                 shuffleEndpoint = shuffleEndpoint,
                                                 radioEndpoint = radioEndpoint,
@@ -1893,14 +1895,14 @@ class MainRepository(
                             } ?: emit(
                                 Resource.Error<
                                     Pair<PlaylistBrowse, String?>,
-                                    >("Error"),
+                                >("Error"),
                             )
                         } catch (e: Exception) {
                             e.printStackTrace()
                             emit(
                                 Resource.Error<
                                     Pair<PlaylistBrowse, String?>,
-                                    >(e.message.toString()),
+                                >(e.message.toString()),
                             )
                         }
                     }.onFailure { e ->
@@ -2304,7 +2306,7 @@ class MainRepository(
                     var spotifyPersonalToken = ""
                     var spotifyClientToken = ""
                     Log.w("Lyrics", "getSpotifyLyrics: ${dataStoreManager.spotifyPersonalTokenExpires.first()}")
-                    Log.w("Lyrics",  "getSpotifyLyrics ${dataStoreManager.spotifyClientTokenExpires.first()}")
+                    Log.w("Lyrics", "getSpotifyLyrics ${dataStoreManager.spotifyClientTokenExpires.first()}")
                     Log.w("Lyrics", "getSpotifyLyrics now: ${System.currentTimeMillis()}")
                     if (dataStoreManager.spotifyPersonalToken
                             .first()
@@ -2536,6 +2538,7 @@ class MainRepository(
         duration: Int? = null,
     ): Flow<Resource<Lyrics>> =
         flow {
+            Log.w("Lyrics", "getLrclibLyricsData: $sartist $strack $duration")
             val qartist =
                 sartist
                     .replace(
@@ -2571,63 +2574,69 @@ class MainRepository(
     fun getLyricsDataMacro(
         sartist: String,
         strack: String,
-        duration: Int
-    ): Flow<Pair<String, Resource<Lyrics>>> = flow {
-        val qartist =
-            sartist
-                .replace(
-                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                    " ",
-                ).replace(
-                    Regex("( và | & | и | e | und |, |和| dan)"),
-                    " ",
-                ).replace("  ", " ")
-                .replace(Regex("([()])"), "")
-                .replace(".", " ")
-        val qtrack =
-            strack
-                .replace(
-                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                    " ",
-                ).replace(
-                    Regex("( và | & | и | e | und |, |和| dan)"),
-                    " ",
-                ).replace("  ", " ")
-                .replace(Regex("([()])"), "")
-                .replace(".", " ")
-        val tag = "Lyrics"
-        Log.d(tag, "query: $qtrack $qartist")
-        lyricsClient.configGet().onSuccess {
-            Log.d(tag, "configGet: ${it}")
-        }.onFailure { throwable ->
-            Log.e(tag, "configGet Error: ${throwable.message}")
-        }
-        lyricsClient.userGet().onSuccess {
-            Log.d(tag, "userGet: ${it}")
-        }.onFailure { throwable ->
-            Log.e(tag, "userGet Error: ${throwable.message}")
-        }
-        lyricsClient.macroSearch(
-            q_track = qtrack,
-            q_artist = qartist,
-            duration = duration,
-            userToken = dataStoreManager.musixmatchUserToken.first()
-        ).onSuccess { res ->
-            if (res != null) {
-                Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
-                emit(
-                    res.first.toString() to Resource.Success(res.second.toLyrics())
-                )
-            } else {
-                Log.w(tag, "Error: Lỗi getLyrics $res")
-                emit("" to Resource.Error<Lyrics>("Not found"))
-            }
-        }.onFailure {
-            emit(
-                "" to Resource.Error<Lyrics>("Not found")
-            )
-        }
-    }.flowOn(Dispatchers.IO)
+        duration: Int,
+    ): Flow<Pair<String, Resource<Lyrics>>> =
+        flow {
+            val qartist =
+                sartist
+                    .replace(
+                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                        " ",
+                    ).replace(
+                        Regex("( và | & | и | e | und |, |和| dan)"),
+                        " ",
+                    ).replace("  ", " ")
+                    .replace(Regex("([()])"), "")
+                    .replace(".", " ")
+            val qtrack =
+                strack
+                    .replace(
+                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                        " ",
+                    ).replace(
+                        Regex("( và | & | и | e | und |, |和| dan)"),
+                        " ",
+                    ).replace("  ", " ")
+                    .replace(Regex("([()])"), "")
+                    .replace(".", " ")
+            val tag = "Lyrics"
+            Log.d(tag, "query: $qtrack $qartist")
+            lyricsClient
+                .configGet()
+                .onSuccess {
+                    Log.d(tag, "configGet: $it")
+                }.onFailure { throwable ->
+                    Log.e(tag, "configGet Error: ${throwable.message}")
+                }
+            lyricsClient
+                .userGet()
+                .onSuccess {
+                    Log.d(tag, "userGet: $it")
+                }.onFailure { throwable ->
+                    Log.e(tag, "userGet Error: ${throwable.message}")
+                }
+            lyricsClient
+                .macroSearch(
+                    q_track = qtrack,
+                    q_artist = qartist,
+                    duration = duration,
+                    userToken = dataStoreManager.musixmatchUserToken.first(),
+                ).onSuccess { res ->
+                    if (res != null) {
+                        Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
+                        emit(
+                            res.first.toString() to Resource.Success(res.second.toLyrics()),
+                        )
+                    } else {
+                        Log.w(tag, "Error: Lỗi getLyrics $res")
+                        emit("" to Resource.Error<Lyrics>("Not found"))
+                    }
+                }.onFailure {
+                    emit(
+                        "" to Resource.Error<Lyrics>("Not found"),
+                    )
+                }
+        }.flowOn(Dispatchers.IO)
 
     fun getLyricsData(
         sartist: String,
@@ -2664,16 +2673,20 @@ class MainRepository(
                 val q = "$qtrack $qartist"
                 Log.d(tag, "query: $q")
                 var musixMatchUserToken = lyricsClient.musixmatchUserToken
-                lyricsClient.configGet().onSuccess {
-                    Log.d(tag, "configGet: ${it}")
-                }.onFailure { throwable ->
-                    Log.e(tag, "configGet Error: ${throwable.message}")
-                }
-                lyricsClient.userGet().onSuccess {
-                    Log.d(tag, "userGet: ${it}")
-                }.onFailure { throwable ->
-                    Log.e(tag, "userGet Error: ${throwable.message}")
-                }
+                lyricsClient
+                    .configGet()
+                    .onSuccess {
+                        Log.d(tag, "configGet: $it")
+                    }.onFailure { throwable ->
+                        Log.e(tag, "configGet Error: ${throwable.message}")
+                    }
+                lyricsClient
+                    .userGet()
+                    .onSuccess {
+                        Log.d(tag, "userGet: $it")
+                    }.onFailure { throwable ->
+                        Log.e(tag, "userGet Error: ${throwable.message}")
+                    }
                 if (musixMatchUserToken == null) {
                     lyricsClient
                         .getMusixmatchUserToken()
@@ -2881,7 +2894,6 @@ class MainRepository(
                                         }
                                     }.onFailure {
                                         Log.e(tag, "Fix musixmatch search" + it.message.toString())
-
                                     }
                             }
                         } else {
@@ -2898,27 +2910,28 @@ class MainRepository(
 //                                Lyrics(true, null, null, true)
 //                            ))
 //                        }
-                        lyricsClient.macroSubtitle(
-                            q_track = qtrack,
-                            q_artist = qartist,
-                            userToken = musixMatchUserToken,
-                        ).onSuccess {
-                            Log.w(tag, "Macro subtitle Item lyrics ${it?.second?.lyrics?.syncType}")
-                            if (it != null) {
-                                emit(
-                                    Pair(
-                                        it.first.toString(),
-                                        Resource.Success<Lyrics>(it.second.toLyrics()),
-                                    ),
-                                )
-                            } else {
-                                Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                        lyricsClient
+                            .macroSubtitle(
+                                q_track = qtrack,
+                                q_artist = qartist,
+                                userToken = musixMatchUserToken,
+                            ).onSuccess {
+                                Log.w(tag, "Macro subtitle Item lyrics ${it?.second?.lyrics?.syncType}")
+                                if (it != null) {
+                                    emit(
+                                        Pair(
+                                            it.first.toString(),
+                                            Resource.Success<Lyrics>(it.second.toLyrics()),
+                                        ),
+                                    )
+                                } else {
+                                    Log.w("Lyrics", "Error: Lỗi getLyrics $it")
+                                    emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                                }
+                            }.onFailure {
+                                Log.e(tag, "Error: ${it.message}")
+                                emit("" to Resource.Error<Lyrics>("Not found"))
                             }
-                        }.onFailure {
-                            Log.e(tag, "Error: ${it.message}")
-                            emit("" to Resource.Error<Lyrics>("Not found"))
-                        }
                     }
             }
         }.flowOn(Dispatchers.IO)
@@ -3091,14 +3104,16 @@ class MainRepository(
                     )
 
                     Log.w("Stream", "Get stream for video $isVideo")
-                    val videoFormat = response.streamingData?.formats?.find { it.itag == videoItag }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
-                        ?: response.streamingData?.formats?.find { it.itag == 136 }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
-                        ?: response.streamingData?.formats?.find { it.itag == 134 }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
-                    val audioFormat = response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == itag }
+                    val videoFormat =
+                        response.streamingData?.formats?.find { it.itag == videoItag }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
+                            ?: response.streamingData?.formats?.find { it.itag == 136 }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
+                            ?: response.streamingData?.formats?.find { it.itag == 134 }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
+                    val audioFormat =
+                        response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == itag }
                     var format =
                         if (isVideo) {
                             videoFormat
@@ -3109,11 +3124,12 @@ class MainRepository(
                         format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
                     }
                     val superFormat =
-                        response.streamingData?.let { streamData ->
-                            streamData.adaptiveFormats.apply {
-                                plus(streamData.formats)
-                            }
-                        }?.filter {
+                        response.streamingData
+                            ?.let { streamData ->
+                                streamData.adaptiveFormats.apply {
+                                    plus(streamData.formats)
+                                }
+                            }?.filter {
                                 it.audioQuality == "AUDIO_QUALITY_HIGH"
                             }?.let { highFormat ->
                                 highFormat.firstOrNull {
@@ -3171,7 +3187,7 @@ class MainRepository(
                                 cpn = data.first,
                                 expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
                                 audioUrl = superFormat?.url ?: audioFormat?.url,
-                                videoUrl = videoFormat?.url
+                                videoUrl = videoFormat?.url,
                             ),
                         )
                     }
@@ -3492,7 +3508,5 @@ class MainRepository(
         isVideo: Boolean,
     ): Flow<DownloadProgress> = youTube.download(path, videoId, isVideo)
 
-    fun is403Url(
-        url: String
-    ) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
+    fun is403Url(url: String) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
 }

@@ -150,6 +150,8 @@ dependencies {
 
     implementation(libs.kotlin.onetimepassword)
     implementation(libs.common)
+
+    implementation(libs.logging)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

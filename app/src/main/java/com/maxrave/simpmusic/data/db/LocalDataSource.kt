@@ -18,7 +18,6 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.viewModel.FilterState
-import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
 class LocalDataSource(
@@ -354,9 +353,10 @@ class LocalDataSource(
 
     suspend fun deleteNotification(id: Long) = databaseDao.deleteNotification(id)
 
-    suspend fun getTranslatedLyrics(videoId: String, language: String) =
-        databaseDao.getTranslatedLyrics(videoId, language)
+    suspend fun getTranslatedLyrics(
+        videoId: String,
+        language: String,
+    ) = databaseDao.getTranslatedLyrics(videoId, language)
 
-    suspend fun insertTranslatedLyrics(translatedLyricsEntity: TranslatedLyricsEntity) =
-        databaseDao.insertTranslatedLyrics(translatedLyricsEntity)
+    suspend fun insertTranslatedLyrics(translatedLyricsEntity: TranslatedLyricsEntity) = databaseDao.insertTranslatedLyrics(translatedLyricsEntity)
 }

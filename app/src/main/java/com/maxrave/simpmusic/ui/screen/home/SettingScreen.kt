@@ -696,7 +696,7 @@ fun SettingScreen(
                         if (useMusixmatchTranslation) {
                             viewModel.setUseTranslation(false)
                         }
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.translation_language),
@@ -819,7 +819,7 @@ fun SettingScreen(
                         if (useAITranslation) {
                             viewModel.setAITranslation(false)
                         }
-                    }
+                    },
                 )
             }
         }
@@ -851,7 +851,7 @@ fun SettingScreen(
                         if (spotifyLyrics) {
                             viewModel.setSpotifyLyrics(false)
                         }
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.enable_canvas),
@@ -862,7 +862,7 @@ fun SettingScreen(
                         if (spotifyCanvas) {
                             viewModel.setSpotifyCanvas(false)
                         }
-                    }
+                    },
                 )
             }
         }
@@ -1065,11 +1065,9 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.otherApp * width).dp,
-                                        )
-                                        .background(
+                                        ).background(
                                             md_theme_dark_primary,
-                                        )
-                                        .fillMaxHeight(),
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
@@ -1078,11 +1076,9 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.downloadCache * width).dp,
-                                        )
-                                        .background(
+                                        ).background(
                                             Color(0xD540FF17),
-                                        )
-                                        .fillMaxHeight(),
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
@@ -1091,11 +1087,9 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.playerCache * width).dp,
-                                        )
-                                        .background(
+                                        ).background(
                                             Color(0xD5FFFF00),
-                                        )
-                                        .fillMaxHeight(),
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
@@ -1104,11 +1098,9 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.canvasCache * width).dp,
-                                        )
-                                        .background(
+                                        ).background(
                                             Color.Cyan,
-                                        )
-                                        .fillMaxHeight(),
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
@@ -1117,11 +1109,9 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.thumbCache * width).dp,
-                                        )
-                                        .background(
+                                        ).background(
                                             Color.Magenta,
-                                        )
-                                        .fillMaxHeight(),
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
@@ -1130,8 +1120,7 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.appDatabase * width).dp,
-                                        )
-                                        .background(
+                                        ).background(
                                             Color.White,
                                         ),
                             )
@@ -1142,11 +1131,9 @@ fun SettingScreen(
                                     Modifier
                                         .width(
                                             (fraction.freeSpace * width).dp,
-                                        )
-                                        .background(
+                                        ).background(
                                             Color.DarkGray,
-                                        )
-                                        .fillMaxHeight(),
+                                        ).fillMaxHeight(),
                             )
                         }
                     }
@@ -1635,8 +1622,7 @@ fun SettingScreen(
                                     .padding(vertical = 4.dp)
                                     .clickable {
                                         onSelect.invoke()
-                                    }
-                                    .fillMaxWidth(),
+                                    }.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 RadioButton(
@@ -1677,8 +1663,7 @@ fun SettingScreen(
                                     .padding(vertical = 4.dp)
                                     .clickable {
                                         onCheck.invoke()
-                                    }
-                                    .fillMaxWidth(),
+                                    }.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Checkbox(

@@ -26,7 +26,7 @@ import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
         NewFormatEntity::class, SongInfoEntity::class, SearchHistory::class, SongEntity::class, ArtistEntity::class,
         AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, QueueEntity::class,
         SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class, FollowedArtistSingleAndAlbum::class,
-        NotificationEntity::class, TranslatedLyricsEntity::class
+        NotificationEntity::class, TranslatedLyricsEntity::class,
     ],
     version = 15,
     exportSchema = true,

@@ -507,11 +507,10 @@ fun Color.rgbFactor(factor: Float): Color {
     return Color(r, g, b, alpha)
 }
 
-fun TextStyle.greyScale(): TextStyle {
-    return this.copy(
+fun TextStyle.greyScale(): TextStyle =
+    this.copy(
         color = Color.Gray,
     )
-}
 
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,

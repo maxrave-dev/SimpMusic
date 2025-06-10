@@ -98,12 +98,12 @@ class LocalPlaylistViewModel(
     init {
         viewModelScope.launch {
             setFilter(
-                when(dataStoreManager.localPlaylistFilter.first()) {
+                when (dataStoreManager.localPlaylistFilter.first()) {
                     DataStoreManager.LOCAL_PLAYLIST_FILTER_OLDER_FIRST -> FilterState.OlderFirst
                     DataStoreManager.LOCAL_PLAYLIST_FILTER_NEWER_FIRST -> FilterState.NewerFirst
                     DataStoreManager.LOCAL_PLAYLIST_FILTER_TITLE -> FilterState.Title
                     else -> FilterState.OlderFirst
-                }
+                },
             )
             val listTrackStringJob =
                 launch {
@@ -152,17 +152,20 @@ class LocalPlaylistViewModel(
                             }
                         }
                 }
-            val resetSuggestions = launch {
-                uiState.map {
-                    it.id
-                }.distinctUntilChanged().collectLatest {
-                    _uiState.update {
-                        it.copy(
-                            suggestions = null
-                        )
-                    }
+            val resetSuggestions =
+                launch {
+                    uiState
+                        .map {
+                            it.id
+                        }.distinctUntilChanged()
+                        .collectLatest {
+                            _uiState.update {
+                                it.copy(
+                                    suggestions = null,
+                                )
+                            }
+                        }
                 }
-            }
             listTrackStringJob.join()
             resetSuggestions.join()
         }
@@ -502,8 +505,7 @@ class LocalPlaylistViewModel(
                                     id,
                                 )
                                 STATE_DOWNLOADED
-                            } else if (listJob.any { download[it] == STATE_DOWNLOADING }
-                            ) {
+                            } else if (listJob.any { download[it] == STATE_DOWNLOADING }) {
                                 mainRepository.updateLocalPlaylistDownloadState(
                                     STATE_DOWNLOADING,
                                     id,
@@ -991,7 +993,9 @@ sealed interface FilterState {
 }
 
 sealed class LocalPlaylistUIEvent {
-    data class ChangeFilter(val filterState: FilterState) : LocalPlaylistUIEvent()
+    data class ChangeFilter(
+        val filterState: FilterState,
+    ) : LocalPlaylistUIEvent()
 
     data class ItemClick(
         val videoId: String,

@@ -486,7 +486,7 @@ interface DatabaseDao {
 
     @Query(
         "SELECT p.* FROM pair_song_local_playlist p JOIN song s ON p.songId = s.videoId WHERE" +
-                " p.playlistId = :playlistId ORDER BY s.title ASC LIMIT 50 OFFSET :offset",
+            " p.playlistId = :playlistId ORDER BY s.title ASC LIMIT 50 OFFSET :offset",
     )
     suspend fun getPlaylistPairSongByTitle(
         playlistId: Long,
@@ -551,5 +551,8 @@ interface DatabaseDao {
     suspend fun insertTranslatedLyrics(translatedLyricsEntity: TranslatedLyricsEntity)
 
     @Query("SELECT * FROM translated_lyrics WHERE videoId = :videoId AND language = :language")
-    suspend fun getTranslatedLyrics(videoId: String, language: String = "en"): TranslatedLyricsEntity?
+    suspend fun getTranslatedLyrics(
+        videoId: String,
+        language: String = "en",
+    ): TranslatedLyricsEntity?
 }

@@ -219,7 +219,12 @@ fun SearchScreen(
                     expanded = false,
                     onExpandedChange = {},
                     enabled = true,
-                    placeholder = { Text(text = stringResource(id = R.string.what_do_you_want_to_listen_to)) },
+                    placeholder = {
+                        Text(
+                            text = stringResource(id = R.string.what_do_you_want_to_listen_to),
+                            style = typo.labelMedium,
+                        )
+                    },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_search_24),

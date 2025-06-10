@@ -89,13 +89,15 @@ class LyricsClient(
             lyricsProvider.getMusixmatchUserToken().body<UserTokenResponse>()
         }
 
-    suspend fun userGet() = runCatching {
-        lyricsProvider.userGet().bodyAsText()
-    }
+    suspend fun userGet() =
+        runCatching {
+            lyricsProvider.userGet().bodyAsText()
+        }
 
-    suspend fun configGet() = runCatching {
-        lyricsProvider.configGet(guid).bodyAsText()
-    }
+    suspend fun configGet() =
+        runCatching {
+            lyricsProvider.configGet(guid).bodyAsText()
+        }
 
     suspend fun postMusixmatchCredentials(
         email: String,
@@ -131,21 +133,43 @@ class LyricsClient(
         q_artist: String,
         duration: Int,
         userToken: String,
-
     ) = runCatching {
-        val rs = lyricsProvider.macroSearch(
-            userToken = userToken,
-            q_track = q_track,
-            q_artist = q_artist,
-            duration = duration
-        ).bodyWithoutCaptcha<MacroSearchResponse>()
-        val trackId = rs.message?.body?.macroCalls?.matcherTrackGet?.message?.body?.track?.trackId ?: return@runCatching null
-        val subtitleBody = rs.message.body.macroCalls.trackSubtitlesGet?.message?.body?.subtitleList?.firstOrNull()?.subtitle?.subtitleBody
-        val lyricsBody = rs.message.body.macroCalls.trackLyricsGet?.message?.body?.lyrics?.lyricsBody
+        val rs =
+            lyricsProvider
+                .macroSearch(
+                    userToken = userToken,
+                    q_track = q_track,
+                    q_artist = q_artist,
+                    duration = duration,
+                ).bodyWithoutCaptcha<MacroSearchResponse>()
+        val trackId =
+            rs.message
+                ?.body
+                ?.macroCalls
+                ?.matcherTrackGet
+                ?.message
+                ?.body
+                ?.track
+                ?.trackId ?: return@runCatching null
+        val subtitleBody =
+            rs.message.body.macroCalls.trackSubtitlesGet
+                ?.message
+                ?.body
+                ?.subtitleList
+                ?.firstOrNull()
+                ?.subtitle
+                ?.subtitleBody
+        val lyricsBody =
+            rs.message.body.macroCalls.trackLyricsGet
+                ?.message
+                ?.body
+                ?.lyrics
+                ?.lyricsBody
         if (!subtitleBody.isNullOrEmpty()) {
-            return@runCatching trackId to parseMusixmatchLyrics(
-                subtitleBody
-            )
+            return@runCatching trackId to
+                parseMusixmatchLyrics(
+                    subtitleBody,
+                )
         } else if (!lyricsBody.isNullOrEmpty()) {
             return@runCatching trackId to parseUnsyncedLyrics(lyricsBody)
         } else {
@@ -165,27 +189,48 @@ class LyricsClient(
         q_artist: String,
         q_track: String,
         userToken: String,
-    ): Result<Pair<Int, Lyrics>?> = runCatching {
-        delay(500)
-        val response = lyricsProvider.macroSubtitles(
-            usertoken = userToken,
-            q_track = q_track,
-            q_artist = q_artist,
-        ).bodyWithoutCaptcha<MusixmatchLyricsResponse>()
-        Log.w("Macro Subtitle Result", response.toString())
-        val trackId = response.message.body.macro_calls?.trackGet?.message?.body?.track?.track_id ?: return@runCatching null
-        val subtitleBody = response.message.body.macro_calls.trackSubtitlesGet?.message?.body?.subtitle_list?.firstOrNull()?.subtitle_body
-        val lyricsBody = response.message.body.macro_calls.trackLyricsGet?.message?.body?.lyrics?.lyrics_body
-        if (!subtitleBody.isNullOrEmpty()) {
-            return@runCatching trackId to parseMusixmatchLyrics(
-                subtitleBody
-            )
-        } else if (!lyricsBody.isNullOrEmpty()) {
-            return@runCatching trackId to parseUnsyncedLyrics(lyricsBody)
-        } else {
-            null
+    ): Result<Pair<Int, Lyrics>?> =
+        runCatching {
+            delay(500)
+            val response =
+                lyricsProvider
+                    .macroSubtitles(
+                        usertoken = userToken,
+                        q_track = q_track,
+                        q_artist = q_artist,
+                    ).bodyWithoutCaptcha<MusixmatchLyricsResponse>()
+            Log.w("Macro Subtitle Result", response.toString())
+            val trackId =
+                response.message.body.macro_calls
+                    ?.trackGet
+                    ?.message
+                    ?.body
+                    ?.track
+                    ?.track_id ?: return@runCatching null
+            val subtitleBody =
+                response.message.body.macro_calls.trackSubtitlesGet
+                    ?.message
+                    ?.body
+                    ?.subtitle_list
+                    ?.firstOrNull()
+                    ?.subtitle_body
+            val lyricsBody =
+                response.message.body.macro_calls.trackLyricsGet
+                    ?.message
+                    ?.body
+                    ?.lyrics
+                    ?.lyrics_body
+            if (!subtitleBody.isNullOrEmpty()) {
+                return@runCatching trackId to
+                    parseMusixmatchLyrics(
+                        subtitleBody,
+                    )
+            } else if (!lyricsBody.isNullOrEmpty()) {
+                return@runCatching trackId to parseUnsyncedLyrics(lyricsBody)
+            } else {
+                null
+            }
         }
-    }
 
     suspend fun fixSearchMusixmatch(
         q_artist: String,

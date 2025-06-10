@@ -31,7 +31,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
 import org.simpmusic.aiservice.AiClient
-import org.simpmusic.aiservice.AiService
 import java.lang.reflect.Type
 import java.time.ZoneOffset
 
