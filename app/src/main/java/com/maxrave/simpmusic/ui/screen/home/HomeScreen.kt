@@ -215,7 +215,7 @@ fun HomeScreen(
             cookie = sharedViewModel.getMusixmatchCookie(),
             onDismissRequest = {
                 sharedViewModel.resolvedMusixmatchCaptcha()
-            }
+            },
         )
     }
 
@@ -849,7 +849,7 @@ fun ChartData(
                         state = lazyListState1,
                         flingBehavior = snapperFlingBehavior1,
                     ) {
-                        items(chart.songs.size, key = {index -> "${chart.songs.getOrNull(index).hashCode()} $index" }) {
+                        items(chart.songs.size, key = { index -> "${chart.songs.getOrNull(index).hashCode()} $index" }) {
                             val song = chart.songs[it]
                             ItemTrackChart(onClick = {
                                 viewModel.setQueueData(

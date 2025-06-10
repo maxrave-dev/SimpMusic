@@ -112,7 +112,7 @@ class SpotifyClient {
         }
 
     suspend fun getSpotifyServerTime(spdc: String) =
-        spotifyClient.get("https://open.spotify.com/server-time") {
+        spotifyClient.get("https://open.spotify.com/api/server-time") {
             userAgent(USER_AGENT)
             header(
                 "Cookie",
@@ -131,7 +131,7 @@ class SpotifyClient {
         reason: String = "transport",
         sTime: String,
         cTime: String,
-    ) = spotifyClient.get("https://open.spotify.com/get_access_token") {
+    ) = spotifyClient.get("https://open.spotify.com/api/token") {
         userAgent(USER_AGENT)
         contentType(ContentType.Application.Json)
         header(

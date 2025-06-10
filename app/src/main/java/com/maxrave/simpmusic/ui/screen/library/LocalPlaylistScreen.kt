@@ -268,7 +268,7 @@ fun LocalPlaylistScreen(
     LaunchedEffect(key1 = uiState) {
         shouldShowSuggestButton =
             !uiState.ytPlaylistId.isNullOrEmpty() &&
-                uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced
+            uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced
     }
     LaunchedEffect(key1 = firstItemVisible) {
         shouldHideTopBar = !firstItemVisible
@@ -333,8 +333,7 @@ fun LocalPlaylistScreen(
                                 .aspectRatio(1f)
                                 .clip(
                                     RoundedCornerShape(8.dp),
-                                )
-                                .angledGradientBackground(uiState.colors, 25f),
+                                ).angledGradientBackground(uiState.colors, 25f),
                     )
                     Box(
                         modifier =
@@ -461,8 +460,7 @@ fun LocalPlaylistScreen(
                                                             .size(36.dp)
                                                             .clip(
                                                                 CircleShape,
-                                                            )
-                                                            .clickable {
+                                                            ).clickable {
                                                                 Toast
                                                                     .makeText(
                                                                         context,
@@ -490,8 +488,7 @@ fun LocalPlaylistScreen(
                                                             .size(36.dp)
                                                             .clip(
                                                                 CircleShape,
-                                                            )
-                                                            .clickable {
+                                                            ).clickable {
                                                                 Toast
                                                                     .makeText(
                                                                         context,
@@ -531,11 +528,9 @@ fun LocalPlaylistScreen(
                                                     .graphicsLayer {
                                                         compositingStrategy =
                                                             CompositingStrategy.Offscreen
-                                                    }
-                                                    .clickable {
+                                                    }.clickable {
                                                         shouldShowSuggestions = !shouldShowSuggestions
-                                                    }
-                                                    .drawWithCache {
+                                                    }.drawWithCache {
                                                         val width = size.width - 10
                                                         val height = size.height - 10
 
@@ -739,19 +734,22 @@ fun LocalPlaylistScreen(
                                             imageVector = Icons.AutoMirrored.Sharp.Sort,
                                             contentDescription = "Sort playlist",
                                             tint = Color.White,
-                                            modifier = Modifier.size(24.dp)
+                                            modifier = Modifier.size(24.dp),
                                         )
                                         Spacer(modifier = Modifier.size(4.dp))
                                         Text(
-                                            text = stringResource(id = R.string.sort_by) + ": " + stringResource(id =
-                                                when (uiState.filterState) {
-                                                    FilterState.Title -> R.string.title
-                                                    FilterState.NewerFirst -> R.string.newer_first
-                                                    FilterState.OlderFirst -> R.string.older_first
-                                                }
-                                            ),
+                                            text =
+                                                stringResource(id = R.string.sort_by) + ": " +
+                                                    stringResource(
+                                                        id =
+                                                            when (uiState.filterState) {
+                                                                FilterState.Title -> R.string.title
+                                                                FilterState.NewerFirst -> R.string.newer_first
+                                                                FilterState.OlderFirst -> R.string.older_first
+                                                            },
+                                                    ),
                                             style = typo.bodySmall,
-                                            color = Color.Gray
+                                            color = Color.Gray,
                                         )
                                     }
                                 }
@@ -906,7 +904,7 @@ fun LocalPlaylistScreen(
             onSortChanged = {
                 viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter(it))
                 sortBottomSheetShow = false
-            }
+            },
         )
     }
     AnimatedVisibility(

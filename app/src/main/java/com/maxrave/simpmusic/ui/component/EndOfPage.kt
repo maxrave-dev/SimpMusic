@@ -18,30 +18,28 @@ import com.maxrave.simpmusic.utils.VersionManager
 import java.time.LocalDateTime
 
 @Composable
-fun EndOfPage(
-    withoutCredit: Boolean = false,
-) {
+fun EndOfPage(withoutCredit: Boolean = false) {
     Box(
         modifier =
-        Modifier
-            .fillMaxWidth()
-            .height(280.dp),
+            Modifier
+                .fillMaxWidth()
+                .height(280.dp),
         contentAlignment = Alignment.TopCenter,
     ) {
         if (!withoutCredit) {
             Text(
-                "@${LocalDateTime.now().year} " + stringResource(R.string.app_name) + " " + stringResource(
-                    R.string.version_format,
-                    VersionManager.getVersionName()
-                ) + "\nmaxrave-dev",
+                "@${LocalDateTime.now().year} " + stringResource(R.string.app_name) + " " +
+                    stringResource(
+                        R.string.version_format,
+                        VersionManager.getVersionName(),
+                    ) + "\nmaxrave-dev",
                 style = typo.bodySmall,
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
                         .padding(
                             top = 20.dp,
-                        )
-                        .alpha(0.8f),
+                        ).alpha(0.8f),
             )
         }
     }
