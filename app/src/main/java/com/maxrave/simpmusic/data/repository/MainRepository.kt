@@ -27,7 +27,6 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistRadioEndpoint
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
 import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
-import com.maxrave.lyricsproviders.models.response.SearchMusixmatchResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -36,6 +35,7 @@ import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.EpisodeEntity
 import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -44,6 +44,8 @@ import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PodcastWithEpisodes
+import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
@@ -92,7 +94,6 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
-import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.isNetworkAvailable
 import com.maxrave.simpmusic.extension.toLibraryLyrics
 import com.maxrave.simpmusic.extension.toListTrack
@@ -104,7 +105,6 @@ import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.spotify.Spotify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -850,6 +850,68 @@ class MainRepository(
                     it.printStackTrace()
                     emit(null)
                 }
+        }.flowOn(Dispatchers.IO)
+
+    fun insertPodcast(podcastsEntity: PodcastsEntity) =
+        flow {
+            emit(localDataSource.insertPodcast(podcastsEntity))
+        }.flowOn(Dispatchers.IO)
+
+    fun insertEpisodes(episodes: List<EpisodeEntity>) =
+        flow {
+            emit(localDataSource.insertEpisodes(episodes))
+        }.flowOn(Dispatchers.IO)
+
+    fun getPodcastWithEpisodes(podcastId: String): Flow<PodcastWithEpisodes?> =
+        flow {
+            emit(localDataSource.getPodcastWithEpisodes(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun getAllPodcasts(): Flow<List<PodcastsEntity>> =
+        flow {
+            emit(localDataSource.getAllPodcasts())
+        }.flowOn(Dispatchers.IO)
+
+    fun getAllPodcastWithEpisodes(): Flow<List<PodcastWithEpisodes>> =
+        flow {
+            emit(localDataSource.getAllPodcastWithEpisodes())
+        }.flowOn(Dispatchers.IO)
+
+    fun getPodcast(podcastId: String): Flow<PodcastsEntity?> =
+        flow {
+            emit(localDataSource.getPodcast(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun getEpisode(videoId: String): Flow<EpisodeEntity?> =
+        flow {
+            emit(localDataSource.getEpisode(videoId))
+        }.flowOn(Dispatchers.IO)
+
+    fun deletePodcast(podcastId: String) =
+        flow {
+            emit(localDataSource.deletePodcast(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun favoritePodcast(
+        podcastId: String,
+        favorite: Boolean,
+    ) = flow {
+        emit(localDataSource.favoritePodcast(podcastId, favorite))
+    }.flowOn(Dispatchers.IO)
+
+    fun getPodcastEpisodes(podcastId: String): Flow<List<EpisodeEntity>> =
+        flow {
+            emit(localDataSource.getPodcastEpisodes(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun getFavoritePodcasts(): Flow<List<PodcastsEntity>> =
+        flow {
+            emit(localDataSource.getFavoritePodcasts())
+        }.flowOn(Dispatchers.IO)
+
+    fun updatePodcastInLibraryNow(id: String) =
+        flow {
+            emit(localDataSource.updatePodcastInLibraryNow(id))
         }.flowOn(Dispatchers.IO)
 
     suspend fun getHomeData(params: String? = null): Flow<Resource<ArrayList<HomeItem>>> =
@@ -2636,304 +2698,6 @@ class MainRepository(
                         "" to Resource.Error<Lyrics>("Not found"),
                     )
                 }
-        }.flowOn(Dispatchers.IO)
-
-    fun getLyricsData(
-        sartist: String,
-        strack: String,
-        durationInt: Int? = null,
-    ): Flow<Pair<String, Resource<Lyrics>>> =
-        flow {
-            runCatching {
-                val tag = "Lyrics"
-//            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
-//                .replace("  ", " ")
-                val qartist =
-                    sartist
-                        .replace(
-                            Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                            " ",
-                        ).replace(
-                            Regex("( và | & | и | e | und |, |和| dan)"),
-                            " ",
-                        ).replace("  ", " ")
-                        .replace(Regex("([()])"), "")
-                        .replace(".", " ")
-                val qtrack =
-                    strack
-                        .replace(
-                            Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                            " ",
-                        ).replace(
-                            Regex("( và | & | и | e | und |, |和| dan)"),
-                            " ",
-                        ).replace("  ", " ")
-                        .replace(Regex("([()])"), "")
-                        .replace(".", " ")
-                val q = "$qtrack $qartist"
-                Log.d(tag, "query: $q")
-                var musixMatchUserToken = lyricsClient.musixmatchUserToken
-                lyricsClient
-                    .configGet()
-                    .onSuccess {
-                        Log.d(tag, "configGet: $it")
-                    }.onFailure { throwable ->
-                        Log.e(tag, "configGet Error: ${throwable.message}")
-                    }
-                lyricsClient
-                    .userGet()
-                    .onSuccess {
-                        Log.d(tag, "userGet: $it")
-                    }.onFailure { throwable ->
-                        Log.e(tag, "userGet Error: ${throwable.message}")
-                    }
-                if (musixMatchUserToken == null) {
-                    lyricsClient
-                        .getMusixmatchUserToken()
-                        .onSuccess { usertoken ->
-                            lyricsClient.musixmatchUserToken = usertoken.message.body.user_token
-                            Log.d(tag, "musixMatchUserToken: ${usertoken.message.body.user_token}")
-                            musixMatchUserToken = usertoken.message.body.user_token
-                        }.onFailure { throwable ->
-                            Log.e(tag, throwable.message.toString())
-                            emit(Pair("", Resource.Error<Lyrics>("Not found")))
-                        }
-                }
-                lyricsClient
-                    .searchMusixmatchTrackId(q, musixMatchUserToken!!)
-                    .onSuccess { searchResult ->
-                        Log.d(
-                            tag,
-                            "searchResult: ${
-                                searchResult.message.body.track_list?.map {
-                                    it.track.track_name + " " + it.track.artist_name
-                                }
-                            }",
-                        )
-                        val trackList =
-                            if (!searchResult.message.body.track_list
-                                    .isNullOrEmpty()
-                            ) {
-                                searchResult.message.body.track_list
-                            } else {
-                                searchResult.message.body.macro_result_list
-                                    ?.track_list
-                            }
-                        if (!trackList.isNullOrEmpty()) {
-                            Log.d(
-                                tag,
-                                "trackList: ${
-                                    trackList.map {
-                                        it.track.track_name + " " + it.track.artist_name
-                                    }
-                                }",
-                            )
-                            val list = arrayListOf<String>()
-                            for (i in trackList) {
-                                list.add(i.track.track_name + " " + i.track.artist_name)
-                            }
-                            var id = ""
-                            var track: SearchMusixmatchResponse.Message.Body.Track.TrackX? = null
-                            Log.d(tag, "duration: $durationInt")
-                            val bestMatchingIndex = bestMatchingIndex(q, list)
-                            if (bestMatchingIndex != null) {
-                                if (durationInt != null && durationInt != 0) {
-                                    val trackLengthList = arrayListOf<Int>()
-                                    for (i in trackList) {
-                                        trackLengthList.add(i.track.track_length)
-                                    }
-                                    val closestIndex =
-                                        trackLengthList.minByOrNull {
-                                            abs(
-                                                it - durationInt,
-                                            )
-                                        }
-                                    if (closestIndex != null &&
-                                        abs(
-                                            closestIndex - durationInt,
-                                        ) < 2
-                                    ) {
-                                        id +=
-                                            trackList
-                                                .find {
-                                                    it.track.track_length == closestIndex
-                                                }?.track
-                                                ?.track_id
-                                                .toString()
-                                        track =
-                                            trackList.find { it.track.track_length == closestIndex }?.track
-                                    }
-                                    if (id == "" &&
-                                        list.get(bestMatchingIndex).contains(
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                        ) &&
-                                        q.contains(
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                        )
-                                    ) {
-                                        Log.w(
-                                            "Lyrics",
-                                            "item: ${
-                                                trackList.get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name
-                                            }",
-                                        )
-                                        id +=
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_id
-                                                .toString()
-                                        track =
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track
-                                    }
-                                } else if (list
-                                        .get(bestMatchingIndex)
-                                        .contains(
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                        ) &&
-                                    q.contains(
-                                        trackList
-                                            .get(
-                                                bestMatchingIndex,
-                                            ).track.track_name,
-                                    )
-                                ) {
-                                    Log.w(
-                                        "Lyrics",
-                                        "item: ${
-                                            trackList.get(
-                                                bestMatchingIndex,
-                                            ).track.track_name
-                                        }",
-                                    )
-                                    id +=
-                                        trackList
-                                            .get(
-                                                bestMatchingIndex,
-                                            ).track.track_id
-                                            .toString()
-                                    track =
-                                        trackList
-                                            .get(
-                                                bestMatchingIndex,
-                                            ).track
-                                }
-                            }
-                            Log.d(tag, "id: $id")
-                            Log.w(
-                                tag,
-                                "item lyrics $track",
-                            )
-                            if (id != "" && track != null) {
-                                delay(1000)
-                                lyricsClient
-                                    .getMusixmatchLyricsByQ(track, musixMatchUserToken!!)
-                                    .onSuccess {
-                                        if (it != null) {
-                                            emit(
-                                                Pair(
-                                                    id,
-                                                    Resource.Success<Lyrics>(it.toLyrics()),
-                                                ),
-                                            )
-                                        } else {
-                                            Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                            emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                        }
-                                    }.onFailure { throwable ->
-                                        throwable.printStackTrace()
-                                        emit("" to Resource.Error<Lyrics>("Not found"))
-                                    }
-                            } else {
-                                lyricsClient
-                                    .fixSearchMusixmatch(
-                                        q_artist = qartist,
-                                        q_track = qtrack,
-                                        q_duration = (durationInt ?: 0).toString(),
-                                        userToken = musixMatchUserToken!!,
-                                    ).onSuccess {
-                                        val trackX = it.message.body.track
-                                        Log.w(tag, "Fix Search Musixmatch: $trackX")
-                                        if (trackX != null && (abs(trackX.track_length - (durationInt ?: 0)) <= 10)) {
-                                            delay(1000)
-                                            lyricsClient
-                                                .getMusixmatchLyricsByQ(trackX, musixMatchUserToken!!)
-                                                .onSuccess {
-                                                    Log.w(tag, "Item lyrics ${it?.lyrics?.syncType}")
-                                                    if (it != null) {
-                                                        emit(
-                                                            Pair(
-                                                                trackX.track_id.toString(),
-                                                                Resource.Success<Lyrics>(it.toLyrics()),
-                                                            ),
-                                                        )
-                                                    } else {
-                                                        Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                                    }
-                                                }.onFailure {
-                                                    it.printStackTrace()
-                                                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                                }
-                                        } else {
-                                            emit("" to Resource.Error<Lyrics>("Not found"))
-                                        }
-                                    }.onFailure {
-                                        Log.e(tag, "Fix musixmatch search" + it.message.toString())
-                                    }
-                            }
-                        } else {
-                            emit(Pair("", Resource.Error<Lyrics>("Not found")))
-                        }
-                    }.onFailure { throwable ->
-                        throwable.printStackTrace()
-                        /**
-                         * I can not handle the 401 captcha error right now, hope I can do it later
-                         */
-//                        if (throwable is CaptchaException) {
-//                            Log.w(tag, "CaptchaException: ${throwable.message}")
-//                            emit("" to Resource.Success<Lyrics>(
-//                                Lyrics(true, null, null, true)
-//                            ))
-//                        }
-                        lyricsClient
-                            .macroSubtitle(
-                                q_track = qtrack,
-                                q_artist = qartist,
-                                userToken = musixMatchUserToken,
-                            ).onSuccess {
-                                Log.w(tag, "Macro subtitle Item lyrics ${it?.second?.lyrics?.syncType}")
-                                if (it != null) {
-                                    emit(
-                                        Pair(
-                                            it.first.toString(),
-                                            Resource.Success<Lyrics>(it.second.toLyrics()),
-                                        ),
-                                    )
-                                } else {
-                                    Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                    emit(Pair("", Resource.Error<Lyrics>("Not found")))
-                                }
-                            }.onFailure {
-                                Log.e(tag, "Error: ${it.message}")
-                                emit("" to Resource.Error<Lyrics>("Not found"))
-                            }
-                    }
-            }
         }.flowOn(Dispatchers.IO)
 
     fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =

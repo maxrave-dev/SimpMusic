@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +15,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
@@ -47,6 +45,7 @@ fun LibraryScreen(
     val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsState()
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsState()
     val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsState()
+    val favoritePodcasts by viewModel.favoritePodcasts.collectAsState()
     val recentlyAdded by viewModel.recentlyAdded.collectAsState()
     LaunchedEffect(true) {
         Log.w("LibraryScreen", "Check youtubePlaylist: ${youTubePlaylist.data}")
@@ -57,6 +56,7 @@ fun LibraryScreen(
         viewModel.getLocalPlaylist()
         viewModel.getPlaylistFavorite()
         viewModel.getDownloadedPlaylist()
+        viewModel.getFavoritePodcasts()
         viewModel.getRecentlyAdded()
     }
     LaunchedEffect(nowPlaying) {
@@ -132,6 +132,17 @@ fun LibraryScreen(
                         type = LibraryItemType.DownloadedPlaylist,
                         data = downloadedPlaylist.data ?: emptyList(),
                         isLoading = downloadedPlaylist is LocalResource.Loading,
+                    ),
+                navController = navController,
+            )
+        }
+        item {
+            LibraryItem(
+                state =
+                    LibraryItemState(
+                        type = LibraryItemType.FavoritePodcasts,
+                        data = favoritePodcasts.data ?: emptyList(),
+                        isLoading = favoritePodcasts is LocalResource.Loading,
                     ),
                 navController = navController,
             )

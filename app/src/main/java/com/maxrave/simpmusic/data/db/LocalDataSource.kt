@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.db
 import android.util.Log
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.EpisodeEntity
 import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -11,6 +12,7 @@ import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
@@ -359,4 +361,43 @@ class LocalDataSource(
     ) = databaseDao.getTranslatedLyrics(videoId, language)
 
     suspend fun insertTranslatedLyrics(translatedLyricsEntity: TranslatedLyricsEntity) = databaseDao.insertTranslatedLyrics(translatedLyricsEntity)
+
+    suspend fun insertPodcast(podcastsEntity: PodcastsEntity) = databaseDao.insertPodcast(podcastsEntity)
+
+    suspend fun insertEpisodes(episodes: List<EpisodeEntity>) = databaseDao.insertEpisodes(episodes)
+
+    suspend fun getPodcastWithEpisodes(podcastId: String) = databaseDao.getPodcastWithEpisodes(podcastId)
+
+    suspend fun getAllPodcasts() = databaseDao.getAllPodcasts()
+
+    suspend fun getAllPodcastWithEpisodes() = databaseDao.getAllPodcastWithEpisodes()
+
+    suspend fun getPodcast(podcastId: String) = databaseDao.getPodcast(podcastId)
+
+    suspend fun getFavoritePodcasts() = databaseDao.getFavoritePodcasts()
+
+    suspend fun getEpisode(videoId: String) = databaseDao.getEpisode(videoId)
+
+    suspend fun deletePodcast(podcastId: String) = databaseDao.deletePodcast(podcastId)
+
+    suspend fun favoritePodcast(
+        podcastId: String,
+        isFavorite: Boolean,
+    ): Boolean {
+        val podcast = databaseDao.getPodcast(podcastId)
+        if (podcast != null) {
+            val updatedPodcast =
+                podcast.copy(
+                    isFavorite = isFavorite,
+                    favoriteTime = if (isFavorite) LocalDateTime.now() else null,
+                )
+            return databaseDao.insertPodcast(updatedPodcast) > 0
+        } else {
+            return false
+        }
+    }
+
+    suspend fun getPodcastEpisodes(podcastId: String) = databaseDao.getPodcastEpisodes(podcastId)
+
+    suspend fun updatePodcastInLibraryNow(id: String) = databaseDao.updatePodcastInLibrary(id, LocalDateTime.now())
 }

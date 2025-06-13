@@ -63,6 +63,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
@@ -303,6 +304,7 @@ fun HomeItemContentPlaylist(
                     is ResultSingle -> data.thumbnails.lastOrNull()?.url
                     is ResultAlbum -> data.thumbnails.lastOrNull()?.url
                     is ResultPlaylist -> data.thumbnails.lastOrNull()?.url
+                    is PodcastsEntity -> data.thumbnail
                     else -> null
                 }
             AsyncImage(
@@ -338,6 +340,7 @@ fun HomeItemContentPlaylist(
                         is ResultSingle -> data.title
                         is ResultAlbum -> data.title
                         is ResultPlaylist -> data.title
+                        is PodcastsEntity -> data.title
                         else -> ""
                     },
                 style = typo.titleSmall,
@@ -383,6 +386,7 @@ fun HomeItemContentPlaylist(
                         is ResultSingle -> data.year
                         is ResultAlbum -> data.year
                         is ResultPlaylist -> data.author
+                        is PodcastsEntity -> data.authorName
                         else -> ""
                     },
                 style = typo.bodySmall,
@@ -409,6 +413,8 @@ fun HomeItemContentPlaylist(
                         stringResource(R.string.playlist)
                     } else if (data is AlbumEntity) {
                         stringResource(R.string.album)
+                    } else if (data is PodcastsEntity) {
+                        stringResource(R.string.podcasts)
                     } else {
                         stringResource(R.string.your_youtube_playlists)
                     }

@@ -430,4 +430,6 @@
     <string name="default_models">Default models are \"gemini-2.0-flash-lite\" and \"gpt-4o\"</string>
     <string name="invalid">Invalid</string>
     <string name="custom_model_id_messages">Please enter the exactly model ID from your AI provider.</string>
+    <string name="favorite_podcasts">Favorite Podcasts</string>
+    <string name="no_favorite_podcasts">No favorite podcasts</string>
 </resources>
