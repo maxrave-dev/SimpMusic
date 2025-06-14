@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,8 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +58,7 @@ import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
@@ -97,6 +95,7 @@ fun LibraryItem(
             is LibraryItemType.DownloadedPlaylist -> stringResource(R.string.downloaded_playlists)
             is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
             is LibraryItemType.CanvasSong -> stringResource(R.string.most_played)
+            is LibraryItemType.FavoritePodcasts -> stringResource(R.string.favorite_podcasts)
         }
     val noPlaylistTitle =
         when (state.type) {
@@ -106,6 +105,7 @@ fun LibraryItem(
             LibraryItemType.FavoritePlaylist -> stringResource(R.string.no_favorite_playlists)
             is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
             is LibraryItemType.CanvasSong -> stringResource(R.string.most_played)
+            is LibraryItemType.FavoritePodcasts -> stringResource(R.string.no_favorite_podcasts)
         }
     Box {
         if (showBottomSheet) {
@@ -240,6 +240,14 @@ fun LibraryItem(
                                                                         },
                                                                     )
                                                                 }
+                                                                is PodcastsEntity -> {
+                                                                    navController.navigateSafe(
+                                                                        R.id.action_global_podcastFragment,
+                                                                        Bundle().apply {
+                                                                            putString("id", item.podcastId)
+                                                                        },
+                                                                    )
+                                                                }
                                                             }
                                                         },
                                                     )
@@ -296,7 +304,7 @@ fun LibraryItem(
                                                     Modifier
                                                         .fillMaxSize()
                                                         .clip(
-                                                            RoundedCornerShape(8.dp)
+                                                            RoundedCornerShape(8.dp),
                                                         ),
                                             )
                                             Column(
@@ -388,6 +396,14 @@ fun LibraryItem(
                                                                     R.id.action_global_playlistFragment,
                                                                     Bundle().apply {
                                                                         putString("id", item.id)
+                                                                    },
+                                                                )
+                                                            }
+                                                            is PodcastsEntity -> {
+                                                                navController.navigateSafe(
+                                                                    R.id.action_global_podcastFragment,
+                                                                    Bundle().apply {
+                                                                        putString("id", item.podcastId)
                                                                     },
                                                                 )
                                                             }
@@ -523,6 +539,8 @@ sealed class LibraryItemType {
     data object FavoritePlaylist : LibraryItemType()
 
     data object DownloadedPlaylist : LibraryItemType()
+
+    data object FavoritePodcasts : LibraryItemType()
 
     data class RecentlyAdded(
         val playingVideoId: String,

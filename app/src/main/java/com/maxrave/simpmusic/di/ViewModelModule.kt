@@ -7,9 +7,12 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.LogInViewModel
+import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
 import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
+import com.maxrave.simpmusic.viewModel.PodcastViewModel
+import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -22,12 +25,12 @@ val viewModelModule =
     module {
         single {
             SharedViewModel(
-                androidApplication()
+                androidApplication(),
             )
         }
         single {
             SearchViewModel(
-                application = androidApplication()
+                application = androidApplication(),
             )
         }
         viewModel {
@@ -77,6 +80,21 @@ val viewModelModule =
         }
         viewModel {
             MusixmatchViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            PodcastViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            MoreAlbumsViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            RecentlySongsViewModel(
                 application = androidApplication(),
             )
         }

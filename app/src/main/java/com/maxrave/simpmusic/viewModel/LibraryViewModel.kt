@@ -13,7 +13,6 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.model.mediaService.Song
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
@@ -23,6 +22,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -48,6 +48,10 @@ class LibraryViewModel(
     private val _favoritePlaylist: MutableStateFlow<LocalResource<List<PlaylistType>>> =
         MutableStateFlow(LocalResource.Loading())
     val favoritePlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _favoritePlaylist
+
+    private val _favoritePodcasts: MutableStateFlow<LocalResource<List<PlaylistType>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val favoritePodcasts: StateFlow<LocalResource<List<PlaylistType>>> get() = _favoritePodcasts
 
     private val _downloadedPlaylist: MutableStateFlow<LocalResource<List<PlaylistType>>> =
         MutableStateFlow(LocalResource.Loading())
@@ -130,6 +134,15 @@ class LibraryViewModel(
                         )
                     _favoritePlaylist.value = LocalResource.Success(sortedList)
                 }
+            }
+        }
+    }
+
+    fun getFavoritePodcasts() {
+        viewModelScope.launch {
+            mainRepository.getFavoritePodcasts().collectLatest { podcasts ->
+                val sortedList = podcasts.sortedByDescending { it.favoriteTime }
+                _favoritePodcasts.value = LocalResource.Success(sortedList)
             }
         }
     }

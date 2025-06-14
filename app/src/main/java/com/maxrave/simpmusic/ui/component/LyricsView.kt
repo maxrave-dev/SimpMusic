@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.os.Build
 import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -94,7 +93,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
@@ -103,7 +101,6 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.TimeLine
 import com.maxrave.simpmusic.viewModel.UIEvent
 import com.moriatsushi.insetsx.systemBars
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
@@ -302,6 +299,10 @@ fun FullscreenLyricsSheet(
         mutableStateOf(false)
     }
 
+    var showInfoBottomSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     ModalBottomSheet(
         onDismissRequest = {
             onDismiss()
@@ -318,9 +319,10 @@ fun FullscreenLyricsSheet(
         shape = RectangleShape,
     ) {
         Box {
-            val hazeState = rememberHazeState(
-                blurEnabled = true
-            )
+            val hazeState =
+                rememberHazeState(
+                    blurEnabled = true,
+                )
             if (shouldHaze) {
                 Box(
                     modifier =
@@ -801,9 +803,7 @@ fun FullscreenLyricsSheet(
                                                 CircleShape,
                                             ),
                                     onClick = {
-                                        navController.navigateSafe(
-                                            R.id.action_global_infoFragment,
-                                        )
+                                        showInfoBottomSheet = true
                                     },
                                 ) {
                                     Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
@@ -843,6 +843,13 @@ fun FullscreenLyricsSheet(
         QueueBottomSheet(
             onDismiss = {
                 showQueueBottomSheet = false
+            },
+        )
+    }
+    if (showInfoBottomSheet) {
+        InfoPlayerBottomSheet(
+            onDismiss = {
+                showInfoBottomSheet = false
             },
         )
     }

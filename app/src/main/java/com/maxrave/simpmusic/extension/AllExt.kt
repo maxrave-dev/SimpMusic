@@ -876,7 +876,7 @@ fun AlbumItem.toAlbumsResult(): AlbumsResult =
                 ),
             ),
         title = this.title,
-        type = "ALBUM",
+        type = if (isSingle) "SINGLE" else "ALBUM",
         year = this.year?.toString() ?: "",
     )
 

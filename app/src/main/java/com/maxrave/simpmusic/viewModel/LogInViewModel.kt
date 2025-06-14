@@ -1,19 +1,19 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @UnstableApi
 class LogInViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    private val _spotifyStatus: MutableLiveData<Boolean> = MutableLiveData(false)
-    var spotifyStatus: LiveData<Boolean> = _spotifyStatus
+    private val _spotifyStatus: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val spotifyStatus: StateFlow<Boolean> get() = _spotifyStatus
 
     fun saveSpotifySpdc(cookie: String) {
         viewModelScope.launch {
@@ -25,7 +25,7 @@ class LogInViewModel(
                     key to value
                 }.let {
                     dataStoreManager.setSpdc(it["sp_dc"] ?: "")
-                    _spotifyStatus.postValue(true)
+                    _spotifyStatus.value = true
                 }
         }
     }

@@ -10,6 +10,7 @@ import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.EpisodeEntity
 import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -18,6 +19,8 @@ import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PodcastWithEpisodes
+import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
@@ -40,6 +43,7 @@ interface DatabaseDao {
         a.addAll(getAllArtists())
         a.addAll(getAllAlbums())
         a.addAll(getAllPlaylists())
+        a.addAll(getAllPodcasts())
         val sortedList =
             a.sortedWith<RecentlyType>(
                 Comparator { p0, p1 ->
@@ -49,6 +53,7 @@ interface DatabaseDao {
                             is ArtistEntity -> p0.inLibrary
                             is AlbumEntity -> p0.inLibrary
                             is PlaylistEntity -> p0.inLibrary
+                            is PodcastsEntity -> p0.inLibrary
                             else -> null
                         }
                     val timeP1: LocalDateTime? =
@@ -57,6 +62,7 @@ interface DatabaseDao {
                             is ArtistEntity -> p1.inLibrary
                             is AlbumEntity -> p1.inLibrary
                             is PlaylistEntity -> p1.inLibrary
+                            is PodcastsEntity -> p1.inLibrary
                             else -> null
                         }
                     if (timeP0 == null || timeP1 == null) {
@@ -503,7 +509,7 @@ interface DatabaseDao {
 
     // GoogleAccountEntity
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity)
+    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity): Long
 
     @Query("SELECT * FROM googleaccountentity")
     suspend fun getAllGoogleAccount(): List<GoogleAccountEntity>
@@ -555,4 +561,45 @@ interface DatabaseDao {
         videoId: String,
         language: String = "en",
     ): TranslatedLyricsEntity?
+
+    // Insert methods
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPodcast(podcast: PodcastsEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEpisodes(episodes: List<EpisodeEntity>): List<Long>
+
+    // Get methods
+    @Transaction
+    @Query("SELECT * FROM podcast_table WHERE podcastId = :podcastId")
+    suspend fun getPodcastWithEpisodes(podcastId: String): PodcastWithEpisodes?
+
+    @Transaction
+    @Query("SELECT * FROM podcast_table")
+    suspend fun getAllPodcastWithEpisodes(): List<PodcastWithEpisodes>
+
+    @Query("SELECT * FROM podcast_table")
+    suspend fun getAllPodcasts(): List<PodcastsEntity>
+
+    @Query("SELECT * FROM podcast_table WHERE podcastId = :podcastId")
+    suspend fun getPodcast(podcastId: String): PodcastsEntity?
+
+    @Query("SELECT * FROM podcast_episode_table WHERE podcastId = :podcastId")
+    suspend fun getPodcastEpisodes(podcastId: String): List<EpisodeEntity>
+
+    @Query("SELECT * FROM podcast_episode_table WHERE videoId = :videoId")
+    suspend fun getEpisode(videoId: String): EpisodeEntity?
+
+    @Query("SELECT * FROM podcast_table WHERE isFavorite = 1")
+    suspend fun getFavoritePodcasts(): List<PodcastsEntity>
+
+    @Query("UPDATE podcast_table SET inLibrary = :inLibrary WHERE podcastId = :id")
+    suspend fun updatePodcastInLibrary(
+        id: String,
+        inLibrary: LocalDateTime,
+    )
+
+    // Delete methods
+    @Query("DELETE FROM podcast_table WHERE podcastId = :podcastId")
+    suspend fun deletePodcast(podcastId: String)
 }
