@@ -148,8 +148,7 @@
     <fragment
         android:id="@+id/logInFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.login.LogInFragment"
-        android:label="fragment_log_in"
-        tools:layout="@layout/fragment_log_in" />
+        android:label="fragment_log_in" />
     <action
         android:id="@+id/action_global_logInFragment"
         app:destination="@id/logInFragment"
