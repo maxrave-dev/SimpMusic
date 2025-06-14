@@ -74,6 +74,7 @@ import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.ItemArtist
 import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
+import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.type.HomeContentType
 import com.maxrave.simpmusic.extension.connectArtists
@@ -305,6 +306,7 @@ fun HomeItemContentPlaylist(
                     is ResultAlbum -> data.thumbnails.lastOrNull()?.url
                     is ResultPlaylist -> data.thumbnails.lastOrNull()?.url
                     is PodcastsEntity -> data.thumbnail
+                    is AlbumsResult -> data.thumbnails.lastOrNull()?.url
                     else -> null
                 }
             AsyncImage(
@@ -341,6 +343,7 @@ fun HomeItemContentPlaylist(
                         is ResultAlbum -> data.title
                         is ResultPlaylist -> data.title
                         is PodcastsEntity -> data.title
+                        is AlbumsResult -> data.title
                         else -> ""
                     },
                 style = typo.titleSmall,
@@ -387,6 +390,7 @@ fun HomeItemContentPlaylist(
                         is ResultAlbum -> data.year
                         is ResultPlaylist -> data.author
                         is PodcastsEntity -> data.authorName
+                        is AlbumsResult -> data.year
                         else -> ""
                     },
                 style = typo.bodySmall,
@@ -401,7 +405,7 @@ fun HomeItemContentPlaylist(
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
             )
-            if (data is com.maxrave.simpmusic.data.type.PlaylistType) {
+            if (data is com.maxrave.simpmusic.data.type.PlaylistType && data !is AlbumsResult) {
                 val subtitle =
                     if (data is LocalPlaylistEntity) {
                         if (data.downloadState != DownloadState.STATE_DOWNLOADED) {

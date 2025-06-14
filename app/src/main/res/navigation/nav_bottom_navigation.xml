@@ -40,8 +40,7 @@
     <fragment
         android:id="@+id/bottom_navigation_item_home"
         android:name="com.maxrave.simpmusic.ui.fragment.home.HomeFragment"
-        android:label="fragment_home"
-        tools:layout="@layout/fragment_home">
+        android:label="fragment_home">
         <action
             android:id="@+id/action_bottom_navigation_item_home_to_recentlySongsFragment"
             app:destination="@id/recentlySongsFragment"
@@ -126,10 +125,6 @@
         android:id="@+id/settingsFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.home.SettingsFragment"
         android:label="SettingsFragment" />
-    <dialog
-        android:id="@+id/infoFragment"
-        android:name="com.maxrave.simpmusic.ui.fragment.player.InfoFragment"
-        android:label="InfoFragment" />
     <action
         android:id="@+id/action_global_bottom_navigation_item_home"
         app:destination="@id/bottom_navigation_item_home"
@@ -175,18 +170,10 @@
         app:exitAnim="@anim/top_to_bottom"
         app:popEnterAnim="@anim/bottom_to_top"
         app:popExitAnim="@anim/top_to_bottom" />
-    <action
-        android:id="@+id/action_global_infoFragment"
-        app:destination="@id/infoFragment"
-        app:enterAnim="@anim/bottom_to_top"
-        app:exitAnim="@anim/top_to_bottom"
-        app:popEnterAnim="@anim/bottom_to_top"
-        app:popExitAnim="@anim/top_to_bottom" />
     <fragment
         android:id="@+id/moreAlbumsFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.MoreAlbumsFragment"
-        android:label="fragment_more_albums"
-        tools:layout="@layout/fragment_more_albums" />
+        android:label="fragment_more_albums" />
     <action
         android:id="@+id/action_global_moreAlbumsFragment"
         app:destination="@id/moreAlbumsFragment"

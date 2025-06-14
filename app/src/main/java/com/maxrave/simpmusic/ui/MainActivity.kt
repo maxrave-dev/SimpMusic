@@ -63,7 +63,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.compose.koinInject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import pub.devrel.easypermissions.EasyPermissions
@@ -351,8 +350,6 @@ class MainActivity : AppCompatActivity() {
                     listOf(
                         "NowPlayingFragment",
                         "FullscreenFragment",
-                        "InfoFragment",
-                        "QueueFragment",
                         "SpotifyLogInFragment",
                         "fragment_log_in",
                         "MusixmatchFragment",
@@ -552,8 +549,6 @@ class MainActivity : AppCompatActivity() {
                                     listOf(
                                         "NowPlayingFragment",
                                         "FullscreenFragment",
-                                        "InfoFragment",
-                                        "QueueFragment",
                                         "SpotifyLogInFragment",
                                         "fragment_log_in",
                                         "MusixmatchFragment",
@@ -624,18 +619,19 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-            val musixmatchCaptchaJob = launch {
-                viewModel.showMusixmatchCaptchaWebView.collectLatest {
-                    if (it) {
-                        navController.navigateSafe(
-                            R.id.bottom_navigation_item_home,
-                            Bundle().apply {
-                                putString("dialog", "musixmatchCaptcha")
-                            },
-                        )
+            val musixmatchCaptchaJob =
+                launch {
+                    viewModel.showMusixmatchCaptchaWebView.collectLatest {
+                        if (it) {
+                            navController.navigateSafe(
+                                R.id.bottom_navigation_item_home,
+                                Bundle().apply {
+                                    putString("dialog", "musixmatchCaptcha")
+                                },
+                            )
+                        }
                     }
                 }
-            }
 
             miniplayerJob.join()
             showHideJob.join()
