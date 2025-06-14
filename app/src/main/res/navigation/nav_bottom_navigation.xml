@@ -115,8 +115,7 @@
     <fragment
         android:id="@+id/recentlySongsFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.home.RecentlySongsFragment"
-        android:label="fragment_recently_songs"
-        tools:layout="@layout/fragment_recently_songs" />
+        android:label="fragment_recently_songs" />
     <fragment
         android:id="@+id/localPlaylistFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.LocalPlaylistFragment"

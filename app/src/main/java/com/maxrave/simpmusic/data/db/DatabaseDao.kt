@@ -509,7 +509,7 @@ interface DatabaseDao {
 
     // GoogleAccountEntity
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity)
+    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity): Long
 
     @Query("SELECT * FROM googleaccountentity")
     suspend fun getAllGoogleAccount(): List<GoogleAccountEntity>

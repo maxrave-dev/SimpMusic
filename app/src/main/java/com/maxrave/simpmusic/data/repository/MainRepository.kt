@@ -770,10 +770,10 @@ class MainRepository(
         localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
     }
 
-    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) =
-        withContext(Dispatchers.IO) {
-            localDataSource.insertGoogleAccount(googleAccountEntity)
-        }
+    fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) =
+        flow {
+            emit(localDataSource.insertGoogleAccount(googleAccountEntity))
+        }.flowOn(Dispatchers.IO)
 
     suspend fun getGoogleAccounts(): Flow<List<GoogleAccountEntity>?> =
         flow<List<GoogleAccountEntity>?> { emit(localDataSource.getGoogleAccounts()) }.flowOn(
@@ -840,8 +840,9 @@ class MainRepository(
         language: String = "en",
     ): Flow<TranslatedLyricsEntity?> = flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
 
-    suspend fun getAccountInfo() =
+    fun getAccountInfo(cookie: String) =
         flow<AccountInfo?> {
+            youTube.cookie = cookie
             youTube
                 .accountInfo()
                 .onSuccess { accountInfo ->

@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.screen.login
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.CookieManager
-import android.webkit.JavascriptInterface
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -26,9 +25,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
@@ -53,14 +53,13 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @SuppressLint("SetJavaScriptEnabled")
 @UnstableApi
 @Composable
-fun LoginScreen(
+fun SpotifyLoginScreen(
     innerPadding: PaddingValues,
     navController: NavController,
     viewModel: LogInViewModel = koinViewModel(),
@@ -70,7 +69,7 @@ fun LoginScreen(
 ) {
     val context = LocalContext.current
     val hazeState = rememberHazeState()
-    val coroutineScope = rememberCoroutineScope()
+    val spotifyStatus by viewModel.spotifyStatus.collectAsState()
     var devLoginSheet by rememberSaveable {
         mutableStateOf(false)
     }
@@ -78,13 +77,26 @@ fun LoginScreen(
     // Hide bottom navigation when entering this screen
     LaunchedEffect(Unit) {
         hideBottomNavigation()
-        CookieManager.getInstance().removeAllCookies(null)
     }
 
     // Show bottom navigation when leaving this screen
     DisposableEffect(Unit) {
         onDispose {
             showBottomNavigation()
+        }
+    }
+
+    // Handle login success
+    LaunchedEffect(spotifyStatus) {
+        if (spotifyStatus) {
+            settingsViewModel.setSpotifyLogIn(true)
+            Toast
+                .makeText(
+                    context,
+                    R.string.login_success,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            navController.popBackStack()
         }
     }
 
@@ -96,7 +108,7 @@ fun LoginScreen(
                         innerPadding.calculateTopPadding() + 64.dp,
                     ),
             )
-            // WebView for YouTube Music login
+            // WebView for Spotify login
             AndroidView(
                 factory = { ctx ->
                     WebView(ctx).apply {
@@ -111,66 +123,26 @@ fun LoginScreen(
                                     view: WebView?,
                                     url: String?,
                                 ) {
-                                    loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
-                                    loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
-                                    if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
-                                        coroutineScope.launch {
-                                            val success =
-                                                CookieManager.getInstance().getCookie(url)?.let {
-                                                    settingsViewModel.addAccount(it)
-                                                } ?: false
-
-                                            WebStorage.getInstance().deleteAllData()
-
-                                            // Clear all the cookies
-                                            CookieManager.getInstance().removeAllCookies(null)
-                                            CookieManager.getInstance().flush()
-
-                                            clearCache(true)
-                                            clearFormData()
-                                            clearHistory()
-                                            clearSslPreferences()
-                                            if (success) {
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        R.string.login_success,
-                                                        Toast.LENGTH_SHORT,
-                                                    ).show()
-                                                navController.popBackStack()
-                                            } else {
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        R.string.login_failed,
-                                                        Toast.LENGTH_SHORT,
-                                                    ).show()
-                                            }
+                                    if (url == Config.SPOTIFY_ACCOUNT_URL) {
+                                        CookieManager.getInstance().getCookie(url)?.let {
+                                            viewModel.saveSpotifySpdc(it)
                                         }
+                                        WebStorage.getInstance().deleteAllData()
+
+                                        // Clear all the cookies
+                                        CookieManager.getInstance().removeAllCookies(null)
+                                        CookieManager.getInstance().flush()
+
+                                        clearCache(true)
+                                        clearFormData()
+                                        clearHistory()
+                                        clearSslPreferences()
                                     }
                                 }
                             }
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
-                        addJavascriptInterface(
-                            object {
-                                @JavascriptInterface
-                                fun onRetrieveVisitorData(newVisitorData: String?) {
-                                    if (newVisitorData != null) {
-                                        viewModel.setVisitorData(newVisitorData)
-                                    }
-                                }
-
-                                @JavascriptInterface
-                                fun onRetrieveDataSyncId(newDataSyncId: String?) {
-                                    if (newDataSyncId != null) {
-                                        viewModel.setDataSyncId(newDataSyncId.substringBefore("||"))
-                                    }
-                                }
-                            },
-                            "Android",
-                        )
-                        loadUrl(Config.LOG_IN_URL)
+                        loadUrl(Config.SPOTIFY_LOG_IN_URL)
                     }
                 },
                 modifier = Modifier.fillMaxSize(),
@@ -187,7 +159,7 @@ fun LoginScreen(
                     },
             title = {
                 Text(
-                    text = stringResource(id = R.string.log_in),
+                    text = stringResource(id = R.string.log_in_to_spotify),
                     style = typo.titleMedium,
                 )
             },
@@ -220,34 +192,23 @@ fun LoginScreen(
                 ),
         )
     }
-
     if (devLoginSheet) {
         DevLogInBottomSheet(
             onDismiss = {
                 devLoginSheet = false
             },
-            onDone = { cookie ->
-                coroutineScope.launch {
-                    val success = settingsViewModel.addAccount(cookie)
-                    if (success) {
-                        Toast
-                            .makeText(
-                                context,
-                                R.string.login_success,
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        navController.popBackStack()
-                    } else {
-                        Toast
-                            .makeText(
-                                context,
-                                R.string.login_failed,
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                    }
-                }
+            onDone = { spdc ->
+                val spdcText = "sp_dc=$spdc"
+                viewModel.saveSpotifySpdc(spdcText)
+                Toast
+                    .makeText(
+                        context,
+                        R.string.login_success,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                navController.popBackStack()
             },
-            type = DevLogInType.YouTube,
+            type = DevLogInType.Spotify,
         )
     }
 }
