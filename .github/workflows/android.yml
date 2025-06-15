@@ -55,7 +55,7 @@ jobs:
       - uses: kevin-david/zipalign-sign-android-release@v2
         id: sign_app
         with:
-          releaseDirectory: app/build/outputs/apk/release
+          releaseDirectory: app/build/outputs/apk/full/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -68,4 +68,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: app/build/outputs/apk/release/*-signed.apk
+          path: app/build/outputs/apk/full/release/*-signed.apk
