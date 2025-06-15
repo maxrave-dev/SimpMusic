@@ -1,4 +1,4 @@
-name: Build debug APK
+name: Build release APK (Full)
 on:
   workflow_dispatch:
   push:
@@ -37,8 +37,13 @@ jobs:
           distribution: "temurin"
           cache: 'gradle'
 
+      - name: Update Sentry DSN
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
+
       - name: Build release APK
-        run: ./gradlew app:assembleRelease
+        run: ./gradlew app:assembleFullRelease
 
       - name: Check build-tools version
         shell: bash

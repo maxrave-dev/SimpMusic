@@ -21,3 +21,6 @@ crowdin.yml
 /build_and_sign_apk.sh
 /simpmusic.jks
 /ffmpeg-kit/build/
+
+# Sentry Config File
+sentry.properties

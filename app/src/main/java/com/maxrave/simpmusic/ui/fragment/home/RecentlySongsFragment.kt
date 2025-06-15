@@ -13,8 +13,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import com.maxrave.simpmusic.ui.screen.home.RecentlySongsScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
-import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 @UnstableApi
 class RecentlySongsFragment : Fragment() {
@@ -44,7 +44,7 @@ class RecentlySongsFragment : Fragment() {
                         RecentlySongsScreen(
                             innerPadding = innerPadding,
                             navController = findNavController(),
-                            sharedViewModel = sharedViewModel
+                            sharedViewModel = sharedViewModel,
                         )
                     }
                 }

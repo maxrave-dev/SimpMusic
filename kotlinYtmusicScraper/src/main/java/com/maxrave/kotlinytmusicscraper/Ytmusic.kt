@@ -329,8 +329,7 @@ class Ytmusic {
         parameter("prettyPrint", false)
     }
 
-    suspend fun test403Error(url: String): Boolean =
-        httpClient.get(url).status.value in 200..299
+    suspend fun test403Error(url: String): Boolean = httpClient.get(url).status.value in 200..299
 
     suspend fun player(
         client: YouTubeClient,
@@ -794,9 +793,7 @@ class Ytmusic {
             }
         }
 
-    suspend fun is403Url(
-        url: String
-    ): Boolean {
+    suspend fun is403Url(url: String): Boolean {
         return try {
             return httpClient.head(url).status.value in 400..499
         } catch (e: Exception) {
