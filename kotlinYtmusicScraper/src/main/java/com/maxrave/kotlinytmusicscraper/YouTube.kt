@@ -103,10 +103,7 @@ import okio.Path.Companion.toPath
 import org.json.JSONArray
 import java.io.File
 import java.net.Proxy
-import java.nio.file.Paths
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
-
 
 /**
  * Special thanks to [z-huang/InnerTune](https://github.com/z-huang/InnerTune)
@@ -1259,34 +1256,34 @@ class YouTube(
                 decodedSigResponse =
                     sigResponse.copy(
                         streamingData =
-                        sigResponse.streamingData?.copy(
-                            formats =
-                            sigResponse.streamingData.formats?.map { format ->
-                                format.copy(
-                                    url =
-                                    format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
-                                            "$url&pot=$webPlayerPot"
-                                        } else {
-                                            url
-                                        }
+                            sigResponse.streamingData?.copy(
+                                formats =
+                                    sigResponse.streamingData.formats?.map { format ->
+                                        format.copy(
+                                            url =
+                                                format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                                    if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                        "$url&pot=$webPlayerPot"
+                                                    } else {
+                                                        url
+                                                    }
+                                                },
+                                        )
                                     },
-                                )
-                            },
-                            adaptiveFormats =
-                            sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
-                                adaptiveFormats.copy(
-                                    url =
-                                    adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
-                                            "$url&pot=$webPlayerPot"
-                                        } else {
-                                            url
-                                        }
+                                adaptiveFormats =
+                                    sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                        adaptiveFormats.copy(
+                                            url =
+                                                adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                                    if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                        "$url&pot=$webPlayerPot"
+                                                    } else {
+                                                        url
+                                                    }
+                                                },
+                                        )
                                     },
-                                )
-                            },
-                        ),
+                            ),
                     )
                 listUrlSig.addAll(
                     (
@@ -1295,13 +1292,13 @@ class YouTube(
                             ?.adaptiveFormats
                             ?.mapNotNull { it.url }
                             ?.toMutableList() ?: mutableListOf()
-                        ).apply {
-                            decodedSigResponse
-                                .streamingData
-                                ?.formats
-                                ?.mapNotNull { it.url }
-                                ?.let { addAll(it) }
-                        }
+                    ).apply {
+                        decodedSigResponse
+                            .streamingData
+                            ?.formats
+                            ?.mapNotNull { it.url }
+                            ?.let { addAll(it) }
+                    },
                 )
                 println("YouTube URL ${decodedSigResponse.streamingData?.formats?.mapNotNull { it.url }}")
                 val listFormat =
@@ -1311,13 +1308,13 @@ class YouTube(
                             ?.formats
                             ?.mapNotNull { Pair(it.itag, it.url) }
                             ?.toMutableList() ?: mutableListOf()
-                        ).apply {
-                            addAll(
-                                decodedSigResponse.streamingData?.adaptiveFormats?.map {
-                                    Pair(it.itag, it.url)
-                                } ?: emptyList(),
-                            )
-                        }
+                    ).apply {
+                        addAll(
+                            decodedSigResponse.streamingData?.adaptiveFormats?.map {
+                                Pair(it.itag, it.url)
+                            } ?: emptyList(),
+                        )
+                    }
                 listFormat.forEach {
                     println("YouTube Format ${it.first} ${it.second}")
                 }
@@ -2028,9 +2025,7 @@ class YouTube(
                 }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun is403Url(
-        url: String
-    ) = ytMusic.is403Url(url)
+    suspend fun is403Url(url: String) = ytMusic.is403Url(url)
 
     companion object {
         const val MAX_GET_QUEUE_SIZE = 1000

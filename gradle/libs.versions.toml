@@ -67,6 +67,7 @@ common = "1.18.0"
 json = "1.8.1"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
+sentry-android = "8.13.3"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -174,6 +175,9 @@ koin-core = { module = "io.insert-koin:koin-core" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 koin-android = { module = "io.insert-koin:koin-android"}
 koin-workmanager = { module = "io.insert-koin:koin-androidx-workmanager" }
+
+#Sentry
+sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

@@ -13,6 +13,12 @@ plugins {
     alias(libs.plugins.room) apply false
 }
 
+buildscript {
+    val isFullBuild by extra {
+        gradle.startParameter.taskNames.none { task -> task.contains("foss", ignoreCase = true) }
+    }
+}
+
 tasks.register<Delete>("Clean") {
     delete(rootProject.layout.buildDirectory)
 }

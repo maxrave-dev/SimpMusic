@@ -1,4 +1,4 @@
-name: Build debug APK
+name: Build release APK (Full)
 on:
   workflow_dispatch:
   push:
@@ -37,8 +37,13 @@ jobs:
           distribution: "temurin"
           cache: 'gradle'
 
+      - name: Update Sentry DSN
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
+
       - name: Build release APK
-        run: ./gradlew app:assembleRelease
+        run: ./gradlew app:assembleFullRelease
 
       - name: Check build-tools version
         shell: bash
@@ -50,7 +55,7 @@ jobs:
       - uses: kevin-david/zipalign-sign-android-release@v2
         id: sign_app
         with:
-          releaseDirectory: app/build/outputs/apk/release
+          releaseDirectory: app/build/outputs/apk/full/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -63,4 +68,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: app/build/outputs/apk/release/*-signed.apk
+          path: app/build/outputs/apk/full/release/*-signed.apk
