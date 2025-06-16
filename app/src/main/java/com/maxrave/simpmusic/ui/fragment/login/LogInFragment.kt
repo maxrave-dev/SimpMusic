@@ -7,21 +7,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.extension.isMyServiceRunning
-import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.login.LoginScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import kotlinx.coroutines.runBlocking
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 @UnstableApi
@@ -50,6 +52,9 @@ class LogInFragment : Fragment() {
         composeView.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
+                var isMiniplayerVisible by rememberSaveable {
+                    mutableStateOf(false)
+                }
                 AppTheme {
                     Scaffold { innerPadding ->
                         LoginScreen(
@@ -61,6 +66,7 @@ class LogInFragment : Fragment() {
                                 val activity = requireActivity()
                                 val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
                                 val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
+                                isMiniplayerVisible = miniplayer.isVisible
                                 bottom.visibility = View.GONE
                                 miniplayer.visibility = View.GONE
                             },
@@ -70,11 +76,9 @@ class LogInFragment : Fragment() {
                                 bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
                                 bottom.visibility = View.VISIBLE
                                 val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-                                if (requireActivity().isMyServiceRunning(SimpleMediaService::class.java)) {
+                                if (isMiniplayerVisible) {
                                     miniplayer.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-                                    if (runBlocking { sharedViewModel.nowPlayingState.value?.mediaItem != null }) {
-                                        miniplayer.visibility = View.VISIBLE
-                                    }
+                                    miniplayer.visibility = View.VISIBLE
                                 }
                             },
                         )
