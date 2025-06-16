@@ -2274,15 +2274,9 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getSuggestQuery(query: String): Flow<Resource<SearchSuggestions>> =
+    fun getSuggestQuery(query: String): Flow<Resource<SearchSuggestions>> =
         flow {
             runCatching {
-//            youTube.getSuggestQuery(query).onSuccess {
-//                emit(Resource.Success<ArrayList<String>>(it))
-//            }.onFailure { e ->
-//                Log.d("Suggest", "Error: ${e.message}")
-//                emit(Resource.Error<ArrayList<String>>(e.message.toString()))
-//            }
                 youTube
                     .getYTMusicSearchSuggestions(query)
                     .onSuccess {
