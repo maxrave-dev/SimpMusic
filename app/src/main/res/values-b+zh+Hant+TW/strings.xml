@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">保存随机和重复模式</string>
     <string name="skip_silent">跳过静音</string>
     <string name="skip_no_music_part">跳过没有音乐部分</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">超时，检查网络连接</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">超时，检查网络连接 (%1$d)</string>
     <string name="save_last_played">保存上次播放</string>
     <string name="save_last_played_track_and_queue">保存上次播放的曲目和队列</string>
     <string name="update_available">有可用的更新</string>

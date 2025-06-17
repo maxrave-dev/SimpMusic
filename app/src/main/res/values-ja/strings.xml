@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">シャッフルとリピートの設定を保存</string>
     <string name="skip_silent">無音部分を飛ばす</string>
     <string name="skip_no_music_part">音楽でない部分を飛ばします</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">タイムアウトしました。ネット接続を確認してください</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">タイムアウトしました。ネット接続を確認してください (%1$d)</string>
     <string name="save_last_played">最後に再生したものを保存</string>
     <string name="save_last_played_track_and_queue">最後に再生した曲とキューを保存</string>
     <string name="update_available">最新版があります</string>

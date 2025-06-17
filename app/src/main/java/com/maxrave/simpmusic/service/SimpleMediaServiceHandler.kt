@@ -879,7 +879,10 @@ class SimpleMediaServiceHandler(
                     Toast
                         .makeText(
                             context,
-                            context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
+                            context.getString(
+                                R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
+                                error.errorCode,
+                            ),
                             Toast.LENGTH_LONG,
                         ).show()
                 } else {
@@ -894,7 +897,10 @@ class SimpleMediaServiceHandler(
                     Toast
                         .makeText(
                             context,
-                            context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
+                            context.getString(
+                                R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
+                                error.errorCode,
+                            ),
                             Toast.LENGTH_LONG,
                         ).show()
                 } else {

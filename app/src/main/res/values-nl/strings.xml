@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Shuffle en herhaal modus opslaan</string>
     <string name="skip_silent">Stilte Overslaan</string>
     <string name="skip_no_music_part">Geen muziekonderdeel overslaan</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time-out, controleer de internetverbinding</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time-out, controleer de internetverbinding (%1$d)</string>
     <string name="save_last_played">Sla laatst gespeeld op</string>
     <string name="save_last_played_track_and_queue">Sla laatst gespeelde nummer en wachtrij op</string>
     <string name="update_available">Nieuwe update beschikbaar</string>

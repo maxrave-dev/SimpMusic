@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Save shuffle and repeat mode</string>
     <string name="skip_silent">Skip Silent</string>
     <string name="skip_no_music_part">Skip no music part</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection (%1$d)</string>
     <string name="save_last_played">Save Last Played</string>
     <string name="save_last_played_track_and_queue">Save last played track and queue</string>
     <string name="update_available">New update available</string>

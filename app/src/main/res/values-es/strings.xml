@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Guardar modo aleatorio y repetición</string>
     <string name="skip_silent">Omitir silencio</string>
     <string name="skip_no_music_part">Saltar segmentos sin música</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tiempo agotado, compruebe la conexión a internet</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tiempo agotado, compruebe la conexión a internet (%1$d)</string>
     <string name="save_last_played">Guardar Última Reproducción</string>
     <string name="save_last_played_track_and_queue">Guardar última pista reproducida y cola</string>
     <string name="update_available">Nueva actualización disponible</string>

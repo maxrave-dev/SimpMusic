@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Karıştır ve tekrarla modunu kaydet</string>
     <string name="skip_silent">Sessizliği Atla</string>
     <string name="skip_no_music_part">Müziksiz bölümü atla</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Zaman aşımı, internet bağlantısını kontrol edin</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Zaman aşımı, internet bağlantısını kontrol edin (%1$d)</string>
     <string name="save_last_played">Son Oynatılanı Kaydet</string>
     <string name="save_last_played_track_and_queue">Son çalınan parçayı ve sırayı kaydet</string>
     <string name="update_available">Yeni güncelleme mevcut</string>
