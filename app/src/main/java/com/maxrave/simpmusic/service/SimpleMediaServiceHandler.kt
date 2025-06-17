@@ -886,7 +886,7 @@ class SimpleMediaServiceHandler(
                             Toast.LENGTH_LONG,
                         ).show()
                 } else {
-                    Log.e("Player Error", "App is not in foreground, skipping toast")
+                    Log.w("Player Error", "App is not in foreground, skipping toast")
                 }
                 player.pause()
             }
@@ -904,7 +904,7 @@ class SimpleMediaServiceHandler(
                             Toast.LENGTH_LONG,
                         ).show()
                 } else {
-                    Log.e("Player Error", "App is not in foreground, skipping toast")
+                    Log.w("Player Error", "App is not in foreground, skipping toast")
                 }
                 player.pause()
             }
