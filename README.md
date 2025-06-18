@@ -104,7 +104,8 @@ src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets
 <a href="https://sentry.io">
 <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/sentry.svg?raw=true" width="300"/>
 </a>
-<br/>
+<br>
+
 Crowdin and Sentry, both have free enterprise plan for Open-source project. Follow the URLs: 
 - [Open Source License Request Form | Crowdin](https://crowdin.com/page/open-source-project-setup-request)
 - [Sentry for Open Source | Sentry](https://sentry.io/for/open-source/)
