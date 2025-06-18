@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Simpan mode acak dan ulangi</string>
     <string name="skip_silent">Lewati Senyap</string>
     <string name="skip_no_music_part">Lewati Musik Bagian Kosong</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Waktu habis, periksa koneksi internet</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Waktu habis, periksa koneksi internet (%1$d)</string>
     <string name="save_last_played">Simpan Terakhir Diputar</string>
     <string name="save_last_played_track_and_queue">Menyimpan lagu yang terakhir diputar dan antrean</string>
     <string name="update_available">Pembaruan baru tersedia</string>

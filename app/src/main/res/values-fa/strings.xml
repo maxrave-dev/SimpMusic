@@ -171,7 +171,7 @@
     <string name="save_shuffle_and_repeat_mode">نگه‌داری حالت تصادفی و تکرار</string>
     <string name="skip_silent">رد کردن سکوت</string>
     <string name="skip_no_music_part">رد کردن بخش بدون موسیقی</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">زمان تمام
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">(%1$d) زمان تمام
     شد، اتصال اینترنت را بررسی کنید</string>
     <string name="save_last_played">نگه‌داری آخرین پخش شده</string>
     <string name="save_last_played_track_and_queue">نگه‌داری آخرین آهنگ پخش شده و صف</string>

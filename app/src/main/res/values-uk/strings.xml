@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Зберегти режим перемішування та повтору</string>
     <string name="skip_silent">Пропустити мовчання</string>
     <string name="skip_no_music_part">Пропустити частини без музики</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Вичерпано час очікування, перевірте інтернет-з\'єднання</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Вичерпано час очікування, перевірте інтернет-з\'єднання (%1$d)</string>
     <string name="save_last_played">Зберегти останнє відтворене</string>
     <string name="save_last_played_track_and_queue">Зберегти останній відтворений трек і чергу</string>
     <string name="update_available">Доступне нове оновлення</string>

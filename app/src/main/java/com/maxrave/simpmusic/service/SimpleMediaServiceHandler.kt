@@ -29,6 +29,7 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.placeholder
 import coil3.toBitmap
+import com.liskovsoft.sharedutils.helpers.Helpers
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
@@ -864,24 +865,38 @@ class SimpleMediaServiceHandler(
     override fun onPlayerError(error: PlaybackException) {
         when (error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
-                Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast
-                    .makeText(
-                        context,
-                        context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                Log.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
+                if (Helpers.isAppInForeground()) {
+                    Toast
+                        .makeText(
+                            context,
+                            context.getString(
+                                R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
+                                error.errorCode,
+                            ),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                } else {
+                    Log.w("Player Error", "App is not in foreground, skipping toast")
+                }
                 player.pause()
             }
 
             else -> {
-                Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast
-                    .makeText(
-                        context,
-                        context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                Log.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
+                if (Helpers.isAppInForeground()) {
+                    Toast
+                        .makeText(
+                            context,
+                            context.getString(
+                                R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
+                                error.errorCode,
+                            ),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                } else {
+                    Log.w("Player Error", "App is not in foreground, skipping toast")
+                }
                 player.pause()
             }
         }
