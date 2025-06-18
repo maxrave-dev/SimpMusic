@@ -65,6 +65,7 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
  
 ## Translation    
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)
+<br/>
 You can help me translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)    
  #### Special thanks to all translators on Crowdin ❤️    
  ## FAQ    
@@ -103,7 +104,7 @@ src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets
 <a href="https://sentry.io">
 <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/sentry.svg?raw=true" width="300"/>
 </a>
-
+<br/>
 Crowdin and Sentry, both have free enterprise plan for Open-source project. Follow the URLs: 
 - [Open Source License Request Form | Crowdin](https://crowdin.com/page/open-source-project-setup-request)
 - [Sentry for Open Source | Sentry](https://sentry.io/for/open-source/)

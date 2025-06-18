@@ -125,6 +125,25 @@ fun CreditScreen(
                     val urlIntent =
                         Intent(
                             Intent.ACTION_VIEW,
+                            "https://simpmusic.org".toUri(),
+                        )
+                    context.startActivity(urlIntent)
+                },
+                modifier =
+                    Modifier
+                        .align(Alignment.Start)
+                        .padding(horizontal = 25.dp)
+                        .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
+            ) {
+                Text(text = stringResource(id = R.string.website))
+            }
+
+            // GitHub button
+            TextButton(
+                onClick = {
+                    val urlIntent =
+                        Intent(
+                            Intent.ACTION_VIEW,
                             "https://github.com/maxrave-dev/SimpMusic".toUri(),
                         )
                     context.startActivity(urlIntent)

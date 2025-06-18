@@ -437,4 +437,5 @@
     <string name="your_youtube_cookie">Your YouTube Cookie</string>
     <string name="can_not_be_empty">Can not be empty</string>
     <string name="processing">Processing</string>
+    <string name="website">Website</string>
 </resources>
