@@ -76,6 +76,7 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getReloadParams
 import com.maxrave.kotlinytmusicscraper.parser.getSuggestionSongItems
 import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
+import com.maxrave.kotlinytmusicscraper.utils.NewPipeUtils
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.PoTokenGenerator
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
@@ -117,6 +118,7 @@ class YouTube(
     private val context: Context,
 ) {
     private val ytMusic = Ytmusic()
+    private var newPipeUtils = NewPipeUtils()
     private val mAppService = AppService.instance()
     private val poTokenGenerator =
         PoTokenGenerator(
@@ -201,6 +203,7 @@ class YouTube(
      */
     fun removeProxy() {
         ytMusic.proxy = null
+        newPipeUtils = NewPipeUtils()
     }
 
     /**
@@ -215,6 +218,7 @@ class YouTube(
             if (isHttp) ProxyBuilder.http("$host:$port") else ProxyBuilder.socks(host, port)
         }.onSuccess {
             ytMusic.proxy = it
+            newPipeUtils = NewPipeUtils(it)
         }.onFailure {
             it.printStackTrace()
         }
@@ -1320,6 +1324,58 @@ class YouTube(
                 }
                 if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
                     break
+                } else {
+                    listUrlSig.clear()
+                    decodedSigResponse =
+                        sigResponse.copy(
+                            streamingData =
+                                sigResponse.streamingData?.copy(
+                                    formats =
+                                        sigResponse.streamingData.formats?.map { format ->
+                                            format.copy(
+                                                url =
+                                                    newPipeUtils.getStreamUrl(format, videoId)?.let { url ->
+                                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                            "$url&pot=$webPlayerPot"
+                                                        } else {
+                                                            url
+                                                        }
+                                                    },
+                                            )
+                                        },
+                                    adaptiveFormats =
+                                        sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                            adaptiveFormats.copy(
+                                                url =
+                                                    newPipeUtils.getStreamUrl(adaptiveFormats, videoId)?.let { url ->
+                                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                            "$url&pot=$webPlayerPot"
+                                                        } else {
+                                                            url
+                                                        }
+                                                    },
+                                            )
+                                        },
+                                ),
+                        )
+                    listUrlSig.addAll(
+                        (
+                            decodedSigResponse
+                                .streamingData
+                                ?.adaptiveFormats
+                                ?.mapNotNull { it.url }
+                                ?.toMutableList() ?: mutableListOf()
+                        ).apply {
+                            decodedSigResponse
+                                .streamingData
+                                ?.formats
+                                ?.mapNotNull { it.url }
+                                ?.let { addAll(it) }
+                        },
+                    )
+                    if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
+                        break
+                    }
                 }
             }
             if (listUrlSig.isEmpty() || decodedSigResponse == null) {
@@ -1397,7 +1453,7 @@ class YouTube(
                         }
                     }
                 }
-                throw Exception(playerResponse.playabilityStatus.status ?: "Unknown error")
+                throw Exception(playerResponse.playabilityStatus.status)
             } else {
                 val firstThumb =
                     decodedSigResponse.videoDetails

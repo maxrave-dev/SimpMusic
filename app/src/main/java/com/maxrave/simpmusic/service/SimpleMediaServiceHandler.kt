@@ -1197,9 +1197,14 @@ class SimpleMediaServiceHandler(
                                 if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
                                     Log.w(TAG, "loadMore: Endless Queue")
                                     val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return@launch
+                                    val radioId = "RDAMVM${lastTrack.videoId}"
+                                    if (radioId == queueData.value?.playlistId) {
+                                        Log.w(TAG, "loadMore: Already in radio mode")
+                                        return@launch
+                                    }
                                     _queueData.update {
                                         it?.copy(
-                                            playlistId = "RDAMVM${lastTrack.videoId}",
+                                            playlistId = radioId,
                                         )
                                     }
                                     Log.d("Check loadMore", "queueData: ${queueData.value}")

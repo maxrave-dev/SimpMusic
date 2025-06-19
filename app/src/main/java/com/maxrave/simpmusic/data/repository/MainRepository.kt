@@ -124,7 +124,6 @@ import org.simpmusic.aiservice.AIHost
 import org.simpmusic.aiservice.AiClient
 import java.io.File
 import java.time.LocalDateTime
-import kotlin.collections.firstOrNull
 import kotlin.math.abs
 
 class MainRepository(
@@ -2735,7 +2734,7 @@ class MainRepository(
         }.flowOn(Dispatchers.IO)
 
     @UnstableApi
-    suspend fun getSongInfo(videoId: String): Flow<SongInfoEntity?> =
+    fun getSongInfo(videoId: String): Flow<SongInfoEntity?> =
         flow {
             runCatching {
                 val id =

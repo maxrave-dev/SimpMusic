@@ -23,7 +23,7 @@ android {
     val abis = arrayOf("armeabi-v7a", "arm64-v8a", "x86_64")
 
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 35
+    compileSdk = 36
 
     room {
         schemaDirectory("$projectDir/schemas")

@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.maxrave.kotlinytmusicscraper"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -43,76 +43,7 @@ android {
                 "META-INF/notice.txt",
                 "META-INF/ASL2.0",
                 "META-INF/asm-license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
                 "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice",
-                "META-INF/ASL2.0",
                 "META-INF/*.kotlin_module",
             )
     }
@@ -152,10 +83,12 @@ dependencies {
 
     implementation(libs.ksoup.html)
     implementation(libs.ksoup.entities)
+    implementation(libs.smart.exception)
+
+    implementation(libs.newpipe.extractor)
+
     implementation(project(mapOf("path" to ":youtubeapi")))
     implementation(project(mapOf("path" to ":sharedutils")))
-
-    implementation(libs.smart.exception)
     api(project(":ffmpeg-kit"))
 }
 tasks.withType<CompileArtProfileTask> {

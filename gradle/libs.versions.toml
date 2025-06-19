@@ -68,6 +68,7 @@ json = "1.8.1"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
 sentry-android = "8.13.3"
+newpipe = "0.24.6"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -168,6 +169,7 @@ kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword",
 common = { module = "commons-codec:commons-codec", version.ref = "common" }
 gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
 logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
+newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
