@@ -51,7 +51,7 @@ jobs:
           base64 -d keystore_base64.txt > ./simpmusic.jks
 
       - name: Build full release APK
-        run: ./build_and_sign.sh --full --release
+        run: ./build_and_sign_apk.sh --full --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -88,7 +88,7 @@ jobs:
           base64 -d keystore_base64.txt > ./simpmusic.jks
 
       - name: Build foss release APK
-        run: ./build_and_sign.sh --foss --release
+        run: ./build_and_sign_apk.sh --foss --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
