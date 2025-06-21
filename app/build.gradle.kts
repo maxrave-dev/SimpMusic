@@ -77,13 +77,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         if (isFullBuild) {
-            val properties = Properties()
-            properties.load(rootProject.file("local.properties").inputStream())
-            buildConfigField(
-                "String",
-                "SENTRY_DSN",
-                "\"${properties.getProperty("SENTRY_DSN") ?: ""}\"",
-            )
+            try {
+                println("Full build detected, enabling Sentry DSN")
+                val properties = Properties()
+                properties.load(rootProject.file("local.properties").inputStream())
+                buildConfigField(
+                    "String",
+                    "SENTRY_DSN",
+                    "\"${properties.getProperty("SENTRY_DSN") ?: ""}\"",
+                )
+            } catch (e: Exception) {
+                println("Failed to load SENTRY_DSN from local.properties: ${e.message}")
+            }
         }
     }
 

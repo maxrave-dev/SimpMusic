@@ -15,8 +15,12 @@ plugins {
 
 buildscript {
     val isFullBuild by extra {
-        gradle.startParameter.taskNames.none { task -> task.contains("foss", ignoreCase = true) }
+        gradle.startParameter.taskNames.none { task ->
+            println("Checking task: $task")
+            task.contains("foss", ignoreCase = true)
+        }
     }
+    println("Is full build: $isFullBuild")
 }
 
 tasks.register<Delete>("Clean") {

@@ -42,9 +42,9 @@ jobs:
 
       - name: Update environment variables
         env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
         run:
-          echo $SIGNING_KEY > keystore_base64.txt
+          echo $BASE_64_SIGNING_KEY > keystore_base64.txt
           base64 -d keystore_base64.txt > ./simpmusic.jks
 
       - name: Build full release APK
@@ -80,9 +80,9 @@ jobs:
 
       - name: Update environment variables
         env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
         run:
-          echo $SIGNING_KEY > keystore_base64.txt
+          echo $BASE_64_SIGNING_KEY > keystore_base64.txt
           base64 -d keystore_base64.txt > ./simpmusic.jks
 
       - name: Build foss release APK
