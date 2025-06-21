@@ -50,6 +50,13 @@ jobs:
       - name: Build full release APK
         run: ./build_and_sign.sh --full --release
 
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-full-release
+          path: app/build/outputs/apk/full/release/*.apk
+
   build-foss-release:
     name: Build foss release version
     runs-on: ubuntu-latest
@@ -77,4 +84,9 @@ jobs:
 
       - name: Build foss release APK
         run: ./build_and_sign.sh --foss --release
-      
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-foss-release
+          path: app/build/outputs/apk/foss/release/*.apk
