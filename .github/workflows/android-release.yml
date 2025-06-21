@@ -42,9 +42,6 @@ jobs:
 
       - name: Update environment variables
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run:
           echo $SIGNING_KEY > keystore_base64.txt
@@ -52,6 +49,10 @@ jobs:
 
       - name: Build full release APK
         run: ./build_and_sign_apk.sh --full --release
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -79,9 +80,6 @@ jobs:
 
       - name: Update environment variables
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run:
           echo $SIGNING_KEY > keystore_base64.txt
@@ -89,6 +87,10 @@ jobs:
 
       - name: Build foss release APK
         run: ./build_and_sign_apk.sh --foss --release
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
