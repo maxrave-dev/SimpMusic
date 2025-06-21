@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Запази режим разбъркване и повторение</string>
     <string name="skip_silent">Прескочи тишината</string>
     <string name="skip_no_music_part">Прескочи частта без музика</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Времето изтече. Проверете интернет връзката си (%1$d)</string>
     <string name="save_last_played">Запази последното възпроизвеждане</string>
     <string name="save_last_played_track_and_queue">Запази последната изпълнена песен и опашката</string>
     <string name="update_available">Налична е нова актуализация</string>

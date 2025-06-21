@@ -126,7 +126,7 @@
     <string name="download_url">ダウンロードURL</string>
     <string name="now_playing">再生中</string>
     <string name="queue">キュー</string>
-    <string name="recently">最近の視聴</string>
+    <string name="recently">最近の視聴履歴</string>
     <string name="settings">設定</string>
     <string name="now_playing_upper">再生中</string>
     <string name="language">言語</string>
@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">シャッフルとリピートの設定を保存</string>
     <string name="skip_silent">無音部分を飛ばす</string>
     <string name="skip_no_music_part">音楽でない部分を飛ばします</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">タイムアウトしました。ネット接続を確認してください (%1$d)</string>
     <string name="save_last_played">最後に再生したものを保存</string>
     <string name="save_last_played_track_and_queue">最後に再生した曲とキューを保存</string>
     <string name="update_available">最新版があります</string>
@@ -190,7 +189,7 @@
     <string name="sponsorBlock">スポンサーブロック</string>
     <string name="enable_sponsor_block">SponsorBlockを有効にする</string>
     <string name="categories_sponsor_block">スキップするシーンを選択</string>
-    <string name="what_segments_will_be_skipped">スキップしたいシーンはどれでしょう</string>
+    <string name="what_segments_will_be_skipped">スキップしたいシーンを選択</string>
     <string name="save">保存</string>
     <string name="saved">保存しました</string>
     <string name="sponsor_block_intro">SponsorBlock は、YouTube 動画の余分なシーンをスキップするための、クラウドソースのシステムです。\n詳細: https://sponsor.ajay.app/\nSimpMusic では、SponsorBlock は端末がネットに接続中の場合にのみ利用できます。</string>
@@ -246,7 +245,9 @@
     <string name="only_support_email_and_password_type">メールアドレスとパスワードのログインのみ対応</string>
     <string name="musixmatch_login_description">Musixmatchの 翻訳用 API はログインユーザーでのみ動作します。SimpMusicはMusixmatch 開発者APIを使用しました。詳細は、https://github.com/maxrave-dev/SimpMusic または https://developer.musixmatch.com/ をご覧ください。</string>
     <string name="use_musixmatch_translation">Musixmatch 翻訳を使用</string>
+    <string name="use_ai_translation">AIによる歌詞翻訳を使用</string>
     <string name="use_musixmatch_translation_description">Musixmatch で歌詞の翻訳を有効にします。ログインが必要です</string>
+    <string name="use_ai_translation_description">AIを使った歌詞翻訳です。使用するにはMusixmatch翻訳をオフにします</string>
     <string name="translation_language">翻訳言語</string>
     <string name="follow_app_language">アプリの言語に従う</string>
     <string name="email">メールアドレス</string>
@@ -266,6 +267,10 @@
     <string name="free_space">空き容量</string>
     <string name="suggest">提案</string>
     <string name="reload">再読み込み</string>
+    <string name="sort_by">並び替え</string>
+    <string name="sort">並び替え</string>
+    <string name="older_first">古い順</string>
+    <string name="newer_first">新しい順</string>
     <string name="added_date">追加日</string>
     <string name="credit_app">バックエンドに YouTube ミュージックを使用するシンプルな音楽アプリ \n\nSimpMusic は、広告や追跡なしで YouTube や YouTube ミュージックから音楽をストリーミングするオープンソースのプロジェクトです。SimpMusic の豊富な機能:\n\n - 音楽のストリーミング \n - 歌詞の同期\n - あなたに最適化されたデータ\n - など... \n\nSimpMusic は常に無料、そして広告もなしです。\n\nTuan Minh Nguyen Duc (maxrave) が❤️を込めて開発しました</string>
     <string name="issue_tracker">既知の問題一覧</string>
@@ -403,4 +408,20 @@
     <string name="fade_audio_effect_duration">フェードの音声エフェクトの長さ (ミリ秒) (0で無効)</string>
     <string name="duration">長さ</string>
     <string name="invalid_number">無効な数字</string>
+    <string name="shuffle_not_available">シャッフルのエンドポイントは利用できません</string>
+    <string name="radio_not_available">ラジオのエンドポイントは利用できません</string>
+    <string name="visitor_data_retrieved">訪問者のデータを取得</string>
+    <string name="data_sync_id_retrieved">DataSyncId 取得</string>
+    <string name="retrieve_youtube_data">YouTubeデータ取得</string>
+    <string name="no_results_found">何も見つかりませんでした</string>
+    <string name="ai">AI</string>
+    <string name="ai_provider">AI 提供元</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="ai_api_key">AI の API キー</string>
+    <string name="invalid_api_key">API キーが無効です</string>
+    <string name="custom_ai_model_id">AI のモデル ID を指定</string>
+    <string name="default_models">初期設定のモデルは gemini-2.0-flash-lite と gpt-4o</string>
+    <string name="invalid">無効です</string>
+    <string name="custom_model_id_messages">AI 提供元によるモデルIDを正確に入力します。</string>
 </resources>

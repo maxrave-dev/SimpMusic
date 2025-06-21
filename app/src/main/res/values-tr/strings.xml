@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Karıştır ve tekrarla modunu kaydet</string>
     <string name="skip_silent">Sessizliği Atla</string>
     <string name="skip_no_music_part">Müziksiz bölümü atla</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Zaman aşımı, internet bağlantısını kontrol edin (%1$d)</string>
     <string name="save_last_played">Son Oynatılanı Kaydet</string>
     <string name="save_last_played_track_and_queue">Son çalınan parçayı ve sırayı kaydet</string>
     <string name="update_available">Yeni güncelleme mevcut</string>
@@ -414,4 +413,5 @@
     <string name="data_sync_id_retrieved">DataSyncId alındı</string>
     <string name="retrieve_youtube_data">YouTube Verilerini Alma</string>
     <string name="no_results_found">Hiçbir sonuç bulunamadı</string>
+    <string name="custom_model_id_messages">.</string>
 </resources>

@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">Se connecter à YouTube</string>
     <string name="log_in_to_get_personally_data">Connectez-vous pour synchroniser vos données personnelles</string>
     <string name="login_success">Connexion réussie</string>
+    <string name="login_failed">La connexion a échoué</string>
     <string name="log_out">Se déconnecter de YouTube</string>
     <string name="logged_in">Connecté</string>
     <string name="logged_out">Déconnecté</string>
@@ -169,7 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">Enregistrer les modes aléatoire et répétition</string>
     <string name="skip_silent">Sauter le silence</string>
     <string name="skip_no_music_part">Sauter la partie sans musique</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délais écoulé. Vérifiez votre connexion internet. (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délai expiré. Vérifiez la connexion Internet (%1$d)</string>
     <string name="save_last_played">Sauvegarder la dernière lecture</string>
     <string name="save_last_played_track_and_queue">Sauvegarder le dernier titre joué et la file d\'attente</string>
     <string name="update_available">Nouvelle mise à jour disponible !</string>
@@ -246,7 +247,9 @@
     <string name="only_support_email_and_password_type">Prise en charge uniquement des types d\'e-mail et de mot de passe</string>
     <string name="musixmatch_login_description">l\'API de traduction Musixmatch fonctionne uniquement avec un utilisateur connecté. SimpMusic utilise l\'API développeur Musixmatch. Pour plus d\'informations, rendez-vous sur https://github.com/maxrave-dev/SimpMusic ou https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Utiliser la traduction Musixmatch</string>
+    <string name="use_ai_translation">Utiliser la traduction lyrique par IA</string>
     <string name="use_musixmatch_translation_description">Activer la traduction des paroles à l\'aide de Musixmatch. Nécessite une connexion Musixmatch.</string>
+    <string name="use_ai_translation_description">Activez la traduction des paroles grâce à l\'IA. Désactivez la traduction Musixmatch pour l\'utiliser.</string>
     <string name="translation_language">Langue de traduction</string>
     <string name="follow_app_language">Suivre la langue de l\'application</string>
     <string name="email">E-mail</string>
@@ -414,4 +417,21 @@
     <string name="data_sync_id_retrieved">DataSyncId récupéré</string>
     <string name="retrieve_youtube_data">Récupérer les données de YouTube</string>
     <string name="no_results_found">Aucun résultat trouvé</string>
+    <string name="ai">IA</string>
+    <string name="ai_provider">Fournisseur d\'IA</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="ai_api_key">Votre clé API IA</string>
+    <string name="invalid_api_key">Clé API non valide</string>
+    <string name="custom_ai_model_id">ID de modèle d\'IA personnalisé</string>
+    <string name="default_models">Les modèles par défaut sont « gemini-2.0-flash-lite » et « gpt-4o »</string>
+    <string name="invalid">Invalide</string>
+    <string name="custom_model_id_messages">Veuillez saisir l\'ID de modèle exact de votre fournisseur d\'IA.</string>
+    <string name="favorite_podcasts">Podcasts Préférés</string>
+    <string name="no_favorite_podcasts">Aucun podcast préféré</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">Votre paramètre sp_dc du cookie Spotify</string>
+    <string name="your_youtube_cookie">Votre cookie YouTube</string>
+    <string name="can_not_be_empty">Ne peut pas être vide</string>
+    <string name="processing">Traitement</string>
+    <string name="website">Site web</string>
 </resources>

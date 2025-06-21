@@ -798,7 +798,7 @@ fun SettingScreen(
                                         label = context.getString(R.string.custom_ai_model_id),
                                         value = "",
                                         verifyCodeBlock = {
-                                            (it.isNotEmpty() && it.contains(" ")) to context.getString(R.string.invalid)
+                                            (it.isNotEmpty() && !it.contains(" ")) to context.getString(R.string.invalid)
                                         },
                                     ),
                                 message = context.getString(R.string.custom_model_id_messages),

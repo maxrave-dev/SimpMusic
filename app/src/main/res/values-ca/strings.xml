@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Desa el mode de reproducció i repetició</string>
     <string name="skip_silent">Saltar en silenci</string>
     <string name="skip_no_music_part">No salteu cap part de música</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Temps mort, comproveu la connexió a Internet (%1$d)</string>
     <string name="save_last_played">Desa l\'última reproducció</string>
     <string name="save_last_played_track_and_queue">Desa la darrera pista reproduïda i la cua</string>
     <string name="update_available">Nova actualització disponible</string>
