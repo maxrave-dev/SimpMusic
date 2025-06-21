@@ -1,0 +1,7 @@
+- No XML anymore, fully Jetpack Compose
+- Add Podcast to Library
+- Fix Spotify
+- Log in to YouTube with cookie and Spotify with sp_dc
+- Custom AI Translation model
+- Integrate Sentry to collect crashes in FULL version
+- Download no-compressed MP3 audio to the Download folder with metadata (artwork, title, artist, etc.)

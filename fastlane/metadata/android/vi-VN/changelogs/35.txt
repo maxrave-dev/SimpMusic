@@ -1,0 +1,7 @@
+- Không còn XML nữa, hoàn toàn Jetpack Compose
+- Thêm Podcast vào Thư viện
+- Sửa lỗi Spotify
+- Đăng nhập YouTube bằng cookie và Spotify bằng sp_dc
+- Mô hình Dịch AI tùy chỉnh
+- Tích hợp Sentry để thu thập lỗi trong phiên bản FULL
+- Tải xuống âm thanh MP3 không nén vào thư mục Tải xuống với siêu dữ liệu (hình ảnh, tiêu đề, nghệ sĩ, v.v.)
