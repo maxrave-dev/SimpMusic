@@ -166,26 +166,28 @@ fun parsePlaylistData(
                      * Fuck Kotlin
                      * Ref: https://stackoverflow.com/q/48379981/20605098
                      */
-                    trackCount = try {
-                        if (secondSubtitle.size >= 5) {
-                            secondSubtitle.getOrNull(2)
-                                ?.text
-                                ?.split("\\s".toRegex())
-                                ?.firstOrNull()
-                                ?.toInt() ?: 0
-                        } else {
-                            secondSubtitle
-                                .firstOrNull()
-                                ?.text
-                                ?.split("\\s".toRegex())
-                                ?.firstOrNull()
-                                ?.toInt() ?: 0
+                    trackCount =
+                        try {
+                            if (secondSubtitle.size >= 5) {
+                                secondSubtitle
+                                    .getOrNull(2)
+                                    ?.text
+                                    ?.split("\\s".toRegex())
+                                    ?.firstOrNull()
+                                    ?.toInt() ?: 0
+                            } else {
+                                secondSubtitle
+                                    .firstOrNull()
+                                    ?.text
+                                    ?.split("\\s".toRegex())
+                                    ?.firstOrNull()
+                                    ?.toInt() ?: 0
+                            }
+                        } catch (e: Exception) {
+                            Log.e("PlaylistParser", "Error parsing track count: ${e.message}")
+                            e.printStackTrace()
+                            0
                         }
-                    } catch (e: Exception) {
-                        Log.e("PlaylistParser", "Error parsing track count: ${e.message}")
-                        e.printStackTrace()
-                        0
-                    }
                 }
                 year =
                     header.subtitle
