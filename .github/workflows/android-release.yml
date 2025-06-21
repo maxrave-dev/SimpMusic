@@ -20,6 +20,9 @@ jobs:
   build-full-release:
     name: Build full release version
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,7 +53,6 @@ jobs:
       - name: Build full release APK
         run: ./build_and_sign.sh --full --release
 
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -60,6 +62,9 @@ jobs:
   build-foss-release:
     name: Build foss release version
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
         with:

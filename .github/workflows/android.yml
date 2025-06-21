@@ -3,7 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'jetpack_compose'
       - 'dev'
     paths-ignore:
       - 'README.md'
