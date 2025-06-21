@@ -2,10 +2,12 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -1608,7 +1610,7 @@ class SharedViewModel(
     private var _downloadFileProgress = MutableStateFlow<DownloadProgress>(DownloadProgress.INIT)
     val downloadFileProgress: StateFlow<DownloadProgress> get() = _downloadFileProgress
 
-    fun downloadFile() {
+    fun downloadFile(bitmap: Bitmap) {
         val fileName =
             "${nowPlayingScreenData.value.nowPlayingTitle} - ${nowPlayingScreenData.value.artistName}"
                 .replace(Regex("""[|\\?*<":>]"""), "")
@@ -1618,10 +1620,12 @@ class SharedViewModel(
                 Environment.DIRECTORY_DOWNLOADS,
             ).path}/$fileName"
         viewModelScope.launch {
-            nowPlayingState.value?.songEntity?.videoId?.let { videoId ->
+            nowPlayingState.value?.track?.let { track ->
                 mainRepository
                     .downloadToFile(
-                        videoId = videoId,
+                        track = track,
+                        bitmap = bitmap,
+                        videoId = track.videoId,
                         path = path,
                         isVideo = nowPlayingScreenData.value.isVideo,
                     ).collectLatest {
@@ -1642,6 +1646,12 @@ class SharedViewModel(
             } else {
                 dataStoreManager.openApp()
             }
+        }
+    }
+
+    fun setBitmap(bitmap: ImageBitmap?) {
+        _nowPlayingScreenData.update {
+            it.copy(bitmap = bitmap)
         }
     }
 }
@@ -1695,6 +1705,7 @@ data class NowPlayingScreenData(
     val canvasData: CanvasData? = null,
     val lyricsData: LyricsData? = null,
     val songInfoData: SongInfoEntity? = null,
+    val bitmap: ImageBitmap? = null,
 ) {
     data class CanvasData(
         val isVideo: Boolean,

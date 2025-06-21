@@ -54,10 +54,12 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Musi
 - Lyrics data from Musixmatch and LRCLIB. More information [Musixmatch](https://developer.musixmatch.com/), [LRCLIB](https://lrclib.net/)    
  
  ## Privacy    
- SimpMusic doesn't have any tracker or third-party server for collecting user data. If YouTube      
+ SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
 logged-in users enable "Send back to Google" feature, SimpMusic only uses YouTube Music Tracking API to send listening history and listening record of video to Google for better recommendations and      
 supporting artist or YouTube Creator (For API reference,      
-see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).    
+see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
+
+We collect crash data in the Full version to improve the app.
    
 ## Full or FOSS version
 I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full version. [Sentry](https://github.com/getsentry/sentry) is the open-source project.

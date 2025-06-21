@@ -100,7 +100,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -233,20 +232,17 @@ fun NowPlayingScreen(
         mutableStateOf(GradientOffset(GradientAngle.CW135))
     }
 
-    var bitmap by remember {
-        mutableStateOf<ImageBitmap?>(null)
-    }
-
     var spotShadowColor by remember {
         mutableStateOf(Color.White)
     }
 
     val blurBg by sharedViewModel.blurBg.collectAsState()
 
-    LaunchedEffect(bitmap) {
-        val bm = bitmap
-        if (bm != null) {
-            paletteState.generate(bm)
+    LaunchedEffect(screenDataState) {
+        snapshotFlow { screenDataState.bitmap }.collectLatest {
+            if (it != null) {
+                paletteState.generate(it)
+            }
         }
     }
 
@@ -718,10 +714,11 @@ fun NowPlayingScreen(
                                                 .build(),
                                         contentDescription = "",
                                         onSuccess = {
-                                            bitmap =
+                                            sharedViewModel.setBitmap(
                                                 it.result.image
                                                     .toBitmap()
-                                                    .asImageBitmap()
+                                                    .asImageBitmap(),
+                                            )
                                         },
                                         contentScale = ContentScale.Crop,
                                         placeholder = painterResource(id = R.drawable.holder),

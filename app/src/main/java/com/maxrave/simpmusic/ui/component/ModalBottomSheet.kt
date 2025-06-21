@@ -90,6 +90,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -110,7 +111,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -647,8 +647,11 @@ fun InfoPlayerBottomSheet(
                     textAlign = TextAlign.Center,
                 )
                 OutlinedButton(
+                    enabled = screenDataState.bitmap != null,
                     onClick = {
-                        sharedViewModel.downloadFile()
+                        sharedViewModel.downloadFile(
+                            bitmap = screenDataState.bitmap?.asAndroidBitmap() ?: return@OutlinedButton,
+                        )
                     },
                     modifier =
                         Modifier

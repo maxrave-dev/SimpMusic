@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.data.repository
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.YouTube
@@ -98,6 +99,7 @@ import com.maxrave.simpmusic.extension.isNetworkAvailable
 import com.maxrave.simpmusic.extension.toLibraryLyrics
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
+import com.maxrave.simpmusic.extension.toSongItemForDownload
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.utils.Resource
@@ -3261,10 +3263,12 @@ class MainRepository(
         }.flowOn(Dispatchers.IO)
 
     fun downloadToFile(
+        track: Track,
         path: String,
+        bitmap: Bitmap,
         videoId: String,
         isVideo: Boolean,
-    ): Flow<DownloadProgress> = youTube.download(path, videoId, isVideo)
+    ): Flow<DownloadProgress> = youTube.download(track.toSongItemForDownload(), path, bitmap, videoId, isVideo)
 
     fun is403Url(url: String) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
 }

@@ -15,7 +15,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.compose.ui.text.fromHtml
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
@@ -239,6 +238,27 @@ fun List<String>.connectArtists(): String {
 
     return stringBuilder.toString()
 }
+
+fun Track.toSongItemForDownload(): SongItem =
+    SongItem(
+        id = this.videoId,
+        title = this.title,
+        artists =
+            this.artists?.map {
+                com.maxrave.kotlinytmusicscraper.models.Artist(
+                    id = it.id ?: "",
+                    name = it.name,
+                )
+            } ?: emptyList(),
+        album =
+            com.maxrave.kotlinytmusicscraper.models.Album(
+                id = this.album?.id ?: "",
+                name = this.album?.name ?: "",
+            ),
+        duration = this.durationSeconds,
+        thumbnail = this.thumbnails?.lastOrNull()?.url ?: "",
+        explicit = this.isExplicit,
+    )
 
 fun Track.toSongEntity(): SongEntity {
     return SongEntity(

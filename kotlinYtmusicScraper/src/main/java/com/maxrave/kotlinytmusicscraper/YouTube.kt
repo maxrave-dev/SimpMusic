@@ -1,6 +1,8 @@
 package com.maxrave.kotlinytmusicscraper
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Bitmap.CompressFormat.JPEG
 import android.util.Log
 import android.webkit.CookieManager
 import com.arthenica.ffmpegkit.FFmpegKit
@@ -102,7 +104,9 @@ import okio.FileSystem
 import okio.IOException
 import okio.Path.Companion.toPath
 import org.json.JSONArray
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -1937,11 +1941,24 @@ class YouTube(
         }
 
     fun download(
+        track: SongItem,
         filePath: String,
+        thumbnail: Bitmap,
         videoId: String,
         isVideo: Boolean = false,
     ): Flow<DownloadProgress> =
         channelFlow {
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            thumbnail.compress(JPEG, 100, byteArrayOutputStream)
+            val bytesArray = byteArrayOutputStream.toByteArray()
+            try {
+                val fileOutputStream = FileOutputStream("$filePath.jpg")
+                fileOutputStream.write(bytesArray)
+                fileOutputStream.close()
+                println("Thumbnail saved to $filePath.jpg")
+            } catch (e: java.lang.Exception) {
+                throw RuntimeException(e)
+            }
             // Video if videoId is not null
             trySend(DownloadProgress(0.00001f))
             player(videoId = videoId)
@@ -2004,6 +2021,9 @@ class YouTube(
                                             "-map",
                                             "1:a:0",
                                             "-shortest",
+                                            "-i",
+                                            "$filePath.jpg",
+                                            "-map_metadata 0 -map 0 -map 1",
                                             "$filePath-SimpMusic.mp4",
                                         ).joinToString(" ")
 
@@ -2019,6 +2039,7 @@ class YouTube(
                                         // SUCCESS
                                         println("Command succeeded ${session.state}, ${session.returnCode}")
                                         try {
+                                            FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
                                         } catch (e: IOException) {
@@ -2029,6 +2050,7 @@ class YouTube(
                                         // CANCEL
                                         println("Command cancelled ${session.state}, ${session.returnCode}")
                                         try {
+                                            FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
                                         } catch (e: IOException) {
@@ -2039,6 +2061,7 @@ class YouTube(
                                         // FAILURE
                                         println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
                                         try {
+                                            FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
                                         } catch (e: IOException) {
@@ -2068,7 +2091,116 @@ class YouTube(
                                 }
                         }.onSuccess {
                             println("Download only Audio Success")
-                            trySend(DownloadProgress.AUDIO_DONE)
+                            // Convert to mp3
+                            val command =
+                                listOf(
+                                    "-i",
+                                    ("$filePath.webm"),
+                                    "-q:a 0",
+                                    "$filePath.mp3",
+                                ).joinToString(" ")
+
+                            try {
+                                if (FileSystem.SYSTEM.exists("$filePath.mp3".toPath())) {
+                                    FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
+                                }
+                                if (FileSystem.SYSTEM.exists("$filePath-simpmusic.mp3".toPath())) {
+                                    FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                                }
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                            }
+
+                            val session =
+                                FFmpegKit.execute(
+                                    command,
+                                )
+                            if (ReturnCode.isSuccess(session.returnCode)) {
+                                // SUCCESS
+                                println("Command succeeded ${session.state}, ${session.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                            } else if (ReturnCode.isCancel(session.returnCode)) {
+                                // CANCEL
+                                println("Command cancelled ${session.state}, ${session.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            } else {
+                                // FAILURE
+                                println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            }
+
+                            val commandInject =
+                                listOf(
+                                    "-i",
+                                    "$filePath.mp3",
+                                    "-i $filePath.jpg",
+                                    "-map 0:a",
+                                    "-map 1:v",
+                                    "-c copy",
+                                    "-id3v2_version 3",
+                                    "-metadata",
+                                    "title=\"${track.title}\"",
+                                    "-metadata",
+                                    "artist=\"${track.artists.joinToString(", ") { it.name }}\"",
+                                    "-metadata",
+                                    "album=\"${track.album?.name ?: track.title}\"",
+                                    "-disposition:v:0 attached_pic",
+                                    "$filePath-simpmusic.mp3",
+                                ).joinToString(" ")
+                            val sessionInject =
+                                FFmpegKit.execute(
+                                    commandInject,
+                                )
+                            if (ReturnCode.isSuccess(sessionInject.returnCode)) {
+                                // SUCCESS
+                                println("Command succeeded ${sessionInject.state}, ${sessionInject.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.AUDIO_DONE)
+                            } else if (ReturnCode.isCancel(sessionInject.returnCode)) {
+                                // CANCEL
+                                println("Command cancelled ${sessionInject.state}, ${sessionInject.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            } else {
+                                // FAILURE
+                                println("Command failed ${sessionInject.state}, ${sessionInject.returnCode}, ${sessionInject.failStackTrace}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            }
                         }.onFailure { e ->
                             e.printStackTrace()
                             trySend(DownloadProgress.failed(e.message ?: "Download failed"))
