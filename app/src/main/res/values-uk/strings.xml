@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">Увійти до YouTube</string>
     <string name="log_in_to_get_personally_data">Увійдіть, щоб отримати персональні дані</string>
     <string name="login_success">Вхід успішний</string>
+    <string name="login_failed">Помилка авторизації</string>
     <string name="log_out">Вийти з YouTube</string>
     <string name="logged_in">Вхід виконано</string>
     <string name="logged_out">Вихід виконано</string>
@@ -169,7 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">Зберегти режим перемішування та повтору</string>
     <string name="skip_silent">Пропустити мовчання</string>
     <string name="skip_no_music_part">Пропустити частини без музики</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Вичерпано час очікування, перевірте інтернет-з\'єднання</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Час вичерпано, перевірте підключення до інтернету (%1$d)</string>
     <string name="save_last_played">Зберегти останнє відтворене</string>
     <string name="save_last_played_track_and_queue">Зберегти останній відтворений трек і чергу</string>
     <string name="update_available">Доступне нове оновлення</string>
@@ -246,7 +247,9 @@
     <string name="only_support_email_and_password_type">Підтримуються тільки електронна пошта та пароль</string>
     <string name="musixmatch_login_description">API перекладу Musixmatch працює тільки з авторизованим користувачем. SimpMusic використовував API розробника Musixmatch. Додаткову інформацію можна знайти на https://github.com/maxrave-dev/SimpMusic або https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Використовувати переклад Musixmatch</string>
+    <string name="use_ai_translation">Використати ШІ переклад</string>
     <string name="use_musixmatch_translation_description">Увімкнути переклад тексту за допомогою Musixmatch. Необхідний вхід до Musixmatch</string>
+    <string name="use_ai_translation_description">Увімкніть переклад текстів пісень за допомогою ШІ. Вимкніть Musixmatch, щоб використовувати.</string>
     <string name="translation_language">Мова перекладу</string>
     <string name="follow_app_language">Дотримуватись мови програми</string>
     <string name="email">Адреса електронної пошти</string>
@@ -266,6 +269,10 @@
     <string name="free_space">Вільне місце</string>
     <string name="suggest">Пропозиція</string>
     <string name="reload">Оновити</string>
+    <string name="sort_by">Упорядкувати за</string>
+    <string name="sort">Упорядкувати</string>
+    <string name="older_first">Спочатку старіші</string>
+    <string name="newer_first">Спочатку новіші</string>
     <string name="added_date">Дата додавання</string>
     <string name="credit_app">Простий музичний застосунок з використанням YouTube Music для бекенду \n\nSimpMusic - це проєкт з відкритим вихідним кодом для потокової передачі музики з YouTube та YouTube Music без реклами та відстеження. SimpMusic надає багато можливостей:\n\n - Потокова музика\n - Синхронізовані тексти\n - Персоналізація даних\n - тощо... \n\nSimpMusic завжди безкоштовний і без реклами\n\nСтворено з ❤️ від Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Відстежувач випусків</string>
@@ -411,4 +418,22 @@
     <string name="visitor_data_retrieved">Дані користувача отримано</string>
     <string name="data_sync_id_retrieved">Отримано DataSyncId</string>
     <string name="retrieve_youtube_data">Отримати дані YouTube</string>
+    <string name="no_results_found">Результатів не знайдено</string>
+    <string name="ai">ШІ</string>
+    <string name="ai_provider">ШІ провайдер</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="ai_api_key">Ваш ключ API</string>
+    <string name="invalid_api_key">Невірний ключ API</string>
+    <string name="custom_ai_model_id">Користувальницький ідентифікатор AI моделі</string>
+    <string name="default_models">Стандартні моделі - це \"gemini-2.0-flash-lite\" та \"gpt-4o\"</string>
+    <string name="invalid">Некоректний</string>
+    <string name="custom_model_id_messages">Будь ласка, введіть ідентифікатор моделі вашого провайдера ШІ.</string>
+    <string name="favorite_podcasts">Улюблені подкасти</string>
+    <string name="no_favorite_podcasts">Немає улюблених подкастів</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">Ваш sp_dc параметр з Spotify cookie</string>
+    <string name="your_youtube_cookie">Ваш YouTube cookie</string>
+    <string name="can_not_be_empty">Не може бути порожнім</string>
+    <string name="processing">Обробка</string>
+    <string name="website">Веб-сайт</string>
 </resources>

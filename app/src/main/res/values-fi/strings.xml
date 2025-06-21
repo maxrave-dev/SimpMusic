@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Muista sekoituksen ja toistamisen tila</string>
     <string name="skip_silent">Ohita hiljaisuus</string>
     <string name="skip_no_music_part">Ohita osa ilman musiikkia</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Aikakatkaisu, tarkista internet-yhteys</string>
     <string name="save_last_played">Muista viimeksi soitettu</string>
     <string name="save_last_played_track_and_queue">Muista viimeksi toistettu kappale ja jono</string>
     <string name="update_available">Uusi päivitys on saatavilla</string>

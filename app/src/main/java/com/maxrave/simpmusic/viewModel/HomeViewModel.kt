@@ -131,10 +131,19 @@ class HomeViewModel(
                         getHomeItemList(it)
                     }
                 }
+            val job5 =
+                launch {
+                    youTubeCookie.collectLatest {
+                        if (it.isNotEmpty()) {
+                            getHomeItemList(params.value)
+                        }
+                    }
+                }
             job1.join()
             job2.join()
             job3.join()
             job4.join()
+            job5.join()
         }
     }
 

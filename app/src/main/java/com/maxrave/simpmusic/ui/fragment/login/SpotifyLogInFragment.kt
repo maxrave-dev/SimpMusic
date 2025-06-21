@@ -6,122 +6,85 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.webkit.CookieManager
-import android.webkit.WebStorage
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.Toast
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import org.koin.androidx.viewmodel.ext.android.activityViewModel
-import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.databinding.FragmentSpotifyLogInBinding
-import com.maxrave.simpmusic.extension.isMyServiceRunning
-import com.maxrave.simpmusic.service.SimpleMediaService
+import com.maxrave.simpmusic.ui.screen.login.SpotifyLoginScreen
+import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.runBlocking
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
+@UnstableApi
 class SpotifyLogInFragment : Fragment() {
-    private var _binding: FragmentSpotifyLogInBinding? = null
-    val binding get() = _binding!!
-
-    private val viewModel by viewModels<LogInViewModel>()
-    private val settingsViewModel by activityViewModels<SettingsViewModel>()
+    private lateinit var composeView: ComposeView
+    private val viewModel by viewModel<LogInViewModel>()
+    private val settingsViewModel by viewModel<SettingsViewModel>()
     private val sharedViewModel by activityViewModel<SharedViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        _binding = FragmentSpotifyLogInBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    ): View =
+        ComposeView(requireContext()).also {
+            composeView = it
+        }
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onViewCreated(
         view: View,
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
-        binding.topAppBarLayout.applyInsetter {
-            type(statusBars = true) {
-                margin()
-            }
-        }
-        val activity = requireActivity()
-        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-        bottom.visibility = View.GONE
-        miniplayer.visibility = View.GONE
-        binding.webView.apply {
-            webViewClient =
-                object : WebViewClient() {
-                    @SuppressLint("FragmentLiveDataObserve")
-                    override fun onPageFinished(
-                        view: WebView?,
-                        url: String?,
-                    ) {
-                        if (url == Config.SPOTIFY_ACCOUNT_URL) {
-                            CookieManager.getInstance().getCookie(url)?.let {
-                                viewModel.saveSpotifySpdc(it)
-                            }
-                            WebStorage.getInstance().deleteAllData()
 
-                            // Clear all the cookies
-                            CookieManager.getInstance().removeAllCookies(null)
-                            CookieManager.getInstance().flush()
-
-                            binding.webView.clearCache(true)
-                            binding.webView.clearFormData()
-                            binding.webView.clearHistory()
-                            binding.webView.clearSslPreferences()
-                            viewModel.spotifyStatus.observe(this@SpotifyLogInFragment) {
-                                if (it) {
-                                    settingsViewModel.setSpotifyLogIn(true)
-                                    Toast
-                                        .makeText(
-                                            requireContext(),
-                                            R.string.login_success,
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                    findNavController().popBackStack()
+        composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                var isMiniplayerVisible by rememberSaveable {
+                    mutableStateOf(false)
+                }
+                AppTheme {
+                    Scaffold { innerPadding ->
+                        SpotifyLoginScreen(
+                            innerPadding = innerPadding,
+                            navController = findNavController(),
+                            viewModel = viewModel,
+                            settingsViewModel = settingsViewModel,
+                            hideBottomNavigation = {
+                                val activity = requireActivity()
+                                val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
+                                val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
+                                isMiniplayerVisible = miniplayer.isVisible
+                                bottom.visibility = View.GONE
+                                miniplayer.visibility = View.GONE
+                            },
+                            showBottomNavigation = {
+                                val activity = requireActivity()
+                                val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
+                                bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+                                bottom.visibility = View.VISIBLE
+                                val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
+                                if (isMiniplayerVisible) {
+                                    miniplayer.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+                                    miniplayer.visibility = View.VISIBLE
                                 }
-                            }
-                        }
+                            },
+                        )
                     }
                 }
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            loadUrl(Config.SPOTIFY_LOG_IN_URL)
-        }
-        binding.topAppBar.setNavigationOnClickListener {
-            findNavController().popBackStack()
-        }
-    }
-
-    @UnstableApi
-    override fun onDestroyView() {
-        super.onDestroyView()
-        val activity = requireActivity()
-        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        bottom.visibility = View.VISIBLE
-        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-        if (requireActivity().isMyServiceRunning(SimpleMediaService::class.java)) {
-            miniplayer.animation =
-                AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-            if (runBlocking { sharedViewModel.nowPlayingState.value?.mediaItem != null }) {
-                miniplayer.visibility = View.VISIBLE
             }
         }
     }

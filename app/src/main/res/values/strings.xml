@@ -143,6 +143,7 @@
     <string name="log_in_to_YouTube">Log in to YouTube</string>
     <string name="log_in_to_get_personally_data">Log in to get personally data</string>
     <string name="login_success">Login success</string>
+    <string name="login_failed">Login failed</string>
     <string name="log_out">Log out from YouTube</string>
     <string name="logged_in">Logged in</string>
     <string name="logged_out">Logged out</string>
@@ -169,7 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">Save shuffle and repeat mode</string>
     <string name="skip_silent">Skip Silent</string>
     <string name="skip_no_music_part">Skip no music part</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection (%1$d)</string>
     <string name="save_last_played">Save Last Played</string>
     <string name="save_last_played_track_and_queue">Save last played track and queue</string>
     <string name="update_available">New update available</string>
@@ -276,7 +277,7 @@
     <string name="added_date">Added date</string>
     <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Issue Tracker</string>
-    <string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="copyright" translatable="false">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="featured_playlists">Featured Playlists</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
@@ -430,4 +431,12 @@
     <string name="default_models">Default models are \"gemini-2.0-flash-lite\" and \"gpt-4o\"</string>
     <string name="invalid">Invalid</string>
     <string name="custom_model_id_messages">Please enter the exactly model ID from your AI provider.</string>
+    <string name="favorite_podcasts">Favorite Podcasts</string>
+    <string name="no_favorite_podcasts">No favorite podcasts</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">Your sp_dc param of Spotify cookie</string>
+    <string name="your_youtube_cookie">Your YouTube Cookie</string>
+    <string name="can_not_be_empty">Can not be empty</string>
+    <string name="processing">Processing</string>
+    <string name="website">Website</string>
+    <string name="download_this_song_video_file_to_your_device">Download this song/video file to your device</string>
 </resources>

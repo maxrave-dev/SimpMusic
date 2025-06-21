@@ -29,18 +29,11 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.placeholder
 import coil3.toBitmap
+import com.liskovsoft.sharedutils.helpers.Helpers
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
-import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK
-import com.maxrave.simpmusic.common.Config.RADIO_CLICK
-import com.maxrave.simpmusic.common.Config.RECOVER_TRACK_QUEUE
-import com.maxrave.simpmusic.common.Config.SHARE
-import com.maxrave.simpmusic.common.Config.SONG_CLICK
-import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DESC
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID_SAVED_QUEUE
@@ -92,7 +85,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import kotlin.math.pow
 
@@ -277,7 +269,7 @@ class SimpleMediaServiceHandler(
                                 isFading.value = true
                                 startFadeAnimator(
                                     (duration - current),
-                                    20,
+                                    10,
                                     false,
                                 ) {
                                     isFading.value = false
@@ -873,24 +865,38 @@ class SimpleMediaServiceHandler(
     override fun onPlayerError(error: PlaybackException) {
         when (error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
-                Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast
-                    .makeText(
-                        context,
-                        context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                Log.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
+                if (Helpers.isAppInForeground()) {
+                    Toast
+                        .makeText(
+                            context,
+                            context.getString(
+                                R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
+                                error.errorCode,
+                            ),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                } else {
+                    Log.w("Player Error", "App is not in foreground, skipping toast")
+                }
                 player.pause()
             }
 
             else -> {
-                Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast
-                    .makeText(
-                        context,
-                        context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                Log.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
+                if (Helpers.isAppInForeground()) {
+                    Toast
+                        .makeText(
+                            context,
+                            context.getString(
+                                R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
+                                error.errorCode,
+                            ),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                } else {
+                    Log.w("Player Error", "App is not in foreground, skipping toast")
+                }
                 player.pause()
             }
         }
@@ -1191,9 +1197,14 @@ class SimpleMediaServiceHandler(
                                 if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
                                     Log.w(TAG, "loadMore: Endless Queue")
                                     val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return@launch
+                                    val radioId = "RDAMVM${lastTrack.videoId}"
+                                    if (radioId == queueData.value?.playlistId) {
+                                        Log.w(TAG, "loadMore: Already in radio mode")
+                                        return@launch
+                                    }
                                     _queueData.update {
                                         it?.copy(
-                                            playlistId = "RDAMVM${lastTrack.videoId}",
+                                            playlistId = radioId,
                                         )
                                     }
                                     Log.d("Check loadMore", "queueData: ${queueData.value}")
@@ -1299,7 +1310,6 @@ class SimpleMediaServiceHandler(
                 Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
                 e.printStackTrace()
             }
-
         }
 
         player.currentMediaItem?.mediaId?.let { songId ->
@@ -1575,9 +1585,8 @@ class SimpleMediaServiceHandler(
                                     CommandButton.ICON_HEART_FILLED
                                 } else {
                                     CommandButton.ICON_HEART_UNFILLED
-                                }
-                            )
-                            .setDisplayName(
+                                },
+                            ).setDisplayName(
                                 if (liked) {
                                     context.getString(R.string.liked)
                                 } else {
@@ -1595,9 +1604,8 @@ class SimpleMediaServiceHandler(
                                     Player.REPEAT_MODE_ALL -> CommandButton.ICON_REPEAT_ALL
 
                                     else -> CommandButton.ICON_REPEAT_OFF
-                                }
-                            )
-                            .setDisplayName(
+                                },
+                            ).setDisplayName(
                                 when (player.repeatMode) {
                                     Player.REPEAT_MODE_ONE -> context.getString(R.string.repeat_one)
 
@@ -1613,30 +1621,28 @@ class SimpleMediaServiceHandler(
                             ).build(),
                         CommandButton
                             .Builder(
-                                CommandButton.ICON_RADIO
+                                CommandButton.ICON_RADIO,
                             ).setDisplayName(context.getString(R.string.radio))
                             .setSessionCommand(
                                 SessionCommand(
                                     MEDIA_CUSTOM_COMMAND.RADIO,
                                     Bundle(),
-                                )
-                            )
-                            .build(),
+                                ),
+                            ).build(),
                         CommandButton
                             .Builder(
                                 if (player.shuffleModeEnabled) {
                                     CommandButton.ICON_SHUFFLE_ON
                                 } else {
                                     CommandButton.ICON_SHUFFLE_OFF
-                                }
+                                },
                             ).setDisplayName(context.getString(R.string.shuffle))
                             .setSessionCommand(
                                 SessionCommand(
                                     MEDIA_CUSTOM_COMMAND.SHUFFLE,
                                     Bundle(),
-                                )
-                            )
-                            .build()
+                                ),
+                            ).build(),
                     ),
                 )
             }
@@ -2240,12 +2246,10 @@ class SimpleMediaServiceHandler(
                 while (currentAnim <= duration) {
                     if (fadeIn && player.currentPosition > duration) {
                         player.volume = endValue
-                        Log.w(TAG, "startFadeAnimator current value: $endValue")
                         callback.invoke()
                         return@launch
                     } else if (!fadeIn && (player.duration - player.currentPosition) > duration) {
                         player.volume = endValue
-                        Log.w(TAG, "startFadeAnimator current value: $endValue")
                         callback.invoke()
                         return@launch
                     }

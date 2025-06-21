@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">บันทึกโหมดสุ่มและเล่นซ้ำ</string>
     <string name="skip_silent">ข้ามเสียงเงียบ</string>
     <string name="skip_no_music_part">ไม่ข้ามส่วนดนตรี</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">หมดเวลาการเชื่อต่อ ตรวจสอบการเชื่อมต่ออินเตอร์เน็ต</string>
     <string name="save_last_played">บันทึกการเล่นครั้งล่าสุด</string>
     <string name="save_last_played_track_and_queue">บันทึกเพลงและคิวที่เล่นล่าสุด</string>
     <string name="update_available">อัปเดตใหม่พร้อมใช้งานแล้ว</string>
@@ -246,7 +245,9 @@
     <string name="only_support_email_and_password_type">รองรับเฉพาะอีเมลและรหัสผ่านเท่านั้น</string>
     <string name="musixmatch_login_description">Musixmatch Translation API ใช้งานได้กับผู้ใช้ที่เข้าสู่ระบบเท่านั้น SimpMusic ใช้ Musixmatch Developer API ข้อมูลเพิ่มเติมไปที่ https://github.com/maxrave-dev/SimpMusic หรือ https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">ใช้การแปล Musixmatch</string>
+    <string name="use_ai_translation">ใช้งานการแปลเนื้อเพลงโดยใช้ AI</string>
     <string name="use_musixmatch_translation_description">เปิดใช้งานการแปลเนื้อเพลงโดยใช้ Musixmatch (ต้องเข้าสู่ระบบ Musixmatch)</string>
+    <string name="use_ai_translation_description">เปิดใช้งานการแปลเนื้อเพลงโดยใช้ AI ต้องปิดการแปล Musixmatch เพื่อใช้งาน</string>
     <string name="translation_language">แปลภาษา</string>
     <string name="follow_app_language">ทำตามภาษาของแอป</string>
     <string name="email">อีเมล</string>
@@ -413,4 +414,14 @@
     <string name="data_sync_id_retrieved">DataSyncId ถูกดึงมาแล้ว</string>
     <string name="retrieve_youtube_data">ดึงข้อมูลจาก YouTube</string>
     <string name="no_results_found">ไม่พบผลลัพธ์</string>
+    <string name="ai">AI</string>
+    <string name="ai_provider">ผู้ให้บริการ AI</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="ai_api_key">คีย์ API สำหรับ AI ของคุณ</string>
+    <string name="invalid_api_key">คีย์ API ไม่ถูกต้อง</string>
+    <string name="custom_ai_model_id">รหัสโมเดล AI ที่ปรับแต่งเอง</string>
+    <string name="default_models">โมเดลที่ใช้โดยค่าเริ่มต้นคือ \'gemini-2.0-flash-lite\' และ \'gpt-4o\'</string>
+    <string name="invalid">ไม่ถูกต้อง</string>
+    <string name="custom_model_id_messages">กรุณากรอกรหัสโมเดลที่ถูกต้องจากผู้ให้บริการ AI ของคุณ</string>
 </resources>

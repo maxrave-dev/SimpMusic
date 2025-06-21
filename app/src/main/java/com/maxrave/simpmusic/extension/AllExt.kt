@@ -15,7 +15,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.compose.ui.text.fromHtml
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
@@ -239,6 +238,27 @@ fun List<String>.connectArtists(): String {
 
     return stringBuilder.toString()
 }
+
+fun Track.toSongItemForDownload(): SongItem =
+    SongItem(
+        id = this.videoId,
+        title = this.title,
+        artists =
+            this.artists?.map {
+                com.maxrave.kotlinytmusicscraper.models.Artist(
+                    id = it.id ?: "",
+                    name = it.name,
+                )
+            } ?: emptyList(),
+        album =
+            com.maxrave.kotlinytmusicscraper.models.Album(
+                id = this.album?.id ?: "",
+                name = this.album?.name ?: "",
+            ),
+        duration = this.durationSeconds,
+        thumbnail = this.thumbnails?.lastOrNull()?.url ?: "",
+        explicit = this.isExplicit,
+    )
 
 fun Track.toSongEntity(): SongEntity {
     return SongEntity(
@@ -659,14 +679,15 @@ fun Lyrics.toLibraryLyrics(): com.maxrave.lyricsproviders.models.lyrics.Lyrics =
     com.maxrave.lyricsproviders.models.lyrics.Lyrics(
         lyrics =
             com.maxrave.lyricsproviders.models.lyrics.Lyrics.LyricsX(
-                lines = this.lines?.map {
-                    com.maxrave.lyricsproviders.models.lyrics.Line(
-                        endTimeMs = it.endTimeMs,
-                        startTimeMs = it.startTimeMs,
-                        syllables = listOf(),
-                        words = it.words,
-                    )
-                },
+                lines =
+                    this.lines?.map {
+                        com.maxrave.lyricsproviders.models.lyrics.Line(
+                            endTimeMs = it.endTimeMs,
+                            startTimeMs = it.startTimeMs,
+                            syllables = listOf(),
+                            words = it.words,
+                        )
+                    },
                 syncType = this.syncType,
             ),
     )
@@ -786,13 +807,12 @@ fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics
     }
 }
 
-fun TranslatedLyricsEntity.toLyrics(): Lyrics {
-    return Lyrics(
+fun TranslatedLyricsEntity.toLyrics(): Lyrics =
+    Lyrics(
         error = this.error,
         lines = this.lines,
         syncType = this.syncType,
     )
-}
 
 fun Transcript.toLyrics(): Lyrics {
     val lines =
@@ -855,24 +875,28 @@ fun List<PodcastBrowse.EpisodeItem>.toListTrack(): ArrayList<Track> {
 
 fun AlbumItem.toAlbumsResult(): AlbumsResult =
     AlbumsResult(
-        artists = this.artists?.map {
-            Artist(
-                id = it.id ?: "",
-                name = it.name
-            )
-        } ?: emptyList(),
+        artists =
+            this.artists?.map {
+                Artist(
+                    id = it.id ?: "",
+                    name = it.name,
+                )
+            } ?: emptyList(),
         browseId = this.id,
         category = this.title,
         duration = "",
         isExplicit = this.explicit,
         resultType = "ALBUM",
-        thumbnails = listOf(Thumbnail(
-            width = 720,
-            url = this.thumbnail,
-            height = 720
-        )),
+        thumbnails =
+            listOf(
+                Thumbnail(
+                    width = 720,
+                    url = this.thumbnail,
+                    height = 720,
+                ),
+            ),
         title = this.title,
-        type = "ALBUM",
+        type = if (isSingle) "SINGLE" else "ALBUM",
         year = this.year?.toString() ?: "",
     )
 

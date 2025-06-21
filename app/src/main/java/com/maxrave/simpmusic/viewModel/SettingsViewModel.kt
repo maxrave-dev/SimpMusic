@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -942,29 +943,35 @@ class SettingsViewModel(
                     _googleAccounts.emit(LocalResource.Success(accounts))
                 } else {
                     if (loggedIn.value == DataStoreManager.TRUE) {
-                        mainRepository.getAccountInfo().collect {
-                            Log.w("getAllGoogleAccount", "getAllGoogleAccount: $it")
-                            if (it != null) {
-                                dataStoreManager.putString("AccountName", it.name)
-                                dataStoreManager.putString(
-                                    "AccountThumbUrl",
-                                    it.thumbnails.lastOrNull()?.url ?: "",
-                                )
-                                mainRepository.insertGoogleAccount(
-                                    GoogleAccountEntity(
-                                        email = it.email,
-                                        name = it.name,
-                                        thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
-                                        cache = mainRepository.getYouTubeCookie(),
-                                        isUsed = true,
-                                    ),
-                                )
-                                delay(500)
-                                getAllGoogleAccount()
-                            } else {
-                                _googleAccounts.emit(LocalResource.Success(emptyList()))
+                        mainRepository
+                            .getAccountInfo(
+                                dataStoreManager.cookie.first(),
+                            ).collect {
+                                Log.w("getAllGoogleAccount", "getAllGoogleAccount: $it")
+                                if (it != null) {
+                                    dataStoreManager.putString("AccountName", it.name)
+                                    dataStoreManager.putString(
+                                        "AccountThumbUrl",
+                                        it.thumbnails.lastOrNull()?.url ?: "",
+                                    )
+                                    mainRepository
+                                        .insertGoogleAccount(
+                                            GoogleAccountEntity(
+                                                email = it.email,
+                                                name = it.name,
+                                                thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
+                                                cache = mainRepository.getYouTubeCookie(),
+                                                isUsed = true,
+                                            ),
+                                        ).singleOrNull()
+                                        ?.let { account ->
+                                            Log.w("getAllGoogleAccount", "inserted: $account")
+                                        }
+                                    getAllGoogleAccount()
+                                } else {
+                                    _googleAccounts.emit(LocalResource.Success(emptyList()))
+                                }
                             }
-                        }
                     } else {
                         _googleAccounts.emit(LocalResource.Success(emptyList()))
                     }
@@ -973,14 +980,18 @@ class SettingsViewModel(
         }
     }
 
-    fun addAccount(cookie: String) {
-        viewModelScope.launch {
-            dataStoreManager.setCookie(cookie)
-            dataStoreManager.setLoggedIn(true)
-            mainRepository.getAccountInfo().collect { accountInfo ->
-                Log.d("getAllGoogleAccount", "addAccount: $accountInfo")
-                if (accountInfo != null) {
-                    runBlocking {
+    suspend fun addAccount(cookie: String): Boolean {
+        try {
+            runBlocking {
+                dataStoreManager.setCookie(cookie)
+                dataStoreManager.setLoggedIn(true)
+            }
+            mainRepository
+                .getAccountInfo(
+                    cookie,
+                ).collect { accountInfo ->
+                    Log.d("getAllGoogleAccount", "addAccount: $accountInfo")
+                    if (accountInfo != null) {
                         mainRepository.getGoogleAccounts().singleOrNull()?.forEach {
                             Log.d("getAllGoogleAccount", "set used: $it start")
                             mainRepository
@@ -990,28 +1001,34 @@ class SettingsViewModel(
                                     Log.w("getAllGoogleAccount", "set used: $it")
                                 }
                         }
+                        dataStoreManager.putString("AccountName", accountInfo.name)
+                        dataStoreManager.putString(
+                            "AccountThumbUrl",
+                            accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                        )
+                        mainRepository
+                            .insertGoogleAccount(
+                                GoogleAccountEntity(
+                                    email = accountInfo.email,
+                                    name = accountInfo.name,
+                                    thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                                    cache = cookie,
+                                    isUsed = true,
+                                ),
+                            ).firstOrNull()
+                            ?.let {
+                                log("addAccount: $it", Log.WARN)
+                            }
+                        dataStoreManager.setLoggedIn(true)
+                        dataStoreManager.setCookie(cookie)
+                        getAllGoogleAccount()
+                        getLoggedIn()
                     }
-                    dataStoreManager.putString("AccountName", accountInfo.name)
-                    dataStoreManager.putString(
-                        "AccountThumbUrl",
-                        accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                    )
-                    mainRepository.insertGoogleAccount(
-                        GoogleAccountEntity(
-                            email = accountInfo.email,
-                            name = accountInfo.name,
-                            thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                            cache = mainRepository.getYouTubeCookie(),
-                            isUsed = true,
-                        ),
-                    )
-                    dataStoreManager.setLoggedIn(true)
-                    dataStoreManager.setCookie(mainRepository.getYouTubeCookie() ?: "")
-                    delay(500)
-                    getAllGoogleAccount()
-                    getLoggedIn()
                 }
-            }
+            return true
+        } catch (e: Exception) {
+            Log.e("getAllGoogleAccount", "addAccount: ${e.message}", e)
+            return false
         }
     }
 

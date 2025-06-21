@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Salvar modo aleatório e de repetição</string>
     <string name="skip_silent">Pular Silencioso</string>
     <string name="skip_no_music_part">Pular parte da silenciosa da música</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo esgotado, verifique sua conexão com a internet</string>
     <string name="save_last_played">Salvar Última Reprodução</string>
     <string name="save_last_played_track_and_queue">Salvar a última faixa e fila reproduzidas</string>
     <string name="update_available">Nova atualização disponível</string>

@@ -1,6 +1,8 @@
 package com.maxrave.kotlinytmusicscraper
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Bitmap.CompressFormat.JPEG
 import android.util.Log
 import android.webkit.CookieManager
 import com.arthenica.ffmpegkit.FFmpegKit
@@ -76,6 +78,7 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getReloadParams
 import com.maxrave.kotlinytmusicscraper.parser.getSuggestionSongItems
 import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
+import com.maxrave.kotlinytmusicscraper.utils.NewPipeUtils
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.PoTokenGenerator
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
@@ -101,12 +104,11 @@ import okio.FileSystem
 import okio.IOException
 import okio.Path.Companion.toPath
 import org.json.JSONArray
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.net.Proxy
-import java.nio.file.Paths
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
-
 
 /**
  * Special thanks to [z-huang/InnerTune](https://github.com/z-huang/InnerTune)
@@ -120,6 +122,7 @@ class YouTube(
     private val context: Context,
 ) {
     private val ytMusic = Ytmusic()
+    private var newPipeUtils = NewPipeUtils()
     private val mAppService = AppService.instance()
     private val poTokenGenerator =
         PoTokenGenerator(
@@ -204,6 +207,7 @@ class YouTube(
      */
     fun removeProxy() {
         ytMusic.proxy = null
+        newPipeUtils = NewPipeUtils()
     }
 
     /**
@@ -218,6 +222,7 @@ class YouTube(
             if (isHttp) ProxyBuilder.http("$host:$port") else ProxyBuilder.socks(host, port)
         }.onSuccess {
             ytMusic.proxy = it
+            newPipeUtils = NewPipeUtils(it)
         }.onFailure {
             it.printStackTrace()
         }
@@ -1259,34 +1264,34 @@ class YouTube(
                 decodedSigResponse =
                     sigResponse.copy(
                         streamingData =
-                        sigResponse.streamingData?.copy(
-                            formats =
-                            sigResponse.streamingData.formats?.map { format ->
-                                format.copy(
-                                    url =
-                                    format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
-                                            "$url&pot=$webPlayerPot"
-                                        } else {
-                                            url
-                                        }
+                            sigResponse.streamingData?.copy(
+                                formats =
+                                    sigResponse.streamingData.formats?.map { format ->
+                                        format.copy(
+                                            url =
+                                                format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                                    if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                        "$url&pot=$webPlayerPot"
+                                                    } else {
+                                                        url
+                                                    }
+                                                },
+                                        )
                                     },
-                                )
-                            },
-                            adaptiveFormats =
-                            sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
-                                adaptiveFormats.copy(
-                                    url =
-                                    adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
-                                            "$url&pot=$webPlayerPot"
-                                        } else {
-                                            url
-                                        }
+                                adaptiveFormats =
+                                    sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                        adaptiveFormats.copy(
+                                            url =
+                                                adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
+                                                    if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                        "$url&pot=$webPlayerPot"
+                                                    } else {
+                                                        url
+                                                    }
+                                                },
+                                        )
                                     },
-                                )
-                            },
-                        ),
+                            ),
                     )
                 listUrlSig.addAll(
                     (
@@ -1295,13 +1300,13 @@ class YouTube(
                             ?.adaptiveFormats
                             ?.mapNotNull { it.url }
                             ?.toMutableList() ?: mutableListOf()
-                        ).apply {
-                            decodedSigResponse
-                                .streamingData
-                                ?.formats
-                                ?.mapNotNull { it.url }
-                                ?.let { addAll(it) }
-                        }
+                    ).apply {
+                        decodedSigResponse
+                            .streamingData
+                            ?.formats
+                            ?.mapNotNull { it.url }
+                            ?.let { addAll(it) }
+                    },
                 )
                 println("YouTube URL ${decodedSigResponse.streamingData?.formats?.mapNotNull { it.url }}")
                 val listFormat =
@@ -1311,18 +1316,70 @@ class YouTube(
                             ?.formats
                             ?.mapNotNull { Pair(it.itag, it.url) }
                             ?.toMutableList() ?: mutableListOf()
-                        ).apply {
-                            addAll(
-                                decodedSigResponse.streamingData?.adaptiveFormats?.map {
-                                    Pair(it.itag, it.url)
-                                } ?: emptyList(),
-                            )
-                        }
+                    ).apply {
+                        addAll(
+                            decodedSigResponse.streamingData?.adaptiveFormats?.map {
+                                Pair(it.itag, it.url)
+                            } ?: emptyList(),
+                        )
+                    }
                 listFormat.forEach {
                     println("YouTube Format ${it.first} ${it.second}")
                 }
                 if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
                     break
+                } else {
+                    listUrlSig.clear()
+                    decodedSigResponse =
+                        sigResponse.copy(
+                            streamingData =
+                                sigResponse.streamingData?.copy(
+                                    formats =
+                                        sigResponse.streamingData.formats?.map { format ->
+                                            format.copy(
+                                                url =
+                                                    newPipeUtils.getStreamUrl(format, videoId)?.let { url ->
+                                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                            "$url&pot=$webPlayerPot"
+                                                        } else {
+                                                            url
+                                                        }
+                                                    },
+                                            )
+                                        },
+                                    adaptiveFormats =
+                                        sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                            adaptiveFormats.copy(
+                                                url =
+                                                    newPipeUtils.getStreamUrl(adaptiveFormats, videoId)?.let { url ->
+                                                        if (webPlayerPot.isNotEmpty() && currentClient.clientName.contains("WEB")) {
+                                                            "$url&pot=$webPlayerPot"
+                                                        } else {
+                                                            url
+                                                        }
+                                                    },
+                                            )
+                                        },
+                                ),
+                        )
+                    listUrlSig.addAll(
+                        (
+                            decodedSigResponse
+                                .streamingData
+                                ?.adaptiveFormats
+                                ?.mapNotNull { it.url }
+                                ?.toMutableList() ?: mutableListOf()
+                        ).apply {
+                            decodedSigResponse
+                                .streamingData
+                                ?.formats
+                                ?.mapNotNull { it.url }
+                                ?.let { addAll(it) }
+                        },
+                    )
+                    if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
+                        break
+                    }
                 }
             }
             if (listUrlSig.isEmpty() || decodedSigResponse == null) {
@@ -1400,7 +1457,7 @@ class YouTube(
                         }
                     }
                 }
-                throw Exception(playerResponse.playabilityStatus.status ?: "Unknown error")
+                throw Exception(playerResponse.playabilityStatus.status)
             } else {
                 val firstThumb =
                     decodedSigResponse.videoDetails
@@ -1884,11 +1941,24 @@ class YouTube(
         }
 
     fun download(
+        track: SongItem,
         filePath: String,
+        thumbnail: Bitmap,
         videoId: String,
         isVideo: Boolean = false,
     ): Flow<DownloadProgress> =
         channelFlow {
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            thumbnail.compress(JPEG, 100, byteArrayOutputStream)
+            val bytesArray = byteArrayOutputStream.toByteArray()
+            try {
+                val fileOutputStream = FileOutputStream("$filePath.jpg")
+                fileOutputStream.write(bytesArray)
+                fileOutputStream.close()
+                println("Thumbnail saved to $filePath.jpg")
+            } catch (e: java.lang.Exception) {
+                throw RuntimeException(e)
+            }
             // Video if videoId is not null
             trySend(DownloadProgress(0.00001f))
             player(videoId = videoId)
@@ -1966,6 +2036,7 @@ class YouTube(
                                         // SUCCESS
                                         println("Command succeeded ${session.state}, ${session.returnCode}")
                                         try {
+                                            FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
                                         } catch (e: IOException) {
@@ -1976,6 +2047,7 @@ class YouTube(
                                         // CANCEL
                                         println("Command cancelled ${session.state}, ${session.returnCode}")
                                         try {
+                                            FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
                                         } catch (e: IOException) {
@@ -1986,6 +2058,7 @@ class YouTube(
                                         // FAILURE
                                         println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
                                         try {
+                                            FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
                                         } catch (e: IOException) {
@@ -2015,7 +2088,116 @@ class YouTube(
                                 }
                         }.onSuccess {
                             println("Download only Audio Success")
-                            trySend(DownloadProgress.AUDIO_DONE)
+                            // Convert to mp3
+                            val command =
+                                listOf(
+                                    "-i",
+                                    ("$filePath.webm"),
+                                    "-q:a 0",
+                                    "$filePath.mp3",
+                                ).joinToString(" ")
+
+                            try {
+                                if (FileSystem.SYSTEM.exists("$filePath.mp3".toPath())) {
+                                    FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
+                                }
+                                if (FileSystem.SYSTEM.exists("$filePath-simpmusic.mp3".toPath())) {
+                                    FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                                }
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                            }
+
+                            val session =
+                                FFmpegKit.execute(
+                                    command,
+                                )
+                            if (ReturnCode.isSuccess(session.returnCode)) {
+                                // SUCCESS
+                                println("Command succeeded ${session.state}, ${session.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                            } else if (ReturnCode.isCancel(session.returnCode)) {
+                                // CANCEL
+                                println("Command cancelled ${session.state}, ${session.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            } else {
+                                // FAILURE
+                                println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            }
+
+                            val commandInject =
+                                listOf(
+                                    "-i",
+                                    "$filePath.mp3",
+                                    "-i $filePath.jpg",
+                                    "-map 0:a",
+                                    "-map 1:v",
+                                    "-c copy",
+                                    "-id3v2_version 3",
+                                    "-metadata",
+                                    "title=\"${track.title}\"",
+                                    "-metadata",
+                                    "artist=\"${track.artists.joinToString(", ") { it.name }}\"",
+                                    "-metadata",
+                                    "album=\"${track.album?.name ?: track.title}\"",
+                                    "-disposition:v:0 attached_pic",
+                                    "$filePath-simpmusic.mp3",
+                                ).joinToString(" ")
+                            val sessionInject =
+                                FFmpegKit.execute(
+                                    commandInject,
+                                )
+                            if (ReturnCode.isSuccess(sessionInject.returnCode)) {
+                                // SUCCESS
+                                println("Command succeeded ${sessionInject.state}, ${sessionInject.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.AUDIO_DONE)
+                            } else if (ReturnCode.isCancel(sessionInject.returnCode)) {
+                                // CANCEL
+                                println("Command cancelled ${sessionInject.state}, ${sessionInject.returnCode}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            } else {
+                                // FAILURE
+                                println("Command failed ${sessionInject.state}, ${sessionInject.returnCode}, ${sessionInject.failStackTrace}")
+                                try {
+                                    FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                    FileSystem.SYSTEM.delete("$filePath-simpmusic.mp3".toPath())
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                                trySend(DownloadProgress.failed("Error"))
+                            }
                         }.onFailure { e ->
                             e.printStackTrace()
                             trySend(DownloadProgress.failed(e.message ?: "Download failed"))
@@ -2028,9 +2210,7 @@ class YouTube(
                 }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun is403Url(
-        url: String
-    ) = ytMusic.is403Url(url)
+    suspend fun is403Url(url: String) = ytMusic.is403Url(url)
 
     companion object {
         const val MAX_GET_QUEUE_SIZE = 1000

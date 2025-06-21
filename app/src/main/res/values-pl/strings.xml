@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Zapisz tryb losowania i powtarzania</string>
     <string name="skip_silent">Pomiń wyciszenie</string>
     <string name="skip_no_music_part">Pomiń brak części muzycznej</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Przekroczono czas oczekiwania, sprawdź połączenie internetowe</string>
     <string name="save_last_played">Zapisz ostatnio odtwarzane</string>
     <string name="save_last_played_track_and_queue">Zapisz ostatnio odtwarzany utwór i kolejkę</string>
     <string name="update_available">Dostępna jest nowa aktualizacja</string>
@@ -337,4 +336,5 @@
     <string name="sleep">Sen</string>
     <string name="sad">Smutne</string>
     <string name="party">Impreza</string>
+    <string name="lyrics_provider_lrc">Tekst dostarczony przez LRCLIB</string>
 </resources>

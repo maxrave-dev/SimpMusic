@@ -4,11 +4,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Point
+import android.graphics.drawable.AdaptiveIconDrawable
 import android.os.Build
 import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -42,8 +44,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
@@ -51,7 +56,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.toBitmap
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
@@ -507,10 +514,24 @@ fun Color.rgbFactor(factor: Float): Color {
     return Color(r, g, b, alpha)
 }
 
-fun TextStyle.greyScale(): TextStyle {
-    return this.copy(
+fun TextStyle.greyScale(): TextStyle =
+    this.copy(
         color = Color.Gray,
     )
+
+@Composable
+fun adaptiveIconPainterResource(
+    @DrawableRes id: Int,
+): Painter? {
+    val res = LocalContext.current.resources
+    val theme = LocalContext.current.theme
+
+    val adaptiveIcon = ResourcesCompat.getDrawable(res, id, theme) as? AdaptiveIconDrawable
+    if (adaptiveIcon != null) {
+        return BitmapPainter(adaptiveIcon.toBitmap().asImageBitmap())
+    } else {
+        return null
+    }
 }
 
 @RequiresOptIn(

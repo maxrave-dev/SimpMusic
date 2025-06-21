@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Zufalls- und Wiederholungswiedergabe speichern</string>
     <string name="skip_silent">Stille überspringen</string>
     <string name="skip_no_music_part">Teile ohne Musik überspringen</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Keine Antwort vom Server, prüfe deine Internetverbindung</string>
     <string name="save_last_played">Zuletzt gespielt speichern</string>
     <string name="save_last_played_track_and_queue">Zuletzt gespielten Song und Wiedergabeliste speichern</string>
     <string name="update_available">Neues Update verfügbar</string>

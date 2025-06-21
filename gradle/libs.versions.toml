@@ -1,25 +1,25 @@
 [versions]
 # App version
-version-name="0.2.16"
-version-code="34"
+version-name="0.2.17"
+version-code="35"
 
 android = "8.10.1"
 kotlin = "2.1.20"
 serialization = "2.1.20"
 ksp = "2.1.20-2.0.1"
-compose-bom = "2025.05.01"
+compose-bom = "2025.06.01"
 constraintlayout-compose = "1.1.1"
 activity-compose = "1.10.1"
-lifecycle-viewmodel-compose = "2.9.0"
-lifecycle-runtime-ktx = "2.9.0"
+lifecycle-viewmodel-compose = "2.9.1"
+lifecycle-runtime-ktx = "2.9.1"
 core-ktx = "1.16.0"
-appcompat = "1.7.0"
-work = "2.10.1"
+appcompat = "1.7.1"
+work = "2.10.2"
 material = "1.12.0"
 startup-runtime = "1.2.0"
-lifecycle-livedata-ktx = "2.9.0"
-lifecycle-viewmodel-ktx = "2.9.0"
-ui-tooling = "1.8.2"
+lifecycle-livedata-ktx = "2.9.1"
+lifecycle-viewmodel-ktx = "2.9.1"
+ui-tooling = "1.8.3"
 media3 = "1.7.1"
 okhttp3 = "4.12.0"
 palette-ktx = "1.0.0"
@@ -28,17 +28,17 @@ constraintlayout = "2.2.1"
 junit = "4.13.2"
 androidx-junit = "1.2.1"
 espresso-core = "3.6.1"
-room = "2.7.1"
+room = "2.7.2"
 legacy-support-v4 = "1.0.0"
-coroutines-android = "1.10.1"
-coroutines-guava = "1.10.1"
+coroutines-android = "1.10.2"
+coroutines-guava = "1.10.2"
 navigation = "2.9.0"
-gson = "2.12.1"
-coil3 = "3.1.0"
+gson = "2.13.1"
+coil3 = "3.2.0"
 kmpalette = "3.1.0"
 easypermissions = "3.0.0"
 preference-ktx = "1.2.1"
-fragment-ktx = "1.8.7"
+fragment-ktx = "1.8.8"
 datastore-preferences = "1.1.7"
 swiperefreshlayout = "1.2.0-beta01"
 insetter = "0.6.1"
@@ -59,13 +59,16 @@ desugaring = "2.1.5"
 koin-bom = "4.1.0-Beta11"
 md = "0.7.3"
 store = "5.1.0-alpha05"
-ui-text-android = "1.8.2"
+ui-text-android = "1.8.3"
 haze = "1.6.3"
 smart-exception = "0.2.1"
 onetimepassword = "2.4.1"
 common = "1.18.0"
 json = "1.8.1"
 gemini-kotlin = "4.0.2"
+slf4j = "1.7.36"
+sentry-android = "8.13.3"
+newpipe = "0.24.6"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -165,6 +168,8 @@ androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-andr
 kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword", version.ref = "onetimepassword" }
 common = { module = "commons-codec:commons-codec", version.ref = "common" }
 gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
+logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
+newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
@@ -172,6 +177,9 @@ koin-core = { module = "io.insert-koin:koin-core" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 koin-android = { module = "io.insert-koin:koin-android"}
 koin-workmanager = { module = "io.insert-koin:koin-androidx-workmanager" }
+
+#Sentry
+sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

@@ -363,7 +363,7 @@ fun PlaylistScreen(
                                                 text = data.title,
                                                 style = typo.titleLarge,
                                                 color = Color.White,
-                                                maxLines = 2
+                                                maxLines = 2,
                                             )
                                             Column(
                                                 modifier = Modifier.padding(vertical = 8.dp),
@@ -690,14 +690,15 @@ fun PlaylistScreen(
                                 text = data.title,
                                 style = typo.titleMedium,
                                 maxLines = 1,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(
-                                        align = Alignment.CenterVertically,
-                                    ).basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(
+                                            align = Alignment.CenterVertically,
+                                        ).basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
                             )
                         },
                         navigationIcon = {

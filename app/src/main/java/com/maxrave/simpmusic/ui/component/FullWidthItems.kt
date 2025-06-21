@@ -46,6 +46,7 @@ import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
@@ -330,13 +331,14 @@ fun PlaylistFullWidthItems(
         var secondSubtitle = ""
         var thirdRowSubtitle: String? = null
 
-        firstSubtitle = when (data.playlistType()) {
-            PlaylistType.Type.YOUTUBE_PLAYLIST -> stringResource(id = R.string.playlist)
-            PlaylistType.Type.RADIO -> stringResource(id = R.string.radio)
-            PlaylistType.Type.LOCAL -> stringResource(id = R.string.playlist)
-            PlaylistType.Type.ALBUM -> stringResource(id = R.string.album)
-            PlaylistType.Type.PODCAST -> stringResource(id = R.string.podcasts)
-        }
+        firstSubtitle =
+            when (data.playlistType()) {
+                PlaylistType.Type.YOUTUBE_PLAYLIST -> stringResource(id = R.string.playlist)
+                PlaylistType.Type.RADIO -> stringResource(id = R.string.radio)
+                PlaylistType.Type.LOCAL -> stringResource(id = R.string.playlist)
+                PlaylistType.Type.ALBUM -> stringResource(id = R.string.album)
+                PlaylistType.Type.PODCAST -> stringResource(id = R.string.podcasts)
+            }
         when (data) {
             is AlbumEntity -> {
                 title = data.title
@@ -365,11 +367,18 @@ fun PlaylistFullWidthItems(
                 secondSubtitle = data.artists.toListName().connectArtists()
                 thirdRowSubtitle = data.year
             }
+            is PodcastsEntity -> {
+                title = data.title
+                thumb = data.thumbnail ?: ""
+                secondSubtitle = data.authorName
+                thirdRowSubtitle = data.description
+            }
         }
         Row(
             Modifier
                 .padding(vertical = 10.dp, horizontal = 15.dp)
                 .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer(modifier = Modifier.width(10.dp))
             Box(modifier = Modifier.size(50.dp)) {
@@ -454,11 +463,12 @@ fun ArtistFullWidthItems(
     onClickListener: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val (name: String, thumbnails: String?) = when (data) {
-        is ArtistEntity -> Pair(data.name, data.thumbnails)
-        is ArtistsResult -> Pair(data.artist, data.thumbnails.lastOrNull()?.url)
-        else -> Pair("", null)
-    }
+    val (name: String, thumbnails: String?) =
+        when (data) {
+            is ArtistEntity -> Pair(data.name, data.thumbnails)
+            is ArtistsResult -> Pair(data.artist, data.thumbnails.lastOrNull()?.url)
+            else -> Pair("", null)
+        }
     Box(
         modifier
             .clickable {

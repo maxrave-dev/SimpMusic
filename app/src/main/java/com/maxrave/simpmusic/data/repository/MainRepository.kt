@@ -1,7 +1,7 @@
 package com.maxrave.simpmusic.data.repository
 
 import android.content.Context
-import android.provider.Settings.Secure
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.YouTube
@@ -28,8 +28,6 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistRadioEndpoint
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
 import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
-import com.maxrave.lyricsproviders.models.response.SearchMusixmatchResponse
-import com.maxrave.lyricsproviders.utils.CaptchaException
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -38,6 +36,7 @@ import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.EpisodeEntity
 import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -46,6 +45,8 @@ import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PodcastWithEpisodes
+import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
@@ -94,11 +95,11 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
-import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.isNetworkAvailable
 import com.maxrave.simpmusic.extension.toLibraryLyrics
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
+import com.maxrave.simpmusic.extension.toSongItemForDownload
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.utils.Resource
@@ -106,7 +107,6 @@ import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.spotify.Spotify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -122,12 +122,10 @@ import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import org.intellij.lang.annotations.Language
 import org.simpmusic.aiservice.AIHost
 import org.simpmusic.aiservice.AiClient
 import java.io.File
 import java.time.LocalDateTime
-import kotlin.collections.firstOrNull
 import kotlin.math.abs
 
 class MainRepository(
@@ -272,31 +270,34 @@ class MainRepository(
             val aiClientProviderJob =
                 launch {
                     dataStoreManager.aiProvider.collectLatest { provider ->
-                        aiClient.host = when (provider) {
-                            DataStoreManager.AI_PROVIDER_GEMINI -> AIHost.GEMINI
-                            DataStoreManager.AI_PROVIDER_OPENAI -> AIHost.OPENAI
-                            else -> AIHost.GEMINI // Default to Gemini if not set
-                        }
+                        aiClient.host =
+                            when (provider) {
+                                DataStoreManager.AI_PROVIDER_GEMINI -> AIHost.GEMINI
+                                DataStoreManager.AI_PROVIDER_OPENAI -> AIHost.OPENAI
+                                else -> AIHost.GEMINI // Default to Gemini if not set
+                            }
                     }
                 }
             val aiClientApiKeyJob =
                 launch {
                     dataStoreManager.aiApiKey.collectLatest { apiKey ->
-                        aiClient.apiKey = if (apiKey.isNotEmpty()) {
-                            apiKey
-                        } else {
-                            null
-                        }
+                        aiClient.apiKey =
+                            if (apiKey.isNotEmpty()) {
+                                apiKey
+                            } else {
+                                null
+                            }
                     }
                 }
             val aiCustomModelIdJob =
                 launch {
                     dataStoreManager.customModelId.collectLatest { modelId ->
-                        aiClient.customModelId = if (modelId.isNotEmpty()) {
-                            modelId
-                        } else {
-                            null
-                        }
+                        aiClient.customModelId =
+                            if (modelId.isNotEmpty()) {
+                                modelId
+                            } else {
+                                null
+                            }
                     }
                 }
 
@@ -334,9 +335,10 @@ class MainRepository(
             emit(localDataSource.getSearchHistory())
         }.flowOn(Dispatchers.IO)
 
-    suspend fun insertSearchHistory(searchHistory: SearchHistory): Flow<Long> = flow {
-        emit(localDataSource.insertSearchHistory(searchHistory))
-    }.flowOn(Dispatchers.IO)
+    suspend fun insertSearchHistory(searchHistory: SearchHistory): Flow<Long> =
+        flow {
+            emit(localDataSource.insertSearchHistory(searchHistory))
+        }.flowOn(Dispatchers.IO)
 
     suspend fun deleteSearchHistory() =
         withContext(Dispatchers.IO) {
@@ -769,10 +771,10 @@ class MainRepository(
         localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
     }
 
-    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) =
-        withContext(Dispatchers.IO) {
-            localDataSource.insertGoogleAccount(googleAccountEntity)
-        }
+    fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) =
+        flow {
+            emit(localDataSource.insertGoogleAccount(googleAccountEntity))
+        }.flowOn(Dispatchers.IO)
 
     suspend fun getGoogleAccounts(): Flow<List<GoogleAccountEntity>?> =
         flow<List<GoogleAccountEntity>?> { emit(localDataSource.getGoogleAccounts()) }.flowOn(
@@ -829,17 +831,19 @@ class MainRepository(
             localDataSource.deleteNotification(id)
         }
 
-    suspend fun insertTranslatedLyrics(
-        translatedLyrics: TranslatedLyricsEntity,
-    ) = withContext(Dispatchers.IO) {
-        localDataSource.insertTranslatedLyrics(translatedLyrics)
-    }
+    suspend fun insertTranslatedLyrics(translatedLyrics: TranslatedLyricsEntity) =
+        withContext(Dispatchers.IO) {
+            localDataSource.insertTranslatedLyrics(translatedLyrics)
+        }
 
-    fun getSavedTranslatedLyrics(videoId: String, language: String = "en"): Flow<TranslatedLyricsEntity?> =
-        flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
+    fun getSavedTranslatedLyrics(
+        videoId: String,
+        language: String = "en",
+    ): Flow<TranslatedLyricsEntity?> = flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
 
-    suspend fun getAccountInfo() =
+    fun getAccountInfo(cookie: String) =
         flow<AccountInfo?> {
+            youTube.cookie = cookie
             youTube
                 .accountInfo()
                 .onSuccess { accountInfo ->
@@ -848,6 +852,68 @@ class MainRepository(
                     it.printStackTrace()
                     emit(null)
                 }
+        }.flowOn(Dispatchers.IO)
+
+    fun insertPodcast(podcastsEntity: PodcastsEntity) =
+        flow {
+            emit(localDataSource.insertPodcast(podcastsEntity))
+        }.flowOn(Dispatchers.IO)
+
+    fun insertEpisodes(episodes: List<EpisodeEntity>) =
+        flow {
+            emit(localDataSource.insertEpisodes(episodes))
+        }.flowOn(Dispatchers.IO)
+
+    fun getPodcastWithEpisodes(podcastId: String): Flow<PodcastWithEpisodes?> =
+        flow {
+            emit(localDataSource.getPodcastWithEpisodes(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun getAllPodcasts(): Flow<List<PodcastsEntity>> =
+        flow {
+            emit(localDataSource.getAllPodcasts())
+        }.flowOn(Dispatchers.IO)
+
+    fun getAllPodcastWithEpisodes(): Flow<List<PodcastWithEpisodes>> =
+        flow {
+            emit(localDataSource.getAllPodcastWithEpisodes())
+        }.flowOn(Dispatchers.IO)
+
+    fun getPodcast(podcastId: String): Flow<PodcastsEntity?> =
+        flow {
+            emit(localDataSource.getPodcast(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun getEpisode(videoId: String): Flow<EpisodeEntity?> =
+        flow {
+            emit(localDataSource.getEpisode(videoId))
+        }.flowOn(Dispatchers.IO)
+
+    fun deletePodcast(podcastId: String) =
+        flow {
+            emit(localDataSource.deletePodcast(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun favoritePodcast(
+        podcastId: String,
+        favorite: Boolean,
+    ) = flow {
+        emit(localDataSource.favoritePodcast(podcastId, favorite))
+    }.flowOn(Dispatchers.IO)
+
+    fun getPodcastEpisodes(podcastId: String): Flow<List<EpisodeEntity>> =
+        flow {
+            emit(localDataSource.getPodcastEpisodes(podcastId))
+        }.flowOn(Dispatchers.IO)
+
+    fun getFavoritePodcasts(): Flow<List<PodcastsEntity>> =
+        flow {
+            emit(localDataSource.getFavoritePodcasts())
+        }.flowOn(Dispatchers.IO)
+
+    fun updatePodcastInLibraryNow(id: String) =
+        flow {
+            emit(localDataSource.updatePodcastInLibraryNow(id))
         }.flowOn(Dispatchers.IO)
 
     suspend fun getHomeData(params: String? = null): Flow<Resource<ArrayList<HomeItem>>> =
@@ -1879,9 +1945,9 @@ class MainRepository(
                                         Pair(
                                             playlist.copy(
                                                 tracks =
-                                                playlist.tracks.toMutableList().apply {
-                                                    addAll(listContent)
-                                                },
+                                                    playlist.tracks.toMutableList().apply {
+                                                        addAll(listContent)
+                                                    },
                                                 trackCount = (playlist.trackCount + listContent.size),
                                                 shuffleEndpoint = shuffleEndpoint,
                                                 radioEndpoint = radioEndpoint,
@@ -1893,14 +1959,14 @@ class MainRepository(
                             } ?: emit(
                                 Resource.Error<
                                     Pair<PlaylistBrowse, String?>,
-                                    >("Error"),
+                                >("Error"),
                             )
                         } catch (e: Exception) {
                             e.printStackTrace()
                             emit(
                                 Resource.Error<
                                     Pair<PlaylistBrowse, String?>,
-                                    >(e.message.toString()),
+                                >(e.message.toString()),
                             )
                         }
                     }.onFailure { e ->
@@ -2209,15 +2275,9 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getSuggestQuery(query: String): Flow<Resource<SearchSuggestions>> =
+    fun getSuggestQuery(query: String): Flow<Resource<SearchSuggestions>> =
         flow {
             runCatching {
-//            youTube.getSuggestQuery(query).onSuccess {
-//                emit(Resource.Success<ArrayList<String>>(it))
-//            }.onFailure { e ->
-//                Log.d("Suggest", "Error: ${e.message}")
-//                emit(Resource.Error<ArrayList<String>>(e.message.toString()))
-//            }
                 youTube
                     .getYTMusicSearchSuggestions(query)
                     .onSuccess {
@@ -2304,7 +2364,7 @@ class MainRepository(
                     var spotifyPersonalToken = ""
                     var spotifyClientToken = ""
                     Log.w("Lyrics", "getSpotifyLyrics: ${dataStoreManager.spotifyPersonalTokenExpires.first()}")
-                    Log.w("Lyrics",  "getSpotifyLyrics ${dataStoreManager.spotifyClientTokenExpires.first()}")
+                    Log.w("Lyrics", "getSpotifyLyrics ${dataStoreManager.spotifyClientTokenExpires.first()}")
                     Log.w("Lyrics", "getSpotifyLyrics now: ${System.currentTimeMillis()}")
                     if (dataStoreManager.spotifyPersonalToken
                             .first()
@@ -2536,6 +2596,7 @@ class MainRepository(
         duration: Int? = null,
     ): Flow<Resource<Lyrics>> =
         flow {
+            Log.w("Lyrics", "getLrclibLyricsData: $sartist $strack $duration")
             val qartist =
                 sartist
                     .replace(
@@ -2571,356 +2632,68 @@ class MainRepository(
     fun getLyricsDataMacro(
         sartist: String,
         strack: String,
-        duration: Int
-    ): Flow<Pair<String, Resource<Lyrics>>> = flow {
-        val qartist =
-            sartist
-                .replace(
-                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                    " ",
-                ).replace(
-                    Regex("( và | & | и | e | und |, |和| dan)"),
-                    " ",
-                ).replace("  ", " ")
-                .replace(Regex("([()])"), "")
-                .replace(".", " ")
-        val qtrack =
-            strack
-                .replace(
-                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                    " ",
-                ).replace(
-                    Regex("( và | & | и | e | und |, |和| dan)"),
-                    " ",
-                ).replace("  ", " ")
-                .replace(Regex("([()])"), "")
-                .replace(".", " ")
-        val tag = "Lyrics"
-        Log.d(tag, "query: $qtrack $qartist")
-        lyricsClient.configGet().onSuccess {
-            Log.d(tag, "configGet: ${it}")
-        }.onFailure { throwable ->
-            Log.e(tag, "configGet Error: ${throwable.message}")
-        }
-        lyricsClient.userGet().onSuccess {
-            Log.d(tag, "userGet: ${it}")
-        }.onFailure { throwable ->
-            Log.e(tag, "userGet Error: ${throwable.message}")
-        }
-        lyricsClient.macroSearch(
-            q_track = qtrack,
-            q_artist = qartist,
-            duration = duration,
-            userToken = dataStoreManager.musixmatchUserToken.first()
-        ).onSuccess { res ->
-            if (res != null) {
-                Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
-                emit(
-                    res.first.toString() to Resource.Success(res.second.toLyrics())
-                )
-            } else {
-                Log.w(tag, "Error: Lỗi getLyrics $res")
-                emit("" to Resource.Error<Lyrics>("Not found"))
-            }
-        }.onFailure {
-            emit(
-                "" to Resource.Error<Lyrics>("Not found")
-            )
-        }
-    }.flowOn(Dispatchers.IO)
-
-    fun getLyricsData(
-        sartist: String,
-        strack: String,
-        durationInt: Int? = null,
+        duration: Int,
     ): Flow<Pair<String, Resource<Lyrics>>> =
         flow {
-            runCatching {
-                val tag = "Lyrics"
-//            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
-//                .replace("  ", " ")
-                val qartist =
-                    sartist
-                        .replace(
-                            Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                            " ",
-                        ).replace(
-                            Regex("( và | & | и | e | und |, |和| dan)"),
-                            " ",
-                        ).replace("  ", " ")
-                        .replace(Regex("([()])"), "")
-                        .replace(".", " ")
-                val qtrack =
-                    strack
-                        .replace(
-                            Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                            " ",
-                        ).replace(
-                            Regex("( và | & | и | e | und |, |和| dan)"),
-                            " ",
-                        ).replace("  ", " ")
-                        .replace(Regex("([()])"), "")
-                        .replace(".", " ")
-                val q = "$qtrack $qartist"
-                Log.d(tag, "query: $q")
-                var musixMatchUserToken = lyricsClient.musixmatchUserToken
-                lyricsClient.configGet().onSuccess {
-                    Log.d(tag, "configGet: ${it}")
+            val qartist =
+                sartist
+                    .replace(
+                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                        " ",
+                    ).replace(
+                        Regex("( và | & | и | e | und |, |和| dan)"),
+                        " ",
+                    ).replace("  ", " ")
+                    .replace(Regex("([()])"), "")
+                    .replace(".", " ")
+            val qtrack =
+                strack
+                    .replace(
+                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                        " ",
+                    ).replace(
+                        Regex("( và | & | и | e | und |, |和| dan)"),
+                        " ",
+                    ).replace("  ", " ")
+                    .replace(Regex("([()])"), "")
+                    .replace(".", " ")
+            val tag = "Lyrics"
+            Log.d(tag, "query: $qtrack $qartist")
+            lyricsClient
+                .configGet()
+                .onSuccess {
+                    Log.d(tag, "configGet: $it")
                 }.onFailure { throwable ->
                     Log.e(tag, "configGet Error: ${throwable.message}")
                 }
-                lyricsClient.userGet().onSuccess {
-                    Log.d(tag, "userGet: ${it}")
+            lyricsClient
+                .userGet()
+                .onSuccess {
+                    Log.d(tag, "userGet: $it")
                 }.onFailure { throwable ->
                     Log.e(tag, "userGet Error: ${throwable.message}")
                 }
-                if (musixMatchUserToken == null) {
-                    lyricsClient
-                        .getMusixmatchUserToken()
-                        .onSuccess { usertoken ->
-                            lyricsClient.musixmatchUserToken = usertoken.message.body.user_token
-                            Log.d(tag, "musixMatchUserToken: ${usertoken.message.body.user_token}")
-                            musixMatchUserToken = usertoken.message.body.user_token
-                        }.onFailure { throwable ->
-                            Log.e(tag, throwable.message.toString())
-                            emit(Pair("", Resource.Error<Lyrics>("Not found")))
-                        }
-                }
-                lyricsClient
-                    .searchMusixmatchTrackId(q, musixMatchUserToken!!)
-                    .onSuccess { searchResult ->
-                        Log.d(
-                            tag,
-                            "searchResult: ${
-                                searchResult.message.body.track_list?.map {
-                                    it.track.track_name + " " + it.track.artist_name
-                                }
-                            }",
+            lyricsClient
+                .macroSearch(
+                    q_track = qtrack,
+                    q_artist = qartist,
+                    duration = duration,
+                    userToken = dataStoreManager.musixmatchUserToken.first(),
+                ).onSuccess { res ->
+                    if (res != null) {
+                        Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
+                        emit(
+                            res.first.toString() to Resource.Success(res.second.toLyrics()),
                         )
-                        val trackList =
-                            if (!searchResult.message.body.track_list
-                                    .isNullOrEmpty()
-                            ) {
-                                searchResult.message.body.track_list
-                            } else {
-                                searchResult.message.body.macro_result_list
-                                    ?.track_list
-                            }
-                        if (!trackList.isNullOrEmpty()) {
-                            Log.d(
-                                tag,
-                                "trackList: ${
-                                    trackList.map {
-                                        it.track.track_name + " " + it.track.artist_name
-                                    }
-                                }",
-                            )
-                            val list = arrayListOf<String>()
-                            for (i in trackList) {
-                                list.add(i.track.track_name + " " + i.track.artist_name)
-                            }
-                            var id = ""
-                            var track: SearchMusixmatchResponse.Message.Body.Track.TrackX? = null
-                            Log.d(tag, "duration: $durationInt")
-                            val bestMatchingIndex = bestMatchingIndex(q, list)
-                            if (bestMatchingIndex != null) {
-                                if (durationInt != null && durationInt != 0) {
-                                    val trackLengthList = arrayListOf<Int>()
-                                    for (i in trackList) {
-                                        trackLengthList.add(i.track.track_length)
-                                    }
-                                    val closestIndex =
-                                        trackLengthList.minByOrNull {
-                                            abs(
-                                                it - durationInt,
-                                            )
-                                        }
-                                    if (closestIndex != null &&
-                                        abs(
-                                            closestIndex - durationInt,
-                                        ) < 2
-                                    ) {
-                                        id +=
-                                            trackList
-                                                .find {
-                                                    it.track.track_length == closestIndex
-                                                }?.track
-                                                ?.track_id
-                                                .toString()
-                                        track =
-                                            trackList.find { it.track.track_length == closestIndex }?.track
-                                    }
-                                    if (id == "" &&
-                                        list.get(bestMatchingIndex).contains(
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                        ) &&
-                                        q.contains(
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                        )
-                                    ) {
-                                        Log.w(
-                                            "Lyrics",
-                                            "item: ${
-                                                trackList.get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name
-                                            }",
-                                        )
-                                        id +=
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_id
-                                                .toString()
-                                        track =
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track
-                                    }
-                                } else if (list
-                                        .get(bestMatchingIndex)
-                                        .contains(
-                                            trackList
-                                                .get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                        ) &&
-                                    q.contains(
-                                        trackList
-                                            .get(
-                                                bestMatchingIndex,
-                                            ).track.track_name,
-                                    )
-                                ) {
-                                    Log.w(
-                                        "Lyrics",
-                                        "item: ${
-                                            trackList.get(
-                                                bestMatchingIndex,
-                                            ).track.track_name
-                                        }",
-                                    )
-                                    id +=
-                                        trackList
-                                            .get(
-                                                bestMatchingIndex,
-                                            ).track.track_id
-                                            .toString()
-                                    track =
-                                        trackList
-                                            .get(
-                                                bestMatchingIndex,
-                                            ).track
-                                }
-                            }
-                            Log.d(tag, "id: $id")
-                            Log.w(
-                                tag,
-                                "item lyrics $track",
-                            )
-                            if (id != "" && track != null) {
-                                delay(1000)
-                                lyricsClient
-                                    .getMusixmatchLyricsByQ(track, musixMatchUserToken!!)
-                                    .onSuccess {
-                                        if (it != null) {
-                                            emit(
-                                                Pair(
-                                                    id,
-                                                    Resource.Success<Lyrics>(it.toLyrics()),
-                                                ),
-                                            )
-                                        } else {
-                                            Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                            emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                        }
-                                    }.onFailure { throwable ->
-                                        throwable.printStackTrace()
-                                        emit("" to Resource.Error<Lyrics>("Not found"))
-                                    }
-                            } else {
-                                lyricsClient
-                                    .fixSearchMusixmatch(
-                                        q_artist = qartist,
-                                        q_track = qtrack,
-                                        q_duration = (durationInt ?: 0).toString(),
-                                        userToken = musixMatchUserToken!!,
-                                    ).onSuccess {
-                                        val trackX = it.message.body.track
-                                        Log.w(tag, "Fix Search Musixmatch: $trackX")
-                                        if (trackX != null && (abs(trackX.track_length - (durationInt ?: 0)) <= 10)) {
-                                            delay(1000)
-                                            lyricsClient
-                                                .getMusixmatchLyricsByQ(trackX, musixMatchUserToken!!)
-                                                .onSuccess {
-                                                    Log.w(tag, "Item lyrics ${it?.lyrics?.syncType}")
-                                                    if (it != null) {
-                                                        emit(
-                                                            Pair(
-                                                                trackX.track_id.toString(),
-                                                                Resource.Success<Lyrics>(it.toLyrics()),
-                                                            ),
-                                                        )
-                                                    } else {
-                                                        Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                                    }
-                                                }.onFailure {
-                                                    it.printStackTrace()
-                                                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-                                                }
-                                        } else {
-                                            emit("" to Resource.Error<Lyrics>("Not found"))
-                                        }
-                                    }.onFailure {
-                                        Log.e(tag, "Fix musixmatch search" + it.message.toString())
-
-                                    }
-                            }
-                        } else {
-                            emit(Pair("", Resource.Error<Lyrics>("Not found")))
-                        }
-                    }.onFailure { throwable ->
-                        throwable.printStackTrace()
-                        /**
-                         * I can not handle the 401 captcha error right now, hope I can do it later
-                         */
-//                        if (throwable is CaptchaException) {
-//                            Log.w(tag, "CaptchaException: ${throwable.message}")
-//                            emit("" to Resource.Success<Lyrics>(
-//                                Lyrics(true, null, null, true)
-//                            ))
-//                        }
-                        lyricsClient.macroSubtitle(
-                            q_track = qtrack,
-                            q_artist = qartist,
-                            userToken = musixMatchUserToken,
-                        ).onSuccess {
-                            Log.w(tag, "Macro subtitle Item lyrics ${it?.second?.lyrics?.syncType}")
-                            if (it != null) {
-                                emit(
-                                    Pair(
-                                        it.first.toString(),
-                                        Resource.Success<Lyrics>(it.second.toLyrics()),
-                                    ),
-                                )
-                            } else {
-                                Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                emit(Pair("", Resource.Error<Lyrics>("Not found")))
-                            }
-                        }.onFailure {
-                            Log.e(tag, "Error: ${it.message}")
-                            emit("" to Resource.Error<Lyrics>("Not found"))
-                        }
+                    } else {
+                        Log.w(tag, "Error: Lỗi getLyrics $res")
+                        emit("" to Resource.Error<Lyrics>("Not found"))
                     }
-            }
+                }.onFailure {
+                    emit(
+                        "" to Resource.Error<Lyrics>("Not found"),
+                    )
+                }
         }.flowOn(Dispatchers.IO)
 
     fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =
@@ -2963,7 +2736,7 @@ class MainRepository(
         }.flowOn(Dispatchers.IO)
 
     @UnstableApi
-    suspend fun getSongInfo(videoId: String): Flow<SongInfoEntity?> =
+    fun getSongInfo(videoId: String): Flow<SongInfoEntity?> =
         flow {
             runCatching {
                 val id =
@@ -3091,14 +2864,16 @@ class MainRepository(
                     )
 
                     Log.w("Stream", "Get stream for video $isVideo")
-                    val videoFormat = response.streamingData?.formats?.find { it.itag == videoItag }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
-                        ?: response.streamingData?.formats?.find { it.itag == 136 }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
-                        ?: response.streamingData?.formats?.find { it.itag == 134 }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
-                    val audioFormat = response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
-                        ?: response.streamingData?.adaptiveFormats?.find { it.itag == itag }
+                    val videoFormat =
+                        response.streamingData?.formats?.find { it.itag == videoItag }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
+                            ?: response.streamingData?.formats?.find { it.itag == 136 }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
+                            ?: response.streamingData?.formats?.find { it.itag == 134 }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
+                    val audioFormat =
+                        response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
+                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == itag }
                     var format =
                         if (isVideo) {
                             videoFormat
@@ -3109,11 +2884,12 @@ class MainRepository(
                         format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
                     }
                     val superFormat =
-                        response.streamingData?.let { streamData ->
-                            streamData.adaptiveFormats.apply {
-                                plus(streamData.formats)
-                            }
-                        }?.filter {
+                        response.streamingData
+                            ?.let { streamData ->
+                                streamData.adaptiveFormats.apply {
+                                    plus(streamData.formats)
+                                }
+                            }?.filter {
                                 it.audioQuality == "AUDIO_QUALITY_HIGH"
                             }?.let { highFormat ->
                                 highFormat.firstOrNull {
@@ -3171,7 +2947,7 @@ class MainRepository(
                                 cpn = data.first,
                                 expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
                                 audioUrl = superFormat?.url ?: audioFormat?.url,
-                                videoUrl = videoFormat?.url
+                                videoUrl = videoFormat?.url,
                             ),
                         )
                     }
@@ -3487,12 +3263,12 @@ class MainRepository(
         }.flowOn(Dispatchers.IO)
 
     fun downloadToFile(
+        track: Track,
         path: String,
+        bitmap: Bitmap,
         videoId: String,
         isVideo: Boolean,
-    ): Flow<DownloadProgress> = youTube.download(path, videoId, isVideo)
+    ): Flow<DownloadProgress> = youTube.download(track.toSongItemForDownload(), path, bitmap, videoId, isVideo)
 
-    fun is403Url(
-        url: String
-    ) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
+    fun is403Url(url: String) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
 }

@@ -1,5 +1,7 @@
 import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+import java.util.Properties
 
+val isFullBuild: Boolean by rootProject.extra
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,8 +20,10 @@ kotlin {
 }
 
 android {
+    val abis = arrayOf("armeabi-v7a", "arm64-v8a", "x86_64")
+
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 35
+    compileSdk = 36
 
     room {
         schemaDirectory("$projectDir/schemas")
@@ -28,7 +32,7 @@ android {
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode =
             libs.versions.version.code
                 .get()
@@ -67,10 +71,31 @@ android {
                     "ko",
                     "ca",
                     "fa",
-                    "bg"
+                    "bg",
                 )
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        if (isFullBuild) {
+            val properties = Properties()
+            properties.load(rootProject.file("local.properties").inputStream())
+            buildConfigField(
+                "String",
+                "SENTRY_DSN",
+                "\"${properties.getProperty("SENTRY_DSN") ?: ""}\"",
+            )
+        }
+    }
+
+    flavorDimensions += "app"
+
+    productFlavors {
+        create("foss") {
+            dimension = "app"
+        }
+        create("full") {
+            dimension = "app"
+        }
     }
 
     buildTypes {
@@ -86,7 +111,7 @@ android {
                     isEnable = true
                     reset()
                     isUniversalApk = true
-                    include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+                    include(*abis)
                 }
             }
         }
@@ -112,6 +137,7 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -126,82 +152,14 @@ android {
                 "META-INF/notice.txt",
                 "META-INF/ASL2.0",
                 "META-INF/asm-license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
                 "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice",
-                "META-INF/ASL2.0",
                 "META-INF/*.kotlin_module",
             )
     }
 }
 
 dependencies {
+    val fullImplementation = "fullImplementation"
 
     implementation(project(":lyricsProviders"))
     // Compose
@@ -238,6 +196,7 @@ dependencies {
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation(project(mapOf("path" to ":spotify")))
     implementation(project(mapOf("path" to ":aiService")))
+    implementation(project(mapOf("path" to ":sharedutils")))
 
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -346,6 +305,8 @@ dependencies {
     // Blur Haze
     implementation(libs.haze)
     implementation(libs.haze.material)
+
+    fullImplementation(libs.sentry.android)
 }
 aboutLibraries {
     prettyPrint = true

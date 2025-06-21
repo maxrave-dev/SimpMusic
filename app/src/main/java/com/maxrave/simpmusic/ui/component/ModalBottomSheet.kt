@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -89,6 +90,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -109,7 +111,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -347,8 +348,7 @@ fun InfoPlayerBottomSheet(
                                         .basicMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        )
-                                        .focusable(),
+                                        ).focusable(),
                             )
                         }
                     },
@@ -393,8 +393,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -418,8 +417,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -443,8 +441,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -468,8 +465,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -493,8 +489,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -518,8 +513,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -543,8 +537,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -568,8 +561,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     maxLines = 1,
@@ -598,8 +590,7 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable()
+                            ).focusable()
                             .padding(horizontal = 10.dp),
                     style = typo.bodyMedium,
                     textAlign = TextAlign.Center,
@@ -651,14 +642,16 @@ fun InfoPlayerBottomSheet(
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable(),
+                            ).focusable(),
                     style = typo.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
                 OutlinedButton(
+                    enabled = screenDataState.bitmap != null,
                     onClick = {
-                        sharedViewModel.downloadFile()
+                        sharedViewModel.downloadFile(
+                            bitmap = screenDataState.bitmap?.asAndroidBitmap() ?: return@OutlinedButton,
+                        )
                     },
                     modifier =
                         Modifier
@@ -666,7 +659,7 @@ fun InfoPlayerBottomSheet(
                             .align(Alignment.CenterHorizontally)
                             .padding(vertical = 10.dp),
                 ) {
-                    Text(text = "Download this song/video file to your device")
+                    Text(text = stringResource(R.string.download_this_song_video_file_to_your_device))
                 }
                 Spacer(modifier = Modifier.height(10.dp))
 
@@ -820,8 +813,7 @@ fun QueueBottomSheet(
                                         .basicMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        )
-                                        .focusable(),
+                                        ).focusable(),
                             )
                         }
                     },
@@ -1052,16 +1044,16 @@ fun QueueItemBottomSheet(
                     val canMoveUp =
                         index > 0 &&
                             index < (
-                            musicServiceHandler.queueData.value
-                                ?.listTracks
-                                ?.size ?: 0
+                                musicServiceHandler.queueData.value
+                                    ?.listTracks
+                                    ?.size ?: 0
                             )
                     val canMoveDown =
                         index >= 0 &&
                             index < (
-                            musicServiceHandler.queueData.value
-                                ?.listTracks
-                                ?.size ?: 0
+                                musicServiceHandler.queueData.value
+                                    ?.listTracks
+                                    ?.size ?: 0
                             ) - 1
                     items(listAction) { action ->
                         val disable =
@@ -1459,8 +1451,7 @@ fun NowPlayingBottomSheet(
                                     .align(Alignment.CenterVertically)
                                     .clip(
                                         RoundedCornerShape(10.dp),
-                                    )
-                                    .size(60.dp),
+                                    ).size(60.dp),
                         )
                         Spacer(modifier = Modifier.width(20.dp))
                         Column(
@@ -1475,8 +1466,7 @@ fun NowPlayingBottomSheet(
                                         .wrapContentHeight(Alignment.CenterVertically)
                                         .basicMarquee(
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        )
-                                        .focusable(),
+                                        ).focusable(),
                             )
                             Text(
                                 text =
@@ -1490,8 +1480,7 @@ fun NowPlayingBottomSheet(
                                         .wrapContentHeight(Alignment.CenterVertically)
                                         .basicMarquee(
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        )
-                                        .focusable(),
+                                        ).focusable(),
                             )
                         }
                     }
@@ -1698,8 +1687,7 @@ fun ActionButton(
                     Modifier
                         .wrapContentSize(
                             Alignment.Center,
-                        )
-                        .padding(12.dp),
+                        ).padding(12.dp),
                 colorFilter =
                     if (enable) {
                         ColorFilter.tint(iconColor)
@@ -1777,8 +1765,7 @@ fun HeartCheckBox(
                 .size(size.dp)
                 .clip(
                     CircleShape,
-                )
-                .clickable {
+                ).clickable {
                     onStateChange?.invoke()
                 },
     ) {
@@ -2546,18 +2533,19 @@ fun LocalPlaylistBottomSheet(
 fun SortPlaylistBottomSheet(
     selectedState: FilterState,
     onDismiss: () -> Unit,
-    onSortChanged: (FilterState) -> Unit
+    onSortChanged: (FilterState) -> Unit,
 ) {
     val modelBottomSheetState =
         rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val filterOptions = remember {
-        listOf(
-            FilterState.NewerFirst,
-            FilterState.OlderFirst,
-            FilterState.Title,
-        )
-    }
+    val filterOptions =
+        remember {
+            listOf(
+                FilterState.NewerFirst,
+                FilterState.OlderFirst,
+                FilterState.Title,
+            )
+        }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2595,9 +2583,10 @@ fun SortPlaylistBottomSheet(
                     stringResource(R.string.sort_by),
                     style = typo.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 16.dp, bottom = 24.dp)
-                        .align(Alignment.Start),
+                    modifier =
+                        Modifier
+                            .padding(start = 16.dp, top = 16.dp, bottom = 24.dp)
+                            .align(Alignment.Start),
                 )
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp),
@@ -2610,8 +2599,7 @@ fun SortPlaylistBottomSheet(
                                 .clickable {
                                     onSortChanged(filterOption)
                                     onDismiss()
-                                }
-                                .fillMaxWidth(),
+                                }.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
@@ -2633,7 +2621,6 @@ fun SortPlaylistBottomSheet(
                             }
                         }
                     }
-
                 }
                 EndOfModalBottomSheet()
             }
@@ -2641,6 +2628,95 @@ fun SortPlaylistBottomSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DevLogInBottomSheet(
+    onDismiss: () -> Unit,
+    type: DevLogInType,
+    onDone: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+
+    var value by rememberSaveable { mutableStateOf("") }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = type.getTitle(context), style = typo.labelSmall)
+                Spacer(modifier = Modifier.height(5.dp))
+                OutlinedTextField(
+                    value = value,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                    onValueChange = { value = it },
+                    maxLines = 1,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                TextButton(
+                    onClick = {
+                        if (value.isNotEmpty() && value.isNotBlank()) {
+                            Toast
+                                .makeText(
+                                    context,
+                                    context.getString(R.string.processing),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            onDismiss()
+                            onDone(value)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.can_not_be_empty), Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                ) {
+                    Text(text = stringResource(R.string.set), style = typo.labelSmall)
+                }
+                Spacer(modifier = Modifier.height(5.dp))
+                EndOfModalBottomSheet()
+            }
+        }
+    }
+}
 
 @Composable
 fun EndOfModalBottomSheet() {
@@ -2657,4 +2733,16 @@ fun EndOfModalBottomSheet() {
                         .dp + 8.dp,
                 ),
     ) {}
+}
+
+sealed class DevLogInType {
+    data object Spotify : DevLogInType()
+
+    data object YouTube : DevLogInType()
+
+    fun getTitle(context: Context): String =
+        when (this) {
+            is Spotify -> context.getString(R.string.your_sp_dc_param_of_spotify_cookie)
+            is YouTube -> context.getString(R.string.your_youtube_cookie)
+        }
 }

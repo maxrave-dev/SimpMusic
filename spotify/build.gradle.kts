@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.maxrave.spotify"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -42,76 +42,7 @@ android {
                 "META-INF/notice.txt",
                 "META-INF/ASL2.0",
                 "META-INF/asm-license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
                 "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/LICENSE",
-                "META-INF/notice",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE.txt",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/notice",
-                "META-INF/ASL2.0",
                 "META-INF/*.kotlin_module",
             )
     }
@@ -150,6 +81,8 @@ dependencies {
 
     implementation(libs.kotlin.onetimepassword)
     implementation(libs.common)
+
+    implementation(libs.logging)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

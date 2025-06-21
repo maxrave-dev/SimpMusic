@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">Đăng nhập vào YouTube</string>
     <string name="log_in_to_get_personally_data">Đăng nhập để cá nhân hoá nguồn dữ liệu</string>
     <string name="login_success">Đăng nhập thành công</string>
+    <string name="login_failed">Đăng nhập thất bại</string>
     <string name="log_out">Đăng xuất khỏi YouTube</string>
     <string name="logged_in">Đã đăng nhập</string>
     <string name="logged_out">Đăng xuất thành công</string>
@@ -169,7 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">Lưu chế độ trộn và phát lại</string>
     <string name="skip_silent">Bỏ qua im lặng</string>
     <string name="skip_no_music_part">Bỏ qua phần không có nhạc</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet (%1$d)</string>
     <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
     <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
     <string name="update_available">Phiên bản mới có sẵn</string>
@@ -246,7 +247,9 @@
     <string name="only_support_email_and_password_type">Chỉ hỗ trợ đăng nhập bằng email và mật khẩu</string>
     <string name="musixmatch_login_description">Musixmatch Dịch API chỉ hoạt động cho người dùng đã đăng nhập. Thêm thông tin về Musixmatch Developer API, đi tới https://github.com/maxrave-dev/SimpMusic hoặc https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Sử dụng hệ thống dịch của Musixmatch</string>
+    <string name="use_ai_translation">Sử dụng AI để dịch lời bài hát</string>
     <string name="use_musixmatch_translation_description">Bật dịch bài hát sử dụng Musixmatch. Yêu cầu đăng nhập</string>
+    <string name="use_ai_translation_description">Bật tính năng dịch lời bài hát bằng AI. Tắt dịch vụ dịch của Musixmatch để sử dụng</string>
     <string name="translation_language">Ngôn ngữ dịch</string>
     <string name="follow_app_language">Theo ngôn ngữ của ứng dụng</string>
     <string name="email">Email</string>
@@ -413,4 +416,22 @@
     <string name="data_sync_id_retrieved">Đã lấy dữ liệu dataSyncId</string>
     <string name="retrieve_youtube_data">Lấy dữ liệu từ YouTube</string>
     <string name="no_results_found">Không tìm thấy kết quả</string>
+    <string name="ai">AI</string>
+    <string name="ai_provider">Nhà cung cấp AI</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="ai_api_key">Khóa API của AI</string>
+    <string name="invalid_api_key">Khóa API không hợp lệ</string>
+    <string name="custom_ai_model_id">Tùy chỉnh ID của mô hình AI</string>
+    <string name="default_models">Các mô hình mặc định là “gemini-2.0-flash-lite” và “gpt-4o”</string>
+    <string name="invalid">Không hợp lệ</string>
+    <string name="custom_model_id_messages">Vui lòng nhập chính xác ID mô hình từ nhà cung cấp AI của bạn.</string>
+    <string name="favorite_podcasts">Podcasts yêu thích</string>
+    <string name="no_favorite_podcasts">Không có podcast yêu thích nào</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">Tham số sp_dc trong cookie của Spotify</string>
+    <string name="your_youtube_cookie">Cookie của YouTube</string>
+    <string name="can_not_be_empty">Không được để trống</string>
+    <string name="processing">Đang xử lý</string>
+    <string name="website">Trang web</string>
+    <string name="download_this_song_video_file_to_your_device">Tải xuống bài hát/video này về thiết bị của bạn</string>
 </resources>

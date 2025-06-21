@@ -169,7 +169,6 @@
     <string name="save_shuffle_and_repeat_mode">Qarışdır və təkrarla rejimin saxla</string>
     <string name="skip_silent">Səssizliyi Ötür</string>
     <string name="skip_no_music_part">Musiqisiz hissəni ötür</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Vaxt bitdi, internet bağlantısın yoxla</string>
     <string name="save_last_played">Son Oynadılanı Saxla</string>
     <string name="save_last_played_track_and_queue">Son səslənən axını və növbəni saxla</string>
     <string name="update_available">Yeni quraşdırma mövcuddur</string>

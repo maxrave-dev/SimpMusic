@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -27,6 +26,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
@@ -62,8 +62,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.compose.koinInject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import pub.devrel.easypermissions.EasyPermissions
@@ -351,8 +349,6 @@ class MainActivity : AppCompatActivity() {
                     listOf(
                         "NowPlayingFragment",
                         "FullscreenFragment",
-                        "InfoFragment",
-                        "QueueFragment",
                         "SpotifyLogInFragment",
                         "fragment_log_in",
                         "MusixmatchFragment",
@@ -431,7 +427,7 @@ class MainActivity : AppCompatActivity() {
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
-                                if (data == Uri.parse("simpmusic://notification")) {
+                                if (data == "simpmusic://notification".toUri()) {
                                     viewModel.intent.value = null
                                     navController.navigateSafe(
                                         R.id.action_global_notificationFragment,
@@ -552,8 +548,6 @@ class MainActivity : AppCompatActivity() {
                                     listOf(
                                         "NowPlayingFragment",
                                         "FullscreenFragment",
-                                        "InfoFragment",
-                                        "QueueFragment",
                                         "SpotifyLogInFragment",
                                         "fragment_log_in",
                                         "MusixmatchFragment",
@@ -618,24 +612,25 @@ class MainActivity : AppCompatActivity() {
                                     }
                             } else if (it == DataStoreManager.FALSE) {
                                 binding.bottomNavigationView.background =
-                                    ColorDrawable(ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null))
+                                    ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null).toDrawable()
                             }
                         }
                     }
                 }
 
-            val musixmatchCaptchaJob = launch {
-                viewModel.showMusixmatchCaptchaWebView.collectLatest {
-                    if (it) {
-                        navController.navigateSafe(
-                            R.id.bottom_navigation_item_home,
-                            Bundle().apply {
-                                putString("dialog", "musixmatchCaptcha")
-                            },
-                        )
+            val musixmatchCaptchaJob =
+                launch {
+                    viewModel.showMusixmatchCaptchaWebView.collectLatest {
+                        if (it) {
+                            navController.navigateSafe(
+                                R.id.bottom_navigation_item_home,
+                                Bundle().apply {
+                                    putString("dialog", "musixmatchCaptcha")
+                                },
+                            )
+                        }
                     }
                 }
-            }
 
             miniplayerJob.join()
             showHideJob.join()
@@ -785,7 +780,10 @@ class MainActivity : AppCompatActivity() {
                                 val browserIntent =
                                     Intent(
                                         Intent.ACTION_VIEW,
-                                        Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
+                                        response.assets
+                                            ?.firstOrNull()
+                                            ?.browserDownloadUrl
+                                            ?.toUri(),
                                     )
                                 startActivity(browserIntent)
                             }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->

@@ -2,10 +2,12 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -45,7 +47,6 @@ import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
-import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.isSong
 import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toArrayListTrack
@@ -87,7 +88,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -225,15 +225,14 @@ class SharedViewModel(
                 launch {
                     combine(
                         timeline.filterNotNull(),
-                        nowPlayingState.filterNotNull()
+                        nowPlayingState.filterNotNull(),
                     ) { timeline, nowPlayingState ->
                         Pair(timeline, nowPlayingState)
                     }.distinctUntilChanged { old, new ->
                         (old.first.total.toString() + old.second?.songEntity?.videoId).hashCode() ==
                             (new.first.total.toString() + new.second?.songEntity?.videoId).hashCode()
-                    }
-                        .collectLatest {
-                            log("Timeline job ${(it.first.total.toString() + it.second?.songEntity?.videoId).hashCode()}")
+                    }.collectLatest {
+                        log("Timeline job ${(it.first.total.toString() + it.second?.songEntity?.videoId).hashCode()}")
                         val nowPlaying = it.second
                         val timeline = it.first
                         if (timeline.total > 0 && nowPlaying?.songEntity != null) {
@@ -497,11 +496,14 @@ class SharedViewModel(
                         }
                         val canvasThumbs = response.canvases.firstOrNull()?.thumbsOfCanva
                         if (!canvasThumbs.isNullOrEmpty()) {
-                            (canvasThumbs.let {
-                                it.maxByOrNull {
-                                    (it.height ?: 0) + (it.width ?: 0)
-                                }?.url
-                            } ?: canvasThumbs.first().url)?.let { thumb ->
+                            (
+                                canvasThumbs.let {
+                                    it
+                                        .maxByOrNull {
+                                            (it.height ?: 0) + (it.width ?: 0)
+                                        }?.url
+                                } ?: canvasThumbs.first().url
+                            )?.let { thumb ->
                                 mainRepository.updateCanvasThumbUrl(videoId, thumb)
                             }
                         }
@@ -632,7 +634,7 @@ class SharedViewModel(
                     )
                     getAITranslationLyrics(
                         track.videoId,
-                        lyricsData
+                        lyricsData,
                     )
                 }
             }
@@ -1136,10 +1138,12 @@ class SharedViewModel(
                                         ),
                                     )
                                     if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
-                                        val savedTranslatedLyrics = mainRepository.getSavedTranslatedLyrics(
-                                            videoId,
-                                            dataStoreManager.translationLanguage.first()
-                                        ).firstOrNull()
+                                        val savedTranslatedLyrics =
+                                            mainRepository
+                                                .getSavedTranslatedLyrics(
+                                                    videoId,
+                                                    dataStoreManager.translationLanguage.first(),
+                                                ).firstOrNull()
                                         if (savedTranslatedLyrics != null) {
                                             Log.d(tag, "Get Saved Translated Lyrics")
                                             updateLyrics(
@@ -1179,6 +1183,12 @@ class SharedViewModel(
                                             durationSeconds = duration,
                                         ),
                                         "${song.title} $artist",
+                                        duration,
+                                    )
+                                } else {
+                                    getLrclibLyrics(
+                                        song,
+                                        (artist ?: "").toString(),
                                         duration,
                                     )
                                 }
@@ -1274,7 +1284,7 @@ class SharedViewModel(
     private fun getLrclibLyrics(
         song: SongEntity,
         artist: String,
-        duration: Int
+        duration: Int,
     ) {
         viewModelScope.launch {
             mainRepository
@@ -1318,14 +1328,16 @@ class SharedViewModel(
         videoId: String,
         lyrics: Lyrics,
     ) {
-        if (dataStoreManager.useAITranslation.first() == TRUE
-            && dataStoreManager.aiApiKey.first().isNotEmpty()
-            && dataStoreManager.enableTranslateLyric.first() == FALSE
+        if (dataStoreManager.useAITranslation.first() == TRUE &&
+            dataStoreManager.aiApiKey.first().isNotEmpty() &&
+            dataStoreManager.enableTranslateLyric.first() == FALSE
         ) {
-            val savedTranslatedLyrics = mainRepository.getSavedTranslatedLyrics(
-                videoId,
-                dataStoreManager.translationLanguage.first()
-            ).firstOrNull()
+            val savedTranslatedLyrics =
+                mainRepository
+                    .getSavedTranslatedLyrics(
+                        videoId,
+                        dataStoreManager.translationLanguage.first(),
+                    ).firstOrNull()
             if (savedTranslatedLyrics != null) {
                 Log.d(tag, "Get Saved Translated Lyrics")
                 updateLyrics(
@@ -1334,10 +1346,11 @@ class SharedViewModel(
                     true,
                 )
             } else {
-                mainRepository.getAITranslationLyrics(
-                    lyrics,
-                    dataStoreManager.translationLanguage.first()
-                ).cancellable()
+                mainRepository
+                    .getAITranslationLyrics(
+                        lyrics,
+                        dataStoreManager.translationLanguage.first(),
+                    ).cancellable()
                     .collectLatest {
                         val data = it.data
                         when (it) {
@@ -1383,7 +1396,11 @@ class SharedViewModel(
                 when (response) {
                     is Resource.Success -> {
                         if (response.data != null) {
-                            insertLyrics(response.data.toLyricsEntity(query))
+                            insertLyrics(
+                                response.data.toLyricsEntity(
+                                    track.videoId,
+                                ),
+                            )
                             updateLyrics(
                                 track.videoId,
                                 response.data,
@@ -1593,7 +1610,7 @@ class SharedViewModel(
     private var _downloadFileProgress = MutableStateFlow<DownloadProgress>(DownloadProgress.INIT)
     val downloadFileProgress: StateFlow<DownloadProgress> get() = _downloadFileProgress
 
-    fun downloadFile() {
+    fun downloadFile(bitmap: Bitmap) {
         val fileName =
             "${nowPlayingScreenData.value.nowPlayingTitle} - ${nowPlayingScreenData.value.artistName}"
                 .replace(Regex("""[|\\?*<":>]"""), "")
@@ -1603,10 +1620,12 @@ class SharedViewModel(
                 Environment.DIRECTORY_DOWNLOADS,
             ).path}/$fileName"
         viewModelScope.launch {
-            nowPlayingState.value?.songEntity?.videoId?.let { videoId ->
+            nowPlayingState.value?.track?.let { track ->
                 mainRepository
                     .downloadToFile(
-                        videoId = videoId,
+                        track = track,
+                        bitmap = bitmap,
+                        videoId = track.videoId,
                         path = path,
                         isVideo = nowPlayingScreenData.value.isVideo,
                     ).collectLatest {
@@ -1627,6 +1646,12 @@ class SharedViewModel(
             } else {
                 dataStoreManager.openApp()
             }
+        }
+    }
+
+    fun setBitmap(bitmap: ImageBitmap?) {
+        _nowPlayingScreenData.update {
+            it.copy(bitmap = bitmap)
         }
     }
 }
@@ -1680,6 +1705,7 @@ data class NowPlayingScreenData(
     val canvasData: CanvasData? = null,
     val lyricsData: LyricsData? = null,
     val songInfoData: SongInfoEntity? = null,
+    val bitmap: ImageBitmap? = null,
 ) {
     data class CanvasData(
         val isVideo: Boolean,

@@ -2,7 +2,6 @@
 
 package com.maxrave.simpmusic.ui.screen.player
 
-import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.compose.animation.Animatable
@@ -14,7 +13,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -99,7 +100,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -156,7 +156,6 @@ import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import com.moriatsushi.insetsx.statusBars
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
@@ -233,20 +232,17 @@ fun NowPlayingScreen(
         mutableStateOf(GradientOffset(GradientAngle.CW135))
     }
 
-    var bitmap by remember {
-        mutableStateOf<ImageBitmap?>(null)
-    }
-
     var spotShadowColor by remember {
         mutableStateOf(Color.White)
     }
 
     val blurBg by sharedViewModel.blurBg.collectAsState()
 
-    LaunchedEffect(bitmap) {
-        val bm = bitmap
-        if (bm != null) {
-            paletteState.generate(bm)
+    LaunchedEffect(screenDataState) {
+        snapshotFlow { screenDataState.bitmap }.collectLatest {
+            if (it != null) {
+                paletteState.generate(it)
+            }
         }
     }
 
@@ -435,9 +431,10 @@ fun NowPlayingScreen(
         )
     }
 
-    val hazeState = rememberHazeState(
-        blurEnabled = true
-    )
+    val hazeState =
+        rememberHazeState(
+            blurEnabled = true,
+        )
 
     Box {
         if (blurBg && screenDataState.canvasData == null) {
@@ -717,10 +714,11 @@ fun NowPlayingScreen(
                                                 .build(),
                                         contentDescription = "",
                                         onSuccess = {
-                                            bitmap =
+                                            sharedViewModel.setBitmap(
                                                 it.result.image
                                                     .toBitmap()
-                                                    .asImageBitmap()
+                                                    .asImageBitmap(),
+                                            )
                                         },
                                         contentScale = ContentScale.Crop,
                                         placeholder = painterResource(id = R.drawable.holder),
@@ -1395,7 +1393,11 @@ fun NowPlayingScreen(
                                         }
                                     }
                                 }
-                                androidx.compose.animation.AnimatedVisibility(visible = !showHideControlLayout) {
+                                androidx.compose.animation.AnimatedVisibility(
+                                    visible = !showHideControlLayout,
+                                    enter = fadeIn() + slideInHorizontally(),
+                                    exit = fadeOut() + slideOutHorizontally(),
+                                ) {
                                     Box(
                                         modifier =
                                             Modifier

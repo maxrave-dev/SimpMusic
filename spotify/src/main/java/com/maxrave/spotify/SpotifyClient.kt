@@ -12,7 +12,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -22,7 +24,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.append
 import io.ktor.http.contentType
 import io.ktor.http.userAgent
 import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
@@ -51,11 +52,12 @@ class SpotifyClient {
     @OptIn(ExperimentalSerializationApi::class)
     private fun createSpotifyClient(onlyJson: Boolean = false) =
         HttpClient(OkHttp) {
-            expectSuccess = true
-            followRedirects = false
+            followRedirects = true
+            expectSuccess = false
             install(HttpCache)
             install(Logging) {
-                level = LogLevel.BODY
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
             }
             install(HttpSend) {
                 maxSendCount = 100
@@ -109,7 +111,7 @@ class SpotifyClient {
         }
 
     suspend fun getSpotifyServerTime(spdc: String) =
-        spotifyClient.get("https://open.spotify.com/server-time") {
+        spotifyClient.get("https://open.spotify.com/api/server-time") {
             userAgent(USER_AGENT)
             header(
                 "Cookie",
@@ -128,7 +130,7 @@ class SpotifyClient {
         reason: String = "transport",
         sTime: String,
         cTime: String,
-    ) = spotifyClient.get("https://open.spotify.com/get_access_token") {
+    ) = spotifyClient.get("https://open.spotify.com/api/token") {
         userAgent(USER_AGENT)
         contentType(ContentType.Application.Json)
         header(
