@@ -2021,9 +2021,6 @@ class YouTube(
                                             "-map",
                                             "1:a:0",
                                             "-shortest",
-                                            "-i",
-                                            "$filePath.jpg",
-                                            "-map_metadata 0 -map 0 -map 1",
                                             "$filePath-SimpMusic.mp4",
                                         ).joinToString(" ")
 
