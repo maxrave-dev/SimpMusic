@@ -44,8 +44,7 @@ jobs:
         env:
           BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
         run:
-          echo $BASE_64_SIGNING_KEY > keystore_base64.txt
-          base64 -d keystore_base64.txt > ./simpmusic.jks
+          echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
 
       - name: Build full release APK
         env:
@@ -82,8 +81,7 @@ jobs:
         env:
           BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
         run:
-          echo $BASE_64_SIGNING_KEY > keystore_base64.txt
-          base64 -d keystore_base64.txt > ./simpmusic.jks
+          echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
 
       - name: Build foss release APK
         env:
