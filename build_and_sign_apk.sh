@@ -139,5 +139,4 @@ rm -f *unsigned*
 echo "===================="
 echo "Process Completed Successfully!"
 echo "Signed APKs Path: $SIGNED_APK_OUTPUT_DIR"
-open .
 echo "===================="
