@@ -1074,6 +1074,7 @@ class SimpleMediaServiceHandler(
     }
 
     fun loadMore() {
+        if (stateFlow.value == StateSource.STATE_INITIALIZING) return
         // Separate local and remote data
         // Local Add Prefix to PlaylistID to differentiate between local and remote
         // Local: LC-PlaylistID
@@ -1217,6 +1218,7 @@ class SimpleMediaServiceHandler(
         } else if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
             Log.w(TAG, "loadMore: Endless Queue")
             val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return
+            _stateFlow.value = StateSource.STATE_INITIALIZING
             _queueData.update {
                 it?.copy(
                     playlistId = "RDAMVM${lastTrack.videoId}",
@@ -1244,6 +1246,7 @@ class SimpleMediaServiceHandler(
                             _queueData.value?.copy(
                                 continuation = null,
                             )
+                        _stateFlow.value = StateSource.STATE_INITIALIZED
                     }
                 }
             }
