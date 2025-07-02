@@ -282,9 +282,7 @@ class MainRepository(
                 launch {
                     dataStoreManager.aiApiKey.collectLatest { apiKey ->
                         aiClient.apiKey =
-                            if (apiKey.isNotEmpty()) {
-                                apiKey
-                            } else {
+                            apiKey.ifEmpty {
                                 null
                             }
                     }
@@ -293,9 +291,7 @@ class MainRepository(
                 launch {
                     dataStoreManager.customModelId.collectLatest { modelId ->
                         aiClient.customModelId =
-                            if (modelId.isNotEmpty()) {
-                                modelId
-                            } else {
+                            modelId.ifEmpty {
                                 null
                             }
                     }

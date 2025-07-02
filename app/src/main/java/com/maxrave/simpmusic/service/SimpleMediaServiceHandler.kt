@@ -65,7 +65,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -80,7 +79,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -143,9 +141,6 @@ class SimpleMediaServiceHandler(
         )
     val controlState = _controlState.asStateFlow()
 
-    private val isFading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private val shouldFadeAudio = dataStoreManager.fadeVolume.map { it > 0 }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(5000L), false)
-
     private var _stateFlow = MutableStateFlow<StateSource>(StateSource.STATE_CREATED)
     val stateFlow = _stateFlow.asStateFlow()
     private var _currentSongIndex = MutableStateFlow<Int>(player.currentMediaItemIndex)
@@ -175,8 +170,6 @@ class SimpleMediaServiceHandler(
     private var progressJob: Job? = null
 
     private var bufferedJob: Job? = null
-
-    private var fadeJob: Job? = null
 
     private var updateNotificationJob: Job? = null
 
@@ -231,53 +224,6 @@ class SimpleMediaServiceHandler(
         }
         mayBeRestoreQueue()
         coroutineScope.launch {
-            val shouldFadeJob =
-                launch {
-                    shouldFadeAudio.collectLatest {
-                        if (!it) {
-                            fadeJob?.cancel()
-                            isFading.value = false
-                            player.volume = 1f
-                        }
-                    }
-                }
-            val fadeJob =
-                launch {
-                    combine(
-                        simpleMediaState
-                            .filter { it is SimpleMediaState.Progress }
-                            .map {
-                                val current = (it as SimpleMediaState.Progress).progress
-                                val duration = player.duration
-                                if (duration > 0L) {
-                                    Pair(current, player.duration)
-                                } else {
-                                    Pair(-1L, player.duration)
-                                }
-                            }.filter { it.first >= 0 && it.second > 0 },
-                        isFading,
-                    ) { (current, duration), fading ->
-                        Triple(current, duration, fading)
-                    }.collectLatest { (current, duration, fading) ->
-                        if (shouldFadeAudio.value) {
-                            val fadeDuration =
-                                runBlocking {
-                                    dataStoreManager.fadeVolume.first()
-                                }
-                            if (duration - current <= fadeDuration && !fading) {
-                                Log.w(TAG, "Fade out $current $duration $fadeDuration $fading")
-                                isFading.value = true
-                                startFadeAnimator(
-                                    (duration - current),
-                                    10,
-                                    false,
-                                ) {
-                                    isFading.value = false
-                                }
-                            }
-                        }
-                    }
-                }
             val skipSegmentsJob =
                 launch {
                     simpleMediaState
@@ -368,8 +314,6 @@ class SimpleMediaServiceHandler(
             skipSegmentsJob.join()
             playbackJob.join()
             playbackSpeedPitchJob.join()
-            shouldFadeJob.join()
-            fadeJob.join()
         }
     }
 
@@ -933,7 +877,6 @@ class SimpleMediaServiceHandler(
         }
         updateNextPreviousTrackAvailability()
         updateNotification()
-        mayBeFadeInVolume()
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
@@ -1280,16 +1223,6 @@ class SimpleMediaServiceHandler(
             startBufferedUpdate()
         } else {
             stopBufferedUpdate()
-        }
-    }
-
-    private fun mayBeFadeInVolume() {
-        if (shouldFadeAudio.value) {
-            startFadeAnimator(
-                runBlocking { dataStoreManager.fadeVolume.first() }.toLong(),
-                20,
-                true,
-            )
         }
     }
 
@@ -2225,59 +2158,6 @@ class SimpleMediaServiceHandler(
                 )
         }
         _stateFlow.value = StateSource.STATE_INITIALIZED
-    }
-
-    private fun startFadeAnimator(
-        duration: Long,
-        steps: Int = 10,
-        fadeIn: Boolean,
-        callback: suspend () -> Unit = {},
-    ) {
-        fadeJob?.cancel()
-        fadeJob =
-            coroutineScope.launch(Dispatchers.Main) {
-                Log.w(TAG, "startFadeAnimator")
-                val delay = duration / steps
-                if (duration == 0L) {
-                    callback.invoke()
-                    return@launch
-                }
-                var startValue = if (fadeIn) 0f else 1f
-                val endValue = if (fadeIn) 1f else 0f
-                if (fadeIn) player.volume = startValue
-                var currentAnim = 0f
-                while (currentAnim <= duration) {
-                    if (fadeIn && player.currentPosition > duration) {
-                        player.volume = endValue
-                        callback.invoke()
-                        return@launch
-                    } else if (!fadeIn && (player.duration - player.currentPosition) > duration) {
-                        player.volume = endValue
-                        callback.invoke()
-                        return@launch
-                    }
-                    currentAnim += delay
-                    Log.w(TAG, "startFadeAnimator anim $currentAnim")
-                    startValue =
-                        if (fadeIn) {
-                            (currentAnim / duration).toFloat()
-                        } else {
-                            1f - (currentAnim / duration).toFloat()
-                        }
-                    player.volume =
-                        if (startValue > 1f) {
-                            1f
-                        } else if (startValue < 0f) {
-                            0f
-                        } else {
-                            startValue
-                        }
-                    Log.w(TAG, "startFadeAnimator current value: $startValue")
-                    delay(delay)
-                }
-                player.volume = endValue
-                callback.invoke()
-            }
     }
 }
 

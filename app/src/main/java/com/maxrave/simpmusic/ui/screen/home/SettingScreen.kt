@@ -191,7 +191,6 @@ fun SettingScreen(
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
     val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
-    val fadeAudioEffect by viewModel.fadeAudioEffect.collectAsStateWithLifecycle()
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
@@ -568,30 +567,6 @@ fun SettingScreen(
                     switch = (skipSilent to { viewModel.setSkipSilent(it) }),
                 )
                 SettingItem(
-                    title = stringResource(R.string.fade_audio_effect),
-                    subtitle = if (fadeAudioEffect > 0) "$fadeAudioEffect ms" else stringResource(R.string.disabled),
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = context.getString(R.string.fade_audio_effect_duration),
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = context.getString(R.string.duration),
-                                        value = "$fadeAudioEffect",
-                                        verifyCodeBlock = {
-                                            (it.toIntOrNull() != null) to context.getString(R.string.invalid_number)
-                                        },
-                                    ),
-                                message = "",
-                                confirm =
-                                    context.getString(R.string.change) to { state ->
-                                        viewModel.setFadeDuration(state.textField?.value?.toIntOrNull() ?: 0)
-                                    },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
                     title = stringResource(R.string.open_system_equalizer),
                     subtitle = stringResource(R.string.use_your_system_equalizer),
                     onClick = {
@@ -788,7 +763,7 @@ fun SettingScreen(
                 )
                 SettingItem(
                     title = stringResource(R.string.custom_ai_model_id),
-                    subtitle = if (customModelId.isNotEmpty()) customModelId else stringResource(R.string.default_models),
+                    subtitle = customModelId.ifEmpty { stringResource(R.string.default_models) },
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
