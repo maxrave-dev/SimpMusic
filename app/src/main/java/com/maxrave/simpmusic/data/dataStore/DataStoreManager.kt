@@ -853,19 +853,6 @@ class DataStoreManager(
         }
     }
 
-    val fadeVolume =
-        settingsDataStore.data.map { preferences ->
-            preferences[FADE_VOLUME] ?: 0
-        }
-
-    suspend fun setFadeVolume(fadeDuration: Int) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[FADE_VOLUME] = fadeDuration
-            }
-        }
-    }
-
     val dataSyncId =
         settingsDataStore.data.map { preferences ->
             preferences[DATA_SYNC_ID] ?: ""
@@ -988,7 +975,6 @@ class DataStoreManager(
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
         val MUSIXMATCH_COOKIE = stringPreferencesKey("musixmatch_cookie")
         val MUSIXMATCH_USER_TOKEN = stringPreferencesKey("musixmatch_user_token")
-        const val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")
         val WATCH_VIDEO_INSTEAD_OF_PLAYING_AUDIO =
@@ -1016,7 +1002,6 @@ class DataStoreManager(
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val PITCH = intPreferencesKey("pitch")
         val OPEN_APP_TIME = intPreferencesKey("open_app_time")
-        val FADE_VOLUME = intPreferencesKey("fade_volume")
         val DATA_SYNC_ID = stringPreferencesKey("data_sync_id")
         val VISITOR_DATA = stringPreferencesKey("visitor_data")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"

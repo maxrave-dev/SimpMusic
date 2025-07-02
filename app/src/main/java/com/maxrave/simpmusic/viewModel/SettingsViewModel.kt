@@ -126,8 +126,6 @@ class SettingsViewModel(
     val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
     private var _blurPlayerBackground = MutableStateFlow(false)
     val blurPlayerBackground: StateFlow<Boolean> = _blurPlayerBackground
-    private var _fadeAudioEffect = MutableStateFlow(0)
-    val fadeAudioEffect: StateFlow<Int> = _fadeAudioEffect
     private val _aiProvider = MutableStateFlow<String>(DataStoreManager.AI_PROVIDER_OPENAI)
     val aiProvider: StateFlow<String> = _aiProvider
     private val _isHasApiKey = MutableStateFlow<Boolean>(false)
@@ -185,10 +183,10 @@ class SettingsViewModel(
         getAutoCheckUpdate()
         getBlurFullscreenLyrics()
         getBlurPlayerBackground()
-        getFadeDuration()
         getAIProvider()
         getAIApiKey()
         getAITranslation()
+        getCustomModelId()
         viewModelScope.launch {
             calculateDataFraction()
         }
@@ -256,22 +254,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setAIApiKey(apiKey)
             getAIApiKey()
-        }
-    }
-
-    private fun getFadeDuration() {
-        viewModelScope.launch {
-            dataStoreManager.fadeVolume.collect { fadeAudioEffect ->
-                log("getFadeDuration: $fadeAudioEffect")
-                _fadeAudioEffect.value = fadeAudioEffect
-            }
-        }
-    }
-
-    fun setFadeDuration(fadeDuration: Int) {
-        viewModelScope.launch {
-            dataStoreManager.setFadeVolume(fadeDuration)
-            getFadeDuration()
         }
     }
 
