@@ -25,10 +25,8 @@ import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.extension.toSQLiteQuery
-import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.spotify.Spotify
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
 import org.simpmusic.aiservice.AiClient
 import java.lang.reflect.Type
@@ -218,7 +216,4 @@ val databaseModule =
         single(createdAtStart = true) {
             LocalPlaylistManager(androidContext(), get<YouTube>())
         }
-
-        // Notification Worker
-        workerOf(::NotifyWork)
     }

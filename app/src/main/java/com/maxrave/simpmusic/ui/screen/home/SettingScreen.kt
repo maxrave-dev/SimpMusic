@@ -167,6 +167,7 @@ fun SettingScreen(
     val skipSilent by viewModel.skipSilent.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val savePlaybackState by viewModel.savedPlaybackState.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val saveLastPlayed by viewModel.saveRecentSongAndQueue.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val killServiceOnExit by viewModel.killServiceOnExit.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = true)
     val mainLyricsProvider by viewModel.mainLyricsProvider.collectAsStateWithLifecycle()
     val musixmatchLoggedIn by viewModel.musixmatchLoggedIn.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val useMusixmatchTranslation by viewModel.useTranslation.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
@@ -598,6 +599,11 @@ fun SettingScreen(
                     title = stringResource(R.string.save_last_played),
                     subtitle = stringResource(R.string.save_last_played_track_and_queue),
                     switch = (saveLastPlayed to { viewModel.setSaveLastPlayed(it) }),
+                )
+                SettingItem(
+                    title = stringResource(R.string.kill_service_on_exit),
+                    subtitle = stringResource(R.string.kill_service_on_exit_description),
+                    switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
                 )
             }
         }

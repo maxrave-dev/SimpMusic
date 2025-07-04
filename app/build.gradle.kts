@@ -165,6 +165,7 @@ android {
 
 dependencies {
     val fullImplementation = "fullImplementation"
+    val debugImplementation = "debugImplementation"
 
     implementation(project(":lyricsProviders"))
     // Compose
@@ -298,7 +299,6 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
-    implementation(libs.koin.workmanager)
     implementation(libs.koin.androidx.compose)
 
     // Store5
@@ -312,6 +312,8 @@ dependencies {
     implementation(libs.haze.material)
 
     fullImplementation(libs.sentry.android)
+
+    debugImplementation(libs.leak.canary)
 }
 aboutLibraries {
     prettyPrint = true

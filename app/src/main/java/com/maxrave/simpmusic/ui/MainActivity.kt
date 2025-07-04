@@ -640,9 +640,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         Log.w("MainActivity", "onDestroy: ")
+        if (viewModel.shouldStopMusicService()) {
+            viewModel.isServiceRunning.value = false
+            unbindService(serviceConnection)
+        }
         unloadKoinModules(viewModelModule)
+        super.onDestroy()
     }
 
     override fun onRestart() {
@@ -660,45 +664,6 @@ class MainActivity : AppCompatActivity() {
             Log.d("Service", "Service started")
         }
     }
-
-    //    override fun onNowPlayingSongChange() {
-//        viewModel.metadata.observe(this) {
-//            when(it){
-//                is Resource.Success -> {
-//                    binding.songTitle.text = it.data?.title
-//                    binding.songTitle.isSelected = true
-//                    if (it.data?.artists != null){
-//                        var tempArtist = mutableListOf<String>()
-//                        for (artist in it.data.artists) {
-//                            tempArtist.add(artist.name)
-//                        }
-//                        val artistName = tempArtist.connectArtists()
-//                        binding.songArtist.text = artistName
-//                    }
-//                    binding.songArtist.isSelected = true
-//                    binding.ivArt.load(it.data?.thumbnails?.get(0)?.url)
-//
-//                }
-//                is Resource.Error -> {
-//
-//                }
-//            }
-//        }
-//    }
-//
-//    override fun onIsPlayingChange() {
-//        viewModel.isPlaying.observe(this){
-//            if (it){
-//                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-//            }else{
-//                binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
-//            }
-//        }
-//    }
-//
-//    override fun onUpdateProgressBar(progress: Float) {
-//
-//    }
 
     private fun checkForUpdate() {
         if (viewModel.shouldCheckForUpdate()) {

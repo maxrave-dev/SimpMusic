@@ -950,6 +950,25 @@ class DataStoreManager(
         }
     }
 
+    val killServiceOnExit: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[KILL_SERVICE_ON_EXIT] ?: FALSE
+        }
+
+    suspend fun setKillServiceOnExit(kill: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (kill) {
+                settingsDataStore.edit { settings ->
+                    settings[KILL_SERVICE_ON_EXIT] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[KILL_SERVICE_ON_EXIT] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -967,6 +986,7 @@ class DataStoreManager(
         val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
         val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
+        val KILL_SERVICE_ON_EXIT = stringPreferencesKey("kill_service_on_exit")
         const val YOUTUBE = "youtube"
         const val MUSIXMATCH = "musixmatch"
         const val LRCLIB = "lrclib"

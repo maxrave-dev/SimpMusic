@@ -1602,7 +1602,7 @@ class SharedViewModel(
                 ).build()
         WorkManager.getInstance(application).enqueueUniquePeriodicWork(
             "Artist Worker",
-            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            ExistingPeriodicWorkPolicy.KEEP,
             request,
         )
     }
@@ -1654,6 +1654,8 @@ class SharedViewModel(
             it.copy(bitmap = bitmap)
         }
     }
+
+    fun shouldStopMusicService(): Boolean = runBlocking { dataStoreManager.killServiceOnExit.first() == TRUE }
 }
 
 sealed class UIEvent {
