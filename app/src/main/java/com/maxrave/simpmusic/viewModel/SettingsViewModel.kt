@@ -148,6 +148,10 @@ class SettingsViewModel(
         )
     val fraction: StateFlow<SettingsStorageSectionFraction> = _fraction
 
+    // Biến để lưu trữ và hiển thị trạng thái killServiceOnExit
+    private var _killServiceOnExit: MutableStateFlow<String?> = MutableStateFlow(null)
+    val killServiceOnExit: StateFlow<String?> = _killServiceOnExit
+
     fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
 
     fun getData() {
@@ -187,6 +191,7 @@ class SettingsViewModel(
         getAIApiKey()
         getAITranslation()
         getCustomModelId()
+        getKillServiceOnExit()
         viewModelScope.launch {
             calculateDataFraction()
         }
@@ -1169,6 +1174,23 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setHomeLimit(limit)
             getHomeLimit()
+        }
+    }
+
+    // Lấy giá trị của killServiceOnExit từ DataStore
+    fun getKillServiceOnExit() {
+        viewModelScope.launch {
+            dataStoreManager.killServiceOnExit.collect { killServiceOnExit ->
+                _killServiceOnExit.emit(killServiceOnExit)
+            }
+        }
+    }
+
+    // Lưu giá trị killServiceOnExit vào DataStore
+    fun setKillServiceOnExit(kill: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setKillServiceOnExit(kill)
+            getKillServiceOnExit()
         }
     }
 }

@@ -1383,27 +1383,33 @@ class SimpleMediaServiceHandler(
             }
     }
 
-    fun mayBeSaveRecentSong() {
-        coroutineScope.launch {
-            if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
-                dataStoreManager.saveRecentSong(
-                    nowPlayingState.value.songEntity?.videoId ?: "",
-                    player.contentPosition,
-                )
-                dataStoreManager.setPlaylistFromSaved(queueData.value?.playlistName ?: "")
-                Log.d(
-                    "Check saved",
-                    player.currentMediaItem
-                        ?.mediaMetadata
-                        ?.title
-                        .toString(),
-                )
-                val temp: ArrayList<Track> = ArrayList()
-                temp.clear()
-                temp.addAll(_queueData.value?.listTracks ?: arrayListOf())
-                Log.w("Check recover queue", temp.toString())
-                mainRepository.recoverQueue(temp)
+    fun mayBeSaveRecentSong(runBlocking: Boolean = false) {
+        val unit =
+            suspend {
+                if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
+                    dataStoreManager.saveRecentSong(
+                        nowPlayingState.value.songEntity?.videoId ?: "",
+                        player.contentPosition,
+                    )
+                    dataStoreManager.setPlaylistFromSaved(queueData.value?.playlistName ?: "")
+                    Log.d(
+                        "Check saved",
+                        player.currentMediaItem
+                            ?.mediaMetadata
+                            ?.title
+                            .toString(),
+                    )
+                    val temp: ArrayList<Track> = ArrayList()
+                    temp.clear()
+                    temp.addAll(_queueData.value?.listTracks ?: arrayListOf())
+                    Log.w("Check recover queue", temp.toString())
+                    mainRepository.recoverQueue(temp)
+                }
             }
+        if (runBlocking) {
+            runBlocking { unit() }
+        } else {
+            coroutineScope.launch { unit() }
         }
     }
 
@@ -1458,42 +1464,33 @@ class SimpleMediaServiceHandler(
         )
     }
 
+    fun shouldReleaseOnTaskRemoved() =
+        runBlocking {
+            dataStoreManager.killServiceOnExit.first() == TRUE
+        }
+
     fun release() {
+        mayBeSaveRecentSong(true)
+        mayBeSavePlaybackState()
         player.stop()
         player.playWhenReady = false
         player.removeListener(this)
         sendCloseEqualizerIntent()
-        if (progressJob?.isActive == true) {
-            progressJob?.cancel()
-            progressJob = null
-        }
-        if (bufferedJob?.isActive == true) {
-            bufferedJob?.cancel()
-            bufferedJob = null
-        }
-        if (sleepTimerJob?.isActive == true) {
-            sleepTimerJob?.cancel()
-            sleepTimerJob = null
-        }
-        if (volumeNormalizationJob?.isActive == true) {
-            volumeNormalizationJob?.cancel()
-            volumeNormalizationJob = null
-        }
-        if (toggleLikeJob?.isActive == true) {
-            toggleLikeJob?.cancel()
-            toggleLikeJob = null
-        }
-        if (updateNotificationJob?.isActive == true) {
-            updateNotificationJob?.cancel()
-            updateNotificationJob = null
-        }
-        if (loadJob?.isActive == true) {
-            loadJob?.cancel()
-            loadJob = null
-        }
-        if (coroutineScope.isActive) {
-            coroutineScope.cancel()
-        }
+        progressJob?.cancel()
+        progressJob = null
+        bufferedJob?.cancel()
+        bufferedJob = null
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        volumeNormalizationJob?.cancel()
+        volumeNormalizationJob = null
+        toggleLikeJob?.cancel()
+        toggleLikeJob = null
+        updateNotificationJob?.cancel()
+        updateNotificationJob = null
+        loadJob?.cancel()
+        loadJob = null
+        coroutineScope.cancel()
         Log.w("Service", "scope is active: ${coroutineScope.isActive}")
     }
 

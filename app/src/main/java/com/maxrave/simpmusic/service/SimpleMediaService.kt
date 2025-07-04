@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -17,16 +16,13 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config.SERVICE_SCOPE
 import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.widget.BasicWidget
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.qualifier.named
 
 @UnstableApi
 class SimpleMediaService :
@@ -34,9 +30,8 @@ class SimpleMediaService :
     KoinComponent {
     private val player: ExoPlayer by inject()
     private val coilBitmapLoader: CoilBitmapLoader by inject()
-    private val serviceCoroutineScope: CoroutineScope by inject(named(SERVICE_SCOPE))
 
-    private lateinit var mediaSession: MediaLibrarySession
+    private var mediaSession: MediaLibrarySession? = null
 
     private val simpleMediaSessionCallback: SimpleMediaSessionCallback by inject()
 
@@ -69,7 +64,7 @@ class SimpleMediaService :
 
         // Set late init set notification layout
         simpleMediaServiceHandler.setNotificationLayout = { listCommand ->
-            mediaSession.setCustomLayout(listCommand)
+            mediaSession?.setCustomLayout(listCommand)
         }
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
@@ -82,6 +77,7 @@ class SimpleMediaService :
         flags: Int,
         startId: Int,
     ): Int {
+        Log.w("Service", "Simple Media Service Received Action: ${intent?.action}")
         if (intent != null && intent.action != null) {
             when (intent.action) {
                 BasicWidget.ACTION_TOGGLE_PAUSE -> {
@@ -100,7 +96,7 @@ class SimpleMediaService :
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
 
     @UnstableApi
     override fun onUpdateNotification(
@@ -112,10 +108,13 @@ class SimpleMediaService :
 
     @UnstableApi
     private fun release() {
-        mediaSession.run {
-            release()
-            if (player.playbackState != Player.STATE_IDLE) {
+        runBlocking {
+            simpleMediaServiceHandler.release()
+            mediaSession?.run {
+                player.stop()
+                this.release()
                 player.release()
+                mediaSession = null
             }
         }
     }
@@ -123,8 +122,7 @@ class SimpleMediaService :
     @UnstableApi
     override fun onDestroy() {
         super.onDestroy()
-        serviceCoroutineScope.cancel()
-        release()
+        Log.w("Service", "Simple Media Service Destroyed")
     }
 
     override fun onTrimMemory(level: Int) {
@@ -134,6 +132,9 @@ class SimpleMediaService :
 
     @UnstableApi
     override fun onTaskRemoved(rootIntent: Intent?) {
+        if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
+            release()
+        }
         super.onTaskRemoved(rootIntent)
     }
 
