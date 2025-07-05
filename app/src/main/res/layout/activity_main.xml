@@ -21,9 +21,9 @@
                 android:id="@+id/miniplayer"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:layout_marginStart="5sp"
-                android:layout_marginEnd="5sp"
-                android:elevation="2dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:elevation="8dp"
                 android:layout_above="@+id/bottom_navigation_view">
 
         </androidx.compose.ui.platform.ComposeView>

@@ -182,6 +182,7 @@ class SharedViewModel(
                 isLiked = false,
                 isNextAvailable = false,
                 isPreviousAvailable = false,
+                isCrossfading = false,
             ),
         )
     val controllerState: StateFlow<ControlState> = _controllerState

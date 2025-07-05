@@ -149,6 +149,7 @@ class SimpleMediaServiceHandler(
                 isLiked = false,
                 isNextAvailable = player.hasNextMediaItem(),
                 isPreviousAvailable = player.hasPreviousMediaItem(),
+                isCrossfading = false,
             ),
         )
     val controlState = _controlState.asStateFlow()
@@ -755,11 +756,21 @@ class SimpleMediaServiceHandler(
             PlayerEvent.Next -> {
                 isCrossfading = false
                 isPreparedCrossfadePlayer = false
+                _controlState.update {
+                    it.copy(
+                        isCrossfading = false,
+                    )
+                }
                 player.seekToNext()
             }
             PlayerEvent.Previous -> {
                 isCrossfading = false
                 isPreparedCrossfadePlayer = false
+                _controlState.update {
+                    it.copy(
+                        isCrossfading = false,
+                    )
+                }
                 player.seekToPrevious()
             }
             PlayerEvent.Stop -> {
@@ -926,6 +937,11 @@ class SimpleMediaServiceHandler(
         if (player.currentMediaItemIndex == 0) {
             isCrossfading = false
             isPreparedCrossfadePlayer = false
+            _controlState.update {
+                it.copy(
+                    isCrossfading = false,
+                )
+            }
         }
     }
 
@@ -1021,6 +1037,11 @@ class SimpleMediaServiceHandler(
                         if (shouldCrossfade && !isCrossfading) {
                             Log.w(TAG, "Crossfade start")
                             isCrossfading = true
+                            _controlState.update {
+                                it.copy(
+                                    isCrossfading = true,
+                                )
+                            }
                             startCrossfade()
                         } else if (shouldPlaySecondaryPlayer) {
                             Log.w(TAG, "Crossfade play secondary player")
@@ -1054,6 +1075,11 @@ class SimpleMediaServiceHandler(
                 doOnEnd {
                     isPreparedCrossfadePlayer = false
                     isCrossfading = false
+                    _controlState.update {
+                        it.copy(
+                            isCrossfading = false,
+                        )
+                    }
                 }
             }
         crossFadeAnimator?.start()
@@ -2349,6 +2375,7 @@ data class ControlState(
     val isLiked: Boolean,
     val isNextAvailable: Boolean,
     val isPreviousAvailable: Boolean,
+    val isCrossfading: Boolean,
 )
 
 data class QueueData(

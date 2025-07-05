@@ -109,6 +109,10 @@ fun MiniPlayer(
         remember {
             mutableFloatStateOf(0f)
         }
+    val (isCrossfading, setIsCrossfading) =
+        remember {
+            mutableStateOf(false)
+        }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -165,6 +169,7 @@ fun MiniPlayer(
                 sharedViewModel.controllerState.collectLatest { state ->
                     setLiked(state.isLiked)
                     setIsPlaying(state.isPlaying)
+                    setIsCrossfading(state.isCrossfading)
                 }
             }
         val job4 =
