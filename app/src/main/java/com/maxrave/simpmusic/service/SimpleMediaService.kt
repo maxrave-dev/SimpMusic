@@ -16,6 +16,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
@@ -23,12 +24,13 @@ import com.maxrave.simpmusic.ui.widget.BasicWidget
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.qualifier.named
 
 @UnstableApi
 class SimpleMediaService :
     MediaLibraryService(),
     KoinComponent {
-    private val player: ExoPlayer by inject()
+    private val player: ExoPlayer by inject(named(MAIN_PLAYER))
     private val coilBitmapLoader: CoilBitmapLoader by inject()
 
     private var mediaSession: MediaLibrarySession? = null

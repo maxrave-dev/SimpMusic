@@ -26,6 +26,8 @@ object Config {
     const val DOWNLOAD_CACHE = "downloadCache"
     const val CANVAS_CACHE = "canvasCache"
     const val SERVICE_SCOPE = "serviceScope"
+    const val MAIN_PLAYER = "mainPlayer"
+    const val SECONDARY_PLAYER = "secondaryPlayer"
 
     val REMOVED_SONG_DATE_TIME: LocalDateTime = LocalDateTime.of(2003, Month.AUGUST, 26, 3, 0)
 
@@ -198,7 +200,7 @@ object SUPPORTED_LANGUAGE {
             "한국어",
             "Català",
             "فارسی",
-            "български"
+            "български",
         )
     val codes: Array<String> =
         arrayOf(

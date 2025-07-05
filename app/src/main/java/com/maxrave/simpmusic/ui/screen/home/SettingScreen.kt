@@ -605,6 +605,67 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.kill_service_on_exit_description),
                     switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
                 )
+
+                // Thêm phần crossfade
+                val isCrossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle(initialValue = false)
+                val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle(initialValue = 5000)
+                var showCrossfadeDialog by rememberSaveable { mutableStateOf(false) }
+
+                SettingItem(
+                    title = stringResource(R.string.crossfade),
+                    subtitle =
+                        if (isCrossfadeEnabled) {
+                            stringResource(R.string.crossfade_enabled, crossfadeDuration / 1000)
+                        } else {
+                            stringResource(R.string.crossfade_disabled)
+                        },
+                    switch = (isCrossfadeEnabled to { viewModel.setCrossfadeEnabled(it) }),
+                    onClick = {
+                        if (isCrossfadeEnabled) {
+                            showCrossfadeDialog = true
+                        }
+                    },
+                )
+
+                if (showCrossfadeDialog) {
+                    val durationInSeconds = crossfadeDuration / 1000
+                    var sliderPosition by rememberSaveable { mutableStateOf(durationInSeconds.toFloat()) }
+
+                    AlertDialog(
+                        onDismissRequest = { showCrossfadeDialog = false },
+                        title = { Text(stringResource(R.string.crossfade_duration)) },
+                        text = {
+                            Column {
+                                Text(stringResource(R.string.set_crossfade_duration, sliderPosition.toInt()))
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Slider(
+                                    value = sliderPosition,
+                                    onValueChange = { sliderPosition = it },
+                                    valueRange = 1f..12f,
+                                    steps = 11,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    viewModel.setCrossfadeDuration(sliderPosition.toInt() * 1000)
+                                    showCrossfadeDialog = false
+                                },
+                            ) {
+                                Text(stringResource(R.string.save))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showCrossfadeDialog = false },
+                            ) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        },
+                    )
+                }
             }
         }
         item(key = "lyrics") {

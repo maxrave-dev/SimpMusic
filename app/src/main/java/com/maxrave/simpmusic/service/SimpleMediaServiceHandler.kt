@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.service
 
+import android.animation.Animator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -9,6 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.media3.common.C
@@ -89,6 +92,7 @@ import kotlin.math.pow
 @UnstableApi
 class SimpleMediaServiceHandler(
     val player: ExoPlayer,
+    val secondaryPlayer: ExoPlayer,
     mediaSessionCallback: SimpleMediaSessionCallback,
     private val dataStoreManager: DataStoreManager,
     private val mainRepository: MainRepository,
@@ -119,6 +123,14 @@ class SimpleMediaServiceHandler(
 
     private var _queueData = MutableStateFlow<QueueData?>(null)
     val queueData = _queueData.asStateFlow()
+
+    private val _crossfadeData: MutableStateFlow<Pair<Boolean, Int>> = MutableStateFlow(false to 0)
+    val crossfadeData: StateFlow<Pair<Boolean, Int>> get() = _crossfadeData
+
+    private var isCrossfading: Boolean = false
+
+    private var isPreparedCrossfadePlayer: Boolean = false
+    private var crossFadeAnimator: Animator? = null
 
     private var _controlState =
         MutableStateFlow(
@@ -223,6 +235,22 @@ class SimpleMediaServiceHandler(
             toggleRadio = ::toggleRadio
         }
         mayBeRestoreQueue()
+        secondaryPlayer.addListener(
+            object : Player.Listener {
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    super.onPlaybackStateChanged(playbackState)
+                    val playbackStateString =
+                        when (playbackState) {
+                            Player.STATE_IDLE -> "IDLE"
+                            Player.STATE_BUFFERING -> "BUFFERING"
+                            Player.STATE_READY -> "READY"
+                            Player.STATE_ENDED -> "ENDED"
+                            else -> "UNKNOWN"
+                        }
+                    Log.w(TAG, "Secondary Player Playback State Changed: $playbackStateString")
+                }
+            },
+        )
         coroutineScope.launch {
             val skipSegmentsJob =
                 launch {
@@ -311,9 +339,19 @@ class SimpleMediaServiceHandler(
                         Log.w(TAG, "Playback current speed: ${player.playbackParameters.speed}, Pitch: ${player.playbackParameters.pitch}")
                     }
                 }
+            val checkCrossfadeJob =
+                launch {
+                    combine(dataStoreManager.crossfadeEnabled, dataStoreManager.crossfadeDuration) { isEnabled, duration ->
+                        Pair((isEnabled == TRUE), duration)
+                    }.collectLatest { (isEnabled, duration) ->
+                        Log.w(TAG, "Crossfade enabled: $isEnabled, Duration: $duration")
+                        _crossfadeData.value = isEnabled to duration
+                    }
+                }
             skipSegmentsJob.join()
             playbackJob.join()
             playbackSpeedPitchJob.join()
+            checkCrossfadeJob.join()
         }
     }
 
@@ -714,8 +752,16 @@ class SimpleMediaServiceHandler(
                 }
             }
 
-            PlayerEvent.Next -> player.seekToNext()
-            PlayerEvent.Previous -> player.seekToPrevious()
+            PlayerEvent.Next -> {
+                isCrossfading = false
+                isPreparedCrossfadePlayer = false
+                player.seekToNext()
+            }
+            PlayerEvent.Previous -> {
+                isCrossfading = false
+                isPreparedCrossfadePlayer = false
+                player.seekToPrevious()
+            }
             PlayerEvent.Stop -> {
                 stopProgressUpdate()
                 player.stop()
@@ -877,6 +923,10 @@ class SimpleMediaServiceHandler(
         }
         updateNextPreviousTrackAvailability()
         updateNotification()
+        if (player.currentMediaItemIndex == 0) {
+            isCrossfading = false
+            isPreparedCrossfadePlayer = false
+        }
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
@@ -964,8 +1014,49 @@ class SimpleMediaServiceHandler(
                 while (true) {
                     delay(100)
                     _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
+                    val minusData = (player.duration - player.currentPosition - crossfadeData.value.second)
+                    val shouldCrossfade = minusData <= 0
+                    val shouldPlaySecondaryPlayer = minusData > 0 && minusData <= 3000L && !secondaryPlayer.isPlaying
+                    if (crossfadeData.value.first && player.isPlaying && player.duration > 0L) {
+                        if (shouldCrossfade && !isCrossfading) {
+                            Log.w(TAG, "Crossfade start")
+                            isCrossfading = true
+                            startCrossfade()
+                        } else if (shouldPlaySecondaryPlayer) {
+                            Log.w(TAG, "Crossfade play secondary player")
+                            secondaryPlayer.volume = 0f
+                            secondaryPlayer.playWhenReady = true
+                            secondaryPlayer.seekTo(player.currentPosition)
+                            if (!secondaryPlayer.isPlaying) secondaryPlayer.play()
+                        } else if (!isPreparedCrossfadePlayer) {
+                            Log.w(TAG, "Crossfade prepare track ${player.currentMediaItem?.mediaMetadata?.title}")
+                            isPreparedCrossfadePlayer = true
+                            mayBePrepareCrossfadeTrack(player.currentMediaItem)
+                        }
+                    }
                 }
             }
+    }
+
+    private fun startCrossfade() {
+        val duration = crossfadeData.value.second
+        secondaryPlayer.volume = 1f
+        player.seekToNext()
+        player.volume = 0f
+        crossFadeAnimator =
+            ValueAnimator.ofFloat(0f, 1f).apply {
+                this.duration = duration.toLong()
+                addUpdateListener { animation: ValueAnimator ->
+                    Log.w(TAG, "Crossfade update: ${animation.animatedValue}")
+                    player.volume = animation.animatedValue as Float
+                    secondaryPlayer.volume = 1 - animation.animatedValue as Float
+                }
+                doOnEnd {
+                    isPreparedCrossfadePlayer = false
+                    isCrossfading = false
+                }
+            }
+        crossFadeAnimator?.start()
     }
 
     private fun startBufferedUpdate() {
@@ -977,6 +1068,18 @@ class SimpleMediaServiceHandler(
                         SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
                 }
             }
+    }
+
+    private fun mayBePrepareCrossfadeTrack(mediaItem: MediaItem?) {
+        if (crossfadeData.value.first && mediaItem != null && mediaItem != EMPTY) {
+            secondaryPlayer.setMediaItem(mediaItem)
+            secondaryPlayer.prepare()
+            // Gap 3 second to avoid loading state
+            secondaryPlayer.seekTo(player.duration - crossfadeData.value.second.toLong() - 3000L)
+            secondaryPlayer.playWhenReady = false
+            secondaryPlayer.volume = 1f
+            isPreparedCrossfadePlayer = true
+        }
     }
 
     fun shufflePlaylist(randomTrackIndex: Int = 0) {
@@ -1472,6 +1575,8 @@ class SimpleMediaServiceHandler(
     fun release() {
         mayBeSaveRecentSong(true)
         mayBeSavePlaybackState()
+        secondaryPlayer.stop()
+        secondaryPlayer.release()
         player.stop()
         player.playWhenReady = false
         player.removeListener(this)

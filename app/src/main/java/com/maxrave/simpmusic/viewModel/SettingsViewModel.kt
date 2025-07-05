@@ -134,6 +134,10 @@ class SettingsViewModel(
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
+    private val _crossfadeEnabled = MutableStateFlow<Boolean>(false)
+    val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled
+    private val _crossfadeDuration = MutableStateFlow<Int>(5000)
+    val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -192,6 +196,8 @@ class SettingsViewModel(
         getAITranslation()
         getCustomModelId()
         getKillServiceOnExit()
+        getCrossfadeEnabled()
+        getCrossfadeDuration()
         viewModelScope.launch {
             calculateDataFraction()
         }
@@ -1191,6 +1197,36 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setKillServiceOnExit(kill)
             getKillServiceOnExit()
+        }
+    }
+
+    private fun getCrossfadeEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeEnabled.collect { crossfadeEnabled ->
+                _crossfadeEnabled.value = crossfadeEnabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeEnabled(crossfadeEnabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeEnabled(crossfadeEnabled)
+            getCrossfadeEnabled()
+        }
+    }
+
+    private fun getCrossfadeDuration() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeDuration.collect { duration ->
+                _crossfadeDuration.value = duration
+            }
+        }
+    }
+
+    fun setCrossfadeDuration(duration: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeDuration(duration)
+            getCrossfadeDuration()
         }
     }
 }

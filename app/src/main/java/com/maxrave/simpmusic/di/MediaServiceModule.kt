@@ -19,8 +19,10 @@ import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
@@ -32,7 +34,9 @@ import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.extractor.text.DefaultSubtitleParserFactory
 import com.maxrave.simpmusic.common.Config.CANVAS_CACHE
 import com.maxrave.simpmusic.common.Config.DOWNLOAD_CACHE
+import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.common.Config.PLAYER_CACHE
+import com.maxrave.simpmusic.common.Config.SECONDARY_PLAYER
 import com.maxrave.simpmusic.common.Config.SERVICE_SCOPE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
@@ -122,11 +126,35 @@ val mediaServiceModule =
         }
 
         // ExoPlayer
-        single<ExoPlayer>(createdAtStart = true) {
+        single<ExoPlayer>(createdAtStart = true, qualifier = named(MAIN_PLAYER)) {
             ExoPlayer
                 .Builder(androidContext())
-                .setAudioAttributes(get(), true)
+                .setAudioAttributes(get(), false)
                 .setWakeMode(C.WAKE_MODE_NETWORK)
+                .setHandleAudioBecomingNoisy(true)
+                .setSeekForwardIncrementMs(5000)
+                .setSeekBackIncrementMs(5000)
+                .setMediaSourceFactory(
+                    provideMergingMediaSource(
+                        androidContext(),
+                        get(named(DOWNLOAD_CACHE)),
+                        get(named(PLAYER_CACHE)),
+                        get(),
+                        get(named(SERVICE_SCOPE)),
+                        get(),
+                    ),
+                ).setRenderersFactory(provideRendererFactory(androidContext()))
+                .build()
+                .also {
+                    it.addAnalyticsListener(EventLogger())
+                }
+        }
+        single<ExoPlayer>(createdAtStart = true, qualifier = named(SECONDARY_PLAYER)) {
+            ExoPlayer
+                .Builder(androidContext())
+                .setLoadControl(
+                    provideLoadControl(),
+                ).setWakeMode(C.WAKE_MODE_NETWORK)
                 .setHandleAudioBecomingNoisy(true)
                 .setSeekForwardIncrementMs(5000)
                 .setSeekBackIncrementMs(5000)
@@ -160,7 +188,8 @@ val mediaServiceModule =
         // MediaServiceHandler
         single<SimpleMediaServiceHandler>(createdAtStart = true) {
             SimpleMediaServiceHandler(
-                player = get(),
+                player = get(named(MAIN_PLAYER)),
+                secondaryPlayer = get(named(SECONDARY_PLAYER)),
                 dataStoreManager = get(),
                 mainRepository = get(),
                 mediaSessionCallback = get(),
@@ -178,7 +207,7 @@ private fun provideResolvingDataSourceFactory(
     mainRepository: MainRepository,
     coroutineScope: CoroutineScope,
 ): DataSource.Factory {
-    val CHUNK_LENGTH = 10 * 512 * 1024L
+    val chunkLength = 10 * 512 * 1024L
     return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
         val mediaId = dataSpec.key ?: error("No media id")
         Log.w("Stream", mediaId)
@@ -202,7 +231,7 @@ private fun provideResolvingDataSourceFactory(
             Log.w("Stream", "Downloaded $mediaId")
             return@Factory dataSpec
         }
-        if (playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)) {
+        if (playerCache.isCached(mediaId, dataSpec.position, chunkLength)) {
             coroutineScope.launch(Dispatchers.IO) {
                 mainRepository.updateFormat(
                     if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
@@ -226,7 +255,7 @@ private fun provideResolvingDataSourceFactory(
                         val is403Url = mainRepository.is403Url(it.videoUrl).firstOrNull() != false
                         Log.d("Stream", "is 403 $is403Url")
                         if (!is403Url) {
-                            dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                            dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                             return@runBlocking
                         }
                     }
@@ -239,7 +268,7 @@ private fun provideResolvingDataSourceFactory(
                     ?.let {
                         Log.d("Stream", it)
                         Log.w("Stream", "Video")
-                        dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                        dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                     }
             } else {
                 mainRepository.getNewFormat(mediaId).firstOrNull()?.let {
@@ -249,7 +278,7 @@ private fun provideResolvingDataSourceFactory(
                         val is403Url = mainRepository.is403Url(it.audioUrl).firstOrNull() != false
                         Log.d("Stream", "is 403 $is403Url")
                         if (!is403Url) {
-                            dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                            dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                             return@runBlocking
                         }
                     }
@@ -262,7 +291,7 @@ private fun provideResolvingDataSourceFactory(
                     ?.let {
                         Log.d("Stream", it)
                         Log.w("Stream", "Audio")
-                        dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                        dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                     }
             }
         }
@@ -399,3 +428,17 @@ private fun provideCacheDataSource(
                 ),
         ).setCacheWriteDataSinkFactory(null)
         .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+
+@UnstableApi
+private fun provideLoadControl(): LoadControl =
+    DefaultLoadControl
+        .Builder()
+        .setBufferDurationsMs(
+            30 * 1000,
+            60 * 1000,
+            30 * 1000,
+            30 * 1000,
+        ).setBackBuffer(
+            30 * 1000,
+            true,
+        ).build()

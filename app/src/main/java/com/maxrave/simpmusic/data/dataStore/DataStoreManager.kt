@@ -969,6 +969,38 @@ class DataStoreManager(
         }
     }
 
+    val crossfadeEnabled: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CROSSFADE_ENABLED] ?: FALSE
+        }
+
+    suspend fun setCrossfadeEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (enabled) {
+                settingsDataStore.edit { settings ->
+                    settings[CROSSFADE_ENABLED] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[CROSSFADE_ENABLED] = FALSE
+                }
+            }
+        }
+    }
+
+    val crossfadeDuration: Flow<Int> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CROSSFADE_DURATION] ?: 5000
+        }
+
+    suspend fun setCrossfadeDuration(duration: Int) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[CROSSFADE_DURATION] = duration
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -987,6 +1019,8 @@ class DataStoreManager(
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
         val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
         val KILL_SERVICE_ON_EXIT = stringPreferencesKey("kill_service_on_exit")
+        val CROSSFADE_ENABLED = stringPreferencesKey("crossfade_enabled")
+        val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         const val YOUTUBE = "youtube"
         const val MUSIXMATCH = "musixmatch"
         const val LRCLIB = "lrclib"

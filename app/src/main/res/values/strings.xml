@@ -441,4 +441,9 @@
     <string name="download_this_song_video_file_to_your_device">Download this song/video file to your device</string>
     <string name="kill_service_on_exit">Kill service on exit</string>
     <string name="kill_service_on_exit_description">Stop background music player when exiting app</string>
+    <string name="crossfade">Crossfade (BETA)</string>
+    <string name="crossfade_enabled">Enabled (%1$ds)</string>
+    <string name="crossfade_disabled">Disabled</string>
+    <string name="crossfade_duration">Crossfade Duration</string>
+    <string name="set_crossfade_duration">Set crossfade duration in seconds (%1$ds)</string>
 </resources>

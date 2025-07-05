@@ -127,6 +127,7 @@ import coil3.toBitmap
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.findActivity
@@ -166,6 +167,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import org.koin.compose.koinInject
+import org.koin.core.qualifier.named
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
 @UnstableApi
@@ -756,7 +758,10 @@ fun NowPlayingScreen(
                                     ) {
                                         // Player
                                         Box(Modifier.fillMaxSize()) {
-                                            MediaPlayerView(player = koinInject(), modifier = Modifier.align(Alignment.Center))
+                                            MediaPlayerView(
+                                                player = koinInject(named(MAIN_PLAYER)),
+                                                modifier = Modifier.align(Alignment.Center),
+                                            )
                                         }
                                         Box(
                                             modifier =
