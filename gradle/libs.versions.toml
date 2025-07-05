@@ -1,12 +1,12 @@
 [versions]
 # App version
-version-name="0.2.17"
-version-code="35"
+version-name="0.2.18"
+version-code="36"
 
 android = "8.11.0"
-kotlin = "2.1.20"
-serialization = "2.1.20"
-ksp = "2.1.20-2.0.1"
+kotlin = "2.2.0"
+serialization = "2.2.0"
+ksp = "2.2.0-2.0.2"
 compose-bom = "2025.06.01"
 constraintlayout-compose = "1.1.1"
 activity-compose = "1.10.1"
@@ -23,7 +23,7 @@ ui-tooling = "1.8.3"
 media3 = "1.7.1"
 okhttp3 = "4.12.0"
 palette-ktx = "1.0.0"
-expandable-text = "2.0.0"
+expandable-text = "2.0.1"
 constraintlayout = "2.2.1"
 junit = "4.13.2"
 androidx-junit = "1.2.1"
@@ -32,7 +32,7 @@ room = "2.7.2"
 legacy-support-v4 = "1.0.0"
 coroutines-android = "1.10.2"
 coroutines-guava = "1.10.2"
-navigation = "2.9.0"
+navigation = "2.9.1"
 gson = "2.13.1"
 coil3 = "3.2.0"
 kmpalette = "3.1.0"
@@ -43,31 +43,31 @@ datastore-preferences = "1.1.7"
 swiperefreshlayout = "1.2.0-beta01"
 insetter = "0.6.1"
 shimmer = "0.5.0"
-lottie = "6.4.0"
+lottie = "6.6.7"
 paging = "3.3.6"
 customactivityoncrash = "2.4.0"
-sdp-android = "1.1.0"
-ssp-android = "1.1.0"
-aboutlibraries = "10.10.0"
+sdp-android = "1.1.1"
+ssp-android = "1.1.1"
+aboutlibraries = "12.2.4"
 flexbox = "3.0.0"
-balloon = "1.6.4"
+balloon = "1.6.12"
 insetsx = "0.1.0-alpha10"
-ktor = "3.1.2"
+ktor = "3.2.1"
 brotli = "0.1.2"
-ksoup = "0.3.1"
+ksoup = "0.6.0"
 desugaring = "2.1.5"
-koin-bom = "4.1.0-Beta11"
+koin-bom = "4.1.0"
 md = "0.7.3"
-store = "5.1.0-alpha05"
+store = "5.1.0-alpha06"
 ui-text-android = "1.8.3"
-haze = "1.6.3"
+haze = "1.6.6"
 smart-exception = "0.2.1"
 onetimepassword = "2.4.1"
 common = "1.18.0"
-json = "1.8.1"
+json = "1.9.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.13.3"
+sentry-android = "8.16.0"
 newpipe = "0.24.6"
 leakcanary = "2.14"
 
@@ -124,7 +124,7 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref = "easypermissions" }
 preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preference-ktx" }
 fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment-ktx" }
-kotlinx-metadata-jvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-metadata-jvm", version = "0.8.0" }
+kotlinx-metadata-jvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-metadata-jvm", version = "0.9.0" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 insetter = { group = "dev.chrisbanes.insetter", name = "insetter", version.ref = "insetter" }
@@ -178,7 +178,6 @@ koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 koin-android = { module = "io.insert-koin:koin-android"}
-koin-workmanager = { module = "io.insert-koin:koin-androidx-workmanager" }
 
 #Sentry
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}

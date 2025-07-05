@@ -16,6 +16,7 @@ kotlin {
     jvmToolchain(17) // or appropriate version
     compilerOptions {
         freeCompilerArgs.add("-Xwhen-guards")
+        freeCompilerArgs.add("-Xcontext-receivers")
     }
 }
 
@@ -130,13 +131,6 @@ android {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlin {
-        jvmToolchain(17)
-    }
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "17"
     }
     // enable view binding
     buildFeatures {
@@ -316,9 +310,13 @@ dependencies {
     debugImplementation(libs.leak.canary)
 }
 aboutLibraries {
-    prettyPrint = true
-    registerAndroidTasks = false
-    excludeFields = arrayOf("generated")
+    export {
+        prettyPrint = true
+        excludeFields = listOf("generated")
+    }
+    android {
+        registerAndroidTasks = false
+    }
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

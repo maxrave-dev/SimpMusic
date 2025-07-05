@@ -6,6 +6,10 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 android {
     namespace = "com.maxrave.lyricsproviders"
     compileSdk = 36
@@ -27,11 +31,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 

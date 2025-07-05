@@ -745,10 +745,7 @@ class MainActivity : AppCompatActivity() {
                                 val browserIntent =
                                     Intent(
                                         Intent.ACTION_VIEW,
-                                        response.assets
-                                            ?.firstOrNull()
-                                            ?.browserDownloadUrl
-                                            ?.toUri(),
+                                        "https://simpmusic.org/download".toUri(),
                                     )
                                 startActivity(browserIntent)
                             }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->

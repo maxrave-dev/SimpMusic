@@ -108,7 +108,7 @@ val databaseModule =
                                         val listType: Type =
                                             object : TypeToken<ArrayList<String?>?>() {}.type
                                         val tracks = Gson().fromJson<ArrayList<String?>?>(input, listType)
-                                        listYouTubeSyncedId.add(Pair(youtubePlaylistId, tracks.toMutableList().filterNotNull()))
+                                        listYouTubeSyncedId.add(Pair(youtubePlaylistId, tracks?.toMutableList()?.filterNotNull() ?: emptyList()))
                                     }
                                 }
                             val setVideoIdList = mutableListOf<SetVideoIdEntity>()
@@ -143,8 +143,8 @@ val databaseModule =
                         }
                     },
                     object : Migration(12, 13) {
-                        override fun migrate(database: SupportSQLiteDatabase) {
-                            database.execSQL("ALTER TABLE song ADD COLUMN canvasUrl TEXT")
+                        override fun migrate(db: SupportSQLiteDatabase) {
+                            db.execSQL("ALTER TABLE song ADD COLUMN canvasUrl TEXT")
                         }
                     },
                 ).addCallback(

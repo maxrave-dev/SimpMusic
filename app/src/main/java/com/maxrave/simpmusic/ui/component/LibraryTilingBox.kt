@@ -131,7 +131,7 @@ fun LibraryTilingItem(
 }
 
 data class LibraryTilingState(
-    @StringRes val title: Int,
+    @param:StringRes val title: Int,
     val containerColor: Color,
     val icon: ImageVector,
     val iconColor: Color,

@@ -1341,7 +1341,7 @@ fun SettingScreen(
                     title = stringResource(R.string.buy_me_a_coffee),
                     subtitle = stringResource(R.string.donation),
                     onClick = {
-                        uriHandler.openUri("https://www.buymeacoffee.com/maxrave")
+                        uriHandler.openUri("https://github.com/sponsors/maxrave-dev")
                     },
                 )
                 SettingItem(

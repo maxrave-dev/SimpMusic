@@ -182,7 +182,7 @@ fun CreditScreen(
                     val urlIntent =
                         Intent(
                             Intent.ACTION_VIEW,
-                            "https://www.buymeacoffee.com/maxrave".toUri(),
+                            "https://github.com/sponsors/maxrave-dev".toUri(),
                         )
                     context.startActivity(urlIntent)
                 },

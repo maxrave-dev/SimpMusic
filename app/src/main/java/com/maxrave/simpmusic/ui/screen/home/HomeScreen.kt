@@ -67,7 +67,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -196,7 +195,7 @@ fun HomeScreen(
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
     LaunchedEffect(openAppTime) {
-        if (openAppTime >= 10 && openAppTime % 10 == 0 && openAppTime <= 30) {
+        if (openAppTime >= 10 && openAppTime % 10 == 0 && openAppTime <= 50) {
             showReviewDialog = true
         }
     }
