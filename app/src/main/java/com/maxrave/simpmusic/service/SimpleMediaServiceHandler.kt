@@ -250,6 +250,11 @@ class SimpleMediaServiceHandler(
                         }
                     Log.w(TAG, "Secondary Player Playback State Changed: $playbackStateString")
                 }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    super.onPlayerError(error)
+                    Log.e(TAG, "Secondary Player Error: ${error.message}")
+                }
             },
         )
         coroutineScope.launch {
@@ -461,7 +466,7 @@ class SimpleMediaServiceHandler(
             coroutineScope.launch {
                 if (mediaId != null) {
                     mainRepository.getFormatFlow(mediaId).cancellable().collectLatest { f ->
-                        Log.w(TAG, "Get format for " + mediaId.toString() + ": " + f.toString())
+                        Log.w(TAG, "Get format for $mediaId: $f")
                         if (f != null) {
                             _format.emit(f)
                         } else {
@@ -1033,7 +1038,7 @@ class SimpleMediaServiceHandler(
                     val minusData = (player.duration - player.currentPosition - crossfadeData.value.second)
                     val shouldCrossfade = minusData <= 0
                     val shouldPlaySecondaryPlayer = minusData > 0 && minusData <= 3000L && !secondaryPlayer.isPlaying
-                    if (crossfadeData.value.first && player.isPlaying && player.duration > 0L) {
+                    if (crossfadeData.value.first && player.isPlaying && player.duration > 0L && player.currentMediaItem?.isVideo() == false) {
                         if (shouldCrossfade && !isCrossfading) {
                             Log.w(TAG, "Crossfade start")
                             isCrossfading = true
@@ -1068,7 +1073,6 @@ class SimpleMediaServiceHandler(
             ValueAnimator.ofFloat(0f, 1f).apply {
                 this.duration = duration.toLong()
                 addUpdateListener { animation: ValueAnimator ->
-                    Log.w(TAG, "Crossfade update: ${animation.animatedValue}")
                     player.volume = animation.animatedValue as Float
                     secondaryPlayer.volume = 1 - animation.animatedValue as Float
                 }
@@ -1080,6 +1084,7 @@ class SimpleMediaServiceHandler(
                             isCrossfading = false,
                         )
                     }
+                    Log.w(TAG, "Crossfade end")
                 }
             }
         crossFadeAnimator?.start()
@@ -1105,6 +1110,7 @@ class SimpleMediaServiceHandler(
             secondaryPlayer.playWhenReady = false
             secondaryPlayer.volume = 1f
             isPreparedCrossfadePlayer = true
+            Log.w(TAG, "Crossfade prepared track ${mediaItem.mediaMetadata.title}")
         }
     }
 
