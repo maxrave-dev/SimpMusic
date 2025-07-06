@@ -5,6 +5,7 @@ import com.maxrave.kotlinytmusicscraper.models.Continuation
 import com.maxrave.kotlinytmusicscraper.models.Menu
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
+import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.ResponseContext
 import com.maxrave.kotlinytmusicscraper.models.Runs
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
@@ -70,7 +71,15 @@ data class BrowseResponse(
         val sectionListContinuation: SectionListContinuation?,
         val musicPlaylistShelfContinuation: MusicPlaylistShelfContinuation?,
         val musicShelfContinuation: SearchResponse.ContinuationContents.MusicShelfContinuation?,
+        val gridContinuation: GridContinuation?,
     ) {
+        @Serializable
+        data class GridContinuation(
+            val itemSize: String?,
+            val items: List<MusicTwoRowItemRenderer>,
+            val continuations: List<Continuation>?,
+        )
+
         @Serializable
         data class SectionListContinuation(
             val contents: List<SectionListRenderer.Content>,
