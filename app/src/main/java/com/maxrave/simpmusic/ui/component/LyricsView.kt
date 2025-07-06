@@ -244,9 +244,23 @@ fun LyricsLineItem(
             modifier = modifier,
         ) {
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = originalWords, style = typo.bodyLarge, color = Color.LightGray)
+            Text(
+                text = originalWords,
+                style = typo.bodyLarge,
+                color =
+                    Color.LightGray.copy(
+                        alpha = 0.8f,
+                    ),
+            )
             if (translatedWords != null) {
-                Text(text = translatedWords, style = typo.bodyMedium, color = Color(0xFF97971A))
+                Text(
+                    text = translatedWords,
+                    style = typo.bodyMedium,
+                    color =
+                        Color(0xFF97971A).copy(
+                            alpha = 0.8f,
+                        ),
+                )
             }
             Spacer(modifier = Modifier.height(4.dp))
         }

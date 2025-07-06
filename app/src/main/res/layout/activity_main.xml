@@ -23,7 +23,6 @@
                 android:layout_height="55dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
-                android:elevation="8dp"
                 android:layout_above="@+id/bottom_navigation_view">
 
         </androidx.compose.ui.platform.ComposeView>
