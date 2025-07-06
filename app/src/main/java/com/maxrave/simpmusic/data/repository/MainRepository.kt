@@ -82,6 +82,7 @@ import com.maxrave.simpmusic.data.parser.parseLibraryPlaylist
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
 import com.maxrave.simpmusic.data.parser.parseNewRelease
+import com.maxrave.simpmusic.data.parser.parseNextLibraryPlaylist
 import com.maxrave.simpmusic.data.parser.parsePlaylistData
 import com.maxrave.simpmusic.data.parser.parsePodcast
 import com.maxrave.simpmusic.data.parser.parsePodcastContinueData
@@ -2979,7 +2980,7 @@ class MainRepository(
                 }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getLibraryPlaylist(): Flow<ArrayList<PlaylistsResult>?> =
+    fun getLibraryPlaylist(): Flow<List<PlaylistsResult>?> =
         flow {
             youTube
                 .getLibraryPlaylists()
@@ -2998,11 +2999,48 @@ class MainRepository(
                                 0,
                             )?.gridRenderer
                             ?.items
-                            ?: null
-                    if (input != null) {
-                        Log.w("Library", "input: ${input.size}")
-                        val list = parseLibraryPlaylist(input)
-                        emit(list)
+                    val listItem = mutableListOf<PlaylistsResult>()
+                    if (input.isNullOrEmpty()) {
+                        Log.w("Library", "No playlists found")
+                        emit(null)
+                        return@onSuccess
+                    }
+                    listItem.addAll(
+                        parseLibraryPlaylist(input),
+                    )
+                    var continuation =
+                        data.contents
+                            ?.singleColumnBrowseResultsRenderer
+                            ?.tabs
+                            ?.firstOrNull()
+                            ?.tabRenderer
+                            ?.content
+                            ?.sectionListRenderer
+                            ?.contents
+                            ?.firstOrNull()
+                            ?.gridRenderer
+                            ?.continuations
+                            ?.firstOrNull()
+                            ?.nextContinuationData
+                            ?.continuation
+                    while (continuation != null) {
+                        youTube
+                            .nextYouTubePlaylists(continuation)
+                            .onSuccess { nextData ->
+                                continuation = nextData.second
+                                Log.w("Library", "continuation: $continuation")
+                                val nextInput = nextData.first
+                                listItem.addAll(
+                                    parseNextLibraryPlaylist(nextInput),
+                                )
+                            }.onFailure { exception ->
+                                exception.printStackTrace()
+                                Log.e("Library", "Error: ${exception.message}")
+                                continuation = null
+                            }
+                    }
+                    if (listItem.isNotEmpty()) {
+                        emit(listItem)
                     } else {
                         emit(null)
                     }

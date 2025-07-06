@@ -21,6 +21,7 @@ import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicCarouselShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
+import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.PoToken
 import com.maxrave.kotlinytmusicscraper.models.ReturnYouTubeDislikeResponse
@@ -1615,6 +1616,31 @@ class YouTube(
             }
         }
     }
+
+    suspend fun nextYouTubePlaylists(continuation: String): Result<Pair<List<MusicTwoRowItemRenderer>, String?>> =
+        runCatching {
+            val response =
+                ytMusic
+                    .next(
+                        WEB_REMIX,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        continuation,
+                    ).body<BrowseResponse>()
+            Pair(
+                response
+                    .continuationContents
+                    ?.gridContinuation
+                    ?.items ?: emptyList(),
+                response.continuationContents
+                    ?.gridContinuation
+                    ?.continuations
+                    ?.getContinuation(),
+            )
+        }
 
     suspend fun next(
         endpoint: WatchEndpoint,
