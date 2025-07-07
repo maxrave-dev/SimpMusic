@@ -10,20 +10,32 @@ import kotlin.math.pow
 
 /**
  * Implementation of Time-based One-Time Password for Spotify authentication
+ * Logic from https://github.com/misiektoja/spotify_monitor/blob/main/debug/spotify_monitor_totp_test.py
  */
 object SpotifyTotp {
+    /**
+     * Version 5 secret
+     */
     private const val SECRET_STRING = "GU2TANZRGQ2TQNJTGQ4DONBZHE2TSMRSGQ4DMMZQGMZDSMZUG4"
+
+    /**
+     * Version 10 secret
+     */
+    private const val SECRET_STRING_V10 = "GUZDCMBQGQ4TCMJQGQ3DMNJRGIZDQNJRGE4TSMBXHEYTCNBYGA3TKNRSGEZDKNJRHAYQ"
 
     /**
      * Generate a TOTP value for the given timestamp
      */
-    fun at(timestamp: Long): String = generateTotp(timestamp)
+    fun at(timestamp: Long): String = generate(timestamp)
 
     private fun generate(timestamp: Long): String {
-        val googleAuthenticator = GoogleAuthenticator(SECRET_STRING.toByteArray())
+        val googleAuthenticator = GoogleAuthenticator(SECRET_STRING_V10.toByteArray())
         return googleAuthenticator.generate(timestamp = Date(timestamp))
     }
 
+    /**
+     * Version 8
+     */
     private fun generateTotp(serverTimeSeconds: Long): String {
         val secret = "449443649084886328893534571041315"
         val period = 30

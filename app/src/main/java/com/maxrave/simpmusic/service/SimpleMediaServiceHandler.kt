@@ -106,6 +106,7 @@ class SimpleMediaServiceHandler(
     private val converter = Converters()
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
+    private var secondLoudnessEnhancer: LoudnessEnhancer? = null
 
     private var volumeNormalizationJob: Job? = null
 
@@ -744,6 +745,16 @@ class SimpleMediaServiceHandler(
         }
     }
 
+    fun resetCrossfade() {
+        isCrossfading = false
+        isPreparedCrossfadePlayer = false
+        _controlState.update {
+            it.copy(
+                isCrossfading = false,
+            )
+        }
+    }
+
     suspend fun onPlayerEvent(playerEvent: PlayerEvent) {
         when (playerEvent) {
             PlayerEvent.Backward -> player.seekBack()
@@ -759,23 +770,11 @@ class SimpleMediaServiceHandler(
             }
 
             PlayerEvent.Next -> {
-                isCrossfading = false
-                isPreparedCrossfadePlayer = false
-                _controlState.update {
-                    it.copy(
-                        isCrossfading = false,
-                    )
-                }
+                resetCrossfade()
                 player.seekToNext()
             }
             PlayerEvent.Previous -> {
-                isCrossfading = false
-                isPreparedCrossfadePlayer = false
-                _controlState.update {
-                    it.copy(
-                        isCrossfading = false,
-                    )
-                }
+                resetCrossfade()
                 player.seekToPrevious()
             }
             PlayerEvent.Stop -> {
@@ -940,13 +939,7 @@ class SimpleMediaServiceHandler(
         updateNextPreviousTrackAvailability()
         updateNotification()
         if (player.currentMediaItemIndex == 0) {
-            isCrossfading = false
-            isPreparedCrossfadePlayer = false
-            _controlState.update {
-                it.copy(
-                    isCrossfading = false,
-                )
-            }
+            resetCrossfade()
         }
     }
 
@@ -1035,9 +1028,8 @@ class SimpleMediaServiceHandler(
                 while (true) {
                     delay(100)
                     _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
-                    val minusData = (player.duration - player.currentPosition - crossfadeData.value.second)
+                    val minusData = (player.duration - player.currentPosition - crossfadeData.value.second - 1000L) // GAP 1 second for preloading
                     val shouldCrossfade = minusData <= 0
-                    val shouldPlaySecondaryPlayer = minusData > 0 && minusData <= 3000L && !secondaryPlayer.isPlaying
                     if (crossfadeData.value.first && player.isPlaying && player.duration > 0L && player.currentMediaItem?.isVideo() == false) {
                         if (shouldCrossfade && !isCrossfading) {
                             Log.w(TAG, "Crossfade start")
@@ -1047,13 +1039,9 @@ class SimpleMediaServiceHandler(
                                     isCrossfading = true,
                                 )
                             }
-                            startCrossfade()
-                        } else if (shouldPlaySecondaryPlayer) {
-                            Log.w(TAG, "Crossfade play secondary player")
-                            secondaryPlayer.volume = 0f
-                            secondaryPlayer.playWhenReady = true
-                            secondaryPlayer.seekTo(player.currentPosition)
-                            if (!secondaryPlayer.isPlaying) secondaryPlayer.play()
+                            coroutineScope.launch {
+                                startCrossfade()
+                            }
                         } else if (!isPreparedCrossfadePlayer) {
                             Log.w(TAG, "Crossfade prepare track ${player.currentMediaItem?.mediaMetadata?.title}")
                             isPreparedCrossfadePlayer = true
@@ -1064,11 +1052,15 @@ class SimpleMediaServiceHandler(
             }
     }
 
-    private fun startCrossfade() {
+    private suspend fun startCrossfade() {
         val duration = crossfadeData.value.second
+        secondaryPlayer.volume = 0f
+        secondaryPlayer.playWhenReady = true
+        secondaryPlayer.seekTo(player.currentPosition)
+        delay(1000L)
         secondaryPlayer.volume = 1f
-        player.seekToNext()
         player.volume = 0f
+        player.seekToNext()
         crossFadeAnimator =
             ValueAnimator.ofFloat(0f, 1f).apply {
                 this.duration = duration.toLong()
@@ -1077,13 +1069,7 @@ class SimpleMediaServiceHandler(
                     secondaryPlayer.volume = 1 - animation.animatedValue as Float
                 }
                 doOnEnd {
-                    isPreparedCrossfadePlayer = false
-                    isCrossfading = false
-                    _controlState.update {
-                        it.copy(
-                            isCrossfading = false,
-                        )
-                    }
+                    resetCrossfade()
                     Log.w(TAG, "Crossfade end")
                 }
             }
@@ -1369,6 +1355,9 @@ class SimpleMediaServiceHandler(
             loudnessEnhancer?.enabled = false
             loudnessEnhancer?.release()
             loudnessEnhancer = null
+            secondLoudnessEnhancer?.enabled = false
+            secondLoudnessEnhancer?.release()
+            secondLoudnessEnhancer = null
             volumeNormalizationJob?.cancel()
             player.volume = 1f
             return
@@ -1377,6 +1366,15 @@ class SimpleMediaServiceHandler(
         if (loudnessEnhancer == null && player.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
             try {
                 loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+            } catch (e: Exception) {
+                Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+
+        if (secondLoudnessEnhancer == null && secondaryPlayer.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
+            try {
+                secondLoudnessEnhancer = LoudnessEnhancer(secondaryPlayer.audioSessionId)
             } catch (e: Exception) {
                 Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
                 e.printStackTrace()
@@ -1415,6 +1413,17 @@ class SimpleMediaServiceHandler(
                                     Log.w(
                                         TAG,
                                         "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}",
+                                    )
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
+                                    e.printStackTrace()
+                                }
+                                try {
+                                    secondLoudnessEnhancer?.setTargetGain(0f.toMb() - loudnessMb)
+                                    secondLoudnessEnhancer?.enabled = true
+                                    Log.w(
+                                        TAG,
+                                        "mayBeNormalizeVolume: ${secondLoudnessEnhancer?.targetGain}",
                                     )
                                 } catch (e: Exception) {
                                     Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")

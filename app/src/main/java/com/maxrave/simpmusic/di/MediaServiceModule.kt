@@ -20,6 +20,8 @@ import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.DefaultLoadControl.DEFAULT_MAX_BUFFER_MS
+import androidx.media3.exoplayer.DefaultLoadControl.DEFAULT_MIN_BUFFER_MS
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
@@ -125,6 +127,21 @@ val mediaServiceModule =
                 .build()
         }
 
+        single<MergingMediaSourceFactory>(createdAtStart = true) {
+            provideMergingMediaSource(
+                androidContext(),
+                get(named(DOWNLOAD_CACHE)),
+                get(named(PLAYER_CACHE)),
+                get(),
+                get(named(SERVICE_SCOPE)),
+                get(),
+            )
+        }
+
+        single<DefaultRenderersFactory>(createdAtStart = true) {
+            provideRendererFactory(androidContext())
+        }
+
         // ExoPlayer
         single<ExoPlayer>(createdAtStart = true, qualifier = named(MAIN_PLAYER)) {
             ExoPlayer
@@ -135,20 +152,15 @@ val mediaServiceModule =
                 .setSeekForwardIncrementMs(5000)
                 .setSeekBackIncrementMs(5000)
                 .setMediaSourceFactory(
-                    provideMergingMediaSource(
-                        androidContext(),
-                        get(named(DOWNLOAD_CACHE)),
-                        get(named(PLAYER_CACHE)),
-                        get(),
-                        get(named(SERVICE_SCOPE)),
-                        get(),
-                    ),
-                ).setRenderersFactory(provideRendererFactory(androidContext()))
-                .build()
+                    get<MergingMediaSourceFactory>(),
+                ).setRenderersFactory(
+                    get<DefaultRenderersFactory>(),
+                ).build()
                 .also {
                     it.addAnalyticsListener(EventLogger())
                 }
         }
+        // Secondary ExoPlayer for crossfade
         single<ExoPlayer>(createdAtStart = true, qualifier = named(SECONDARY_PLAYER)) {
             ExoPlayer
                 .Builder(androidContext())
@@ -159,18 +171,16 @@ val mediaServiceModule =
                 .setSeekForwardIncrementMs(5000)
                 .setSeekBackIncrementMs(5000)
                 .setMediaSourceFactory(
-                    provideMergingMediaSource(
-                        androidContext(),
-                        get(named(DOWNLOAD_CACHE)),
-                        get(named(PLAYER_CACHE)),
-                        get(),
-                        get(named(SERVICE_SCOPE)),
-                        get(),
-                    ),
-                ).setRenderersFactory(provideRendererFactory(androidContext()))
-                .build()
+                    get<MergingMediaSourceFactory>(),
+                ).setRenderersFactory(
+                    get<DefaultRenderersFactory>(),
+                ).build()
                 .also {
                     it.addAnalyticsListener(EventLogger())
+                    it.preloadConfiguration =
+                        ExoPlayer.PreloadConfiguration(
+                            10 * 60 * 1000L, // Preload for 10 minutes
+                        )
                 }
         }
         // CoilBitmapLoader
@@ -434,11 +444,13 @@ private fun provideLoadControl(): LoadControl =
     DefaultLoadControl
         .Builder()
         .setBufferDurationsMs(
-            30 * 1000,
-            60 * 1000,
-            30 * 1000,
-            30 * 1000,
+            DEFAULT_MIN_BUFFER_MS,
+            DEFAULT_MAX_BUFFER_MS,
+            // bufferForPlaybackMs=
+            0,
+            // bufferForPlaybackAfterRebufferMs=
+            0,
         ).setBackBuffer(
-            30 * 1000,
+            60 * 1000,
             true,
         ).build()

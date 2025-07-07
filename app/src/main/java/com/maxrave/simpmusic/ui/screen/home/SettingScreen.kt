@@ -172,6 +172,7 @@ fun SettingScreen(
     val musixmatchLoggedIn by viewModel.musixmatchLoggedIn.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val useMusixmatchTranslation by viewModel.useTranslation.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val musixmatchTranslationLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
+    val youtubeSubtitleLanguage by viewModel.youtubeSubtitleLanguage.collectAsStateWithLifecycle()
     val spotifyLoggedIn by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
     val spotifyCanvas by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
@@ -764,6 +765,30 @@ fun SettingScreen(
                         )
                     },
                     isEnable = useMusixmatchTranslation || useAITranslation,
+                )
+                SettingItem(
+                    title = stringResource(R.string.youtube_subtitle_language),
+                    subtitle = youtubeSubtitleLanguage,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.youtube_subtitle_language),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.youtube_subtitle_language),
+                                        value = youtubeSubtitleLanguage,
+                                        verifyCodeBlock = {
+                                            (it.length == 2 && it.isTwoLetterCode()) to context.getString(R.string.invalid_language_code)
+                                        },
+                                    ),
+                                message = context.getString(R.string.youtube_subtitle_language_message),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setYoutubeSubtitleLanguage(state.textField?.value ?: "")
+                                    },
+                            ),
+                        )
+                    },
                 )
             }
         }

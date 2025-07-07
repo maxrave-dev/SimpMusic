@@ -138,6 +138,8 @@ class SettingsViewModel(
     val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled
     private val _crossfadeDuration = MutableStateFlow<Int>(5000)
     val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
+    private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
+    val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -175,6 +177,7 @@ class SettingsViewModel(
         getSponsorBlockEnabled()
         getSponsorBlockCategories()
         getTranslationLanguage()
+        getYoutubeSubtitleLanguage()
         getLyricsProvider()
         getUseTranslation()
         getMusixmatchLoggedIn()
@@ -1227,6 +1230,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCrossfadeDuration(duration)
             getCrossfadeDuration()
+        }
+    }
+
+    fun getYoutubeSubtitleLanguage() {
+        viewModelScope.launch {
+            dataStoreManager.youtubeSubtitleLanguage.collect { language ->
+                _youtubeSubtitleLanguage.emit(language)
+            }
+        }
+    }
+
+    fun setYoutubeSubtitleLanguage(language: String) {
+        viewModelScope.launch {
+            dataStoreManager.setYoutubeSubtitleLanguage(language)
+            getYoutubeSubtitleLanguage()
         }
     }
 }

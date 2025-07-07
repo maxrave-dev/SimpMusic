@@ -2327,8 +2327,9 @@ class MainRepository(
     suspend fun getYouTubeCaption(videoId: String): Flow<Resource<Lyrics>> =
         flow {
             runCatching {
+                val preferLang = dataStoreManager.youtubeSubtitleLanguage.first()
                 youTube
-                    .getYouTubeCaption(videoId)
+                    .getYouTubeCaption(videoId, preferLang)
                     .onSuccess { lyrics ->
                         Log.w("Lyrics", "lyrics: ${lyrics.toLyrics()}")
                         emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
@@ -2677,7 +2678,7 @@ class MainRepository(
                     duration = duration,
                     userToken = dataStoreManager.musixmatchUserToken.first(),
                 ).onSuccess { res ->
-                    if (res != null) {
+                    if (res != null && res.second.lyrics?.syncType == "LINE_SYNCED") {
                         Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
                         emit(
                             res.first.toString() to Resource.Success(res.second.toLyrics()),

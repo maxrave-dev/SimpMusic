@@ -87,10 +87,12 @@ class SimpleMediaService :
                 }
 
                 BasicWidget.ACTION_SKIP -> {
+                    simpleMediaServiceHandler.resetCrossfade()
                     player.seekToNext()
                 }
 
                 BasicWidget.ACTION_REWIND -> {
+                    simpleMediaServiceHandler.resetCrossfade()
                     player.seekToPrevious()
                 }
             }

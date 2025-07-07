@@ -29,7 +29,7 @@ class SpotifyAuth(
             println("Server time: $serverTime")
 
             // Generate TOTP secret and OTP value
-            val otpValue = SpotifyTotp.at(serverTime)
+            val otpValue = SpotifyTotp.at(serverTime * 1000L)
             println("Generated OTP: $otpValue")
 
             val sTime = "$serverTime"

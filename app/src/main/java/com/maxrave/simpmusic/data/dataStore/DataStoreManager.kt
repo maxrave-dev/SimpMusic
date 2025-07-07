@@ -1001,6 +1001,25 @@ class DataStoreManager(
         }
     }
 
+    val youtubeSubtitleLanguage =
+        settingsDataStore.data.map { preferences ->
+            val languageValue = language.first()
+            preferences[YOUTUBE_SUBTITLE_LANGUAGE] ?: if (languageValue.length >= 2) {
+                languageValue
+                    .substring(0..1)
+            } else {
+                "en"
+            }
+        }
+
+    suspend fun setYoutubeSubtitleLanguage(language: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[YOUTUBE_SUBTITLE_LANGUAGE] = language
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -1087,5 +1106,7 @@ class DataStoreManager(
             PROXY_TYPE_HTTP,
             PROXY_TYPE_SOCKS,
         }
+
+        val YOUTUBE_SUBTITLE_LANGUAGE = stringPreferencesKey("youtube_subtitle_language")
     }
 }
