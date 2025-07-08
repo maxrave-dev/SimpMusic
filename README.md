@@ -117,13 +117,18 @@ src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets
  </p>
 
 ## SimpMusic is sponsored by:
+<a href="https://www.digitalocean.com/?refcode=d7f6eedfb9a9&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" width="300" alt="DigitalOcean Referral Badge" /></a>
+<br>
 <a href="https://crowdin.com">
 <img src="https://support.crowdin.com/assets/logos/plate/png/crowdin-logo-with-plate.png" width="300"/>
 </a>
+<br>
 <a href="https://sentry.io">
 <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/sentry.svg?raw=true" width="300"/>
 </a>
 <br>
+
+Get free $200 credit over 60 days on DigitalOcean: [GET NOW](https://www.digitalocean.com/?refcode=d7f6eedfb9a9&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
 Crowdin and Sentry both have a free enterprise plan for Open-source projects. Follow the URLs: 
 - [Open Source License Request Form | Crowdin](https://crowdin.com/page/open-source-project-setup-request)

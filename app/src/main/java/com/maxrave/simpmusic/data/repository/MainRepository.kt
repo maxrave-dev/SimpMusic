@@ -2324,21 +2324,24 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getYouTubeCaption(videoId: String): Flow<Resource<Lyrics>> =
+    fun getYouTubeCaption(videoId: String): Flow<Resource<Pair<Lyrics, Lyrics?>>> =
         flow {
             runCatching {
                 val preferLang = dataStoreManager.youtubeSubtitleLanguage.first()
                 youTube
                     .getYouTubeCaption(videoId, preferLang)
                     .onSuccess { lyrics ->
-                        Log.w("Lyrics", "lyrics: ${lyrics.toLyrics()}")
-                        emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                        emit(
+                            Resource.Success<Pair<Lyrics, Lyrics?>>(
+                                Pair(lyrics.first.toLyrics(), lyrics.second?.toLyrics()),
+                            ),
+                        )
                     }.onFailure { e ->
                         Log.d("Lyrics", "Error: ${e.message}")
-                        emit(Resource.Error<Lyrics>(e.message.toString()))
+                        emit(Resource.Error<Pair<Lyrics, Lyrics?>>(e.message.toString()))
                     }
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
     fun getCanvas(
         videoId: String,

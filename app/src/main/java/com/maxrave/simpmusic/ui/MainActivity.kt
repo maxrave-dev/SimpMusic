@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         loadKoinModules(viewModelModule)
         VersionManager.initialize(applicationContext)
         checkForUpdate()
-        if (viewModel.recreateActivity.value == true || viewModel.isServiceRunning.value == true) {
+        if (viewModel.recreateActivity.value == true || viewModel.isServiceRunning) {
             viewModel.activityRecreateDone()
         } else {
             startMusicService()
@@ -363,62 +363,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-//        binding.miniplayer.showMode = SwipeLayout.ShowMode.PullOut
-//        binding.miniplayer.addDrag(SwipeLayout.DragEdge.Right, binding.llBottom)
-//        binding.miniplayer.addSwipeListener(
-//            object : SwipeLayout.SwipeListener {
-//                override fun onStartOpen(layout: SwipeLayout?) {
-//                    binding.card.radius = 0f
-//                }
-//
-//                override fun onOpen(layout: SwipeLayout?) {
-//                    binding.card.radius = 0f
-//                }
-//
-//                override fun onStartClose(layout: SwipeLayout?) {
-//                    binding.card.radius = 12f
-//                }
-//
-//                override fun onClose(layout: SwipeLayout?) {
-//                    binding.card.radius = 12f
-//                }
-//
-//                override fun onUpdate(
-//                    layout: SwipeLayout?,
-//                    leftOffset: Int,
-//                    topOffset: Int,
-//                ) {
-//                    binding.card.radius = 12f
-//                }
-//
-//                override fun onHandRelease(
-//                    layout: SwipeLayout?,
-//                    xvel: Float,
-//                    yvel: Float,
-//                ) {
-//                }
-//            },
-//        )
-//        binding.btRemoveMiniPlayer.setOnClickListener {
-//            viewModel.stopPlayer()
-//            viewModel.isServiceRunning.postValue(false)
-//            viewModel.videoId.postValue(null)
-//            binding.miniplayer.visibility = View.GONE
-//            binding.card.radius = 12f
-//        }
-//        binding.btSkipNext.setOnClickListener {
-//            viewModel.onUIEvent(UIEvent.Next)
-//            binding.card.radius = 12f
-//        }
-//
-//        binding.card.setOnClickListener {
-//            val bundle = Bundle()
-//            bundle.putString("type", Config.MINIPLAYER_CLICK)
-//            navController.navigateSafe(R.id.action_global_nowPlayingFragment, bundle)
-//        }
-//        binding.btPlayPause.setOnClickListener {
-//            viewModel.onUIEvent(UIEvent.PlayPause)
-//        }
         lifecycleScope.launch {
             val job1 =
                 launch {
@@ -642,7 +586,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         Log.w("MainActivity", "onDestroy: ")
         if (viewModel.shouldStopMusicService()) {
-            viewModel.isServiceRunning.value = false
+            viewModel.isServiceRunning = false
             unbindService(serviceConnection)
         }
         unloadKoinModules(viewModelModule)
@@ -660,7 +604,7 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SimpleMediaService::class.java)
             startService(intent)
             bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-            viewModel.isServiceRunning.value = true
+            viewModel.isServiceRunning = true
             Log.d("Service", "Service started")
         }
     }
@@ -773,8 +717,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onCloseMiniplayer() {
         viewModel.stopPlayer()
-        viewModel.isServiceRunning.postValue(false)
-        viewModel.videoId.postValue(null)
+        viewModel.isServiceRunning = false
         binding.miniplayer.visibility = View.GONE
     }
 }

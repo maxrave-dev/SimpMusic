@@ -109,6 +109,7 @@ class SimpleMediaServiceHandler(
     private var secondLoudnessEnhancer: LoudnessEnhancer? = null
 
     private var volumeNormalizationJob: Job? = null
+    private var volumeNormalizationForSecondPlayerJob: Job? = null
 
     private var sleepTimerJob: Job? = null
 
@@ -1097,6 +1098,7 @@ class SimpleMediaServiceHandler(
             secondaryPlayer.volume = 1f
             isPreparedCrossfadePlayer = true
             Log.w(TAG, "Crossfade prepared track ${mediaItem.mediaMetadata.title}")
+            mayBeNormalizeSecondPlayer()
         }
     }
 
@@ -1347,6 +1349,71 @@ class SimpleMediaServiceHandler(
         }
     }
 
+    private fun mayBeNormalizeSecondPlayer() {
+        runBlocking {
+            normalizeVolume = dataStoreManager.normalizeVolume.first() == TRUE
+        }
+        if (!normalizeVolume) {
+            secondLoudnessEnhancer?.enabled = false
+            secondLoudnessEnhancer?.release()
+            secondLoudnessEnhancer = null
+            volumeNormalizationForSecondPlayerJob?.cancel()
+            return
+        }
+        Log.d(TAG, "mayBeNormalizeSecondPlayer: audioSessionId ${secondaryPlayer.audioSessionId}")
+
+        if (secondLoudnessEnhancer == null && secondaryPlayer.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
+            try {
+                secondLoudnessEnhancer = LoudnessEnhancer(secondaryPlayer.audioSessionId)
+            } catch (e: Exception) {
+                Log.e(TAG, "mayBeNormalizeSecondPlayer: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+
+        player.currentMediaItem?.mediaId?.let { songId ->
+            val videoId =
+                if (songId.contains("Video")) {
+                    songId.removePrefix("Video")
+                } else {
+                    songId
+                }
+            volumeNormalizationForSecondPlayerJob?.cancel()
+            volumeNormalizationForSecondPlayerJob =
+                coroutineScope.launch(Dispatchers.Main) {
+                    fun Float?.toMb() = ((this ?: 0f) * 100).toInt()
+                    mainRepository
+                        .getFormatFlow(videoId)
+                        .cancellable()
+                        .distinctUntilChanged()
+                        .collectLatest { format ->
+                            if (format != null) {
+                                val loudnessMb =
+                                    format.loudnessDb.toMb().let {
+                                        if (it !in -2000..2000) {
+                                            0
+                                        } else {
+                                            it
+                                        }
+                                    }
+                                Log.d(TAG, "Loudness: ${format.loudnessDb} db, $loudnessMb")
+                                try {
+                                    secondLoudnessEnhancer?.setTargetGain(0f.toMb() - loudnessMb)
+                                    secondLoudnessEnhancer?.enabled = true
+                                    Log.w(
+                                        TAG,
+                                        "mayBeNormalizeSecondPlayer: ${secondLoudnessEnhancer?.targetGain}",
+                                    )
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "mayBeNormalizeSecondPlayer: ${e.message}")
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                }
+        }
+    }
+
     private fun mayBeNormalizeVolume() {
         runBlocking {
             normalizeVolume = dataStoreManager.normalizeVolume.first() == TRUE
@@ -1355,9 +1422,6 @@ class SimpleMediaServiceHandler(
             loudnessEnhancer?.enabled = false
             loudnessEnhancer?.release()
             loudnessEnhancer = null
-            secondLoudnessEnhancer?.enabled = false
-            secondLoudnessEnhancer?.release()
-            secondLoudnessEnhancer = null
             volumeNormalizationJob?.cancel()
             player.volume = 1f
             return
@@ -1366,15 +1430,6 @@ class SimpleMediaServiceHandler(
         if (loudnessEnhancer == null && player.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
             try {
                 loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
-            } catch (e: Exception) {
-                Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
-                e.printStackTrace()
-            }
-        }
-
-        if (secondLoudnessEnhancer == null && secondaryPlayer.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
-            try {
-                secondLoudnessEnhancer = LoudnessEnhancer(secondaryPlayer.audioSessionId)
             } catch (e: Exception) {
                 Log.e(TAG, "mayBeNormalizeVolume: ${e.message}")
                 e.printStackTrace()

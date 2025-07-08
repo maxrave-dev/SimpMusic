@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.drawable.GradientDrawable
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
@@ -45,11 +44,9 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.extension.isSong
 import com.maxrave.simpmusic.extension.isVideo
-import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toLyricsEntity
@@ -64,7 +61,6 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaState
 import com.maxrave.simpmusic.service.SleepTimerState
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.utils.VersionManager
@@ -88,7 +84,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -96,7 +91,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @UnstableApi
@@ -112,31 +106,13 @@ class SharedViewModel(
     val showMusixmatchCaptchaWebView: StateFlow<Boolean> get() = _showMusixmatchCaptchaWebView
 
     private val downloadedCache: SimpleCache by inject(qualifier = named(DOWNLOAD_CACHE))
-
-    private val downloadUtils: DownloadUtils by inject()
-
-    private var _songDB: MutableLiveData<SongEntity?> = MutableLiveData()
-    val songDB: LiveData<SongEntity?> = _songDB
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
-
-    private var _downloadList: MutableStateFlow<ArrayList<SongEntity>?> = MutableStateFlow(null)
-    val downloadList: SharedFlow<ArrayList<SongEntity>?> = _downloadList.asSharedFlow()
 
     private val context
         get() = getApplication<Application>()
 
-    val isServiceRunning = MutableLiveData<Boolean>(false)
-
-    var videoId = MutableLiveData<String>()
-
-    var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
-
-    var _lyrics = MutableStateFlow<Resource<Lyrics>?>(null)
-
-    //    val lyrics: LiveData<Resource<Lyrics>> = _lyrics
-    private var lyricsFormat: MutableLiveData<ArrayList<Line>> = MutableLiveData()
-    var lyricsFull = MutableLiveData<String>()
+    var isServiceRunning: Boolean = false
 
     private var _sleepTimerState = MutableStateFlow(SleepTimerState(false, 0))
     val sleepTimerState: StateFlow<SleepTimerState> = _sleepTimerState
@@ -251,17 +227,6 @@ class SharedViewModel(
                         }
                     }
                 }
-
-            val downloadedJob =
-                launch {
-                    mainRepository
-                        .getDownloadedSongsAsFlow(offset = 0)
-                        .distinctUntilChanged()
-                        .collectLatest {
-                            _downloadList.value = it?.toCollection(ArrayList())
-                        }
-                }
-
             val checkGetVideoJob =
                 launch {
                     dataStoreManager.watchVideoInsteadOfPlayingAudio.collectLatest {
@@ -276,7 +241,6 @@ class SharedViewModel(
                     }
                 }
             timeLineJob.join()
-            downloadedJob.join()
             checkGetVideoJob.join()
             lyricsProviderJob.join()
         }
@@ -546,9 +510,6 @@ class SharedViewModel(
     private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
     var downloadState: StateFlow<Download?> = _downloadState.asStateFlow()
 
-    fun getDownloadStateFromService(videoId: String) {
-    }
-
     fun checkIsRestoring() {
         viewModelScope.launch {
             mainRepository.getDownloadedSongs().first().let { songs ->
@@ -622,7 +583,6 @@ class SharedViewModel(
 
     private fun getSavedLyrics(track: Track) {
         viewModelScope.launch {
-            resetLyrics()
             mainRepository.getSavedLyrics(track.videoId).cancellable().collectLatest { lyrics ->
                 if (lyrics != null) {
                     val lyricsData = lyrics.toLyrics()
@@ -640,13 +600,6 @@ class SharedViewModel(
                 }
             }
         }
-    }
-
-    fun getCurrentMediaItemIndex(): Int = runBlocking { simpleMediaServiceHandler.currentSongIndex.first() }
-
-    @UnstableApi
-    fun playMediaItemInMediaSource(index: Int) {
-        simpleMediaServiceHandler.playMediaItemInMediaSource(index)
     }
 
     fun loadSharedMediaItem(videoId: String) {
@@ -686,7 +639,6 @@ class SharedViewModel(
                 mainRepository
                     .getSongById(track.videoId)
                     .collect { songEntity ->
-                        _songDB.value = songEntity
                         if (songEntity != null) {
                             Log.w("Check like", "loadMediaItemFromTrack ${songEntity.liked}")
                             _liked.value = songEntity.liked
@@ -778,136 +730,10 @@ class SharedViewModel(
             }
         }
 
-    private var _localPlaylist: MutableStateFlow<List<LocalPlaylistEntity>> = MutableStateFlow(listOf())
-    val localPlaylist: StateFlow<List<LocalPlaylistEntity>> = _localPlaylist
-
-    fun getAllLocalPlaylist() {
-        viewModelScope.launch {
-            mainRepository.getAllLocalPlaylists().collect { values ->
-                _localPlaylist.emit(values)
-            }
-        }
-    }
-
-    fun updateLocalPlaylistTracks(
-        list: List<String>,
-        id: Long,
-    ) {
-        viewModelScope.launch {
-            mainRepository.getSongsByListVideoId(list).collect { values ->
-                var count = 0
-                values.forEach { song ->
-                    if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
-                        count++
-                    }
-                }
-                mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast
-                    .makeText(
-                        getApplication(),
-                        application.getString(R.string.added_to_playlist),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                if (count == values.size) {
-                    mainRepository.updateLocalPlaylistDownloadState(
-                        DownloadState.STATE_DOWNLOADED,
-                        id,
-                    )
-                } else {
-                    mainRepository.updateLocalPlaylistDownloadState(
-                        DownloadState.STATE_NOT_DOWNLOADED,
-                        id,
-                    )
-                }
-            }
-        }
-    }
-
-    fun getActiveLyrics(current: Long): Int? {
-        val lyricsFormat = _lyrics.value?.data?.lines
-        lyricsFormat?.indices?.forEach { i ->
-            val sentence = lyricsFormat[i]
-            val startTimeMs = sentence.startTimeMs.toLong()
-
-            // estimate the end time of the current sentence based on the start time of the next sentence
-            val endTimeMs =
-                if (i < lyricsFormat.size - 1) {
-                    lyricsFormat[i + 1].startTimeMs.toLong()
-                } else {
-                    // if this is the last sentence, set the end time to be some default value (e.g., 1 minute after the start time)
-                    startTimeMs + 60000
-                }
-            if (current in startTimeMs..endTimeMs) {
-                return i
-            }
-        }
-        if (!lyricsFormat.isNullOrEmpty() &&
-            (
-                current in (
-                    0..(
-                        lyricsFormat.getOrNull(0)?.startTimeMs
-                            ?: "0"
-                    ).toLong()
-                )
-            )
-        ) {
-            return -1
-        }
-        return null
-    }
-
     @UnstableApi
     override fun onCleared() {
         Log.w("Check onCleared", "onCleared")
     }
-
-    private fun resetLyrics() {
-        _lyrics.value = (Resource.Error<Lyrics>("reset"))
-        lyricsFormat.postValue(arrayListOf())
-        lyricsFull.postValue("")
-    }
-
-    fun updateDownloadState(
-        videoId: String,
-        state: Int,
-    ) {
-        viewModelScope.launch {
-            mainRepository.getSongById(videoId).collect { songEntity ->
-                _songDB.value = songEntity
-                if (songEntity != null) {
-                    Log.w(
-                        "Check like",
-                        "SharedViewModel updateDownloadState ${songEntity.liked}",
-                    )
-                    _liked.value = songEntity.liked
-                }
-            }
-            mainRepository.updateDownloadState(videoId, state)
-        }
-    }
-
-    fun changeAllDownloadingToError() {
-        viewModelScope.launch {
-            mainRepository.getDownloadingSongs().collect { songs ->
-                songs?.forEach { song ->
-                    mainRepository.updateDownloadState(
-                        song.videoId,
-                        DownloadState.STATE_NOT_DOWNLOADED,
-                    )
-                }
-            }
-        }
-    }
-
-//    val _artistId: MutableLiveData<Resource<ChannelId>> = MutableLiveData()
-//    var artistId: LiveData<Resource<ChannelId>> = _artistId
-//    fun convertNameToId(artistId: String) {
-//        viewModelScope.launch {
-//            mainRepository.convertNameToId(artistId).collect {
-//                _artistId.postValue(it)
-//            }
-//        }
-//    }
 
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
@@ -992,48 +818,6 @@ class SharedViewModel(
         _nowPlayingState.value = null
         simpleMediaServiceHandler.resetSongAndQueue()
         onUIEvent(UIEvent.Stop)
-    }
-
-    fun addToYouTubePlaylist(
-        localPlaylistId: Long,
-        youtubePlaylistId: String,
-        videoId: String,
-    ) {
-        viewModelScope.launch {
-            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
-                localPlaylistId,
-                LocalPlaylistEntity.YouTubeSyncState.Syncing,
-            )
-            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
-                if (response == "STATUS_SUCCEEDED") {
-                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
-                        localPlaylistId,
-                        LocalPlaylistEntity.YouTubeSyncState.Synced,
-                    )
-                    Toast
-                        .makeText(
-                            getApplication(),
-                            application.getString(R.string.added_to_youtube_playlist),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                } else {
-                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
-                        localPlaylistId,
-                        LocalPlaylistEntity.YouTubeSyncState.NotSynced,
-                    )
-                    Toast
-                        .makeText(
-                            getApplication(),
-                            application.getString(R.string.error),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                }
-            }
-        }
-    }
-
-    fun addQueueToPlayer() {
-        simpleMediaServiceHandler.addQueueToPlayer()
     }
 
     private fun loadPlaylistOrAlbum(index: Int? = null) {
@@ -1197,22 +981,20 @@ class SharedViewModel(
 
                             is Resource.Error -> {
                                 Log.w(tag, "Get Lyrics Data Error")
-                                if (_lyrics.value?.message != "reset") {
-                                    if (dataStoreManager.spotifyLyrics.first() == TRUE) {
-                                        getSpotifyLyrics(
-                                            song.toTrack().copy(
-                                                durationSeconds = duration,
-                                            ),
-                                            "${song.title} $artist",
-                                            duration,
-                                        )
-                                    } else {
-                                        getLrclibLyrics(
-                                            song,
-                                            (artist ?: "").toString(),
-                                            duration,
-                                        )
-                                    }
+                                if (dataStoreManager.spotifyLyrics.first() == TRUE) {
+                                    getSpotifyLyrics(
+                                        song.toTrack().copy(
+                                            durationSeconds = duration,
+                                        ),
+                                        "${song.title} $artist",
+                                        duration,
+                                    )
+                                } else {
+                                    getLrclibLyrics(
+                                        song,
+                                        (artist ?: "").toString(),
+                                        duration,
+                                    )
                                 }
                             }
                         }
@@ -1225,21 +1007,31 @@ class SharedViewModel(
                 )
             } else if (dataStoreManager.lyricsProvider.first() == DataStoreManager.YOUTUBE) {
                 mainRepository.getYouTubeCaption(videoId).cancellable().collect { response ->
-                    _lyrics.value = response
                     when (response) {
                         is Resource.Success -> {
                             if (response.data != null) {
-                                insertLyrics(response.data.toLyricsEntity(videoId))
+                                val lyrics = response.data.first
+                                val translatedLyrics = response.data.second
+                                insertLyrics(lyrics.toLyricsEntity(videoId))
                                 updateLyrics(
                                     videoId,
-                                    response.data,
+                                    lyrics,
                                     false,
                                     LyricsProvider.YOUTUBE,
                                 )
-                                getAITranslationLyrics(
-                                    videoId,
-                                    response.data,
-                                )
+                                if (translatedLyrics != null) {
+                                    updateLyrics(
+                                        videoId,
+                                        translatedLyrics,
+                                        true,
+                                        LyricsProvider.YOUTUBE,
+                                    )
+                                } else {
+                                    getAITranslationLyrics(
+                                        videoId,
+                                        lyrics,
+                                    )
+                                }
                             } else if (dataStoreManager.spotifyLyrics.first() == TRUE) {
                                 getSpotifyLyrics(
                                     song.toTrack().copy(
@@ -1255,25 +1047,23 @@ class SharedViewModel(
                         }
 
                         is Resource.Error -> {
-                            if (_lyrics.value?.message != "reset") {
-                                if (dataStoreManager.spotifyLyrics.first() == TRUE) {
-                                    getSpotifyLyrics(
-                                        song.toTrack().copy(
-                                            durationSeconds = duration,
-                                        ),
-                                        "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler.nowPlaying
-                                            .first()
-                                            ?.mediaMetadata
-                                            ?.artist ?: ""}",
-                                        duration,
-                                    )
-                                } else {
-                                    getLrclibLyrics(
-                                        song,
-                                        (artist ?: "").toString(),
-                                        duration,
-                                    )
-                                }
+                            if (dataStoreManager.spotifyLyrics.first() == TRUE) {
+                                getSpotifyLyrics(
+                                    song.toTrack().copy(
+                                        durationSeconds = duration,
+                                    ),
+                                    "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler.nowPlaying
+                                        .first()
+                                        ?.mediaMetadata
+                                        ?.artist ?: ""}",
+                                    duration,
+                                )
+                            } else {
+                                getLrclibLyrics(
+                                    song,
+                                    (artist ?: "").toString(),
+                                    duration,
+                                )
                             }
                         }
                     }
@@ -1393,7 +1183,6 @@ class SharedViewModel(
             Log.d("Check SpotifyLyrics", "SpotifyLyrics $query")
             mainRepository.getSpotifyLyrics(query, duration).cancellable().collect { response ->
                 Log.d("Check SpotifyLyrics", response.toString())
-                _lyrics.value = response
                 when (response) {
                     is Resource.Success -> {
                         if (response.data != null) {
@@ -1416,20 +1205,16 @@ class SharedViewModel(
                     }
 
                     is Resource.Error -> {
-                        if (_lyrics.value?.message != "reset") {
-                            getLrclibLyrics(
-                                track.toSongEntity(),
-                                track.artists.toListName().firstOrNull() ?: "",
-                                duration ?: 0,
-                            )
-                        }
+                        getLrclibLyrics(
+                            track.toSongEntity(),
+                            track.artists.toListName().firstOrNull() ?: "",
+                            duration ?: 0,
+                        )
                     }
                 }
             }
         }
     }
-
-    fun getLyricsProvider(): String = runBlocking { dataStoreManager.lyricsProvider.first() }
 
     fun setLyricsProvider() {
         viewModelScope.launch {
@@ -1439,20 +1224,14 @@ class SharedViewModel(
         }
     }
 
-    fun updateInLibrary(videoId: String) {
-        viewModelScope.launch {
-            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
-        }
-    }
-
     fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
         viewModelScope.launch {
             mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
 
-    private var _recreateActivity: MutableLiveData<Boolean> = MutableLiveData()
-    val recreateActivity: LiveData<Boolean> = _recreateActivity
+    private var _recreateActivity: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val recreateActivity: StateFlow<Boolean> = _recreateActivity
 
     fun activityRecreate() {
         _recreateActivity.value = true
@@ -1460,40 +1239,6 @@ class SharedViewModel(
 
     fun activityRecreateDone() {
         _recreateActivity.value = false
-    }
-
-    fun addToQueue(track: Track) {
-        viewModelScope.launch {
-            simpleMediaServiceHandler.loadMoreCatalog(arrayListOf(track))
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.added_to_queue),
-                    Toast.LENGTH_SHORT,
-                ).show()
-        }
-    }
-
-    fun addListLocalToQueue(listVideoId: List<String>) {
-        viewModelScope.launch {
-            val listSong = mainRepository.getSongsByListVideoId(listVideoId).singleOrNull()
-            if (!listSong.isNullOrEmpty()) {
-                simpleMediaServiceHandler.loadMoreCatalog(listSong.toArrayListTrack(), true)
-                Toast
-                    .makeText(
-                        context,
-                        context.getString(R.string.added_to_queue),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-            } else {
-                Toast
-                    .makeText(
-                        context,
-                        context.getString(R.string.error),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-            }
-        }
     }
 
     fun addListToQueue(listTrack: ArrayList<Track>) {
@@ -1507,17 +1252,6 @@ class SharedViewModel(
                 ).show()
         }
     }
-
-    fun playNext(song: Track) {
-        viewModelScope.launch {
-            simpleMediaServiceHandler.playNext(song)
-            Toast
-                .makeText(context, context.getString(R.string.play_next), Toast.LENGTH_SHORT)
-                .show()
-        }
-    }
-
-    fun logInToYouTube() = dataStoreManager.loggedIn
 
     fun addToYouTubeLiked() {
         viewModelScope.launch {

@@ -446,6 +446,6 @@
     <string name="crossfade_disabled">Disabled</string>
     <string name="crossfade_duration">Crossfade Duration</string>
     <string name="set_crossfade_duration">Set crossfade duration in seconds (%1$ds)</string>
-    <string name="youtube_subtitle_language">YouTube Subtitle Language</string>
-    <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred language for YouTube subtitles.</string>
+    <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
+    <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred translation language for YouTube subtitles.</string>
 </resources>
