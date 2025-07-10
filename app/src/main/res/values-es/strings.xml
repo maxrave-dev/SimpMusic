@@ -408,7 +408,7 @@
     <string name="buying_me_a_coffee">comprame un café.</string>
     <string name="fade_audio_effect">Efecto de desvanecimiento de audio</string>
     <string name="disabled">Desactivar</string>
-    <string name="fade_audio_effect_duration">Duración del efecto de audio Fade (ms) (Establecer en 0 para desactivar)</string>
+    <string name="fade_audio_effect_duration">Duración del efecto fade de audio (ms) (Poner en 0 para desactivar)</string>
     <string name="duration">Duración</string>
     <string name="invalid_number">Número no válido</string>
     <string name="shuffle_not_available">El endpoint del modo aleatorio no está disponible</string>
@@ -434,4 +434,14 @@
     <string name="can_not_be_empty">No puede estar vacío</string>
     <string name="processing">Procesando</string>
     <string name="website">Página web</string>
+    <string name="download_this_song_video_file_to_your_device">Descargar este archivo de canción/vídeo a tu dispositivo</string>
+    <string name="kill_service_on_exit">Cerrar servicio al salir</string>
+    <string name="kill_service_on_exit_description">Detener reproductor de música en segundo plano al salir de la aplicación</string>
+    <string name="crossfade">Crossfade (BETA)</string>
+    <string name="crossfade_enabled">Activado (%1$ds)</string>
+    <string name="crossfade_disabled">Desactivado</string>
+    <string name="crossfade_duration">Duración del crossfade</string>
+    <string name="set_crossfade_duration">Establecer la duración del crossfade en segundos (%1$ds)</string>
+    <string name="youtube_subtitle_language">Idioma de traducción de subtítulos de YouTube</string>
+    <string name="youtube_subtitle_language_message">Escribe el código de idioma (ej.: es) (2 letras). Este es el idioma de traducción preferido para los subtítulos de YouTube.</string>
 </resources>

@@ -410,7 +410,6 @@
     <string name="buying_me_a_coffee">купити мені каву.</string>
     <string name="fade_audio_effect">Ефект затухання звуку</string>
     <string name="disabled">Вимкнути</string>
-    <string name="fade_audio_effect_duration">Тривалість ефекту затухання (мс) (Встановіть 0 для відключення)</string>
     <string name="duration">Тривалість</string>
     <string name="invalid_number">Некоректне число</string>
     <string name="shuffle_not_available">Кінцева точка змішування не доступна</string>

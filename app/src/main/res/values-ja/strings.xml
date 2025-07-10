@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">YouTubeにログイン</string>
     <string name="log_in_to_get_personally_data">ログインして個人データを取得</string>
     <string name="login_success">ログイン成功</string>
+    <string name="login_failed">ログイン失敗</string>
     <string name="log_out">YouTubeからログアウト</string>
     <string name="logged_in">ログインしました</string>
     <string name="logged_out">ログアウトしました</string>
@@ -169,6 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">シャッフルとリピートの設定を保存</string>
     <string name="skip_silent">無音部分を飛ばす</string>
     <string name="skip_no_music_part">音楽でない部分を飛ばします</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">応答なし。ネット接続をご確認ください (%1$d)</string>
     <string name="save_last_played">最後に再生したものを保存</string>
     <string name="save_last_played_track_and_queue">最後に再生した曲とキューを保存</string>
     <string name="update_available">最新版があります</string>
@@ -405,7 +407,6 @@
     <string name="buying_me_a_coffee">コーヒーを一杯ご馳走してください。</string>
     <string name="fade_audio_effect">フェードの音声エフェクト</string>
     <string name="disabled">無効</string>
-    <string name="fade_audio_effect_duration">フェードの音声エフェクトの長さ (ミリ秒) (0で無効)</string>
     <string name="duration">長さ</string>
     <string name="invalid_number">無効な数字</string>
     <string name="shuffle_not_available">シャッフルのエンドポイントは利用できません</string>
@@ -424,4 +425,12 @@
     <string name="default_models">初期設定のモデルは gemini-2.0-flash-lite と gpt-4o</string>
     <string name="invalid">無効です</string>
     <string name="custom_model_id_messages">AI 提供元によるモデルIDを正確に入力します。</string>
+    <string name="favorite_podcasts">お気に入りのポッドキャスト</string>
+    <string name="no_favorite_podcasts">お気に入りのポッドキャストなし</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">Spotifyクッキーのsp_dc引数</string>
+    <string name="your_youtube_cookie">YouTubeクッキー</string>
+    <string name="can_not_be_empty">空にはできません</string>
+    <string name="processing">処理中</string>
+    <string name="website">サイト</string>
+    <string name="download_this_song_video_file_to_your_device">この曲/動画ファイルを端末にダウンロード</string>
 </resources>

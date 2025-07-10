@@ -414,7 +414,6 @@
     <string name="buying_me_a_coffee">یک قهوه برایم بخرید.</string>
     <string name="fade_audio_effect">افکت محو صدا</string>
     <string name="disabled">غیرفعال</string>
-    <string name="fade_audio_effect_duration">مدت زمان افکت محو صدا (میلی‌ثانیه) (برای غیرفعال کردن، مقدار ۰ را تنظیم کنید)</string>
     <string name="duration">مدت</string>
     <string name="invalid_number">عدد نامعتبر</string>
 </resources>

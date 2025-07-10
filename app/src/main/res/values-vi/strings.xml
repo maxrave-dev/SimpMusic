@@ -434,4 +434,13 @@
     <string name="processing">Đang xử lý</string>
     <string name="website">Trang web</string>
     <string name="download_this_song_video_file_to_your_device">Tải xuống bài hát/video này về thiết bị của bạn</string>
+    <string name="kill_service_on_exit">Tắt trình phát nhạc khi thoát ứng dụng</string>
+    <string name="kill_service_on_exit_description">Dừng trình phát nhạc trong nền khi thoát ứng dụng</string>
+    <string name="crossfade">Chuyển bài mượt mà (BETA)</string>
+    <string name="crossfade_enabled">Đã bật (%1$ds)</string>
+    <string name="crossfade_disabled">Vô hiệu hóa</string>
+    <string name="crossfade_duration">Thời gian chuyển bài</string>
+    <string name="set_crossfade_duration">Thiết lập thời gian chuyển bài, tính bằng giây (%1$ds)</string>
+    <string name="youtube_subtitle_language">Ngôn ngữ dịch cho phụ đề YouTube</string>
+    <string name="youtube_subtitle_language_message">Nhập mã ngôn ngữ (Eg: vi) (2 ký tự). Đây là ngôn ngữ ưu tiên để dịch cho phụ đề YouTube.</string>
 </resources>

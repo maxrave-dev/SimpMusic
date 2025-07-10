@@ -266,6 +266,7 @@
     <string name="suggest">Sugestão</string>
     <string name="reload">Recarregar</string>
     <string name="sort_by"></string>
+    <string name="sort">Ordenar</string>
     <string name="added_date">Data adicionada</string>
     <string name="credit_app">Um aplicativo de música simples que usa o YouTube Music como back-end \n\nO SimpMusic é um projeto de código aberto para transmitir músicas do YouTube e do YouTube Music sem anúncios e rastreamento. O SimpMusic oferece muitos recursos:\n\n - Streaming de música\n - Letras sincronizadas\n - Personalização de dados\n - etc... \n\nO SimpMusic é sempre gratuito e sem anúncios\n\nConstrua com ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Rastreador de problemas</string>
@@ -398,4 +399,19 @@
     <string name="enjoying_simpmusic">Aproveitando o SimpMusic</string>
     <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">Se gosta de usar o SimpMusic, dê-nos uma estrela no GitHub ou deixe-nos uma avaliação</string>
     <string name="if_you_love_my_work_consider">"Se aprecia o meu trabalho, considere "</string>
+    <string name="buying_me_a_coffee">compre-me um café.</string>
+    <string name="disabled">Desabilitar</string>
+    <string name="duration">Duração</string>
+    <string name="invalid_number">Número inválido</string>
+    <string name="visitor_data_retrieved">Dados do Visitante Obtidos</string>
+    <string name="retrieve_youtube_data">Obter Dados do YouTube</string>
+    <string name="no_results_found">Resultado não encontrado</string>
+    <string name="ai">IA</string>
+    <string name="ai_provider">Provedor de IA</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="invalid">Inválido</string>
+    <string name="custom_model_id_messages">Insira o exato ID do seu provedor de IA, por favor.</string>
+    <string name="favorite_podcasts">\"Podcasts\" Favoritos</string>
+    <string name="no_favorite_podcasts">Nenhum \"podcast\" favorito</string>
 </resources>

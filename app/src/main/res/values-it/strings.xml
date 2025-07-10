@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">Accedi con YouTube</string>
     <string name="log_in_to_get_personally_data">Accedi per ottenere i tuoi dati personali</string>
     <string name="login_success">Accesso effettuato</string>
+    <string name="login_failed">Accesso non riuscito</string>
     <string name="log_out">Disconnetti da YouTube</string>
     <string name="logged_in">Autenticato</string>
     <string name="logged_out">Disconnesso</string>
@@ -169,6 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">Salva la modalità casuale e di ripetizione</string>
     <string name="skip_silent">Salta silenzioso</string>
     <string name="skip_no_music_part">Non saltare alcuna parte musicale</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo scaduto, controlla la connessione internet (%1$d)</string>
     <string name="save_last_played">Salva l\'ultima riproduzione</string>
     <string name="save_last_played_track_and_queue">Salva l\'ultima traccia riprodotta e la coda</string>
     <string name="update_available">Nuovo aggiornamento disponibile</string>
@@ -245,7 +247,9 @@
     <string name="only_support_email_and_password_type">Supporta solo il tipo di email e password</string>
     <string name="musixmatch_login_description">L\'API Musixmatch Translation funziona solo con l\'utente registrato. SimpMusic ha utilizzato l\'API Musixmatch Developer. Maggiori informazioni, vai su https://github.com/maxrave-dev/SimpMusic o https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Utilizza la traduzione Musixmatch</string>
+    <string name="use_ai_translation">Usa Traduzione Testi AI</string>
     <string name="use_musixmatch_translation_description">Abilita la traduzione dei testi utilizzando Musixmatch. Richiedi l\'accesso a Musixmatch</string>
+    <string name="use_ai_translation_description">Abilita la traduzione dei testi usando l\'AI. Disabilità la traduzione di Musixmatch per usare l\'AI</string>
     <string name="translation_language">Lingua di traduzione</string>
     <string name="follow_app_language">Segui la lingua dell\'app</string>
     <string name="email">Email</string>
@@ -265,6 +269,10 @@
     <string name="free_space">Spazio libero</string>
     <string name="suggest">Suggerimento</string>
     <string name="reload">Ricarica</string>
+    <string name="sort_by">Ordina per</string>
+    <string name="sort">Ordina</string>
+    <string name="older_first"></string>
+    <string name="newer_first">Prima Più Recente</string>
     <string name="added_date">Data aggiunta</string>
     <string name="credit_app">Una semplice app musicale che utilizza YouTube Music come backend \n\nSimpMusic è un progetto open source per lo streaming di musica da YouTube e YouTube Music senza pubblicità e tracciamento. SimpMusic offre molte funzionalità:\n\n - Musica in streaming\n - Testi sincronizzati\n - Personalizza dati\n - ecc... \n\nSimpMusic è sempre gratuito e senza pubblicità\n\nCrea con ❤️ di Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Tracker dei problemi</string>
@@ -408,4 +416,30 @@
     <string name="visitor_data_retrieved">Dati del visitatore recuperati</string>
     <string name="data_sync_id_retrieved">DataSyncId recuperato</string>
     <string name="retrieve_youtube_data">Recupera dati da YouTube</string>
+    <string name="no_results_found">Nessun risultato trovato</string>
+    <string name="ai">AI</string>
+    <string name="ai_provider">Fornitore AI</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="ai_api_key">La Tua Chiave API AI</string>
+    <string name="invalid_api_key">Chiave API non valida</string>
+    <string name="custom_ai_model_id">ID modello AI personalizzato</string>
+    <string name="default_models">I modelli predefiniti sono \"gemini-2.0-flash-lite\" e \"gpt-4o\"</string>
+    <string name="invalid">Non valido</string>
+    <string name="custom_model_id_messages">Inserisci l\'esatto modello ID dal tuo fornitore AI.</string>
+    <string name="favorite_podcasts">Podcast Preferiti</string>
+    <string name="no_favorite_podcasts">Nessun Podcast preferito</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">Il tuo sp_dc param dei cookie di Spotify</string>
+    <string name="your_youtube_cookie">Il Tuo Cookie Di YouTube</string>
+    <string name="can_not_be_empty">Il campo non può essere vuoto</string>
+    <string name="processing">In elaborazione</string>
+    <string name="website">Sito Web</string>
+    <string name="download_this_song_video_file_to_your_device">Scarica questa canzone/file video sul tuo dispositivo</string>
+    <string name="kill_service_on_exit">Termina il servizio all\'uscita</string>
+    <string name="kill_service_on_exit_description">Ferma il riproduttore musicale in background all\'uscita dall\'app</string>
+    <string name="crossfade">Dissolvenza incrociata (BETA)</string>
+    <string name="crossfade_enabled">Abilitato (%1$ds)</string>
+    <string name="crossfade_disabled">Disabilitato</string>
+    <string name="crossfade_duration">Durata Dissolvenza incrociata</string>
+    <string name="set_crossfade_duration">Imposta la durata della dissolvenza incrociata in secondi (%1$d)</string>
 </resources>

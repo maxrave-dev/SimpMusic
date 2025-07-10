@@ -434,4 +434,14 @@
     <string name="can_not_be_empty">Ne peut pas être vide</string>
     <string name="processing">Traitement</string>
     <string name="website">Site web</string>
+    <string name="download_this_song_video_file_to_your_device">Télécharger ce fichier audio/vidéo sur votre appareil</string>
+    <string name="kill_service_on_exit">Tuer le service à la sortie</string>
+    <string name="kill_service_on_exit_description">Arrêter le lecteur de musique de fond lors de la sortie de l\'application</string>
+    <string name="crossfade">Fondu enchaîné (BÊTA)</string>
+    <string name="crossfade_enabled">Activé (%1$ds)</string>
+    <string name="crossfade_disabled">Désactivé</string>
+    <string name="crossfade_duration">Durée du fondu enchaîné</string>
+    <string name="set_crossfade_duration">Définir la durée du fondu enchaîné en secondes (%1$ds)</string>
+    <string name="youtube_subtitle_language">Langue de traduction des sous-titres YouTube</string>
+    <string name="youtube_subtitle_language_message">Saisissez le code de langue (ex. : en) (2 lettres). Il s\'agit de la langue de traduction préférée pour les sous-titres YouTube.</string>
 </resources>
