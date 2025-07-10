@@ -1108,5 +1108,25 @@ class DataStoreManager(
         }
 
         val YOUTUBE_SUBTITLE_LANGUAGE = stringPreferencesKey("youtube_subtitle_language")
+        val HELP_BUILD_LYRICS_DATABASE = stringPreferencesKey("help_build_lyrics_database")
+    }
+
+    val helpBuildLyricsDatabase: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[HELP_BUILD_LYRICS_DATABASE] ?: FALSE
+        }
+
+    suspend fun setHelpBuildLyricsDatabase(help: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (help) {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
+                }
+            }
+        }
     }
 }

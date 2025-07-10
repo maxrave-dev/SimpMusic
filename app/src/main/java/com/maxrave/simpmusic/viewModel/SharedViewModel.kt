@@ -186,6 +186,12 @@ class SharedViewModel(
     val likeStatus: StateFlow<Boolean> = _likeStatus
 
     val openAppTime: StateFlow<Int> = dataStoreManager.openAppTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
+    val shareSavedLyrics: StateFlow<String> =
+        dataStoreManager.helpBuildLyricsDatabase.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000L),
+            FALSE,
+        )
 
     init {
         mainRepository.initYouTube(viewModelScope)
@@ -1381,6 +1387,12 @@ class SharedViewModel(
             } else {
                 dataStoreManager.openApp()
             }
+        }
+    }
+
+    fun onDoneRequestingShareLyrics() {
+        viewModelScope.launch {
+            dataStoreManager.setHelpBuildLyricsDatabase(true)
         }
     }
 

@@ -78,6 +78,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE.data
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
@@ -103,6 +104,7 @@ import com.maxrave.simpmusic.ui.component.MusixmatchCaptchaWebView
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -146,9 +148,14 @@ fun HomeScreen(
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsState()
 
     val openAppTime by sharedViewModel.openAppTime.collectAsState()
+    val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsState()
+
     val musixmatchCaptchaRequired by sharedViewModel.showMusixmatchCaptchaWebView.collectAsState()
 
     var showReviewDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showRequestShareLyricsPermissions by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -197,6 +204,8 @@ fun HomeScreen(
     LaunchedEffect(openAppTime) {
         if (openAppTime >= 10 && openAppTime % 10 == 0 && openAppTime <= 50) {
             showReviewDialog = true
+        } else if ((openAppTime == 1 || openAppTime % 15 == 0) && openAppTime <= 60 && shareLyricsPermissions != DataStoreManager.TRUE) {
+            showRequestShareLyricsPermissions = true
         }
     }
 
@@ -231,6 +240,20 @@ fun HomeScreen(
                     isDismissOnly = false,
                 )
                 showReviewDialog = false
+            },
+        )
+    }
+
+    if (showRequestShareLyricsPermissions) {
+        ShareSavedLyricsDialog(
+            onDismissRequest = {
+                showRequestShareLyricsPermissions = false
+                sharedViewModel.onDoneReview(
+                    isDismissOnly = true,
+                )
+            },
+            onConfirm = {
+                sharedViewModel.onDoneRequestingShareLyrics()
             },
         )
     }

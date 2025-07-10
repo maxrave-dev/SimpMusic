@@ -790,6 +790,29 @@ fun SettingScreen(
                         )
                     },
                 )
+
+                val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+                SettingItem(
+                    title = stringResource(R.string.help_build_lyrics_database),
+                    subtitle = stringResource(R.string.help_build_lyrics_database_description),
+                    switch = (helpBuildLyricsDatabase to { viewModel.setHelpBuildLyricsDatabase(it) }),
+                )
+                Text(
+                    buildAnnotatedString {
+                        append(stringResource(R.string.lyrics_database_description))
+                        append(" ")
+                        withLink(
+                            LinkAnnotation.Url(
+                                "https://github.com/maxrave-dev/lyrics",
+                                TextLinkStyles(style = SpanStyle(color = md_theme_dark_primary)),
+                            ),
+                        ) {
+                            append("https://github.com/maxrave-dev/lyrics")
+                        }
+                    },
+                    style = typo.bodySmall,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                )
             }
         }
         item(key = "AI") {

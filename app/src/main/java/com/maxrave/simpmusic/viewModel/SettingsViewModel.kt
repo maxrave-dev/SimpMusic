@@ -141,6 +141,9 @@ class SettingsViewModel(
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
+    private var _helpBuildLyricsDatabase: MutableStateFlow<String> = MutableStateFlow("")
+    val helpBuildLyricsDatabase: StateFlow<String> = _helpBuildLyricsDatabase
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -157,6 +160,11 @@ class SettingsViewModel(
     // Biến để lưu trữ và hiển thị trạng thái killServiceOnExit
     private var _killServiceOnExit: MutableStateFlow<String?> = MutableStateFlow(null)
     val killServiceOnExit: StateFlow<String?> = _killServiceOnExit
+
+    init {
+        getYoutubeSubtitleLanguage()
+        getHelpBuildLyricsDatabase()
+    }
 
     fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
 
@@ -1245,6 +1253,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setYoutubeSubtitleLanguage(language)
             getYoutubeSubtitleLanguage()
+        }
+    }
+
+    fun getHelpBuildLyricsDatabase() {
+        viewModelScope.launch {
+            dataStoreManager.helpBuildLyricsDatabase.collect { helpBuildLyricsDatabase ->
+                _helpBuildLyricsDatabase.emit(helpBuildLyricsDatabase)
+            }
+        }
+    }
+
+    fun setHelpBuildLyricsDatabase(help: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setHelpBuildLyricsDatabase(help)
+            getHelpBuildLyricsDatabase()
         }
     }
 }
