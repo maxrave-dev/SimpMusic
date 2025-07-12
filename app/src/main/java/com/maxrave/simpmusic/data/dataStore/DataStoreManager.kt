@@ -1100,15 +1100,16 @@ class DataStoreManager(
         const val LOCAL_PLAYLIST_FILTER_OLDER_FIRST = "older_first"
         const val LOCAL_PLAYLIST_FILTER_NEWER_FIRST = "newer_first"
         const val LOCAL_PLAYLIST_FILTER_TITLE = "title"
+        val YOUTUBE_SUBTITLE_LANGUAGE = stringPreferencesKey("youtube_subtitle_language")
+        val HELP_BUILD_LYRICS_DATABASE = stringPreferencesKey("help_build_lyrics_database")
+        val CONTRIBUTOR_NAME = stringPreferencesKey("contributor_name")
+        val CONTRIBUTOR_EMAIL = stringPreferencesKey("contributor_email")
 
         // Proxy type
         enum class ProxyType {
             PROXY_TYPE_HTTP,
             PROXY_TYPE_SOCKS,
         }
-
-        val YOUTUBE_SUBTITLE_LANGUAGE = stringPreferencesKey("youtube_subtitle_language")
-        val HELP_BUILD_LYRICS_DATABASE = stringPreferencesKey("help_build_lyrics_database")
     }
 
     val helpBuildLyricsDatabase: Flow<String> =
@@ -1125,6 +1126,32 @@ class DataStoreManager(
             } else {
                 settingsDataStore.edit { settings ->
                     settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
+                }
+            }
+        }
+    }
+
+    val contributorName: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_NAME] ?: ""
+        }
+
+    val contributorEmail: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_EMAIL] ?: ""
+        }
+
+    suspend fun setContributorLyricsDatabase(
+        contributor: Pair<String, String>?, // contributor name and email, null if anonymous
+    ) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                if (contributor == null) {
+                    settings[CONTRIBUTOR_NAME] = ""
+                    settings[CONTRIBUTOR_EMAIL] = ""
+                } else {
+                    settings[CONTRIBUTOR_NAME] = contributor.first
+                    settings[CONTRIBUTOR_EMAIL] = contributor.second
                 }
             }
         }

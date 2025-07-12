@@ -252,8 +252,10 @@ fun HomeScreen(
                     isDismissOnly = true,
                 )
             },
-            onConfirm = {
-                sharedViewModel.onDoneRequestingShareLyrics()
+            onConfirm = { contributor ->
+                sharedViewModel.onDoneRequestingShareLyrics(
+                    contributor,
+                )
             },
         )
     }

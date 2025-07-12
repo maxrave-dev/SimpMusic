@@ -3,7 +3,7 @@
 version-name="0.2.18"
 version-code="36"
 
-android = "8.11.0"
+android = "8.11.1"
 kotlin = "2.2.0"
 serialization = "2.2.0"
 ksp = "2.2.0-2.0.2"

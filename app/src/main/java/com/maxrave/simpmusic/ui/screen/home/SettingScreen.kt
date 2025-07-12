@@ -197,6 +197,8 @@ fun SettingScreen(
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
+    val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
+    val contributor by viewModel.contributor.collectAsStateWithLifecycle()
 
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
@@ -359,6 +361,7 @@ fun SettingScreen(
                                             state.selectOne?.getSelected() ?: "US",
                                         )
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -705,6 +708,7 @@ fun SettingScreen(
                                             },
                                         )
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -761,6 +765,7 @@ fun SettingScreen(
                                     context.getString(R.string.change) to { state ->
                                         viewModel.setTranslationLanguage(state.textField?.value ?: "")
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -786,16 +791,68 @@ fun SettingScreen(
                                     context.getString(R.string.change) to { state ->
                                         viewModel.setYoutubeSubtitleLanguage(state.textField?.value ?: "")
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
                 )
-
-                val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
                 SettingItem(
                     title = stringResource(R.string.help_build_lyrics_database),
                     subtitle = stringResource(R.string.help_build_lyrics_database_description),
                     switch = (helpBuildLyricsDatabase to { viewModel.setHelpBuildLyricsDatabase(it) }),
+                )
+                SettingItem(
+                    title = stringResource(R.string.contributor_name),
+                    subtitle = contributor.first.ifEmpty { stringResource(R.string.anonymous) },
+                    isEnable = helpBuildLyricsDatabase,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.contributor_name),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.contributor_name),
+                                        value = "",
+                                    ),
+                                message = "",
+                                confirm =
+                                    context.getString(R.string.set) to { state ->
+                                        viewModel.setContributorName(state.textField?.value ?: "")
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(R.string.contributor_email),
+                    subtitle = contributor.second.ifEmpty { stringResource(R.string.anonymous) },
+                    isEnable = helpBuildLyricsDatabase,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.contributor_email),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.contributor_email),
+                                        value = "",
+                                        verifyCodeBlock = {
+                                            if (it.isNotEmpty()) {
+                                                (it.contains("@")) to context.getString(R.string.invalid)
+                                            } else {
+                                                true to ""
+                                            }
+                                        },
+                                    ),
+                                message = "",
+                                confirm =
+                                    context.getString(R.string.set) to { state ->
+                                        viewModel.setContributorEmail(state.textField?.value ?: "")
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
+                        )
+                    },
                 )
                 Text(
                     buildAnnotatedString {
@@ -848,6 +905,7 @@ fun SettingScreen(
                                             },
                                         )
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -872,6 +930,7 @@ fun SettingScreen(
                                     context.getString(R.string.set) to { state ->
                                         viewModel.setAIApiKey(state.textField?.value ?: "")
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -896,6 +955,7 @@ fun SettingScreen(
                                     context.getString(R.string.set) to { state ->
                                         viewModel.setCustomModelId(state.textField?.value ?: "")
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },

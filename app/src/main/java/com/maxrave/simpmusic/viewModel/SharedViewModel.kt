@@ -1390,9 +1390,12 @@ class SharedViewModel(
         }
     }
 
-    fun onDoneRequestingShareLyrics() {
+    fun onDoneRequestingShareLyrics(contributor: Pair<String, String>? = null) {
         viewModelScope.launch {
             dataStoreManager.setHelpBuildLyricsDatabase(true)
+            dataStoreManager.setContributorLyricsDatabase(
+                contributor,
+            )
         }
     }
 

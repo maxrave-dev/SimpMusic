@@ -307,7 +307,7 @@ dependencies {
 
     fullImplementation(libs.sentry.android)
 
-    debugImplementation(libs.leak.canary)
+//    debugImplementation(libs.leak.canary)
 }
 aboutLibraries {
     export {

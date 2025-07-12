@@ -42,6 +42,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
@@ -141,8 +142,10 @@ class SettingsViewModel(
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
-    private var _helpBuildLyricsDatabase: MutableStateFlow<String> = MutableStateFlow("")
-    val helpBuildLyricsDatabase: StateFlow<String> = _helpBuildLyricsDatabase
+    private var _helpBuildLyricsDatabase: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val helpBuildLyricsDatabase: StateFlow<Boolean> = _helpBuildLyricsDatabase
+    private var _contributor: MutableStateFlow<Pair<String, String>> = MutableStateFlow(Pair("", ""))
+    val contributor: StateFlow<Pair<String, String>> = _contributor
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -209,8 +212,33 @@ class SettingsViewModel(
         getKillServiceOnExit()
         getCrossfadeEnabled()
         getCrossfadeDuration()
+        getContributorNameAndEmail()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getContributorNameAndEmail() {
+        viewModelScope.launch {
+            combine(dataStoreManager.contributorName, dataStoreManager.contributorEmail) { name, email ->
+                name to email
+            }.collect { contributor ->
+                _contributor.value = contributor
+            }
+        }
+    }
+
+    fun setContributorName(name: String) {
+        viewModelScope.launch {
+            dataStoreManager.setContributorLyricsDatabase(name to contributor.value.second)
+            getContributorNameAndEmail()
+        }
+    }
+
+    fun setContributorEmail(email: String) {
+        viewModelScope.launch {
+            dataStoreManager.setContributorLyricsDatabase(contributor.value.first to email)
+            getContributorNameAndEmail()
         }
     }
 
@@ -1259,7 +1287,7 @@ class SettingsViewModel(
     fun getHelpBuildLyricsDatabase() {
         viewModelScope.launch {
             dataStoreManager.helpBuildLyricsDatabase.collect { helpBuildLyricsDatabase ->
-                _helpBuildLyricsDatabase.emit(helpBuildLyricsDatabase)
+                _helpBuildLyricsDatabase.emit(helpBuildLyricsDatabase == DataStoreManager.TRUE)
             }
         }
     }
@@ -1291,7 +1319,7 @@ data class SettingAlertState(
     val selectOne: SelectData? = null,
     val multipleSelect: SelectData? = null,
     val confirm: Pair<String, (SettingAlertState) -> Unit>,
-    val dismiss: String = "Cancel",
+    val dismiss: String,
 ) {
     data class TextFieldData(
         val label: String,
@@ -1314,5 +1342,5 @@ data class SettingBasicAlertState(
     val title: String,
     val message: String? = null,
     val confirm: Pair<String, () -> Unit>,
-    val dismiss: String = "Cancel",
+    val dismiss: String,
 )
