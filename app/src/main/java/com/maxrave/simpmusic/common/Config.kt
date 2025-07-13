@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:class-naming")
+
 package com.maxrave.simpmusic.common
 
 import android.content.Context

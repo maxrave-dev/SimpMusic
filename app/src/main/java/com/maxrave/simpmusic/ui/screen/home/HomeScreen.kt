@@ -78,7 +78,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE.data
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
@@ -156,7 +155,7 @@ fun HomeScreen(
         mutableStateOf(false)
     }
     var showRequestShareLyricsPermissions by rememberSaveable {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
 
     val dataSyncId by viewModel.dataSyncId.collectAsState()
@@ -201,11 +200,15 @@ fun HomeScreen(
     LaunchedEffect(key1 = homeData) {
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
-    LaunchedEffect(openAppTime) {
+    LaunchedEffect(openAppTime, shareLyricsPermissions) {
+        Log.w("HomeScreen", "openAppTime: $openAppTime, shareLyricsPermissions: $shareLyricsPermissions")
         if (openAppTime >= 10 && openAppTime % 10 == 0 && openAppTime <= 50) {
             showReviewDialog = true
-        } else if ((openAppTime == 1 || openAppTime % 15 == 0) && openAppTime <= 60 && shareLyricsPermissions != DataStoreManager.TRUE) {
+        } else if ((openAppTime == 1 || openAppTime % 15 == 0) && openAppTime <= 60 && !shareLyricsPermissions) {
             showRequestShareLyricsPermissions = true
+        } else {
+            showReviewDialog = false
+            showRequestShareLyricsPermissions = false
         }
     }
 

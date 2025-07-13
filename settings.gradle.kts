@@ -21,12 +21,6 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "SimpMusic"
-include("app")
-include(":kotlinYtmusicScraper")
-include(":spotify")
-include(":lyricsProviders")
-include(":aiService")
 
 // prepare for git submodules
 val mediaServiceCore =
@@ -43,8 +37,22 @@ val sharedDir =
         File(rootDir, "./MediaServiceCore/SharedModules")
     }
 
-include(":mediaserviceinterfaces", ":youtubeapi", ":googleapi", ":sharedtests", ":commons-io-2.8.0", ":sharedutils")
-include(":ffmpeg-kit")
+rootProject.name = "SimpMusic"
+include(
+    "app",
+    ":kotlinYtmusicScraper",
+    ":spotify",
+    ":lyricsProviders",
+    ":aiService",
+    ":ffmpeg-kit",
+    ":lyricsService",
+    ":mediaserviceinterfaces",
+    ":youtubeapi",
+    ":googleapi",
+    ":sharedtests",
+    ":commons-io-2.8.0",
+    ":sharedutils",
+)
 project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
 project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
 project(":googleapi").projectDir = File(mediaServiceCore, "googleapi")

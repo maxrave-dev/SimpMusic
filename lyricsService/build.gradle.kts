@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.aboutlibraries)
 }
 
 kotlin {
@@ -12,7 +11,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.maxrave.kotlinytmusicscraper"
+    namespace = "org.simpmusic.lyrics"
     compileSdk = 36
 
     defaultConfig {
@@ -31,26 +30,6 @@ android {
             )
         }
     }
-    kotlin {
-        jvmToolchain(17)
-    }
-    packaging {
-        jniLibs.useLegacyPackaging = true
-        jniLibs.excludes +=
-            listOf(
-                "META-INF/META-INF/DEPENDENCIES",
-                "META-INF/LICENSE",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/NOTICE",
-                "META-INF/NOTICE.txt",
-                "META-INF/notice.txt",
-                "META-INF/ASL2.0",
-                "META-INF/asm-license.txt",
-                "META-INF/notice",
-                "META-INF/*.kotlin_module",
-            )
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -58,15 +37,12 @@ android {
 }
 
 dependencies {
-
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.ui.text.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
-    coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -74,23 +50,11 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.xml)
-    implementation(libs.ktor.serialization.kotlinx.protobuf)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.brotli.dec)
 
     implementation(libs.kotlin.reflect)
-    implementation(libs.gson)
-
-    implementation(libs.ksoup.html)
-    implementation(libs.ksoup.entities)
-    implementation(libs.smart.exception)
-
-    implementation(libs.newpipe.extractor)
-
-    implementation(project(mapOf("path" to ":youtubeapi")))
-    implementation(project(mapOf("path" to ":sharedutils")))
-    api(project(":ffmpeg-kit"))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

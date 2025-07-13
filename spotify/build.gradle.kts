@@ -3,7 +3,7 @@ import com.android.build.gradle.internal.tasks.CompileArtProfileTask
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {

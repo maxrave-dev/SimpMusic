@@ -1078,3 +1078,27 @@ fun markdownToHtml(markdown: String): Spanned {
     Log.w("markdownToHtml", html)
     return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
 }
+
+fun Lyrics.toSyncedLrcString(): String? {
+    if (this.lines.isNullOrEmpty() || this.syncType != "LINE_SYNCED") {
+        return null
+    }
+    return this.lines.joinToString("\n") { line ->
+        val startTimeMs = line.startTimeMs.toLong()
+        val minutes = (startTimeMs / 60000).toString().padStart(2, '0')
+        val seconds = ((startTimeMs % 60000) / 1000).toString().padStart(2, '0')
+        val milliseconds = ((startTimeMs % 1000) / 10).toString().padStart(2, '0')
+
+        // Add space before the content as it was removed in the parsing function
+        val content = if (line.words == "♫") " " else " ${line.words}"
+
+        "[$minutes:$seconds.$milliseconds]$content"
+    }
+}
+
+fun Lyrics.toPlainLrcString(): String? {
+    if (this.lines.isNullOrEmpty()) {
+        return null
+    }
+    return this.lines.joinToString("\n") { it.words }
+}

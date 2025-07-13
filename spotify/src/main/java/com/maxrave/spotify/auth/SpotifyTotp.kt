@@ -23,13 +23,15 @@ object SpotifyTotp {
      */
     private const val SECRET_STRING_V10 = "GUZDCMBQGQ4TCMJQGQ3DMNJRGIZDQNJRGE4TSMBXHEYTCNBYGA3TKNRSGEZDKNJRHAYQ"
 
+    private const val SECRET_STRING_V14 = "GU2TMMBRGAZDSNJRGAZDMNZTHAYTCOJWGA3TSOJXGUYDMMBRGE4TQNZUGM3TANRYGY4DMNQ"
+
     /**
      * Generate a TOTP value for the given timestamp
      */
     fun at(timestamp: Long): String = generate(timestamp)
 
     private fun generate(timestamp: Long): String {
-        val googleAuthenticator = GoogleAuthenticator(SECRET_STRING_V10.toByteArray())
+        val googleAuthenticator = GoogleAuthenticator(SECRET_STRING_V14.toByteArray())
         return googleAuthenticator.generate(timestamp = Date(timestamp))
     }
 

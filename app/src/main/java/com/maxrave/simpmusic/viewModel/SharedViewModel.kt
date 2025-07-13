@@ -186,12 +186,8 @@ class SharedViewModel(
     val likeStatus: StateFlow<Boolean> = _likeStatus
 
     val openAppTime: StateFlow<Int> = dataStoreManager.openAppTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
-    val shareSavedLyrics: StateFlow<String> =
-        dataStoreManager.helpBuildLyricsDatabase.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000L),
-            FALSE,
-        )
+    private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
     init {
         mainRepository.initYouTube(viewModelScope)
@@ -246,9 +242,16 @@ class SharedViewModel(
                         setLyricsProvider()
                     }
                 }
+            val shareSavedLyricsJob =
+                launch {
+                    dataStoreManager.helpBuildLyricsDatabase.distinctUntilChanged().collectLatest {
+                        _shareSavedLyrics.value = it == TRUE
+                    }
+                }
             timeLineJob.join()
             checkGetVideoJob.join()
             lyricsProviderJob.join()
+            shareSavedLyricsJob.join()
         }
     }
 
@@ -595,6 +598,7 @@ class SharedViewModel(
                     Log.d(tag, "Saved Lyrics $lyricsData")
                     updateLyrics(
                         track.videoId,
+                        track.durationSeconds ?: 0,
                         lyricsData,
                         false,
                         LyricsProvider.OFFLINE,
@@ -832,11 +836,25 @@ class SharedViewModel(
 
     private fun updateLyrics(
         videoId: String,
+        duration: Int, // 0 if translated lyrics
         lyrics: Lyrics?,
         isTranslatedLyrics: Boolean,
         lyricsProvider: LyricsProvider = LyricsProvider.MUSIXMATCH,
     ) {
+        if (lyrics == null) {
+            _nowPlayingScreenData.update {
+                it.copy(
+                    lyricsData = null,
+                )
+            }
+            return
+        }
+        val shouldSendLyricsToSimpMusic =
+            runBlocking {
+                dataStoreManager.helpBuildLyricsDatabase.first() == TRUE
+            }
         if (_nowPlayingState.value?.songEntity?.videoId == videoId) {
+            val track = _nowPlayingState.value?.track
             when (isTranslatedLyrics) {
                 true -> {
                     _nowPlayingScreenData.update {
@@ -847,34 +865,64 @@ class SharedViewModel(
                                 ),
                         )
                     }
+                    if (shouldSendLyricsToSimpMusic && track != null) {
+                        viewModelScope.launch {
+                            mainRepository
+                                .insertSimpMusicTranslatedLyrics(
+                                    track,
+                                    lyrics,
+                                    dataStoreManager.translationLanguage.first(),
+                                ).collect {
+                                    when (it) {
+                                        is Resource.Error -> {
+                                            Log.w(tag, "Insert SimpMusic Translated Lyrics Error ${it.message}")
+                                        }
+                                        is Resource.Success -> {
+                                            Log.d(tag, "Insert SimpMusic Translated Lyrics Success")
+                                        }
+                                    }
+                                }
+                        }
+                    }
                 }
                 false -> {
-                    if (lyrics != null) {
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                lyricsData =
-                                    NowPlayingScreenData.LyricsData(
-                                        lyrics = lyrics,
-                                        lyricsProvider = lyricsProvider,
-                                    ),
-                            )
-                        }
-                        // Save lyrics to database
-                        viewModelScope.launch {
-                            mainRepository.insertLyrics(
-                                LyricsEntity(
-                                    videoId = videoId,
-                                    error = false,
-                                    lines = lyrics.lines,
-                                    syncType = lyrics.syncType,
+                    _nowPlayingScreenData.update {
+                        it.copy(
+                            lyricsData =
+                                NowPlayingScreenData.LyricsData(
+                                    lyrics = lyrics,
+                                    lyricsProvider = lyricsProvider,
                                 ),
-                            )
-                        }
-                    } else {
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                lyricsData = null,
-                            )
+                        )
+                    }
+                    // Save lyrics to database
+                    viewModelScope.launch {
+                        mainRepository.insertLyrics(
+                            LyricsEntity(
+                                videoId = videoId,
+                                error = false,
+                                lines = lyrics.lines,
+                                syncType = lyrics.syncType,
+                            ),
+                        )
+                    }
+                    if (shouldSendLyricsToSimpMusic && track != null) {
+                        viewModelScope.launch {
+                            mainRepository
+                                .insertSimpMusicLyrics(
+                                    track,
+                                    duration,
+                                    lyrics,
+                                ).collect {
+                                    when (it) {
+                                        is Resource.Error -> {
+                                            Log.w(tag, "Insert SimpMusic Lyrics Error ${it.message}")
+                                        }
+                                        is Resource.Success -> {
+                                            Log.d(tag, "Insert SimpMusic Lyrics Success")
+                                        }
+                                    }
+                                }
                         }
                     }
                 }
@@ -919,6 +967,7 @@ class SharedViewModel(
                                     Log.d(tag, "Get Lyrics Data Success")
                                     updateLyrics(
                                         videoId,
+                                        duration,
                                         response.second.data,
                                         false,
                                         LyricsProvider.MUSIXMATCH,
@@ -939,6 +988,7 @@ class SharedViewModel(
                                             Log.d(tag, "Get Saved Translated Lyrics")
                                             updateLyrics(
                                                 videoId,
+                                                duration,
                                                 savedTranslatedLyrics.toLyrics(),
                                                 true,
                                             )
@@ -952,6 +1002,7 @@ class SharedViewModel(
                                                         Log.d(tag, "Get Translate Lyrics Success")
                                                         updateLyrics(
                                                             videoId,
+                                                            duration,
                                                             translate.toLyrics(
                                                                 response.second.data!!,
                                                             ),
@@ -1021,6 +1072,7 @@ class SharedViewModel(
                                 insertLyrics(lyrics.toLyricsEntity(videoId))
                                 updateLyrics(
                                     videoId,
+                                    duration,
                                     lyrics,
                                     false,
                                     LyricsProvider.YOUTUBE,
@@ -1028,6 +1080,7 @@ class SharedViewModel(
                                 if (translatedLyrics != null) {
                                     updateLyrics(
                                         videoId,
+                                        duration,
                                         translatedLyrics,
                                         true,
                                         LyricsProvider.YOUTUBE,
@@ -1095,6 +1148,7 @@ class SharedViewModel(
                             Log.d(tag, "Get Lyrics Data Success")
                             updateLyrics(
                                 song.videoId,
+                                duration,
                                 res.data,
                                 false,
                                 LyricsProvider.LRCLIB,
@@ -1139,6 +1193,7 @@ class SharedViewModel(
                 Log.d(tag, "Get Saved Translated Lyrics")
                 updateLyrics(
                     videoId,
+                    0,
                     savedTranslatedLyrics.toLyrics(),
                     true,
                 )
@@ -1165,6 +1220,7 @@ class SharedViewModel(
                                     )
                                     updateLyrics(
                                         videoId,
+                                        0,
                                         data,
                                         true,
                                     )
@@ -1199,6 +1255,7 @@ class SharedViewModel(
                             )
                             updateLyrics(
                                 track.videoId,
+                                duration ?: 0,
                                 response.data,
                                 false,
                                 LyricsProvider.SPOTIFY,

@@ -96,16 +96,21 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
+import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.isNetworkAvailable
 import com.maxrave.simpmusic.extension.toLibraryLyrics
+import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
+import com.maxrave.simpmusic.extension.toPlainLrcString
 import com.maxrave.simpmusic.extension.toSongItemForDownload
+import com.maxrave.simpmusic.extension.toSyncedLrcString
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.spotify.Spotify
+import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -125,6 +130,9 @@ import okhttp3.Request
 import okhttp3.Response
 import org.simpmusic.aiservice.AIHost
 import org.simpmusic.aiservice.AiClient
+import org.simpmusic.lyrics.SimpMusicLyricsClient
+import org.simpmusic.lyrics.models.request.LyricsBody
+import org.simpmusic.lyrics.models.request.TranslatedLyricsBody
 import java.io.File
 import java.time.LocalDateTime
 import kotlin.math.abs
@@ -135,6 +143,7 @@ class MainRepository(
     private val youTube: YouTube,
     private val spotify: Spotify,
     private val lyricsClient: LyricsClient,
+    private val simpMusicLyrics: SimpMusicLyricsClient,
     private val aiClient: AiClient,
     private val database: MusicDatabase,
     private val context: Context,
@@ -1141,7 +1150,7 @@ class MainRepository(
 
     suspend fun getGenreData(params: String): Flow<Resource<GenreObject>> =
         flow {
-            kotlin.runCatching {
+            runCatching {
                 youTube
                     .customQuery(
                         browseId = "FEmusic_moods_and_genres_category",
@@ -2346,7 +2355,7 @@ class MainRepository(
     fun getCanvas(
         videoId: String,
         duration: Int,
-    ): Flow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> =
+    ): Flow<CanvasResponse?> =
         flow {
             runCatching {
                 getSongById(videoId).first().let { song ->
@@ -3309,4 +3318,75 @@ class MainRepository(
     ): Flow<DownloadProgress> = youTube.download(track.toSongItemForDownload(), path, bitmap, videoId, isVideo)
 
     fun is403Url(url: String) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
+
+    // SimpMusic Lyrics
+    fun insertSimpMusicLyrics(
+        track: Track,
+        duration: Int,
+        lyrics: Lyrics,
+    ): Flow<Resource<String>> =
+        flow {
+            val TAG = "SimpMusicLyricsRepository"
+            if (lyrics.lines.isNullOrEmpty()) {
+                emit(
+                    Resource.Error<String>("Lyrics are empty"),
+                )
+                return@flow
+            }
+            val (contributorName, contributorEmail) = dataStoreManager.contributorName.first() to dataStoreManager.contributorEmail.first()
+            simpMusicLyrics
+                .insertLyrics(
+                    LyricsBody(
+                        videoId = track.videoId,
+                        songTitle = track.title,
+                        artistName = track.artists?.toListName()?.connectArtists() ?: "",
+                        albumName = track.album?.name ?: "",
+                        durationSeconds = duration,
+                        plainLyric = lyrics.toPlainLrcString() ?: "",
+                        syncedLyrics = lyrics.toSyncedLrcString(),
+                        richSyncLyrics = "",
+                        contributor = contributorName,
+                        contributorEmail = contributorEmail,
+                    ),
+                ).onSuccess {
+                    Log.d(TAG, "Inserted Lyrics: $it")
+                    emit(Resource.Success(it.id))
+                }.onFailure {
+                    Log.e(TAG, "Insert Lyrics Error: ${it.message}")
+                    emit(Resource.Error<String>(it.message ?: "Failed to insert lyrics"))
+                }
+        }.flowOn(Dispatchers.IO)
+
+    fun insertSimpMusicTranslatedLyrics(
+        track: Track,
+        translatedLyrics: Lyrics,
+        language: String,
+    ): Flow<Resource<String>> =
+        flow {
+            val TAG = "SimpMusicLyricsRepository"
+            val syncedLyrics = translatedLyrics.toSyncedLrcString()
+            if (translatedLyrics.lines.isNullOrEmpty() || syncedLyrics == null || language.length != 2) {
+                emit(
+                    Resource.Error<String>("Lyrics are empty"),
+                )
+                return@flow
+            }
+            val (contributorName, contributorEmail) = dataStoreManager.contributorName.first() to dataStoreManager.contributorEmail.first()
+            simpMusicLyrics
+                .insertTranslatedLyrics(
+                    TranslatedLyricsBody(
+                        videoId = track.videoId,
+                        translatedLyric = syncedLyrics,
+                        language = language,
+                        contributor = contributorName,
+                        contributorEmail = contributorEmail,
+                    ),
+                ).onSuccess {
+                    Log.d(TAG, "Inserted Translated Lyrics: $it")
+                    emit(Resource.Success(it.id))
+                }.onFailure {
+                    Log.e(TAG, "Insert Translated Lyrics Error: ${it.message}")
+                    emit(Resource.Error<String>(it.message ?: "Failed to insert translated lyrics"))
+                }
+        }.flowOn(Dispatchers.IO)
 }

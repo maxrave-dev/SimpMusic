@@ -197,6 +197,7 @@ dependencies {
     implementation(project(mapOf("path" to ":spotify")))
     implementation(project(mapOf("path" to ":aiService")))
     implementation(project(mapOf("path" to ":sharedutils")))
+    implementation(project(mapOf("path" to ":lyricsService")))
 
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
