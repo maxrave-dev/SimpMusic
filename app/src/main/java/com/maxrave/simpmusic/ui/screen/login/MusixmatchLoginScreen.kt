@@ -57,7 +57,7 @@ fun MusixmatchLoginScreen(
     ) {
         if (debugInfo.isNotEmpty()) {
 
-            val fullUserIdRegex = """\[UserId\]:\s*(mxm:[a-f0-9]+)""".toRegex()
+            val fullUserIdRegex = """\[UserId\]:\s*([a-zA-Z0-9]+:[a-f0-9]+)""".toRegex()
             val fullUserId = fullUserIdRegex.find(debugInfo)?.groupValues?.get(1)
 
             val userTokenRegex = """\[UserToken\]:\s*([a-f0-9]+)""".toRegex()
