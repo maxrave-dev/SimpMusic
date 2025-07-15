@@ -29,6 +29,8 @@ import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
+import com.maxrave.lyricsproviders.parser.parseMusixmatchLyrics
+import com.maxrave.lyricsproviders.parser.parseUnsyncedLyrics
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
@@ -61,6 +63,8 @@ import com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
+import org.simpmusic.lyrics.models.response.LyricsResponse
+import org.simpmusic.lyrics.models.response.TranslatedLyricsResponse
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -1102,3 +1106,8 @@ fun Lyrics.toPlainLrcString(): String? {
     }
     return this.lines.joinToString("\n") { it.words }
 }
+
+// SimpMusic Lyrics Extension
+fun LyricsResponse.toLyrics(): Lyrics = (syncedLyrics?.let { parseMusixmatchLyrics(it) } ?: parseUnsyncedLyrics(plainLyric)).toLyrics()
+
+fun TranslatedLyricsResponse.toLyrics(): Lyrics = parseMusixmatchLyrics(this.translatedLyric).toLyrics()

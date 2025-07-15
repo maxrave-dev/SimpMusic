@@ -1040,6 +1040,7 @@ class DataStoreManager(
         val KILL_SERVICE_ON_EXIT = stringPreferencesKey("kill_service_on_exit")
         val CROSSFADE_ENABLED = stringPreferencesKey("crossfade_enabled")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
+        const val SIMPMUSIC = "simpmusic"
         const val YOUTUBE = "youtube"
         const val MUSIXMATCH = "musixmatch"
         const val LRCLIB = "lrclib"

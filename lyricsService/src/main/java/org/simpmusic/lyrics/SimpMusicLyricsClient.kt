@@ -26,20 +26,20 @@ class SimpMusicLyricsClient(
     private val isInsertingTranslatedLyrics: Boolean
         get() = insertingTranslatedLyrics.second
 
-    suspend fun getLyrics(videoId: String): Result<LyricsResponse> =
+    suspend fun getLyrics(videoId: String): Result<List<LyricsResponse>> =
         runCatching {
-            lyricsService.findLyricsByVideoId(videoId).bodyOrThrow<LyricsResponse>()
+            lyricsService.findLyricsByVideoId(videoId).bodyOrThrow<List<LyricsResponse>>()
         }
 
     suspend fun getTranslatedLyrics(
         videoId: String,
         language: String,
-    ): Result<LyricsResponse> =
+    ): Result<TranslatedLyricsResponse> =
         runCatching {
             if (language.length != 2) {
                 throw IllegalArgumentException("Language code must be a 2-letter code")
             }
-            lyricsService.findTranslatedLyrics(videoId, language).bodyOrThrow<LyricsResponse>()
+            lyricsService.findTranslatedLyrics(videoId, language).bodyOrThrow<TranslatedLyricsResponse>()
         }
 
     suspend fun insertLyrics(lyricsBody: LyricsBody): Result<LyricsResponse> =

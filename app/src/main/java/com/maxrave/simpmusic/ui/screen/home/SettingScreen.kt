@@ -679,6 +679,7 @@ fun SettingScreen(
                     title = stringResource(R.string.main_lyrics_provider),
                     subtitle =
                         when (mainLyricsProvider) {
+                            DataStoreManager.SIMPMUSIC -> stringResource(R.string.simpmusic_lyrics)
                             DataStoreManager.MUSIXMATCH -> stringResource(R.string.musixmatch)
                             DataStoreManager.YOUTUBE -> stringResource(R.string.youtube_transcript)
                             DataStoreManager.LRCLIB -> stringResource(R.string.lrclib)
@@ -692,6 +693,7 @@ fun SettingScreen(
                                     SettingAlertState.SelectData(
                                         listSelect =
                                             listOf(
+                                                (mainLyricsProvider == DataStoreManager.SIMPMUSIC) to context.getString(R.string.simpmusic_lyrics),
                                                 (mainLyricsProvider == DataStoreManager.MUSIXMATCH) to context.getString(R.string.musixmatch),
                                                 (mainLyricsProvider == DataStoreManager.YOUTUBE) to context.getString(R.string.youtube_transcript),
                                                 (mainLyricsProvider == DataStoreManager.LRCLIB) to context.getString(R.string.lrclib),
@@ -701,6 +703,7 @@ fun SettingScreen(
                                     context.getString(R.string.change) to { state ->
                                         viewModel.setLyricsProvider(
                                             when (state.selectOne?.getSelected()) {
+                                                context.getString(R.string.simpmusic_lyrics) -> DataStoreManager.SIMPMUSIC
                                                 context.getString(R.string.musixmatch) -> DataStoreManager.MUSIXMATCH
                                                 context.getString(R.string.youtube_transcript) -> DataStoreManager.YOUTUBE
                                                 context.getString(R.string.lrclib) -> DataStoreManager.LRCLIB

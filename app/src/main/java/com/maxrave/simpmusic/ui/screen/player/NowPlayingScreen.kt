@@ -1560,6 +1560,7 @@ fun NowPlayingScreen(
                                         Text(
                                             text =
                                                 when (screenDataState.lyricsData?.lyricsProvider) {
+                                                    LyricsProvider.SIMPMUSIC -> stringResource(id = R.string.lyrics_provider_simpmusic)
                                                     LyricsProvider.MUSIXMATCH -> stringResource(id = R.string.lyrics_provider)
                                                     LyricsProvider.LRCLIB -> stringResource(id = R.string.lyrics_provider_lrc)
                                                     LyricsProvider.YOUTUBE -> stringResource(id = R.string.lyrics_provider_youtube)

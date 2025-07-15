@@ -1288,9 +1288,10 @@ fun NowPlayingBottomSheet(
         var selected by remember {
             mutableIntStateOf(
                 when (uiState.mainLyricsProvider) {
-                    DataStoreManager.MUSIXMATCH -> 0
-                    DataStoreManager.YOUTUBE -> 1
-                    DataStoreManager.LRCLIB -> 2
+                    DataStoreManager.SIMPMUSIC -> 0
+                    DataStoreManager.MUSIXMATCH -> 1
+                    DataStoreManager.YOUTUBE -> 2
+                    DataStoreManager.LRCLIB -> 3
                     else -> 0
                 },
             )
@@ -1311,7 +1312,10 @@ fun NowPlayingBottomSheet(
                         modifier =
                             Modifier
                                 .padding(horizontal = 4.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 0
+                                },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
@@ -1321,13 +1325,16 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(id = R.string.musixmatch), style = typo.labelSmall)
+                        Text(text = stringResource(id = R.string.simpmusic_lyrics), style = typo.labelSmall)
                     }
                     Row(
                         modifier =
                             Modifier
                                 .padding(horizontal = 4.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 1
+                                },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
@@ -1337,19 +1344,41 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(id = R.string.youtube_transcript), style = typo.labelSmall)
+                        Text(text = stringResource(id = R.string.musixmatch), style = typo.labelSmall)
                     }
                     Row(
                         modifier =
                             Modifier
                                 .padding(horizontal = 4.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 2
+                                },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
                             selected = selected == 2,
                             onClick = {
                                 selected = 2
+                            },
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(text = stringResource(id = R.string.youtube_transcript), style = typo.labelSmall)
+                    }
+                    Row(
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 4.dp)
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 3
+                                },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selected == 3,
+                            onClick = {
+                                selected = 3
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
@@ -1363,9 +1392,10 @@ fun NowPlayingBottomSheet(
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.ChangeLyricsProvider(
                                 when (selected) {
-                                    0 -> DataStoreManager.MUSIXMATCH
-                                    1 -> DataStoreManager.YOUTUBE
-                                    2 -> DataStoreManager.LRCLIB
+                                    0 -> DataStoreManager.SIMPMUSIC
+                                    1 -> DataStoreManager.MUSIXMATCH
+                                    2 -> DataStoreManager.YOUTUBE
+                                    3 -> DataStoreManager.LRCLIB
                                     else -> DataStoreManager.MUSIXMATCH
                                 },
                             ),

@@ -3320,13 +3320,43 @@ class MainRepository(
     fun is403Url(url: String) = flow { emit(youTube.is403Url(url)) }.flowOn(Dispatchers.IO)
 
     // SimpMusic Lyrics
+    private val simpMusicLyricsTag = "SimpMusicLyricsRepository"
+
+    fun getSimpMusicLyrics(videoId: String): Flow<Resource<Lyrics>> =
+        flow {
+            simpMusicLyrics
+                .getLyrics(videoId)
+                .onSuccess { lyrics ->
+                    Log.d(simpMusicLyricsTag, "Lyrics found: $lyrics")
+                    emit(Resource.Success<Lyrics>(lyrics.first().toLyrics()))
+                }.onFailure {
+                    Log.e(simpMusicLyricsTag, "Get Lyrics Error: ${it.message}")
+                    emit(Resource.Error<Lyrics>(it.message ?: "Failed to get lyrics"))
+                }
+        }.flowOn(Dispatchers.IO)
+
+    fun getSimpMusicTranslatedLyrics(
+        videoId: String,
+        language: String,
+    ): Flow<Resource<Lyrics>> =
+        flow {
+            simpMusicLyrics
+                .getTranslatedLyrics(videoId, language)
+                .onSuccess { lyrics ->
+                    Log.d(simpMusicLyricsTag, "Translated Lyrics found: $lyrics")
+                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                }.onFailure {
+                    Log.e(simpMusicLyricsTag, "Get Translated Lyrics Error: ${it.message}")
+                    emit(Resource.Error<Lyrics>(it.message ?: "Failed to get translated lyrics"))
+                }
+        }.flowOn(Dispatchers.IO)
+
     fun insertSimpMusicLyrics(
         track: Track,
         duration: Int,
         lyrics: Lyrics,
     ): Flow<Resource<String>> =
         flow {
-            val TAG = "SimpMusicLyricsRepository"
             if (lyrics.lines.isNullOrEmpty()) {
                 emit(
                     Resource.Error<String>("Lyrics are empty"),
@@ -3349,10 +3379,10 @@ class MainRepository(
                         contributorEmail = contributorEmail,
                     ),
                 ).onSuccess {
-                    Log.d(TAG, "Inserted Lyrics: $it")
+                    Log.d(simpMusicLyricsTag, "Inserted Lyrics: $it")
                     emit(Resource.Success(it.id))
                 }.onFailure {
-                    Log.e(TAG, "Insert Lyrics Error: ${it.message}")
+                    Log.e(simpMusicLyricsTag, "Insert Lyrics Error: ${it.message}")
                     emit(Resource.Error<String>(it.message ?: "Failed to insert lyrics"))
                 }
         }.flowOn(Dispatchers.IO)
@@ -3363,7 +3393,6 @@ class MainRepository(
         language: String,
     ): Flow<Resource<String>> =
         flow {
-            val TAG = "SimpMusicLyricsRepository"
             val syncedLyrics = translatedLyrics.toSyncedLrcString()
             if (translatedLyrics.lines.isNullOrEmpty() || syncedLyrics == null || language.length != 2) {
                 emit(
@@ -3382,10 +3411,10 @@ class MainRepository(
                         contributorEmail = contributorEmail,
                     ),
                 ).onSuccess {
-                    Log.d(TAG, "Inserted Translated Lyrics: $it")
+                    Log.d(simpMusicLyricsTag, "Inserted Translated Lyrics: $it")
                     emit(Resource.Success(it.id))
                 }.onFailure {
-                    Log.e(TAG, "Insert Translated Lyrics Error: ${it.message}")
+                    Log.e(simpMusicLyricsTag, "Insert Translated Lyrics Error: ${it.message}")
                     emit(Resource.Error<String>(it.message ?: "Failed to insert translated lyrics"))
                 }
         }.flowOn(Dispatchers.IO)
