@@ -847,6 +847,13 @@ class MainRepository(
         language: String = "en",
     ): Flow<TranslatedLyricsEntity?> = flow { emit(localDataSource.getTranslatedLyrics(videoId, language)) }.flowOn(Dispatchers.IO)
 
+    suspend fun removeTranslatedLyrics(
+        videoId: String,
+        language: String,
+    ) = withContext(Dispatchers.IO) {
+        localDataSource.removeTranslatedLyrics(videoId, language)
+    }
+
     fun getAccountInfo(cookie: String) =
         flow<AccountInfo?> {
             youTube.cookie = cookie
@@ -3328,7 +3335,16 @@ class MainRepository(
                 .getLyrics(videoId)
                 .onSuccess { lyrics ->
                     Log.d(simpMusicLyricsTag, "Lyrics found: $lyrics")
-                    emit(Resource.Success<Lyrics>(lyrics.first().toLyrics()))
+                    emit(
+                        Resource.Success<Lyrics>(
+                            lyrics
+                                .first()
+                                .toLyrics()
+                                .copy(
+                                    simpMusicLyricsId = lyrics.first().id,
+                                ),
+                        ),
+                    )
                 }.onFailure {
                     Log.e(simpMusicLyricsTag, "Get Lyrics Error: ${it.message}")
                     emit(Resource.Error<Lyrics>(it.message ?: "Failed to get lyrics"))
@@ -3343,11 +3359,35 @@ class MainRepository(
             simpMusicLyrics
                 .getTranslatedLyrics(videoId, language)
                 .onSuccess { lyrics ->
-                    Log.d(simpMusicLyricsTag, "Translated Lyrics found: $lyrics")
-                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                    Log.d(simpMusicLyricsTag, "Translated Lyrics found: ${lyrics.toLyrics()}")
+                    emit(
+                        Resource.Success<Lyrics>(
+                            lyrics
+                                .toLyrics()
+                                .copy(
+                                    simpMusicLyricsId = lyrics.id,
+                                ),
+                        ),
+                    )
                 }.onFailure {
                     Log.e(simpMusicLyricsTag, "Get Translated Lyrics Error: ${it.message}")
                     emit(Resource.Error<Lyrics>(it.message ?: "Failed to get translated lyrics"))
+                }
+        }.flowOn(Dispatchers.IO)
+
+    fun voteSimpMusicTranslatedLyrics(
+        translatedLyricsId: String,
+        upvote: Boolean,
+    ): Flow<Resource<String>> =
+        flow {
+            simpMusicLyrics
+                .voteTranslatedLyrics(translatedLyricsId, upvote)
+                .onSuccess {
+                    Log.d(simpMusicLyricsTag, "Vote Translated Lyrics Success: $it")
+                    emit(Resource.Success(it.id))
+                }.onFailure {
+                    Log.e(simpMusicLyricsTag, "Vote Translated Lyrics Error: ${it.message}")
+                    emit(Resource.Error<String>(it.message ?: "Failed to vote translated lyrics"))
                 }
         }.flowOn(Dispatchers.IO)
 

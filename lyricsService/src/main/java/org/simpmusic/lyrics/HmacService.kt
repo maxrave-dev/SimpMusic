@@ -30,6 +30,7 @@ class HmacService {
         val timestamp = Instant.now().toEpochMilli().toString()
         val data = "$timestamp$uri"
         val hmac = this.generateHmac(data)
+        Log.d("HmacService", "Generated HMAC: $hmac for URI: $uri at timestamp: $timestamp")
         return hmac to timestamp
     }
 

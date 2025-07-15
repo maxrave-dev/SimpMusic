@@ -108,6 +108,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 fun LyricsView(
@@ -184,6 +185,27 @@ fun LyricsView(
         }
     }
 
+    // Hàm tìm translated lyrics dựa vào thời gian gần nhất
+    fun findClosestTranslatedLine(originalTimeMs: String): String? {
+        val translatedLines = lyricsData.translatedLyrics?.lines ?: return null
+        if (translatedLines.isEmpty()) return null
+
+        val originalTime = originalTimeMs.toLongOrNull() ?: return null
+
+        // Tìm dòng translated có thời gian gần nhất với dòng original
+        return translatedLines
+            .minByOrNull {
+                abs((it.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
+            }?.let {
+                val abs = abs((it.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
+                if (abs < 1000L) {
+                    it
+                } else {
+                    null
+                }
+            }?.words
+    }
+
     LazyColumn(
         state = listState,
         modifier =
@@ -195,11 +217,10 @@ fun LyricsView(
     ) {
         items(lyricsData.lyrics.lines?.size ?: 0) { index ->
             val line = lyricsData.lyrics.lines?.getOrNull(index)
-            val translatedWords =
-                lyricsData.translatedLyrics
-                    ?.lines
-                    ?.getOrNull(index)
-                    ?.words
+            // Tìm translated lyrics phù hợp dựa vào thời gian
+            val translatedWords = line?.startTimeMs?.let { findClosestTranslatedLine(it) }
+            Log.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
+
             line?.words?.let {
                 LyricsLineItem(
                     originalWords = it,

@@ -92,6 +92,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 @UnstableApi
 class SharedViewModel(
@@ -849,6 +850,72 @@ class SharedViewModel(
             }
             return
         }
+
+        if (isTranslatedLyrics) {
+            val originalLyrics = _nowPlayingScreenData.value.lyricsData?.lyrics
+            if (originalLyrics != null && originalLyrics.lines != null && lyrics.lines != null) {
+                var outOfSyncCount = 0
+
+                originalLyrics.lines.forEach { originalLine ->
+                    val originalTime = originalLine.startTimeMs.toLongOrNull() ?: 0L
+                    val closestTranslatedLine =
+                        lyrics.lines.minByOrNull {
+                            abs((it.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
+                        }
+
+                    if (closestTranslatedLine != null) {
+                        val translatedTime = closestTranslatedLine.startTimeMs.toLongOrNull() ?: 0L
+                        val timeDiff = abs(originalTime - translatedTime)
+
+                        if (timeDiff > 1000L) { // Lệch quá 1 giây
+                            outOfSyncCount++
+                        }
+                    }
+                }
+
+                if (outOfSyncCount > 5) {
+                    Log.w(tag, "Translated lyrics out of sync: $outOfSyncCount lines with time diff > 1s")
+
+                    _nowPlayingScreenData.update {
+                        it.copy(
+                            lyricsData =
+                                it.lyricsData?.copy(
+                                    translatedLyrics = null,
+                                ),
+                        )
+                    }
+
+                    viewModelScope.launch {
+                        mainRepository.removeTranslatedLyrics(
+                            videoId,
+                            dataStoreManager.translationLanguage.first(),
+                        )
+                        Log.d(tag, "Removed out-of-sync translated lyrics for $videoId")
+                        val simpMusicLyricsId = lyrics.simpMusicLyricsId
+                        if (lyricsProvider == LyricsProvider.SIMPMUSIC && !simpMusicLyricsId.isNullOrEmpty()) {
+                            viewModelScope.launch {
+                                mainRepository
+                                    .voteSimpMusicTranslatedLyrics(
+                                        translatedLyricsId = simpMusicLyricsId,
+                                        false,
+                                    ).collectLatest {
+                                        when (it) {
+                                            is Resource.Error -> {
+                                                Log.w(tag, "Vote SimpMusic Translated Lyrics Error ${it.message}")
+                                            }
+                                            is Resource.Success -> {
+                                                Log.d(tag, "Vote SimpMusic Translated Lyrics Success")
+                                            }
+                                        }
+                                    }
+                            }
+                        }
+                    }
+                    return
+                }
+            }
+        }
+
         val shouldSendLyricsToSimpMusic =
             runBlocking {
                 dataStoreManager.helpBuildLyricsDatabase.first() == TRUE

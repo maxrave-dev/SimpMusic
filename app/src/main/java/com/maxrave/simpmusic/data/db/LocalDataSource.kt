@@ -360,6 +360,11 @@ class LocalDataSource(
         language: String,
     ) = databaseDao.getTranslatedLyrics(videoId, language)
 
+    suspend fun removeTranslatedLyrics(
+        videoId: String,
+        language: String,
+    ) = databaseDao.removeTranslatedLyrics(videoId, language)
+
     suspend fun insertTranslatedLyrics(translatedLyricsEntity: TranslatedLyricsEntity) = databaseDao.insertTranslatedLyrics(translatedLyricsEntity)
 
     suspend fun insertPodcast(podcastsEntity: PodcastsEntity) = databaseDao.insertPodcast(podcastsEntity)
