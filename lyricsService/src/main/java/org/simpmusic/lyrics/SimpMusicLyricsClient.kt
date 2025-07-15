@@ -18,6 +18,14 @@ class SimpMusicLyricsClient(
     private val hmacService = HmacService()
     private val lyricsService = SimpMusicLyrics(context)
 
+    private var insertingLyrics: Pair<String?, Boolean> = (null to false)
+    private val isInsertingLyrics: Boolean
+        get() = insertingLyrics.second
+
+    private var insertingTranslatedLyrics: Pair<String?, Boolean> = (null to false)
+    private val isInsertingTranslatedLyrics: Boolean
+        get() = insertingTranslatedLyrics.second
+
     suspend fun getLyrics(videoId: String): Result<LyricsResponse> =
         runCatching {
             lyricsService.findLyricsByVideoId(videoId).bodyOrThrow<LyricsResponse>()
@@ -36,6 +44,10 @@ class SimpMusicLyricsClient(
 
     suspend fun insertLyrics(lyricsBody: LyricsBody): Result<LyricsResponse> =
         runCatching {
+            if (isInsertingLyrics && insertingLyrics.first == lyricsBody.videoId) {
+                throw IllegalStateException("Already inserting lyrics, please wait until the current operation is complete.")
+            }
+            insertingLyrics = lyricsBody.videoId to true
             val hmacTimestamp =
                 hmacService.getMacTimestampPair(
                     HmacService.BASE_HMAC_URI,
@@ -48,6 +60,10 @@ class SimpMusicLyricsClient(
             if (translatedLyricsBody.language.length != 2) {
                 throw IllegalArgumentException("Language code must be a 2-letter code")
             }
+            if (isInsertingTranslatedLyrics && insertingTranslatedLyrics.first == translatedLyricsBody.videoId) {
+                throw IllegalStateException("Already inserting translated lyrics, please wait until the current operation is complete.")
+            }
+            insertingTranslatedLyrics = translatedLyricsBody.videoId to true
             val hmacTimestamp =
                 hmacService.getMacTimestampPair(
                     HmacService.TRANSLATED_HMAC_URI,
