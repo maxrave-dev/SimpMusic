@@ -67,6 +67,7 @@ json = "1.9.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
 sentry-android = "8.17.0"
+sentry-gradle = "5.8.0"
 newpipe = "0.24.6"
 leakcanary = "2.14"
 
@@ -192,3 +193,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
 room = { id = "androidx.room", version.ref = "room" }
+sentry-gradle = { id = "io.sentry.android.gradle", version.ref = "sentry-gradle" }

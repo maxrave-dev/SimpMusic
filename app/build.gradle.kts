@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.room)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sentry.gradle)
 }
 
 kotlin {
@@ -155,6 +156,29 @@ android {
                 "META-INF/notice",
                 "META-INF/*.kotlin_module",
             )
+    }
+}
+
+sentry {
+    debug.set(false)
+    org.set("simpmusic")
+    projectName.set("android")
+    ignoredFlavors.set(setOf("foss"))
+    val dsn =
+        try {
+            println("Full build detected, enabling Sentry DSN")
+            val properties = Properties()
+            properties.load(rootProject.file("local.properties").inputStream())
+            properties.getProperty("SENTRY_DSN")
+        } catch (e: Exception) {
+            println("Failed to load SENTRY_DSN from local.properties: ${e.message}")
+            null
+        }
+    authToken.set(dsn ?: "")
+    includeProguardMapping.set(true)
+    autoUploadProguardMapping.set(true)
+    autoInstallation {
+        enabled.set(false)
     }
 }
 
