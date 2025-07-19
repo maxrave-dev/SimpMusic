@@ -160,10 +160,11 @@ android {
 }
 
 sentry {
-    debug.set(false)
     org.set("simpmusic")
     projectName.set("android")
     ignoredFlavors.set(setOf("foss"))
+    ignoredBuildTypes.set(setOf("debug"))
+    autoInstallation.enabled = false
     val token =
         try {
             println("Full build detected, enabling Sentry Auth Token")
@@ -177,9 +178,7 @@ sentry {
     authToken.set(token ?: "")
     includeProguardMapping.set(true)
     autoUploadProguardMapping.set(true)
-    autoInstallation {
-        enabled.set(false)
-    }
+    telemetry.set(false)
 }
 
 dependencies {

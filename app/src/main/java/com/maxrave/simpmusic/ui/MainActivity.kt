@@ -185,21 +185,21 @@ class MainActivity : ComponentActivity() {
             )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
         }
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            WindowCompat.setDecorFitsSystemWindows(window, false)
+
         enableEdgeToEdge(
             navigationBarStyle =
                 SystemBarStyle.auto(
                     lightScrim = Color.Transparent.toArgb(),
                     darkScrim = Color.Transparent.toArgb(),
                 ),
+            statusBarStyle =
+                SystemBarStyle.light(
+                    scrim = Color.Transparent.toArgb(),
+                    darkScrim = Color.Transparent.toArgb(),
+                ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
-//        } else {
-//            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-//        }
 
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
