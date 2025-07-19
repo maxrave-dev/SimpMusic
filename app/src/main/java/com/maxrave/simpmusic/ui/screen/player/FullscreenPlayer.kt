@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.screen.player
 
 import android.content.pm.ActivityInfo
 import android.util.Log
-import android.view.View
 import android.view.WindowManager
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -74,7 +73,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -88,7 +86,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.extension.findActivity
@@ -112,6 +109,8 @@ fun FullscreenPlayer(
     navController: NavController,
     player: ExoPlayer = koinInject(named(MAIN_PLAYER)),
     sharedViewModel: SharedViewModel = koinInject(),
+    hideNavBar: () -> Unit = {},
+    showNavBar: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var isFullScreen by remember { mutableStateOf(true) }
@@ -131,6 +130,7 @@ fun FullscreenPlayer(
     }
 
     DisposableEffect(true) {
+        hideNavBar()
         isFullScreen = true
         sharedViewModel.isFullScreen = true
         val activity = context.findActivity()
@@ -144,12 +144,13 @@ fun FullscreenPlayer(
 
             insetsController.apply {
                 show(WindowInsetsCompat.Type.systemBars())
-                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
             // restore original orientation when view disappears
             activity.requestedOrientation = originalOrientation
             sharedViewModel.isFullScreen = false
             isFullScreen = false
+            showNavBar()
         }
     }
 
@@ -163,13 +164,6 @@ fun FullscreenPlayer(
         insetsController.apply {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-
-        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-        if (bottom.visibility != View.GONE || miniplayer.visibility != View.GONE) {
-            bottom.visibility = View.GONE
-            miniplayer.visibility = View.GONE
         }
     }
 
@@ -471,7 +465,7 @@ fun FullscreenPlayer(
                                         .size(32.dp),
                                     true,
                                 ) {
-                                    navController.popBackStack()
+                                    navController.navigateUp()
                                 }
                             }
                         },
@@ -721,7 +715,7 @@ fun FullscreenPlayer(
                                                 CircleShape,
                                             ),
                                     onClick = {
-                                        navController.popBackStack()
+                                        navController.navigateUp()
                                     },
                                 ) {
                                     Icon(

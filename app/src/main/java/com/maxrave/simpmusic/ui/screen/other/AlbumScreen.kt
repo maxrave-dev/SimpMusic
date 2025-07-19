@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.os.Bundle
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -61,7 +60,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
@@ -80,7 +78,6 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -90,6 +87,8 @@ import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
@@ -218,7 +217,7 @@ fun AlbumScreen(
                                     RippleIconButton(
                                         resId = R.drawable.baseline_arrow_back_ios_new_24,
                                     ) {
-                                        navController.popBackStack()
+                                        navController.navigateUp()
                                     }
                                 }
                                 Column(
@@ -264,7 +263,7 @@ fun AlbumScreen(
                                                 text = uiState.title,
                                                 style = typo.titleLarge,
                                                 color = Color.White,
-                                                maxLines = 2
+                                                maxLines = 2,
                                             )
                                             Column(
                                                 modifier = Modifier.padding(vertical = 8.dp),
@@ -276,12 +275,13 @@ fun AlbumScreen(
                                                     color = Color.White,
                                                     modifier =
                                                         Modifier.clickable {
-                                                            navController.navigateSafe(
-                                                                R.id.action_global_artistFragment,
-                                                                Bundle().apply {
-                                                                    putString("channelId", uiState.artist.id ?: return@clickable)
-                                                                },
-                                                            )
+                                                            uiState.artist.id?.let { channelId ->
+                                                                navController.navigate(
+                                                                    ArtistDestination(
+                                                                        channelId = channelId,
+                                                                    ),
+                                                                )
+                                                            }
                                                         },
                                                 )
                                                 Spacer(modifier = Modifier.height(8.dp))
@@ -466,10 +466,9 @@ fun AlbumScreen(
                                     items(uiState.otherVersion) { album ->
                                         HomeItemContentPlaylist(
                                             onClick = {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_albumFragment,
-                                                    bundleOf(
-                                                        "browseId" to album.browseId,
+                                                navController.navigate(
+                                                    AlbumDestination(
+                                                        browseId = album.browseId,
                                                     ),
                                                 )
                                             },
@@ -496,14 +495,15 @@ fun AlbumScreen(
                                 text = uiState.title,
                                 style = typo.titleMedium,
                                 maxLines = 1,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(
-                                        align = Alignment.CenterVertically,
-                                    ).basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(
+                                            align = Alignment.CenterVertically,
+                                        ).basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
                             )
                         },
                         navigationIcon = {
@@ -514,7 +514,7 @@ fun AlbumScreen(
                                         .size(32.dp),
                                     true,
                                 ) {
-                                    navController.popBackStack()
+                                    navController.navigateUp()
                                 }
                             }
                         },
@@ -538,7 +538,7 @@ fun AlbumScreen(
             }
 
             LocalPlaylistState.PlaylistLoadState.Error -> {
-                navController.popBackStack()
+                navController.navigateUp()
             }
             LocalPlaylistState.PlaylistLoadState.Loading -> {
                 CenterLoadingBox(

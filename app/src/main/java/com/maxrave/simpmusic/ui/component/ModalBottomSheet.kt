@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -127,10 +126,11 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.StateSource
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.FilterState
@@ -140,6 +140,8 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.moriatsushi.insetsx.systemBars
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -156,11 +158,23 @@ fun InfoPlayerBottomSheet(
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
     val windowInsets = WindowInsets.systemBars
+    var swipeEnabled by rememberSaveable { mutableStateOf(true) }
     val sheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
+            confirmValueChange = {
+                swipeEnabled
+            },
         )
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(true) {
+        snapshotFlow { scrollState.value }
+            .distinctUntilChanged()
+            .collectLatest {
+                swipeEnabled = scrollState.value == 0
+            }
+    }
 
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
@@ -1609,12 +1623,13 @@ fun NowPlayingBottomSheet(
                         textString = uiState.songUIState.album?.name,
                         enable = uiState.songUIState.album != null,
                     ) {
-                        navController.navigateSafe(
-                            R.id.action_global_albumFragment,
-                            Bundle().apply {
-                                putString("browseId", uiState.songUIState.album?.id)
-                            },
-                        )
+                        uiState.songUIState.album?.id?.let { id ->
+                            navController.navigate(
+                                AlbumDestination(
+                                    browseId = id,
+                                ),
+                            )
+                        }
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_sensors_24),
@@ -2170,11 +2185,10 @@ fun ArtistModalBottomSheet(
                                         .fillMaxWidth()
                                         .clickable {
                                             if (!artist.id.isNullOrBlank()) {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_artistFragment,
-                                                    Bundle().apply {
-                                                        putString("channelId", artist.id)
-                                                    },
+                                                navController.navigate(
+                                                    ArtistDestination(
+                                                        artist.id,
+                                                    ),
                                                 )
                                             }
                                             hideModalBottomSheet()

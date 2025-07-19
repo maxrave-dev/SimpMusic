@@ -7,8 +7,6 @@ import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
@@ -68,7 +66,6 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -93,6 +90,7 @@ import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
+import kotlin.reflect.KClass
 
 @UnstableApi
 class SharedViewModel(
@@ -102,7 +100,6 @@ class SharedViewModel(
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
     var showedUpdateDialog: Boolean = false
-    var showOrHideMiniplayer: MutableSharedFlow<Boolean> = MutableSharedFlow()
     private val _showMusixmatchCaptchaWebView: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val showMusixmatchCaptchaWebView: StateFlow<Boolean> get() = _showMusixmatchCaptchaWebView
 
@@ -130,7 +127,8 @@ class SharedViewModel(
 
     private var canvasJob: Job? = null
 
-    val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
+    private val _intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
+    val intent: StateFlow<Intent?> = _intent
 
     private var getFormatFlowJob: Job? = null
 
@@ -187,7 +185,7 @@ class SharedViewModel(
     val likeStatus: StateFlow<Boolean> = _likeStatus
 
     val openAppTime: StateFlow<Int> = dataStoreManager.openAppTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
-    private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
     init {
@@ -254,9 +252,7 @@ class SharedViewModel(
             lyricsProviderJob.join()
             shareSavedLyricsJob.join()
         }
-    }
 
-    init {
         runBlocking {
             dataStoreManager.getString("miniplayer_guide").first().let {
                 isFirstMiniplayer = it != STATUS_DONE
@@ -417,6 +413,10 @@ class SharedViewModel(
             sleepTimerJob.join()
             playlistNameJob.join()
         }
+    }
+
+    fun setIntent(intent: Intent?) {
+        _intent.value = intent
     }
 
     fun blurFullscreenLyrics(): Boolean = runBlocking { dataStoreManager.blurFullscreenLyrics.first() == TRUE }
@@ -809,8 +809,8 @@ class SharedViewModel(
             }
     }
 
-    private var _githubResponse = MutableLiveData<GithubResponse?>()
-    val githubResponse: LiveData<GithubResponse?> = _githubResponse
+    private var _githubResponse = MutableStateFlow<GithubResponse?>(null)
+    val githubResponse: StateFlow<GithubResponse?> = _githubResponse
 
     fun checkForUpdate() {
         viewModelScope.launch {
@@ -819,7 +819,8 @@ class SharedViewModel(
                     "CheckForUpdateAt",
                     System.currentTimeMillis().toString(),
                 )
-                _githubResponse.postValue(response)
+                _githubResponse.value = response
+                showedUpdateDialog = true
             }
         }
     }
@@ -1511,15 +1512,15 @@ class SharedViewModel(
 
     fun getTranslucentBottomBar() = dataStoreManager.translucentBottomBar
 
-    private var _homeRefresh: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val homeRefresh: StateFlow<Boolean> = _homeRefresh.asStateFlow()
+    private val _reloadDestination: MutableStateFlow<KClass<*>?> = MutableStateFlow(null)
+    val reloadDestination: StateFlow<KClass<*>?> = _reloadDestination.asStateFlow()
 
-    fun homeRefresh() {
-        _homeRefresh.value = true
+    fun reloadDestination(destination: KClass<*>) {
+        _reloadDestination.value = destination
     }
 
-    fun homeRefreshDone() {
-        _homeRefresh.value = false
+    fun reloadDestinationDone() {
+        _reloadDestination.value = null
     }
 
     fun shouldCheckForUpdate(): Boolean = runBlocking { dataStoreManager.autoCheckForUpdates.first() == TRUE }

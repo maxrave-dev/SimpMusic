@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.room)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -206,6 +207,7 @@ dependencies {
     // ExoPlayer
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
+    implementation(libs.media3.compose)
     implementation(libs.media3.session)
     implementation(libs.media3.exoplayer.dash)
     implementation(libs.media3.exoplayer.hls)
@@ -237,7 +239,11 @@ dependencies {
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
 
-    implementation(libs.gson)
+    // Navigation Compose
+    implementation(libs.navigation.compose)
+
+    // Kotlin Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Coil
     implementation(libs.coil.compose)
@@ -261,9 +267,6 @@ dependencies {
     // Insetter
     implementation(libs.insetter)
     implementation(libs.insetter.dbx)
-
-    // Shimmer
-    implementation(libs.shimmer)
 
     // Lottie
     implementation(libs.lottie)

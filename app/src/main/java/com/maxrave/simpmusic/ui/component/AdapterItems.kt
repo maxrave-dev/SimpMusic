@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -79,12 +78,14 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.type.HomeContentType
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.generateRandomColor
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -118,9 +119,11 @@ fun HomeItem(
                     Modifier
                         .focusable(true)
                         .clickable {
-                            val args = Bundle()
-                            args.putString("channelId", data.channelId)
-                            navController.navigateSafe(R.id.action_global_artistFragment, args)
+                            navController.navigate(
+                                ArtistDestination(
+                                    channelId = data.channelId,
+                                ),
+                            )
                         }
                 } else {
                     Modifier
@@ -182,39 +185,41 @@ fun HomeItem(
                     if ((temp.playlistId != null && temp.videoId == null) || (temp.playlistId != null && temp.videoId == "")) {
                         if (temp.playlistId.startsWith("UC")) {
                             HomeItemArtist(onClick = {
-                                val args = Bundle()
                                 val channelId =
                                     temp.playlistId
-                                Log.d("HomeItemAdapter", "onArtistItemClick: $channelId")
-                                args.putString("channelId", channelId)
-                                navController.navigateSafe(R.id.action_global_artistFragment, args)
+                                navController.navigate(
+                                    ArtistDestination(
+                                        channelId = channelId,
+                                    ),
+                                )
                             }, data = temp)
                         } else {
                             HomeItemContentPlaylist(onClick = {
-                                val args = Bundle()
-                                args.putString("id", temp.playlistId)
-                                navController.navigateSafe(
-                                    R.id.action_global_playlistFragment,
-                                    args,
+                                navController.navigate(
+                                    PlaylistDestination(
+                                        playlistId = temp.playlistId,
+                                    ),
                                 )
                             }, data = temp)
                         }
                     } else if ((temp.browseId != null && temp.videoId == null) || (temp.browseId != null && temp.videoId == "")) {
                         if (temp.browseId.startsWith("UC")) {
                             HomeItemArtist(onClick = {
-                                val args = Bundle()
                                 val channelId =
                                     temp.browseId
-                                Log.d("HomeItemAdapter", "onArtistItemClick: $channelId")
-                                args.putString("channelId", channelId)
-                                navController.navigateSafe(R.id.action_global_artistFragment, args)
+                                navController.navigate(
+                                    ArtistDestination(
+                                        channelId = channelId,
+                                    ),
+                                )
                             }, data = temp)
                         } else {
                             HomeItemContentPlaylist(onClick = {
-                                val args = Bundle()
-                                args.putString("browseId", temp.browseId)
-                                Log.w("AdapterItems", "onItemClick: ${temp.browseId}")
-                                navController.navigateSafe(R.id.action_global_albumFragment, args)
+                                navController.navigate(
+                                    AlbumDestination(
+                                        browseId = temp.browseId,
+                                    ),
+                                )
                             }, data = temp)
                         }
                     } else if (temp.thumbnails.firstOrNull()?.width != temp.thumbnails.firstOrNull()?.height) {
@@ -1230,18 +1235,15 @@ fun MoodAndGenresContentItem(
                 }
             items(itemList) { item ->
                 HomeItemContentPlaylist(onClick = {
-                    navController.navigateSafe(
-                        R.id.action_global_playlistFragment,
-                        Bundle().apply {
-                            putString(
-                                "id",
+                    navController.navigate(
+                        PlaylistDestination(
+                            playlistId =
                                 if (item is com.maxrave.simpmusic.data.model.explore.mood.genre.Content) {
                                     item.playlistBrowseId
                                 } else {
                                     (item as com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content).playlistBrowseId
                                 },
-                            )
-                        },
+                        ),
                     )
                 }, data = item)
             }

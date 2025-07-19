@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.home
 
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -84,7 +83,6 @@ import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.extension.isScrollingUp
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
@@ -104,6 +102,13 @@ import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
+import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -138,7 +143,7 @@ fun HomeScreen(
         mutableStateOf(false)
     }
     val regionChart by viewModel.regionCodeChart.collectAsState()
-    val homeRefresh by sharedViewModel.homeRefresh.collectAsState()
+    val reloadDestination by sharedViewModel.reloadDestination.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
@@ -155,7 +160,7 @@ fun HomeScreen(
         mutableStateOf(false)
     }
     var showRequestShareLyricsPermissions by rememberSaveable {
-        mutableStateOf(true)
+        mutableStateOf(false)
     }
 
     val dataSyncId by viewModel.dataSyncId.collectAsState()
@@ -176,12 +181,12 @@ fun HomeScreen(
         viewModel.getHomeItemList(params)
         Log.w("HomeScreen", "onRefresh")
     }
-    LaunchedEffect(key1 = homeRefresh) {
-        if (homeRefresh) {
+    LaunchedEffect(key1 = reloadDestination) {
+        if (reloadDestination == HomeDestination::class) {
             if (scrollState.firstVisibleItemIndex > 1) {
                 Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
                 scrollState.animateScrollToItem(0)
-                sharedViewModel.homeRefreshDone()
+                sharedViewModel.reloadDestinationDone()
             } else {
                 Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
                 onRefresh.invoke()
@@ -191,7 +196,7 @@ fun HomeScreen(
     LaunchedEffect(key1 = loading) {
         if (!loading) {
             isRefreshing = false
-            sharedViewModel.homeRefreshDone()
+            sharedViewModel.reloadDestinationDone()
             coroutineScope.launch {
                 pullToRefreshState.animateToHidden()
             }
@@ -297,7 +302,7 @@ fun HomeScreen(
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.doneShowLogInAlert(doNotShowAgain)
-                    navController.navigateSafe(R.id.action_global_logInFragment)
+                    navController.navigate(LoginDestination)
                 }) {
                     Text(stringResource(R.string.go_to_log_in_page))
                 }
@@ -595,17 +600,13 @@ fun HomeTopAppBar(navController: NavController) {
         },
         actions = {
             RippleIconButton(resId = R.drawable.outline_notifications_24) {
-                navController.navigateSafe(R.id.action_global_notificationFragment)
+                navController.navigate(NotificationDestination)
             }
             RippleIconButton(resId = R.drawable.baseline_history_24) {
-                navController.navigateSafe(
-                    R.id.action_bottom_navigation_item_home_to_recentlySongsFragment,
-                )
+                navController.navigate(RecentlySongsDestination)
             }
             RippleIconButton(resId = R.drawable.baseline_settings_24) {
-                navController.navigateSafe(
-                    R.id.action_bottom_navigation_item_home_to_settingsFragment,
-                )
+                navController.navigate(SettingsDestination)
             }
         },
     )
@@ -765,11 +766,10 @@ fun MoodMomentAndGenre(
         ) {
             items(mood.moodsMoments, key = { it.title }) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigateSafe(
-                        R.id.action_global_moodFragment,
-                        Bundle().apply {
-                            putString("params", it.params)
-                        },
+                    navController.navigate(
+                        MoodDestination(
+                            it.params,
+                        ),
                     )
                 }
             }
@@ -791,11 +791,10 @@ fun MoodMomentAndGenre(
         ) {
             items(mood.genres, key = { it.title }) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigateSafe(
-                        R.id.action_global_moodFragment,
-                        Bundle().apply {
-                            putString("params", it.params)
-                        },
+                    navController.navigate(
+                        MoodDestination(
+                            it.params,
+                        ),
                     )
                 }
             }
@@ -958,9 +957,11 @@ fun ChartData(
             }) {
                 val data = chart.artists.itemArtists[it]
                 ItemArtistChart(onClick = {
-                    val args = Bundle()
-                    args.putString("channelId", data.browseId)
-                    navController.navigateSafe(R.id.action_global_artistFragment, args)
+                    navController.navigate(
+                        ArtistDestination(
+                            channelId = data.browseId,
+                        ),
+                    )
                 }, data = data, context = context, widthDp = gridWidthDp)
             }
         }

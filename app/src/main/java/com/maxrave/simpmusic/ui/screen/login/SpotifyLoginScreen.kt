@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
@@ -96,7 +95,7 @@ fun SpotifyLoginScreen(
                     R.string.login_success,
                     Toast.LENGTH_SHORT,
                 ).show()
-            navController.popBackStack()
+            navController.navigateUp()
         }
     }
 
@@ -170,7 +169,7 @@ fun SpotifyLoginScreen(
                         Modifier.size(32.dp),
                         true,
                     ) {
-                        navController.popBackStack()
+                        navController.navigateUp()
                     }
                 }
             },
@@ -206,7 +205,7 @@ fun SpotifyLoginScreen(
                         R.string.login_success,
                         Toast.LENGTH_SHORT,
                     ).show()
-                navController.popBackStack()
+                navController.navigateUp()
             },
             type = DevLogInType.Spotify,
         )

@@ -242,7 +242,7 @@ fun CreditScreen(
                         .size(32.dp),
                     true,
                 ) {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
             }
         },

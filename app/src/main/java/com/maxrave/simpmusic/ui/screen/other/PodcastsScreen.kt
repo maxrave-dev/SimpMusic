@@ -63,7 +63,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -77,7 +76,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -87,6 +85,7 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PodcastEpisodeFullWidthItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.PodcastUIEvent
@@ -219,7 +218,7 @@ fun PodcastScreen(
                                     RippleIconButton(
                                         resId = R.drawable.baseline_arrow_back_ios_new_24,
                                     ) {
-                                        navController.popBackStack()
+                                        navController.navigateUp()
                                     }
                                 }
                                 Column(
@@ -300,10 +299,9 @@ fun PodcastScreen(
                                                             contentPadding = PaddingValues(vertical = 1.dp),
                                                             onClick = {
                                                                 if (data.author.id?.isNotEmpty() == true) {
-                                                                    navController.navigateSafe(
-                                                                        R.id.action_global_artistFragment,
-                                                                        bundleOf(
-                                                                            "channelId" to data.author.id,
+                                                                    navController.navigate(
+                                                                        ArtistDestination(
+                                                                            data.author.id,
                                                                         ),
                                                                     )
                                                                 }
@@ -461,7 +459,7 @@ fun PodcastScreen(
                                     Modifier.size(32.dp),
                                     true,
                                 ) {
-                                    navController.popBackStack()
+                                    navController.navigateUp()
                                 }
                             }
                         },
@@ -502,7 +500,7 @@ fun PodcastScreen(
                         "Error: ${state.message}",
                         Snackbar.LENGTH_SHORT,
                     ).show()
-                navController.popBackStack()
+                navController.navigateUp()
             }
         }
     }

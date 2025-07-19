@@ -2,87 +2,96 @@ package com.maxrave.simpmusic.data.db
 
 import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
-import java.lang.reflect.Type
+import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @ProvidedTypeConverter
 class Converters {
-    @TypeConverter
-    fun fromString(value: String?): List<String>? {
-        val listType: Type = object : TypeToken<ArrayList<String?>?>() {}.type
-        return Gson().fromJson(value, listType)
-    }
+    // Json serialization for Room
+    val json =
+        Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+            explicitNulls = false
+        }
 
     @TypeConverter
-    fun fromArrayList(list: List<String>?): String? {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
+    fun fromString(value: String?): List<String>? =
+        try {
+            value?.let { json.decodeFromString<List<String>>(it) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+    @TypeConverter
+    fun fromArrayList(list: List<String>?): String? = list?.let { json.encodeToString(it) }
 
     // No use in database
-    fun fromListIntToString(list: List<Int>?): String? {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
+    fun fromListIntToString(list: List<Int>?): String? = list?.let { json.encodeToString(list) }
 
-    fun fromStringToListInt(value: String?): List<Int>? {
-        val listType: Type = object : TypeToken<ArrayList<Int?>?>() {}.type
-        return Gson().fromJson(value, listType)
-    }
-
-    @TypeConverter
-    fun fromStringToListTrack(value: String?): List<Track>? {
-        val listType: Type = object : TypeToken<List<Track?>?>() {}.type
-        return Gson().fromJson(value, listType)
-    }
+    fun fromStringToListInt(value: String?): List<Int>? =
+        try {
+            value?.let { json.decodeFromString<List<Int>>(it) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
 
     @TypeConverter
-    fun fromListTrackToString(list: List<Track>?): String? {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
+    fun fromStringToListTrack(value: String?): List<Track>? =
+        try {
+            value?.let {
+                json.decodeFromString<List<Track>>(value)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
 
     @TypeConverter
-    fun fromListLineToString(list: List<Line>?): String? {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
+    fun fromListTrackToString(list: List<Track>?): String? =
+        list?.let {
+            json.encodeToString(it)
+        }
 
     @TypeConverter
-    fun fromStringToListLine(value: String?): List<Line>? {
-        val listType: Type = object : TypeToken<ArrayList<Line?>?>() {}.type
-        return Gson().fromJson(value, listType)
-    }
+    fun fromListLineToString(list: List<Line>?): String? =
+        list?.let {
+            json.encodeToString(it)
+        }
 
     @TypeConverter
-    fun fromStringNull(value: String?): List<String?>? {
-        val listType: Type = object : TypeToken<ArrayList<String?>?>() {}.type
-        return Gson().fromJson(value, listType)
-    }
+    fun fromStringToListLine(value: String?): List<Line>? =
+        try {
+            value?.let {
+                json.decodeFromString<List<Line>>(value)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
 
     @TypeConverter
-    fun fromArrayListNull(list: List<String?>?): String? {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
+    fun fromStringNull(value: String?): List<String?>? =
+        try {
+            value?.let {
+                json.decodeFromString<List<String?>>(value)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
 
     @TypeConverter
-    fun fromListLineNullToString(list: List<Line?>?): String? {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
-
-    @TypeConverter
-    fun fromStringNullToListLine(value: String?): List<Line?>? {
-        val listType: Type = object : TypeToken<ArrayList<Line?>?>() {}.type
-        return Gson().fromJson(value, listType)
-    }
+    fun fromArrayListNull(list: List<String?>?): String? =
+        list?.let {
+            json.encodeToString(it)
+        }
 
     @TypeConverter
     fun fromTimestamp(value: Long?): LocalDateTime? =
@@ -96,14 +105,8 @@ class Converters {
     fun dateToTimestamp(date: LocalDateTime?): Long? = date?.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
 
     @TypeConverter
-    fun fromListMapToString(list: List<Map<String, String>>): String {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
+    fun fromListMapToString(list: List<Map<String, String>>): String = json.encodeToString(list)
 
     @TypeConverter
-    fun fromStringToListMap(value: String): List<Map<String, String>> {
-        val listType: Type = object : TypeToken<ArrayList<Map<String, String>>>() {}.type
-        return Gson().fromJson(value, listType)
-    }
+    fun fromStringToListMap(value: String): List<Map<String, String>> = json.decodeFromString(value)
 }

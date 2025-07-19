@@ -35,7 +35,6 @@ import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.LocalResource
-import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -564,21 +563,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setLyricsProvider(provider)
             getLyricsProvider()
-        }
-    }
-
-    fun checkForUpdate() {
-        viewModelScope.launch {
-            mainRepository.checkForUpdate().collect { response ->
-                dataStoreManager.putString(
-                    "CheckForUpdateAt",
-                    System.currentTimeMillis().toString(),
-                )
-                if (response?.tagName == String.format(getString(R.string.version_format), VersionManager.getVersionName())) {
-                    makeToast(getString(R.string.no_update))
-                }
-                _githubResponse.emit(response)
-            }
         }
     }
 

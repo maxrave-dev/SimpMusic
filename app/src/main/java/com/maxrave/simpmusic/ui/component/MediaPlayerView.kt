@@ -1,8 +1,8 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.util.Log
-import android.view.TextureView
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,11 +20,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -40,6 +40,9 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.compose.PlayerSurface
+import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
+import androidx.media3.ui.compose.state.rememberPresentationState
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -121,6 +124,7 @@ fun MediaPlayerView(
                 ).build()
                 .apply {
                     addListener(playerListener)
+                    videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
                 }
         }
 
@@ -150,21 +154,23 @@ fun MediaPlayerView(
         KeepScreenOn()
     }
 
-    // Use AndroidView to embed an Android View (PlayerView) into Compose
+    val presentationState = rememberPresentationState(exoPlayer)
+
     Box(modifier = modifier.graphicsLayer { clip = true }) {
-        AndroidView(
-            factory = { ctx ->
-                TextureView(ctx).also {
-                    exoPlayer.setVideoTextureView(it)
-                    exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
-                }
-            },
+        PlayerSurface(
+            player = exoPlayer,
+            surfaceType = SURFACE_TYPE_SURFACE_VIEW,
             modifier =
                 Modifier
                     .fillMaxHeight()
                     .width(with(density) { widthPx.toDp() })
                     .align(Alignment.Center),
         )
+
+        if (presentationState.coverSurface) {
+            // Cover the surface that is being prepared with a shutter
+            Box(Modifier.background(Color.Black))
+        }
     }
 }
 
@@ -233,7 +239,10 @@ fun MediaPlayerView(
     }
     LaunchedEffect(player) {
         player.addListener(playerListener)
+        player.videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
     }
+
+    val presentationState = rememberPresentationState(player)
 
     Box(
         modifier = modifier,
@@ -263,19 +272,20 @@ fun MediaPlayerView(
                             .align(Alignment.Center),
                 )
             } else {
-                AndroidView(
-                    factory = { ctx ->
-                        TextureView(ctx).also {
-                            player.setVideoTextureView(it)
-                            player.videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
-                        }
-                    },
+                PlayerSurface(
+                    player = player,
+                    surfaceType = SURFACE_TYPE_SURFACE_VIEW,
                     modifier =
                         Modifier
                             .wrapContentSize()
                             .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
                             .align(Alignment.Center),
                 )
+
+                if (presentationState.coverSurface) {
+                    // Cover the surface that is being prepared with a shutter
+                    Box(Modifier.background(Color.Black))
+                }
             }
         }
     }

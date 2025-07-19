@@ -7,10 +7,7 @@ import android.graphics.Color
 import android.graphics.Point
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Bundle
 import android.text.Html
-import android.text.Spanned
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -20,7 +17,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.NavController
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
@@ -60,9 +56,6 @@ import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse
-import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
-import org.intellij.markdown.html.HtmlGenerator
-import org.intellij.markdown.parser.MarkdownParser
 import org.simpmusic.lyrics.models.response.LyricsResponse
 import org.simpmusic.lyrics.models.response.TranslatedLyricsResponse
 import java.io.File
@@ -836,19 +829,6 @@ fun Transcript.toLyrics(): Lyrics {
     )
 }
 
-fun NavController.navigateSafe(
-    resId: Int,
-    bundle: Bundle? = null,
-) {
-    if (currentDestination?.id != resId) {
-        if (bundle != null) {
-            navigate(resId, bundle)
-        } else {
-            navigate(resId)
-        }
-    }
-}
-
 fun PodcastBrowse.EpisodeItem.toTrack(): Track =
     Track(
         album = null,
@@ -1072,15 +1052,6 @@ fun isNetworkAvailable(context: Context?): Boolean {
         // else return false
         else -> false
     }
-}
-
-fun markdownToHtml(markdown: String): Spanned {
-    val src = markdown.trimIndent()
-    val flavour = CommonMarkFlavourDescriptor()
-    val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(src)
-    val html = HtmlGenerator(src, parsedTree, flavour).generateHtml()
-    Log.w("markdownToHtml", html)
-    return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
 }
 
 fun Lyrics.toSyncedLrcString(): String? {

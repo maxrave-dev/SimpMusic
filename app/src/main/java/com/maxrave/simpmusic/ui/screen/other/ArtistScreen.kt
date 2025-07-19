@@ -20,8 +20,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sensors
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.material3.ButtonDefaults
@@ -53,8 +51,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
@@ -62,7 +58,6 @@ import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
@@ -79,6 +74,10 @@ import com.maxrave.simpmusic.ui.component.LimitedBorderAnimationView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.MoreAlbumsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ArtistScreenState
@@ -138,7 +137,7 @@ fun ArtistScreen(
                     title = state.data.title ?: "",
                     imageUrl = state.data.imageUrl,
                     onBack = {
-                        navController.popBackStack()
+                        navController.navigateUp()
                     },
                 ) { color ->
                     Column {
@@ -312,7 +311,7 @@ fun ArtistScreen(
                                         onClick = {
                                             val id = state.data.listSongParam
                                             if (id != null) {
-                                                navController.navigateSafe(R.id.action_global_playlistFragment, bundleOf("id" to id))
+                                                navController.navigate(PlaylistDestination(id))
                                             } else {
                                                 Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_LONG).show()
                                             }
@@ -378,11 +377,10 @@ fun ArtistScreen(
                                         onClick = {
                                             if (state.data.channelId != null) {
                                                 val id = "MPAD${state.data.channelId}"
-                                                navController.navigateSafe(
-                                                    R.id.action_global_moreAlbumsFragment,
-                                                    bundleOf(
-                                                        "id" to id,
-                                                        "type" to "single",
+                                                navController.navigate(
+                                                    MoreAlbumsDestination(
+                                                        id = id,
+                                                        type = MoreAlbumsDestination.SINGLE_TYPE,
                                                     ),
                                                 )
                                             } else {
@@ -408,7 +406,11 @@ fun ArtistScreen(
                                     items(state.data.singles?.results ?: emptyList()) { single ->
                                         HomeItemContentPlaylist(
                                             onClick = {
-                                                navController.navigateSafe(R.id.action_global_albumFragment, bundleOf("browseId" to single.browseId))
+                                                navController.navigate(
+                                                    AlbumDestination(
+                                                        single.browseId,
+                                                    ),
+                                                )
                                             },
                                             data = single,
                                             thumbSize = 180.dp,
@@ -441,11 +443,10 @@ fun ArtistScreen(
                                         onClick = {
                                             if (state.data.channelId != null) {
                                                 val id = "MPAD${state.data.channelId}"
-                                                navController.navigateSafe(
-                                                    R.id.action_global_moreAlbumsFragment,
-                                                    bundleOf(
-                                                        "id" to id,
-                                                        "type" to "album",
+                                                navController.navigate(
+                                                    MoreAlbumsDestination(
+                                                        id = id,
+                                                        type = MoreAlbumsDestination.ALBUM_TYPE,
                                                     ),
                                                 )
                                             } else {
@@ -471,7 +472,11 @@ fun ArtistScreen(
                                     items(state.data.albums?.results ?: emptyList()) { album ->
                                         HomeItemContentPlaylist(
                                             onClick = {
-                                                navController.navigateSafe(R.id.action_global_albumFragment, bundleOf("browseId" to album.browseId))
+                                                navController.navigate(
+                                                    AlbumDestination(
+                                                        browseId = album.browseId,
+                                                    ),
+                                                )
                                             },
                                             data = album,
                                             thumbSize = 180.dp,
@@ -503,10 +508,9 @@ fun ArtistScreen(
                                     TextButton(
                                         onClick = {
                                             if (state.data.video?.videoListParam != null) {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_playlistFragment,
-                                                    bundleOf(
-                                                        "id" to state.data.video.videoListParam,
+                                                navController.navigate(
+                                                    PlaylistDestination(
+                                                        state.data.video.videoListParam,
                                                     ),
                                                 )
                                             } else {
@@ -599,7 +603,11 @@ fun ArtistScreen(
                                     items(state.data.featuredOn) { feature ->
                                         HomeItemContentPlaylist(
                                             onClick = {
-                                                navController.navigateSafe(R.id.action_global_playlistFragment, bundleOf("id" to feature.id))
+                                                navController.navigate(
+                                                    PlaylistDestination(
+                                                        feature.id,
+                                                    ),
+                                                )
                                             },
                                             data = feature,
                                             thumbSize = 180.dp,
@@ -641,9 +649,10 @@ fun ArtistScreen(
                                     items(state.data.related?.results ?: emptyList()) { related ->
                                         HomeItemArtist(
                                             onClick = {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_artistFragment,
-                                                    bundleOf("channelId" to related.browseId),
+                                                navController.navigate(
+                                                    ArtistDestination(
+                                                        channelId = related.browseId,
+                                                    ),
                                                 )
                                             },
                                             data =
@@ -724,7 +733,7 @@ fun ArtistScreen(
             }
             is ArtistScreenState.Error -> {
                 Toast.makeText(LocalContext.current, state.message ?: stringResource(R.string.error), Toast.LENGTH_LONG).show()
-                navController.popBackStack()
+                navController.navigateUp()
             }
         }
     }

@@ -95,12 +95,15 @@ import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.extension.bytesToMB
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
+import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.MusixmatchLoginDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
@@ -115,12 +118,10 @@ import com.mikepenz.aboutlibraries.LibsBuilder
 import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.Scanner
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
@@ -184,7 +185,6 @@ fun SettingScreen(
     val canvasCache by viewModel.canvasCacheSize.collectAsStateWithLifecycle()
     val limitPlayerCache by viewModel.playerCacheLimit.collectAsStateWithLifecycle()
     val fraction by viewModel.fraction.collectAsStateWithLifecycle()
-    val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
     val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
     val usingProxy by viewModel.usingProxy.collectAsStateWithLifecycle()
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
@@ -223,40 +223,6 @@ fun SettingScreen(
                         .format(Instant.ofEpochMilli(lastCheckLong)),
                 )
         }
-    }
-
-    LaunchedEffect(githubResponse) {
-        val res = githubResponse
-        if (res != null && res.tagName != context.getString(R.string.version_format, VersionManager.getVersionName())) {
-            val inputFormat =
-                SimpleDateFormat(
-                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
-                    Locale.getDefault(),
-                )
-            val outputFormat =
-                SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-            val formatted =
-                res.publishedAt?.let { input ->
-                    inputFormat
-                        .parse(input)
-                        ?.let { outputFormat.format(it) }
-                }
-            viewModel.setBasicAlertData(
-                SettingBasicAlertState(
-                    title = context.getString(R.string.update_available),
-                    message = context.getString(R.string.update_message, res.tagName, formatted, res.body),
-                    confirm =
-                        context.getString(R.string.download) to {
-                            uriHandler.openUri(
-                                res.assets?.firstOrNull()?.browserDownloadUrl
-                                    ?: "https://github.com/maxrave-dev/SimpMusic/releases",
-                            )
-                        },
-                    dismiss = context.getString(R.string.cancel),
-                ),
-            )
-        }
-        viewModel.getLastCheckForUpdate()
     }
 
     LaunchedEffect(true) {
@@ -733,7 +699,9 @@ fun SettingScreen(
                         if (musixmatchLoggedIn) {
                             viewModel.clearMusixmatchCookie()
                         } else {
-                            navController.navigateSafe(R.id.action_global_musixmatchFragment)
+                            navController.navigate(
+                                MusixmatchLoginDestination,
+                            )
                         }
                     },
                 )
@@ -991,7 +959,7 @@ fun SettingScreen(
                         if (spotifyLoggedIn) {
                             viewModel.setSpotifyLogIn(false)
                         } else {
-                            navController.navigateSafe(R.id.action_global_spotifyLogInFragment)
+                            navController.navigate(SpotifyLoginDestination)
                         }
                     },
                 )
@@ -1425,7 +1393,7 @@ fun SettingScreen(
                     title = stringResource(R.string.version),
                     subtitle = stringResource(R.string.version_format, VersionManager.getVersionName()),
                     onClick = {
-                        navController.navigateSafe(R.id.action_global_creditFragment)
+                        navController.navigate(CreditDestination)
                     },
                 )
                 SettingItem(
@@ -1438,7 +1406,7 @@ fun SettingScreen(
                     subtitle = checkForUpdateSubtitle,
                     onClick = {
                         checkForUpdateSubtitle = context.getString(R.string.checking)
-                        viewModel.checkForUpdate()
+                        sharedViewModel.checkForUpdate()
                     },
                 )
                 SettingItem(
@@ -1680,7 +1648,7 @@ fun SettingScreen(
                                 text = R.string.add_an_account,
                             ) {
                                 showYouTubeAccountDialog = false
-                                navController.navigateSafe(R.id.action_global_logInFragment)
+                                navController.navigate(LoginDestination)
                             }
                         }
                     }
@@ -1881,7 +1849,7 @@ fun SettingScreen(
                         .size(32.dp),
                     true,
                 ) {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
             }
         },
