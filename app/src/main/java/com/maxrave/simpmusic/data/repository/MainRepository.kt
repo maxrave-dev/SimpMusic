@@ -3335,14 +3335,24 @@ class MainRepository(
                 .getLyrics(videoId)
                 .onSuccess { lyrics ->
                     Log.d(simpMusicLyricsTag, "Lyrics found: $lyrics")
+                    val result = lyrics.firstOrNull()
+                    if (result == null) {
+                        Log.w(simpMusicLyricsTag, "No lyrics found for videoId: $videoId")
+                        emit(Resource.Error<Lyrics>("No lyrics found"))
+                        return@onSuccess
+                    }
+                    val appLyrics =
+                        result.toLyrics()?.copy(
+                            simpMusicLyricsId = result.id,
+                        )
+                    if (appLyrics == null) {
+                        Log.w(simpMusicLyricsTag, "Failed to convert lyrics for videoId: $videoId")
+                        emit(Resource.Error<Lyrics>("Failed to convert lyrics"))
+                        return@onSuccess
+                    }
                     emit(
                         Resource.Success<Lyrics>(
-                            lyrics
-                                .first()
-                                .toLyrics()
-                                .copy(
-                                    simpMusicLyricsId = lyrics.first().id,
-                                ),
+                            appLyrics,
                         ),
                     )
                 }.onFailure {

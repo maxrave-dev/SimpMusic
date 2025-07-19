@@ -6,7 +6,7 @@ import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import org.simpmusic.lyrics.models.request.LyricsBody
 import org.simpmusic.lyrics.models.request.TranslatedLyricsBody
-import org.simpmusic.lyrics.models.response.ErrorResponse
+import org.simpmusic.lyrics.models.response.BaseResponse
 import org.simpmusic.lyrics.models.response.LyricsResponse
 import org.simpmusic.lyrics.models.response.TranslatedLyricsResponse
 
@@ -97,16 +97,15 @@ class SimpMusicLyricsClient(
 
     private suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
         try {
-            val data = body<T>()
-            return data
-        } catch (e: Exception) {
-            try {
-                val error = body<ErrorResponse>()
+            val data = body<BaseResponse<T>>()
+            if (data.error != null) {
+                val error = data.error
                 Log.e(TAG, "Error response: ${error.reason} (code: ${error.code})")
                 throw Exception("Error response: ${error.reason} (code: ${error.code})")
-            } catch (e2: Exception) {
-                throw e
             }
+            return data.data ?: throw Exception("Response data is null")
+        } catch (e: Exception) {
+            throw e
         }
     }
 }

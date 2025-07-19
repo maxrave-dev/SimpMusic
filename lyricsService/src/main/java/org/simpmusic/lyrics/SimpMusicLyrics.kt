@@ -39,7 +39,7 @@ class SimpMusicLyrics(
 
     private fun cachePath() = context.cacheDir.resolve("lyrics_cache")
 
-    private val baseUrl = "https://api-lyrics.simpmusic.org/api/lyrics/"
+    private val baseUrl = "https://api-lyrics.simpmusic.org/v1/"
 
     private fun createClient() =
         HttpClient(OkHttp) {
@@ -76,7 +76,7 @@ class SimpMusicLyrics(
                 deflate(0.8F)
             }
             defaultRequest {
-                url("https://api-lyrics.simpmusic.org/api/lyrics")
+                url("https://api-lyrics.simpmusic.org/v1")
             }
             if (proxy != null) {
                 engine {

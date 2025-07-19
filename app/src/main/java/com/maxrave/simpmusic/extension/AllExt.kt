@@ -1079,6 +1079,16 @@ fun Lyrics.toPlainLrcString(): String? {
 }
 
 // SimpMusic Lyrics Extension
-fun LyricsResponse.toLyrics(): Lyrics = (syncedLyrics?.let { parseMusixmatchLyrics(it) } ?: parseUnsyncedLyrics(plainLyric)).toLyrics()
+fun LyricsResponse.toLyrics(): Lyrics? =
+    (
+        syncedLyrics?.let { if (it.isNotEmpty() && it.isNotBlank()) parseMusixmatchLyrics(it) else null }
+            ?: (
+                if (plainLyric.isNotEmpty() && plainLyric.isNotBlank()) {
+                    parseUnsyncedLyrics(plainLyric)
+                } else {
+                    null
+                }
+            )
+    )?.toLyrics()
 
 fun TranslatedLyricsResponse.toLyrics(): Lyrics = parseMusixmatchLyrics(this.translatedLyric).toLyrics()

@@ -70,9 +70,9 @@ class HmacService {
     }
 
     companion object {
-        const val BASE_HMAC_URI = "/api/lyrics"
-        const val TRANSLATED_HMAC_URI = "/api/lyrics/translated"
-        const val VOTE_HMAC_URI = "/api/lyrics/vote"
-        const val VOTE_TRANSLATED_HMAC_URI = "/api/lyrics/translated/vote"
+        const val BASE_HMAC_URI = "/v1"
+        const val TRANSLATED_HMAC_URI = "/v1/translated"
+        const val VOTE_HMAC_URI = "/v1/vote"
+        const val VOTE_TRANSLATED_HMAC_URI = "/v1/translated/vote"
     }
 }
