@@ -168,6 +168,7 @@ class Ytmusic {
         client: YouTubeClient,
         setLogin: Boolean = false,
         isUsingReferer: Boolean = true,
+        customCookie: String? = null,
     ) {
         contentType(ContentType.Application.Json)
         headers {
@@ -179,12 +180,14 @@ class Ytmusic {
                 append("Referer", client.referer)
             }
             if (setLogin) {
+                val cookie = customCookie ?: this@Ytmusic.cookie
                 cookie?.let { cookie ->
                     append("Cookie", cookie)
                     if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
                     val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
                     val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
+                    println("SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
                     append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
                 }
             }
@@ -646,11 +649,13 @@ class Ytmusic {
 
     suspend fun getSwJsData() = httpClient.get("https://music.youtube.com/sw.js_data")
 
-    suspend fun accountMenu(client: YouTubeClient) =
-        httpClient.post("account/account_menu") {
-            ytClient(client, setLogin = true)
-            setBody(AccountMenuBody(client.toContext(locale, visitorData)))
-        }
+    suspend fun accountMenu(
+        customCookie: String? = null,
+        client: YouTubeClient,
+    ) = httpClient.post("account/account_menu") {
+        ytClient(client, setLogin = true, customCookie = customCookie)
+        setBody(AccountMenuBody(client.toContext(locale, visitorData)))
+    }
 
     suspend fun scrapeYouTube(videoId: String) =
         httpClient.get("https://www.youtube.com/watch?v=$videoId") {

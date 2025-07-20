@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -997,53 +998,65 @@ class SettingsViewModel(
     }
 
     suspend fun addAccount(cookie: String): Boolean {
+        val currentCookie = dataStoreManager.cookie.first()
+        val currentLoggedIn = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE
         try {
             runBlocking {
                 dataStoreManager.setCookie(cookie)
                 dataStoreManager.setLoggedIn(true)
             }
-            mainRepository
+            return mainRepository
                 .getAccountInfo(
                     cookie,
-                ).collect { accountInfo ->
+                ).lastOrNull()
+                ?.let { accountInfo ->
                     Log.d("getAllGoogleAccount", "addAccount: $accountInfo")
-                    if (accountInfo != null) {
-                        mainRepository.getGoogleAccounts().singleOrNull()?.forEach {
-                            Log.d("getAllGoogleAccount", "set used: $it start")
-                            mainRepository
-                                .updateGoogleAccountUsed(it.email, false)
-                                .singleOrNull()
-                                ?.let {
-                                    Log.w("getAllGoogleAccount", "set used: $it")
-                                }
-                        }
-                        dataStoreManager.putString("AccountName", accountInfo.name)
-                        dataStoreManager.putString(
-                            "AccountThumbUrl",
-                            accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                        )
+                    mainRepository.getGoogleAccounts().lastOrNull()?.forEach {
+                        Log.d("getAllGoogleAccount", "set used: $it start")
                         mainRepository
-                            .insertGoogleAccount(
-                                GoogleAccountEntity(
-                                    email = accountInfo.email,
-                                    name = accountInfo.name,
-                                    thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                                    cache = cookie,
-                                    isUsed = true,
-                                ),
-                            ).firstOrNull()
+                            .updateGoogleAccountUsed(it.email, false)
+                            .singleOrNull()
                             ?.let {
-                                log("addAccount: $it", Log.WARN)
+                                Log.w("getAllGoogleAccount", "set used: $it")
                             }
-                        dataStoreManager.setLoggedIn(true)
-                        dataStoreManager.setCookie(cookie)
-                        getAllGoogleAccount()
-                        getLoggedIn()
                     }
+                    dataStoreManager.putString("AccountName", accountInfo.name)
+                    dataStoreManager.putString(
+                        "AccountThumbUrl",
+                        accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                    )
+                    mainRepository
+                        .insertGoogleAccount(
+                            GoogleAccountEntity(
+                                email = accountInfo.email,
+                                name = accountInfo.name,
+                                thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                                cache = cookie,
+                                isUsed = true,
+                            ),
+                        ).firstOrNull()
+                        ?.let {
+                            log("addAccount: $it", Log.WARN)
+                        }
+                    dataStoreManager.setLoggedIn(true)
+                    dataStoreManager.setCookie(cookie)
+                    getAllGoogleAccount()
+                    getLoggedIn()
+                    true
+                } ?: run {
+                Log.w("getAllGoogleAccount", "addAccount: Account info is null")
+                runBlocking {
+                    dataStoreManager.setCookie(currentCookie)
+                    dataStoreManager.setLoggedIn(currentLoggedIn)
                 }
-            return true
+                false
+            }
         } catch (e: Exception) {
             Log.e("getAllGoogleAccount", "addAccount: ${e.message}", e)
+            runBlocking {
+                dataStoreManager.setCookie(currentCookie)
+                dataStoreManager.setLoggedIn(currentLoggedIn)
+            }
             return false
         }
     }

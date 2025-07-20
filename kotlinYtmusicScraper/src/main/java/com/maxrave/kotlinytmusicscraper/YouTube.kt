@@ -1840,14 +1840,12 @@ class YouTube(
             null
         }
 
-    suspend fun accountInfo(): Result<AccountInfo?> =
+    suspend fun accountInfo(customCookie: String? = null): Result<AccountInfo?> =
         runCatching {
             ytMusic
-                .accountMenu(WEB_REMIX)
+                .accountMenu(customCookie, WEB_REMIX)
                 .apply {
-                    this.bodyAsText().let {
-                        println(it)
-                    }
+                    println(this.bodyAsText())
                 }.body<AccountMenuResponse>()
                 .actions[0]
                 .openPopupAction.popup.multiPageMenuRenderer.header

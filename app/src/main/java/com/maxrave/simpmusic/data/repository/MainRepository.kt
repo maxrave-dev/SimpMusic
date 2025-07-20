@@ -113,6 +113,7 @@ import com.maxrave.spotify.Spotify
 import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -857,8 +858,9 @@ class MainRepository(
     fun getAccountInfo(cookie: String) =
         flow<AccountInfo?> {
             youTube.cookie = cookie
+            delay(1000)
             youTube
-                .accountInfo()
+                .accountInfo(cookie)
                 .onSuccess { accountInfo ->
                     emit(accountInfo)
                 }.onFailure {
