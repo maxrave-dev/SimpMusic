@@ -7,7 +7,6 @@ import android.graphics.Point
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.os.Build
 import android.util.Log
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
@@ -54,6 +53,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.res.ResourcesCompat
@@ -405,12 +405,11 @@ fun LazyListState.animateScrollAndCentralizeItem(
 
 @Composable
 fun KeepScreenOn() {
-    val context = LocalContext.current
+    val currentView = LocalView.current
     DisposableEffect(Unit) {
-        val window = context.findActivity().window
-        window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        currentView.keepScreenOn = true
         onDispose {
-            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            currentView.keepScreenOn = false
         }
     }
 }

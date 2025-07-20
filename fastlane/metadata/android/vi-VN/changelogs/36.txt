@@ -1,0 +1,7 @@
+- Cập nhật logic Spotify
+- Cập nhật nguồn cung cấp lời bài hát mới - SimpMusic Lyrics
+- Cải thiện quy trình đăng nhập
+- Chuyển đổi bài hát mới (BETA)
+- Cuộn xuống để đóng Now Playing
+- Giao diện hoàn toàn bằng Compose
+- Cập nhật bản dịch

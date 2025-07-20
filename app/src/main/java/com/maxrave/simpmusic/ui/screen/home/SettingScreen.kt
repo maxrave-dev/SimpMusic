@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -51,17 +55,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -105,6 +114,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.MusixmatchLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.DarkColors
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_outline
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.LocalResource
@@ -113,16 +123,19 @@ import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.mikepenz.aboutlibraries.Libs
-import com.mikepenz.aboutlibraries.LibsBuilder
+import com.mikepenz.aboutlibraries.ui.compose.ChipColors
+import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
+import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Scanner
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
 @UnstableApi
@@ -204,6 +217,9 @@ fun SettingScreen(
         mutableStateOf("")
     }
     var showYouTubeAccountDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showThirdPartyLibraries by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -1427,25 +1443,7 @@ fun SettingScreen(
                     title = stringResource(R.string.third_party_libraries),
                     subtitle = stringResource(R.string.description_and_licenses),
                     onClick = {
-                        val inputStream = context.resources.openRawResource(R.raw.aboutlibraries)
-                        val scanner = Scanner(inputStream).useDelimiter("\\A")
-                        val stringBuilder = StringBuilder()
-                        while (scanner.hasNextLine()) {
-                            stringBuilder.append(scanner.nextLine())
-                        }
-                        Log.w("AboutLibraries", stringBuilder.toString())
-                        val localLib = Libs.Builder().withJson(stringBuilder.toString()).build()
-                        val intent =
-                            LibsBuilder()
-                                .withLicenseShown(true)
-                                .withVersionShown(true)
-                                .withActivityTitle(context.getString(R.string.third_party_libraries))
-                                .withSearchEnabled(true)
-                                .withEdgeToEdge(true)
-                                .withLibs(
-                                    localLib,
-                                ).intent(context)
-                        context.startActivity(intent)
+                        showThirdPartyLibraries = true
                     },
                 )
             }
@@ -1829,6 +1827,87 @@ fun SettingScreen(
                 }
             },
         )
+    }
+
+    if (showThirdPartyLibraries) {
+        val libraries by rememberLibraries(R.raw.aboutlibraries)
+        val lazyListState = rememberLazyListState()
+        val canScrollBackward by remember {
+            derivedStateOf {
+                lazyListState.canScrollBackward
+            }
+        }
+        val sheetState =
+            rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+                confirmValueChange = {
+                    !canScrollBackward
+                },
+            )
+        val coroutineScope = rememberCoroutineScope()
+        ModalBottomSheet(
+            modifier =
+                Modifier
+                    .fillMaxHeight(),
+            onDismissRequest = {
+                showThirdPartyLibraries = false
+            },
+            containerColor = Color.Black,
+            dragHandle = {},
+            scrimColor = Color.Black,
+            sheetState = sheetState,
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+            shape = RectangleShape,
+        ) {
+            LibrariesContainer(
+                libraries,
+                Modifier.fillMaxSize(),
+                lazyListState = lazyListState,
+                showDescription = true,
+                contentPadding = innerPadding,
+                colors =
+                    LibraryDefaults.libraryColors(
+                        licenseChipColors =
+                            object : ChipColors {
+                                override val containerColor: Color
+                                    get() = md_theme_dark_outline
+                                override val contentColor: Color
+                                    get() = Color.White
+                            },
+                    ),
+                header = {
+                    item {
+                        TopAppBar(
+                            windowInsets = WindowInsets(0, 0, 0, 0),
+                            title = {
+                                Text(
+                                    text =
+                                        stringResource(
+                                            R.string.third_party_libraries,
+                                        ),
+                                    style = typo.titleMedium,
+                                )
+                            },
+                            navigationIcon = {
+                                Box(Modifier.padding(horizontal = 5.dp)) {
+                                    RippleIconButton(
+                                        R.drawable.baseline_arrow_back_ios_new_24,
+                                        Modifier
+                                            .size(32.dp),
+                                        true,
+                                    ) {
+                                        coroutineScope.launch {
+                                            sheetState.hide()
+                                            showThirdPartyLibraries = false
+                                        }
+                                    }
+                                }
+                            },
+                        )
+                    }
+                },
+            )
+        }
     }
 
     TopAppBar(

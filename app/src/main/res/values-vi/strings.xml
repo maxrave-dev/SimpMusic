@@ -198,6 +198,9 @@
     <string name="skip_sponsor_part_of_video">Bỏ qua phân đoạn được tài trợ của video</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Đã xảy ra lỗi không mong muốn. Xin lỗi vì sự bất tiện.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Khởi động lại ứng dụng</string>
+    <string name="help_build_lyrics_database">Giúp đỡ SimpMusic lyrics xây dựng cơ sở dữ liệu lời bài hát</string>
+    <string name="help_build_lyrics_database_description">Gửi lời bài hát đã lưu của bạn tới cơ sở dữ liệu của SimpMusic lyrics</string>
+    <string name="lyrics_database_description">Chúng tôi xây dựng một cơ sở dữ liệu lời bàn hát riêng dành cho SimpMusic và các máy khách YouTube khác với mục đích phi thương mại, mã nguồn mở tại</string>
     <string name="customactivityoncrash_error_activity_close_app">Đóng ứng dụng</string>
     <string name="customactivityoncrash_error_activity_error_details">Chi tiết lỗi</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Chi tiết lỗi</string>
@@ -443,4 +446,10 @@
     <string name="set_crossfade_duration">Thiết lập thời gian chuyển bài, tính bằng giây (%1$ds)</string>
     <string name="youtube_subtitle_language">Ngôn ngữ dịch cho phụ đề YouTube</string>
     <string name="youtube_subtitle_language_message">Nhập mã ngôn ngữ (Eg: vi) (2 ký tự). Đây là ngôn ngữ ưu tiên để dịch cho phụ đề YouTube.</string>
+    <string name="use_anonymous">Sử dụng tên ẩn danh để đóng góp</string>
+    <string name="contributor_name">Tên người đóng góp</string>
+    <string name="contributor_email">Email người đóng góp</string>
+    <string name="anonymous">Ẩn danh</string>
+    <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
+    <string name="lyrics_provider_simpmusic">Lời bài hát được cung cấp bởi SimpMusic Lyrics</string>
 </resources>

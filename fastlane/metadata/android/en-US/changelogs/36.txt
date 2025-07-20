@@ -1,0 +1,7 @@
+- Update Spotify logic
+- Update new lyrics provider - SimpMusic Lyrics
+- Improve login flow
+- New crossfade (BETA)
+- Scroll down to close Now Playing
+- Fully Compose UI
+- Update translations

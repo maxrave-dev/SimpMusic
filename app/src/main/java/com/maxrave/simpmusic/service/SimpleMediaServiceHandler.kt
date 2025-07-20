@@ -1297,6 +1297,7 @@ class SimpleMediaServiceHandler(
     }
 
     fun getRelated(videoId: String) {
+        if (_stateFlow.value == StateSource.STATE_INITIALIZING) return
         coroutineScope.launch {
             mainRepository.getRelatedData(videoId).collect { response ->
                 when (response) {
