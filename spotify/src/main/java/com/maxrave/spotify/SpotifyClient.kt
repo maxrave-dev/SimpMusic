@@ -141,7 +141,7 @@ class SpotifyClient {
         parameter("productType", "web-player")
         parameter("totp", otpValue)
         parameter("totpServer", otpValue)
-        parameter("totpVer", 10)
+        parameter("totpVer", 17)
         parameter("ts", sTime)
         header("Cookie", "sp_dc=$spdc")
         header("App-platform", "WebPlayer")

@@ -68,7 +68,7 @@ gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
 sentry-android = "8.17.0"
 sentry-gradle = "5.8.0"
-newpipe = "0.24.6"
+newpipe = "7adbc48a0aa872c016b8ec089e278d5e12772054"
 leakcanary = "2.14"
 
 [libraries]

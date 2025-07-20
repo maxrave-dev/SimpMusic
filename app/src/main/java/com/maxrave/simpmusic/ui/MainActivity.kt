@@ -188,8 +188,8 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge(
             navigationBarStyle =
-                SystemBarStyle.auto(
-                    lightScrim = Color.Transparent.toArgb(),
+                SystemBarStyle.light(
+                    scrim = Color.Transparent.toArgb(),
                     darkScrim = Color.Transparent.toArgb(),
                 ),
             statusBarStyle =

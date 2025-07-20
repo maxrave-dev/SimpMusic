@@ -719,6 +719,7 @@ class SimpleMediaServiceHandler(
         player.seekTo(index, 0)
         player.prepare()
         player.playWhenReady = true
+        mayBePrepareCrossfadeTrack(player.currentMediaItem)
     }
 
     fun currentSongIndex(): Int = player.currentMediaItemIndex
