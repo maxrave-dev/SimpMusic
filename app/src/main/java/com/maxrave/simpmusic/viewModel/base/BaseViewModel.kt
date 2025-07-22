@@ -126,6 +126,7 @@ abstract class BaseViewModel(
      * Communicate with SimpleMediaServiceHandler to load media item
      */
     fun setQueueData(queueData: QueueData) {
+        simpleMediaServiceHandler.reset()
         simpleMediaServiceHandler.setQueueData(queueData)
     }
 

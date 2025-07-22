@@ -198,8 +198,8 @@ val mediaServiceModule =
         // MediaServiceHandler
         single<SimpleMediaServiceHandler>(createdAtStart = true) {
             SimpleMediaServiceHandler(
-                player = get(named(MAIN_PLAYER)),
-                secondaryPlayer = get(named(SECONDARY_PLAYER)),
+                player = get<ExoPlayer>(named(MAIN_PLAYER)),
+                secondaryPlayer = get<ExoPlayer>(named(SECONDARY_PLAYER)),
                 dataStoreManager = get(),
                 mainRepository = get(),
                 mediaSessionCallback = get(),
