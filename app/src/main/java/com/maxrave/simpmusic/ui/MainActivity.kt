@@ -5,62 +5,74 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
-import android.graphics.Rect
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.text.util.Linkify
 import android.util.Log
-import android.view.View
-import android.view.ViewGroup.MarginLayoutParams
-import android.view.animation.AnimationUtils
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toDrawable
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.navigation.compose.rememberNavController
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.di.viewModelModule
-import com.maxrave.simpmusic.extension.isMyServiceRunning
-import com.maxrave.simpmusic.extension.markdownToHtml
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.SimpleMediaService
+import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
+import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
+import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownTypography
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
@@ -70,11 +82,8 @@ import java.util.Locale
 
 @UnstableApi
 @Suppress("DEPRECATION")
-class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+class MainActivity : ComponentActivity() {
     val viewModel: SharedViewModel by inject()
-    private var action: String? = null
-    private var data: Uri? = null
 
     private val serviceConnection =
         object : ServiceConnection {
@@ -94,20 +103,18 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        action = intent.action
-        data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-        Log.d("MainActivity", "onNewIntent: $data")
-        viewModel.intent.value = intent
+        Log.d("MainActivity", "onNewIntent: $intent")
+        viewModel.setIntent(intent)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-    }
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<out String>,
+//        grantResults: IntArray,
+//    ) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+//    }
 
     override fun onResume() {
         super.onResume()
@@ -115,6 +122,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     @UnstableApi
+    @ExperimentalMaterial3Api
+    @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Recreate view model to fix the issue of view model not getting data from the service
@@ -122,16 +131,15 @@ class MainActivity : AppCompatActivity() {
         loadKoinModules(viewModelModule)
         VersionManager.initialize(applicationContext)
         checkForUpdate()
-        if (viewModel.recreateActivity.value == true || viewModel.isServiceRunning.value == true) {
+        if (viewModel.recreateActivity.value || viewModel.isServiceRunning) {
             viewModel.activityRecreateDone()
         } else {
             startMusicService()
         }
         Log.d("MainActivity", "onCreate: ")
-        action = intent.action
-        data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+        val data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
         if (data != null) {
-            viewModel.intent.value = intent
+            viewModel.setIntent(intent)
         }
         Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
@@ -177,21 +185,19 @@ class MainActivity : AppCompatActivity() {
             )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
         }
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            WindowCompat.setDecorFitsSystemWindows(window, false)
+
         enableEdgeToEdge(
             navigationBarStyle =
-                SystemBarStyle.auto(
-                    lightScrim = Color.Transparent.toArgb(),
-                    darkScrim = Color.Transparent.toArgb(),
+                SystemBarStyle.dark(
+                    scrim = Color.Transparent.toArgb(),
+                ),
+            statusBarStyle =
+                SystemBarStyle.dark(
+                    scrim = Color.Transparent.toArgb(),
                 ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
-//        } else {
-//            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-//        }
 
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -204,445 +210,339 @@ class MainActivity : AppCompatActivity() {
             }
         }
         viewModel.getLocation()
-        viewModel.checkAllDownloadingSongs()
-        runBlocking { delay(500) }
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
-        val navController = navHostFragment?.findNavController()
-        binding.miniplayer.setContent {
+        setContent {
+            val navController = rememberNavController()
+
+            val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
+            val nowPlayingData by viewModel.nowPlayingState.collectAsState()
+            val githubResponse by viewModel.githubResponse.collectAsState()
+            val intent by viewModel.intent.collectAsState()
+
+            val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+            // MiniPlayer visibility logic
+            var isShowMiniPlayer by rememberSaveable {
+                mutableStateOf(true)
+            }
+
+            // Now playing screen
+            var isShowNowPlaylistScreen by rememberSaveable {
+                mutableStateOf(false)
+            }
+
+            var isNavBarVisible by rememberSaveable {
+                mutableStateOf(true)
+            }
+
+            var shouldShowUpdateDialog by rememberSaveable {
+                mutableStateOf(false)
+            }
+
+            LaunchedEffect(nowPlayingData) {
+                if (nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == MediaItem.EMPTY) {
+                    isShowMiniPlayer = false
+                } else {
+                    isShowMiniPlayer = true
+                }
+            }
+
+            LaunchedEffect(intent) {
+                val intent = intent ?: return@LaunchedEffect
+                val data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+                Log.d("MainActivity", "onCreate: $data")
+                if (data != null) {
+                    if (data == "simpmusic://notification".toUri()) {
+                        viewModel.setIntent(null)
+                        navController.navigate(
+                            NotificationDestination,
+                        )
+                    } else {
+                        Log.d("MainActivity", "onCreate: $data")
+                        when (val path = data.pathSegments.firstOrNull()) {
+                            "playlist" ->
+                                data
+                                    .getQueryParameter("list")
+                                    ?.let { playlistId ->
+                                        viewModel.setIntent(null)
+                                        if (playlistId.startsWith("OLAK5uy_")) {
+                                            navController.navigate(
+                                                AlbumDestination(
+                                                    browseId = playlistId,
+                                                ),
+                                            )
+                                        } else if (playlistId.startsWith("VL")) {
+                                            navController.navigate(
+                                                PlaylistDestination(
+                                                    playlistId = playlistId,
+                                                ),
+                                            )
+                                        } else {
+                                            navController.navigate(
+                                                PlaylistDestination(
+                                                    playlistId = "VL$playlistId",
+                                                ),
+                                            )
+                                        }
+                                    }
+
+                            "channel", "c" ->
+                                data.lastPathSegment?.let { artistId ->
+                                    if (artistId.startsWith("UC")) {
+                                        viewModel.setIntent(null)
+                                        navController.navigate(
+                                            ArtistDestination(
+                                                channelId = artistId,
+                                            ),
+                                        )
+                                    } else {
+                                        Toast
+                                            .makeText(
+                                                this@MainActivity,
+                                                getString(
+                                                    R.string.this_link_is_not_supported,
+                                                ),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                    }
+                                }
+
+                            else ->
+                                when {
+                                    path == "watch" -> data.getQueryParameter("v")
+                                    data.host == "youtu.be" -> path
+                                    else -> null
+                                }?.let { videoId ->
+                                    viewModel.loadSharedMediaItem(videoId)
+                                }
+                        }
+                    }
+                }
+            }
+
+            LaunchedEffect(githubResponse) {
+                val response = githubResponse ?: return@LaunchedEffect
+                if (!this@MainActivity.isInPictureInPictureMode &&
+                    viewModel.showedUpdateDialog &&
+                    response.tagName != getString(R.string.version_format, VersionManager.getVersionName())
+                ) {
+                    shouldShowUpdateDialog = true
+                }
+            }
+
             AppTheme {
-                MiniPlayer(sharedViewModel = viewModel, onClose = { onCloseMiniplayer() }) {
-                    val bundle = Bundle()
-                    bundle.putString("type", Config.MINIPLAYER_CLICK)
-                    navController?.navigateSafe(R.id.action_global_nowPlayingFragment, bundle)
-                }
-            }
-        }
-        if (viewModel.nowPlayingState.value?.mediaItem == MediaItem.EMPTY || viewModel.nowPlayingState.value?.mediaItem == null) {
-            binding.miniplayer.visibility = View.GONE
-        }
-        binding.root.addOnLayoutChangeListener {
-            _,
-            left,
-            top,
-            right,
-            bottom,
-            oldLeft,
-            oldTop,
-            oldRight,
-            oldBottom,
-            ->
-            val rect = Rect(left, top, right, bottom)
-            val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
-            if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) &&
-                oldRect !=
-                Rect(
-                    0,
-                    0,
-                    0,
-                    0,
-                )
-            ) {
-                viewModel.activityRecreate()
-            }
-        }
-        binding.bottomNavigationView.applyInsetter {
-            type(navigationBars = true) {
-                padding()
-            }
-        }
-        if (!isMyServiceRunning(SimpleMediaService::class.java)) {
-            binding.miniplayer.visibility = View.GONE
-        }
-        binding.bottomNavigationView.setupWithNavController(navController!!)
-        binding.bottomNavigationView.setOnItemReselectedListener {
-            val id = navController.currentDestination?.id
-            if (id != R.id.bottom_navigation_item_home && id != R.id.bottom_navigation_item_search && id != R.id.bottom_navigation_item_library) {
-                navController.popBackStack(it.itemId, inclusive = false)
-            } else if (id == R.id.bottom_navigation_item_home) {
-                viewModel.homeRefresh()
-            }
-        }
-        when (action) {
-            "com.maxrave.simpmusic.action.HOME" -> {
-                binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_home
-            }
-
-            "com.maxrave.simpmusic.action.SEARCH" -> {
-                binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_search
-            }
-
-            "com.maxrave.simpmusic.action.LIBRARY" -> {
-                binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_library
-            }
-
-            else -> {}
-        }
-
-        navController.addOnDestinationChangedListener { nav, destination, _ ->
-            Log.w("Destination", "onCreate: ${destination.id}")
-            when (destination.id) {
-                R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
-                    binding.bottomNavigationView.menu
-                        .findItem(
-                            R.id.bottom_navigation_item_home,
-                        )?.isChecked =
-                        true
-                }
-
-                R.id.bottom_navigation_item_search -> {
-                    binding.bottomNavigationView.menu
-                        .findItem(
-                            R.id.bottom_navigation_item_search,
-                        )?.isChecked =
-                        true
-                }
-
-                R.id.bottom_navigation_item_library,
-                R.id.favoriteFragment, R.id.localPlaylistFragment,
-                -> {
-                    binding.bottomNavigationView.menu
-                        .findItem(
-                            R.id.bottom_navigation_item_library,
-                        )?.isChecked =
-                        true
-                }
-
-                R.id.playlistFragment, R.id.artistFragment, R.id.albumFragment -> {
-                    val currentBackStack = nav.previousBackStackEntry?.destination?.id
-                    when (currentBackStack) {
-                        R.id.bottom_navigation_item_library,
-                        R.id.favoriteFragment, R.id.localPlaylistFragment,
-                        -> {
-                            binding.bottomNavigationView.menu
-                                .findItem(
-                                    R.id.bottom_navigation_item_library,
-                                )?.isChecked =
-                                true
-                        }
-
-                        R.id.bottom_navigation_item_search -> {
-                            binding.bottomNavigationView.menu
-                                .findItem(
-                                    R.id.bottom_navigation_item_search,
-                                )?.isChecked =
-                                true
-                        }
-
-                        R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
-                            binding.bottomNavigationView.menu
-                                .findItem(
-                                    R.id.bottom_navigation_item_home,
-                                )?.isChecked =
-                                true
-                        }
-                    }
-                }
-            }
-            Log.w("MainActivity", "Destination: ${destination.label}")
-            Log.w("MainActivity", "Show or Hide: ${viewModel.showOrHideMiniplayer}")
-            if (
-                (
-                    listOf(
-                        "NowPlayingFragment",
-                        "FullscreenFragment",
-                        "SpotifyLogInFragment",
-                        "fragment_log_in",
-                        "MusixmatchFragment",
-                    )
-                ).contains(destination.label)
-            ) {
-                lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
-                Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
-            } else {
-                lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(true) }
-                Log.w("MainActivity", "onCreate: SHOW MINIPLAYER")
-            }
-        }
-
-//        binding.miniplayer.showMode = SwipeLayout.ShowMode.PullOut
-//        binding.miniplayer.addDrag(SwipeLayout.DragEdge.Right, binding.llBottom)
-//        binding.miniplayer.addSwipeListener(
-//            object : SwipeLayout.SwipeListener {
-//                override fun onStartOpen(layout: SwipeLayout?) {
-//                    binding.card.radius = 0f
-//                }
-//
-//                override fun onOpen(layout: SwipeLayout?) {
-//                    binding.card.radius = 0f
-//                }
-//
-//                override fun onStartClose(layout: SwipeLayout?) {
-//                    binding.card.radius = 12f
-//                }
-//
-//                override fun onClose(layout: SwipeLayout?) {
-//                    binding.card.radius = 12f
-//                }
-//
-//                override fun onUpdate(
-//                    layout: SwipeLayout?,
-//                    leftOffset: Int,
-//                    topOffset: Int,
-//                ) {
-//                    binding.card.radius = 12f
-//                }
-//
-//                override fun onHandRelease(
-//                    layout: SwipeLayout?,
-//                    xvel: Float,
-//                    yvel: Float,
-//                ) {
-//                }
-//            },
-//        )
-//        binding.btRemoveMiniPlayer.setOnClickListener {
-//            viewModel.stopPlayer()
-//            viewModel.isServiceRunning.postValue(false)
-//            viewModel.videoId.postValue(null)
-//            binding.miniplayer.visibility = View.GONE
-//            binding.card.radius = 12f
-//        }
-//        binding.btSkipNext.setOnClickListener {
-//            viewModel.onUIEvent(UIEvent.Next)
-//            binding.card.radius = 12f
-//        }
-//
-//        binding.card.setOnClickListener {
-//            val bundle = Bundle()
-//            bundle.putString("type", Config.MINIPLAYER_CLICK)
-//            navController.navigateSafe(R.id.action_global_nowPlayingFragment, bundle)
-//        }
-//        binding.btPlayPause.setOnClickListener {
-//            viewModel.onUIEvent(UIEvent.PlayPause)
-//        }
-        lifecycleScope.launch {
-            val job1 =
-                launch {
-                    viewModel.intent.collectLatest { intent ->
-                        if (intent != null) {
-                            data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-                            Log.d("MainActivity", "onCreate: $data")
-                            if (data != null) {
-                                if (data == "simpmusic://notification".toUri()) {
-                                    viewModel.intent.value = null
-                                    navController.navigateSafe(
-                                        R.id.action_global_notificationFragment,
+                Scaffold(
+                    bottomBar = {
+                        AnimatedVisibility(
+                            isNavBarVisible,
+                            enter = fadeIn() + slideInHorizontally(),
+                            exit = fadeOut(),
+                        ) {
+                            Column {
+                                AnimatedVisibility(
+                                    isShowMiniPlayer,
+                                    enter = fadeIn() + slideInHorizontally(),
+                                    exit = fadeOut(),
+                                ) {
+                                    MiniPlayer(
+                                        Modifier
+                                            .height(56.dp)
+                                            .fillMaxWidth()
+                                            .padding(
+                                                horizontal = 12.dp,
+                                            ).padding(
+                                                bottom = 4.dp,
+                                            ),
+                                        onClick = {
+                                            isShowNowPlaylistScreen = true
+                                        },
+                                        onClose = {
+                                            viewModel.stopPlayer()
+                                            viewModel.isServiceRunning = false
+                                        },
                                     )
-                                } else {
-                                    Log.d("MainActivity", "onCreate: $data")
-                                    when (val path = data!!.pathSegments.firstOrNull()) {
-                                        "playlist" ->
-                                            data!!
-                                                .getQueryParameter("list")
-                                                ?.let { playlistId ->
-                                                    if (playlistId.startsWith("OLAK5uy_")) {
-                                                        viewModel.intent.value = null
-                                                        navController.navigateSafe(
-                                                            R.id.action_global_albumFragment,
-                                                            Bundle().apply {
-                                                                putString("browseId", playlistId)
-                                                            },
-                                                        )
-                                                    } else if (playlistId.startsWith("VL")) {
-                                                        viewModel.intent.value = null
-                                                        navController.navigateSafe(
-                                                            R.id.action_global_playlistFragment,
-                                                            Bundle().apply {
-                                                                putString("id", playlistId)
-                                                            },
-                                                        )
-                                                    } else {
-                                                        viewModel.intent.value = null
-                                                        navController.navigateSafe(
-                                                            R.id.action_global_playlistFragment,
-                                                            Bundle().apply {
-                                                                putString("id", "VL$playlistId")
-                                                            },
-                                                        )
-                                                    }
-                                                }
-
-                                        "channel", "c" ->
-                                            data!!.lastPathSegment?.let { artistId ->
-                                                if (artistId.startsWith("UC")) {
-                                                    viewModel.intent.value = null
-                                                    navController.navigateSafe(
-                                                        R.id.action_global_artistFragment,
-                                                        Bundle().apply {
-                                                            putString("channelId", artistId)
-                                                        },
-                                                    )
-                                                } else {
-                                                    Toast
-                                                        .makeText(
-                                                            this@MainActivity,
-                                                            getString(
-                                                                R.string.this_link_is_not_supported,
-                                                            ),
-                                                            Toast.LENGTH_SHORT,
-                                                        ).show()
-                                                }
-//                                    else {
-//                                        viewModel.convertNameToId(artistId)
-//                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
-//                                            when (channelId) {
-//                                                is Resource.Success -> {
-//                                                    viewModel.intent.value = null
-//                                                    navController.navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
-//                                                        putString("channelId", channelId.data?.id)
-//                                                    })
-//                                                }
-//                                                is Resource.Error -> {
-//                                                    viewModel.intent.value = null
-//                                                    Toast.makeText(this@MainActivity, channelId.message, Toast.LENGTH_SHORT).show()
-//                                                }
-//                                            }
-//                                        }
-//                                    }
-                                            }
-
-                                        else ->
-                                            when {
-                                                path == "watch" -> data!!.getQueryParameter("v")
-                                                data!!.host == "youtu.be" -> path
-                                                else -> null
-                                            }?.let { videoId ->
-                                                viewModel.loadSharedMediaItem(videoId)
-                                            }
-                                    }
+                                }
+                                AppBottomNavigationBar(
+                                    navController = navController,
+                                    isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
+                                ) { klass ->
+                                    viewModel.reloadDestination(klass)
                                 }
                             }
                         }
-                    }
-                }
-            val job2 =
-                launch {
-                    viewModel.sleepTimerState.collect { state ->
-                        if (state.isDone) {
-                            Log.w("MainActivity", "Collect from main activity $state")
-                            viewModel.stopSleepTimer()
-                            MaterialAlertDialogBuilder(this@MainActivity)
-                                .setTitle(getString(R.string.sleep_timer_off))
-                                .setMessage(getString(R.string.good_night))
-                                .setPositiveButton(getString(R.string.yes)) { d, _ ->
-                                    d.dismiss()
-                                }.show()
-                        }
-                    }
-                }
-            job1.join()
-            job2.join()
-        }
-        lifecycleScope.launch {
-            val miniplayerJob =
-                launch {
-                    repeatOnLifecycle(Lifecycle.State.CREATED) {
-                        viewModel.nowPlayingScreenData.collect {
-                            Log.d("MainActivity", "NowPlayingScreenData: $it")
-                            Log.w("MainActivity", "Current Destination: ${navController.currentDestination?.label}")
-                            if (!(
-                                    listOf(
-                                        "NowPlayingFragment",
-                                        "FullscreenFragment",
-                                        "SpotifyLogInFragment",
-                                        "fragment_log_in",
-                                        "MusixmatchFragment",
-                                    )
-                                ).contains(navController.currentDestination?.label) &&
-                                it.nowPlayingTitle.isNotEmpty() &&
-                                binding.miniplayer.visibility != View.VISIBLE &&
-                                (
-                                    viewModel.nowPlayingState.value?.mediaItem != MediaItem.EMPTY ||
-                                        viewModel.nowPlayingState.value?.mediaItem != null
-                                )
-                            ) {
-                                Log.w("MainActivity", "Show Miniplayer")
-                                binding.miniplayer.animation =
-                                    AnimationUtils.loadAnimation(
-                                        this@MainActivity,
-                                        R.anim.slide_from_right,
-                                    )
-                                binding.miniplayer.visibility = View.VISIBLE
-                            }
-                        }
-                    }
-                }
+                    },
+                    content = { innerPadding ->
+                        AppNavigationGraph(
+                            innerPadding = innerPadding,
+                            navController = navController,
+                            hideNavBar = {
+                                isNavBarVisible = false
+                            },
+                            showNavBar = {
+                                isNavBarVisible = true
+                            },
+                        )
 
-            val showHideJob =
-                launch {
-                    repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                        viewModel.showOrHideMiniplayer.collectLatest {
-                            if (it &&
-                                binding.miniplayer.visibility != View.VISIBLE &&
-                                binding.bottomNavigationView.visibility != View.VISIBLE &&
-                                viewModel.nowPlayingState.value?.isNotEmpty() == true
+                        if (isShowNowPlaylistScreen) {
+                            NowPlayingScreen(
+                                navController = navController,
                             ) {
-                                Log.w("MainActivity", "Show Miniplayer")
-                                lifecycleScope.launch {
-                                    delay(500)
-                                    binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
-                                    binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
-                                    binding.miniplayer.visibility = View.VISIBLE
-                                    binding.bottomNavigationView.visibility = View.VISIBLE
-                                }
-                            } else if (binding.bottomNavigationView.visibility != View.GONE &&
-                                binding.miniplayer.visibility != View.GONE &&
-                                !it
-                            ) {
-                                binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
-                                binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
-                                binding.bottomNavigationView.visibility = View.GONE
-                                binding.miniplayer.visibility = View.GONE
+                                isShowNowPlaylistScreen = false
                             }
                         }
-                    }
-                }
-            val bottomNavBarJob =
-                launch {
-                    repeatOnLifecycle(Lifecycle.State.CREATED) {
-                        viewModel.getTranslucentBottomBar().distinctUntilChanged().collectLatest {
-                            if (it == DataStoreManager.TRUE) {
-                                binding.bottomNavigationView.background =
-                                    ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)?.apply {
-                                        this.setDither(true)
+
+                        if (sleepTimerState.isDone) {
+                            Log.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
+                            AlertDialog(
+                                properties =
+                                    DialogProperties(
+                                        dismissOnBackPress = false,
+                                        dismissOnClickOutside = false,
+                                    ),
+                                onDismissRequest = {
+                                    viewModel.stopSleepTimer()
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.stopSleepTimer()
+                                    }) {
+                                        Text(
+                                            stringResource(R.string.yes),
+                                            style = typo.bodySmall,
+                                        )
                                     }
-                            } else if (it == DataStoreManager.FALSE) {
-                                binding.bottomNavigationView.background =
-                                    ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null).toDrawable()
-                            }
-                        }
-                    }
-                }
-
-            val musixmatchCaptchaJob =
-                launch {
-                    viewModel.showMusixmatchCaptchaWebView.collectLatest {
-                        if (it) {
-                            navController.navigateSafe(
-                                R.id.bottom_navigation_item_home,
-                                Bundle().apply {
-                                    putString("dialog", "musixmatchCaptcha")
+                                },
+                                text = {
+                                    Text(
+                                        stringResource(R.string.sleep_timer_off),
+                                        style = typo.labelSmall,
+                                    )
+                                },
+                                title = {
+                                    Text(
+                                        stringResource(R.string.good_night),
+                                        style = typo.bodySmall,
+                                    )
                                 },
                             )
                         }
-                    }
-                }
 
-            miniplayerJob.join()
-            showHideJob.join()
-            bottomNavBarJob.join()
-            musixmatchCaptchaJob.join()
+                        if (shouldShowUpdateDialog) {
+                            val response = githubResponse ?: return@Scaffold
+                            AlertDialog(
+                                properties =
+                                    DialogProperties(
+                                        dismissOnBackPress = false,
+                                        dismissOnClickOutside = false,
+                                    ),
+                                onDismissRequest = {
+                                    shouldShowUpdateDialog = false
+                                    viewModel.showedUpdateDialog = false
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            shouldShowUpdateDialog = false
+                                            viewModel.showedUpdateDialog = false
+                                            val browserIntent =
+                                                Intent(
+                                                    Intent.ACTION_VIEW,
+                                                    "https://simpmusic.org/download".toUri(),
+                                                )
+                                            startActivity(browserIntent)
+                                        },
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.download),
+                                            style = typo.bodySmall,
+                                        )
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = {
+                                            shouldShowUpdateDialog = false
+                                            viewModel.showedUpdateDialog = false
+                                        },
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.cancel),
+                                            style = typo.bodySmall,
+                                        )
+                                    }
+                                },
+                                title = {
+                                    Text(
+                                        stringResource(R.string.update_available),
+                                        style = typo.labelSmall,
+                                    )
+                                },
+                                text = {
+                                    val inputFormat =
+                                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                                    val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                                    val formatted =
+                                        response.publishedAt?.let { input ->
+                                            inputFormat
+                                                .parse(input)
+                                                ?.let { outputFormat.format(it) }
+                                        }
+                                    val updateMessage =
+                                        getString(
+                                            R.string.update_message,
+                                            response.tagName,
+                                            formatted,
+                                            "",
+                                        )
+                                    Column(
+                                        Modifier
+                                            .height(
+                                                400.dp,
+                                            ).verticalScroll(
+                                                rememberScrollState(),
+                                            ),
+                                    ) {
+                                        Text(
+                                            text = updateMessage,
+                                            style = typo.bodySmall,
+                                            modifier =
+                                                Modifier.padding(
+                                                    vertical = 8.dp,
+                                                ),
+                                        )
+                                        Markdown(
+                                            response.body ?: "",
+                                            typography =
+                                                markdownTypography(
+                                                    h1 = typo.labelLarge,
+                                                    h2 = typo.labelMedium,
+                                                    h3 = typo.labelSmall,
+                                                    text = typo.bodySmall,
+                                                    bullet = typo.bodySmall,
+                                                    paragraph = typo.bodySmall,
+                                                    link =
+                                                        typo.bodySmall.copy(
+                                                            textDecoration = TextDecoration.Underline,
+                                                        ),
+                                                ),
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                    },
+                )
+            }
         }
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         Log.w("MainActivity", "onDestroy: ")
+        if (viewModel.shouldStopMusicService()) {
+            viewModel.isServiceRunning = false
+            unbindService(serviceConnection)
+        }
         unloadKoinModules(viewModelModule)
+        super.onDestroy()
     }
 
     override fun onRestart() {
@@ -652,146 +552,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun startMusicService() {
         println("go to StartMusicService")
-        if (viewModel.recreateActivity.value != true) {
+        if (!viewModel.recreateActivity.value) {
             val intent = Intent(this, SimpleMediaService::class.java)
             startService(intent)
             bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-            viewModel.isServiceRunning.value = true
+            viewModel.isServiceRunning = true
             Log.d("Service", "Service started")
         }
     }
 
-    //    override fun onNowPlayingSongChange() {
-//        viewModel.metadata.observe(this) {
-//            when(it){
-//                is Resource.Success -> {
-//                    binding.songTitle.text = it.data?.title
-//                    binding.songTitle.isSelected = true
-//                    if (it.data?.artists != null){
-//                        var tempArtist = mutableListOf<String>()
-//                        for (artist in it.data.artists) {
-//                            tempArtist.add(artist.name)
-//                        }
-//                        val artistName = tempArtist.connectArtists()
-//                        binding.songArtist.text = artistName
-//                    }
-//                    binding.songArtist.isSelected = true
-//                    binding.ivArt.load(it.data?.thumbnails?.get(0)?.url)
-//
-//                }
-//                is Resource.Error -> {
-//
-//                }
-//            }
-//        }
-//    }
-//
-//    override fun onIsPlayingChange() {
-//        viewModel.isPlaying.observe(this){
-//            if (it){
-//                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-//            }else{
-//                binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
-//            }
-//        }
-//    }
-//
-//    override fun onUpdateProgressBar(progress: Float) {
-//
-//    }
-
     private fun checkForUpdate() {
         if (viewModel.shouldCheckForUpdate()) {
             viewModel.checkForUpdate()
-            viewModel.githubResponse.observe(this) { response ->
-                if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
-                    Log.w("MainActivity", "Check for update")
-                    Log.w("MainActivity", "Current version: ${getString(R.string.version_format, VersionManager.getVersionName())}")
-                    if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
-                        viewModel.showedUpdateDialog = true
-                        val inputFormat =
-                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                        val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                        val formatted =
-                            response.publishedAt?.let { input ->
-                                inputFormat
-                                    .parse(input)
-                                    ?.let { outputFormat.format(it) }
-                            }
-                        val scrollView =
-                            ScrollView(this)
-                                .apply {
-                                    layoutParams =
-                                        LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.MATCH_PARENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                                        )
-                                }
-                        val layout =
-                            LinearLayout(this).apply {
-                                orientation = LinearLayout.VERTICAL
-                                layoutParams =
-                                    LinearLayout.LayoutParams(
-                                        LinearLayout.LayoutParams.MATCH_PARENT,
-                                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                                    )
-                                setPadding(24, 24, 24, 12)
-                            }
-                        layout.addView(
-                            TextView(this).apply {
-                                text =
-                                    getString(
-                                        R.string.update_message,
-                                        response.tagName,
-                                        formatted,
-                                        "",
-                                    )
-                                textSize = 13f
-                                layoutParams =
-                                    MarginLayoutParams(
-                                        MarginLayoutParams.MATCH_PARENT,
-                                        MarginLayoutParams.WRAP_CONTENT,
-                                    ).apply {
-                                        setMargins(42, 8, 42, 0)
-                                    }
-                            },
-                        )
-                        layout.addView(
-                            TextView(this).apply {
-                                text = markdownToHtml(response.body ?: "")
-                                textSize = 13f
-                                autoLinkMask = Linkify.ALL
-                                setLineSpacing(0f, 1.2f)
-                                layoutParams =
-                                    MarginLayoutParams(
-                                        MarginLayoutParams.MATCH_PARENT,
-                                        MarginLayoutParams.WRAP_CONTENT,
-                                    ).apply {
-                                        setMargins(42, 0, 42, 24)
-                                    }
-                            },
-                        )
-                        scrollView.addView(layout)
-
-                        MaterialAlertDialogBuilder(this)
-                            .setTitle(getString(R.string.update_available))
-                            .setView(scrollView)
-                            .setPositiveButton(getString(R.string.download)) { _, _ ->
-                                val browserIntent =
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        response.assets
-                                            ?.firstOrNull()
-                                            ?.browserDownloadUrl
-                                            ?.toUri(),
-                                    )
-                                startActivity(browserIntent)
-                            }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                                dialog.dismiss()
-                            }.show()
-                    }
-                }
-            }
         }
     }
 
@@ -807,12 +579,5 @@ class MainActivity : AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         viewModel.activityRecreate()
-    }
-
-    private fun onCloseMiniplayer() {
-        viewModel.stopPlayer()
-        viewModel.isServiceRunning.postValue(false)
-        viewModel.videoId.postValue(null)
-        binding.miniplayer.visibility = View.GONE
     }
 }

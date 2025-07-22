@@ -93,7 +93,7 @@
     <string name="about">Sobre</string>
     <string name="let_s_start_with_a_radio">COMENÇEM AMB UNA RÀDIO</string>
     <string name="let_s_pick_a_playlist_for_you">ESCOLLIM UNA LLISTA DE REPRODUCCIÓ PER A TU</string>
-    <string name="moods_amp_moment">Estat d\'ànim i moment></string>
+    <string name="moods_amp_moment"><![CDATA[Estat d\'ànim i moment]]></string>
     <string name="genre">Gènere</string>
     <string name="what_is_best_choice_today">QUÈ ÉS LA MILLOR ELECCIÓ AVUI</string>
     <string name="chart">Gràfic</string>

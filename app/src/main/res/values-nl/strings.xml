@@ -188,6 +188,8 @@
     <string name="categories_sponsor_block">Selecteer skip-segment gedrag</string>
     <string name="save">Opslaan</string>
     <string name="saved">Opgeslagen</string>
+    <string name="customactivityoncrash_error_activity_error_occurred_explanation">Er is een onverwachte fout opgetreden. Sorry voor het ongemak.</string>
+    <string name="customactivityoncrash_error_activity_error_details_copy">Kopiëren naar klembord</string>
     <string name="yes">Ja</string>
     <string name="welcome_back">Welkom terug,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload je luistergeschiedenis naar de YouTube-muziekserver, het zal de aanbeveling van YT Music systeem verbeteren. Het werkt alleen als je ingelogd bent</string>

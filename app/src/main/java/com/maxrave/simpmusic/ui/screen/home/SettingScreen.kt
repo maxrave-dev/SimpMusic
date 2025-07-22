@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -51,17 +55,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -95,13 +104,17 @@ import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.extension.bytesToMB
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
+import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.MusixmatchLoginDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.DarkColors
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_outline
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.LocalResource
@@ -110,18 +123,19 @@ import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.mikepenz.aboutlibraries.Libs
-import com.mikepenz.aboutlibraries.LibsBuilder
+import com.mikepenz.aboutlibraries.ui.compose.ChipColors
+import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
+import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-import java.util.Scanner
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
 @UnstableApi
@@ -167,10 +181,12 @@ fun SettingScreen(
     val skipSilent by viewModel.skipSilent.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val savePlaybackState by viewModel.savedPlaybackState.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val saveLastPlayed by viewModel.saveRecentSongAndQueue.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val killServiceOnExit by viewModel.killServiceOnExit.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = true)
     val mainLyricsProvider by viewModel.mainLyricsProvider.collectAsStateWithLifecycle()
     val musixmatchLoggedIn by viewModel.musixmatchLoggedIn.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val useMusixmatchTranslation by viewModel.useTranslation.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val musixmatchTranslationLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
+    val youtubeSubtitleLanguage by viewModel.youtubeSubtitleLanguage.collectAsStateWithLifecycle()
     val spotifyLoggedIn by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
     val spotifyCanvas by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
@@ -182,7 +198,6 @@ fun SettingScreen(
     val canvasCache by viewModel.canvasCacheSize.collectAsStateWithLifecycle()
     val limitPlayerCache by viewModel.playerCacheLimit.collectAsStateWithLifecycle()
     val fraction by viewModel.fraction.collectAsStateWithLifecycle()
-    val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
     val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
     val usingProxy by viewModel.usingProxy.collectAsStateWithLifecycle()
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
@@ -191,16 +206,20 @@ fun SettingScreen(
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
     val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
-    val fadeAudioEffect by viewModel.fadeAudioEffect.collectAsStateWithLifecycle()
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
+    val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
+    val contributor by viewModel.contributor.collectAsStateWithLifecycle()
 
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
     var showYouTubeAccountDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showThirdPartyLibraries by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -220,40 +239,6 @@ fun SettingScreen(
                         .format(Instant.ofEpochMilli(lastCheckLong)),
                 )
         }
-    }
-
-    LaunchedEffect(githubResponse) {
-        val res = githubResponse
-        if (res != null && res.tagName != context.getString(R.string.version_format, VersionManager.getVersionName())) {
-            val inputFormat =
-                SimpleDateFormat(
-                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
-                    Locale.getDefault(),
-                )
-            val outputFormat =
-                SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-            val formatted =
-                res.publishedAt?.let { input ->
-                    inputFormat
-                        .parse(input)
-                        ?.let { outputFormat.format(it) }
-                }
-            viewModel.setBasicAlertData(
-                SettingBasicAlertState(
-                    title = context.getString(R.string.update_available),
-                    message = context.getString(R.string.update_message, res.tagName, formatted, res.body),
-                    confirm =
-                        context.getString(R.string.download) to {
-                            uriHandler.openUri(
-                                res.assets?.firstOrNull()?.browserDownloadUrl
-                                    ?: "https://github.com/maxrave-dev/SimpMusic/releases",
-                            )
-                        },
-                    dismiss = context.getString(R.string.cancel),
-                ),
-            )
-        }
-        viewModel.getLastCheckForUpdate()
     }
 
     LaunchedEffect(true) {
@@ -358,6 +343,7 @@ fun SettingScreen(
                                             state.selectOne?.getSelected() ?: "US",
                                         )
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -568,30 +554,6 @@ fun SettingScreen(
                     switch = (skipSilent to { viewModel.setSkipSilent(it) }),
                 )
                 SettingItem(
-                    title = stringResource(R.string.fade_audio_effect),
-                    subtitle = if (fadeAudioEffect > 0) "$fadeAudioEffect ms" else stringResource(R.string.disabled),
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = context.getString(R.string.fade_audio_effect_duration),
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = context.getString(R.string.duration),
-                                        value = "$fadeAudioEffect",
-                                        verifyCodeBlock = {
-                                            (it.toIntOrNull() != null) to context.getString(R.string.invalid_number)
-                                        },
-                                    ),
-                                message = "",
-                                confirm =
-                                    context.getString(R.string.change) to { state ->
-                                        viewModel.setFadeDuration(state.textField?.value?.toIntOrNull() ?: 0)
-                                    },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
                     title = stringResource(R.string.open_system_equalizer),
                     subtitle = stringResource(R.string.use_your_system_equalizer),
                     onClick = {
@@ -624,6 +586,72 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.save_last_played_track_and_queue),
                     switch = (saveLastPlayed to { viewModel.setSaveLastPlayed(it) }),
                 )
+                SettingItem(
+                    title = stringResource(R.string.kill_service_on_exit),
+                    subtitle = stringResource(R.string.kill_service_on_exit_description),
+                    switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
+                )
+
+                // Thêm phần crossfade
+                val isCrossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle(initialValue = false)
+                val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle(initialValue = 5000)
+                var showCrossfadeDialog by rememberSaveable { mutableStateOf(false) }
+
+                SettingItem(
+                    title = stringResource(R.string.crossfade),
+                    subtitle =
+                        if (isCrossfadeEnabled) {
+                            stringResource(R.string.crossfade_enabled, crossfadeDuration / 1000)
+                        } else {
+                            stringResource(R.string.crossfade_disabled)
+                        },
+                    switch = (isCrossfadeEnabled to { viewModel.setCrossfadeEnabled(it) }),
+                    onClick = {
+                        if (isCrossfadeEnabled) {
+                            showCrossfadeDialog = true
+                        }
+                    },
+                )
+
+                if (showCrossfadeDialog) {
+                    val durationInSeconds = crossfadeDuration / 1000
+                    var sliderPosition by rememberSaveable { mutableStateOf(durationInSeconds.toFloat()) }
+
+                    AlertDialog(
+                        onDismissRequest = { showCrossfadeDialog = false },
+                        title = { Text(stringResource(R.string.crossfade_duration)) },
+                        text = {
+                            Column {
+                                Text(stringResource(R.string.set_crossfade_duration, sliderPosition.toInt()))
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Slider(
+                                    value = sliderPosition,
+                                    onValueChange = { sliderPosition = it },
+                                    valueRange = 1f..12f,
+                                    steps = 11,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    viewModel.setCrossfadeDuration(sliderPosition.toInt() * 1000)
+                                    showCrossfadeDialog = false
+                                },
+                            ) {
+                                Text(stringResource(R.string.save))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showCrossfadeDialog = false },
+                            ) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        },
+                    )
+                }
             }
         }
         item(key = "lyrics") {
@@ -633,6 +661,7 @@ fun SettingScreen(
                     title = stringResource(R.string.main_lyrics_provider),
                     subtitle =
                         when (mainLyricsProvider) {
+                            DataStoreManager.SIMPMUSIC -> stringResource(R.string.simpmusic_lyrics)
                             DataStoreManager.MUSIXMATCH -> stringResource(R.string.musixmatch)
                             DataStoreManager.YOUTUBE -> stringResource(R.string.youtube_transcript)
                             DataStoreManager.LRCLIB -> stringResource(R.string.lrclib)
@@ -646,6 +675,7 @@ fun SettingScreen(
                                     SettingAlertState.SelectData(
                                         listSelect =
                                             listOf(
+                                                (mainLyricsProvider == DataStoreManager.SIMPMUSIC) to context.getString(R.string.simpmusic_lyrics),
                                                 (mainLyricsProvider == DataStoreManager.MUSIXMATCH) to context.getString(R.string.musixmatch),
                                                 (mainLyricsProvider == DataStoreManager.YOUTUBE) to context.getString(R.string.youtube_transcript),
                                                 (mainLyricsProvider == DataStoreManager.LRCLIB) to context.getString(R.string.lrclib),
@@ -655,6 +685,7 @@ fun SettingScreen(
                                     context.getString(R.string.change) to { state ->
                                         viewModel.setLyricsProvider(
                                             when (state.selectOne?.getSelected()) {
+                                                context.getString(R.string.simpmusic_lyrics) -> DataStoreManager.SIMPMUSIC
                                                 context.getString(R.string.musixmatch) -> DataStoreManager.MUSIXMATCH
                                                 context.getString(R.string.youtube_transcript) -> DataStoreManager.YOUTUBE
                                                 context.getString(R.string.lrclib) -> DataStoreManager.LRCLIB
@@ -662,6 +693,7 @@ fun SettingScreen(
                                             },
                                         )
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -683,7 +715,9 @@ fun SettingScreen(
                         if (musixmatchLoggedIn) {
                             viewModel.clearMusixmatchCookie()
                         } else {
-                            navController.navigateSafe(R.id.action_global_musixmatchFragment)
+                            navController.navigate(
+                                MusixmatchLoginDestination,
+                            )
                         }
                     },
                 )
@@ -718,10 +752,110 @@ fun SettingScreen(
                                     context.getString(R.string.change) to { state ->
                                         viewModel.setTranslationLanguage(state.textField?.value ?: "")
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
                     isEnable = useMusixmatchTranslation || useAITranslation,
+                )
+                SettingItem(
+                    title = stringResource(R.string.youtube_subtitle_language),
+                    subtitle = youtubeSubtitleLanguage,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.youtube_subtitle_language),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.youtube_subtitle_language),
+                                        value = youtubeSubtitleLanguage,
+                                        verifyCodeBlock = {
+                                            (it.length == 2 && it.isTwoLetterCode()) to context.getString(R.string.invalid_language_code)
+                                        },
+                                    ),
+                                message = context.getString(R.string.youtube_subtitle_language_message),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setYoutubeSubtitleLanguage(state.textField?.value ?: "")
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(R.string.help_build_lyrics_database),
+                    subtitle = stringResource(R.string.help_build_lyrics_database_description),
+                    switch = (helpBuildLyricsDatabase to { viewModel.setHelpBuildLyricsDatabase(it) }),
+                )
+                SettingItem(
+                    title = stringResource(R.string.contributor_name),
+                    subtitle = contributor.first.ifEmpty { stringResource(R.string.anonymous) },
+                    isEnable = helpBuildLyricsDatabase,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.contributor_name),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.contributor_name),
+                                        value = "",
+                                    ),
+                                message = "",
+                                confirm =
+                                    context.getString(R.string.set) to { state ->
+                                        viewModel.setContributorName(state.textField?.value ?: "")
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(R.string.contributor_email),
+                    subtitle = contributor.second.ifEmpty { stringResource(R.string.anonymous) },
+                    isEnable = helpBuildLyricsDatabase,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.contributor_email),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.contributor_email),
+                                        value = "",
+                                        verifyCodeBlock = {
+                                            if (it.isNotEmpty()) {
+                                                (it.contains("@")) to context.getString(R.string.invalid)
+                                            } else {
+                                                true to ""
+                                            }
+                                        },
+                                    ),
+                                message = "",
+                                confirm =
+                                    context.getString(R.string.set) to { state ->
+                                        viewModel.setContributorEmail(state.textField?.value ?: "")
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
+                        )
+                    },
+                )
+                Text(
+                    buildAnnotatedString {
+                        append(stringResource(R.string.lyrics_database_description))
+                        append(" ")
+                        withLink(
+                            LinkAnnotation.Url(
+                                "https://github.com/maxrave-dev/lyrics",
+                                TextLinkStyles(style = SpanStyle(color = md_theme_dark_primary)),
+                            ),
+                        ) {
+                            append("https://github.com/maxrave-dev/lyrics")
+                        }
+                    },
+                    style = typo.bodySmall,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
                 )
             }
         }
@@ -758,6 +892,7 @@ fun SettingScreen(
                                             },
                                         )
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -782,13 +917,14 @@ fun SettingScreen(
                                     context.getString(R.string.set) to { state ->
                                         viewModel.setAIApiKey(state.textField?.value ?: "")
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
                 )
                 SettingItem(
                     title = stringResource(R.string.custom_ai_model_id),
-                    subtitle = if (customModelId.isNotEmpty()) customModelId else stringResource(R.string.default_models),
+                    subtitle = customModelId.ifEmpty { stringResource(R.string.default_models) },
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
@@ -806,6 +942,7 @@ fun SettingScreen(
                                     context.getString(R.string.set) to { state ->
                                         viewModel.setCustomModelId(state.textField?.value ?: "")
                                     },
+                                dismiss = context.getString(R.string.cancel),
                             ),
                         )
                     },
@@ -838,7 +975,7 @@ fun SettingScreen(
                         if (spotifyLoggedIn) {
                             viewModel.setSpotifyLogIn(false)
                         } else {
-                            navController.navigateSafe(R.id.action_global_spotifyLogInFragment)
+                            navController.navigate(SpotifyLoginDestination)
                         }
                     },
                 )
@@ -1272,7 +1409,7 @@ fun SettingScreen(
                     title = stringResource(R.string.version),
                     subtitle = stringResource(R.string.version_format, VersionManager.getVersionName()),
                     onClick = {
-                        navController.navigateSafe(R.id.action_global_creditFragment)
+                        navController.navigate(CreditDestination)
                     },
                 )
                 SettingItem(
@@ -1285,7 +1422,7 @@ fun SettingScreen(
                     subtitle = checkForUpdateSubtitle,
                     onClick = {
                         checkForUpdateSubtitle = context.getString(R.string.checking)
-                        viewModel.checkForUpdate()
+                        sharedViewModel.checkForUpdate()
                     },
                 )
                 SettingItem(
@@ -1299,32 +1436,14 @@ fun SettingScreen(
                     title = stringResource(R.string.buy_me_a_coffee),
                     subtitle = stringResource(R.string.donation),
                     onClick = {
-                        uriHandler.openUri("https://www.buymeacoffee.com/maxrave")
+                        uriHandler.openUri("https://github.com/sponsors/maxrave-dev")
                     },
                 )
                 SettingItem(
                     title = stringResource(R.string.third_party_libraries),
                     subtitle = stringResource(R.string.description_and_licenses),
                     onClick = {
-                        val inputStream = context.resources.openRawResource(R.raw.aboutlibraries)
-                        val scanner = Scanner(inputStream).useDelimiter("\\A")
-                        val stringBuilder = StringBuilder()
-                        while (scanner.hasNextLine()) {
-                            stringBuilder.append(scanner.nextLine())
-                        }
-                        Log.w("AboutLibraries", stringBuilder.toString())
-                        val localLib = Libs.Builder().withJson(stringBuilder.toString()).build()
-                        val intent =
-                            LibsBuilder()
-                                .withLicenseShown(true)
-                                .withVersionShown(true)
-                                .withActivityTitle(context.getString(R.string.third_party_libraries))
-                                .withSearchEnabled(true)
-                                .withEdgeToEdge(true)
-                                .withLibs(
-                                    localLib,
-                                ).intent(context)
-                        context.startActivity(intent)
+                        showThirdPartyLibraries = true
                     },
                 )
             }
@@ -1527,7 +1646,7 @@ fun SettingScreen(
                                 text = R.string.add_an_account,
                             ) {
                                 showYouTubeAccountDialog = false
-                                navController.navigateSafe(R.id.action_global_logInFragment)
+                                navController.navigate(LoginDestination)
                             }
                         }
                     }
@@ -1710,6 +1829,87 @@ fun SettingScreen(
         )
     }
 
+    if (showThirdPartyLibraries) {
+        val libraries by rememberLibraries(R.raw.aboutlibraries)
+        val lazyListState = rememberLazyListState()
+        val canScrollBackward by remember {
+            derivedStateOf {
+                lazyListState.canScrollBackward
+            }
+        }
+        val sheetState =
+            rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+                confirmValueChange = {
+                    !canScrollBackward
+                },
+            )
+        val coroutineScope = rememberCoroutineScope()
+        ModalBottomSheet(
+            modifier =
+                Modifier
+                    .fillMaxHeight(),
+            onDismissRequest = {
+                showThirdPartyLibraries = false
+            },
+            containerColor = Color.Black,
+            dragHandle = {},
+            scrimColor = Color.Black,
+            sheetState = sheetState,
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+            shape = RectangleShape,
+        ) {
+            LibrariesContainer(
+                libraries,
+                Modifier.fillMaxSize(),
+                lazyListState = lazyListState,
+                showDescription = true,
+                contentPadding = innerPadding,
+                colors =
+                    LibraryDefaults.libraryColors(
+                        licenseChipColors =
+                            object : ChipColors {
+                                override val containerColor: Color
+                                    get() = md_theme_dark_outline
+                                override val contentColor: Color
+                                    get() = Color.White
+                            },
+                    ),
+                header = {
+                    item {
+                        TopAppBar(
+                            windowInsets = WindowInsets(0, 0, 0, 0),
+                            title = {
+                                Text(
+                                    text =
+                                        stringResource(
+                                            R.string.third_party_libraries,
+                                        ),
+                                    style = typo.titleMedium,
+                                )
+                            },
+                            navigationIcon = {
+                                Box(Modifier.padding(horizontal = 5.dp)) {
+                                    RippleIconButton(
+                                        R.drawable.baseline_arrow_back_ios_new_24,
+                                        Modifier
+                                            .size(32.dp),
+                                        true,
+                                    ) {
+                                        coroutineScope.launch {
+                                            sheetState.hide()
+                                            showThirdPartyLibraries = false
+                                        }
+                                    }
+                                }
+                            },
+                        )
+                    }
+                },
+            )
+        }
+    }
+
     TopAppBar(
         title = {
             Text(
@@ -1728,7 +1928,7 @@ fun SettingScreen(
                         .size(32.dp),
                     true,
                 ) {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
             }
         },

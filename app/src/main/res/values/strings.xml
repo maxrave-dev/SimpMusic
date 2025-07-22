@@ -198,6 +198,9 @@
     <string name="skip_sponsor_part_of_video">Skip sponsor part of video</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">An unexpected error occurred. Sorry for the inconvenience.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Restart app</string>
+    <string name="help_build_lyrics_database">Help SimpMusic lyrics build the lyrics database</string>
+    <string name="help_build_lyrics_database_description">Send your saved lyrics to SimpMusic lyrics\'s database</string>
+    <string name="lyrics_database_description">We are building our own lyrics database for SimpMusic and other YouTube clients for non-commercial purposes, open-sourced at</string>
     <string name="customactivityoncrash_error_activity_close_app">Close app</string>
     <string name="customactivityoncrash_error_activity_error_details">Error details</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Error details</string>
@@ -439,4 +442,19 @@
     <string name="processing">Processing</string>
     <string name="website">Website</string>
     <string name="download_this_song_video_file_to_your_device">Download this song/video file to your device</string>
+    <string name="kill_service_on_exit">Kill service on exit</string>
+    <string name="kill_service_on_exit_description">Stop background music player when exiting app</string>
+    <string name="crossfade">Crossfade (BETA)</string>
+    <string name="crossfade_enabled">Enabled (%1$ds)</string>
+    <string name="crossfade_disabled">Disabled</string>
+    <string name="crossfade_duration">Crossfade Duration</string>
+    <string name="set_crossfade_duration">Set crossfade duration in seconds (%1$ds)</string>
+    <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
+    <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred translation language for YouTube subtitles.</string>
+    <string name="use_anonymous">Use anonymous name to contribute</string>
+    <string name="contributor_name">Contributor name</string>
+    <string name="contributor_email">Contributor email</string>
+    <string name="anonymous">Anonymous</string>
+    <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
+    <string name="lyrics_provider_simpmusic">Lyrics provided by SimpMusic Lyrics</string>
 </resources>

@@ -4,6 +4,8 @@ import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.media3.common.util.UnstableApi
+import androidx.work.Configuration
+import androidx.work.WorkManager
 import cat.ereza.customactivityoncrash.config.CaocConfig
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -21,7 +23,6 @@ import com.maxrave.simpmusic.ui.theme.newDiskCache
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
@@ -62,8 +63,17 @@ class SimpMusicApplication :
                 mediaServiceModule,
                 viewModelModule,
             )
-            workManagerFactory()
         }
+        // provide custom configuration
+        val workConfig =
+            Configuration
+                .Builder()
+                .setMinimumLoggingLevel(Log.INFO)
+                .build()
+
+        // initialize WorkManager
+        WorkManager.initialize(this, workConfig)
+
         CaocConfig.Builder
             .create()
             .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT) // default: CaocConfig.BACKGROUND_MODE_SHOW_CUSTOM

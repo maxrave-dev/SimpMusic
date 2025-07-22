@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.home
 
 import android.content.Context
-import android.os.Bundle
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -40,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -48,14 +48,16 @@ import coil3.request.crossfade
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.formatTimeAgo
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
 fun NotificationScreen(
     navController: NavController,
@@ -73,7 +75,7 @@ fun NotificationScreen(
             },
             navigationIcon = {
                 RippleIconButton(resId = R.drawable.baseline_arrow_back_ios_new_24) {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
             },
         )
@@ -128,11 +130,10 @@ fun NotificationItem(
         Column {
             Row(
                 Modifier.clickable {
-                    navController.navigateSafe(
-                        R.id.action_global_artistFragment,
-                        Bundle().apply {
-                            putString("channelId", notification.channelId)
-                        },
+                    navController.navigate(
+                        ArtistDestination(
+                            channelId = notification.channelId,
+                        ),
                     )
                 },
             ) {
@@ -212,11 +213,10 @@ fun ItemAlbumNotification(
         modifier =
             Modifier
                 .clickable {
-                    navController.navigateSafe(
-                        R.id.action_global_albumFragment,
-                        Bundle().apply {
-                            putString("browseId", browseId)
-                        },
+                    navController.navigate(
+                        AlbumDestination(
+                            browseId = browseId,
+                        ),
                     )
                 },
     ) {

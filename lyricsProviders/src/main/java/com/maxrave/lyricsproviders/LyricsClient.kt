@@ -321,9 +321,9 @@ class LyricsClient(
         if (lrclibObject != null) {
             val syncedLyrics = lrclibObject.syncedLyrics
             val plainLyrics = lrclibObject.plainLyrics
-            if (syncedLyrics != null) {
+            if (!syncedLyrics.isNullOrEmpty()) {
                 parseMusixmatchLyrics(syncedLyrics)
-            } else if (plainLyrics != null) {
+            } else if (!plainLyrics.isNullOrEmpty()) {
                 parseUnsyncedLyrics(plainLyrics)
             } else {
                 null

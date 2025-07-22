@@ -30,7 +30,7 @@
     <string name="no_playlists_downloaded">ダウンロード済みの再生リストなし</string>
     <string name="your_playlists">端末内の再生リスト</string>
     <string name="no_playlists_added">再生リストなし</string>
-    <string name="recently_added">最近の追加順</string>
+    <string name="recently_added">最近聴いた順</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">曲、アーティスト、アルバム、再生リストなどを検索</string>
     <string name="everything_you_need">望むすべてがあります</string>
     <string name="restore_failed">復元に失敗しました</string>
@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">YouTubeにログイン</string>
     <string name="log_in_to_get_personally_data">ログインして個人データを取得</string>
     <string name="login_success">ログイン成功</string>
+    <string name="login_failed">ログイン失敗</string>
     <string name="log_out">YouTubeからログアウト</string>
     <string name="logged_in">ログインしました</string>
     <string name="logged_out">ログアウトしました</string>
@@ -169,6 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">シャッフルとリピートの設定を保存</string>
     <string name="skip_silent">無音部分を飛ばす</string>
     <string name="skip_no_music_part">音楽でない部分を飛ばします</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">応答なし。ネット接続をご確認ください (%1$d)</string>
     <string name="save_last_played">最後に再生したものを保存</string>
     <string name="save_last_played_track_and_queue">最後に再生した曲とキューを保存</string>
     <string name="update_available">最新版があります</string>
@@ -360,7 +362,7 @@
     <string name="loading">読み込み中</string>
     <string name="updating">更新中</string>
     <string name="go_to_log_in_page">ログインページに移動</string>
-    <string name="log_in_warning">YouTube Music は現在、音楽をストリーミングするためにログインが必要です。また、Pipedインスタンスは時々動作しないことがあります。SimpMusicでより良い体験をするために、YouTubeにログインすることをお勧めします。</string>
+    <string name="log_in_warning">YouTube Music は現在、音楽をストリーミングするためにログインが必要です。また、Pipedインスタンスは頻繁に動作しないことがあります。SimpMusicをより良い体験にするために、YouTubeにログインすることをお勧めします。</string>
     <string name="spotify_canvas_cache">Spotify Canvas キャッシュ</string>
     <string name="clear_canvas_cache">Canvas のキャッシュを消去</string>
     <string name="proxy">プロキシ</string>
@@ -405,7 +407,7 @@
     <string name="buying_me_a_coffee">コーヒーを一杯ご馳走してください。</string>
     <string name="fade_audio_effect">フェードの音声エフェクト</string>
     <string name="disabled">無効</string>
-    <string name="fade_audio_effect_duration">フェードの音声エフェクトの長さ (ミリ秒) (0で無効)</string>
+    <string name="fade_audio_effect_duration">フェードの音声効果の長さ (ミリ秒) (0で無効)</string>
     <string name="duration">長さ</string>
     <string name="invalid_number">無効な数字</string>
     <string name="shuffle_not_available">シャッフルのエンドポイントは利用できません</string>
@@ -424,4 +426,21 @@
     <string name="default_models">初期設定のモデルは gemini-2.0-flash-lite と gpt-4o</string>
     <string name="invalid">無効です</string>
     <string name="custom_model_id_messages">AI 提供元によるモデルIDを正確に入力します。</string>
+    <string name="favorite_podcasts">お気に入りのポッドキャスト</string>
+    <string name="no_favorite_podcasts">お気に入りのポッドキャストなし</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">Spotifyクッキーのsp_dc引数</string>
+    <string name="your_youtube_cookie">YouTubeクッキー</string>
+    <string name="can_not_be_empty">空にはできません</string>
+    <string name="processing">処理中</string>
+    <string name="website">サイト</string>
+    <string name="download_this_song_video_file_to_your_device">この曲/動画ファイルを端末にダウンロード</string>
+    <string name="kill_service_on_exit">終了時にサービスを強制終了</string>
+    <string name="kill_service_on_exit_description">アプリ終了時にバックグラウンドの音楽プレイヤーを停止</string>
+    <string name="crossfade">クロスフェード (ベータ版)</string>
+    <string name="crossfade_enabled">有効 (%1$d秒)</string>
+    <string name="crossfade_disabled">無効</string>
+    <string name="crossfade_duration">クロスフェードの時間</string>
+    <string name="set_crossfade_duration">クロスフェードの長さを秒単位で設定 (%1$ds)</string>
+    <string name="youtube_subtitle_language">YouTube字幕 翻訳言語</string>
+    <string name="youtube_subtitle_language_message">言語コード (例 en) (2 文字) これは、YouTube の字幕に適する翻訳言語です。</string>
 </resources>

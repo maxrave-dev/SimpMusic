@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">登录到 YouTube</string>
     <string name="log_in_to_get_personally_data">登录以获取个人数据</string>
     <string name="login_success">登录成功</string>
+    <string name="login_failed">登录失败</string>
     <string name="log_out">从 YouTube 退出</string>
     <string name="logged_in">已登录</string>
     <string name="logged_out">已退出</string>
@@ -169,6 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">保存随机和重复模式</string>
     <string name="skip_silent">跳过静音</string>
     <string name="skip_no_music_part">跳过没有音乐部分</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">超时，检查网络连接 (%1$d)</string>
     <string name="save_last_played">保存上次播放</string>
     <string name="save_last_played_track_and_queue">保存上次播放的曲目和队列</string>
     <string name="update_available">有可用的更新</string>
@@ -245,7 +247,9 @@
     <string name="only_support_email_and_password_type">仅支持电子邮件和密码类型</string>
     <string name="musixmatch_login_description">Musixmatch 翻译 API 只对登录用户有效。SimpMusic 使用Musixmatch 开发者API。更多信息请访问https://github.com/maxrave-dev/SimpMusic 或 https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">使用 Musixmatch 翻译</string>
+    <string name="use_ai_translation">使用 AI 歌词翻译</string>
     <string name="use_musixmatch_translation_description">使用 Musixmatch 启用歌词翻译。需要 Musixmatch 登录</string>
+    <string name="use_ai_translation_description">使用 AI 启用歌词翻译。关闭Musixmatch 翻译以使用</string>
     <string name="translation_language">翻译语言</string>
     <string name="follow_app_language">跟随应用语言</string>
     <string name="email">邮箱</string>
@@ -265,6 +269,10 @@
     <string name="free_space">可用空间</string>
     <string name="suggest">建议</string>
     <string name="reload">重载</string>
+    <string name="sort_by">排序方式</string>
+    <string name="sort">排序方式</string>
+    <string name="older_first">较早的优先</string>
+    <string name="newer_first">较新的在前</string>
     <string name="added_date">已添加日期</string>
     <string name="credit_app">使用 YouTube Music 作为后端的简单音乐应用 \n\nSimpMusic 是一个开源项目，可以在没有广告和跟踪的情况下从 YouTube 和 YouTube Music 中流式播放音乐。SimpMusic 提供许多功能：\n\n - 流媒体音乐 \n - 同步歌词 \n - 个性化数据 \n -等等… \n\nSimpMusic始终是免费的，没有广告\n\n Tuan Minh Nguyen Duc(Maxrave-dev) 用 ❤️ 构建</string>
     <string name="issue_tracker">问题跟踪</string>
@@ -294,6 +302,7 @@
     <string name="guest">访客</string>
     <string name="log_out_warning">要登出所有账户吗？</string>
     <string name="play_next">下一个播放</string>
+    <string name="codec">Codec</string>
     <string name="plays">播放/查看计数</string>
     <string name="like_and_dislike">%1$d 赞(s), %2$d 踩(s)</string>
     <string name="published_at">发布于 %1$s</string>

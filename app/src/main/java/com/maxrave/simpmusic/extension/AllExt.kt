@@ -7,10 +7,7 @@ import android.graphics.Color
 import android.graphics.Point
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Bundle
 import android.text.Html
-import android.text.Spanned
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -20,7 +17,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.NavController
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
@@ -29,6 +25,8 @@ import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
+import com.maxrave.lyricsproviders.parser.parseMusixmatchLyrics
+import com.maxrave.lyricsproviders.parser.parseUnsyncedLyrics
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
@@ -58,9 +56,8 @@ import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse
-import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
-import org.intellij.markdown.html.HtmlGenerator
-import org.intellij.markdown.parser.MarkdownParser
+import org.simpmusic.lyrics.models.response.LyricsResponse
+import org.simpmusic.lyrics.models.response.TranslatedLyricsResponse
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -832,19 +829,6 @@ fun Transcript.toLyrics(): Lyrics {
     )
 }
 
-fun NavController.navigateSafe(
-    resId: Int,
-    bundle: Bundle? = null,
-) {
-    if (currentDestination?.id != resId) {
-        if (bundle != null) {
-            navigate(resId, bundle)
-        } else {
-            navigate(resId)
-        }
-    }
-}
-
 fun PodcastBrowse.EpisodeItem.toTrack(): Track =
     Track(
         album = null,
@@ -1070,11 +1054,41 @@ fun isNetworkAvailable(context: Context?): Boolean {
     }
 }
 
-fun markdownToHtml(markdown: String): Spanned {
-    val src = markdown.trimIndent()
-    val flavour = CommonMarkFlavourDescriptor()
-    val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(src)
-    val html = HtmlGenerator(src, parsedTree, flavour).generateHtml()
-    Log.w("markdownToHtml", html)
-    return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
+fun Lyrics.toSyncedLrcString(): String? {
+    if (this.lines.isNullOrEmpty() || this.syncType != "LINE_SYNCED") {
+        return null
+    }
+    return this.lines.joinToString("\n") { line ->
+        val startTimeMs = line.startTimeMs.toLong()
+        val minutes = (startTimeMs / 60000).toString().padStart(2, '0')
+        val seconds = ((startTimeMs % 60000) / 1000).toString().padStart(2, '0')
+        val milliseconds = ((startTimeMs % 1000) / 10).toString().padStart(2, '0')
+
+        // Add space before the content as it was removed in the parsing function
+        val content = if (line.words == "♫") " " else " ${line.words}"
+
+        "[$minutes:$seconds.$milliseconds]$content"
+    }
 }
+
+fun Lyrics.toPlainLrcString(): String? {
+    if (this.lines.isNullOrEmpty()) {
+        return null
+    }
+    return this.lines.joinToString("\n") { it.words }
+}
+
+// SimpMusic Lyrics Extension
+fun LyricsResponse.toLyrics(): Lyrics? =
+    (
+        syncedLyrics?.let { if (it.isNotEmpty() && it.isNotBlank()) parseMusixmatchLyrics(it) else null }
+            ?: (
+                if (plainLyric.isNotEmpty() && plainLyric.isNotBlank()) {
+                    parseUnsyncedLyrics(plainLyric)
+                } else {
+                    null
+                }
+            )
+    )?.toLyrics()
+
+fun TranslatedLyricsResponse.toLyrics(): Lyrics = parseMusixmatchLyrics(this.translatedLyric).toLyrics()

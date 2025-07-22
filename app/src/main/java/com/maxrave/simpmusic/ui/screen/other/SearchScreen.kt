@@ -59,7 +59,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -83,7 +82,6 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.extension.connectArtists
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toAlbumsResult
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
@@ -96,6 +94,10 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.ShimmerSearchItem
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SearchScreenUIState
 import com.maxrave.simpmusic.viewModel.SearchType
@@ -293,28 +295,21 @@ fun SearchScreen(
                                         }
 
                                         is ArtistItem -> {
-                                            navController.navigateSafe(
-                                                R.id.action_global_artistFragment,
-                                                bundleOf(
-                                                    "channelId" to ytItem.id,
-                                                ),
+                                            navController.navigate(
+                                                ArtistDestination(ytItem.id),
                                             )
                                         }
 
                                         is AlbumItem -> {
-                                            navController.navigateSafe(
-                                                R.id.action_global_albumFragment,
-                                                bundleOf(
-                                                    "browseId" to ytItem.browseId,
-                                                ),
+                                            navController.navigate(
+                                                AlbumDestination(ytItem.browseId),
                                             )
                                         }
 
                                         is PlaylistItem -> {
-                                            navController.navigateSafe(
-                                                R.id.action_global_playlistFragment,
-                                                bundleOf(
-                                                    "id" to ytItem.id,
+                                            navController.navigate(
+                                                PlaylistDestination(
+                                                    ytItem.id,
                                                 ),
                                             )
                                         }
@@ -696,10 +691,9 @@ fun SearchScreen(
                                                                     PlaylistFullWidthItems(
                                                                         data = result,
                                                                         onClickListener = {
-                                                                            navController.navigateSafe(
-                                                                                R.id.action_global_albumFragment,
-                                                                                bundleOf(
-                                                                                    "browseId" to result.browseId,
+                                                                            navController.navigate(
+                                                                                AlbumDestination(
+                                                                                    result.browseId,
                                                                                 ),
                                                                             )
                                                                         },
@@ -709,10 +703,9 @@ fun SearchScreen(
                                                                     ArtistFullWidthItems(
                                                                         data = result,
                                                                         onClickListener = {
-                                                                            navController.navigateSafe(
-                                                                                R.id.action_global_artistFragment,
-                                                                                bundleOf(
-                                                                                    "channelId" to result.browseId,
+                                                                            navController.navigate(
+                                                                                ArtistDestination(
+                                                                                    result.browseId,
                                                                                 ),
                                                                             )
                                                                         },
@@ -723,17 +716,15 @@ fun SearchScreen(
                                                                         data = result,
                                                                         onClickListener = {
                                                                             if (result.resultType == "Podcast") {
-                                                                                navController.navigateSafe(
-                                                                                    R.id.action_global_podcastFragment,
-                                                                                    bundleOf(
-                                                                                        "id" to result.browseId,
+                                                                                navController.navigate(
+                                                                                    PodcastDestination(
+                                                                                        result.browseId,
                                                                                     ),
                                                                                 )
                                                                             } else {
-                                                                                navController.navigateSafe(
-                                                                                    R.id.action_global_playlistFragment,
-                                                                                    bundleOf(
-                                                                                        "id" to result.browseId,
+                                                                                navController.navigate(
+                                                                                    PlaylistDestination(
+                                                                                        result.browseId,
                                                                                     ),
                                                                                 )
                                                                             }
@@ -744,10 +735,9 @@ fun SearchScreen(
                                                                     PlaylistFullWidthItems(
                                                                         data = result.toAlbumsResult(),
                                                                         onClickListener = {
-                                                                            navController.navigateSafe(
-                                                                                R.id.action_global_albumFragment,
-                                                                                bundleOf(
-                                                                                    "browseId" to result.browseId,
+                                                                            navController.navigate(
+                                                                                AlbumDestination(
+                                                                                    result.browseId,
                                                                                 ),
                                                                             )
                                                                         },
@@ -773,10 +763,9 @@ fun SearchScreen(
                                                                                     ),
                                                                             ),
                                                                         onClickListener = {
-                                                                            navController.navigateSafe(
-                                                                                R.id.action_global_artistFragment,
-                                                                                bundleOf(
-                                                                                    "channelId" to result.id,
+                                                                            navController.navigate(
+                                                                                ArtistDestination(
+                                                                                    result.id,
                                                                                 ),
                                                                             )
                                                                         },
@@ -802,10 +791,9 @@ fun SearchScreen(
                                                                                 title = result.title,
                                                                             ),
                                                                         onClickListener = {
-                                                                            navController.navigateSafe(
-                                                                                R.id.action_global_playlistFragment,
-                                                                                bundleOf(
-                                                                                    "id" to result.id,
+                                                                            navController.navigate(
+                                                                                PlaylistDestination(
+                                                                                    result.id,
                                                                                 ),
                                                                             )
                                                                         },

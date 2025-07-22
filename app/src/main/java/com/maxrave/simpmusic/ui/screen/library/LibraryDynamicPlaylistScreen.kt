@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.os.Bundle
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
@@ -42,12 +41,12 @@ import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -58,7 +57,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LibraryDynamicPlaylistScreen(
     innerPadding: PaddingValues,
     navController: NavController,
-    type: LibraryDynamicPlaylistType,
+    type: String,
     viewModel: LibraryDynamicPlaylistViewModel = koinViewModel(),
 ) {
     val nowPlayingVideoId by viewModel.nowPlayingVideoId.collectAsState()
@@ -98,6 +97,7 @@ fun LibraryDynamicPlaylistScreen(
                 Spacer(Modifier.height(55.dp))
             }
         }
+        val type = LibraryDynamicPlaylistType.toType(type)
         if (type == LibraryDynamicPlaylistType.Followed) {
             items(
                 if (query.isNotEmpty() && showSearchBar) {
@@ -110,11 +110,10 @@ fun LibraryDynamicPlaylistScreen(
                 ArtistFullWidthItems(
                     artist,
                     onClickListener = {
-                        navController.navigateSafe(
-                            R.id.action_global_artistFragment,
-                            Bundle().apply {
-                                putString("channelId", artist.channelId)
-                            },
+                        navController.navigate(
+                            ArtistDestination(
+                                channelId = artist.channelId,
+                            ),
                         )
                     },
                 )
@@ -175,6 +174,7 @@ fun LibraryDynamicPlaylistScreen(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val type = LibraryDynamicPlaylistType.toType(type)
         TopAppBar(
             title = {
                 Text(
@@ -193,7 +193,7 @@ fun LibraryDynamicPlaylistScreen(
                             .size(32.dp),
                         true,
                     ) {
-                        navController.popBackStack()
+                        navController.navigateUp()
                     }
                 }
             },
@@ -260,4 +260,24 @@ sealed class LibraryDynamicPlaylistType {
             MostPlayed -> R.string.most_played
             Downloaded -> R.string.downloaded
         }
+
+    // For serialization and navigation
+    fun toStringParams(): String =
+        when (this) {
+            Favorite -> "favorite"
+            Followed -> "followed"
+            MostPlayed -> "most_played"
+            Downloaded -> "downloaded"
+        }
+
+    companion object {
+        fun toType(input: String): LibraryDynamicPlaylistType =
+            when (input) {
+                "favorite" -> Favorite
+                "followed" -> Followed
+                "most_played" -> MostPlayed
+                "downloaded" -> Downloaded
+                else -> throw IllegalArgumentException("Unknown type: $this")
+            }
+    }
 }

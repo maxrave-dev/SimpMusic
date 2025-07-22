@@ -853,19 +853,6 @@ class DataStoreManager(
         }
     }
 
-    val fadeVolume =
-        settingsDataStore.data.map { preferences ->
-            preferences[FADE_VOLUME] ?: 0
-        }
-
-    suspend fun setFadeVolume(fadeDuration: Int) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[FADE_VOLUME] = fadeDuration
-            }
-        }
-    }
-
     val dataSyncId =
         settingsDataStore.data.map { preferences ->
             preferences[DATA_SYNC_ID] ?: ""
@@ -963,6 +950,76 @@ class DataStoreManager(
         }
     }
 
+    val killServiceOnExit: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[KILL_SERVICE_ON_EXIT] ?: FALSE
+        }
+
+    suspend fun setKillServiceOnExit(kill: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (kill) {
+                settingsDataStore.edit { settings ->
+                    settings[KILL_SERVICE_ON_EXIT] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[KILL_SERVICE_ON_EXIT] = FALSE
+                }
+            }
+        }
+    }
+
+    val crossfadeEnabled: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CROSSFADE_ENABLED] ?: FALSE
+        }
+
+    suspend fun setCrossfadeEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (enabled) {
+                settingsDataStore.edit { settings ->
+                    settings[CROSSFADE_ENABLED] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[CROSSFADE_ENABLED] = FALSE
+                }
+            }
+        }
+    }
+
+    val crossfadeDuration: Flow<Int> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CROSSFADE_DURATION] ?: 5000
+        }
+
+    suspend fun setCrossfadeDuration(duration: Int) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[CROSSFADE_DURATION] = duration
+            }
+        }
+    }
+
+    val youtubeSubtitleLanguage =
+        settingsDataStore.data.map { preferences ->
+            val languageValue = language.first()
+            preferences[YOUTUBE_SUBTITLE_LANGUAGE] ?: if (languageValue.length >= 2) {
+                languageValue
+                    .substring(0..1)
+            } else {
+                "en"
+            }
+        }
+
+    suspend fun setYoutubeSubtitleLanguage(language: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[YOUTUBE_SUBTITLE_LANGUAGE] = language
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -980,6 +1037,10 @@ class DataStoreManager(
         val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
         val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
+        val KILL_SERVICE_ON_EXIT = stringPreferencesKey("kill_service_on_exit")
+        val CROSSFADE_ENABLED = stringPreferencesKey("crossfade_enabled")
+        val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
+        const val SIMPMUSIC = "simpmusic"
         const val YOUTUBE = "youtube"
         const val MUSIXMATCH = "musixmatch"
         const val LRCLIB = "lrclib"
@@ -988,7 +1049,6 @@ class DataStoreManager(
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
         val MUSIXMATCH_COOKIE = stringPreferencesKey("musixmatch_cookie")
         val MUSIXMATCH_USER_TOKEN = stringPreferencesKey("musixmatch_user_token")
-        const val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")
         val WATCH_VIDEO_INSTEAD_OF_PLAYING_AUDIO =
@@ -1016,7 +1076,6 @@ class DataStoreManager(
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val PITCH = intPreferencesKey("pitch")
         val OPEN_APP_TIME = intPreferencesKey("open_app_time")
-        val FADE_VOLUME = intPreferencesKey("fade_volume")
         val DATA_SYNC_ID = stringPreferencesKey("data_sync_id")
         val VISITOR_DATA = stringPreferencesKey("visitor_data")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
@@ -1042,11 +1101,60 @@ class DataStoreManager(
         const val LOCAL_PLAYLIST_FILTER_OLDER_FIRST = "older_first"
         const val LOCAL_PLAYLIST_FILTER_NEWER_FIRST = "newer_first"
         const val LOCAL_PLAYLIST_FILTER_TITLE = "title"
+        val YOUTUBE_SUBTITLE_LANGUAGE = stringPreferencesKey("youtube_subtitle_language")
+        val HELP_BUILD_LYRICS_DATABASE = stringPreferencesKey("help_build_lyrics_database")
+        val CONTRIBUTOR_NAME = stringPreferencesKey("contributor_name")
+        val CONTRIBUTOR_EMAIL = stringPreferencesKey("contributor_email")
 
         // Proxy type
         enum class ProxyType {
             PROXY_TYPE_HTTP,
             PROXY_TYPE_SOCKS,
+        }
+    }
+
+    val helpBuildLyricsDatabase: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[HELP_BUILD_LYRICS_DATABASE] ?: FALSE
+        }
+
+    suspend fun setHelpBuildLyricsDatabase(help: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (help) {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
+                }
+            }
+        }
+    }
+
+    val contributorName: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_NAME] ?: ""
+        }
+
+    val contributorEmail: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_EMAIL] ?: ""
+        }
+
+    suspend fun setContributorLyricsDatabase(
+        contributor: Pair<String, String>?, // contributor name and email, null if anonymous
+    ) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                if (contributor == null) {
+                    settings[CONTRIBUTOR_NAME] = ""
+                    settings[CONTRIBUTOR_EMAIL] = ""
+                } else {
+                    settings[CONTRIBUTOR_NAME] = contributor.first
+                    settings[CONTRIBUTOR_EMAIL] = contributor.second
+                }
+            }
         }
     }
 }

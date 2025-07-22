@@ -11,6 +11,7 @@ import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.LRCLIB
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.MUSIXMATCH
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.SIMPMUSIC
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.YOUTUBE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -74,8 +75,11 @@ class NowPlayingBottomSheetViewModel(
                 }
             val mainLyricsProviderJob =
                 launch {
-                    dataStoreManager.lyricsProvider.collectLatest {
-                        when (it) {
+                    dataStoreManager.lyricsProvider.collectLatest { lyricsProvider ->
+                        when (lyricsProvider) {
+                            SIMPMUSIC -> {
+                                _uiState.update { it.copy(mainLyricsProvider = SIMPMUSIC) }
+                            }
                             MUSIXMATCH -> {
                                 _uiState.update { it.copy(mainLyricsProvider = MUSIXMATCH) }
                             }
@@ -220,7 +224,7 @@ class NowPlayingBottomSheetViewModel(
                     makeToast(getString(R.string.added_to_queue))
                 }
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
-                    if (listOf(MUSIXMATCH, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
+                    if (listOf(SIMPMUSIC, MUSIXMATCH, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
                         dataStoreManager.setLyricsProvider(ev.lyricsProvider)
                     } else {
                         return@launch

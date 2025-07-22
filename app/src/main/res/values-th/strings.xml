@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">เข้าสู่ระบบ YouTube</string>
     <string name="log_in_to_get_personally_data">เข้าสู่ระบบเพื่อรับข้อมูลส่วนตัว</string>
     <string name="login_success">เข้าสู่ระบบสำเร็จ</string>
+    <string name="login_failed">เข้าสู่ระบบไม่สำเร็จ</string>
     <string name="log_out">ออกจากระบบ YouTube</string>
     <string name="logged_in">เข้าสู่ระบบแล้ว</string>
     <string name="logged_out">ออกจากระบบแล้ว</string>
@@ -169,6 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">บันทึกโหมดสุ่มและเล่นซ้ำ</string>
     <string name="skip_silent">ข้ามเสียงเงียบ</string>
     <string name="skip_no_music_part">ไม่ข้ามส่วนดนตรี</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">หมดเวลาเชื่อมต่อ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต (%1$d)</string>
     <string name="save_last_played">บันทึกการเล่นครั้งล่าสุด</string>
     <string name="save_last_played_track_and_queue">บันทึกเพลงและคิวที่เล่นล่าสุด</string>
     <string name="update_available">อัปเดตใหม่พร้อมใช้งานแล้ว</string>
@@ -424,4 +426,21 @@
     <string name="default_models">โมเดลที่ใช้โดยค่าเริ่มต้นคือ \'gemini-2.0-flash-lite\' และ \'gpt-4o\'</string>
     <string name="invalid">ไม่ถูกต้อง</string>
     <string name="custom_model_id_messages">กรุณากรอกรหัสโมเดลที่ถูกต้องจากผู้ให้บริการ AI ของคุณ</string>
+    <string name="favorite_podcasts">พอดแคสต์ที่ชื่นชอบ</string>
+    <string name="no_favorite_podcasts">ยังไม่มีพอดแคสต์ที่คุณชื่นชอบ</string>
+    <string name="your_sp_dc_param_of_spotify_cookie">พารามิเตอร์ sp_dc จาก cookie ของ Spotify</string>
+    <string name="your_youtube_cookie">Cookie YouTube ของคุณ</string>
+    <string name="can_not_be_empty">ไม่สามารถเว้นว่างได้</string>
+    <string name="processing">กำลังประมวลผล</string>
+    <string name="website">เว็บ​ไซ​ต์</string>
+    <string name="download_this_song_video_file_to_your_device">ดาวน์โหลดไฟล์เพลง/วิดีโอนี้ ลงในอุปกรณ์ของคุณ</string>
+    <string name="kill_service_on_exit">ยุติบริการเมื่อออกจากแอป</string>
+    <string name="kill_service_on_exit_description">หยุดการเล่นเพลงเบื้องหลังเมื่อปิดแอป</string>
+    <string name="crossfade">ครอสเฟด (BETA)</string>
+    <string name="crossfade_enabled">เปิดใช้งาน (%1$ds)</string>
+    <string name="crossfade_disabled">ปิดใช้งาน</string>
+    <string name="crossfade_duration">ระยะเวลาในการครอสเฟด</string>
+    <string name="set_crossfade_duration">ตั้งค่าระยะเวลาในการครอสเฟดเป็นวินาที (%1$ds)</string>
+    <string name="youtube_subtitle_language">ภาษาการแปลคำบรรยายบน YouTube</string>
+    <string name="youtube_subtitle_language_message">พิมพ์รหัสภาษาประเภท (เช่น: en) (2 ตัวอักษร) นี่คือภาษาที่ต้องการใช้แปลคำบรรยาย YouTube</string>
 </resources>

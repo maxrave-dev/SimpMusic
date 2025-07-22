@@ -562,6 +562,12 @@ interface DatabaseDao {
         language: String = "en",
     ): TranslatedLyricsEntity?
 
+    @Query("DELETE FROM translated_lyrics WHERE videoId = :videoId AND language = :language")
+    suspend fun removeTranslatedLyrics(
+        videoId: String,
+        language: String,
+    )
+
     // Insert methods
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPodcast(podcast: PodcastsEntity): Long

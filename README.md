@@ -1,7 +1,20 @@
 <div align="center"> <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/jetpack_compose/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>  
-A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike<br> <br> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total"></a> <br> <br> <a href="https://trendshift.io/repositories/13482" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13482" alt="maxrave-dev%2FSimpMusic | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a> <br> <h4>Download</h4>  
-<a href="https://apt.izzysoft.de/packages/com.maxrave.simpmusic/"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80"></a> <a href="https://f-droid.org/en/packages/com.maxrave.simpmusic/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80"></a> <a href="https://www.openapk.net/simpmusic/com.maxrave.simpmusic/"><img src="https://www.openapk.net/images/openapk-badge.png" height="80"></a> <a href="https://www.androidfreeware.net/download-simpmusic-apk.html"><img src="https://www.androidfreeware.net/images/androidfreeware-badge.png" height="80"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a> <a href="https://www.producthunt.com/posts/simpmusic?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-simpmusic" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=797736&theme=light&t=1737299913224" alt="SimpMusic - A&#0032;FOSS&#0032;YouTube&#0032;Music&#0032;client&#0032;for&#0032;Android&#0032;with&#0032;many&#0032;features | Product Hunt" style="width: 250px; height: 80px;" width="250" height="80" /></a> <h4>Nightly Build</h4>  
-<a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/> <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a> </div>  
+A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike
+<br> 
+<br>
+<a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total"></a> <br> <br> <a href="https://trendshift.io/repositories/13482" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13482" alt="maxrave-dev%2FSimpMusic | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+<br>
+<br>
+<a href="https://www.producthunt.com/products/simpmusic/reviews?utm_source=badge-product_rating&utm_medium=badge&utm_source=badge-simpmusic" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/product_rating.svg?product_id=903836&theme=dark" alt="SimpMusic - A&#0032;FOSS&#0032;YouTube&#0032;Music&#0032;client&#0032;for&#0032;Android&#0032;with&#0032;many&#0032;features | Product Hunt" style="width: 242px; height: 108px;" width="242" height="108" /></a>
+<br> 
+<h4>Download</h4>  
+<a href="https://apt.izzysoft.de/packages/com.maxrave.simpmusic/"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" width="200"></a> 
+<a href="https://f-droid.org/en/packages/com.maxrave.simpmusic/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" width="200"></a> 
+<a href="https://www.openapk.net/simpmusic/com.maxrave.simpmusic/"><img src="https://www.openapk.net/images/openapk-badge.png" width="200"></a> 
+<a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" width="200"></a> 
+<h4>Nightly Build</h4>  
+<a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/> <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" width="200"></a> 
+</div>  
   
 ## Features ✨️    
  - Play music from YouTube Music or YouTube for free, without ads and in the background    
@@ -81,9 +94,13 @@ sometimes, some songs or videos get the wrong lyrics
   
 #### More FAQ, join [my Discord channel](https://discord.com/channels/1136988323819298856/1349800418745778196)  
   ## Developer/Team    
- ### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer    
- ### [Owen Connor](https://github.com/owencz1998): Discord Server Admin.    
- ### [Ilian Delagrange](https://github.com/ilianoKokoro): Discord Server Admin.    
+- [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer    
+- [Owen Connor](https://github.com/owencz1998): Discord Server Admin.    
+- [Ilian Delagrange](https://github.com/ilianoKokoro): Discord Server Admin.
+
+We're looking for more contributors, all contributions are welcome!
+See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/CODE_OF_CONDUCT.md)
+
  ## Support & Donations 
  #### Special thanks to all supporter ❤️    
  <div align="left"> 
@@ -100,14 +117,19 @@ src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets
  </p>
 
 ## SimpMusic is sponsored by:
+<a href="https://www.digitalocean.com/?refcode=d7f6eedfb9a9&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" width="300" alt="DigitalOcean Referral Badge" /></a>
+<br>
 <a href="https://crowdin.com">
 <img src="https://support.crowdin.com/assets/logos/plate/png/crowdin-logo-with-plate.png" width="300"/>
 </a>
+<br>
 <a href="https://sentry.io">
 <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/sentry.svg?raw=true" width="300"/>
 </a>
 <br>
 
-Crowdin and Sentry, both have free enterprise plan for Open-source project. Follow the URLs: 
+Get free $200 credit over 60 days on DigitalOcean: [GET NOW](https://www.digitalocean.com/?refcode=d7f6eedfb9a9&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
+Crowdin and Sentry both have a free enterprise plan for Open-source projects. Follow the URLs: 
 - [Open Source License Request Form | Crowdin](https://crowdin.com/page/open-source-project-setup-request)
 - [Sentry for Open Source | Sentry](https://sentry.io/for/open-source/)

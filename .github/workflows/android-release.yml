@@ -35,10 +35,13 @@ jobs:
           distribution: "temurin"
           cache: 'gradle'
 
-      - name: Update Sentry DSN
+      - name: Update Sentry Secrets
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
 
       - name: Update environment variables
         env:

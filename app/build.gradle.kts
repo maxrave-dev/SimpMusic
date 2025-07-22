@@ -10,12 +10,15 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.room)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sentry.gradle)
 }
 
 kotlin {
     jvmToolchain(17) // or appropriate version
     compilerOptions {
         freeCompilerArgs.add("-Xwhen-guards")
+        freeCompilerArgs.add("-Xcontext-receivers")
     }
 }
 
@@ -131,13 +134,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlin {
-        jvmToolchain(17)
-    }
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "17"
-    }
     // enable view binding
     buildFeatures {
         viewBinding = true
@@ -163,8 +159,31 @@ android {
     }
 }
 
+sentry {
+    org.set("simpmusic")
+    projectName.set("android")
+    ignoredFlavors.set(setOf("foss"))
+    ignoredBuildTypes.set(setOf("debug"))
+    autoInstallation.enabled = false
+    val token =
+        try {
+            println("Full build detected, enabling Sentry Auth Token")
+            val properties = Properties()
+            properties.load(rootProject.file("local.properties").inputStream())
+            properties.getProperty("SENTRY_AUTH_TOKEN")
+        } catch (e: Exception) {
+            println("Failed to load SENTRY_AUTH_TOKEN from local.properties: ${e.message}")
+            null
+        }
+    authToken.set(token ?: "")
+    includeProguardMapping.set(true)
+    autoUploadProguardMapping.set(true)
+    telemetry.set(false)
+}
+
 dependencies {
     val fullImplementation = "fullImplementation"
+    val debugImplementation = "debugImplementation"
 
     implementation(project(":lyricsProviders"))
     // Compose
@@ -202,6 +221,7 @@ dependencies {
     implementation(project(mapOf("path" to ":spotify")))
     implementation(project(mapOf("path" to ":aiService")))
     implementation(project(mapOf("path" to ":sharedutils")))
+    implementation(project(mapOf("path" to ":lyricsService")))
 
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -210,6 +230,7 @@ dependencies {
     // ExoPlayer
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
+    implementation(libs.media3.compose)
     implementation(libs.media3.session)
     implementation(libs.media3.exoplayer.dash)
     implementation(libs.media3.exoplayer.hls)
@@ -241,7 +262,11 @@ dependencies {
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
 
-    implementation(libs.gson)
+    // Navigation Compose
+    implementation(libs.navigation.compose)
+
+    // Kotlin Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Coil
     implementation(libs.coil.compose)
@@ -265,9 +290,6 @@ dependencies {
     // Insetter
     implementation(libs.insetter)
     implementation(libs.insetter.dbx)
-
-    // Shimmer
-    implementation(libs.shimmer)
 
     // Lottie
     implementation(libs.lottie)
@@ -298,7 +320,6 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
-    implementation(libs.koin.workmanager)
     implementation(libs.koin.androidx.compose)
 
     // Store5
@@ -312,11 +333,17 @@ dependencies {
     implementation(libs.haze.material)
 
     fullImplementation(libs.sentry.android)
+
+//    debugImplementation(libs.leak.canary)
 }
 aboutLibraries {
-    prettyPrint = true
-    registerAndroidTasks = false
-    excludeFields = arrayOf("generated")
+    export {
+        prettyPrint = true
+        excludeFields = listOf("generated")
+    }
+    android {
+        registerAndroidTasks = false
+    }
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

@@ -11,13 +11,14 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.aboutlibraries) apply false
     alias(libs.plugins.room) apply false
+    alias(libs.plugins.sentry.gradle) apply false
 }
 
 buildscript {
     val isFullBuild by extra {
-        gradle.startParameter.taskNames.none { task ->
+        gradle.startParameter.taskNames.any { task ->
             println("Checking task: $task")
-            task.contains("foss", ignoreCase = true)
+            task.contains("full", ignoreCase = true)
         }
     }
     println("Is full build: $isFullBuild")

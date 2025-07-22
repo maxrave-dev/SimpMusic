@@ -41,7 +41,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.Sort
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -127,6 +126,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
@@ -138,8 +139,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun LocalPlaylistScreen(
     id: Long,
-    sharedViewModel: SharedViewModel,
-    viewModel: LocalPlaylistViewModel,
+    sharedViewModel: SharedViewModel = koinInject(),
+    viewModel: LocalPlaylistViewModel = koinViewModel(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -368,7 +369,7 @@ fun LocalPlaylistScreen(
                         RippleIconButton(
                             resId = R.drawable.baseline_arrow_back_ios_new_24,
                         ) {
-                            navController.popBackStack()
+                            navController.navigateUp()
                         }
                     }
                     Column(
@@ -849,7 +850,7 @@ fun LocalPlaylistScreen(
             },
             onDelete = {
                 viewModel.deletePlaylist(uiState.id)
-                navController.popBackStack()
+                navController.navigateUp()
             },
         )
     }
@@ -927,7 +928,7 @@ fun LocalPlaylistScreen(
                             .size(32.dp),
                         true,
                     ) {
-                        navController.popBackStack()
+                        navController.navigateUp()
                     }
                 }
             },

@@ -9,8 +9,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.simpmusic.common.DB_NAME
@@ -25,19 +23,24 @@ import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.extension.toSQLiteQuery
-import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.spotify.Spotify
+import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
 import org.simpmusic.aiservice.AiClient
-import java.lang.reflect.Type
+import org.simpmusic.lyrics.SimpMusicLyricsClient
 import java.time.ZoneOffset
 
 val databaseModule =
     module {
         // Database
         single(createdAtStart = true) {
+            val json =
+                Json {
+                    ignoreUnknownKeys = true
+                    encodeDefaults = true
+                    explicitNulls = false
+                }
             Room
                 .databaseBuilder(androidContext(), MusicDatabase::class.java, DB_NAME)
                 .addTypeConverter(Converters())
@@ -49,9 +52,8 @@ val databaseModule =
                                 while (cursor.moveToNext()) {
                                     val input = cursor.getString(8)
                                     if (input != null) {
-                                        val listType: Type =
-                                            object : TypeToken<ArrayList<String?>?>() {}.type
-                                        val tracks = Gson().fromJson<ArrayList<String?>?>(input, listType)
+                                        val tracks =
+                                            json.decodeFromString<ArrayList<String?>?>(input)
                                         Log.w("MIGRATION_5_6", "tracks: $tracks")
                                         tracks?.mapIndexed { index, track ->
                                             if (track != null) {
@@ -107,10 +109,9 @@ val databaseModule =
                                     while (cursor.moveToNext()) {
                                         val youtubePlaylistId = cursor.getString(0)
                                         val input = cursor.getString(1)
-                                        val listType: Type =
-                                            object : TypeToken<ArrayList<String?>?>() {}.type
-                                        val tracks = Gson().fromJson<ArrayList<String?>?>(input, listType)
-                                        listYouTubeSyncedId.add(Pair(youtubePlaylistId, tracks.toMutableList().filterNotNull()))
+                                        val tracks =
+                                            json.decodeFromString<ArrayList<String?>?>(input)
+                                        listYouTubeSyncedId.add(Pair(youtubePlaylistId, tracks?.toMutableList()?.filterNotNull() ?: emptyList()))
                                     }
                                 }
                             val setVideoIdList = mutableListOf<SetVideoIdEntity>()
@@ -145,8 +146,8 @@ val databaseModule =
                         }
                     },
                     object : Migration(12, 13) {
-                        override fun migrate(database: SupportSQLiteDatabase) {
-                            database.execSQL("ALTER TABLE song ADD COLUMN canvasUrl TEXT")
+                        override fun migrate(db: SupportSQLiteDatabase) {
+                            db.execSQL("ALTER TABLE song ADD COLUMN canvasUrl TEXT")
                         }
                     },
                 ).addCallback(
@@ -200,6 +201,12 @@ val databaseModule =
             AiClient()
         }
 
+        single(createdAtStart = true) {
+            SimpMusicLyricsClient(
+                androidContext(),
+            )
+        }
+
         // MainRepository
         single(createdAtStart = true) {
             MainRepository(
@@ -208,6 +215,7 @@ val databaseModule =
                 get<YouTube>(),
                 get<Spotify>(),
                 get<LyricsClient>(),
+                get<SimpMusicLyricsClient>(),
                 get<AiClient>(),
                 get<MusicDatabase>(),
                 androidContext(),
@@ -218,7 +226,4 @@ val databaseModule =
         single(createdAtStart = true) {
             LocalPlaylistManager(androidContext(), get<YouTube>())
         }
-
-        // Notification Worker
-        workerOf(::NotifyWork)
     }

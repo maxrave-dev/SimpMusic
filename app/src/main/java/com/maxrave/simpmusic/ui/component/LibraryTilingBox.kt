@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.os.Bundle
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.NonLazyGrid
-import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
+import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.typo
 
 @Composable
@@ -56,30 +56,31 @@ fun LibraryTilingBox(navController: NavController) {
                 onClick = {
                     when (listItem[number]) {
                         LibraryTilingState.Favorite -> {
-                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment)
+                            navController.navigate(
+                                LibraryDynamicPlaylistDestination(
+                                    type = LibraryDynamicPlaylistType.Favorite.toStringParams(),
+                                ),
+                            )
                         }
                         LibraryTilingState.Followed -> {
-                            navController.navigateSafe(
-                                R.id.action_bottom_navigation_item_library_to_favoriteFragment,
-                                Bundle().apply {
-                                    putString("type", "followed")
-                                },
+                            navController.navigate(
+                                LibraryDynamicPlaylistDestination(
+                                    type = LibraryDynamicPlaylistType.Followed.toStringParams(),
+                                ),
                             )
                         }
                         LibraryTilingState.MostPlayed -> {
-                            navController.navigateSafe(
-                                R.id.action_bottom_navigation_item_library_to_favoriteFragment,
-                                Bundle().apply {
-                                    putString("type", "most_played")
-                                },
+                            navController.navigate(
+                                LibraryDynamicPlaylistDestination(
+                                    type = LibraryDynamicPlaylistType.MostPlayed.toStringParams(),
+                                ),
                             )
                         }
                         LibraryTilingState.Downloaded -> {
-                            navController.navigateSafe(
-                                R.id.action_bottom_navigation_item_library_to_favoriteFragment,
-                                Bundle().apply {
-                                    putString("type", "downloaded")
-                                },
+                            navController.navigate(
+                                LibraryDynamicPlaylistDestination(
+                                    type = LibraryDynamicPlaylistType.Downloaded.toStringParams(),
+                                ),
                             )
                         }
                     }
@@ -131,7 +132,7 @@ fun LibraryTilingItem(
 }
 
 data class LibraryTilingState(
-    @StringRes val title: Int,
+    @param:StringRes val title: Int,
     val containerColor: Color,
     val icon: ImageVector,
     val iconColor: Color,

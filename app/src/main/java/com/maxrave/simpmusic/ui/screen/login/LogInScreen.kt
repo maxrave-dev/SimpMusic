@@ -137,7 +137,7 @@ fun LoginScreen(
                                                         R.string.login_success,
                                                         Toast.LENGTH_SHORT,
                                                     ).show()
-                                                navController.popBackStack()
+                                                navController.navigateUp()
                                             } else {
                                                 Toast
                                                     .makeText(
@@ -198,7 +198,7 @@ fun LoginScreen(
                         Modifier.size(32.dp),
                         true,
                     ) {
-                        navController.popBackStack()
+                        navController.navigateUp()
                     }
                 }
             },
@@ -236,7 +236,7 @@ fun LoginScreen(
                                 R.string.login_success,
                                 Toast.LENGTH_SHORT,
                             ).show()
-                        navController.popBackStack()
+                        navController.navigateUp()
                     } else {
                         Toast
                             .makeText(

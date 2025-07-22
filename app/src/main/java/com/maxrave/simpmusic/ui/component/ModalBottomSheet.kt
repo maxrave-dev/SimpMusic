@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -127,10 +126,11 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.StateSource
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.FilterState
@@ -140,6 +140,8 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.moriatsushi.insetsx.systemBars
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -156,11 +158,23 @@ fun InfoPlayerBottomSheet(
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
     val windowInsets = WindowInsets.systemBars
+    var swipeEnabled by rememberSaveable { mutableStateOf(true) }
     val sheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
+            confirmValueChange = {
+                swipeEnabled
+            },
         )
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(true) {
+        snapshotFlow { scrollState.value }
+            .distinctUntilChanged()
+            .collectLatest {
+                swipeEnabled = scrollState.value == 0
+            }
+    }
 
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
@@ -1288,9 +1302,10 @@ fun NowPlayingBottomSheet(
         var selected by remember {
             mutableIntStateOf(
                 when (uiState.mainLyricsProvider) {
-                    DataStoreManager.MUSIXMATCH -> 0
-                    DataStoreManager.YOUTUBE -> 1
-                    DataStoreManager.LRCLIB -> 2
+                    DataStoreManager.SIMPMUSIC -> 0
+                    DataStoreManager.MUSIXMATCH -> 1
+                    DataStoreManager.YOUTUBE -> 2
+                    DataStoreManager.LRCLIB -> 3
                     else -> 0
                 },
             )
@@ -1311,7 +1326,10 @@ fun NowPlayingBottomSheet(
                         modifier =
                             Modifier
                                 .padding(horizontal = 4.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 0
+                                },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
@@ -1321,13 +1339,16 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(id = R.string.musixmatch), style = typo.labelSmall)
+                        Text(text = stringResource(id = R.string.simpmusic_lyrics), style = typo.labelSmall)
                     }
                     Row(
                         modifier =
                             Modifier
                                 .padding(horizontal = 4.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 1
+                                },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
@@ -1337,19 +1358,41 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(id = R.string.youtube_transcript), style = typo.labelSmall)
+                        Text(text = stringResource(id = R.string.musixmatch), style = typo.labelSmall)
                     }
                     Row(
                         modifier =
                             Modifier
                                 .padding(horizontal = 4.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 2
+                                },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
                             selected = selected == 2,
                             onClick = {
                                 selected = 2
+                            },
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(text = stringResource(id = R.string.youtube_transcript), style = typo.labelSmall)
+                    }
+                    Row(
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 4.dp)
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 3
+                                },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selected == 3,
+                            onClick = {
+                                selected = 3
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
@@ -1363,9 +1406,10 @@ fun NowPlayingBottomSheet(
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.ChangeLyricsProvider(
                                 when (selected) {
-                                    0 -> DataStoreManager.MUSIXMATCH
-                                    1 -> DataStoreManager.YOUTUBE
-                                    2 -> DataStoreManager.LRCLIB
+                                    0 -> DataStoreManager.SIMPMUSIC
+                                    1 -> DataStoreManager.MUSIXMATCH
+                                    2 -> DataStoreManager.YOUTUBE
+                                    3 -> DataStoreManager.LRCLIB
                                     else -> DataStoreManager.MUSIXMATCH
                                 },
                             ),
@@ -1579,12 +1623,13 @@ fun NowPlayingBottomSheet(
                         textString = uiState.songUIState.album?.name,
                         enable = uiState.songUIState.album != null,
                     ) {
-                        navController.navigateSafe(
-                            R.id.action_global_albumFragment,
-                            Bundle().apply {
-                                putString("browseId", uiState.songUIState.album?.id)
-                            },
-                        )
+                        uiState.songUIState.album?.id?.let { id ->
+                            navController.navigate(
+                                AlbumDestination(
+                                    browseId = id,
+                                ),
+                            )
+                        }
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_sensors_24),
@@ -2140,11 +2185,10 @@ fun ArtistModalBottomSheet(
                                         .fillMaxWidth()
                                         .clickable {
                                             if (!artist.id.isNullOrBlank()) {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_artistFragment,
-                                                    Bundle().apply {
-                                                        putString("channelId", artist.id)
-                                                    },
+                                                navController.navigate(
+                                                    ArtistDestination(
+                                                        artist.id,
+                                                    ),
                                                 )
                                             }
                                             hideModalBottomSheet()

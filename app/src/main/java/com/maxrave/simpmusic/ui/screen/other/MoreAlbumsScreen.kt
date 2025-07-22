@@ -32,17 +32,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toAlbumsResult
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.MoreAlbumsDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.MoreAlbumsUIState
 import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
@@ -71,10 +70,10 @@ fun MoreAlbumsScreen(
         if (id != null) {
             if (type != null) {
                 when (type) {
-                    "album" -> {
+                    MoreAlbumsDestination.ALBUM_TYPE -> {
                         viewModel.getAlbumMore(id)
                     }
-                    "single" -> {
+                    MoreAlbumsDestination.SINGLE_TYPE -> {
                         viewModel.getSingleMore(id)
                     }
                 }
@@ -110,10 +109,9 @@ fun MoreAlbumsScreen(
                         HomeItemContentPlaylist(
                             data = data,
                             onClick = {
-                                navController.navigateSafe(
-                                    R.id.action_global_albumFragment,
-                                    bundleOf(
-                                        "browseId" to album.id,
+                                navController.navigate(
+                                    AlbumDestination(
+                                        browseId = album.id,
                                     ),
                                 )
                             },
@@ -155,7 +153,7 @@ fun MoreAlbumsScreen(
                                     .size(32.dp),
                                 true,
                             ) {
-                                navController.popBackStack()
+                                navController.navigateUp()
                             }
                         }
                     },

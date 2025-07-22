@@ -35,15 +35,16 @@ import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.LocalResource
-import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -126,8 +127,6 @@ class SettingsViewModel(
     val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
     private var _blurPlayerBackground = MutableStateFlow(false)
     val blurPlayerBackground: StateFlow<Boolean> = _blurPlayerBackground
-    private var _fadeAudioEffect = MutableStateFlow(0)
-    val fadeAudioEffect: StateFlow<Int> = _fadeAudioEffect
     private val _aiProvider = MutableStateFlow<String>(DataStoreManager.AI_PROVIDER_OPENAI)
     val aiProvider: StateFlow<String> = _aiProvider
     private val _isHasApiKey = MutableStateFlow<Boolean>(false)
@@ -136,6 +135,17 @@ class SettingsViewModel(
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
+    private val _crossfadeEnabled = MutableStateFlow<Boolean>(false)
+    val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled
+    private val _crossfadeDuration = MutableStateFlow<Int>(5000)
+    val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
+    private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
+    val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
+
+    private var _helpBuildLyricsDatabase: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val helpBuildLyricsDatabase: StateFlow<Boolean> = _helpBuildLyricsDatabase
+    private var _contributor: MutableStateFlow<Pair<String, String>> = MutableStateFlow(Pair("", ""))
+    val contributor: StateFlow<Pair<String, String>> = _contributor
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -149,6 +159,15 @@ class SettingsViewModel(
             SettingsStorageSectionFraction(),
         )
     val fraction: StateFlow<SettingsStorageSectionFraction> = _fraction
+
+    // Biến để lưu trữ và hiển thị trạng thái killServiceOnExit
+    private var _killServiceOnExit: MutableStateFlow<String?> = MutableStateFlow(null)
+    val killServiceOnExit: StateFlow<String?> = _killServiceOnExit
+
+    init {
+        getYoutubeSubtitleLanguage()
+        getHelpBuildLyricsDatabase()
+    }
 
     fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
 
@@ -169,6 +188,7 @@ class SettingsViewModel(
         getSponsorBlockEnabled()
         getSponsorBlockCategories()
         getTranslationLanguage()
+        getYoutubeSubtitleLanguage()
         getLyricsProvider()
         getUseTranslation()
         getMusixmatchLoggedIn()
@@ -185,12 +205,40 @@ class SettingsViewModel(
         getAutoCheckUpdate()
         getBlurFullscreenLyrics()
         getBlurPlayerBackground()
-        getFadeDuration()
         getAIProvider()
         getAIApiKey()
         getAITranslation()
+        getCustomModelId()
+        getKillServiceOnExit()
+        getCrossfadeEnabled()
+        getCrossfadeDuration()
+        getContributorNameAndEmail()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getContributorNameAndEmail() {
+        viewModelScope.launch {
+            combine(dataStoreManager.contributorName, dataStoreManager.contributorEmail) { name, email ->
+                name to email
+            }.collect { contributor ->
+                _contributor.value = contributor
+            }
+        }
+    }
+
+    fun setContributorName(name: String) {
+        viewModelScope.launch {
+            dataStoreManager.setContributorLyricsDatabase(name to contributor.value.second)
+            getContributorNameAndEmail()
+        }
+    }
+
+    fun setContributorEmail(email: String) {
+        viewModelScope.launch {
+            dataStoreManager.setContributorLyricsDatabase(contributor.value.first to email)
+            getContributorNameAndEmail()
         }
     }
 
@@ -256,22 +304,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setAIApiKey(apiKey)
             getAIApiKey()
-        }
-    }
-
-    private fun getFadeDuration() {
-        viewModelScope.launch {
-            dataStoreManager.fadeVolume.collect { fadeAudioEffect ->
-                log("getFadeDuration: $fadeAudioEffect")
-                _fadeAudioEffect.value = fadeAudioEffect
-            }
-        }
-    }
-
-    fun setFadeDuration(fadeDuration: Int) {
-        viewModelScope.launch {
-            dataStoreManager.setFadeVolume(fadeDuration)
-            getFadeDuration()
         }
     }
 
@@ -532,21 +564,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setLyricsProvider(provider)
             getLyricsProvider()
-        }
-    }
-
-    fun checkForUpdate() {
-        viewModelScope.launch {
-            mainRepository.checkForUpdate().collect { response ->
-                dataStoreManager.putString(
-                    "CheckForUpdateAt",
-                    System.currentTimeMillis().toString(),
-                )
-                if (response?.tagName == String.format(getString(R.string.version_format), VersionManager.getVersionName())) {
-                    makeToast(getString(R.string.no_update))
-                }
-                _githubResponse.emit(response)
-            }
         }
     }
 
@@ -981,53 +998,65 @@ class SettingsViewModel(
     }
 
     suspend fun addAccount(cookie: String): Boolean {
+        val currentCookie = dataStoreManager.cookie.first()
+        val currentLoggedIn = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE
         try {
             runBlocking {
                 dataStoreManager.setCookie(cookie)
                 dataStoreManager.setLoggedIn(true)
             }
-            mainRepository
+            return mainRepository
                 .getAccountInfo(
                     cookie,
-                ).collect { accountInfo ->
+                ).lastOrNull()
+                ?.let { accountInfo ->
                     Log.d("getAllGoogleAccount", "addAccount: $accountInfo")
-                    if (accountInfo != null) {
-                        mainRepository.getGoogleAccounts().singleOrNull()?.forEach {
-                            Log.d("getAllGoogleAccount", "set used: $it start")
-                            mainRepository
-                                .updateGoogleAccountUsed(it.email, false)
-                                .singleOrNull()
-                                ?.let {
-                                    Log.w("getAllGoogleAccount", "set used: $it")
-                                }
-                        }
-                        dataStoreManager.putString("AccountName", accountInfo.name)
-                        dataStoreManager.putString(
-                            "AccountThumbUrl",
-                            accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                        )
+                    mainRepository.getGoogleAccounts().lastOrNull()?.forEach {
+                        Log.d("getAllGoogleAccount", "set used: $it start")
                         mainRepository
-                            .insertGoogleAccount(
-                                GoogleAccountEntity(
-                                    email = accountInfo.email,
-                                    name = accountInfo.name,
-                                    thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                                    cache = cookie,
-                                    isUsed = true,
-                                ),
-                            ).firstOrNull()
+                            .updateGoogleAccountUsed(it.email, false)
+                            .singleOrNull()
                             ?.let {
-                                log("addAccount: $it", Log.WARN)
+                                Log.w("getAllGoogleAccount", "set used: $it")
                             }
-                        dataStoreManager.setLoggedIn(true)
-                        dataStoreManager.setCookie(cookie)
-                        getAllGoogleAccount()
-                        getLoggedIn()
                     }
+                    dataStoreManager.putString("AccountName", accountInfo.name)
+                    dataStoreManager.putString(
+                        "AccountThumbUrl",
+                        accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                    )
+                    mainRepository
+                        .insertGoogleAccount(
+                            GoogleAccountEntity(
+                                email = accountInfo.email,
+                                name = accountInfo.name,
+                                thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                                cache = cookie,
+                                isUsed = true,
+                            ),
+                        ).firstOrNull()
+                        ?.let {
+                            log("addAccount: $it", Log.WARN)
+                        }
+                    dataStoreManager.setLoggedIn(true)
+                    dataStoreManager.setCookie(cookie)
+                    getAllGoogleAccount()
+                    getLoggedIn()
+                    true
+                } ?: run {
+                Log.w("getAllGoogleAccount", "addAccount: Account info is null")
+                runBlocking {
+                    dataStoreManager.setCookie(currentCookie)
+                    dataStoreManager.setLoggedIn(currentLoggedIn)
                 }
-            return true
+                false
+            }
         } catch (e: Exception) {
             Log.e("getAllGoogleAccount", "addAccount: ${e.message}", e)
+            runBlocking {
+                dataStoreManager.setCookie(currentCookie)
+                dataStoreManager.setLoggedIn(currentLoggedIn)
+            }
             return false
         }
     }
@@ -1189,6 +1218,83 @@ class SettingsViewModel(
             getHomeLimit()
         }
     }
+
+    // Lấy giá trị của killServiceOnExit từ DataStore
+    fun getKillServiceOnExit() {
+        viewModelScope.launch {
+            dataStoreManager.killServiceOnExit.collect { killServiceOnExit ->
+                _killServiceOnExit.emit(killServiceOnExit)
+            }
+        }
+    }
+
+    // Lưu giá trị killServiceOnExit vào DataStore
+    fun setKillServiceOnExit(kill: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setKillServiceOnExit(kill)
+            getKillServiceOnExit()
+        }
+    }
+
+    private fun getCrossfadeEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeEnabled.collect { crossfadeEnabled ->
+                _crossfadeEnabled.value = crossfadeEnabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeEnabled(crossfadeEnabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeEnabled(crossfadeEnabled)
+            getCrossfadeEnabled()
+        }
+    }
+
+    private fun getCrossfadeDuration() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeDuration.collect { duration ->
+                _crossfadeDuration.value = duration
+            }
+        }
+    }
+
+    fun setCrossfadeDuration(duration: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeDuration(duration)
+            getCrossfadeDuration()
+        }
+    }
+
+    fun getYoutubeSubtitleLanguage() {
+        viewModelScope.launch {
+            dataStoreManager.youtubeSubtitleLanguage.collect { language ->
+                _youtubeSubtitleLanguage.emit(language)
+            }
+        }
+    }
+
+    fun setYoutubeSubtitleLanguage(language: String) {
+        viewModelScope.launch {
+            dataStoreManager.setYoutubeSubtitleLanguage(language)
+            getYoutubeSubtitleLanguage()
+        }
+    }
+
+    fun getHelpBuildLyricsDatabase() {
+        viewModelScope.launch {
+            dataStoreManager.helpBuildLyricsDatabase.collect { helpBuildLyricsDatabase ->
+                _helpBuildLyricsDatabase.emit(helpBuildLyricsDatabase == DataStoreManager.TRUE)
+            }
+        }
+    }
+
+    fun setHelpBuildLyricsDatabase(help: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setHelpBuildLyricsDatabase(help)
+            getHelpBuildLyricsDatabase()
+        }
+    }
 }
 
 data class SettingsStorageSectionFraction(
@@ -1210,7 +1316,7 @@ data class SettingAlertState(
     val selectOne: SelectData? = null,
     val multipleSelect: SelectData? = null,
     val confirm: Pair<String, (SettingAlertState) -> Unit>,
-    val dismiss: String = "Cancel",
+    val dismiss: String,
 ) {
     data class TextFieldData(
         val label: String,
@@ -1233,5 +1339,5 @@ data class SettingBasicAlertState(
     val title: String,
     val message: String? = null,
     val confirm: Pair<String, () -> Unit>,
-    val dismiss: String = "Cancel",
+    val dismiss: String,
 )

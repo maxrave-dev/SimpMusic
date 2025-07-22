@@ -400,7 +400,6 @@
     <string name="buying_me_a_coffee">ме почерпите кафе.</string>
     <string name="fade_audio_effect">Постепенно намаляване на звука</string>
     <string name="disabled">Деактивиране</string>
-    <string name="fade_audio_effect_duration">Продължителност на постепенното намаляване на звука в милисекунди (Изберете 0 за да го спрете)</string>
     <string name="duration">Продължителност</string>
     <string name="invalid_number">Невалидно число</string>
     <string name="shuffle_not_available">Разбъркването не е налично</string>

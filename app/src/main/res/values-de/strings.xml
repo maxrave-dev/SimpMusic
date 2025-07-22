@@ -400,7 +400,6 @@
     <string name="buying_me_a_coffee">Mir einen Kaffee zu kaufen.</string>
     <string name="fade_audio_effect">Fade Audioeffekt</string>
     <string name="disabled">Deaktivieren</string>
-    <string name="fade_audio_effect_duration">Fade Audioeffekt Dauer (ms) (auf 0 setzen zum Deaktivieren)</string>
     <string name="duration">Dauer</string>
     <string name="invalid_number">Ungültige Zahl</string>
     <string name="shuffle_not_available">Shuffle Endpunkt ist nicht verfügbar</string>

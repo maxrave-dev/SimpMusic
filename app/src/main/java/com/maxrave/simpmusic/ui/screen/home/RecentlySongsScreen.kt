@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -33,7 +32,6 @@ import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
@@ -43,6 +41,9 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -130,9 +131,10 @@ fun RecentlySongsScreen(
                         PlaylistFullWidthItems(
                             data = item,
                             onClickListener = {
-                                navController.navigateSafe(
-                                    R.id.action_global_albumFragment,
-                                    bundleOf("browseId" to item.browseId),
+                                navController.navigate(
+                                    AlbumDestination(
+                                        item.browseId,
+                                    ),
                                 )
                             },
                             modifier = Modifier.animateItem(),
@@ -142,9 +144,10 @@ fun RecentlySongsScreen(
                         PlaylistFullWidthItems(
                             data = item,
                             onClickListener = {
-                                navController.navigateSafe(
-                                    R.id.action_global_playlistFragment,
-                                    bundleOf("id" to item.id),
+                                navController.navigate(
+                                    PlaylistDestination(
+                                        item.id,
+                                    ),
                                 )
                             },
                             modifier = Modifier.animateItem(),
@@ -154,9 +157,10 @@ fun RecentlySongsScreen(
                         ArtistFullWidthItems(
                             data = item,
                             onClickListener = {
-                                navController.navigateSafe(
-                                    R.id.action_global_artistFragment,
-                                    bundleOf("channelId" to item.channelId),
+                                navController.navigate(
+                                    ArtistDestination(
+                                        item.channelId,
+                                    ),
                                 )
                             },
                             modifier = Modifier.animateItem(),
@@ -218,7 +222,7 @@ fun RecentlySongsScreen(
                         Modifier.size(32.dp),
                         true,
                     ) {
-                        navController.popBackStack()
+                        navController.navigateUp()
                     }
                 }
             },

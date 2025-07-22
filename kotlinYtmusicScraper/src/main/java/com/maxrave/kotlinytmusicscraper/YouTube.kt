@@ -21,6 +21,7 @@ import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicCarouselShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
+import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.PoToken
 import com.maxrave.kotlinytmusicscraper.models.ReturnYouTubeDislikeResponse
@@ -1616,6 +1617,31 @@ class YouTube(
         }
     }
 
+    suspend fun nextYouTubePlaylists(continuation: String): Result<Pair<List<MusicTwoRowItemRenderer>, String?>> =
+        runCatching {
+            val response =
+                ytMusic
+                    .next(
+                        WEB_REMIX,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        continuation,
+                    ).body<BrowseResponse>()
+            Pair(
+                response
+                    .continuationContents
+                    ?.gridContinuation
+                    ?.items ?: emptyList(),
+                response.continuationContents
+                    ?.gridContinuation
+                    ?.continuations
+                    ?.getContinuation(),
+            )
+        }
+
     suspend fun next(
         endpoint: WatchEndpoint,
         continuation: String? = null,
@@ -1814,14 +1840,12 @@ class YouTube(
             null
         }
 
-    suspend fun accountInfo(): Result<AccountInfo?> =
+    suspend fun accountInfo(customCookie: String? = null): Result<AccountInfo?> =
         runCatching {
             ytMusic
-                .accountMenu(WEB_REMIX)
+                .accountMenu(customCookie, WEB_REMIX)
                 .apply {
-                    this.bodyAsText().let {
-                        println(it)
-                    }
+                    println(this.bodyAsText())
                 }.body<AccountMenuResponse>()
                 .actions[0]
                 .openPopupAction.popup.multiPageMenuRenderer.header
@@ -1884,9 +1908,12 @@ class YouTube(
             )
         }
 
-    suspend fun getYouTubeCaption(videoId: String) =
-        runCatching {
-            val ytWeb = ytMusic.player(WEB, videoId, null, null).body<YouTubeInitialPage>()
+    suspend fun getYouTubeCaption(
+        videoId: String,
+        preferLang: String,
+    ) = runCatching {
+        val ytWeb = ytMusic.player(WEB, videoId, null, null).body<YouTubeInitialPage>()
+        val baseCaption =
             ytMusic
                 .getYouTubeCaption(
                     ytWeb.captions?.playerCaptionsTracklistRenderer?.captionTracks?.firstOrNull()?.baseUrl?.replace(
@@ -1894,7 +1921,21 @@ class YouTube(
                         "",
                     ) ?: "",
                 ).body<Transcript>()
-        }
+        val translateCaption =
+            try {
+                ytMusic
+                    .getYouTubeCaption(
+                        "${ytWeb.captions?.playerCaptionsTracklistRenderer?.captionTracks?.firstOrNull()?.baseUrl?.replace(
+                            "&fmt=srv3",
+                            "",
+                        )}&tlang=$preferLang",
+                    ).body<Transcript>()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        return@runCatching baseCaption to translateCaption
+    }
 
     suspend fun scrapeYouTube(videoId: String) =
         runCatching {

@@ -404,7 +404,6 @@
     <string name="buying_me_a_coffee">bana bir kavhe ısmarla.</string>
     <string name="fade_audio_effect">Ses efektini soldur</string>
     <string name="disabled">Kapalı</string>
-    <string name="fade_audio_effect_duration">Azalma ses efekti süresi (ms) (Devre dışı bırakmak için 0 olarak ayarlayın)</string>
     <string name="duration">Süre</string>
     <string name="invalid_number">Geçersiz numara</string>
     <string name="shuffle_not_available">Shuffle uç noktası mevcut değil</string>

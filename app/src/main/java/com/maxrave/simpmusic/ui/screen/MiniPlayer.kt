@@ -84,12 +84,14 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 
 @Composable
 @UnstableApi
 fun MiniPlayer(
-    sharedViewModel: SharedViewModel,
+    modifier: Modifier,
+    sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
@@ -108,6 +110,10 @@ fun MiniPlayer(
     val (progress, setProgress) =
         remember {
             mutableFloatStateOf(0f)
+        }
+    val (isCrossfading, setIsCrossfading) =
+        remember {
+            mutableStateOf(false)
         }
 
     val coroutineScope = rememberCoroutineScope()
@@ -165,6 +171,7 @@ fun MiniPlayer(
                 sharedViewModel.controllerState.collectLatest { state ->
                     setLiked(state.isLiked)
                     setIsPlaying(state.isPlaying)
+                    setIsCrossfading(state.isCrossfading)
                 }
             }
         val job4 =
@@ -193,9 +200,8 @@ fun MiniPlayer(
                 containerColor = background.value,
             ),
         modifier =
-            Modifier
+            modifier
                 .clipToBounds()
-                .fillMaxHeight()
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .clickable(
                     onClick = onClick,

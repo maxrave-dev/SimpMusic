@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,24 +17,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.ui.theme.typo
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavController
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -53,11 +50,10 @@ fun MusixmatchLoginScreen(
     var deviceId by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
     LaunchedEffect(
-        debugInfo
+        debugInfo,
     ) {
         if (debugInfo.isNotEmpty()) {
-
-            val fullUserIdRegex = """\[UserId\]:\s*(mxm:[a-f0-9]+)""".toRegex()
+            val fullUserIdRegex = """\[UserId\]:\s*([a-zA-Z0-9]+:[a-f0-9]+)""".toRegex()
             val fullUserId = fullUserIdRegex.find(debugInfo)?.groupValues?.get(1)
 
             val userTokenRegex = """\[UserToken\]:\s*([a-f0-9]+)""".toRegex()
@@ -78,15 +74,16 @@ fun MusixmatchLoginScreen(
         }
     }
     Column(
-        Modifier.verticalScroll(
-            scrollState
-        ).padding(
-            innerPadding
-        ).padding(
-            horizontal = 16.dp
-        ).padding(
-            top = 64.dp
-        )
+        Modifier
+            .verticalScroll(
+                scrollState,
+            ).padding(
+                innerPadding,
+            ).padding(
+                horizontal = 16.dp,
+            ).padding(
+                top = 64.dp,
+            ),
     ) {
         Text("Follow this instruction below")
         Spacer(Modifier.size(5.dp))
@@ -118,9 +115,10 @@ fun MusixmatchLoginScreen(
                 debugInfo = it
             },
             maxLines = 3,
-            textStyle = typo.bodySmall.copy(
-                color = Color.White
-            ),
+            textStyle =
+                typo.bodySmall.copy(
+                    color = Color.White,
+                ),
             supportingText = {
                 if (debugInfo.isNotEmpty() && userToken.isEmpty() && userId.isEmpty()) {
                     Text(
@@ -128,27 +126,27 @@ fun MusixmatchLoginScreen(
                         style = typo.bodySmall,
                     )
                 }
-            }
+            },
         )
         Spacer(Modifier.size(5.dp))
         Crossfade(
-            (userId.isNotEmpty() && userToken.isNotEmpty() && deviceId.isNotEmpty())
+            (userId.isNotEmpty() && userToken.isNotEmpty() && deviceId.isNotEmpty()),
         ) {
             if (it) {
                 Column {
                     Text(
                         "Your userId: $userId",
-                        style = typo.labelSmall
+                        style = typo.labelSmall,
                     )
                     Spacer(Modifier.size(5.dp))
                     Text(
                         "Your userToken: $userToken",
-                        style = typo.labelSmall
+                        style = typo.labelSmall,
                     )
                     Spacer(Modifier.size(5.dp))
                     Text(
                         "Your deviceId: $deviceId",
-                        style = typo.labelSmall
+                        style = typo.labelSmall,
                     )
                 }
             }
@@ -163,11 +161,11 @@ fun MusixmatchLoginScreen(
                     userToken = userToken,
                     deviceId = deviceId,
                 )
-                navController.popBackStack()
-            }
+                navController.navigateUp()
+            },
         ) {
             Text(
-                stringResource(R.string.save)
+                stringResource(R.string.save),
             )
         }
         EndOfPage()
@@ -181,13 +179,13 @@ fun MusixmatchLoginScreen(
         },
         navigationIcon = {
             IconButton(
-                onClick = { navController.popBackStack() }
+                onClick = { navController.navigateUp() },
             ) {
                 Icon(
                     Icons.Filled.ArrowBackIosNew,
                     "Back",
                 )
             }
-        }
+        },
     )
 }

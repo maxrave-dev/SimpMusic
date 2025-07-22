@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.os.Bundle
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -66,9 +65,13 @@ import com.maxrave.simpmusic.data.type.LibraryType
 import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.data.type.RecentlyType
 import com.maxrave.simpmusic.extension.connectArtists
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.QueueData
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import kotlinx.coroutines.launch
@@ -209,11 +212,10 @@ fun LibraryItem(
                                                 ArtistFullWidthItems(
                                                     data = item as? ArtistEntity ?: return@forEach,
                                                     onClickListener = {
-                                                        navController.navigateSafe(
-                                                            R.id.action_global_artistFragment,
-                                                            Bundle().apply {
-                                                                putString("channelId", item.channelId)
-                                                            },
+                                                        navController.navigate(
+                                                            ArtistDestination(
+                                                                channelId = item.channelId,
+                                                            ),
                                                         )
                                                     },
                                                 )
@@ -225,27 +227,24 @@ fun LibraryItem(
                                                         onClickListener = {
                                                             when (item) {
                                                                 is AlbumEntity -> {
-                                                                    navController.navigateSafe(
-                                                                        R.id.action_global_albumFragment,
-                                                                        Bundle().apply {
-                                                                            putString("browseId", item.browseId)
-                                                                        },
+                                                                    navController.navigate(
+                                                                        AlbumDestination(
+                                                                            item.browseId,
+                                                                        ),
                                                                     )
                                                                 }
                                                                 is PlaylistEntity -> {
-                                                                    navController.navigateSafe(
-                                                                        R.id.action_global_playlistFragment,
-                                                                        Bundle().apply {
-                                                                            putString("id", item.id)
-                                                                        },
+                                                                    navController.navigate(
+                                                                        PlaylistDestination(
+                                                                            item.id,
+                                                                        ),
                                                                     )
                                                                 }
                                                                 is PodcastsEntity -> {
-                                                                    navController.navigateSafe(
-                                                                        R.id.action_global_podcastFragment,
-                                                                        Bundle().apply {
-                                                                            putString("id", item.podcastId)
-                                                                        },
+                                                                    navController.navigate(
+                                                                        PodcastDestination(
+                                                                            podcastId = item.podcastId,
+                                                                        ),
                                                                     )
                                                                 }
                                                             }
@@ -367,44 +366,39 @@ fun LibraryItem(
                                                     onClick = {
                                                         when (item) {
                                                             is LocalPlaylistEntity -> {
-                                                                navController.navigateSafe(
-                                                                    R.id.action_bottom_navigation_item_library_to_localPlaylistFragment,
-                                                                    Bundle().apply {
-                                                                        putLong("id", item.id)
-                                                                    },
+                                                                navController.navigate(
+                                                                    LocalPlaylistDestination(
+                                                                        item.id,
+                                                                    ),
                                                                 )
                                                             }
                                                             is PlaylistsResult -> {
-                                                                navController.navigateSafe(
-                                                                    R.id.action_global_playlistFragment,
-                                                                    Bundle().apply {
-                                                                        putString("id", item.browseId)
-                                                                        putBoolean("youtube", true)
-                                                                    },
+                                                                navController.navigate(
+                                                                    PlaylistDestination(
+                                                                        item.browseId,
+                                                                        isYourYouTubePlaylist = true,
+                                                                    ),
                                                                 )
                                                             }
                                                             is AlbumEntity -> {
-                                                                navController.navigateSafe(
-                                                                    R.id.action_global_albumFragment,
-                                                                    Bundle().apply {
-                                                                        putString("browseId", item.browseId)
-                                                                    },
+                                                                navController.navigate(
+                                                                    AlbumDestination(
+                                                                        item.browseId,
+                                                                    ),
                                                                 )
                                                             }
                                                             is PlaylistEntity -> {
-                                                                navController.navigateSafe(
-                                                                    R.id.action_global_playlistFragment,
-                                                                    Bundle().apply {
-                                                                        putString("id", item.id)
-                                                                    },
+                                                                navController.navigate(
+                                                                    PlaylistDestination(
+                                                                        item.id,
+                                                                    ),
                                                                 )
                                                             }
                                                             is PodcastsEntity -> {
-                                                                navController.navigateSafe(
-                                                                    R.id.action_global_podcastFragment,
-                                                                    Bundle().apply {
-                                                                        putString("id", item.podcastId)
-                                                                    },
+                                                                navController.navigate(
+                                                                    PodcastDestination(
+                                                                        podcastId = item.podcastId,
+                                                                    ),
                                                                 )
                                                             }
                                                         }
