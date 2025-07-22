@@ -677,6 +677,7 @@ class SimpleMediaServiceHandler(
         mediaItem: MediaItem,
         playWhenReady: Boolean = true,
     ) {
+        _stateFlow.value = StateSource.STATE_CREATED
         player.clearMediaItems()
         player.setMediaItem(mediaItem)
         player.prepare()
