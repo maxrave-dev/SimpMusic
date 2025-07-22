@@ -380,6 +380,9 @@ class MainActivity : ComponentActivity() {
                             showNavBar = {
                                 isNavBarVisible = true
                             },
+                            showNowPlayingSheet = {
+                                isShowNowPlaylistScreen = true
+                            },
                         )
 
                         if (isShowNowPlaylistScreen) {

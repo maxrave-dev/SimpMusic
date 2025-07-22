@@ -31,6 +31,7 @@ fun AppNavigationGraph(
     startDestination: Any = HomeDestination,
     hideNavBar: () -> Unit = { },
     showNavBar: (shouldShowNowPlayingSheet: Boolean) -> Unit = { },
+    showNowPlayingSheet: () -> Unit = {},
 ) {
     NavHost(
         navController,
@@ -69,7 +70,10 @@ fun AppNavigationGraph(
             FullscreenPlayer(
                 navController,
                 hideNavBar = hideNavBar,
-                showNavBar = { showNavBar.invoke(true) },
+                showNavBar = {
+                    showNavBar.invoke(true)
+                    showNowPlayingSheet.invoke()
+                },
             )
         }
         // Home screen graph
