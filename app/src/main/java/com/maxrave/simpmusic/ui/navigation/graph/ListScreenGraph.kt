@@ -55,6 +55,7 @@ fun NavGraphBuilder.listScreenGraph(
             innerPadding = innerPadding,
             navController = navController,
             type = data.type,
+            id = data.id,
         )
     }
     composable<PlaylistDestination> { entry ->
