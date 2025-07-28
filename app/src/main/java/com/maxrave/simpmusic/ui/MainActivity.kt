@@ -49,6 +49,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
@@ -326,6 +327,14 @@ class MainActivity : ComponentActivity() {
                     response.tagName != getString(R.string.version_format, VersionManager.getVersionName())
                 ) {
                     shouldShowUpdateDialog = true
+                }
+            }
+
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            LaunchedEffect(navBackStackEntry) {
+                Log.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
+                if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
+                    isShowNowPlaylistScreen = false
                 }
             }
 

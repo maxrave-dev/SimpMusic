@@ -143,6 +143,7 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
+import com.maxrave.simpmusic.ui.component.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
@@ -785,9 +786,15 @@ fun NowPlayingScreen(
                                         ) {
                                             // Player
                                             Box(Modifier.fillMaxSize()) {
-                                                MediaPlayerView(
+                                                MediaPlayerViewWithSubtitle(
                                                     player = koinInject(named(MAIN_PLAYER)),
                                                     modifier = Modifier.align(Alignment.Center),
+                                                    shouldShowSubtitle = true,
+                                                    shouldPip = false,
+                                                    shouldScaleDownSubtitle = true,
+                                                    timelineState = timelineState,
+                                                    lyricsData = screenDataState.lyricsData?.lyrics,
+                                                    translatedLyricsData = screenDataState.lyricsData?.translatedLyrics,
                                                 )
                                             }
                                             Box(
@@ -1838,7 +1845,7 @@ fun NowPlayingScreen(
                                     )
                                     LazyRow(verticalAlignment = Alignment.CenterVertically) {
                                         item {
-                                            androidx.compose.animation.AnimatedVisibility(visible = screenDataState.isExplicit) {
+                                            AnimatedVisibility(visible = screenDataState.isExplicit) {
                                                 ExplicitBadge(
                                                     modifier =
                                                         Modifier

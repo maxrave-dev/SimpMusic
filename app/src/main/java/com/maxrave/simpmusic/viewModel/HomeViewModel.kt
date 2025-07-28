@@ -60,8 +60,8 @@ class HomeViewModel(
     val newRelease: StateFlow<ArrayList<HomeItem>> = _newRelease
     var regionCodeChart: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    val loading = MutableStateFlow<Boolean>(false)
-    val loadingChart = MutableStateFlow<Boolean>(false)
+    val loading = MutableStateFlow<Boolean>(true)
+    val loadingChart = MutableStateFlow<Boolean>(true)
     private var regionCode: String = ""
     private var language: String = ""
 
