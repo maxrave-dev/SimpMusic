@@ -912,6 +912,16 @@ class SharedViewModel(
                             }
                         }
                     }
+                    if (lyricsProvider != LyricsProvider.AI) {
+                        viewModelScope.launch {
+                            nowPlayingScreenData.value.lyricsData?.lyrics?.let {
+                                getAITranslationLyrics(
+                                    videoId,
+                                    it
+                                )
+                            }
+                        }
+                    }
                     return
                 }
             }
@@ -1363,6 +1373,7 @@ class SharedViewModel(
                                         0,
                                         data,
                                         true,
+                                        LyricsProvider.AI,
                                     )
                                 }
                             }
@@ -1635,6 +1646,7 @@ enum class LyricsProvider {
     YOUTUBE,
     SPOTIFY,
     LRCLIB,
+    AI,
     OFFLINE,
 }
 
