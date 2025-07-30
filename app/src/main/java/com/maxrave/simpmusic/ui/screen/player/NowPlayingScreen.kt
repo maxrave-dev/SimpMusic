@@ -130,6 +130,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
+import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -464,6 +465,9 @@ fun NowPlayingScreen(
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         shape = RectangleShape,
     ) {
+        if (screenDataState.lyricsData != null && controllerState.isPlaying) {
+            KeepScreenOn()
+        }
         Box {
             if (blurBg && screenDataState.canvasData == null) {
                 AsyncImage(

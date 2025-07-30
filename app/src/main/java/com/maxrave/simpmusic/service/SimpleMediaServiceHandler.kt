@@ -1030,9 +1030,11 @@ class SimpleMediaServiceHandler(
                 while (true) {
                     delay(100)
                     _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
-                    val minusData = (player.duration - player.currentPosition - crossfadeData.value.second - 1000L) // GAP 1 second for preloading
+                    val minusData = (player.duration - player.currentPosition - crossfadeData.value.second - 3000L) // GAP 1 second for preloading
                     val shouldCrossfade = minusData <= 0
-                    if (crossfadeData.value.first && player.isPlaying && player.duration > 0L && player.currentMediaItem?.isVideo() == false) {
+                    if (crossfadeData.value.first && player.isPlaying && player.duration > 0L && player.currentMediaItem?.isVideo() == false &&
+                        player.mediaItemCount > 1
+                    ) {
                         if (shouldCrossfade && !isCrossfading) {
                             Log.w(TAG, "Crossfade start")
                             isCrossfading = true
@@ -1059,7 +1061,7 @@ class SimpleMediaServiceHandler(
         secondaryPlayer.volume = 0f
         secondaryPlayer.playWhenReady = true
         secondaryPlayer.seekTo(player.currentPosition)
-        delay(1000L)
+        delay(3000L)
         secondaryPlayer.volume = 1f
         player.volume = 0f
         player.seekToNext()
