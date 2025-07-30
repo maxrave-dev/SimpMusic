@@ -56,9 +56,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
+import androidx.core.app.PictureInPictureModeChangedInfo
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.util.Consumer
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
@@ -533,10 +535,19 @@ fun adaptiveIconPainterResource(
     }
 }
 
-@RequiresOptIn(
-    level = RequiresOptIn.Level.WARNING,
-    message = "This will be migrate to Compose. I use this to mark which fragment need to be migrate to Compose",
-)
-@Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class IntermediaryMigrateApi
+@Composable
+fun rememberIsInPipMode(): Boolean {
+    val activity = LocalContext.current.findActivity()
+    var pipMode by remember { mutableStateOf(activity.isInPictureInPictureMode) }
+    DisposableEffect(activity) {
+        val observer =
+            Consumer<PictureInPictureModeChangedInfo> { info ->
+                pipMode = info.isInPictureInPictureMode
+            }
+        activity.addOnPictureInPictureModeChangedListener(
+            observer,
+        )
+        onDispose { activity.removeOnPictureInPictureModeChangedListener(observer) }
+    }
+    return pipMode
+}
