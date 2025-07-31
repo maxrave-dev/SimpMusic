@@ -146,8 +146,10 @@ val mediaServiceModule =
         single<ExoPlayer>(createdAtStart = true, qualifier = named(MAIN_PLAYER)) {
             ExoPlayer
                 .Builder(androidContext())
-                .setAudioAttributes(get(), false)
-                .setWakeMode(C.WAKE_MODE_NETWORK)
+                .setAudioAttributes(get(), true)
+                .setLoadControl(
+                    provideLoadControl(),
+                ).setWakeMode(C.WAKE_MODE_NETWORK)
                 .setHandleAudioBecomingNoisy(true)
                 .setSeekForwardIncrementMs(5000)
                 .setSeekBackIncrementMs(5000)
@@ -164,6 +166,7 @@ val mediaServiceModule =
         single<ExoPlayer>(createdAtStart = true, qualifier = named(SECONDARY_PLAYER)) {
             ExoPlayer
                 .Builder(androidContext())
+                .setAudioAttributes(get(), false)
                 .setLoadControl(
                     provideLoadControl(),
                 ).setWakeMode(C.WAKE_MODE_NETWORK)
@@ -444,8 +447,8 @@ private fun provideLoadControl(): LoadControl =
     DefaultLoadControl
         .Builder()
         .setBufferDurationsMs(
-            DEFAULT_MIN_BUFFER_MS,
-            DEFAULT_MAX_BUFFER_MS,
+            DEFAULT_MIN_BUFFER_MS * 4,
+            DEFAULT_MAX_BUFFER_MS * 4,
             // bufferForPlaybackMs=
             0,
             // bufferForPlaybackAfterRebufferMs=
