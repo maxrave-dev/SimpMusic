@@ -477,7 +477,11 @@ object MEDIA_NOTIFICATION {
 
 const val SETTINGS_FILENAME = "settings"
 
+const val DOWNLOAD_EXOPLAYER_FOLDER = "download"
+
 const val DB_NAME = "Music Database"
+
+const val EXOPLAYER_DB_NAME = "exoplayer_internal.db"
 
 const val FIRST_TIME_MIGRATION = "first_time_migration"
 const val SELECTED_LANGUAGE = "selected_language"

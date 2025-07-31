@@ -95,6 +95,12 @@ android {
         }
     }
 
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
     flavorDimensions += "app"
 
     productFlavors {
