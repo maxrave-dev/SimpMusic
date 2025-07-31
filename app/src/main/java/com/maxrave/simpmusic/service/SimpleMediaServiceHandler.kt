@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.service
 
 import android.animation.Animator
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -11,7 +10,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.media3.common.C
@@ -92,7 +90,6 @@ import kotlin.math.pow
 @UnstableApi
 class SimpleMediaServiceHandler(
     val player: ExoPlayer,
-    val secondaryPlayer: ExoPlayer,
     mediaSessionCallback: SimpleMediaSessionCallback,
     private val dataStoreManager: DataStoreManager,
     private val mainRepository: MainRepository,
@@ -238,27 +235,6 @@ class SimpleMediaServiceHandler(
             toggleRadio = ::toggleRadio
         }
         mayBeRestoreQueue()
-        secondaryPlayer.addListener(
-            object : Player.Listener {
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    super.onPlaybackStateChanged(playbackState)
-                    val playbackStateString =
-                        when (playbackState) {
-                            Player.STATE_IDLE -> "IDLE"
-                            Player.STATE_BUFFERING -> "BUFFERING"
-                            Player.STATE_READY -> "READY"
-                            Player.STATE_ENDED -> "ENDED"
-                            else -> "UNKNOWN"
-                        }
-                    Log.w(TAG, "Secondary Player Playback State Changed: $playbackStateString")
-                }
-
-                override fun onPlayerError(error: PlaybackException) {
-                    super.onPlayerError(error)
-                    Log.e(TAG, "Secondary Player Error: ${error.message}")
-                }
-            },
-        )
         coroutineScope.launch {
             val skipSegmentsJob =
                 launch {
@@ -719,7 +695,7 @@ class SimpleMediaServiceHandler(
         player.seekTo(index, 0)
         player.prepare()
         player.playWhenReady = true
-        mayBePrepareCrossfadeTrack(player.currentMediaItem)
+//        mayBePrepareCrossfadeTrack(player.currentMediaItem)
     }
 
     fun currentSongIndex(): Int = player.currentMediaItemIndex
@@ -1030,54 +1006,8 @@ class SimpleMediaServiceHandler(
                 while (true) {
                     delay(100)
                     _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
-                    val minusData = (player.duration - player.currentPosition - crossfadeData.value.second - 3000L) // GAP 1 second for preloading
-                    val shouldCrossfade = minusData <= 0
-                    if (crossfadeData.value.first && player.isPlaying && player.duration > 0L && player.currentMediaItem?.isVideo() == false &&
-                        player.mediaItemCount > 1
-                    ) {
-                        if (shouldCrossfade && !isCrossfading) {
-                            Log.w(TAG, "Crossfade start")
-                            isCrossfading = true
-                            _controlState.update {
-                                it.copy(
-                                    isCrossfading = true,
-                                )
-                            }
-                            coroutineScope.launch {
-                                startCrossfade()
-                            }
-                        } else if (!isPreparedCrossfadePlayer) {
-                            Log.w(TAG, "Crossfade prepare track ${player.currentMediaItem?.mediaMetadata?.title}")
-                            isPreparedCrossfadePlayer = true
-                            mayBePrepareCrossfadeTrack(player.currentMediaItem)
-                        }
-                    }
                 }
             }
-    }
-
-    private suspend fun startCrossfade() {
-        val duration = crossfadeData.value.second
-        secondaryPlayer.volume = 0f
-        secondaryPlayer.playWhenReady = true
-        secondaryPlayer.seekTo(player.currentPosition)
-        delay(3000L)
-        secondaryPlayer.volume = 1f
-        player.volume = 0f
-        player.seekToNext()
-        crossFadeAnimator =
-            ValueAnimator.ofFloat(0f, 1f).apply {
-                this.duration = duration.toLong()
-                addUpdateListener { animation: ValueAnimator ->
-                    player.volume = animation.animatedValue as Float
-                    secondaryPlayer.volume = 1 - animation.animatedValue as Float
-                }
-                doOnEnd {
-                    resetCrossfade()
-                    Log.w(TAG, "Crossfade end")
-                }
-            }
-        crossFadeAnimator?.start()
     }
 
     private fun startBufferedUpdate() {
@@ -1089,20 +1019,6 @@ class SimpleMediaServiceHandler(
                         SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
                 }
             }
-    }
-
-    private fun mayBePrepareCrossfadeTrack(mediaItem: MediaItem?) {
-        if (crossfadeData.value.first && mediaItem != null && mediaItem != EMPTY) {
-            secondaryPlayer.setMediaItem(mediaItem)
-            secondaryPlayer.prepare()
-            // Gap 3 second to avoid loading state
-            secondaryPlayer.seekTo(player.duration - crossfadeData.value.second.toLong() - 3000L)
-            secondaryPlayer.playWhenReady = false
-            secondaryPlayer.volume = 1f
-            isPreparedCrossfadePlayer = true
-            Log.w(TAG, "Crossfade prepared track ${mediaItem.mediaMetadata.title}")
-            mayBeNormalizeSecondPlayer()
-        }
     }
 
     fun shufflePlaylist(randomTrackIndex: Int = 0) {
@@ -1350,71 +1266,6 @@ class SimpleMediaServiceHandler(
             startBufferedUpdate()
         } else {
             stopBufferedUpdate()
-        }
-    }
-
-    private fun mayBeNormalizeSecondPlayer() {
-        runBlocking {
-            normalizeVolume = dataStoreManager.normalizeVolume.first() == TRUE
-        }
-        if (!normalizeVolume) {
-            secondLoudnessEnhancer?.enabled = false
-            secondLoudnessEnhancer?.release()
-            secondLoudnessEnhancer = null
-            volumeNormalizationForSecondPlayerJob?.cancel()
-            return
-        }
-        Log.d(TAG, "mayBeNormalizeSecondPlayer: audioSessionId ${secondaryPlayer.audioSessionId}")
-
-        if (secondLoudnessEnhancer == null && secondaryPlayer.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
-            try {
-                secondLoudnessEnhancer = LoudnessEnhancer(secondaryPlayer.audioSessionId)
-            } catch (e: Exception) {
-                Log.e(TAG, "mayBeNormalizeSecondPlayer: ${e.message}")
-                e.printStackTrace()
-            }
-        }
-
-        player.currentMediaItem?.mediaId?.let { songId ->
-            val videoId =
-                if (songId.contains("Video")) {
-                    songId.removePrefix("Video")
-                } else {
-                    songId
-                }
-            volumeNormalizationForSecondPlayerJob?.cancel()
-            volumeNormalizationForSecondPlayerJob =
-                coroutineScope.launch(Dispatchers.Main) {
-                    fun Float?.toMb() = ((this ?: 0f) * 100).toInt()
-                    mainRepository
-                        .getFormatFlow(videoId)
-                        .cancellable()
-                        .distinctUntilChanged()
-                        .collectLatest { format ->
-                            if (format != null) {
-                                val loudnessMb =
-                                    format.loudnessDb.toMb().let {
-                                        if (it !in -2000..2000) {
-                                            0
-                                        } else {
-                                            it
-                                        }
-                                    }
-                                Log.d(TAG, "Loudness: ${format.loudnessDb} db, $loudnessMb")
-                                try {
-                                    secondLoudnessEnhancer?.setTargetGain(0f.toMb() - loudnessMb)
-                                    secondLoudnessEnhancer?.enabled = true
-                                    Log.w(
-                                        TAG,
-                                        "mayBeNormalizeSecondPlayer: ${secondLoudnessEnhancer?.targetGain}",
-                                    )
-                                } catch (e: Exception) {
-                                    Log.e(TAG, "mayBeNormalizeSecondPlayer: ${e.message}")
-                                    e.printStackTrace()
-                                }
-                            }
-                        }
-                }
         }
     }
 
@@ -1675,8 +1526,6 @@ class SimpleMediaServiceHandler(
     fun release() {
         mayBeSaveRecentSong(true)
         mayBeSavePlaybackState()
-        secondaryPlayer.stop()
-        secondaryPlayer.release()
         player.stop()
         player.playWhenReady = false
         player.removeListener(this)

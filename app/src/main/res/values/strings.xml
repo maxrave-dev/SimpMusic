@@ -457,4 +457,8 @@
     <string name="anonymous">Anonymous</string>
     <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
     <string name="lyrics_provider_simpmusic">Lyrics provided by SimpMusic Lyrics</string>
+    <string name="backup_in_progress">Backup in progress</string>
+    <string name="restore_in_progress">Restore in progress</string>
+    <string name="backup_downloaded">Backup downloaded data</string>
+    <string name="backup_downloaded_description">Backup all downloaded songs\'s data</string>
 </resources>

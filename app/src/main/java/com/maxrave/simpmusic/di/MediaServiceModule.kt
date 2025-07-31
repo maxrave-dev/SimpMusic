@@ -29,6 +29,7 @@ import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.preload.DefaultPreloadManager
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
@@ -162,30 +163,7 @@ val mediaServiceModule =
                     it.addAnalyticsListener(EventLogger())
                 }
         }
-        // Secondary ExoPlayer for crossfade
-        single<ExoPlayer>(createdAtStart = true, qualifier = named(SECONDARY_PLAYER)) {
-            ExoPlayer
-                .Builder(androidContext())
-                .setAudioAttributes(get(), false)
-                .setLoadControl(
-                    provideLoadControl(),
-                ).setWakeMode(C.WAKE_MODE_NETWORK)
-                .setHandleAudioBecomingNoisy(true)
-                .setSeekForwardIncrementMs(5000)
-                .setSeekBackIncrementMs(5000)
-                .setMediaSourceFactory(
-                    get<MergingMediaSourceFactory>(),
-                ).setRenderersFactory(
-                    get<DefaultRenderersFactory>(),
-                ).build()
-                .also {
-                    it.addAnalyticsListener(EventLogger())
-                    it.preloadConfiguration =
-                        ExoPlayer.PreloadConfiguration(
-                            10 * 60 * 1000L, // Preload for 10 minutes
-                        )
-                }
-        }
+
         // CoilBitmapLoader
         single<CoilBitmapLoader>(createdAtStart = true) {
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
@@ -202,7 +180,6 @@ val mediaServiceModule =
         single<SimpleMediaServiceHandler>(createdAtStart = true) {
             SimpleMediaServiceHandler(
                 player = get<ExoPlayer>(named(MAIN_PLAYER)),
-                secondaryPlayer = get<ExoPlayer>(named(SECONDARY_PLAYER)),
                 dataStoreManager = get(),
                 mainRepository = get(),
                 mediaSessionCallback = get(),
@@ -453,7 +430,4 @@ private fun provideLoadControl(): LoadControl =
             0,
             // bufferForPlaybackAfterRebufferMs=
             0,
-        ).setBackBuffer(
-            60 * 1000,
-            true,
         ).build()

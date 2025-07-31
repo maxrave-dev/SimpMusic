@@ -1020,6 +1020,70 @@ class DataStoreManager(
         }
     }
 
+    val helpBuildLyricsDatabase: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[HELP_BUILD_LYRICS_DATABASE] ?: FALSE
+        }
+
+    suspend fun setHelpBuildLyricsDatabase(help: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (help) {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
+                }
+            }
+        }
+    }
+
+    val contributorName: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_NAME] ?: ""
+        }
+
+    val contributorEmail: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_EMAIL] ?: ""
+        }
+
+    suspend fun setContributorLyricsDatabase(
+        contributor: Pair<String, String>?, // contributor name and email, null if anonymous
+    ) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                if (contributor == null) {
+                    settings[CONTRIBUTOR_NAME] = ""
+                    settings[CONTRIBUTOR_EMAIL] = ""
+                } else {
+                    settings[CONTRIBUTOR_NAME] = contributor.first
+                    settings[CONTRIBUTOR_EMAIL] = contributor.second
+                }
+            }
+        }
+    }
+
+    val backupDownloaded: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[BACKUP_DOWNLOADED] ?: FALSE
+        }
+
+    suspend fun setBackupDownloaded(backupDownloaded: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (backupDownloaded) {
+                settingsDataStore.edit { settings ->
+                    settings[BACKUP_DOWNLOADED] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[BACKUP_DOWNLOADED] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -1106,55 +1170,12 @@ class DataStoreManager(
         val CONTRIBUTOR_NAME = stringPreferencesKey("contributor_name")
         val CONTRIBUTOR_EMAIL = stringPreferencesKey("contributor_email")
 
+        val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")
+
         // Proxy type
         enum class ProxyType {
             PROXY_TYPE_HTTP,
             PROXY_TYPE_SOCKS,
-        }
-    }
-
-    val helpBuildLyricsDatabase: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[HELP_BUILD_LYRICS_DATABASE] ?: FALSE
-        }
-
-    suspend fun setHelpBuildLyricsDatabase(help: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (help) {
-                settingsDataStore.edit { settings ->
-                    settings[HELP_BUILD_LYRICS_DATABASE] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
-                }
-            }
-        }
-    }
-
-    val contributorName: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[CONTRIBUTOR_NAME] ?: ""
-        }
-
-    val contributorEmail: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[CONTRIBUTOR_EMAIL] ?: ""
-        }
-
-    suspend fun setContributorLyricsDatabase(
-        contributor: Pair<String, String>?, // contributor name and email, null if anonymous
-    ) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                if (contributor == null) {
-                    settings[CONTRIBUTOR_NAME] = ""
-                    settings[CONTRIBUTOR_EMAIL] = ""
-                } else {
-                    settings[CONTRIBUTOR_NAME] = contributor.first
-                    settings[CONTRIBUTOR_EMAIL] = contributor.second
-                }
-            }
         }
     }
 }

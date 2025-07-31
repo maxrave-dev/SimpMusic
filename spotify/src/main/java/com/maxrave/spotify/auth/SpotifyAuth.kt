@@ -14,12 +14,36 @@ import kotlinx.serialization.json.longOrNull
 class SpotifyAuth(
     private val spotifyClient: SpotifyClient,
 ) {
+    var totpSecret: Pair<Int, List<Int>>? = null
+
+    suspend fun getTotpSecret(): Result<Boolean> =
+        runCatching {
+            val response = spotifyClient.getSpotifyLastestTotpSecret().body<Map<String, List<Int>>>()
+            if (response.isNotEmpty()) {
+                val latestDict = response.entries.last()
+                val firstKey = latestDict.key.toInt()
+                totpSecret = Pair(
+                    firstKey,
+                    latestDict.value
+                )
+                return@runCatching true
+            } else false
+        }
+
     /**
      * Refresh Spotify token using the new TOTP-based authentication
      * This is more reliable than the standard token method
      */
     suspend fun refreshToken(spDc: String): Result<PersonalTokenResponse> =
         runCatching {
+            if (totpSecret == null) {
+                // Fetch the latest TOTP secret if not already fetched
+                getTotpSecret().onSuccess {
+                    println("Fetched TOTP secret successfully: $totpSecret")
+                }.onFailure {
+                    println("Failed to fetch TOTP secret: ${it.message}")
+                }
+            }
             // Get server time from Spotify
             val serverTimeResponse = spotifyClient.getSpotifyServerTime(spDc)
             val serverTimeJson = Json.parseToJsonElement(serverTimeResponse.body<String>()).jsonObject
@@ -29,7 +53,7 @@ class SpotifyAuth(
             println("Server time: $serverTime")
 
             // Generate TOTP secret and OTP value
-            val otpValue = SpotifyTotp.at(serverTime * 1000L)
+            val otpValue = SpotifyTotp.at(serverTime * 1000L, totpSecret ?: SpotifyTotp.TOTP_SECRET_V22)
             println("Generated OTP: $otpValue")
 
             val sTime = "$serverTime"
@@ -44,6 +68,7 @@ class SpotifyAuth(
                         reason = "transport",
                         sTime = sTime,
                         cTime = cTime,
+                        totpVersion = totpSecret?.first ?: SpotifyTotp.TOTP_SECRET_V22.first,
                     )
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -68,6 +93,7 @@ class SpotifyAuth(
                         reason = "init",
                         sTime = sTime,
                         cTime = cTime,
+                        totpVersion = totpSecret?.first ?: SpotifyTotp.TOTP_SECRET_V22.first,
                     )
                 tokenData = response.body<PersonalTokenResponse>()
             }
