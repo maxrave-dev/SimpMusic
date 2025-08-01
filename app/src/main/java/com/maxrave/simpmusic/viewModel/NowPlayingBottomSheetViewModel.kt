@@ -10,7 +10,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.LRCLIB
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.MUSIXMATCH
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.SIMPMUSIC
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.YOUTUBE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -47,7 +46,7 @@ class NowPlayingBottomSheetViewModel(
         MutableStateFlow(
             NowPlayingBottomSheetUIState(
                 listLocalPlaylist = emptyList(),
-                mainLyricsProvider = MUSIXMATCH,
+                mainLyricsProvider = SIMPMUSIC,
                 sleepTimer =
                     SleepTimerState(
                         false,
@@ -79,9 +78,6 @@ class NowPlayingBottomSheetViewModel(
                         when (lyricsProvider) {
                             SIMPMUSIC -> {
                                 _uiState.update { it.copy(mainLyricsProvider = SIMPMUSIC) }
-                            }
-                            MUSIXMATCH -> {
-                                _uiState.update { it.copy(mainLyricsProvider = MUSIXMATCH) }
                             }
                             YOUTUBE -> {
                                 _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
@@ -224,7 +220,7 @@ class NowPlayingBottomSheetViewModel(
                     makeToast(getString(R.string.added_to_queue))
                 }
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
-                    if (listOf(SIMPMUSIC, MUSIXMATCH, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
+                    if (listOf(SIMPMUSIC, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
                         dataStoreManager.setLyricsProvider(ev.lyricsProvider)
                     } else {
                         return@launch
@@ -295,7 +291,7 @@ class NowPlayingBottomSheetViewModel(
 data class NowPlayingBottomSheetUIState(
     val songUIState: SongUIState = SongUIState(),
     val listLocalPlaylist: List<LocalPlaylistEntity>,
-    val mainLyricsProvider: String, // MUSIXMATCH OR YOUTUBE ONLY
+    val mainLyricsProvider: String,
     val sleepTimer: SleepTimerState,
 ) {
     data class SongUIState(

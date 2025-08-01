@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s utwory  %2$s</string>
     <string name="view_count">%s wyświetleń</string>
-    <string name="lyrics_provider">Tekst udostępniony przez Musixmatch</string>
     <string name="clear_search_history">Wyczyść historię wyszukiwania</string>
     <string name="liked">Polubienia</string>
     <string name="like">Polub</string>
@@ -238,19 +237,12 @@
     <string name="update_playlist">Aktualizuj playlistę z YouTube Music</string>
     <string name="backup_create_success">Kopia zapasowa utworzona pomyślnie</string>
     <string name="backup_create_failed">Tworzenie kopii zapasowej nie powiodło się</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Główny Dostawca tekstów</string>
-    <string name="log_in_to_Musixmatch">Zaloguj się do Musixmatch</string>
-    <string name="only_support_email_and_password_type">Wspieraj tylko email i typ hasła</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API działa tylko z zalogowanym użytkownikiem. SimpMusic korzystał z interfejsu API Musixmatch dla programistów. Więcej informacji można znaleźć na stronie https://github.com/maxrave-dev/SimpMusic lub https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Użyj tłumaczenia Musixmatch</string>
-    <string name="use_musixmatch_translation_description">Włącz tłumaczenie tekstów za pomocą Musixmatch. Wymaga logowania do Musixmatch</string>
     <string name="translation_language">Język tłumaczenia</string>
     <string name="follow_app_language">Śledź język aplikacji</string>
     <string name="email">E-mail</string>
     <string name="password">Hasło</string>
     <string name="please_enter_your_email_and_password">Wprowadź swój email i hasło</string>
-    <string name="log_out_from_musixmatch">Wyloguj z Musixmatch</string>
     <string name="translation_language_message">Wpisz kod języka (Eg: en) (2 litery). Jeśli chcesz ustawić ten sam język SimpMusic, proszę ustawić pole edycji puste.</string>
     <string name="invalid_language_code">Niepoprawny kod języka</string>
     <string name="lyrics_provider_youtube">Teksty piosenek dostarczone przez YouTube</string>

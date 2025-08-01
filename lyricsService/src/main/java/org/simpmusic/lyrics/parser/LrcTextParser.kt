@@ -1,12 +1,11 @@
-package com.maxrave.lyricsproviders.parser
+package org.simpmusic.lyrics.parser
 
-import com.maxrave.lyricsproviders.models.lyrics.Line
-import com.maxrave.lyricsproviders.models.lyrics.Lyrics
+import org.simpmusic.lyrics.domain.Lyrics
 
-fun parseMusixmatchLyrics(data: String): Lyrics {
+fun parseSyncedLyrics(data: String): Lyrics {
     val regex = Regex("\\[(\\d{2}):(\\d{2})\\.(\\d{2})\\](.+)")
     val lines = data.lines()
-    val linesLyrics = ArrayList<Line>()
+    val linesLyrics = ArrayList<Lyrics.LyricsX.Line>()
     lines.map { line ->
         val matchResult = regex.matchEntire(line)
         if (matchResult != null) {
@@ -16,7 +15,7 @@ fun parseMusixmatchLyrics(data: String): Lyrics {
             val timeInMillis = minutes * 60_000L + seconds * 1000L + milliseconds
             val content = (if (matchResult.groupValues[4] == " ") " ♫" else matchResult.groupValues[4]).removeRange(0, 1)
             linesLyrics.add(
-                Line(
+                Lyrics.LyricsX.Line(
                     endTimeMs = "0",
                     startTimeMs = timeInMillis.toString(),
                     syllables = listOf(),
@@ -36,10 +35,10 @@ fun parseMusixmatchLyrics(data: String): Lyrics {
 
 fun parseUnsyncedLyrics(data: String): Lyrics {
     val lines = data.lines()
-    val linesLyrics = ArrayList<Line>()
+    val linesLyrics = ArrayList<Lyrics.LyricsX.Line>()
     lines.map { line ->
         linesLyrics.add(
-            Line(
+            Lyrics.LyricsX.Line(
                 endTimeMs = "0",
                 startTimeMs = "0",
                 syllables = listOf(),

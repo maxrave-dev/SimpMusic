@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s faixas  %2$s</string>
     <string name="view_count">%1$s visualizações</string>
-    <string name="lyrics_provider">Letras fornecidas pelo Musixmatch</string>
     <string name="clear_search_history">Limpar histórico de pesquisa</string>
     <string name="liked">Gostei</string>
     <string name="like">Gosto</string>
@@ -239,19 +238,12 @@
     <string name="update_playlist">Atualizar playlist do YouTube Music</string>
     <string name="backup_create_success">Backup criado com sucesso</string>
     <string name="backup_create_failed">Falha ao criar backup</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Provedor principal de letras</string>
-    <string name="log_in_to_Musixmatch">Faça login no Musixmatch</string>
-    <string name="only_support_email_and_password_type">Suporta apenas tipo de e-mail e senha</string>
-    <string name="musixmatch_login_description">A API Musixmatch Translation funciona apenas com usuário logado. SimpMusic usou a API Musixmatch Developer. Mais informações, acesse https://github.com/maxrave-dev/SimpMusic ou https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Use a tradução Musixmatch</string>
-    <string name="use_musixmatch_translation_description">Habilite a tradução de letras usando Musixmatch. Exigir login no Musixmatch</string>
     <string name="translation_language">Idioma de Tradução</string>
     <string name="follow_app_language">Siga o idioma do aplicativo</string>
     <string name="email">Email</string>
     <string name="password">Senha</string>
     <string name="please_enter_your_email_and_password">Por favor entre com seu e-mail e senha</string>
-    <string name="log_out_from_musixmatch">Sair do Musixmatch</string>
     <string name="translation_language_message">Digite o código do idioma (Ex: en) (2 letras). Se você deseja definir o mesmo com o idioma do SimpMusic, deixe a caixa de edição vazia.</string>
     <string name="invalid_language_code">Código de idioma inválido</string>
     <string name="lyrics_provider_youtube">Letras fornecidas pelo YouTube</string>

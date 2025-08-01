@@ -1,5 +1,5 @@
 <div align="center"> <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/jetpack_compose/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>  
-A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike
+A FOSS YouTube Music client for Android with many features from<br>Spotify, SponsorBlock, ReturnYouTubeDislike
 <br> 
 <br>
 <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a> <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total"></a> <br> <br> <a href="https://trendshift.io/repositories/13482" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13482" alt="maxrave-dev%2FSimpMusic | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -17,7 +17,7 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Musi
 </div>  
   
 ## Features ✨️    
- - Play music from YouTube Music or YouTube for free, without ads and in the background    
+- Play music from YouTube Music or YouTube for free, without ads and in the background    
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    
 - Search everything on YouTube    
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...    
@@ -26,7 +26,7 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Musi
 - AI song suggestions    
 - Notifications from followed artists    
 - Caching and offline playback support    
-- Synced lyrics from Musixmatch, LRCLIB, Spotify (require login) and YouTube Transcript and translated lyrics (Community translation from Musixmatch) - AI lyrics translation (BETA) (\*)  
+- Synced lyrics from SimpMusic Lyrics, LRCLIB, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
 - Personalize data (\**) and multi-YouTube-account support    
 - Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer    
@@ -64,7 +64,7 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Musi
 - Special thanks to [SmartTube](https://github.com/yuliskov/SmartTube). This repo help me to extract the streaming URL of YouTube Music.    
 - My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos.    
 - ReturnYouTubeDislike for getting information on votes    
-- Lyrics data from Musixmatch and LRCLIB. More information [Musixmatch](https://developer.musixmatch.com/), [LRCLIB](https://lrclib.net/)    
+- Lyrics data from LRCLIB. More information [LRCLIB](https://lrclib.net/)    
  
  ## Privacy    
  SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
@@ -85,7 +85,7 @@ You can help me translate this app into your language by using Crowdin [SimpMusi
  #### Special thanks to all translators on Crowdin ❤️    
  ## FAQ    
  #### 1. Wrong Lyrics?    
- YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube"      
+ Lyrics are provided by LRCLIB and other sources. Sometimes lyrics may not match perfectly with YouTube"      
 videoId" parameter. So I need to use some "String Matcher" and "Duration" for search lyrics. So      
 sometimes, some songs or videos get the wrong lyrics    
     

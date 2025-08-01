@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s песни  %2$s</string>
     <string name="view_count">%1$s преглеждания</string>
-    <string name="lyrics_provider">Текстът е предоставен от Musixmatch</string>
     <string name="clear_search_history">Изчисти история на търсенето</string>
     <string name="liked">Харесано</string>
     <string name="like">Харесай</string>
@@ -239,19 +238,12 @@
     <string name="update_playlist">Обновяване на плейлист от YouTube Music</string>
     <string name="backup_create_success">Създаването на резервно копие е успешно</string>
     <string name="backup_create_failed">Създаването на резервно копие е неуспешно</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Основен доставчик на текстове</string>
-    <string name="log_in_to_Musixmatch">Влез в Musixmatch</string>
-    <string name="only_support_email_and_password_type">Поддържа само имейл и парола</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API работи само за вписани потребители. SimpMusic използва Musixmatch Developer API. За повече информация посетете https://github.com/maxrave-dev/SimpMusic or https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Използвай Musixmatch Translation</string>
-    <string name="use_musixmatch_translation_description">Включи превод на текстове чрез Musixmatch. Изисква вход в Musixmatch</string>
     <string name="translation_language">Език на превода</string>
     <string name="follow_app_language">Следвай езика на приложението</string>
     <string name="email">Имейл</string>
     <string name="password">Парола</string>
     <string name="please_enter_your_email_and_password">Моля, въведете вашият имейл и парола</string>
-    <string name="log_out_from_musixmatch">Изход от Musixmatch</string>
     <string name="translation_language_message">Въведете код на език (Напр: bg) (2 букви). Оставете празно ако искате да използвате езика на SimpMusic.</string>
     <string name="invalid_language_code">Невалиден код на език</string>
     <string name="lyrics_provider_youtube">Текст предоставен от YouTube</string>

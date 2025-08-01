@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s trek %2$s</string>
     <string name="view_count">%1$s dinləyici</string>
-    <string name="lyrics_provider">Lirika Musixmatch tərəfindən təchiz edilib</string>
     <string name="clear_search_history">Axtarış tarixçəsini təmizlə</string>
     <string name="liked">Bəyənilib</string>
     <string name="like">Bəyən</string>
@@ -239,19 +238,12 @@
     <string name="update_playlist">YouTube Music-dən Pleylisti Yenilə</string>
     <string name="backup_create_success">Nüsxə uğurla yaradıldı</string>
     <string name="backup_create_failed">Nüsxə yaratmaq alınmadı</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Əsas Lirika Təminatçısı</string>
-    <string name="log_in_to_Musixmatch">Musixmatch-ə daxil olun</string>
-    <string name="only_support_email_and_password_type">Yalnız e-poçt və parol üsulun dəstəkləyir</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API yalnız daxil olan istifadəçi ilə işləyir. SimpMusic Musixmatch Developer API istifadə etdi. Ətraflı məlumat üçün https://github.com/maxrave-dev/SimpMusic və ya https://developer.musixmatch.com/ ünvanına keçin</string>
-    <string name="use_musixmatch_translation">Musixmatch Tərcüməsin İstifadə Et</string>
-    <string name="use_musixmatch_translation_description">Musixmatch işlədərək lirika tərcüməsini aktivləşdir. Musixmatch Girişi Tələb Olunur</string>
     <string name="translation_language">Tərcümə Dili</string>
     <string name="follow_app_language">Tətbiq dilin icra et</string>
     <string name="email">E-Poçt</string>
     <string name="password">Parol</string>
     <string name="please_enter_your_email_and_password">E-poçt və parolunuzu qeyd edin</string>
-    <string name="log_out_from_musixmatch">Musixmatch-dən Çıx</string>
     <string name="translation_language_message">Dil kodun yaz (Məsələn: en) (2 hərf). SimpMusic dili ilə eynisini qurmaq istəyirsinizsə, düzəliş qutusun boş saxlayın.</string>
     <string name="invalid_language_code">Yanlış dil kodu</string>
     <string name="lyrics_provider_youtube">Lirika YouTube tərəfindən təmin edilib</string>

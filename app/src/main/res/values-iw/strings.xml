@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s מסלולים %2$s</string>
     <string name="view_count">%1$s צפיות</string>
-    <string name="lyrics_provider">מילים מסופקות על ידי Musixmatch</string>
     <string name="clear_search_history">לנקות היסטוריית חיפוש</string>
     <string name="liked">אהבתי</string>
     <string name="like">כמו</string>
@@ -240,19 +239,12 @@
     <string name="update_playlist">עדכן פלייליסט מיוטיוב מיוזיק</string>
     <string name="backup_create_success">גיבוי יוצר הצלחה</string>
     <string name="backup_create_failed">יצירת הגיבוי נכשלה</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">ספק מילים ראשי</string>
-    <string name="log_in_to_Musixmatch">התחבר ל-Musixmatch</string>
-    <string name="only_support_email_and_password_type">תמיכה רק באימייל וסיסמה</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API עובד רק עם משתמש מחובר. SimpMusic השתמשה ב-Musixmatch Developer API. מידע נוסף, עבור אל https://github.com/maxrave-dev/SimpMusic או https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">השתמש בתרגום של Musixmatch</string>
-    <string name="use_musixmatch_translation_description">אפשר תרגום מילים באמצעות Musixmatch. דרוש כניסה של Musixmatch</string>
     <string name="translation_language">שפת התרגום</string>
     <string name="follow_app_language">עקוב אחר שפת האפליקציה</string>
     <string name="email">אימייל</string>
     <string name="password">סיסמה</string>
     <string name="please_enter_your_email_and_password">נא להזין דוא״ל וסיסמא</string>
-    <string name="log_out_from_musixmatch">התנתק מ-Musixmatch</string>
     <string name="translation_language_message">הקלד קוד שפה (למשל: en) (2 אותיות). אם אתה רוצה להגדיר אותו דבר עם השפה של SimpMusic, אנא הפוך את תיבת העריכה לריקה.</string>
     <string name="invalid_language_code">קוד שפה לא חוקי</string>
     <string name="lyrics_provider_youtube">מילים מסופקות על ידי יוטיוב</string>

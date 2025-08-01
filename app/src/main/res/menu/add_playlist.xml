@@ -6,5 +6,4 @@
         android:icon="@drawable/baseline_add_24"
         android:title="@string/add"
         app:showAsAction="ifRoom"/>
-
 </menu>

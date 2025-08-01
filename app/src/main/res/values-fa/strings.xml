@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s آهنگ %2$s</string>
     <string name="view_count">%1$s بازدید</string>
-    <string name="lyrics_provider">متن ترانه توسط Musixmatch ارائه شده</string>
     <string name="clear_search_history">پاک‌سازی تاریخچه جستجو</string>
     <string name="liked">پسندیده شده</string>
     <string name="like">پسندیدن</string>
@@ -247,21 +246,12 @@
     <string name="update_playlist">به‌روزرسانی فهرست پخش از یوتیوب موزیک</string>
     <string name="backup_create_success">ایجاد پشتیبان با موفقیت انجام شد</string>
     <string name="backup_create_failed">ایجاد پشتیبان ناموفق بود</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">تأمین‌کننده اصلی متن ترانه</string>
-    <string name="log_in_to_Musixmatch">وارد Musixmatch شوید</string>
-    <string name="only_support_email_and_password_type">فقط از نوع رایانامه و گذرواژه پشتیبانی می‌کند</string>
-    <string name="musixmatch_login_description">API ترجمه Musixmatch فقط با کاربرانی که وارد شده‌اند
-    کار می‌کند. SimpMusic از API توسعه‌دهنده Musixmatch استفاده می‌کند. ریزگان بیشتر، به
-    https://github.com/maxrave-dev/SimpMusic یا https://developer.musixmatch.com/ مراجعه کنید</string>
-    <string name="use_musixmatch_translation">استفاده از ترجمه Musixmatch</string>
-    <string name="use_musixmatch_translation_description">فعال‌سازی ترجمه متن ترانه با استفاده از Musixmatch. نیاز به ورود به Musixmatch دارد</string>
     <string name="translation_language">زبان ترجمه</string>
     <string name="follow_app_language">پیروی از زبان برنامه</string>
     <string name="email">رایانامه</string>
     <string name="password">گذرواژه</string>
     <string name="please_enter_your_email_and_password">لطفاً رایانامه و گذرواژه خود را وارد کنید</string>
-    <string name="log_out_from_musixmatch">از Musixmatch خارج شوید</string>
     <string name="translation_language_message">کد زبان را وارد کنید (مثلاً: en) (2 حرف). اگر
     می‌خواهید همان زبان SimpMusic باشد، لطفاً کادر ویرایش را خالی بگذارید.</string>
     <string name="invalid_language_code">کد زبان نامعتبر است</string>

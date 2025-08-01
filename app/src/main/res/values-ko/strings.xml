@@ -6,7 +6,6 @@
     <string name="subscribers">구독자 %1$s 명</string>
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="view_count">조회수 %1$s</string>
-    <string name="lyrics_provider">Musixmatch에서 제공된 가사</string>
     <string name="clear_search_history">검색 기록 초기화</string>
     <string name="liked">좋아요 표시한 음악</string>
     <string name="like">좋아요</string>

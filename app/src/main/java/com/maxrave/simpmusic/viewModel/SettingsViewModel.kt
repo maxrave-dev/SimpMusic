@@ -100,8 +100,7 @@ class SettingsViewModel(
     val sendBackToGoogle: StateFlow<String?> = _sendBackToGoogle
     private var _mainLyricsProvider: MutableStateFlow<String?> = MutableStateFlow(null)
     val mainLyricsProvider: StateFlow<String?> = _mainLyricsProvider
-    private var _musixmatchLoggedIn: MutableStateFlow<String?> = MutableStateFlow(null)
-    val musixmatchLoggedIn: StateFlow<String?> = _musixmatchLoggedIn
+
     private var _translationLanguage: MutableStateFlow<String?> = MutableStateFlow(null)
     val translationLanguage: StateFlow<String?> = _translationLanguage
     private var _useTranslation: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -201,7 +200,6 @@ class SettingsViewModel(
         getYoutubeSubtitleLanguage()
         getLyricsProvider()
         getUseTranslation()
-        getMusixmatchLoggedIn()
         getHomeLimit()
         getPlayVideoInsteadOfAudio()
         getVideoQuality()
@@ -563,21 +561,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getMusixmatchLoggedIn() {
-        viewModelScope.launch {
-            dataStoreManager.musixmatchLoggedIn.collect { musixmatchLoggedIn ->
-                _musixmatchLoggedIn.emit(musixmatchLoggedIn)
-            }
-        }
-    }
-
-    fun setMusixmatchLoggedIn(loggedIn: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setMusixmatchLoggedIn(loggedIn)
-            getMusixmatchLoggedIn()
-        }
-    }
-
     fun getLyricsProvider() {
         viewModelScope.launch {
             dataStoreManager.lyricsProvider.collect { mainLyricsProvider ->
@@ -767,9 +750,13 @@ class SettingsViewModel(
         }
     }
 
-    private fun backupFolder(folder: File, baseName: String, zipOutputStream: ZipOutputStream) {
+    private fun backupFolder(
+        folder: File,
+        baseName: String,
+        zipOutputStream: ZipOutputStream,
+    ) {
         if (!folder.exists() || !folder.isDirectory) return
-        
+
         Log.d("BackupRestore", "Backing up folder: ${folder.absolutePath} as $baseName")
         folder.listFiles()?.forEach { file ->
             if (file.isFile) {
@@ -787,12 +774,15 @@ class SettingsViewModel(
         }
     }
 
-    private fun debugFolderContents(folder: File, level: Int = 0) {
+    private fun debugFolderContents(
+        folder: File,
+        level: Int = 0,
+    ) {
         if (!folder.exists()) {
             Log.d("BackupRestore", "${"  ".repeat(level)}Folder does not exist: ${folder.absolutePath}")
             return
         }
-        
+
         Log.d("BackupRestore", "${"  ".repeat(level)}Folder: ${folder.name} (${folder.absolutePath})")
         folder.listFiles()?.forEach { file ->
             if (file.isFile) {
@@ -819,26 +809,30 @@ class SettingsViewModel(
         }
     }
 
-    private fun restoreFolder(entryName: String, zipInputStream: ZipInputStream, baseFolderName: String) {
+    private fun restoreFolder(
+        entryName: String,
+        zipInputStream: ZipInputStream,
+        baseFolderName: String,
+    ) {
         Log.d("BackupRestore", "Restoring entry: $entryName")
-        
+
         // Extract relative path from entry name
         val relativePath = entryName.removePrefix("$baseFolderName/")
         val targetFile = application.filesDir / baseFolderName / relativePath
-        
+
         Log.d("BackupRestore", "Target file path: ${targetFile.absolutePath}")
         Log.d("BackupRestore", "Relative path: $relativePath")
-        
+
         // Create parent directories if they don't exist
         val parentCreated = targetFile.parentFile?.mkdirs()
         Log.d("BackupRestore", "Parent dir created: $parentCreated, parent exists: ${targetFile.parentFile?.exists()}")
-        
+
         try {
             // Restore the file content
             targetFile.outputStream().use { outputStream ->
                 val bytesWritten = zipInputStream.copyTo(outputStream)
                 Log.d("BackupRestore", "Restored file: ${targetFile.name}, bytes: $bytesWritten")
-                
+
                 // Verify file was created
                 if (targetFile.exists()) {
                     Log.d("BackupRestore", "File exists after restore: ${targetFile.name}, size: ${targetFile.length()}")
@@ -858,7 +852,9 @@ class SettingsViewModel(
                 withContext(Dispatchers.IO) {
                     application.applicationContext.contentResolver.openOutputStream(uri)?.use {
                         it.buffered().zipOutputStream().use { outputStream ->
-                            (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").inputStream().buffered()
+                            (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb")
+                                .inputStream()
+                                .buffered()
                                 .use { inputStream ->
                                     outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
                                     inputStream.copyTo(outputStream)
@@ -871,7 +867,9 @@ class SettingsViewModel(
                                 inputStream.copyTo(outputStream)
                             }
                             if (backupDownloaded.value) {
-                                (application.getDatabasePath(EXOPLAYER_DB_NAME)).inputStream().buffered()
+                                (application.getDatabasePath(EXOPLAYER_DB_NAME))
+                                    .inputStream()
+                                    .buffered()
                                     .use { inputStream ->
                                         outputStream.putNextEntry(ZipEntry(EXOPLAYER_DB_NAME))
                                         inputStream.copyTo(outputStream)
@@ -912,14 +910,15 @@ class SettingsViewModel(
                                 } catch (e: Exception) {
                                     null
                                 }
-                            
+
                             var downloadFolderCleared = false
 
                             while (entry != null) {
                                 Log.d("BackupRestore", "Processing entry: ${entry.name}")
                                 when {
                                     entry.name == "$SETTINGS_FILENAME.preferences_pb" -> {
-                                        (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").outputStream()
+                                        (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb")
+                                            .outputStream()
                                             .use { outputStream ->
                                                 inputStream.copyTo(outputStream)
                                             }
@@ -956,7 +955,7 @@ class SettingsViewModel(
                                         }
                                         restoreFolder(entry.name, inputStream, "download")
                                     }
-                                    
+
                                     else -> {
                                         Log.d("BackupRestore", "Unhandled entry: ${entry.name}")
                                     }
@@ -969,7 +968,7 @@ class SettingsViewModel(
                     val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
                     Log.d("BackupRestore", "=== RESTORE: Download folder contents AFTER RESTORE ===")
                     debugFolderContents(downloadFolder)
-                    
+
                     withContext(Dispatchers.Main) {
                         makeToast(getString(R.string.restore_success))
                         application.stopService(Intent(application, SimpleMediaService::class.java))
@@ -1095,14 +1094,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setSaveRecentSongAndQueue(b)
             getSaveRecentSongAndQueue()
-        }
-    }
-
-    fun clearMusixmatchCookie() {
-        viewModelScope.launch {
-            dataStoreManager.setMusixmatchCookie("")
-            dataStoreManager.setMusixmatchLoggedIn(false)
-            makeToast(getString(R.string.logged_out))
         }
     }
 

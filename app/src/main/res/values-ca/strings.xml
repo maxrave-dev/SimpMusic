@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s pistes %2$s</string>
     <string name="view_count">%1$s visualitzacions</string>
-    <string name="lyrics_provider">Lletres proporcionades per Musixmatch</string>
     <string name="clear_search_history">Esborra l\'historial</string>
     <string name="liked">Liked</string>
     <string name="like">Like</string>
@@ -238,19 +237,12 @@
     <string name="update_playlist">Update playlist from YouTube Music</string>
     <string name="backup_create_success">Backup create success</string>
     <string name="backup_create_failed">Backup create success</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Main Lyrics Provider</string>
-    <string name="log_in_to_Musixmatch">Log in to Musixmatch</string>
-    <string name="only_support_email_and_password_type">Only support email and password type</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. SimpMusic used Musixmatch Developer API. More information, go to https://github.com/maxrave-dev/SimpMusic or https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Use Musixmatch Translation</string>
-    <string name="use_musixmatch_translation_description">Enable lyrics translation using Musixmatch. Require Musixmatch Login</string>
     <string name="translation_language">Translation Language</string>
     <string name="follow_app_language">Follow app language</string>
     <string name="email">Correu electrònic</string>
     <string name="password">Contrasenya</string>
     <string name="please_enter_your_email_and_password">Si us plau, introdueix el teu correu electrònic i la teva contrasenya</string>
-    <string name="log_out_from_musixmatch">Log out to Musixmatch</string>
     <string name="translation_language_message">Type language code (Eg: en) (2 letters). If you want to set same with SimpMusic\'s language, please make edit box empty.</string>
     <string name="invalid_language_code">Invalid language code</string>
     <string name="lyrics_provider_youtube">Lyrics proporcionada per Spotify</string>
