@@ -1303,9 +1303,8 @@ fun NowPlayingBottomSheet(
             mutableIntStateOf(
                 when (uiState.mainLyricsProvider) {
                     DataStoreManager.SIMPMUSIC -> 0
-                    DataStoreManager.MUSIXMATCH -> 1
+                    DataStoreManager.LRCLIB -> 1
                     DataStoreManager.YOUTUBE -> 2
-                    DataStoreManager.LRCLIB -> 3
                     else -> 0
                 },
             )
@@ -1358,7 +1357,7 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(id = R.string.musixmatch), style = typo.labelSmall)
+                        Text(text = stringResource(id = R.string.lrclib), style = typo.labelSmall)
                     }
                     Row(
                         modifier =
@@ -1379,25 +1378,6 @@ fun NowPlayingBottomSheet(
                         Spacer(modifier = Modifier.size(10.dp))
                         Text(text = stringResource(id = R.string.youtube_transcript), style = typo.labelSmall)
                     }
-                    Row(
-                        modifier =
-                            Modifier
-                                .padding(horizontal = 4.dp)
-                                .fillMaxWidth()
-                                .clickable {
-                                    selected = 3
-                                },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(
-                            selected = selected == 3,
-                            onClick = {
-                                selected = 3
-                            },
-                        )
-                        Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(id = R.string.lrclib), style = typo.labelSmall)
-                    }
                 }
             },
             confirmButton = {
@@ -1407,10 +1387,9 @@ fun NowPlayingBottomSheet(
                             NowPlayingBottomSheetUIEvent.ChangeLyricsProvider(
                                 when (selected) {
                                     0 -> DataStoreManager.SIMPMUSIC
-                                    1 -> DataStoreManager.MUSIXMATCH
+                                    1 -> DataStoreManager.LRCLIB
                                     2 -> DataStoreManager.YOUTUBE
-                                    3 -> DataStoreManager.LRCLIB
-                                    else -> DataStoreManager.MUSIXMATCH
+                                    else -> DataStoreManager.SIMPMUSIC
                                 },
                             ),
                         )

@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s Songs  %2$s</string>
     <string name="view_count">%1$s Aufrufe</string>
-    <string name="lyrics_provider">Songtexte von Musixmatch</string>
     <string name="clear_search_history">Suchverlauf leeren</string>
     <string name="liked">Gefällt mir</string>
     <string name="like">Gefällt mir</string>
@@ -239,19 +238,12 @@
     <string name="update_playlist">Playlist von YouTube Music aktualisieren</string>
     <string name="backup_create_success">Sicherung erfolgreich erstellt</string>
     <string name="backup_create_failed">Das Erstellen der Sicherung ist fehlgeschlagen</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Hauptanbieter von Songtexten</string>
-    <string name="log_in_to_Musixmatch">Bei Musixmatch anmelden</string>
-    <string name="only_support_email_and_password_type">Unterstützt nur E-Mail- und Passworttypen</string>
-    <string name="musixmatch_login_description">Die Musixmatch-Übersetzungs-API funktioniert nur mit angemeldeten Benutzern. SimpMusic nutzte die Musixmatch Developer API. Weitere Informationen finden Sie unter https://github.com/maxrave-dev/SimpMusic oder https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Verwenden Sie die Musixmatch-Übersetzung</string>
-    <string name="use_musixmatch_translation_description">Aktivieren Sie die Liedtextübersetzung mit Musixmatch. Musixmatch-Anmeldung erforderlich</string>
     <string name="translation_language">Übersetzungssprache</string>
     <string name="follow_app_language">Folgen Sie der App-Sprache</string>
     <string name="email">E-Mail</string>
     <string name="password">Passwort</string>
     <string name="please_enter_your_email_and_password">Bitte gebe deine E-Mail-Adresse und dein Passwort ein</string>
-    <string name="log_out_from_musixmatch">Bei Musixmatch abmelden</string>
     <string name="translation_language_message">Gebe den Sprachcode ein (z. B. de) (2 Buchstaben). Wenn du die Sprache SimpMusic nutzen möchtest, lasse dieses Feld leer.</string>
     <string name="invalid_language_code">Ungültiger Sprachcode</string>
     <string name="lyrics_provider_youtube">Songtexte von YouTube</string>

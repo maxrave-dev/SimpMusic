@@ -34,33 +34,26 @@
             @android:color/transparent
         </item>
         <item name="android:windowTranslucentNavigation">true</item>
-
     </style>
-
     <style name="FullScreenDialogTheme" parent="MaterialAlertDialog.Material3">
         <item name="windowNoTitle">false</item>
         <item name="backgroundTint">@color/md_theme_dark_background</item>
     </style>
-
     <style name="DialogAnimation">
         <item name="android:windowEnterAnimation">@anim/bottom_to_top</item>
         <item name="android:windowExitAnimation">@anim/top_to_bottom</item>
     </style>
-
     <style name="circle">
         <item name="cornerSize">50%</item>
     </style>
-
     <style name="rounded_corners">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
     </style>
-
     <style name="ThemeOverlay.SimpMusic.FullscreenContainer" parent="">
         <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
         <item name="fullscreenTextColor">@color/light_blue_A200</item>
     </style>
-
     <style name="Theme.SimpMusic.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
         <!-- Radius of the outer bound of widgets to make the rounded corners -->
         <item name="appWidgetRadius">16dp</item>
@@ -70,7 +63,6 @@
         -->
         <item name="appWidgetInnerRadius">8dp</item>
     </style>
-
     <style name="Theme.SimpMusic.AppWidgetContainer" parent="Theme.SimpMusic.AppWidgetContainerParent">
         <!-- Apply padding to avoid the content of the widget colliding with the rounded corners -->
         <item name="appWidgetPadding">16dp</item>

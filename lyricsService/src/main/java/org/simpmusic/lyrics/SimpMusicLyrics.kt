@@ -13,9 +13,13 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.headers
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -168,5 +172,13 @@ class SimpMusicLyrics(
                 vote = if (upvote) 1 else 0, // 1 for upvote, 0 for downvote
             ),
         )
+    }
+
+    suspend fun searchLrclibLyrics(
+        q_track: String,
+        q_artist: String,
+    ) = httpClient.get("https://lrclib.net/api/search") {
+        buildDefaultHeaders()
+        parameter("q", "$q_artist $q_track")
     }
 }

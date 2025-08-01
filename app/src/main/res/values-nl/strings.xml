@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s nummers  %2$s</string>
     <string name="view_count">%1$s weergaven</string>
-    <string name="lyrics_provider">Songtekst geverifieerd door Musixmatch</string>
     <string name="clear_search_history">Zoekgeschiedenis wissen</string>
     <string name="liked">Geliked</string>
     <string name="like">Like</string>

@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s parçalar %2$s</string>
     <string name="view_count">%1$s görüntüleme</string>
-    <string name="lyrics_provider">Sözler Musixmatch tarafından sağlanmıştır</string>
     <string name="clear_search_history">Arama geçmişini temizle</string>
     <string name="liked">Beğenildi</string>
     <string name="like">Beğen</string>
@@ -239,19 +238,12 @@
     <string name="update_playlist">Oynatma listesini YouTube Müzik\'ten güncelle</string>
     <string name="backup_create_success">Yedekleme başarıyla oluşturuldu</string>
     <string name="backup_create_failed">Yedekleme oluşturma başarısız</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Ana Şarkı Sözü Sağlayıcısı</string>
-    <string name="log_in_to_Musixmatch">Musixmatch ile giriş yap</string>
-    <string name="only_support_email_and_password_type">Sadece e-posta ve şifre türünü destekler</string>
-    <string name="musixmatch_login_description">Musixmatch Çeviri API\'si yalnızca oturum açmış kullanıcıyla çalışır. SimpMusic, Musixmatch Geliştirici API\'sini kullandı. Daha fazla bilgi için https://github.com/maxrave-dev/SimpMusic veya https://developer.musixmatch.com/ adresine gidin.</string>
-    <string name="use_musixmatch_translation">Musixmatch Çevirisini Kullan</string>
-    <string name="use_musixmatch_translation_description">Musixmatch kullanarak şarkı sözleri çevirisini etkinleştirin. Musixmatch Girişi Gerektir</string>
     <string name="translation_language">Çeviri dili</string>
     <string name="follow_app_language">Uygulama dilini kullan</string>
     <string name="email">E-Posta</string>
     <string name="password">Şifre</string>
     <string name="please_enter_your_email_and_password">Lütfen e-posta ve şifrenizi girin</string>
-    <string name="log_out_from_musixmatch">Musixmatch\'ten çıkış yap</string>
     <string name="translation_language_message">Dil kodunu yazın (Örn: en) (2 harf). SimpMusic\'in dili ile aynı şekilde ayarlamak istiyorsanız, lütfen düzenleme kutusunu boş bırakın.</string>
     <string name="invalid_language_code">Geçersiz dil kodu</string>
     <string name="lyrics_provider_youtube">Şarkı sözleri YouTube tarafından sağlanmıştır</string>

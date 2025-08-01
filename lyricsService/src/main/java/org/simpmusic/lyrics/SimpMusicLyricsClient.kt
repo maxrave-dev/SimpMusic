@@ -7,8 +7,12 @@ import io.ktor.client.statement.HttpResponse
 import org.simpmusic.lyrics.models.request.LyricsBody
 import org.simpmusic.lyrics.models.request.TranslatedLyricsBody
 import org.simpmusic.lyrics.models.response.BaseResponse
+import org.simpmusic.lyrics.models.response.LrclibObject
 import org.simpmusic.lyrics.models.response.LyricsResponse
 import org.simpmusic.lyrics.models.response.TranslatedLyricsResponse
+import org.simpmusic.lyrics.parser.parseSyncedLyrics
+import org.simpmusic.lyrics.parser.parseUnsyncedLyrics
+import kotlin.math.abs
 
 class SimpMusicLyricsClient(
     context: Context,
@@ -94,6 +98,38 @@ class SimpMusicLyricsClient(
                 )
             lyricsService.voteTranslatedLyrics(translatedLyricsId, upvote, hmacTimestamp).bodyOrThrow<TranslatedLyricsResponse>()
         }
+
+    suspend fun searchLrclibLyrics(
+        q_track: String,
+        q_artist: String,
+        duration: Int?,
+    ) = runCatching {
+        val rs =
+            lyricsService
+                .searchLrclibLyrics(
+                    q_track = q_track,
+                    q_artist = q_artist,
+                ).body<List<LrclibObject>>()
+        val lrclibObject: LrclibObject? =
+            if (duration != null) {
+                rs.find { abs(it.duration.toInt() - duration) <= 10 }
+            } else {
+                rs.firstOrNull()
+            }
+        if (lrclibObject != null) {
+            val syncedLyrics = lrclibObject.syncedLyrics
+            val plainLyrics = lrclibObject.plainLyrics
+            if (!syncedLyrics.isNullOrEmpty()) {
+                parseSyncedLyrics(syncedLyrics)
+            } else if (!plainLyrics.isNullOrEmpty()) {
+                parseUnsyncedLyrics(plainLyrics)
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+    }
 
     private suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
         try {

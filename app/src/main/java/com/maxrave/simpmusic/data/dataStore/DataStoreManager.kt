@@ -372,7 +372,7 @@ class DataStoreManager(
 
     val lyricsProvider =
         settingsDataStore.data.map { preferences ->
-            preferences[LYRICS_PROVIDER] ?: MUSIXMATCH
+            preferences[LYRICS_PROVIDER] ?: SIMPMUSIC
         }
 
     suspend fun setLyricsProvider(provider: String) {
@@ -383,24 +383,7 @@ class DataStoreManager(
         }
     }
 
-    val musixmatchLoggedIn =
-        settingsDataStore.data.map { preferences ->
-            preferences[MUSIXMATCH_LOGGED_IN] ?: FALSE
-        }
 
-    suspend fun setMusixmatchLoggedIn(loggedIn: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (loggedIn) {
-                settingsDataStore.edit { settings ->
-                    settings[MUSIXMATCH_LOGGED_IN] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[MUSIXMATCH_LOGGED_IN] = FALSE
-                }
-            }
-        }
-    }
 
     val translationLanguage =
         settingsDataStore.data.map { preferences ->
@@ -421,31 +404,7 @@ class DataStoreManager(
         }
     }
 
-    val musixmatchCookie =
-        settingsDataStore.data.map { preferences ->
-            preferences[MUSIXMATCH_COOKIE] ?: ""
-        }
 
-    suspend fun setMusixmatchCookie(cookie: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[MUSIXMATCH_COOKIE] = cookie
-            }
-        }
-    }
-
-    val musixmatchUserToken =
-        settingsDataStore.data.map { preferences ->
-            preferences[MUSIXMATCH_USER_TOKEN] ?: ""
-        }
-
-    suspend fun setMusixmatchUserToken(token: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[MUSIXMATCH_USER_TOKEN] = token
-            }
-        }
-    }
 
     val maxSongCacheSize =
         settingsDataStore.data.map { preferences ->
@@ -1100,19 +1059,18 @@ class DataStoreManager(
         val REPEAT_KEY = stringPreferencesKey("repeat_key")
         val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
-        val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
+
         val KILL_SERVICE_ON_EXIT = stringPreferencesKey("kill_service_on_exit")
         val CROSSFADE_ENABLED = stringPreferencesKey("crossfade_enabled")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         const val SIMPMUSIC = "simpmusic"
         const val YOUTUBE = "youtube"
-        const val MUSIXMATCH = "musixmatch"
+
         const val LRCLIB = "lrclib"
         val LYRICS_PROVIDER = stringPreferencesKey("lyrics_provider")
         val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
-        val MUSIXMATCH_COOKIE = stringPreferencesKey("musixmatch_cookie")
-        val MUSIXMATCH_USER_TOKEN = stringPreferencesKey("musixmatch_user_token")
+
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")
         val WATCH_VIDEO_INSTEAD_OF_PLAYING_AUDIO =

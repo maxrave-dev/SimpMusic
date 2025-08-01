@@ -42,7 +42,6 @@ include(
     "app",
     ":kotlinYtmusicScraper",
     ":spotify",
-    ":lyricsProviders",
     ":aiService",
     ":ffmpeg-kit",
     ":lyricsService",

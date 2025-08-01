@@ -97,7 +97,6 @@ import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.ItemTrackChart
 import com.maxrave.simpmusic.ui.component.ItemVideoChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
-import com.maxrave.simpmusic.ui.component.MusixmatchCaptchaWebView
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -153,8 +152,6 @@ fun HomeScreen(
 
     val openAppTime by sharedViewModel.openAppTime.collectAsState()
     val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsState()
-
-    val musixmatchCaptchaRequired by sharedViewModel.showMusixmatchCaptchaWebView.collectAsState()
 
     var showReviewDialog by rememberSaveable {
         mutableStateOf(false)
@@ -222,15 +219,6 @@ fun HomeScreen(
             cookie = youTubeCookie,
             onDismissRequest = {
                 shouldShowGetDataSyncIdBottomSheet = false
-            },
-        )
-    }
-
-    if (musixmatchCaptchaRequired) {
-        MusixmatchCaptchaWebView(
-            cookie = sharedViewModel.getMusixmatchCookie(),
-            onDismissRequest = {
-                sharedViewModel.resolvedMusixmatchCaptcha()
             },
         )
     }

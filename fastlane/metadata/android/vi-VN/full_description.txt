@@ -2,17 +2,18 @@ Không chỉ là ứng dụng nghe nhạc, nó là SimpMusic
 
 <br><b>Tính năng:</b>
 
-- Nghe nhạc chất lượng cao từ YouTube Music hoặc YouTube miễn phí không có quảng cáo trong nền
-- Duyệt tất cả các nội dung như bảng xếp hạng, thể loại, tâm trạng, podcast, ... từ YouTube Music với tốc độ cao
+- Chơi nhạc từ YouTube Music hoặc YouTube miễn phí, không có quảng cáo và trong nền
+- Duyệt Trang chủ, Bảng xếp hạng, Podcast, Tâm trạng & Thể loại với dữ liệu YouTube Music tốc độ cao
 - Tìm kiếm mọi thứ trên YouTube
-- Thống kê dữ liệu nghe nhạc của bạn, tạo danh sách phát tùy chỉnh và đồng bộ với YouTube Music
-- Tuỳ chọn xem video hỗ trợ phụ đề
-- Lưu trữ dữ liệu ngoại tuyến
-- Nhận thông báo từ các nghệ sĩ đã theo dõi
-- Đăng nhập tài khoản YouTube và hỗ trợ đa tài khoản
-- Lời bài hát được đồng bộ từ Musixmatch, Spotify và YouTube Transcript, dịch lời bài hát với cộng đồng từ Musixmatch
-- Dịch lời bài hát bằng AI
-- Spotify Canvas
-- Hỗ trợ SponsorBlock
-- Hẹn giờ đi ngủ
-- Và rất nhiều tính năng khác
+- Phân tích dữ liệu chơi nhạc của bạn, tạo danh sách phát tùy chỉnh và đồng bộ với YouTube Music...
+- Spotify Canvas được hỗ trợ
+- Chơi video 1080p với phụ đề
+- Gợi ý bài hát AI
+- Thông báo từ các nghệ sĩ đã theo dõi
+- Hỗ trợ bộ nhớ đệm và phát lại ngoại tuyến
+- Lời bài hát đồng bộ từ SimpMusic Lyrics, LRCLIB, Spotify (yêu cầu đăng nhập) và YouTube Transcript - Dịch lời bài hát AI (BETA) (\*)
+- Dữ liệu cá nhân hóa (\**) và hỗ trợ nhiều tài khoản YouTube
+- Hỗ trợ SponsorBlock và Return YouTube Dislike
+- Hẹn giờ ngủ
+- Android Auto với nội dung trực tuyến
+- Và nhiều hơn nữa!

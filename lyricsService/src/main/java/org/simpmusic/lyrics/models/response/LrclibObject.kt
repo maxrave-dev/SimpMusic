@@ -1,4 +1,4 @@
-package com.maxrave.lyricsproviders.models.response
+package org.simpmusic.lyrics.models.response
 
 import kotlinx.serialization.Serializable
 

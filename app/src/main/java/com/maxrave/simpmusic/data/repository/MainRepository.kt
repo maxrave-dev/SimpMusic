@@ -26,8 +26,6 @@ import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistRadioEndpoint
 import com.maxrave.kotlinytmusicscraper.parser.getPlaylistShuffleEndpoint
-import com.maxrave.lyricsproviders.LyricsClient
-import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -143,7 +141,6 @@ class MainRepository(
     private val dataStoreManager: DataStoreManager,
     private val youTube: YouTube,
     private val spotify: Spotify,
-    private val lyricsClient: LyricsClient,
     private val simpMusicLyrics: SimpMusicLyricsClient,
     private val aiClient: AiClient,
     private val database: MusicDatabase,
@@ -219,18 +216,6 @@ class MainRepository(
                         }
                     }
                 }
-            val musixmatchCookieJob =
-                launch {
-                    dataStoreManager.musixmatchCookie.collectLatest { cookie ->
-                        lyricsClient.musixmatchCookie = cookie
-                    }
-                }
-            val musixmatchTokenJob =
-                launch {
-                    dataStoreManager.musixmatchUserToken.collectLatest { token ->
-                        lyricsClient.musixmatchUserToken = token
-                    }
-                }
             val usingProxy =
                 launch {
                     combine(
@@ -253,16 +238,10 @@ class MainRepository(
                                     data.second,
                                     data.third,
                                 )
-                                lyricsClient.setProxy(
-                                    data.first == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP,
-                                    data.second,
-                                    data.third,
-                                )
                             }
                         } else {
                             youTube.removeProxy()
                             spotify.removeProxy()
-                            lyricsClient.removeProxy()
                         }
                     }
                 }
@@ -310,8 +289,6 @@ class MainRepository(
 
             localeJob.join()
             ytCookieJob.join()
-            musixmatchCookieJob.join()
-            musixmatchTokenJob.join()
             usingProxy.join()
             dataSyncIdJob.join()
             visitorDataJob.join()
@@ -321,8 +298,6 @@ class MainRepository(
             aiCustomModelIdJob.join()
         }
     }
-
-    fun getMusixmatchCookie() = lyricsClient.musixmatchCookie
 
     fun getYouTubeCookie() = youTube.cookie
 
@@ -2638,101 +2613,14 @@ class MainRepository(
                     ).replace("  ", " ")
                     .replace(Regex("([()])"), "")
                     .replace(".", " ")
-            lyricsClient
-                .getLrclibLyrics(qtrack, qartist, duration)
+            simpMusicLyrics
+                .searchLrclibLyrics(qtrack, qartist, duration)
                 .onSuccess {
                     it?.let { emit(Resource.Success<Lyrics>(it.toLyrics())) }
                 }.onFailure {
                     it.printStackTrace()
                     emit(Resource.Error<Lyrics>("Not found"))
                 }
-        }.flowOn(Dispatchers.IO)
-
-    fun getLyricsDataMacro(
-        sartist: String,
-        strack: String,
-        duration: Int,
-    ): Flow<Pair<String, Resource<Lyrics>>> =
-        flow {
-            val qartist =
-                sartist
-                    .replace(
-                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                        " ",
-                    ).replace(
-                        Regex("( và | & | и | e | und |, |和| dan)"),
-                        " ",
-                    ).replace("  ", " ")
-                    .replace(Regex("([()])"), "")
-                    .replace(".", " ")
-            val qtrack =
-                strack
-                    .replace(
-                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                        " ",
-                    ).replace(
-                        Regex("( và | & | и | e | und |, |和| dan)"),
-                        " ",
-                    ).replace("  ", " ")
-                    .replace(Regex("([()])"), "")
-                    .replace(".", " ")
-            val tag = "Lyrics"
-            Log.d(tag, "query: $qtrack $qartist")
-            lyricsClient
-                .configGet()
-                .onSuccess {
-                    Log.d(tag, "configGet: $it")
-                }.onFailure { throwable ->
-                    Log.e(tag, "configGet Error: ${throwable.message}")
-                }
-            lyricsClient
-                .userGet()
-                .onSuccess {
-                    Log.d(tag, "userGet: $it")
-                }.onFailure { throwable ->
-                    Log.e(tag, "userGet Error: ${throwable.message}")
-                }
-            lyricsClient
-                .macroSearch(
-                    q_track = qtrack,
-                    q_artist = qartist,
-                    duration = duration,
-                    userToken = dataStoreManager.musixmatchUserToken.first(),
-                ).onSuccess { res ->
-                    if (res != null && res.second.lyrics?.syncType == "LINE_SYNCED") {
-                        Log.w(tag, "Item lyrics ${res.first} ${res.second.lyrics?.syncType}")
-                        emit(
-                            res.first.toString() to Resource.Success(res.second.toLyrics()),
-                        )
-                    } else {
-                        Log.w(tag, "Error: Lỗi getLyrics $res")
-                        emit("" to Resource.Error<Lyrics>("Not found"))
-                    }
-                }.onFailure {
-                    emit(
-                        "" to Resource.Error<Lyrics>("Not found"),
-                    )
-                }
-        }.flowOn(Dispatchers.IO)
-
-    fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =
-        flow {
-            runCatching {
-                lyricsClient.musixmatchUserToken?.let {
-                    lyricsClient
-                        .getMusixmatchTranslateLyrics(
-                            id,
-                            it,
-                            dataStoreManager.translationLanguage.first(),
-                        ).onSuccess { lyrics ->
-                            Log.w("Translate Lyrics", "lyrics: $lyrics")
-                            emit(lyrics)
-                        }.onFailure {
-                            it.printStackTrace()
-                            emit(null)
-                        }
-                }
-            }
         }.flowOn(Dispatchers.IO)
 
     fun getAITranslationLyrics(

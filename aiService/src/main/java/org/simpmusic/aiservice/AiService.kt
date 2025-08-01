@@ -7,26 +7,25 @@ import com.aallam.openai.api.chat.chatCompletionRequest
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost.Companion.Gemini
-import com.maxrave.lyricsproviders.models.lyrics.Lyrics
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import org.simpmusic.lyrics.domain.Lyrics
 
 class AiService(
     private val aiHost: AIHost = AIHost.GEMINI,
     private val apiKey: String,
-    private val customModelId: String? = null
+    private val customModelId: String? = null,
 ) {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
     private val openAI: OpenAI by lazy {
         when (aiHost) {
             AIHost.GEMINI -> OpenAI(host = Gemini, token = apiKey)
@@ -47,26 +46,27 @@ class AiService(
 
     suspend fun translateLyrics(
         inputLyrics: Lyrics,
-        targetLanguage: String
+        targetLanguage: String,
     ): Lyrics {
-        val request = chatCompletionRequest {
-            this.model = this@AiService.model
-            responseFormat = ChatResponseFormat.jsonSchema(aiResponseJsonSchema)
-            messages {
-                system {
-                    content =
-                        "You are a translation assistant. Translate the below JSON-serialized lyrics into the target language while preserving the exact same JSON structure. Only translate the actual text fields such as `words` and `syllables` (if present). Do not change keys, nesting, timestamps, or any other metadata.\\n\\nThe output must be valid JSON with the same structure as the input. Do not include explanations or extra commentary—only return the resulting JSON."
-                }
-                user {
-                    content {
-                        text("Target language: $targetLanguage")
+        val request =
+            chatCompletionRequest {
+                this.model = this@AiService.model
+                responseFormat = ChatResponseFormat.jsonSchema(aiResponseJsonSchema)
+                messages {
+                    system {
+                        content =
+                            "You are a translation assistant. Translate the below JSON-serialized lyrics into the target language while preserving the exact same JSON structure. Only translate the actual text fields such as `words` and `syllables` (if present). Do not change keys, nesting, timestamps, or any other metadata.\\n\\nThe output must be valid JSON with the same structure as the input. Do not include explanations or extra commentary—only return the resulting JSON."
                     }
-                    content {
-                        text("Input lyrics: ${json.encodeToString(inputLyrics)}")
+                    user {
+                        content {
+                            text("Target language: $targetLanguage")
+                        }
+                        content {
+                            text("Input lyrics: ${json.encodeToString(inputLyrics)}")
+                        }
                     }
                 }
             }
-        }
         val completion: ChatCompletion = openAI.chatCompletion(request)
         val jsonContent =
             completion.choices
@@ -75,7 +75,7 @@ class AiService(
                 ?.content ?: throw IllegalStateException("No response from AI")
         val jsonData =
             Regex(
-                "```json\\s*([\\s\\S]*?)```"
+                "```json\\s*([\\s\\S]*?)```",
             ).find(jsonContent)
                 ?.groups
                 ?.firstOrNull()
@@ -84,7 +84,7 @@ class AiService(
             json.decodeFromString<Lyrics>(
                 jsonData
                     .replace("```json", "")
-                    .replace("```", "")
+                    .replace("```", ""),
             )
         return aiResponse
     }
@@ -140,15 +140,16 @@ class AiService(
                     add("lyrics")
                 }
             }
-        private val aiResponseJsonSchema = JsonSchema(
-            name = "ai_translation_schema", // Give your schema a name
-            schema = translationJsonSchema,
-            strict = true // Recommended for better adherence
-        )
+        private val aiResponseJsonSchema =
+            JsonSchema(
+                name = "ai_translation_schema", // Give your schema a name
+                schema = translationJsonSchema,
+                strict = true, // Recommended for better adherence
+            )
     }
 }
 
 enum class AIHost {
     GEMINI,
-    OPENAI
+    OPENAI,
 }

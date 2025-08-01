@@ -1,11 +1,7 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.content.Intent
-import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -36,7 +32,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @UnstableApi
@@ -154,98 +149,6 @@ fun GetDataSyncIdBottomSheet(
                             "Android",
                         )
                         loadUrl(Config.YOUTUBE_MUSIC_MAIN_URL)
-                    }
-                },
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MusixmatchCaptchaWebView(
-    cookie: String,
-    onDismissRequest: () -> Unit,
-) {
-    val sheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
-    val coroutineScope = rememberCoroutineScope()
-
-    ModalBottomSheet(
-        onDismissRequest = {
-            onDismissRequest()
-        },
-        containerColor = Color.Black,
-        contentColor = Color.Transparent,
-        dragHandle = {},
-        scrimColor = Color.Black.copy(alpha = .5f),
-        sheetState = sheetState,
-        modifier =
-            Modifier
-                .fillMaxHeight(),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        shape = RectangleShape,
-    ) {
-        Column {
-            TopAppBar(
-                colors =
-                    TopAppBarDefaults.topAppBarColors().copy(
-                        containerColor = Color.Transparent,
-                    ),
-                title = {
-                    Text(
-                        text = "Resolve Musixmatch Captcha",
-                        style = typo.bodyMedium,
-                        color = Color.White,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            onDismissRequest()
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
-                            contentDescription = "",
-                            tint = Color.White,
-                        )
-                    }
-                },
-            )
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { context ->
-                    CookieManager.getInstance().setCookie(
-                        "https://apic.musixmatch.com/captcha.html?callback_url=mxm://captcha",
-                        cookie,
-                    )
-                    WebView(context).apply {
-                        webChromeClient = WebChromeClient()
-                        webViewClient =
-                            object : WebViewClient() {
-                                override fun onPageFinished(
-                                    view: WebView?,
-                                    url: String?,
-                                ) {
-                                    Log.w("MusixmatchCaptchaWebView", "onPageFinished: $url")
-                                }
-
-                                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                                    if (request?.url.toString().contains("mxm://") == true) {
-                                        val intent = Intent(Intent.ACTION_VIEW, request?.url)
-                                        view?.context?.startActivity(intent)
-                                        onDismissRequest()
-                                    }
-                                    return super.shouldOverrideUrlLoading(view, request)
-                                }
-                            }
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = true
-                        loadUrl("https://apic.musixmatch.com/captcha.html?callback_url=mxm://captcha")
                     }
                 },
             )

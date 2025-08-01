@@ -1,12 +1,5 @@
 package org.simpmusic.aiservice
 
-import com.maxrave.lyricsproviders.models.lyrics.Line
-import com.maxrave.lyricsproviders.models.lyrics.Lyrics
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import org.junit.Before
-import org.junit.Test
-
 class AiClientTest {
 //    private val aiClient = AiClient()
 //    @Before

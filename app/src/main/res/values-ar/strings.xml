@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s مسارات  %2$s</string>
     <string name="view_count">%1$s مشاهدات</string>
-    <string name="lyrics_provider">كلمات الأغاني مقدمة من Musixmatch</string>
     <string name="clear_search_history">حذف سجل البحث</string>
     <string name="liked">معجب</string>
     <string name="like">أعجبني</string>
@@ -238,19 +237,12 @@
     <string name="update_playlist">تحديث قائمة التشغيل من YouTube Music</string>
     <string name="backup_create_success">تم إنشاء النسخة الاحتياطية بنجاح</string>
     <string name="backup_create_failed">فشل إنشاء النسخ الاحتياطي</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">مورد كلمات الأغاني الرئيسي</string>
-    <string name="log_in_to_Musixmatch">تسجيل الدخول إلى Musixmatch</string>
-    <string name="only_support_email_and_password_type">فقط دعم نوع البريد الإلكتروني وكلمة المرور</string>
-    <string name="musixmatch_login_description">يعمل API Musixmatch للترجمة فقط مع المستخدم المسجل دخول. SimpMusic يستخدم Musixmatch Developer API. للمزيد من المعلومات، انتقل إلى https://github.com/maxrave-dev/SimpMusic أو https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">استخدم ترجمة Musixmatch</string>
-    <string name="use_musixmatch_translation_description">تمكين ترجمة الكلمات باستخدام Musixmatch. يتطلب تسجيل الدخول إلى Musixmatch</string>
     <string name="translation_language">لغة التّرجمة</string>
     <string name="follow_app_language">تتبع لغة التطبيق</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="password">كلمة المرور</string>
     <string name="please_enter_your_email_and_password">يرجى إدخال اسم المستخدم وكلمة المرور</string>
-    <string name="log_out_from_musixmatch">تسجيل الخروج من Musixmatch</string>
     <string name="translation_language_message">أدخل كود اللغة (مثال: en) (من حرفين بالإنجليزية). إذا كنت تريد ضبط نفس اللغة مع لغة SimpMusic، فيرجى جعل مربع التحرير فارغًا.</string>
     <string name="invalid_language_code">رمز اللغة غير صحيح</string>
     <string name="lyrics_provider_youtube">كلمات الأغاني المقدمة من YouTube</string>
