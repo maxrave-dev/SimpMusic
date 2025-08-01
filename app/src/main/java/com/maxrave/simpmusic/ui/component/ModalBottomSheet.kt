@@ -1959,52 +1959,61 @@ fun AddToPlaylistModalBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    LazyColumn {
-                        items(listLocalPlaylist) { playlist ->
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 3.dp)
-                                        .clickable(
-                                            enabled = playlist.tracks?.contains(videoId) != true,
-                                            onClick = {
-                                                onClick(playlist)
-                                                hideModalBottomSheet()
-                                            },
-                                        ),
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                    if (listLocalPlaylist.isEmpty()) {
+                        Text(
+                            text = stringResource(id = R.string.no_playlist_found),
+                            style = typo.labelSmall,
+                            modifier = Modifier.padding(20.dp),
+                            color = Color.Gray,
+                        )
+                    } else {
+                        LazyColumn {
+                            items(listLocalPlaylist) { playlist ->
+                                Box(
                                     modifier =
                                         Modifier
-                                            .padding(12.dp)
-                                            .align(Alignment.CenterStart),
+                                            .fillMaxWidth()
+                                            .padding(vertical = 3.dp)
+                                            .clickable(
+                                                enabled = playlist.tracks?.contains(videoId) != true,
+                                                onClick = {
+                                                    onClick(playlist)
+                                                    hideModalBottomSheet()
+                                                },
+                                            ),
                                 ) {
-                                    Crossfade(
-                                        targetState = playlist.tracks?.contains(videoId) == true,
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier =
+                                            Modifier
+                                                .padding(12.dp)
+                                                .align(Alignment.CenterStart),
                                     ) {
-                                        if (it) {
-                                            Image(
-                                                painter = painterResource(id = R.drawable.done),
-                                                contentDescription = "",
-                                            )
-                                        } else {
-                                            Image(
-                                                painter =
-                                                    painterResource(
-                                                        id = R.drawable.baseline_playlist_add_24,
-                                                    ),
-                                                contentDescription = "",
-                                            )
+                                        Crossfade(
+                                            targetState = playlist.tracks?.contains(videoId) == true,
+                                        ) {
+                                            if (it) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.done),
+                                                    contentDescription = "",
+                                                )
+                                            } else {
+                                                Image(
+                                                    painter =
+                                                        painterResource(
+                                                            id = R.drawable.baseline_playlist_add_24,
+                                                        ),
+                                                    contentDescription = "",
+                                                )
+                                            }
                                         }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
+                                            text = playlist.title,
+                                            style = typo.labelSmall,
+                                            color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
+                                        )
                                     }
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Text(
-                                        text = playlist.title,
-                                        style = typo.labelSmall,
-                                        color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
-                                    )
                                 }
                             }
                         }
