@@ -318,6 +318,15 @@ fun MediaPlayerViewWithSubtitle(
                     }
                 }
 
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    super.onVideoSizeChanged(videoSize)
+                    videoRatio = if (videoSize.width != 0 && videoSize.height != 0) {
+                        videoSize.width.toFloat() / videoSize.height
+                    } else {
+                        16f / 9 // Default ratio if video size is not available
+                    }
+                }
+
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     super.onIsPlayingChanged(isPlaying)
                     shouldEnterPipMode = isPlaying && shouldPip
