@@ -971,6 +971,13 @@ class SimpleMediaServiceHandler(
             Player.STATE_ENDED -> {
                 _simpleMediaState.value = SimpleMediaState.Ended
                 Log.d(TAG, "onPlaybackStateChanged: Ended")
+                if(player.repeatMode == Player.REPEAT_MODE_ONE) {
+                    player.seekTo(0)
+                    player.playWhenReady = true
+                }
+                else if(player.repeatMode == Player.REPEAT_MODE_OFF && player.mediaItemCount>1) {
+                    player.seekToNext()
+                }
             }
             Player.STATE_READY -> {
                 Log.d(TAG, "onPlaybackStateChanged: Ready")
