@@ -158,6 +158,9 @@ interface DatabaseDao {
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + 1 WHERE videoId = :videoId")
     suspend fun updateTotalPlayTime(videoId: String)
 
+    @Query("UPDATE song SET totalPlayTime = 0 WHERE videoId = :videoId")
+    suspend fun resetTotalPlayTime(videoId: String)
+
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE videoId = :videoId")
     suspend fun updateSongInLibrary(
         inLibrary: LocalDateTime,

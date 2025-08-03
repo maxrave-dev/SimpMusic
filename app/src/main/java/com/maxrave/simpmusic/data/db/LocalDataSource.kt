@@ -80,6 +80,8 @@ class LocalDataSource(
 
     suspend fun updateListenCount(videoId: String) = databaseDao.updateTotalPlayTime(videoId)
 
+    suspend fun resetTotalPlayTime(videoId: String) = databaseDao.resetTotalPlayTime(videoId)
+
     suspend fun updateCanvasUrl(
         videoId: String,
         canvasUrl: String,

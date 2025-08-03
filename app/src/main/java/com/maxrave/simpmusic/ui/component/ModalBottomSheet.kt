@@ -1176,6 +1176,7 @@ fun NowPlayingBottomSheet(
     changeMainLyricsProviderEnable: Boolean = false,
     // Delete is specific to playlist
     onDelete: (() -> Unit)? = null,
+    onLibraryDelete: (() -> Unit)? = null,
     dataStoreManager: DataStoreManager = koinInject(),
 ) {
     val context = LocalContext.current
@@ -1522,8 +1523,19 @@ fun NowPlayingBottomSheet(
                                 icon = painterResource(id = R.drawable.baseline_delete_24),
                                 text = R.string.delete_song_from_playlist,
                             ) {
-                                onDelete?.invoke()
                                 hideModalBottomSheet()
+                                onDelete?.invoke()
+                            }
+                        }
+                    }
+                    Crossfade(targetState = onLibraryDelete != null) {
+                        if (it) {
+                            ActionButton(
+                                icon = painterResource(id = R.drawable.baseline_delete_24),
+                                text = R.string.delete,
+                            ) {
+                                hideModalBottomSheet()
+                                onLibraryDelete?.invoke()
                             }
                         }
                     }

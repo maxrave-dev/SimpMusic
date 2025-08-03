@@ -55,6 +55,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -127,6 +128,11 @@ import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -136,7 +142,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class, ExperimentalHazeMaterialsApi::class)
 @UnstableApi
 @Composable
 fun SettingScreen(
@@ -211,6 +217,11 @@ fun SettingScreen(
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
 
+    val hazeState =
+        rememberHazeState(
+            blurEnabled = true,
+        )
+
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
@@ -248,8 +259,11 @@ fun SettingScreen(
         modifier =
             Modifier
                 .padding(horizontal = 16.dp)
-                .padding(top = 64.dp),
+                .hazeSource(hazeState),
     ) {
+        item {
+            Spacer(Modifier.height(64.dp))
+        }
         item(key = "user_interface") {
             Column {
                 Spacer(Modifier.height(16.dp))
@@ -1838,5 +1852,14 @@ fun SettingScreen(
                 }
             }
         },
+        modifier =
+            Modifier
+                .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                    blurEnabled = true
+                },
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            ),
     )
 }

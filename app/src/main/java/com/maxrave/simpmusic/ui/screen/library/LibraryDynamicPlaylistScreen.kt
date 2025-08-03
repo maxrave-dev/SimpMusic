@@ -23,6 +23,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
@@ -49,8 +51,14 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 @UnstableApi
 @ExperimentalMaterial3Api
@@ -75,6 +83,10 @@ fun LibraryDynamicPlaylistScreen(
     var tempMostPlayed by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
     val downloaded by viewModel.listDownloadedSong.collectAsState()
     var tempDownloaded by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
+    val hazeState =
+        rememberHazeState(
+            blurEnabled = true,
+        )
 
     LaunchedEffect(query) {
         Log.w("LibraryDynamicPlaylistScreen", "Check query: $query")
@@ -89,9 +101,12 @@ fun LibraryDynamicPlaylistScreen(
     }
 
     LazyColumn(
-        modifier = Modifier.padding(top = 64.dp),
+        modifier = Modifier.hazeSource(hazeState),
         contentPadding = innerPadding,
     ) {
+        item {
+            Spacer(Modifier.height(64.dp))
+        }
         item {
             AnimatedVisibility(showSearchBar) {
                 Spacer(Modifier.height(55.dp))
@@ -209,6 +224,15 @@ fun LibraryDynamicPlaylistScreen(
                     }
                 }
             },
+            modifier =
+                Modifier
+                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                        blurEnabled = true
+                    },
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                ),
         )
         androidx.compose.animation.AnimatedVisibility(visible = showSearchBar) {
             SearchBar(

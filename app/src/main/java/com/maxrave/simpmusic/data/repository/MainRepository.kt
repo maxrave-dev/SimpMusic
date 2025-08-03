@@ -397,6 +397,11 @@ class MainRepository(
             localDataSource.updateListenCount(videoId)
         }
 
+    suspend fun resetTotalPlayTime(videoId: String) =
+        withContext(Dispatchers.IO) {
+            localDataSource.resetTotalPlayTime(videoId)
+        }
+
     suspend fun updateCanvasUrl(
         videoId: String,
         canvasUrl: String,
@@ -1040,7 +1045,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getNewRelease(): Flow<Resource<ArrayList<HomeItem>>> =
+    fun getNewRelease(): Flow<Resource<ArrayList<HomeItem>>> =
         flow {
             youTube
                 .newRelease()
@@ -1051,7 +1056,7 @@ class MainRepository(
                 }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getChartData(countryCode: String = "KR"): Flow<Resource<Chart>> =
+    fun getChartData(countryCode: String = "KR"): Flow<Resource<Chart>> =
         flow {
             runCatching {
                 youTube
