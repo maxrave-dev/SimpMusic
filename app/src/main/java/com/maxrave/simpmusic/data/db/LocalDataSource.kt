@@ -31,6 +31,8 @@ class LocalDataSource(
 
     suspend fun getAllDownloadedPlaylist() = databaseDao.getAllDownloadedPlaylist()
 
+    suspend fun getAllDownloadingPlaylist() = databaseDao.getAllDownloadingPlaylist()
+
     suspend fun getSearchHistory() = databaseDao.getSearchHistory()
 
     suspend fun deleteSearchHistory() = databaseDao.deleteSearchHistory()
@@ -186,6 +188,8 @@ class LocalDataSource(
     ) = databaseDao.updatePlaylistDownloadState(downloadState, playlistId)
 
     suspend fun getAllLocalPlaylists() = databaseDao.getAllLocalPlaylists()
+
+    suspend fun getAllDownloadingLocalPlaylists() = databaseDao.getAllDownloadingLocalPlaylists()
 
     suspend fun getLocalPlaylist(id: Long) = databaseDao.getLocalPlaylist(id)
 

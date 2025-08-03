@@ -41,6 +41,7 @@ import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
+import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.extension.isSong
@@ -80,6 +81,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -96,6 +98,7 @@ import kotlin.reflect.KClass
 class SharedViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
+    private val localPlaylistManager: LocalPlaylistManager by inject()
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
@@ -205,13 +208,13 @@ class SharedViewModel(
                     ) { timeline, nowPlayingState ->
                         Pair(timeline, nowPlayingState)
                     }.distinctUntilChanged { old, new ->
-                        (old.first.total.toString() + old.second?.songEntity?.videoId).hashCode() ==
-                            (new.first.total.toString() + new.second?.songEntity?.videoId).hashCode()
+                        (old.first.total.toString() + old.second.songEntity?.videoId).hashCode() ==
+                            (new.first.total.toString() + new.second.songEntity?.videoId).hashCode()
                     }.collectLatest {
-                        log("Timeline job ${(it.first.total.toString() + it.second?.songEntity?.videoId).hashCode()}")
+                        log("Timeline job ${(it.first.total.toString() + it.second.songEntity?.videoId).hashCode()}")
                         val nowPlaying = it.second
                         val timeline = it.first
-                        if (timeline.total > 0 && nowPlaying?.songEntity != null) {
+                        if (timeline.total > 0 && nowPlaying.songEntity != null) {
                             if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.canvasData == null) {
                                 Log.w(tag, "Duration is ${timeline.total}")
                                 Log.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
@@ -411,6 +414,10 @@ class SharedViewModel(
             sleepTimerJob.join()
             playlistNameJob.join()
         }
+        // Reset downloading songs & playlists to not downloaded
+        checkAllDownloadingSongs()
+        checkAllDownloadingPlaylists()
+        checkAllDownloadingLocalPlaylists()
     }
 
     fun setIntent(intent: Intent?) {
@@ -744,7 +751,37 @@ class SharedViewModel(
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
-    fun checkAllDownloadingSongs() {
+    private fun checkAllDownloadingLocalPlaylists() {
+        viewModelScope.launch {
+            localPlaylistManager.getAllDownloadingLocalPlaylists().collectLatest { playlists ->
+                playlists.forEach { playlist ->
+                    localPlaylistManager.updateDownloadState(playlist.id, 0).lastOrNull()
+                }
+            }
+        }
+    }
+
+    private fun checkAllDownloadingPlaylists() {
+        viewModelScope.launch {
+            mainRepository.getAllDownloadingPlaylist().collectLatest { list ->
+                list.forEach { data ->
+                    when (data) {
+                        is AlbumEntity -> {
+                            mainRepository.updateAlbumDownloadState(data.browseId, 0)
+                        }
+                        is PlaylistEntity -> {
+                            mainRepository.updatePlaylistDownloadState(data.id, 0)
+                        }
+                        else -> {
+                            // Skip
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun checkAllDownloadingSongs() {
         viewModelScope.launch {
             mainRepository.getDownloadingSongs().collect { songs ->
                 songs?.forEach { song ->

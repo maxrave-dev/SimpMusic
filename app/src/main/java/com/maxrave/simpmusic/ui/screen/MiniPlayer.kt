@@ -258,7 +258,7 @@ fun MiniPlayer(
                                             ->
                                             coroutineScope.launch {
                                                 change.consume()
-                                                offsetX.animateTo(offsetX.value + dragAmount)
+                                                offsetX.animateTo(offsetX.value + dragAmount * 2)
                                                 Log.w("MiniPlayer", "Dragged ${offsetX.value}")
                                             }
                                         },
