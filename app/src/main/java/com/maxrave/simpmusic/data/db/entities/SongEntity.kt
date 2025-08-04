@@ -1,12 +1,15 @@
 package com.maxrave.simpmusic.data.db.entities
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
 import com.maxrave.simpmusic.data.type.RecentlyType
+import kotlinx.parcelize.Parcelize
 import java.time.LocalDateTime
 
 @Entity(tableName = "song")
+@Parcelize
 data class SongEntity(
     @PrimaryKey(autoGenerate = false) val videoId: String = "",
     val albumId: String? = null,
@@ -29,7 +32,8 @@ data class SongEntity(
     val inLibrary: LocalDateTime = LocalDateTime.now(),
     val canvasUrl: String? = null,
     val canvasThumbUrl: String? = null,
-) : RecentlyType {
+) : RecentlyType,
+    Parcelable {
     override fun objectType(): RecentlyType.Type = RecentlyType.Type.SONG
 
     fun toggleLike() = copy(liked = !liked)

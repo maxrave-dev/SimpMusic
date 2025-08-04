@@ -197,6 +197,9 @@
     <string name="skip_sponsor_part_of_video">Ignorer la partie sponsorisée de la vidéo</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Une erreur inattendue s\'est produite. Désolé pour la gêne occasionnée…</string>
     <string name="customactivityoncrash_error_activity_restart_app">Redémarrer l\'application</string>
+    <string name="help_build_lyrics_database">Aidez SimpMusic à créer la base de données des paroles</string>
+    <string name="help_build_lyrics_database_description">Envoyez vos paroles enregistrées à la base de données des paroles de SimpMusic</string>
+    <string name="lyrics_database_description">Nous construisons notre propre base de données de paroles pour SimpMusic et d\'autres clients YouTube à des fins non commerciales, en open source sur</string>
     <string name="customactivityoncrash_error_activity_close_app">Fermer l\'application</string>
     <string name="customactivityoncrash_error_activity_error_details">Détails de l\'erreur</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Détails de l\'erreur</string>
@@ -242,7 +245,6 @@
     <string name="backup_create_failed">Échec de la création de la sauvegarde</string>
     <string name="main_lyrics_provider">Fournisseur principal de paroles</string>
     <string name="use_ai_translation">Utiliser la traduction lyrique par IA</string>
-    <string name="use_ai_translation_description">Activez la traduction des paroles grâce à l\'IA.</string>
     <string name="translation_language">Langue de traduction</string>
     <string name="follow_app_language">Suivre la langue de l\'application</string>
     <string name="email">E-mail</string>
@@ -436,4 +438,10 @@
     <string name="set_crossfade_duration">Définir la durée du fondu enchaîné en secondes (%1$ds)</string>
     <string name="youtube_subtitle_language">Langue de traduction des sous-titres YouTube</string>
     <string name="youtube_subtitle_language_message">Saisissez le code de langue (ex. : en) (2 lettres). Il s\'agit de la langue de traduction préférée pour les sous-titres YouTube.</string>
+    <string name="use_anonymous">Utilisez un nom anonyme pour contribuer</string>
+    <string name="contributor_name">Nom du contributeur</string>
+    <string name="contributor_email">Email du contributeur</string>
+    <string name="anonymous">Anonyme</string>
+    <string name="simpmusic_lyrics">Paroles de SimpMusic</string>
+    <string name="lyrics_provider_simpmusic">Paroles fournies par SimpMusic</string>
 </resources>

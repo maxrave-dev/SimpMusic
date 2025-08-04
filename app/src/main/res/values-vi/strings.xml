@@ -245,7 +245,7 @@
     <string name="backup_create_failed">Sao lưu thất bại</string>
     <string name="main_lyrics_provider">Nguồn cung cấp lời bài hát chính</string>
     <string name="use_ai_translation">Sử dụng AI để dịch lời bài hát</string>
-    <string name="use_ai_translation_description">Bật tính năng dịch lời bài hát bằng AI.</string>
+    <string name="use_ai_translation_description">Bật tính năng dịch lời bài hát bằng AI</string>
     <string name="translation_language">Ngôn ngữ dịch</string>
     <string name="follow_app_language">Theo ngôn ngữ của ứng dụng</string>
     <string name="email">Email</string>
@@ -444,4 +444,9 @@
     <string name="anonymous">Ẩn danh</string>
     <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
     <string name="lyrics_provider_simpmusic">Lời bài hát được cung cấp bởi SimpMusic Lyrics</string>
+    <string name="backup_in_progress">Đang sao lưu</string>
+    <string name="restore_in_progress">Đang tiến hành khôi phục</string>
+    <string name="backup_downloaded">Sao lưu dữ liệu đã tải xuống</string>
+    <string name="backup_downloaded_description">Sao lưu tất cả các bài hát đã tải xuống</string>
+    <string name="no_playlist_found">Không tìm thấy bất kỳ danh sách phát nội bộ nào, hãy tạo một danh sách phát trước</string>
 </resources>

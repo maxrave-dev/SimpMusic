@@ -197,6 +197,9 @@
     <string name="skip_sponsor_part_of_video">Пропустить спонсорскую часть видео</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Неизвестная ошибка. Извините за неудобства.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Перезапустить приложение</string>
+    <string name="help_build_lyrics_database">Помогите SimpMusic Lyrics создать базу данных текстов песен</string>
+    <string name="help_build_lyrics_database_description">Отправить сохраненные тексты песен в базу данных SimpMusic lyrics</string>
+    <string name="lyrics_database_description">Мы создаем собственную базу данных текстов песен для SimpMusic и других клиентов YouTube в некоммерческих целей, с открытым исходным кодом на</string>
     <string name="customactivityoncrash_error_activity_close_app">Закрыть приложение</string>
     <string name="customactivityoncrash_error_activity_error_details">Подробные сведения об ошибке</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Подробные сведения об ошибке</string>
@@ -242,7 +245,6 @@
     <string name="backup_create_failed">Не удалось создать резервную копию</string>
     <string name="main_lyrics_provider">Главный поставщик текстов</string>
     <string name="use_ai_translation">Использовать ИИ перевод</string>
-    <string name="use_ai_translation_description">Включите перевод текстов песен с помощью ИИ.</string>
     <string name="translation_language">Язык перевода</string>
     <string name="follow_app_language">Следуйте языку приложения</string>
     <string name="email">Электронная почта</string>
@@ -438,4 +440,10 @@
     <string name="set_crossfade_duration">Задать длительность кроссфейда в секундах (%1$ds)</string>
     <string name="youtube_subtitle_language">Язык перевода субтитров YouTube</string>
     <string name="youtube_subtitle_language_message">Введите код языка (например: en) (2 буквы). Это предпочитаемый язык перевода для субтитров YouTube.</string>
+    <string name="use_anonymous">Использовать анонимное имя для участия</string>
+    <string name="contributor_name">Имя участника</string>
+    <string name="contributor_email">Почта участника</string>
+    <string name="anonymous">Анонимно</string>
+    <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
+    <string name="lyrics_provider_simpmusic">Текст песни предоставлен SimpMusic Lyrics</string>
 </resources>

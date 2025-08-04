@@ -242,7 +242,6 @@
     <string name="backup_create_failed">備份建立失敗</string>
     <string name="main_lyrics_provider">主要歌詞來源</string>
     <string name="use_ai_translation">使用AI歌詞翻譯</string>
-    <string name="use_ai_translation_description">使用前請關閉Musixmatch歌詞翻譯</string>
     <string name="translation_language">譯文語言</string>
     <string name="follow_app_language">使用應用程式語言</string>
     <string name="email">電子信箱</string>

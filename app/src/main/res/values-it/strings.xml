@@ -13,7 +13,7 @@
     <string name="hello_blank_fragment">Rimuovi frammenti vuoti</string>
     <string name="download">Scarica</string>
     <string name="downloaded">Scaricato/i</string>
-    <string name="downloading">Scaricando</string>
+    <string name="downloading">Scaricamento in corso</string>
     <string name="preparing">In preparazione</string>
     <string name="hide">Nascondi</string>
     <string name="show">Mostra</string>
@@ -242,7 +242,6 @@
     <string name="backup_create_failed">Creazione del backup non riuscita</string>
     <string name="main_lyrics_provider">Fornitore principale di testi</string>
     <string name="use_ai_translation">Usa Traduzione Testi AI</string>
-    <string name="use_ai_translation_description">Abilita la traduzione dei testi usando l\'AI.</string>
     <string name="translation_language">Lingua di traduzione</string>
     <string name="follow_app_language">Segui la lingua dell\'app</string>
     <string name="email">Email</string>
@@ -434,4 +433,9 @@
     <string name="crossfade_disabled">Disabilitato</string>
     <string name="crossfade_duration">Durata Dissolvenza incrociata</string>
     <string name="set_crossfade_duration">Imposta la durata della dissolvenza incrociata in secondi (%1$d)</string>
+    <string name="youtube_subtitle_language">Lingua di traduzione dei sottotitoli di YouTube</string>
+    <string name="use_anonymous">Usa nome anonimo per contribuire</string>
+    <string name="contributor_name">Nome del collaboratore</string>
+    <string name="contributor_email">Email del collaboratore</string>
+    <string name="anonymous">Anonimo</string>
 </resources>

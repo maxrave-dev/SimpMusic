@@ -242,7 +242,6 @@
     <string name="backup_create_failed">备份创建失败</string>
     <string name="main_lyrics_provider">主歌词提供商</string>
     <string name="use_ai_translation">使用 AI 歌词翻译</string>
-    <string name="use_ai_translation_description">使用 AI 启用歌词翻译。</string>
     <string name="translation_language">翻译语言</string>
     <string name="follow_app_language">跟随应用语言</string>
     <string name="email">邮箱</string>

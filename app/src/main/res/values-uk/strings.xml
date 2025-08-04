@@ -197,6 +197,9 @@
     <string name="skip_sponsor_part_of_video">Пропустити частину відео зі спонсором</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Виникла неочікувана помилка. Вибачте за незручності.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Перезапустити додаток</string>
+    <string name="help_build_lyrics_database">Допоможіть SimpMusic перекласти тексти пісень</string>
+    <string name="help_build_lyrics_database_description">Надішліть ваші збережені тексти пісень в базу даних SimpMusic</string>
+    <string name="lyrics_database_description">Ми розробляємо нашу власну базу даних текстів пісень для SimpMusic та інших YouTube клієнтів для некомерційних цілей, з відкритим кодом</string>
     <string name="customactivityoncrash_error_activity_close_app">Закрити застосунок</string>
     <string name="customactivityoncrash_error_activity_error_details">Деталі помилки</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Деталі помилки</string>
@@ -242,7 +245,6 @@
     <string name="backup_create_failed">Не вдалося створити резервну копію</string>
     <string name="main_lyrics_provider">Основне джерело текстів</string>
     <string name="use_ai_translation">Використати ШІ переклад</string>
-    <string name="use_ai_translation_description">Увімкніть переклад текстів пісень за допомогою ШІ.</string>
     <string name="translation_language">Мова перекладу</string>
     <string name="follow_app_language">Дотримуватись мови програми</string>
     <string name="email">Адреса електронної пошти</string>
@@ -402,6 +404,7 @@
     <string name="buying_me_a_coffee">купити мені каву.</string>
     <string name="fade_audio_effect">Ефект затухання звуку</string>
     <string name="disabled">Вимкнути</string>
+    <string name="fade_audio_effect_duration">Тривалість ефекту затухання (мс) (Встановіть 0 для відключення)</string>
     <string name="duration">Тривалість</string>
     <string name="invalid_number">Некоректне число</string>
     <string name="shuffle_not_available">Кінцева точка змішування не доступна</string>
@@ -427,4 +430,20 @@
     <string name="can_not_be_empty">Не може бути порожнім</string>
     <string name="processing">Обробка</string>
     <string name="website">Веб-сайт</string>
+    <string name="download_this_song_video_file_to_your_device">Завантажити цю пісню/відео файл на ваш пристрій</string>
+    <string name="kill_service_on_exit">Завершити роботу служби при виході</string>
+    <string name="kill_service_on_exit_description">Зупинити фоновий програвач при виході з програми</string>
+    <string name="crossfade">Плавний перехід (бета)</string>
+    <string name="crossfade_enabled">Увімкнено (%1$ds)</string>
+    <string name="crossfade_disabled">Вимкнено</string>
+    <string name="crossfade_duration">Тривалість переходу</string>
+    <string name="set_crossfade_duration">Встановити тривалість затухання в секундах (%1$d)</string>
+    <string name="youtube_subtitle_language">Мова перекладу субтитрів YouTube</string>
+    <string name="youtube_subtitle_language_message">Введіть код мови (Eg: en) (2 букви). Це бажана мова перекладу для YouTube субтитрів.</string>
+    <string name="use_anonymous">Використовувати анонімне ім\'я для співпраці</string>
+    <string name="contributor_name">Ім\'я учасника</string>
+    <string name="contributor_email">Електронна пошта учасника</string>
+    <string name="anonymous">Анонімно</string>
+    <string name="simpmusic_lyrics">Тексти пісень SimpMusic</string>
+    <string name="lyrics_provider_simpmusic">Тексти пісень надано SimpMusic Lyrics</string>
 </resources>

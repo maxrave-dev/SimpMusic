@@ -242,7 +242,6 @@
     <string name="backup_create_failed">การสร้างข้อมูลสำรองล้มเหลว</string>
     <string name="main_lyrics_provider">ผู้ให้บริการเนื้อเพลงหลัก</string>
     <string name="use_ai_translation">ใช้งานการแปลเนื้อเพลงโดยใช้ AI</string>
-    <string name="use_ai_translation_description">เปิดใช้งานการแปลเนื้อเพลงโดยใช้ AI.</string>
     <string name="translation_language">แปลภาษา</string>
     <string name="follow_app_language">ทำตามภาษาของแอป</string>
     <string name="email">อีเมล</string>

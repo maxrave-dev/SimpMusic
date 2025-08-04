@@ -50,10 +50,10 @@
     <string name="available_online">Disponible en línea</string>
     <string name="unavailable">No Disponible</string>
     <string name="you">Tú</string>
-    <string name="good_morning">¡Buenos días!</string>
-    <string name="good_afternoon">¡Buenas tardes!</string>
-    <string name="good_evening">¡Buenas noches!</string>
-    <string name="good_night">¡Buenas noches!</string>
+    <string name="good_morning">Buenos días</string>
+    <string name="good_afternoon">Buenas tardes</string>
+    <string name="good_evening">Buenas noches</string>
+    <string name="good_night">Buenas noches</string>
     <string name="quick_picks">Selecciones rápidas</string>
     <string name="this_song_is_not_available">Esta canción no está disponible</string>
     <string name="in_charts">en Listas</string>
@@ -197,6 +197,9 @@
     <string name="skip_sponsor_part_of_video">Omitir patrocinadores en el vídeo</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Ha producido un error inesperado. Disculpe las molestias.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Reiniciar app</string>
+    <string name="help_build_lyrics_database">Ayuda a SimpMusic a contruir la base de datos de letras</string>
+    <string name="help_build_lyrics_database_description">Envía tus letras guardadas a la base de datos de letras de SimpMusic</string>
+    <string name="lyrics_database_description">Estamos construyendo nuestra propia base de datos de letras para SimpMusic y otros clientes de YouTube para fines no comerciales, de código abierto en</string>
     <string name="customactivityoncrash_error_activity_close_app">Cerrar app</string>
     <string name="customactivityoncrash_error_activity_error_details">Detalles del error</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Detalles del error</string>
@@ -242,7 +245,6 @@
     <string name="backup_create_failed">Error al crear copia de seguridad</string>
     <string name="main_lyrics_provider">Proveedor principal de letras</string>
     <string name="use_ai_translation">Usar traducción de letras con IA</string>
-    <string name="use_ai_translation_description">Activa la traducción de letras usando AI.</string>
     <string name="translation_language">Idioma de la traducción</string>
     <string name="follow_app_language">Usar el idioma de la aplicación</string>
     <string name="email">Correo electrónico</string>
@@ -264,7 +266,7 @@
     <string name="sort_by">Clasificar por</string>
     <string name="sort">Clasificar</string>
     <string name="older_first">Primero antiguo</string>
-    <string name="newer_first">Primero nuevo </string>
+    <string name="newer_first">Primero nuevo</string>
     <string name="added_date">Fecha añadida</string>
     <string name="credit_app">Una aplicación de música sencilla que utiliza YouTube Music como backend \n\nSimpMusic es un proyecto de código abierto para transmitir música desde YouTube y YouTube Music sin anuncios ni seguimiento. SimpMusic ofrece muchas funciones:\n\n - Transmisión de música \n - Letras sincronizadas\n - Personalizar datos\n - etc... \n\nSimpMusic es siempre gratuito y sin anuncios\n\nCompilado con ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Rastreador de errores</string>
@@ -436,4 +438,10 @@
     <string name="set_crossfade_duration">Establecer la duración del crossfade en segundos (%1$ds)</string>
     <string name="youtube_subtitle_language">Idioma de traducción de subtítulos de YouTube</string>
     <string name="youtube_subtitle_language_message">Escribe el código de idioma (ej.: es) (2 letras). Este es el idioma de traducción preferido para los subtítulos de YouTube.</string>
+    <string name="use_anonymous">Usa un nombre anónimo para contribuir</string>
+    <string name="contributor_name">Nombre del contribuidor</string>
+    <string name="contributor_email">Correo del contribuidor</string>
+    <string name="anonymous">Anónimo</string>
+    <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
+    <string name="lyrics_provider_simpmusic">Letras proveídas por SimpMusic Lyrics</string>
 </resources>

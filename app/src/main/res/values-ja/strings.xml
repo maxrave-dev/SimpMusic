@@ -242,7 +242,6 @@
     <string name="backup_create_failed">バックアップの作成に失敗しました</string>
     <string name="main_lyrics_provider">メインにする歌詞の提供元</string>
     <string name="use_ai_translation">AIによる歌詞翻訳を使用</string>
-    <string name="use_ai_translation_description">AIを使った歌詞翻訳です。</string>
     <string name="translation_language">翻訳言語</string>
     <string name="follow_app_language">アプリの言語に従う</string>
     <string name="email">メールアドレス</string>
