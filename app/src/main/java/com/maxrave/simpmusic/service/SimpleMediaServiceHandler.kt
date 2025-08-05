@@ -788,29 +788,26 @@ class SimpleMediaServiceHandler(
 
             is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress / 100).toLong())
             PlayerEvent.Shuffle -> {
-                val currentMediaItem = player.currentMediaItem
-                val currentMediaId = currentMediaItem?.mediaId?.let {
-                    if (currentMediaItem.isVideo()) it.removePrefix(MergingMediaSourceFactory.isVideo) else it
-                }
-                val currentPosition = player.currentPosition
+                val currentIndex = player.currentMediaItemIndex
+                if (currentIndex == -1) return
 
                 if (_controlState.value.isShuffle) {
                     // --- Turning Shuffle OFF ---
-                    player.shuffleModeEnabled = false
-                    _controlState.update { it.copy(isShuffle = false) }
-
                     if (originalQueueBeforeShuffle != null) {
                         val restoredQueue = ArrayList(originalQueueBeforeShuffle!!)
-                        _queueData.update { it?.copy(listTracks = restoredQueue) }
 
-                        val newMediaItems = restoredQueue.map { it.toMediaItem() }
-                        val newIndex = if (currentMediaId != null) restoredQueue.indexOfFirst { it.videoId == currentMediaId } else -1
-
-                        if (newIndex != -1) {
-                            player.setMediaItems(newMediaItems, newIndex, currentPosition)
+                        val restoredMediaItemsAfter = if (currentIndex + 1 <= restoredQueue.size) {
+                            restoredQueue.subList(currentIndex + 1, restoredQueue.size).map { it.toMediaItem() }
                         } else {
-                            player.setMediaItems(newMediaItems, 0, 0)
+                            emptyList()
                         }
+                        if (currentIndex + 1 <= player.mediaItemCount) {
+                            player.replaceMediaItems(currentIndex + 1, player.mediaItemCount, restoredMediaItemsAfter)
+                        }
+
+                        _queueData.update { it?.copy(listTracks = restoredQueue) }
+                        _controlState.update { it.copy(isShuffle = false) }
+                        player.shuffleModeEnabled = false
                         originalQueueBeforeShuffle = null
                     }
                 } else {
@@ -819,23 +816,20 @@ class SimpleMediaServiceHandler(
                     if (currentQueue != null && currentQueue.isNotEmpty()) {
                         originalQueueBeforeShuffle = ArrayList(currentQueue)
 
-                        val currentTrack = if (currentMediaId != null) currentQueue.find { it.videoId == currentMediaId } else null
-                        val shuffledList = currentQueue.shuffled().toMutableList()
-
-                        if (currentTrack != null) {
-                            shuffledList.remove(currentTrack)
-                            shuffledList.add(0, currentTrack)
+                        val queueAfter = if (currentIndex + 1 <= currentQueue.size) {
+                            currentQueue.subList(currentIndex + 1, currentQueue.size).shuffled()
+                        } else {
+                            emptyList()
                         }
 
-                        _queueData.update { it?.copy(listTracks = ArrayList(shuffledList)) }
+                        val newQueue = ArrayList(currentQueue.subList(0, currentIndex + 1))
+                        newQueue.addAll(queueAfter)
 
-                        val newMediaItems = shuffledList.map { it.toMediaItem() }
-                        val newIndex = if (currentTrack != null) 0 else -1
+                        _queueData.update { it?.copy(listTracks = newQueue) }
 
-                        if (newIndex != -1) {
-                            player.setMediaItems(newMediaItems, newIndex, currentPosition)
-                        } else {
-                            player.setMediaItems(newMediaItems, 0, 0)
+                        val mediaItemsAfter = queueAfter.map { it.toMediaItem() }
+                        if (currentIndex + 1 <= player.mediaItemCount) {
+                            player.replaceMediaItems(currentIndex + 1, player.mediaItemCount, mediaItemsAfter)
                         }
 
                         player.shuffleModeEnabled = false
