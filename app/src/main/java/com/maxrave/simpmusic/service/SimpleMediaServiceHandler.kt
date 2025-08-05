@@ -197,6 +197,7 @@ class SimpleMediaServiceHandler(
     private var watchTimeList: ArrayList<Float> = arrayListOf()
 
     private var jobWatchtime: Job? = null
+    private var originalQueueBeforeShuffle: ArrayList<Track>? = null
 
     init {
         player.addListener(this)
@@ -787,12 +788,59 @@ class SimpleMediaServiceHandler(
 
             is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress / 100).toLong())
             PlayerEvent.Shuffle -> {
-                if (player.shuffleModeEnabled) {
+                val currentMediaItem = player.currentMediaItem
+                val currentMediaId = currentMediaItem?.mediaId?.let {
+                    if (currentMediaItem.isVideo()) it.removePrefix(MergingMediaSourceFactory.isVideo) else it
+                }
+                val currentPosition = player.currentPosition
+
+                if (_controlState.value.isShuffle) {
+                    // --- Turning Shuffle OFF ---
                     player.shuffleModeEnabled = false
-                    _controlState.value = _controlState.value.copy(isShuffle = false)
+                    _controlState.update { it.copy(isShuffle = false) }
+
+                    if (originalQueueBeforeShuffle != null) {
+                        val restoredQueue = ArrayList(originalQueueBeforeShuffle!!)
+                        _queueData.update { it?.copy(listTracks = restoredQueue) }
+
+                        val newMediaItems = restoredQueue.map { it.toMediaItem() }
+                        val newIndex = if (currentMediaId != null) restoredQueue.indexOfFirst { it.videoId == currentMediaId } else -1
+
+                        if (newIndex != -1) {
+                            player.setMediaItems(newMediaItems, newIndex, currentPosition)
+                        } else {
+                            player.setMediaItems(newMediaItems, 0, 0)
+                        }
+                        originalQueueBeforeShuffle = null
+                    }
                 } else {
-                    player.shuffleModeEnabled = true
-                    _controlState.value = _controlState.value.copy(isShuffle = true)
+                    // --- Turning Shuffle ON ---
+                    val currentQueue = _queueData.value?.listTracks
+                    if (currentQueue != null && currentQueue.isNotEmpty()) {
+                        originalQueueBeforeShuffle = ArrayList(currentQueue)
+
+                        val currentTrack = if (currentMediaId != null) currentQueue.find { it.videoId == currentMediaId } else null
+                        val shuffledList = currentQueue.shuffled().toMutableList()
+
+                        if (currentTrack != null) {
+                            shuffledList.remove(currentTrack)
+                            shuffledList.add(0, currentTrack)
+                        }
+
+                        _queueData.update { it?.copy(listTracks = ArrayList(shuffledList)) }
+
+                        val newMediaItems = shuffledList.map { it.toMediaItem() }
+                        val newIndex = if (currentTrack != null) 0 else -1
+
+                        if (newIndex != -1) {
+                            player.setMediaItems(newMediaItems, newIndex, currentPosition)
+                        } else {
+                            player.setMediaItems(newMediaItems, 0, 0)
+                        }
+
+                        player.shuffleModeEnabled = false
+                        _controlState.update { it.copy(isShuffle = true) }
+                    }
                 }
                 updateNotification()
             }
@@ -986,16 +1034,8 @@ class SimpleMediaServiceHandler(
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        when (shuffleModeEnabled) {
-            true -> {
-                _controlState.value = _controlState.value.copy(isShuffle = true)
-            }
-
-            false -> {
-                _controlState.value = _controlState.value.copy(isShuffle = false)
-            }
-        }
         updateNextPreviousTrackAvailability()
+//        updateNotification()
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
@@ -1767,7 +1807,7 @@ class SimpleMediaServiceHandler(
                             ).build(),
                         CommandButton
                             .Builder(
-                                if (player.shuffleModeEnabled) {
+                                if (_controlState.value.isShuffle) {
                                     CommandButton.ICON_SHUFFLE_ON
                                 } else {
                                     CommandButton.ICON_SHUFFLE_OFF
