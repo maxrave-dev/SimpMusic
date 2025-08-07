@@ -794,21 +794,27 @@ class SimpleMediaServiceHandler(
                 if (_controlState.value.isShuffle) {
                     // --- Turning Shuffle OFF ---
                     if (originalQueueBeforeShuffle != null) {
-                        val restoredQueue = ArrayList(originalQueueBeforeShuffle!!)
+                        val currentTrack = _queueData.value?.listTracks?.getOrNull(currentIndex)
+                        if (currentTrack != null) {
+                            val restoredQueue = ArrayList(originalQueueBeforeShuffle!!)
+                            val originalIndexOfCurrent = restoredQueue.indexOfFirst { it.videoId == currentTrack.videoId }
 
-                        val restoredMediaItemsAfter = if (currentIndex + 1 <= restoredQueue.size) {
-                            restoredQueue.subList(currentIndex + 1, restoredQueue.size).map { it.toMediaItem() }
-                        } else {
-                            emptyList()
-                        }
-                        if (currentIndex + 1 <= player.mediaItemCount) {
-                            player.replaceMediaItems(currentIndex + 1, player.mediaItemCount, restoredMediaItemsAfter)
-                        }
+                            if (originalIndexOfCurrent != -1) {
+                                val itemsBefore = restoredQueue.subList(0, originalIndexOfCurrent).map { it.toMediaItem() }
+                                val itemsAfter = restoredQueue.subList(originalIndexOfCurrent + 1, restoredQueue.size).map { it.toMediaItem() }
 
-                        _queueData.update { it?.copy(listTracks = restoredQueue) }
+                                player.replaceMediaItems(currentIndex + 1, player.mediaItemCount, itemsAfter)
+                                player.replaceMediaItems(0, currentIndex, itemsBefore)
+
+                                _queueData.update { it?.copy(listTracks = restoredQueue) }
+                            }
+                        }
                         _controlState.update { it.copy(isShuffle = false) }
                         player.shuffleModeEnabled = false
                         originalQueueBeforeShuffle = null
+                    } else {
+                        _controlState.update { it.copy(isShuffle = false) }
+                        player.shuffleModeEnabled = false
                     }
                 } else {
                     // --- Turning Shuffle ON ---
