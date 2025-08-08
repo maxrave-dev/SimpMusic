@@ -198,6 +198,7 @@ class SimpleMediaServiceHandler(
 
     private var jobWatchtime: Job? = null
     private var originalQueueBeforeShuffle: ArrayList<Track>? = null
+    private val playNextQueue = mutableListOf<Track>()
 
     init {
         player.addListener(this)
@@ -812,6 +813,7 @@ class SimpleMediaServiceHandler(
                         _controlState.update { it.copy(isShuffle = false) }
                         player.shuffleModeEnabled = false
                         originalQueueBeforeShuffle = null
+//                        playNextQueue.clear()
                     } else {
                         _controlState.update { it.copy(isShuffle = false) }
                         player.shuffleModeEnabled = false
@@ -823,17 +825,21 @@ class SimpleMediaServiceHandler(
                         originalQueueBeforeShuffle = ArrayList(currentQueue)
 
                         val queueAfter = if (currentIndex + 1 <= currentQueue.size) {
-                            currentQueue.subList(currentIndex + 1, currentQueue.size).shuffled()
+                            currentQueue.subList(currentIndex + 1, currentQueue.size)
                         } else {
                             emptyList()
                         }
 
+                        val playNextItemsInQueue = queueAfter.filter { it in playNextQueue }
+                        val otherItemsInQueue = queueAfter.filter { it !in playNextQueue }.shuffled()
+
                         val newQueue = ArrayList(currentQueue.subList(0, currentIndex + 1))
-                        newQueue.addAll(queueAfter)
+                        newQueue.addAll(playNextItemsInQueue)
+                        newQueue.addAll(otherItemsInQueue)
 
                         _queueData.update { it?.copy(listTracks = newQueue) }
 
-                        val mediaItemsAfter = queueAfter.map { it.toMediaItem() }
+                        val mediaItemsAfter = newQueue.subList(currentIndex + 1, newQueue.size).map { it.toMediaItem() }
                         if (currentIndex + 1 <= player.mediaItemCount) {
                             player.replaceMediaItems(currentIndex + 1, player.mediaItemCount, mediaItemsAfter)
                         }
@@ -961,6 +967,15 @@ class SimpleMediaServiceHandler(
         mediaItem: MediaItem?,
         reason: Int,
     ) {
+        val previouslyPlayingItem = _nowPlaying.value
+        if (previouslyPlayingItem != null && previouslyPlayingItem != EMPTY) {
+            val videoId = if (previouslyPlayingItem.isVideo()) {
+                previouslyPlayingItem.mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+            } else {
+                previouslyPlayingItem.mediaId
+            }
+            playNextQueue.removeAll { it.videoId == videoId }
+        }
         Log.w(TAG, "Smooth Switching Transition Current Position: ${player.currentPosition}")
         mayBeNormalizeVolume()
         Log.w(TAG, "REASON onMediaItemTransition: $reason")
@@ -1914,9 +1929,9 @@ class SimpleMediaServiceHandler(
                     (
                         !thumbUrl
                             .contains("hq720") &&
-                            !thumbUrl
-                                .contains("maxresdefault") &&
-                            !thumbUrl.contains("sddefault")
+                        !thumbUrl
+                            .contains("maxresdefault") &&
+                        !thumbUrl.contains("sddefault")
                     )
             if (track.artists.isNullOrEmpty()) {
                 mainRepository
@@ -2005,6 +2020,9 @@ class SimpleMediaServiceHandler(
         }
         if (!player.isPlaying && isAddToQueue) {
             player.playWhenReady = false
+        }
+        if (originalQueueBeforeShuffle != null) {
+            originalQueueBeforeShuffle?.addAll(catalogMetadata)
         }
         _queueData.value = _queueData.value?.addTrackList(catalogMetadata)
         _stateFlow.value = StateSource.STATE_INITIALIZED
@@ -2340,6 +2358,8 @@ class SimpleMediaServiceHandler(
                                 ).build(),
                             player.currentMediaItemIndex + 1,
                         )
+                        playNextQueue.add(track)
+                        addToOriginalQueueBeforeShuffle(track)
                     } else {
                         val mediaItem =
                             MediaItem
@@ -2364,6 +2384,8 @@ class SimpleMediaServiceHandler(
                                 artists = listOf(Artist("", "Various Artists")),
                             ),
                         )
+                        playNextQueue.add(track)
+                        addToOriginalQueueBeforeShuffle(track)
                     }
                 }
             } else {
@@ -2386,6 +2408,8 @@ class SimpleMediaServiceHandler(
                     player.currentMediaItemIndex + 1,
                 )
                 catalogMetadata.add(player.currentMediaItemIndex + 1, track)
+                playNextQueue.add(track)
+                addToOriginalQueueBeforeShuffle(track)
             }
             Log.d(
                 "MusicSource",
@@ -2398,6 +2422,18 @@ class SimpleMediaServiceHandler(
                 )
         }
         _stateFlow.value = StateSource.STATE_INITIALIZED
+    }
+
+    private fun addToOriginalQueueBeforeShuffle(track: Track) {
+        if (originalQueueBeforeShuffle != null) {
+            val currentTrack = _queueData.value?.listTracks?.getOrNull(player.currentMediaItemIndex)
+            if (currentTrack != null) {
+                val originalIndexOfCurrent = originalQueueBeforeShuffle!!.indexOfFirst { it.videoId == currentTrack.videoId }
+                if (originalIndexOfCurrent != -1) {
+                    originalQueueBeforeShuffle!!.add(originalIndexOfCurrent + 1, track)
+                }
+            }
+        }
     }
 }
 
