@@ -106,7 +106,6 @@ class SimpleMediaServiceHandler(
     private var secondLoudnessEnhancer: LoudnessEnhancer? = null
 
     private var volumeNormalizationJob: Job? = null
-    private var volumeNormalizationForSecondPlayerJob: Job? = null
 
     private var sleepTimerJob: Job? = null
 
@@ -1524,28 +1523,71 @@ class SimpleMediaServiceHandler(
         }
 
     fun release() {
-        mayBeSaveRecentSong(true)
-        mayBeSavePlaybackState()
-        player.stop()
-        player.playWhenReady = false
-        player.removeListener(this)
-        sendCloseEqualizerIntent()
-        progressJob?.cancel()
-        progressJob = null
-        bufferedJob?.cancel()
-        bufferedJob = null
-        sleepTimerJob?.cancel()
-        sleepTimerJob = null
-        volumeNormalizationJob?.cancel()
-        volumeNormalizationJob = null
-        toggleLikeJob?.cancel()
-        toggleLikeJob = null
-        updateNotificationJob?.cancel()
-        updateNotificationJob = null
-        loadJob?.cancel()
-        loadJob = null
-        coroutineScope.cancel()
-        Log.w("Service", "scope is active: ${coroutineScope.isActive}")
+        Log.w("ServiceHandler", "Starting release process")
+        try {
+            // Save state first
+            mayBeSaveRecentSong(true)
+            mayBeSavePlaybackState()
+
+            // Stop and release player
+            player.stop()
+            player.playWhenReady = false
+            player.removeListener(this)
+
+            // Release audio effects
+            try {
+                loudnessEnhancer?.enabled = false
+                loudnessEnhancer?.release()
+                loudnessEnhancer = null
+
+                secondLoudnessEnhancer?.enabled = false
+                secondLoudnessEnhancer?.release()
+                secondLoudnessEnhancer = null
+            } catch (e: Exception) {
+                Log.e("ServiceHandler", "Error releasing audio effects", e)
+            }
+
+            // Send close equalizer intent
+            sendCloseEqualizerIntent()
+
+            // Cancel all jobs
+            progressJob?.cancel()
+            progressJob = null
+            bufferedJob?.cancel()
+            bufferedJob = null
+            sleepTimerJob?.cancel()
+            sleepTimerJob = null
+            volumeNormalizationJob?.cancel()
+            volumeNormalizationJob = null
+            toggleLikeJob?.cancel()
+            toggleLikeJob = null
+            updateNotificationJob?.cancel()
+            updateNotificationJob = null
+            loadJob?.cancel()
+            loadJob = null
+            songEntityJob?.cancel()
+            songEntityJob = null
+            downloadImageForWidgetJob?.cancel()
+            downloadImageForWidgetJob = null
+            getSkipSegmentsJob?.cancel()
+            getSkipSegmentsJob = null
+            getFormatJob?.cancel()
+            getFormatJob = null
+            jobWatchtime?.cancel()
+            jobWatchtime = null
+            getDataOfNowPlayingTrackStateJob?.cancel()
+            getDataOfNowPlayingTrackStateJob = null
+
+            // Cancel coroutine scope
+            coroutineScope.cancel()
+
+            // Clear callbacks
+            setNotificationLayout = null
+
+            Log.w("ServiceHandler", "Handler released successfully. Scope active: ${coroutineScope.isActive}")
+        } catch (e: Exception) {
+            Log.e("ServiceHandler", "Error during release", e)
+        }
     }
 
     @SuppressLint("PrivateResource")

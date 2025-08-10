@@ -86,6 +86,8 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
 
+    private var mBound = false
+    private var shouldUnbind = false
     private val serviceConnection =
         object : ServiceConnection {
             override fun onServiceConnected(
@@ -94,11 +96,13 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (service is SimpleMediaService.MusicBinder) {
                     Log.w("MainActivity", "onServiceConnected: ")
+                    mBound = true
                 }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 Log.w("MainActivity", "onServiceDisconnected: ")
+                mBound = false
             }
         }
 
@@ -116,11 +120,6 @@ class MainActivity : AppCompatActivity() {
 //        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 //        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
 //    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("MainActivity", "onResume: ")
-    }
 
     @UnstableApi
     @ExperimentalMaterial3Api
@@ -548,10 +547,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        Log.w("MainActivity", "onDestroy: ")
-        if (viewModel.shouldStopMusicService()) {
-            viewModel.isServiceRunning = false
+        val shouldStopMusicService = viewModel.shouldStopMusicService()
+        Log.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
+
+        // Always unbind service if it was bound to prevent MusicBinder leak
+        if (shouldStopMusicService && shouldUnbind) {
             unbindService(serviceConnection)
+            viewModel.isServiceRunning = false
         }
         unloadKoinModules(viewModelModule)
         super.onDestroy()
@@ -563,14 +565,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startMusicService() {
-        println("go to StartMusicService")
-        if (!viewModel.recreateActivity.value) {
-            val intent = Intent(this, SimpleMediaService::class.java)
-            startService(intent)
-            bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-            viewModel.isServiceRunning = true
-            Log.d("Service", "Service started")
-        }
+        val intent = Intent(this, SimpleMediaService::class.java)
+        startService(intent)
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+        viewModel.isServiceRunning = true
+        shouldUnbind = true
+        Log.d("Service", "Service started")
     }
 
     private fun checkForUpdate() {
