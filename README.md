@@ -96,7 +96,7 @@ sometimes, some songs or videos get the wrong lyrics
   ## Developer/Team    
 - [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer    
 - [Owen Connor](https://github.com/owencz1998): Discord Server Admin.    
-- [Ilian Delagrange](https://github.com/ilianoKokoro): Discord Server Admin.
+- [ilianoKokoro](https://github.com/ilianoKokoro): Discord Server Admin.
 
 We're looking for more contributors, all contributions are welcome!
 See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/CODE_OF_CONDUCT.md)
