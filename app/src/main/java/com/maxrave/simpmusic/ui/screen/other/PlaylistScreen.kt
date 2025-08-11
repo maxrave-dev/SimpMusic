@@ -67,6 +67,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -128,13 +129,13 @@ fun PlaylistScreen(
         LottieCompositionSpec.RawRes(R.raw.downloading_animation),
     )
 
-    val uiState by viewModel.uiState.collectAsState()
-    val continuation by viewModel.continuation.collectAsState()
-    val listColors by viewModel.listColors.collectAsState()
-    val downloadState by viewModel.downloadState.collectAsState()
-    val liked by viewModel.liked.collectAsState()
-    val tracks by viewModel.tracks.collectAsState()
-    val tracksListState by viewModel.tracksListState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val continuation by viewModel.continuation.collectAsStateWithLifecycle()
+    val listColors by viewModel.listColors.collectAsStateWithLifecycle()
+    val downloadState by viewModel.downloadState.collectAsStateWithLifecycle()
+    val liked by viewModel.liked.collectAsStateWithLifecycle()
+    val tracks by viewModel.tracks.collectAsStateWithLifecycle()
+    val tracksListState by viewModel.tracksListState.collectAsStateWithLifecycle()
 
     val lazyState = rememberLazyListState()
     val firstItemVisible by remember {
@@ -237,7 +238,7 @@ fun PlaylistScreen(
     }
 
     // Loading dialog
-    val showLoadingDialog by viewModel.showLoadingDialog.collectAsState()
+    val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
     if (showLoadingDialog.first) {
         LoadingDialog(
             true,

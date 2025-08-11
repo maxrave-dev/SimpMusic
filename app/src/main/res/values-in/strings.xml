@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s trek  %2$s</string>
     <string name="view_count">%1$s dilihat</string>
-    <string name="lyrics_provider">Lirik disediakan oleh Musixmatch</string>
     <string name="clear_search_history">Hapus riwayat pencarian</string>
     <string name="liked">Disukai</string>
     <string name="like">Suka</string>
@@ -240,19 +239,12 @@
     <string name="update_playlist">Perbarui playlist dari YouTube Music</string>
     <string name="backup_create_success">Cadangan berhasil dibuat</string>
     <string name="backup_create_failed">Gagal membuat pencadangan</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Penyedia Lirik Utama</string>
-    <string name="log_in_to_Musixmatch">Masuk ke Musixmatch</string>
-    <string name="only_support_email_and_password_type">Hanya mendukung email dan sandi</string>
-    <string name="musixmatch_login_description">API Terjemahan Musixmatch hanya bekerja dengan pengguna yang sudah login. SimpMusic menggunakan API Pengembang Musixmatch. Informasi lebih lanjut, kunjungi https://github.com/maxrave-dev/SimpMusic atau https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Gunakan Terjemahan Musixmatch</string>
-    <string name="use_musixmatch_translation_description">Aktifkan terjemahan lirik menggunakan Musixmatch. Memerlukan Login Musixmatch</string>
     <string name="translation_language">Bahasa Terjemahan</string>
     <string name="follow_app_language">Mengikuti bahasa aplikasi</string>
     <string name="email">Email</string>
     <string name="password">Kata Sandi</string>
     <string name="please_enter_your_email_and_password">Masukkan email dan kata sandi anda</string>
-    <string name="log_out_from_musixmatch">Keluar dari Musixmatch</string>
     <string name="translation_language_message">Ketik kode bahasa (Misalnya: en) (2 huruf). Jika Anda ingin mengatur bahasa yang sama dengan bahasa SimpMusic, silakan kosongkan kotak edit.</string>
     <string name="invalid_language_code">Kode bahasa tidak valid</string>
     <string name="lyrics_provider_youtube">Lirik yang disediakan oleh YouTube</string>

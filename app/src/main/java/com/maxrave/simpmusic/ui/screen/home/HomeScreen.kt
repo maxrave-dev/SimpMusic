@@ -4,18 +4,19 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,13 +44,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,6 +68,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -76,12 +79,10 @@ import com.maxrave.kotlinytmusicscraper.config.Constants
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE.data
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
-import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
@@ -92,12 +93,10 @@ import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.GetDataSyncIdBottomSheet
 import com.maxrave.simpmusic.ui.component.HomeItem
+import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
-import com.maxrave.simpmusic.ui.component.ItemTrackChart
-import com.maxrave.simpmusic.ui.component.ItemVideoChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
-import com.maxrave.simpmusic.ui.component.MusixmatchCaptchaWebView
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -108,17 +107,23 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @ExperimentalFoundationApi
 @UnstableApi
 @Composable
@@ -132,29 +137,27 @@ fun HomeScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
-    val accountInfo by viewModel.accountInfo.collectAsState()
-    val homeData by viewModel.homeItemList.collectAsState()
-    val newRelease by viewModel.newRelease.collectAsState()
-    val chart by viewModel.chart.collectAsState()
-    val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsState()
-    val chartLoading by viewModel.loadingChart.collectAsState()
-    val loading by viewModel.loading.collectAsState()
+    val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
+    val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
+    val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
+    val chart by viewModel.chart.collectAsStateWithLifecycle()
+    val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsStateWithLifecycle()
+    val chartLoading by viewModel.loadingChart.collectAsStateWithLifecycle()
+    val loading by viewModel.loading.collectAsStateWithLifecycle()
     var accountShow by rememberSaveable {
         mutableStateOf(false)
     }
-    val regionChart by viewModel.regionCodeChart.collectAsState()
-    val reloadDestination by sharedViewModel.reloadDestination.collectAsState()
+    val regionChart by viewModel.regionCodeChart.collectAsStateWithLifecycle()
+    val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
-    val params by viewModel.params.collectAsState()
+    val params by viewModel.params.collectAsStateWithLifecycle()
 
-    val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsState()
+    val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsStateWithLifecycle()
 
-    val openAppTime by sharedViewModel.openAppTime.collectAsState()
-    val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsState()
-
-    val musixmatchCaptchaRequired by sharedViewModel.showMusixmatchCaptchaWebView.collectAsState()
+    val openAppTime by sharedViewModel.openAppTime.collectAsStateWithLifecycle()
+    val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsStateWithLifecycle()
 
     var showReviewDialog by rememberSaveable {
         mutableStateOf(false)
@@ -163,11 +166,20 @@ fun HomeScreen(
         mutableStateOf(false)
     }
 
-    val dataSyncId by viewModel.dataSyncId.collectAsState()
-    val youTubeCookie by viewModel.youTubeCookie.collectAsState()
+    val dataSyncId by viewModel.dataSyncId.collectAsStateWithLifecycle()
+    val youTubeCookie by viewModel.youTubeCookie.collectAsStateWithLifecycle()
     var shouldShowGetDataSyncIdBottomSheet by rememberSaveable {
         mutableStateOf(false)
     }
+
+    var topAppBarHeightPx by rememberSaveable {
+        mutableIntStateOf(0)
+    }
+
+    val hazeState =
+        rememberHazeState(
+            blurEnabled = true,
+        )
 
     LaunchedEffect(dataSyncId, youTubeCookie) {
         Log.d("HomeScreen", "dataSyncId: $dataSyncId, youTubeCookie: $youTubeCookie")
@@ -222,15 +234,6 @@ fun HomeScreen(
             cookie = youTubeCookie,
             onDismissRequest = {
                 shouldShowGetDataSyncIdBottomSheet = false
-            },
-        )
-    }
-
-    if (musixmatchCaptchaRequired) {
-        MusixmatchCaptchaWebView(
-            cookie = sharedViewModel.getMusixmatchCookie(),
-            onDismissRequest = {
-                sharedViewModel.resolvedMusixmatchCaptcha()
             },
         )
     }
@@ -320,76 +323,11 @@ fun HomeScreen(
         )
     }
 
-    Column {
-        AnimatedVisibility(
-            visible = scrollState.isScrollingUp(),
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
-            HomeTopAppBar(navController)
-        }
-        AnimatedVisibility(
-            visible = !scrollState.isScrollingUp(),
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
-            Spacer(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .windowInsetsPadding(
-                            WindowInsets.statusBars,
-                        ),
-            )
-        }
-        Row(
-            modifier =
-                Modifier
-                    .horizontalScroll(chipRowState)
-                    .padding(vertical = 8.dp, horizontal = 15.dp),
-        ) {
-            Config.listOfHomeChip.forEach { id ->
-                val isSelected =
-                    when (params) {
-                        Constants.HOME_PARAMS_RELAX -> id == R.string.relax
-                        Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
-                        Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
-                        Constants.HOME_PARAMS_SAD -> id == R.string.sad
-                        Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
-                        Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
-                        Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
-                        Constants.HOME_PARAMS_PARTY -> id == R.string.party
-                        Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
-                        Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
-                        else -> id == R.string.all
-                    }
-                Spacer(modifier = Modifier.width(4.dp))
-                Chip(
-                    isAnimated = loading,
-                    isSelected = isSelected,
-                    text = stringResource(id = id),
-                ) {
-                    when (id) {
-                        R.string.all -> viewModel.setParams(null)
-                        R.string.relax -> viewModel.setParams(Constants.HOME_PARAMS_RELAX)
-                        R.string.sleep -> viewModel.setParams(Constants.HOME_PARAMS_SLEEP)
-                        R.string.energize -> viewModel.setParams(Constants.HOME_PARAMS_ENERGIZE)
-                        R.string.sad -> viewModel.setParams(Constants.HOME_PARAMS_SAD)
-                        R.string.romance -> viewModel.setParams(Constants.HOME_PARAMS_ROMANCE)
-                        R.string.feel_good -> viewModel.setParams(Constants.HOME_PARAMS_FEEL_GOOD)
-                        R.string.workout -> viewModel.setParams(Constants.HOME_PARAMS_WORKOUT)
-                        R.string.party -> viewModel.setParams(Constants.HOME_PARAMS_PARTY)
-                        R.string.commute -> viewModel.setParams(Constants.HOME_PARAMS_COMMUTE)
-                        R.string.focus -> viewModel.setParams(Constants.HOME_PARAMS_FOCUS)
-                    }
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-            }
-        }
+    Box {
         PullToRefreshBox(
             modifier =
                 Modifier
-                    .padding(vertical = 8.dp),
+                    .hazeSource(hazeState),
             state = pullToRefreshState,
             onRefresh = onRefresh,
             isRefreshing = isRefreshing,
@@ -397,7 +335,15 @@ fun HomeScreen(
                 PullToRefreshDefaults.Indicator(
                     state = pullToRefreshState,
                     isRefreshing = isRefreshing,
-                    modifier = Modifier.align(Alignment.TopCenter),
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(
+                                top =
+                                    with(LocalDensity.current) {
+                                        topAppBarHeightPx.toDp()
+                                    },
+                            ),
                     containerColor = PullToRefreshDefaults.containerColor,
                     color = PullToRefreshDefaults.indicatorColor,
                     threshold = PullToRefreshDefaults.PositionalThreshold,
@@ -412,7 +358,16 @@ fun HomeScreen(
                         state = scrollState,
                     ) {
                         item {
-                            androidx.compose.animation.AnimatedVisibility(
+                            Spacer(
+                                Modifier.height(
+                                    with(LocalDensity.current) {
+                                        topAppBarHeightPx.toDp()
+                                    },
+                                ),
+                            )
+                        }
+                        item {
+                            AnimatedVisibility(
                                 visible = accountInfo != null && accountShow,
                             ) {
                                 AccountLayout(
@@ -422,7 +377,7 @@ fun HomeScreen(
                             }
                         }
                         item {
-                            androidx.compose.animation.AnimatedVisibility(
+                            AnimatedVisibility(
                                 visible =
                                     homeData.find {
                                         it.title ==
@@ -470,7 +425,7 @@ fun HomeScreen(
                             }
                         }
                         items(newRelease, key = { it.hashCode() }) {
-                            androidx.compose.animation.AnimatedVisibility(
+                            AnimatedVisibility(
                                 visible = newRelease.isNotEmpty(),
                             ) {
                                 HomeItem(
@@ -480,7 +435,7 @@ fun HomeScreen(
                             }
                         }
                         item {
-                            androidx.compose.animation.AnimatedVisibility(
+                            AnimatedVisibility(
                                 visible = moodMomentAndGenre != null,
                             ) {
                                 moodMomentAndGenre?.let {
@@ -550,7 +505,93 @@ fun HomeScreen(
                         }
                     }
                 } else {
-                    HomeShimmer()
+                    Column {
+                        Spacer(
+                            Modifier.height(
+                                with(LocalDensity.current) {
+                                    topAppBarHeightPx.toDp()
+                                },
+                            ),
+                        )
+                        HomeShimmer()
+                    }
+                }
+            }
+        }
+        Column(
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                        blurEnabled = true
+                    }.onGloballyPositioned { coordinates ->
+                        topAppBarHeightPx = coordinates.size.height
+                    },
+        ) {
+            AnimatedVisibility(
+                visible = scrollState.isScrollingUp(),
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+            ) {
+                HomeTopAppBar(navController)
+            }
+            AnimatedVisibility(
+                visible = !scrollState.isScrollingUp(),
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+            ) {
+                Spacer(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .windowInsetsPadding(
+                                WindowInsets.statusBars,
+                            ),
+                )
+            }
+            Row(
+                modifier =
+                    Modifier
+                        .horizontalScroll(chipRowState)
+                        .padding(vertical = 8.dp, horizontal = 15.dp)
+                        .background(Color.Transparent),
+            ) {
+                Config.listOfHomeChip.forEach { id ->
+                    val isSelected =
+                        when (params) {
+                            Constants.HOME_PARAMS_RELAX -> id == R.string.relax
+                            Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
+                            Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
+                            Constants.HOME_PARAMS_SAD -> id == R.string.sad
+                            Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
+                            Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
+                            Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
+                            Constants.HOME_PARAMS_PARTY -> id == R.string.party
+                            Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
+                            Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
+                            else -> id == R.string.all
+                        }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Chip(
+                        isAnimated = loading,
+                        isSelected = isSelected,
+                        text = stringResource(id = id),
+                    ) {
+                        when (id) {
+                            R.string.all -> viewModel.setParams(null)
+                            R.string.relax -> viewModel.setParams(Constants.HOME_PARAMS_RELAX)
+                            R.string.sleep -> viewModel.setParams(Constants.HOME_PARAMS_SLEEP)
+                            R.string.energize -> viewModel.setParams(Constants.HOME_PARAMS_ENERGIZE)
+                            R.string.sad -> viewModel.setParams(Constants.HOME_PARAMS_SAD)
+                            R.string.romance -> viewModel.setParams(Constants.HOME_PARAMS_ROMANCE)
+                            R.string.feel_good -> viewModel.setParams(Constants.HOME_PARAMS_FEEL_GOOD)
+                            R.string.workout -> viewModel.setParams(Constants.HOME_PARAMS_WORKOUT)
+                            R.string.party -> viewModel.setParams(Constants.HOME_PARAMS_PARTY)
+                            R.string.commute -> viewModel.setParams(Constants.HOME_PARAMS_COMMUTE)
+                            R.string.focus -> viewModel.setParams(Constants.HOME_PARAMS_FOCUS)
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
                 }
             }
         }
@@ -609,6 +650,10 @@ fun HomeTopAppBar(navController: NavController) {
                 navController.navigate(SettingsDestination)
             }
         },
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            ),
     )
 }
 
@@ -834,17 +879,8 @@ fun ChartData(
     }
     val density = LocalDensity.current
 
-    val lazyListState = rememberLazyListState()
-    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
-
-    val lazyListState1 = rememberLazyGridState()
-    val snapperFlingBehavior1 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState1))
-
     val lazyListState2 = rememberLazyGridState()
     val snapperFlingBehavior2 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2))
-
-    val lazyListState3 = rememberLazyGridState()
-    val snapperFlingBehavior3 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState3))
 
     Column(
         Modifier.onGloballyPositioned { coordinates ->
@@ -853,87 +889,35 @@ fun ChartData(
             }
         },
     ) {
-        AnimatedVisibility(
-            visible = !chart.songs.isNullOrEmpty(),
-            enter = fadeIn(animationSpec = tween(2000)),
-            exit = fadeOut(animationSpec = tween(2000)),
-        ) {
-            Column {
-                Text(
-                    text = stringResource(id = R.string.top_tracks),
-                    style = typo.headlineMedium,
-                    maxLines = 1,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                )
-                if (!chart.songs.isNullOrEmpty()) {
-                    LazyHorizontalGrid(
-                        rows = GridCells.Fixed(3),
-                        modifier = Modifier.height(210.dp),
-                        state = lazyListState1,
-                        flingBehavior = snapperFlingBehavior1,
-                    ) {
-                        items(chart.songs.size, key = { index -> "${chart.songs.getOrNull(index).hashCode()} $index" }) {
-                            val song = chart.songs[it]
-                            ItemTrackChart(onClick = {
-                                viewModel.setQueueData(
-                                    QueueData(
-                                        listTracks = arrayListOf(song),
-                                        firstPlayedTrack = song,
-                                        playlistName = "\"${song.title}\" ${context.getString(R.string.in_charts)}",
-                                        playlistType = PlaylistType.RADIO,
-                                        playlistId = "RDAMVM${song.videoId}",
-                                        continuation = null,
-                                    ),
-                                )
-                                viewModel.loadMediaItem(
-                                    data,
-                                    type = Config.VIDEO_CLICK,
-                                )
-                            }, data = song, position = it + 1, widthDp = gridWidthDp)
-                        }
-                    }
+        chart.listChartItem.forEach { item ->
+            Text(
+                text = item.title,
+                style = typo.headlineMedium,
+                maxLines = 1,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+            )
+            val lazyListState = rememberLazyListState()
+            val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
+            LazyRow(flingBehavior = snapperFlingBehavior) {
+                items(item.playlists.size, key = { index ->
+                    val data = item.playlists[index]
+                    data.id + data.title + index
+                }) {
+                    HomeItemContentPlaylist(
+                        onClick = {
+                            navController.navigate(
+                                PlaylistDestination(
+                                    playlistId = item.playlists[it].id,
+                                    isYourYouTubePlaylist = false,
+                                ),
+                            )
+                        },
+                        data = item.playlists[it],
+                    )
                 }
-            }
-        }
-        Text(
-            text = stringResource(id = R.string.top_videos),
-            style = typo.headlineMedium,
-            maxLines = 1,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-        )
-        LazyRow(
-            state = lazyListState,
-            flingBehavior = snapperFlingBehavior,
-        ) {
-            items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId + index }) {
-                val data = chart.videos.items[it]
-                ItemVideoChart(
-                    onClick = {
-                        val firstQueue: Track = data.toTrack()
-                        viewModel.setQueueData(
-                            QueueData(
-                                listTracks = arrayListOf(firstQueue),
-                                firstPlayedTrack = firstQueue,
-                                playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
-                                playlistType = PlaylistType.RADIO,
-                                playlistId = "RDAMVM${data.videoId}",
-                                continuation = null,
-                            ),
-                        )
-                        viewModel.loadMediaItem(
-                            firstQueue,
-                            type = Config.VIDEO_CLICK,
-                        )
-                    },
-                    data = data,
-                    position = it + 1,
-                )
             }
         }
         Text(
@@ -963,50 +947,6 @@ fun ChartData(
                         ),
                     )
                 }, data = data, context = context, widthDp = gridWidthDp)
-            }
-        }
-        AnimatedVisibility(visible = !chart.trending.isNullOrEmpty()) {
-            Column {
-                Text(
-                    text = stringResource(id = R.string.trending),
-                    style = typo.headlineMedium,
-                    maxLines = 1,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                )
-                if (!chart.trending.isNullOrEmpty()) {
-                    LazyHorizontalGrid(
-                        rows = GridCells.Fixed(3),
-                        modifier = Modifier.height(210.dp),
-                        state = lazyListState3,
-                        flingBehavior = snapperFlingBehavior3,
-                    ) {
-                        items(chart.trending.size, key = { index ->
-                            val item = chart.trending[index]
-                            item.videoId + index
-                        }) {
-                            val data = chart.trending[it]
-                            ItemTrackChart(onClick = {
-                                viewModel.setQueueData(
-                                    QueueData(
-                                        listTracks = arrayListOf(data),
-                                        firstPlayedTrack = data,
-                                        playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
-                                        playlistType = PlaylistType.RADIO,
-                                        playlistId = "RDAMVM${data.videoId}",
-                                        continuation = null,
-                                    ),
-                                )
-                                viewModel.loadMediaItem(
-                                    data,
-                                    type = Config.VIDEO_CLICK,
-                                )
-                            }, data = data, position = null, widthDp = gridWidthDp)
-                        }
-                    }
-                }
             }
         }
     }

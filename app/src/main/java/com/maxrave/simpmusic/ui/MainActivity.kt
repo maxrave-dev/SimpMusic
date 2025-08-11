@@ -10,10 +10,10 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -32,7 +32,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -49,6 +48,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
@@ -82,9 +82,11 @@ import java.util.Locale
 
 @UnstableApi
 @Suppress("DEPRECATION")
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
 
+    private var mBound = false
+    private var shouldUnbind = false
     private val serviceConnection =
         object : ServiceConnection {
             override fun onServiceConnected(
@@ -93,13 +95,27 @@ class MainActivity : ComponentActivity() {
             ) {
                 if (service is SimpleMediaService.MusicBinder) {
                     Log.w("MainActivity", "onServiceConnected: ")
+                    mBound = true
                 }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 Log.w("MainActivity", "onServiceDisconnected: ")
+                mBound = false
             }
         }
+
+    override fun onStart() {
+        super.onStart()
+        startMusicService()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (shouldUnbind) {
+            unbindService(serviceConnection)
+        }
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -115,11 +131,6 @@ class MainActivity : ComponentActivity() {
 //        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 //        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
 //    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("MainActivity", "onResume: ")
-    }
 
     @UnstableApi
     @ExperimentalMaterial3Api
@@ -215,9 +226,9 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
-            val nowPlayingData by viewModel.nowPlayingState.collectAsState()
-            val githubResponse by viewModel.githubResponse.collectAsState()
-            val intent by viewModel.intent.collectAsState()
+            val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
+            val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
+            val intent by viewModel.intent.collectAsStateWithLifecycle()
 
             val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
             // MiniPlayer visibility logic
@@ -326,6 +337,14 @@ class MainActivity : ComponentActivity() {
                     response.tagName != getString(R.string.version_format, VersionManager.getVersionName())
                 ) {
                     shouldShowUpdateDialog = true
+                }
+            }
+
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            LaunchedEffect(navBackStackEntry) {
+                Log.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
+                if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
+                    isShowNowPlaylistScreen = false
                 }
             }
 
@@ -539,13 +558,16 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        Log.w("MainActivity", "onDestroy: ")
-        if (viewModel.shouldStopMusicService()) {
+        val shouldStopMusicService = viewModel.shouldStopMusicService()
+        Log.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
+
+        // Always unbind service if it was bound to prevent MusicBinder leak
+        if (shouldStopMusicService && shouldUnbind && isFinishing) {
             viewModel.isServiceRunning = false
-            unbindService(serviceConnection)
         }
         unloadKoinModules(viewModelModule)
         super.onDestroy()
+        Log.d("MainActivity", "onDestroy: ")
     }
 
     override fun onRestart() {
@@ -554,14 +576,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startMusicService() {
-        println("go to StartMusicService")
-        if (!viewModel.recreateActivity.value) {
-            val intent = Intent(this, SimpleMediaService::class.java)
-            startService(intent)
-            bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-            viewModel.isServiceRunning = true
-            Log.d("Service", "Service started")
-        }
+        val intent = Intent(this, SimpleMediaService::class.java)
+        startService(intent)
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+        viewModel.isServiceRunning = true
+        shouldUnbind = true
+        Log.d("Service", "Service started")
     }
 
     private fun checkForUpdate() {

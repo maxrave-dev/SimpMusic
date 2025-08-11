@@ -1,0 +1,11 @@
+- Sửa lỗi không hoạt động của các album và đĩa đơn trong trang Nghệ sĩ
+- Sửa lỗi Spotify
+- Sửa lỗi Android Auto
+- Sửa lỗi video bị kéo dãn thành tỷ lệ 16:9
+- Sửa lỗi "Dịch vụ bị giết"
+- Hỗ trợ PIP khi ở chế độ toàn màn hình
+- Phụ đề trong mọi video
+- Tùy chọn sao lưu các bài hát đã tải xuống
+- Đã xóa Musixmatch - thay thế bằng SimpMusic Lyrics
+- Đã xóa Crossfade
+- Giao diện mới cho Bảng xếp hạng

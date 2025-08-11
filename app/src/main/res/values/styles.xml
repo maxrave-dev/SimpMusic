@@ -1,36 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="rounded_corner">
         <item name="cornerSize">10dp</item>
     </style>
-
     <style name="rounded_thumb">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
     </style>
-
     <style name="rounded_corner_for_quick_pick">
         <item name="cornerSize">5dp</item>
     </style>
-
     <style name="artist_name" parent="TextAppearance.Material3.DisplayMedium">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:fontFamily">@font/jetbrains_mono_bold</item>
         <item name="android:textStyle">bold</item>
     </style>
-
     <style name="album_name" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textSize">25sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:fontFamily">@font/roboto_bold</item>
     </style>
-
     <style name="collapsingTitleTransparent" parent="@android:style/TextAppearance">
         <item name="android:textColor">#00000000</item>
     </style>
-
     <style name="ShapeAppearanceOverlay.MaterialCardView.Cut" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSizeTopRight">8dp</item>
@@ -38,46 +31,37 @@
         <item name="cornerSizeBottomRight">0dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
     </style>
-
     <style name="TitleToolBar">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:fontFamily">@font/roboto</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">13sp</item>
     </style>
-
     <style name="SubTitleToolBar">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:fontFamily">@font/roboto</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">15sp</item>
     </style>
-
     <style name="FullScreenDialog" parent="android:Theme.Black.NoTitleBar.Fullscreen">
         <item name="android:navigationBarColor">
             @android:color/transparent
         </item>
-
     </style>
-
     <style name="Widget.Theme.SimpMusic.ButtonBar.Fullscreen" parent="">
         <item name="android:background">@color/black_overlay</item>
         <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
     </style>
-
     <style name="ThemeOverlay.App.BottomSheetDialog" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/SimpMusicBlackBottomSheetDialog</item>
     </style>
-
     <style name="SimpMusicBlackBottomSheetDialog" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="backgroundTint">@color/md_theme_dark_background</item>
     </style>
-
     <style name="Widget.SimpMusic.AppWidget.Container" parent="android:Widget">
         <item name="android:id">@android:id/background</item>
         <item name="android:background">?android:attr/colorBackground</item>
     </style>
-
     <style name="Widget.SimpMusic.AppWidget.InnerView" parent="android:Widget">
         <item name="android:background">?android:attr/colorBackground</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>

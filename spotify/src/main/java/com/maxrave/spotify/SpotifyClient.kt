@@ -32,6 +32,7 @@ import io.ktor.serialization.kotlinx.protobuf.protobuf
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
+import okhttp3.internal.userAgent
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -110,6 +111,15 @@ class SpotifyClient {
             }
         }
 
+    /**
+     * Thanks to @Thereallo1026 and @misiektoja for providing the latest TOTP secret
+     */
+    suspend fun getSpotifyLastestTotpSecret() =
+        spotifyClient.get("https://raw.githubusercontent.com/Thereallo1026/spotify-secrets/refs/heads/main/secrets/secretDict.json") {
+            userAgent(USER_AGENT)
+            contentType(ContentType.Application.Json)
+        }
+
     suspend fun getSpotifyServerTime(spdc: String) =
         spotifyClient.get("https://open.spotify.com/api/server-time") {
             userAgent(USER_AGENT)
@@ -130,6 +140,7 @@ class SpotifyClient {
         reason: String = "transport",
         sTime: String,
         cTime: String,
+        totpVersion: Int,
     ) = spotifyClient.get("https://open.spotify.com/api/token") {
         userAgent(USER_AGENT)
         contentType(ContentType.Application.Json)
@@ -141,7 +152,7 @@ class SpotifyClient {
         parameter("productType", "web-player")
         parameter("totp", otpValue)
         parameter("totpServer", otpValue)
-        parameter("totpVer", 17)
+        parameter("totpVer", totpVersion)
         parameter("ts", sTime)
         header("Cookie", "sp_dc=$spdc")
         header("App-platform", "WebPlayer")

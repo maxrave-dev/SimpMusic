@@ -1,12 +1,15 @@
 package com.maxrave.simpmusic.data.db.entities
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.maxrave.simpmusic.data.type.ArtistType
 import com.maxrave.simpmusic.data.type.RecentlyType
+import kotlinx.parcelize.Parcelize
 import java.time.LocalDateTime
 
 @Entity(tableName = "artist")
+@Parcelize
 data class ArtistEntity(
     @PrimaryKey(autoGenerate = false)
     val channelId: String,
@@ -14,6 +17,8 @@ data class ArtistEntity(
     val thumbnails: String?,
     val followed: Boolean = false,
     val inLibrary: LocalDateTime = LocalDateTime.now(),
-) : RecentlyType, ArtistType {
+) : RecentlyType,
+    ArtistType,
+    Parcelable {
     override fun objectType() = RecentlyType.Type.ARTIST
 }

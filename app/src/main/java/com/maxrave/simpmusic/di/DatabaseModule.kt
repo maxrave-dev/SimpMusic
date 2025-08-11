@@ -10,7 +10,6 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.Converters
@@ -194,10 +193,6 @@ val databaseModule =
         }
 
         single(createdAtStart = true) {
-            LyricsClient(androidContext())
-        }
-
-        single(createdAtStart = true) {
             AiClient()
         }
 
@@ -214,7 +209,6 @@ val databaseModule =
                 get<DataStoreManager>(),
                 get<YouTube>(),
                 get<Spotify>(),
-                get<LyricsClient>(),
                 get<SimpMusicLyricsClient>(),
                 get<AiClient>(),
                 get<MusicDatabase>(),

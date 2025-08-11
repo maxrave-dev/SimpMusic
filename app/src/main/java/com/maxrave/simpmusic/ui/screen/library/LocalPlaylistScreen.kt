@@ -84,6 +84,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -149,7 +150,7 @@ fun LocalPlaylistScreen(
         LottieCompositionSpec.RawRes(R.raw.downloading_animation),
     )
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val aiPainter = painterResource(id = R.drawable.baseline_tips_and_updates_24)
     val limit = 1.5f
@@ -195,7 +196,7 @@ fun LocalPlaylistScreen(
         }.collectAsState(initial = null)
     val isPlaying by sharedViewModel.controllerState.map { it.isPlaying }.collectAsState(initial = false)
     val suggestedTracks by viewModel.uiState.map { it.suggestions?.songs ?: emptyList() }.collectAsState(initial = emptyList())
-    val suggestionsLoading by viewModel.loading.collectAsState()
+    val suggestionsLoading by viewModel.loading.collectAsStateWithLifecycle()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
     var showUnsyncAlertDialog by rememberSaveable { mutableStateOf(false) }
     var firstTimeGetLocalPlaylist by rememberSaveable {
@@ -295,7 +296,7 @@ fun LocalPlaylistScreen(
     }
 
     // Loading dialog
-    val showLoadingDialog by viewModel.showLoadingDialog.collectAsState()
+    val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
     if (showLoadingDialog.first) {
         LoadingDialog(
             true,

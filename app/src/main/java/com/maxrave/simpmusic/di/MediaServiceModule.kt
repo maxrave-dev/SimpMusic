@@ -38,7 +38,6 @@ import com.maxrave.simpmusic.common.Config.CANVAS_CACHE
 import com.maxrave.simpmusic.common.Config.DOWNLOAD_CACHE
 import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.common.Config.PLAYER_CACHE
-import com.maxrave.simpmusic.common.Config.SECONDARY_PLAYER
 import com.maxrave.simpmusic.common.Config.SERVICE_SCOPE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
@@ -52,7 +51,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -146,24 +145,7 @@ val mediaServiceModule =
         single<ExoPlayer>(createdAtStart = true, qualifier = named(MAIN_PLAYER)) {
             ExoPlayer
                 .Builder(androidContext())
-                .setAudioAttributes(get(), false)
-                .setWakeMode(C.WAKE_MODE_NETWORK)
-                .setHandleAudioBecomingNoisy(true)
-                .setSeekForwardIncrementMs(5000)
-                .setSeekBackIncrementMs(5000)
-                .setMediaSourceFactory(
-                    get<MergingMediaSourceFactory>(),
-                ).setRenderersFactory(
-                    get<DefaultRenderersFactory>(),
-                ).build()
-                .also {
-                    it.addAnalyticsListener(EventLogger())
-                }
-        }
-        // Secondary ExoPlayer for crossfade
-        single<ExoPlayer>(createdAtStart = true, qualifier = named(SECONDARY_PLAYER)) {
-            ExoPlayer
-                .Builder(androidContext())
+                .setAudioAttributes(get(), true)
                 .setLoadControl(
                     provideLoadControl(),
                 ).setWakeMode(C.WAKE_MODE_NETWORK)
@@ -177,12 +159,9 @@ val mediaServiceModule =
                 ).build()
                 .also {
                     it.addAnalyticsListener(EventLogger())
-                    it.preloadConfiguration =
-                        ExoPlayer.PreloadConfiguration(
-                            10 * 60 * 1000L, // Preload for 10 minutes
-                        )
                 }
         }
+
         // CoilBitmapLoader
         single<CoilBitmapLoader>(createdAtStart = true) {
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
@@ -199,7 +178,6 @@ val mediaServiceModule =
         single<SimpleMediaServiceHandler>(createdAtStart = true) {
             SimpleMediaServiceHandler(
                 player = get<ExoPlayer>(named(MAIN_PLAYER)),
-                secondaryPlayer = get<ExoPlayer>(named(SECONDARY_PLAYER)),
                 dataStoreManager = get(),
                 mainRepository = get(),
                 mediaSessionCallback = get(),
@@ -274,7 +252,7 @@ private fun provideResolvingDataSourceFactory(
                     .getStream(
                         id,
                         true,
-                    ).singleOrNull()
+                    ).lastOrNull()
                     ?.let {
                         Log.d("Stream", it)
                         Log.w("Stream", "Video")
@@ -297,7 +275,7 @@ private fun provideResolvingDataSourceFactory(
                     .getStream(
                         mediaId,
                         isVideo = false,
-                    ).singleOrNull()
+                    ).lastOrNull()
                     ?.let {
                         Log.d("Stream", it)
                         Log.w("Stream", "Audio")
@@ -444,13 +422,10 @@ private fun provideLoadControl(): LoadControl =
     DefaultLoadControl
         .Builder()
         .setBufferDurationsMs(
-            DEFAULT_MIN_BUFFER_MS,
-            DEFAULT_MAX_BUFFER_MS,
+            DEFAULT_MIN_BUFFER_MS * 4,
+            DEFAULT_MAX_BUFFER_MS * 4,
             // bufferForPlaybackMs=
             0,
             // bufferForPlaybackAfterRebufferMs=
             0,
-        ).setBackBuffer(
-            60 * 1000,
-            true,
         ).build()

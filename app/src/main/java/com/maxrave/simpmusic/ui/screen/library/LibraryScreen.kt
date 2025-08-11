@@ -9,11 +9,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,9 +29,14 @@ import com.maxrave.simpmusic.ui.component.LibraryTilingBox
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @UnstableApi
 @Composable
 fun LibraryScreen(
@@ -39,14 +45,19 @@ fun LibraryScreen(
     navController: NavController,
 ) {
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
-    val nowPlaying by viewModel.nowPlayingVideoId.collectAsState()
-    val youTubePlaylist by viewModel.youTubePlaylist.collectAsState()
-    val listCanvasSong by viewModel.listCanvasSong.collectAsState()
-    val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsState()
-    val favoritePlaylist by viewModel.favoritePlaylist.collectAsState()
-    val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsState()
-    val favoritePodcasts by viewModel.favoritePodcasts.collectAsState()
-    val recentlyAdded by viewModel.recentlyAdded.collectAsState()
+    val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
+    val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
+    val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
+    val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsStateWithLifecycle()
+    val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
+    val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsStateWithLifecycle()
+    val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
+    val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
+    val hazeState =
+        rememberHazeState(
+            blurEnabled = true,
+        )
+
     LaunchedEffect(true) {
         Log.w("LibraryScreen", "Check youtubePlaylist: ${youTubePlaylist.data}")
         if (youTubePlaylist.data.isNullOrEmpty()) {
@@ -66,6 +77,7 @@ fun LibraryScreen(
 
     LazyColumn(
         contentPadding = innerPadding,
+        modifier = Modifier.hazeSource(hazeState),
     ) {
         item {
             Spacer(Modifier.height(64.dp))
@@ -172,5 +184,14 @@ fun LibraryScreen(
                 style = typo.titleMedium,
             )
         },
+        modifier =
+            Modifier
+                .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                    blurEnabled = true
+                },
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            ),
     )
 }

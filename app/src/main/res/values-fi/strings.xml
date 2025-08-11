@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s kappaletta  %2$s</string>
     <string name="view_count">%1$s näyttökertaa</string>
-    <string name="lyrics_provider">Musixmatchin tarjoamat sanoitukset</string>
     <string name="clear_search_history">Tyhjennä hakuhistoria</string>
     <string name="liked">Tykätty</string>
     <string name="like">Tykkää</string>
@@ -238,19 +237,12 @@
     <string name="update_playlist">Päivitä soittolista YouTube Musicista</string>
     <string name="backup_create_success">Varmuuskopioinnin luonti onnistui</string>
     <string name="backup_create_failed">Varmuuskopioinnin luonti epäonnistui</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Ensisijainen sanoituspalvelu</string>
-    <string name="log_in_to_Musixmatch">Kirjaudu Musixmatchiin</string>
-    <string name="only_support_email_and_password_type">Kirjaudu sähköpostilla ja salasanalla</string>
-    <string name="musixmatch_login_description">Musixmatchin käännös-API toimii vain sisäänkirjautuneena. SimpMusic käyttää Musixmatchin kehittäjä-APIa. Lisätietoja on osoitteissa https://github.com/maxrave-dev/SimpMusic ja https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Käytä Musixmatchin käännöstä</string>
-    <string name="use_musixmatch_translation_description">Salli sanoitusten kääntäminen Musixmatchilla. Vaatii Musixmatchiin kirjautumisen</string>
     <string name="translation_language">Käännöksen kieli</string>
     <string name="follow_app_language">Sama kuin sovelluksen kieli</string>
     <string name="email">Sähköposti</string>
     <string name="password">Salasana</string>
     <string name="please_enter_your_email_and_password">Syötä sähköpostiosoitteesi ja salasanasi</string>
-    <string name="log_out_from_musixmatch">Kirjaudu ulos Musixmatchista</string>
     <string name="translation_language_message">Kirjoita kielikoodi (esim: en) (2 kirjainta). Jos haluat asettaa kielen samaksi kuin SimpMusicissa, jätä kenttä tyhjäksi.</string>
     <string name="invalid_language_code">Virheellinen kielikoodi</string>
     <string name="lyrics_provider_youtube">YouTuben tarjoamat sanoitukset</string>

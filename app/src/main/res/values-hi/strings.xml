@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s %2$s</string>
     <string name="album_length">%1$s ट्रैक  %2$s</string>
     <string name="view_count">%1$s व्यूज</string>
-    <string name="lyrics_provider">गीत Musixmatch द्वारा प्रदान किए गए</string>
     <string name="clear_search_history">खोज इतिहास साफ़ करें</string>
     <string name="liked">पसंद किया</string>
     <string name="like">पसंद करें</string>
@@ -230,19 +229,12 @@
     <string name="update_playlist">यूट्यूब म्यूजिक से प्लेलिस्ट अपडेट करें</string>
     <string name="backup_create_success">बैकअप सफलतापूर्वक बनाया गया</string>
     <string name="backup_create_failed">बैकअप बनाने में विफल</string>
-    <string name="musixmatch">म्यूजिक्समैच</string>
     <string name="main_lyrics_provider">मुख्य गीत प्रदाता</string>
-    <string name="log_in_to_Musixmatch">म्यूजिक्समैच में लॉग इन करें</string>
-    <string name="only_support_email_and_password_type">केवल ईमेल और पासवर्ड प्रकार समर्थित है</string>
-    <string name="musixmatch_login_description">म्यूजिक्समैच अनुवाद एपीआई केवल लॉग-इन उपयोगकर्ताओं के लिए काम करता है। सिम्पम्यूजिक म्यूजिक्समैच डेवलपर एपीआई का उपयोग करता है। अधिक जानकारी के लिए, https://github.com/maxrave-dev/SimpMusic या https://developer.musixmatch.com/ पर जाएं</string>
-    <string name="use_musixmatch_translation">म्यूजिक्समैच अनुवाद का उपयोग करें</string>
-    <string name="use_musixmatch_translation_description">म्यूजिक्समैच का उपयोग करके गीतों का अनुवाद सक्षम करें। म्यूजिक्समैच लॉगिन आवश्यक है</string>
     <string name="translation_language">अनुवाद भाषा</string>
     <string name="follow_app_language">ऐप भाषा का अनुसरण करें</string>
     <string name="email">ईमेल</string>
     <string name="password">पासवर्ड</string>
     <string name="please_enter_your_email_and_password">कृपया अपना ईमेल और पासवर्ड दर्ज करें</string>
-    <string name="log_out_from_musixmatch">म्यूजिक्समैच से लॉग आउट करें</string>
     <string name="translation_language_message">भाषा कोड टाइप करें (उदा: hi) (2 अक्षर)। यदि आप सिम्पम्यूजिक की भाषा के समान सेट करना चाहते हैं, कृपया एडिट बॉक्स खाली छोड़ दें।</string>
     <string name="invalid_language_code">अमान्य भाषा कोड</string>
     <string name="lyrics_provider_youtube">गीत यूट्यूब द्वारा प्रदान किए गए</string>

@@ -56,7 +56,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -83,6 +82,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -132,7 +132,7 @@ fun LyricsView(
         mutableIntStateOf(0)
     }
     val listState = rememberLazyListState()
-    val current by timeLine.collectAsState()
+    val current by timeLine.collectAsStateWithLifecycle()
     var currentLineIndex by rememberSaveable {
         mutableIntStateOf(-1)
     }
@@ -302,9 +302,9 @@ fun FullscreenLyricsSheet(
 ) {
     val context = LocalContext.current
 
-    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
-    val timelineState by sharedViewModel.timeline.collectAsState()
-    val controllerState by sharedViewModel.controllerState.collectAsState()
+    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
+    val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
 
     val sheetState =
         rememberModalBottomSheetState(

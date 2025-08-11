@@ -2,17 +2,18 @@ Not a simple music player, it's SimpMusic
 
 <br><b>Features:</b>
 
-- Play high quality music from YouTube Music or YouTube free without ads in the background
-- Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data with high speed
+- Play music from YouTube Music or YouTube for free, without ads and in the background
+- Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed
 - Search everything on YouTube
-- Analyze your playing data, create custom playlists and sync with YouTube Music...
+- Analyze your playing data, create custom playlists, and sync with YouTube Music...
+- Spotify Canvas supported
 - Play 1080p video option with subtitle
-- Caching and can save data for offline playback
-- Login to YouTube Music account and support multiple accounts
-- Notification from followed artists
-- Synced lyrics from Musixmatch, YouTube Transcript, Spotify and translate lyrics (Community translation from Musixmatch)
-- AI Translation for lyrics
-- Spotify Canvas
-- Support SponsorBlock
+- AI song suggestions
+- Notifications from followed artists
+- Caching and offline playback support
+- Synced lyrics from SimpMusic Lyrics, LRCLIB, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)
+- Personalize data (\**) and multi-YouTube-account support
+- Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer
-- And many more
+- Android Auto with online content
+- And many more!
