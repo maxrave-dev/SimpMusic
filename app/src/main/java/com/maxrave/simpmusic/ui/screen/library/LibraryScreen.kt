@@ -12,7 +12,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,14 +45,14 @@ fun LibraryScreen(
     navController: NavController,
 ) {
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
-    val nowPlaying by viewModel.nowPlayingVideoId.collectAsState()
-    val youTubePlaylist by viewModel.youTubePlaylist.collectAsState()
-    val listCanvasSong by viewModel.listCanvasSong.collectAsState()
-    val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsState()
-    val favoritePlaylist by viewModel.favoritePlaylist.collectAsState()
-    val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsState()
-    val favoritePodcasts by viewModel.favoritePodcasts.collectAsState()
-    val recentlyAdded by viewModel.recentlyAdded.collectAsState()
+    val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
+    val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
+    val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
+    val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsStateWithLifecycle()
+    val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
+    val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsStateWithLifecycle()
+    val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
+    val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
     val hazeState =
         rememberHazeState(
             blurEnabled = true,

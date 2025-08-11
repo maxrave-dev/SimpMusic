@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -19,13 +18,16 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
+import com.maxrave.simpmusic.di.mediaServiceModule
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.widget.BasicWidget
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
 import org.koin.core.qualifier.named
+import kotlin.system.exitProcess
 
 @UnstableApi
 class SimpleMediaService :
@@ -42,25 +44,20 @@ class SimpleMediaService :
 
     private val binder = MusicBinder()
 
-    inner class MusicBinder : Binder()
-
-    override fun onBind(intent: Intent?): IBinder {
-        super.onBind(intent)
-        Log.w("Service", "Simple Media Service Bound")
-        return binder
+    inner class MusicBinder : Binder() {
+        val service: SimpleMediaService
+            get() = this@SimpleMediaService
     }
 
-    override fun onUnbind(intent: Intent?): Boolean {
-        if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
-            release()
-        }
-        Log.w("Service", "Simple Media Service Unbound")
-        return super.onUnbind(intent)
+    override fun onBind(intent: Intent?): IBinder {
+        Log.w("Service", "Simple Media Service Bound")
+        return super.onBind(intent) ?: binder
     }
 
     @UnstableApi
     override fun onCreate() {
         super.onCreate()
+        loadKoinModules(mediaServiceModule)
         Log.w("Service", "Simple Media Service Created")
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
@@ -132,24 +129,20 @@ class SimpleMediaService :
         Log.w("Service", "Starting release process")
         runBlocking {
             try {
-                // Release handler first (contains coroutines and jobs)
-                simpleMediaServiceHandler.release()
-
                 // Release MediaSession and Player
                 mediaSession?.run {
+                    this.player.pause()
+                    this.player.playWhenReady = false
+                    this.player.release()
                     this.release()
-                    if (this.player.playbackState != Player.STATE_IDLE) {
-                        this.player.seekTo(0)
-                        this.player.playWhenReady = false
-                        this.player.stop()
-                    }
                 }
+                // Release handler first (contains coroutines and jobs)
+                simpleMediaServiceHandler.release()
                 mediaSession = null
                 Log.w("Service", "Simple Media Service Released")
             } catch (e: Exception) {
                 Log.e("Service", "Error during release", e)
             }
-            stopSelf()
         }
     }
 
@@ -170,6 +163,7 @@ class SimpleMediaService :
         if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
             release()
             super.onTaskRemoved(rootIntent)
+            exitProcess(0)
         }
     }
 

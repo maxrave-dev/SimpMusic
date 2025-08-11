@@ -213,7 +213,7 @@
     <string name="sleep_minutes">Temporizador (minutos)</string>
     <string name="set">Fijar</string>
     <string name="sleep_timer_off_done">Detener temporizador de sueño</string>
-    <string name="sleep_timer_set_error">Por favor, establezca un formato de hora correcto</string>
+    <string name="sleep_timer_set_error">Por favor, establece un formato de hora correcto</string>
     <string name="sleep_timer_warning">¿Eliminar temporizador de sueño?</string>
     <string name="yes">Sí</string>
     <string name="welcome_back">Bienvenido de vuelta</string>
@@ -245,12 +245,13 @@
     <string name="backup_create_failed">Error al crear copia de seguridad</string>
     <string name="main_lyrics_provider">Proveedor principal de letras</string>
     <string name="use_ai_translation">Usar traducción de letras con IA</string>
+    <string name="use_ai_translation_description">Activar traducción de letras usando IA</string>
     <string name="translation_language">Idioma de la traducción</string>
     <string name="follow_app_language">Usar el idioma de la aplicación</string>
     <string name="email">Correo electrónico</string>
     <string name="password">Contraseña</string>
-    <string name="please_enter_your_email_and_password">Por favor, introduzca su correo electrónico y contraseña</string>
-    <string name="translation_language_message">Escriba el código de idioma (Ej.: en) (2 letras). Si desea usar el idioma de SimpMusic, deje el cuadro de edición vacío.</string>
+    <string name="please_enter_your_email_and_password">Por favor, introduce tu correo electrónico y contraseña</string>
+    <string name="translation_language_message">Escribe el código de idioma (p. ej.: en) (2 letras). Si deseas usar el idioma de SimpMusic, deja el cuadro de edición vacío.</string>
     <string name="invalid_language_code">Código de idioma no válido</string>
     <string name="lyrics_provider_youtube">Letra proporcionada por YouTube</string>
     <string name="limit_player_cache">Limitar caché del reproductor</string>
@@ -369,8 +370,8 @@
     <string name="invalid_host">Host inválido</string>
     <string name="proxy_port">Puerto del proxy</string>
     <string name="invalid_port">Puerto inválido</string>
-    <string name="proxy_host_message">Por favor introduzca su host de Proxy</string>
-    <string name="proxy_port_message">Por favor introduzca su puerto Proxy</string>
+    <string name="proxy_host_message">Por favor introduce tu host de Proxy</string>
+    <string name="proxy_port_message">Por favor introduce tu puerto de Proxy</string>
     <string name="five_seconds">Cinco segundos</string>
     <string name="lyrics_provider_lrc">Lyrics proporcionados por LRCLIB</string>
     <string name="sync_first">Primero sincroniza esta playlist a Youtube Music</string>
@@ -444,4 +445,9 @@
     <string name="anonymous">Anónimo</string>
     <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
     <string name="lyrics_provider_simpmusic">Letras proveídas por SimpMusic Lyrics</string>
+    <string name="backup_in_progress">Copia de seguridad en curso</string>
+    <string name="restore_in_progress">Restauración en curso</string>
+    <string name="backup_downloaded">Respaldar datos descargados</string>
+    <string name="backup_downloaded_description">Respaldar todos los datos de canciones descargadas</string>
+    <string name="no_playlist_found">No se encontraron listas de reproducción locales, crea una primero</string>
 </resources>

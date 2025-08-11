@@ -50,7 +50,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +68,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -137,27 +137,27 @@ fun HomeScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
-    val accountInfo by viewModel.accountInfo.collectAsState()
-    val homeData by viewModel.homeItemList.collectAsState()
-    val newRelease by viewModel.newRelease.collectAsState()
-    val chart by viewModel.chart.collectAsState()
-    val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsState()
-    val chartLoading by viewModel.loadingChart.collectAsState()
-    val loading by viewModel.loading.collectAsState()
+    val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
+    val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
+    val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
+    val chart by viewModel.chart.collectAsStateWithLifecycle()
+    val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsStateWithLifecycle()
+    val chartLoading by viewModel.loadingChart.collectAsStateWithLifecycle()
+    val loading by viewModel.loading.collectAsStateWithLifecycle()
     var accountShow by rememberSaveable {
         mutableStateOf(false)
     }
-    val regionChart by viewModel.regionCodeChart.collectAsState()
-    val reloadDestination by sharedViewModel.reloadDestination.collectAsState()
+    val regionChart by viewModel.regionCodeChart.collectAsStateWithLifecycle()
+    val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
-    val params by viewModel.params.collectAsState()
+    val params by viewModel.params.collectAsStateWithLifecycle()
 
-    val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsState()
+    val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsStateWithLifecycle()
 
-    val openAppTime by sharedViewModel.openAppTime.collectAsState()
-    val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsState()
+    val openAppTime by sharedViewModel.openAppTime.collectAsStateWithLifecycle()
+    val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsStateWithLifecycle()
 
     var showReviewDialog by rememberSaveable {
         mutableStateOf(false)
@@ -166,8 +166,8 @@ fun HomeScreen(
         mutableStateOf(false)
     }
 
-    val dataSyncId by viewModel.dataSyncId.collectAsState()
-    val youTubeCookie by viewModel.youTubeCookie.collectAsState()
+    val dataSyncId by viewModel.dataSyncId.collectAsStateWithLifecycle()
+    val youTubeCookie by viewModel.youTubeCookie.collectAsStateWithLifecycle()
     var shouldShowGetDataSyncIdBottomSheet by rememberSaveable {
         mutableStateOf(false)
     }

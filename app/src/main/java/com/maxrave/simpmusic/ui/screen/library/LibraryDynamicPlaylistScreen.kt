@@ -27,7 +27,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
@@ -68,20 +68,20 @@ fun LibraryDynamicPlaylistScreen(
     type: String,
     viewModel: LibraryDynamicPlaylistViewModel = koinViewModel(),
 ) {
-    val nowPlayingVideoId by viewModel.nowPlayingVideoId.collectAsState()
+    val nowPlayingVideoId by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
 
     var chosenSong: SongEntity? by remember { mutableStateOf(null) }
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showSearchBar by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
 
-    val favorite by viewModel.listFavoriteSong.collectAsState()
+    val favorite by viewModel.listFavoriteSong.collectAsStateWithLifecycle()
     var tempFavorite by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
-    val followed by viewModel.listFollowedArtist.collectAsState()
+    val followed by viewModel.listFollowedArtist.collectAsStateWithLifecycle()
     var tempFollowed by rememberSaveable { mutableStateOf(emptyList<ArtistEntity>()) }
-    val mostPlayed by viewModel.listMostPlayedSong.collectAsState()
+    val mostPlayed by viewModel.listMostPlayedSong.collectAsStateWithLifecycle()
     var tempMostPlayed by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
-    val downloaded by viewModel.listDownloadedSong.collectAsState()
+    val downloaded by viewModel.listDownloadedSong.collectAsStateWithLifecycle()
     var tempDownloaded by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
     val hazeState =
         rememberHazeState(

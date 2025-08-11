@@ -1530,8 +1530,6 @@ class SimpleMediaServiceHandler(
             mayBeSavePlaybackState()
 
             // Stop and release player
-            player.stop()
-            player.playWhenReady = false
             player.removeListener(this)
 
             // Release audio effects
@@ -1580,9 +1578,6 @@ class SimpleMediaServiceHandler(
 
             // Cancel coroutine scope
             coroutineScope.cancel()
-
-            // Clear callbacks
-            setNotificationLayout = null
 
             Log.w("ServiceHandler", "Handler released successfully. Scope active: ${coroutineScope.isActive}")
         } catch (e: Exception) {

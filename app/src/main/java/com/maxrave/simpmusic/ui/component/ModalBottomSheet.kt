@@ -110,6 +110,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -176,10 +177,10 @@ fun InfoPlayerBottomSheet(
             }
     }
 
-    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
+    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
     val format by sharedViewModel.format.collectAsState(null)
-    val downloadProgress by sharedViewModel.downloadFileProgress.collectAsState()
+    val downloadProgress by sharedViewModel.downloadFileProgress.collectAsStateWithLifecycle()
 
     if (downloadProgress != DownloadProgress.INIT) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -710,12 +711,12 @@ fun QueueBottomSheet(
     var overscrollJob by remember { mutableStateOf<Job?>(null) }
     var shouldShowQueueItemBottomSheet by rememberSaveable { mutableStateOf(false) }
     var clickMoreIndex by rememberSaveable { mutableIntStateOf(0) }
-    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
+    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
     val queue by musicServiceHandler.queueData
         .mapLatest { it?.listTracks?.toList() ?: emptyList() }
         .collectAsState(emptyList())
-    val loadMoreState by musicServiceHandler.stateFlow.collectAsState()
+    val loadMoreState by musicServiceHandler.stateFlow.collectAsStateWithLifecycle()
     val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
 
     val shouldLoadMore =
@@ -1181,7 +1182,7 @@ fun NowPlayingBottomSheet(
 ) {
     val context = LocalContext.current
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(

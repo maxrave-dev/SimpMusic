@@ -198,7 +198,7 @@
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Ein unerwarteter Fehler ist aufgetreten. Entschuldigung für die Unannehmlichkeiten.</string>
     <string name="customactivityoncrash_error_activity_restart_app">App neu starten</string>
     <string name="help_build_lyrics_database">Hilf SimpMusic-Lyrics beim Aufbau der Songtext-Datenbank</string>
-    <string name="help_build_lyrics_database_description">Sende deine gespeicherten Songtexte an die SimpMusic-Songtext-Datenbank</string>
+    <string name="help_build_lyrics_database_description">Sende deine gespeicherten Songtexte an die SimpMusic-Lyrics-Datenbank</string>
     <string name="lyrics_database_description">Wir erstellen unsere eigene Songtext-Datenbank für SimpMusic und andere YouTube-Clients für nicht-kommerzielle Zwecke, unter Open-Source</string>
     <string name="customactivityoncrash_error_activity_close_app">App schließen</string>
     <string name="customactivityoncrash_error_activity_error_details">Fehlerdetails</string>
@@ -245,6 +245,7 @@
     <string name="backup_create_failed">Das Erstellen der Sicherung ist fehlgeschlagen</string>
     <string name="main_lyrics_provider">Hauptanbieter von Songtexten</string>
     <string name="use_ai_translation">KI-Songtext-Übersetzung verwenden</string>
+    <string name="use_ai_translation_description">Songtext-Übersetzung mit Hilfe von KI aktivieren</string>
     <string name="translation_language">Übersetzungssprache</string>
     <string name="follow_app_language">Folgen Sie der App-Sprache</string>
     <string name="email">E-Mail</string>
@@ -444,4 +445,9 @@
     <string name="anonymous">Anonym</string>
     <string name="simpmusic_lyrics">SimpMusic Songtexte</string>
     <string name="lyrics_provider_simpmusic">Songtexte von SimpMusic Songtexten bereitgestellt</string>
+    <string name="backup_in_progress">Backup wird erstellt</string>
+    <string name="restore_in_progress">Backup wird wiederhergestellt</string>
+    <string name="backup_downloaded">Backup der heruntergeladenen Daten</string>
+    <string name="backup_downloaded_description">Alle heruntergeladenen Songs sichern</string>
+    <string name="no_playlist_found">Keine lokalen Playlisten gefunden, bitte erstellen Sie zuerst eine</string>
 </resources>

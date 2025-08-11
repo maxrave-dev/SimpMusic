@@ -85,7 +85,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -118,6 +117,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -190,12 +190,12 @@ fun NowPlayingScreen(
     val uriHandler = LocalUriHandler.current
 
     // ViewModel State
-    val controllerState by sharedViewModel.controllerState.collectAsState()
-    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
-    val timelineState by sharedViewModel.timeline.collectAsState()
-    val likeStatus by sharedViewModel.likeStatus.collectAsState()
+    val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
+    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
+    val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
 
-    val shouldShowVideo by sharedViewModel.getVideo.collectAsState()
+    val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
     // State
     val mainScrollState = rememberScrollState()
 
@@ -254,7 +254,7 @@ fun NowPlayingScreen(
         mutableStateOf(Color.White)
     }
 
-    val blurBg by sharedViewModel.blurBg.collectAsState()
+    val blurBg by sharedViewModel.blurBg.collectAsStateWithLifecycle()
 
     LaunchedEffect(screenDataState) {
         Log.d(TAG, "ScreenDataState: $screenDataState")

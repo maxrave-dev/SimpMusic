@@ -245,6 +245,7 @@
     <string name="backup_create_failed">Не удалось создать резервную копию</string>
     <string name="main_lyrics_provider">Главный поставщик текстов</string>
     <string name="use_ai_translation">Использовать ИИ перевод</string>
+    <string name="use_ai_translation_description">Включить перевод текстов с помощью ИИ</string>
     <string name="translation_language">Язык перевода</string>
     <string name="follow_app_language">Следуйте языку приложения</string>
     <string name="email">Электронная почта</string>
@@ -446,4 +447,9 @@
     <string name="anonymous">Анонимно</string>
     <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
     <string name="lyrics_provider_simpmusic">Текст песни предоставлен SimpMusic Lyrics</string>
+    <string name="backup_in_progress">Выполняется резервное копирование</string>
+    <string name="restore_in_progress">Выполняется восстановление</string>
+    <string name="backup_downloaded">Резервное копирование загруженных данных</string>
+    <string name="backup_downloaded_description">Резервное копирование всех загруженных данных песен</string>
+    <string name="no_playlist_found">Локальные плейлисты не найдены. Для начала создайте их</string>
 </resources>

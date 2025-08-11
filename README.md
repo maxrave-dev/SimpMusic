@@ -38,7 +38,7 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Spon
     
 > **Warning**    
  > This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,      
-> please create an issue or contact me via email or Discord server.    
+> please create an issue or contact me via email or Discord server.   
     
 ## Screenshots    
  <p align="center">          
@@ -96,7 +96,7 @@ sometimes, some songs or videos get the wrong lyrics
   ## Developer/Team    
 - [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer    
 - [Owen Connor](https://github.com/owencz1998): Discord Server Admin.    
-- [Ilian Delagrange](https://github.com/ilianoKokoro): Discord Server Admin.
+- [ilianoKokoro](https://github.com/ilianoKokoro): Discord Server Admin.
 
 We're looking for more contributors, all contributions are welcome!
 See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/CODE_OF_CONDUCT.md)
@@ -144,3 +144,5 @@ Crowdin and Sentry both have a free enterprise plan for Open-source projects. Fo
 
 Check out the Vercel open-source program:
 - https://vercel.com/open-source-program
+
+*This project is a part of SimpMusic.org Open-source project by me [maxrave-dev](https://github.com/maxrave-dev)*

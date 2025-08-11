@@ -42,9 +42,9 @@ import java.time.LocalDateTime
 class HomeViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
-    private val _homeItemList: MutableStateFlow<ArrayList<HomeItem>> =
+    private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
-    val homeItemList: StateFlow<ArrayList<HomeItem>> = _homeItemList
+    val homeItemList: StateFlow<List<HomeItem>> = _homeItemList
     private val _exploreMoodItem: MutableStateFlow<Mood?> = MutableStateFlow(null)
     val exploreMoodItem: StateFlow<Mood?> = _exploreMoodItem
     private val _accountInfo: MutableStateFlow<Pair<String?, String?>?> = MutableStateFlow(null)
@@ -183,11 +183,11 @@ class HomeViewModel(
                     val newRelease = result.newRelease
                     when (home) {
                         is Resource.Success -> {
-                            _homeItemList.value = home.data ?: arrayListOf()
+                            _homeItemList.value = home.data ?: listOf()
                         }
 
                         else -> {
-                            _homeItemList.value = arrayListOf()
+                            _homeItemList.value = listOf()
                         }
                     }
                     when (chart) {

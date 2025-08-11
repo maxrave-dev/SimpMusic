@@ -197,6 +197,8 @@
     <string name="skip_sponsor_part_of_video">Salta la parte dello sponsor del video</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Si è verificato un errore imprevisto. Ci dispiace per l\'inconvenienza.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Riavvia l\'app</string>
+    <string name="help_build_lyrics_database">Aiuta SimpMusic a costruire il database dei testi</string>
+    <string name="help_build_lyrics_database_description">Invia i tuoi testi salvati al database dei testi di SimpMusic</string>
     <string name="customactivityoncrash_error_activity_close_app">Chiudi l\'app</string>
     <string name="customactivityoncrash_error_activity_error_details">Dettagli errore</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Dettagli errore</string>
@@ -242,6 +244,7 @@
     <string name="backup_create_failed">Creazione del backup non riuscita</string>
     <string name="main_lyrics_provider">Fornitore principale di testi</string>
     <string name="use_ai_translation">Usa Traduzione Testi AI</string>
+    <string name="use_ai_translation_description">Abilita la traduzione dei testi utilizzando l\'IA</string>
     <string name="translation_language">Lingua di traduzione</string>
     <string name="follow_app_language">Segui la lingua dell\'app</string>
     <string name="email">Email</string>
@@ -434,8 +437,12 @@
     <string name="crossfade_duration">Durata Dissolvenza incrociata</string>
     <string name="set_crossfade_duration">Imposta la durata della dissolvenza incrociata in secondi (%1$d)</string>
     <string name="youtube_subtitle_language">Lingua di traduzione dei sottotitoli di YouTube</string>
+    <string name="youtube_subtitle_language_message">Codice lingua tipo (Eg: it) (2 lettere). Questa è la lingua preferita per i sottotitoli di YouTube.</string>
     <string name="use_anonymous">Usa nome anonimo per contribuire</string>
     <string name="contributor_name">Nome del collaboratore</string>
     <string name="contributor_email">Email del collaboratore</string>
     <string name="anonymous">Anonimo</string>
+    <string name="backup_in_progress">Backup in corso</string>
+    <string name="restore_in_progress">Ripristino in corso</string>
+    <string name="backup_downloaded">Backup dei dati scaricati</string>
 </resources>

@@ -29,7 +29,6 @@ import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.preload.DefaultPreloadManager
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
@@ -39,7 +38,6 @@ import com.maxrave.simpmusic.common.Config.CANVAS_CACHE
 import com.maxrave.simpmusic.common.Config.DOWNLOAD_CACHE
 import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.common.Config.PLAYER_CACHE
-import com.maxrave.simpmusic.common.Config.SECONDARY_PLAYER
 import com.maxrave.simpmusic.common.Config.SERVICE_SCOPE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
@@ -53,7 +51,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -254,7 +252,7 @@ private fun provideResolvingDataSourceFactory(
                     .getStream(
                         id,
                         true,
-                    ).singleOrNull()
+                    ).lastOrNull()
                     ?.let {
                         Log.d("Stream", it)
                         Log.w("Stream", "Video")
@@ -277,7 +275,7 @@ private fun provideResolvingDataSourceFactory(
                     .getStream(
                         mediaId,
                         isVideo = false,
-                    ).singleOrNull()
+                    ).lastOrNull()
                     ?.let {
                         Log.d("Stream", it)
                         Log.w("Stream", "Audio")

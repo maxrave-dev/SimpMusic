@@ -32,7 +32,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -105,6 +104,18 @@ class MainActivity : AppCompatActivity() {
                 mBound = false
             }
         }
+
+    override fun onStart() {
+        super.onStart()
+        startMusicService()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (shouldUnbind) {
+            unbindService(serviceConnection)
+        }
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -215,9 +226,9 @@ class MainActivity : AppCompatActivity() {
             val navController = rememberNavController()
 
             val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
-            val nowPlayingData by viewModel.nowPlayingState.collectAsState()
-            val githubResponse by viewModel.githubResponse.collectAsState()
-            val intent by viewModel.intent.collectAsState()
+            val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
+            val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
+            val intent by viewModel.intent.collectAsStateWithLifecycle()
 
             val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
             // MiniPlayer visibility logic
@@ -551,12 +562,12 @@ class MainActivity : AppCompatActivity() {
         Log.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
 
         // Always unbind service if it was bound to prevent MusicBinder leak
-        if (shouldStopMusicService && shouldUnbind) {
-            unbindService(serviceConnection)
+        if (shouldStopMusicService && shouldUnbind && isFinishing) {
             viewModel.isServiceRunning = false
         }
         unloadKoinModules(viewModelModule)
         super.onDestroy()
+        Log.d("MainActivity", "onDestroy: ")
     }
 
     override fun onRestart() {

@@ -12,12 +12,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -26,13 +27,14 @@ import com.maxrave.simpmusic.ui.component.NormalAppBar
 import com.maxrave.simpmusic.viewModel.MoodViewModel
 
 @Composable
+@UnstableApi
 fun MoodScreen(
     navController: NavController,
     viewModel: MoodViewModel = viewModel(),
     params: String?,
 ) {
-    val moodData by viewModel.moodsMomentObject.collectAsState()
-    val loading by viewModel.loading.collectAsState()
+    val moodData by viewModel.moodsMomentObject.collectAsStateWithLifecycle()
+    val loading by viewModel.loading.collectAsStateWithLifecycle()
 
     LaunchedEffect(key1 = params) {
         if (params != null) {

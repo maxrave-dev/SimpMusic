@@ -444,4 +444,9 @@
     <string name="anonymous">Anonyme</string>
     <string name="simpmusic_lyrics">Paroles de SimpMusic</string>
     <string name="lyrics_provider_simpmusic">Paroles fournies par SimpMusic</string>
+    <string name="backup_in_progress">Sauvegarde en cours</string>
+    <string name="restore_in_progress">Restauration en cours</string>
+    <string name="backup_downloaded">Sauvegarder les données téléchargées</string>
+    <string name="backup_downloaded_description">Sauvegarder toutes les données des titres téléchargés</string>
+    <string name="no_playlist_found">Aucune playlist locale trouvée, veuillez d\'abord en créer une.</string>
 </resources>
