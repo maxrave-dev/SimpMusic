@@ -63,10 +63,8 @@
     <color name="md_theme_dark_scrim">#000000</color>
     <color name="colorPrimaryDark">#19000000</color>
     <color name="back_button_color">#197E7E7E</color>
-
     <color name="shimmerBackground">#7E878383</color>
     <color name="shimmerLine">#FFFFFF</color>
-
     <color name="test">#00FFFFFF</color>
     <color name="overlay">#32242424</color>
     <color name="light_blue_600">#FF039BE5</color>
@@ -74,7 +72,6 @@
     <color name="light_blue_A200">#FF40C4FF</color>
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
-
     <color name="card_background">#9C000000</color>
     <color name="card_shadow_1">#B4202020</color>
     <color name="card_shadow_2">#2D151515</color>

@@ -41,6 +41,7 @@ import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
+import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.extension.isSong
@@ -80,6 +81,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -96,12 +98,11 @@ import kotlin.reflect.KClass
 class SharedViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
+    private val localPlaylistManager: LocalPlaylistManager by inject()
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
     var showedUpdateDialog: Boolean = false
-    private val _showMusixmatchCaptchaWebView: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val showMusixmatchCaptchaWebView: StateFlow<Boolean> get() = _showMusixmatchCaptchaWebView
 
     private val downloadedCache: SimpleCache by inject(qualifier = named(DOWNLOAD_CACHE))
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -185,7 +186,7 @@ class SharedViewModel(
     val likeStatus: StateFlow<Boolean> = _likeStatus
 
     val openAppTime: StateFlow<Int> = dataStoreManager.openAppTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
-    private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(true)
     val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
     init {
@@ -207,13 +208,13 @@ class SharedViewModel(
                     ) { timeline, nowPlayingState ->
                         Pair(timeline, nowPlayingState)
                     }.distinctUntilChanged { old, new ->
-                        (old.first.total.toString() + old.second?.songEntity?.videoId).hashCode() ==
-                            (new.first.total.toString() + new.second?.songEntity?.videoId).hashCode()
+                        (old.first.total.toString() + old.second.songEntity?.videoId).hashCode() ==
+                            (new.first.total.toString() + new.second.songEntity?.videoId).hashCode()
                     }.collectLatest {
-                        log("Timeline job ${(it.first.total.toString() + it.second?.songEntity?.videoId).hashCode()}")
+                        log("Timeline job ${(it.first.total.toString() + it.second.songEntity?.videoId).hashCode()}")
                         val nowPlaying = it.second
                         val timeline = it.first
-                        if (timeline.total > 0 && nowPlaying?.songEntity != null) {
+                        if (timeline.total > 0 && nowPlaying.songEntity != null) {
                             if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.canvasData == null) {
                                 Log.w(tag, "Duration is ${timeline.total}")
                                 Log.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
@@ -413,6 +414,10 @@ class SharedViewModel(
             sleepTimerJob.join()
             playlistNameJob.join()
         }
+        // Reset downloading songs & playlists to not downloaded
+        checkAllDownloadingSongs()
+        checkAllDownloadingPlaylists()
+        checkAllDownloadingLocalPlaylists()
     }
 
     fun setIntent(intent: Intent?) {
@@ -431,12 +436,6 @@ class SharedViewModel(
             }
         }
     }
-
-    fun resolvedMusixmatchCaptcha() {
-        _showMusixmatchCaptchaWebView.value = false
-    }
-
-    fun getMusixmatchCookie() = runBlocking { dataStoreManager.musixmatchCookie.first() }
 
     private fun getCanvas(
         videoId: String,
@@ -752,7 +751,37 @@ class SharedViewModel(
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
-    fun checkAllDownloadingSongs() {
+    private fun checkAllDownloadingLocalPlaylists() {
+        viewModelScope.launch {
+            localPlaylistManager.getAllDownloadingLocalPlaylists().collectLatest { playlists ->
+                playlists.forEach { playlist ->
+                    localPlaylistManager.updateDownloadState(playlist.id, 0).lastOrNull()
+                }
+            }
+        }
+    }
+
+    private fun checkAllDownloadingPlaylists() {
+        viewModelScope.launch {
+            mainRepository.getAllDownloadingPlaylist().collectLatest { list ->
+                list.forEach { data ->
+                    when (data) {
+                        is AlbumEntity -> {
+                            mainRepository.updateAlbumDownloadState(data.browseId, 0)
+                        }
+                        is PlaylistEntity -> {
+                            mainRepository.updatePlaylistDownloadState(data.id, 0)
+                        }
+                        else -> {
+                            // Skip
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun checkAllDownloadingSongs() {
         viewModelScope.launch {
             mainRepository.getDownloadingSongs().collect { songs ->
                 songs?.forEach { song ->
@@ -841,7 +870,7 @@ class SharedViewModel(
         duration: Int, // 0 if translated lyrics
         lyrics: Lyrics?,
         isTranslatedLyrics: Boolean,
-        lyricsProvider: LyricsProvider = LyricsProvider.MUSIXMATCH,
+        lyricsProvider: LyricsProvider = LyricsProvider.SIMPMUSIC,
     ) {
         if (lyrics == null) {
             _nowPlayingScreenData.update {
@@ -909,6 +938,16 @@ class SharedViewModel(
                                             }
                                         }
                                     }
+                            }
+                        }
+                    }
+                    if (lyricsProvider != LyricsProvider.AI) {
+                        viewModelScope.launch {
+                            nowPlayingScreenData.value.lyricsData?.lyrics?.let {
+                                getAITranslationLyrics(
+                                    videoId,
+                                    it,
+                                )
                             }
                         }
                     }
@@ -1057,112 +1096,7 @@ class SharedViewModel(
                         }
                     }
                 }
-                DataStoreManager.MUSIXMATCH -> {
-                    mainRepository
-                        .getLyricsDataMacro(
-                            (artist ?: "").toString(),
-                            song.title,
-                            duration,
-                        ).cancellable()
-                        .collectLatest { response ->
-                            Log.w(tag, response.second.data.toString())
 
-                            when (response.second) {
-                                is Resource.Success -> {
-                                    if (response.second.data != null && response.second.data?.captchaRequired == false) {
-                                        Log.d(tag, "Get Lyrics Data Success")
-                                        updateLyrics(
-                                            videoId,
-                                            duration,
-                                            response.second.data,
-                                            false,
-                                            LyricsProvider.MUSIXMATCH,
-                                        )
-                                        insertLyrics(
-                                            response.second.data!!.toLyricsEntity(
-                                                videoId,
-                                            ),
-                                        )
-                                        if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
-                                            val savedTranslatedLyrics =
-                                                mainRepository
-                                                    .getSavedTranslatedLyrics(
-                                                        videoId,
-                                                        dataStoreManager.translationLanguage.first(),
-                                                    ).firstOrNull()
-                                            if (savedTranslatedLyrics != null) {
-                                                Log.d(tag, "Get Saved Translated Lyrics")
-                                                updateLyrics(
-                                                    videoId,
-                                                    duration,
-                                                    savedTranslatedLyrics.toLyrics(),
-                                                    true,
-                                                )
-                                            } else {
-                                                mainRepository
-                                                    .getTranslateLyrics(
-                                                        response.first,
-                                                    ).cancellable()
-                                                    .collect { translate ->
-                                                        if (translate != null) {
-                                                            Log.d(tag, "Get Translate Lyrics Success")
-                                                            updateLyrics(
-                                                                videoId,
-                                                                duration,
-                                                                translate.toLyrics(
-                                                                    response.second.data!!,
-                                                                ),
-                                                                true,
-                                                            )
-                                                        }
-                                                    }
-                                            }
-                                        } else {
-                                            getAITranslationLyrics(
-                                                videoId,
-                                                response.second.data ?: return@collectLatest,
-                                            )
-                                        }
-                                    } else if (response.second.data?.captchaRequired == true) {
-                                        _showMusixmatchCaptchaWebView.value = true
-                                    } else if (dataStoreManager.spotifyLyrics.first() == TRUE) {
-                                        getSpotifyLyrics(
-                                            song.toTrack().copy(
-                                                durationSeconds = duration,
-                                            ),
-                                            "${song.title} $artist",
-                                            duration,
-                                        )
-                                    } else {
-                                        getLrclibLyrics(
-                                            song,
-                                            (artist ?: "").toString(),
-                                            duration,
-                                        )
-                                    }
-                                }
-
-                                is Resource.Error -> {
-                                    Log.w(tag, "Get Lyrics Data Error")
-                                    if (dataStoreManager.spotifyLyrics.first() == TRUE) {
-                                        getSpotifyLyrics(
-                                            song.toTrack().copy(
-                                                durationSeconds = duration,
-                                            ),
-                                            "${song.title} $artist",
-                                            duration,
-                                        )
-                                    } else {
-                                        getLrclibLyrics(
-                                            song,
-                                            (artist ?: "").toString(),
-                                            duration,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                }
                 DataStoreManager.LRCLIB -> {
                     getLrclibLyrics(
                         song,
@@ -1363,6 +1297,7 @@ class SharedViewModel(
                                         0,
                                         data,
                                         true,
+                                        LyricsProvider.AI,
                                     )
                                 }
                             }
@@ -1631,10 +1566,10 @@ sealed class UIEvent {
 
 enum class LyricsProvider {
     SIMPMUSIC,
-    MUSIXMATCH,
     YOUTUBE,
     SPOTIFY,
     LRCLIB,
+    AI,
     OFFLINE,
 }
 

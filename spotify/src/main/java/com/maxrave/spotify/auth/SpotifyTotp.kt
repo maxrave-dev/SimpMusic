@@ -5,6 +5,7 @@ import java.nio.ByteBuffer
 import java.util.Date
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
+import kotlin.io.encoding.Base64
 import kotlin.math.floor
 import kotlin.math.pow
 
@@ -13,59 +14,74 @@ import kotlin.math.pow
  * Logic from https://github.com/misiektoja/spotify_monitor/blob/main/debug/spotify_monitor_totp_test.py
  */
 object SpotifyTotp {
-    /**
-     * Version 5 secret
-     */
-    private const val SECRET_STRING = "GU2TANZRGQ2TQNJTGQ4DONBZHE2TSMRSGQ4DMMZQGMZDSMZUG4"
+    private const val BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 
-    /**
-     * Version 10 secret
-     */
-    private const val SECRET_STRING_V10 = "GUZDCMBQGQ4TCMJQGQ3DMNJRGIZDQNJRGE4TSMBXHEYTCNBYGA3TKNRSGEZDKNJRHAYQ"
-
-    private const val SECRET_STRING_V17 = "GQ3DONRVGUYTANBXGUZTGMJSGY4DCNJRHA2DMNZWGMYTCMJRGEZDQNZVGI2DCNZYGEYTQNRRHA3DQNZRGI3TCMJRHE3DSMQ"
+    val TOTP_SECRET_V22 = 22 to listOf(99,101,119,123,69,120,91,123,97,74,53,48,76,102,55,69,110,54)
 
     /**
      * Generate a TOTP value for the given timestamp
      */
-    fun at(timestamp: Long): String = generate(timestamp)
+    fun at(timestamp: Long, totpSecret: Pair<Int, List<Int>>?): String = generate(timestamp, totpSecret)
 
-    private fun generate(timestamp: Long): String {
-        val googleAuthenticator = GoogleAuthenticator(SECRET_STRING_V17.toByteArray())
+    private fun generate(timestamp: Long, totpSecret: Pair<Int, List<Int>>?): String {
+        val secret = totpSecret?.let { generateSecret(it) } ?: generateSecret(TOTP_SECRET_V22)
+        val googleAuthenticator = GoogleAuthenticator(secret.toByteArray())
         return googleAuthenticator.generate(timestamp = Date(timestamp))
     }
 
-    /**
-     * Version 8
-     */
-    private fun generateTotp(serverTimeSeconds: Long): String {
-        val secret = "449443649084886328893534571041315"
-        val period = 30
-        val digits = 6
+    private fun generateSecret(totpSecret: Pair<Int, List<Int>>): String {
 
-        // Calculate counter (number of time steps)
-        val counter = floor(serverTimeSeconds.toDouble() / period).toLong()
+        val secretCipherBytes = totpSecret.second
+        println("TOTP cipher: $secretCipherBytes")
 
-        // Convert counter to an 8-byte array (big-endian)
-        val counterBytes = ByteBuffer.allocate(8).putLong(counter).array()
+        // Transform bytes: e ^ ((t % 33) + 9) for each byte
+        val transformed = secretCipherBytes.mapIndexed { index, byte ->
+            byte xor ((index % 33) + 9)
+        }
 
-        // Compute HMAC-SHA1
-        val secretBytes = secret.toByteArray(Charsets.UTF_8)
-        val keySpec = SecretKeySpec(secretBytes, "HmacSHA1")
-        val hmac = Mac.getInstance("HmacSHA1")
-        hmac.init(keySpec)
-        val hmacResult = hmac.doFinal(counterBytes)
+        // Join numbers as string and convert to hex
+        val joined = transformed.joinToString("")
+        val hexStr = joined.toByteArray().toHexString()
 
-        // Dynamic truncation
-        val offset = hmacResult[hmacResult.size - 1].toInt() and 0x0F
-        val binary =
-            ((hmacResult[offset].toInt() and 0x7F) shl 24) or
-                ((hmacResult[offset + 1].toInt() and 0xFF) shl 16) or
-                ((hmacResult[offset + 2].toInt() and 0xFF) shl 8) or
-                (hmacResult[offset + 3].toInt() and 0xFF)
+        // Convert to base32 secret (without padding)
+        val secret = base64ToBase32(Base64.encode(hexStr.hexToByteArray()))
+            .trimEnd('=')
 
-        // Generate code with the specified number of digits
-        val code = binary % 10.0.pow(digits).toInt()
-        return code.toString().padStart(digits, '0')
+        println("Computed secret: $secret")
+        return secret
+    }
+
+    private fun base64ToBase32(base64: String): String {
+        val bytes = Base64.decode(base64)
+        return base32Encode(bytes)
+    }
+
+    private fun base32Encode(data: ByteArray): String {
+        if (data.isEmpty()) return ""
+
+        val result = StringBuilder()
+        var bits = 0
+        var value = 0
+
+        for (byte in data) {
+            value = (value shl 8) or (byte.toInt() and 0xFF)
+            bits += 8
+
+            while (bits >= 5) {
+                result.append(BASE32_ALPHABET[(value shr (bits - 5)) and 0x1F])
+                bits -= 5
+            }
+        }
+
+        if (bits > 0) {
+            result.append(BASE32_ALPHABET[(value shl (5 - bits)) and 0x1F])
+        }
+
+        // Add padding
+        while (result.length % 8 != 0) {
+            result.append('=')
+        }
+
+        return result.toString()
     }
 }

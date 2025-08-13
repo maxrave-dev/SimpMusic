@@ -47,6 +47,11 @@ class LocalPlaylistManager(
 
     fun downloadStateFlow(id: Long): Flow<Int> = localDataSource.getDownloadStateFlowOfLocalPlaylist(id)
 
+    fun getAllDownloadingLocalPlaylists(): Flow<List<LocalPlaylistEntity>> =
+        flow {
+            emit(localDataSource.getAllDownloadingLocalPlaylists())
+        }.flowOn(Dispatchers.IO)
+
     fun listTrackFlow(id: Long): Flow<List<String>> =
         localDataSource
             .getListTracksFlowOfLocalPlaylist(id)

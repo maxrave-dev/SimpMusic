@@ -372,7 +372,7 @@ class DataStoreManager(
 
     val lyricsProvider =
         settingsDataStore.data.map { preferences ->
-            preferences[LYRICS_PROVIDER] ?: MUSIXMATCH
+            preferences[LYRICS_PROVIDER] ?: SIMPMUSIC
         }
 
     suspend fun setLyricsProvider(provider: String) {
@@ -383,24 +383,7 @@ class DataStoreManager(
         }
     }
 
-    val musixmatchLoggedIn =
-        settingsDataStore.data.map { preferences ->
-            preferences[MUSIXMATCH_LOGGED_IN] ?: FALSE
-        }
 
-    suspend fun setMusixmatchLoggedIn(loggedIn: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (loggedIn) {
-                settingsDataStore.edit { settings ->
-                    settings[MUSIXMATCH_LOGGED_IN] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[MUSIXMATCH_LOGGED_IN] = FALSE
-                }
-            }
-        }
-    }
 
     val translationLanguage =
         settingsDataStore.data.map { preferences ->
@@ -421,31 +404,7 @@ class DataStoreManager(
         }
     }
 
-    val musixmatchCookie =
-        settingsDataStore.data.map { preferences ->
-            preferences[MUSIXMATCH_COOKIE] ?: ""
-        }
 
-    suspend fun setMusixmatchCookie(cookie: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[MUSIXMATCH_COOKIE] = cookie
-            }
-        }
-    }
-
-    val musixmatchUserToken =
-        settingsDataStore.data.map { preferences ->
-            preferences[MUSIXMATCH_USER_TOKEN] ?: ""
-        }
-
-    suspend fun setMusixmatchUserToken(token: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[MUSIXMATCH_USER_TOKEN] = token
-            }
-        }
-    }
 
     val maxSongCacheSize =
         settingsDataStore.data.map { preferences ->
@@ -1020,6 +979,70 @@ class DataStoreManager(
         }
     }
 
+    val helpBuildLyricsDatabase: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[HELP_BUILD_LYRICS_DATABASE] ?: FALSE
+        }
+
+    suspend fun setHelpBuildLyricsDatabase(help: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (help) {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
+                }
+            }
+        }
+    }
+
+    val contributorName: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_NAME] ?: ""
+        }
+
+    val contributorEmail: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTRIBUTOR_EMAIL] ?: ""
+        }
+
+    suspend fun setContributorLyricsDatabase(
+        contributor: Pair<String, String>?, // contributor name and email, null if anonymous
+    ) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                if (contributor == null) {
+                    settings[CONTRIBUTOR_NAME] = ""
+                    settings[CONTRIBUTOR_EMAIL] = ""
+                } else {
+                    settings[CONTRIBUTOR_NAME] = contributor.first
+                    settings[CONTRIBUTOR_EMAIL] = contributor.second
+                }
+            }
+        }
+    }
+
+    val backupDownloaded: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[BACKUP_DOWNLOADED] ?: FALSE
+        }
+
+    suspend fun setBackupDownloaded(backupDownloaded: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (backupDownloaded) {
+                settingsDataStore.edit { settings ->
+                    settings[BACKUP_DOWNLOADED] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[BACKUP_DOWNLOADED] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -1036,19 +1059,18 @@ class DataStoreManager(
         val REPEAT_KEY = stringPreferencesKey("repeat_key")
         val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
-        val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
+
         val KILL_SERVICE_ON_EXIT = stringPreferencesKey("kill_service_on_exit")
         val CROSSFADE_ENABLED = stringPreferencesKey("crossfade_enabled")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         const val SIMPMUSIC = "simpmusic"
         const val YOUTUBE = "youtube"
-        const val MUSIXMATCH = "musixmatch"
+
         const val LRCLIB = "lrclib"
         val LYRICS_PROVIDER = stringPreferencesKey("lyrics_provider")
         val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
-        val MUSIXMATCH_COOKIE = stringPreferencesKey("musixmatch_cookie")
-        val MUSIXMATCH_USER_TOKEN = stringPreferencesKey("musixmatch_user_token")
+
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")
         val WATCH_VIDEO_INSTEAD_OF_PLAYING_AUDIO =
@@ -1106,55 +1128,12 @@ class DataStoreManager(
         val CONTRIBUTOR_NAME = stringPreferencesKey("contributor_name")
         val CONTRIBUTOR_EMAIL = stringPreferencesKey("contributor_email")
 
+        val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")
+
         // Proxy type
         enum class ProxyType {
             PROXY_TYPE_HTTP,
             PROXY_TYPE_SOCKS,
-        }
-    }
-
-    val helpBuildLyricsDatabase: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[HELP_BUILD_LYRICS_DATABASE] ?: FALSE
-        }
-
-    suspend fun setHelpBuildLyricsDatabase(help: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (help) {
-                settingsDataStore.edit { settings ->
-                    settings[HELP_BUILD_LYRICS_DATABASE] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[HELP_BUILD_LYRICS_DATABASE] = FALSE
-                }
-            }
-        }
-    }
-
-    val contributorName: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[CONTRIBUTOR_NAME] ?: ""
-        }
-
-    val contributorEmail: Flow<String> =
-        settingsDataStore.data.map { preferences ->
-            preferences[CONTRIBUTOR_EMAIL] ?: ""
-        }
-
-    suspend fun setContributorLyricsDatabase(
-        contributor: Pair<String, String>?, // contributor name and email, null if anonymous
-    ) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                if (contributor == null) {
-                    settings[CONTRIBUTOR_NAME] = ""
-                    settings[CONTRIBUTOR_EMAIL] = ""
-                } else {
-                    settings[CONTRIBUTOR_NAME] = contributor.first
-                    settings[CONTRIBUTOR_EMAIL] = contributor.second
-                }
-            }
         }
     }
 }

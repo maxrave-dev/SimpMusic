@@ -115,6 +115,14 @@ interface DatabaseDao {
         return sortedList
     }
 
+    @Transaction
+    suspend fun getAllDownloadingPlaylist(): List<PlaylistType> {
+        val a = mutableListOf<PlaylistType>()
+        a.addAll(getDownloadingAlbums())
+        a.addAll(getDownloadingPlaylists())
+        return a
+    }
+
     // Get search history
     @Query("SELECT * FROM search_history")
     suspend fun getSearchHistory(): List<SearchHistory>
@@ -149,6 +157,9 @@ interface DatabaseDao {
 
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + 1 WHERE videoId = :videoId")
     suspend fun updateTotalPlayTime(videoId: String)
+
+    @Query("UPDATE song SET totalPlayTime = 0 WHERE videoId = :videoId")
+    suspend fun resetTotalPlayTime(videoId: String)
 
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE videoId = :videoId")
     suspend fun updateSongInLibrary(
@@ -290,6 +301,9 @@ interface DatabaseDao {
     @Query("SELECT * FROM album WHERE downloadState = 3")
     suspend fun getDownloadedAlbums(): List<AlbumEntity>
 
+    @Query("SELECT * FROM album WHERE downloadState = 2 OR downloadState = 1")
+    suspend fun getDownloadingAlbums(): List<AlbumEntity>
+
     // Playlist
     @Query("SELECT * FROM playlist")
     suspend fun getAllPlaylists(): List<PlaylistEntity>
@@ -330,9 +344,15 @@ interface DatabaseDao {
     @Query("SELECT * FROM playlist WHERE downloadState = 3")
     suspend fun getDownloadedPlaylists(): List<PlaylistEntity>
 
+    @Query("SELECT * FROM playlist WHERE downloadState = 1 OR downloadState = 2")
+    suspend fun getDownloadingPlaylists(): List<PlaylistEntity>
+
     // Local Playlist
     @Query("SELECT * FROM local_playlist")
     suspend fun getAllLocalPlaylists(): List<LocalPlaylistEntity>
+
+    @Query("SELECT * FROM local_playlist WHERE downloadState = 1 OR downloadState = 2")
+    suspend fun getAllDownloadingLocalPlaylists(): List<LocalPlaylistEntity>
 
     @Query("SELECT * FROM local_playlist WHERE id = :id")
     suspend fun getLocalPlaylist(id: Long): LocalPlaylistEntity?

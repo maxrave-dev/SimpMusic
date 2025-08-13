@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s titres  %2$s</string>
     <string name="view_count">%1$s vues</string>
-    <string name="lyrics_provider">Paroles fournies par Musixmatch</string>
     <string name="clear_search_history">Effacer l\'historique de recherche</string>
     <string name="liked">Aimé</string>
     <string name="like">J\'aime</string>
@@ -198,6 +197,9 @@
     <string name="skip_sponsor_part_of_video">Ignorer la partie sponsorisée de la vidéo</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Une erreur inattendue s\'est produite. Désolé pour la gêne occasionnée…</string>
     <string name="customactivityoncrash_error_activity_restart_app">Redémarrer l\'application</string>
+    <string name="help_build_lyrics_database">Aidez SimpMusic à créer la base de données des paroles</string>
+    <string name="help_build_lyrics_database_description">Envoyez vos paroles enregistrées à la base de données des paroles de SimpMusic</string>
+    <string name="lyrics_database_description">Nous construisons notre propre base de données de paroles pour SimpMusic et d\'autres clients YouTube à des fins non commerciales, en open source sur</string>
     <string name="customactivityoncrash_error_activity_close_app">Fermer l\'application</string>
     <string name="customactivityoncrash_error_activity_error_details">Détails de l\'erreur</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Détails de l\'erreur</string>
@@ -241,21 +243,13 @@
     <string name="update_playlist">Mettre à jour la playlist depuis YouTube Music</string>
     <string name="backup_create_success">Sauvegarde réalisée avec succès</string>
     <string name="backup_create_failed">Échec de la création de la sauvegarde</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Fournisseur principal de paroles</string>
-    <string name="log_in_to_Musixmatch">Se connecter à Musixmatch</string>
-    <string name="only_support_email_and_password_type">Prise en charge uniquement des types d\'e-mail et de mot de passe</string>
-    <string name="musixmatch_login_description">l\'API de traduction Musixmatch fonctionne uniquement avec un utilisateur connecté. SimpMusic utilise l\'API développeur Musixmatch. Pour plus d\'informations, rendez-vous sur https://github.com/maxrave-dev/SimpMusic ou https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Utiliser la traduction Musixmatch</string>
     <string name="use_ai_translation">Utiliser la traduction lyrique par IA</string>
-    <string name="use_musixmatch_translation_description">Activer la traduction des paroles à l\'aide de Musixmatch. Nécessite une connexion Musixmatch.</string>
-    <string name="use_ai_translation_description">Activez la traduction des paroles grâce à l\'IA. Désactivez la traduction Musixmatch pour l\'utiliser.</string>
     <string name="translation_language">Langue de traduction</string>
     <string name="follow_app_language">Suivre la langue de l\'application</string>
     <string name="email">E-mail</string>
     <string name="password">Mot de passe</string>
     <string name="please_enter_your_email_and_password">Veuillez entrer votre e-mail et votre mot de passe.</string>
-    <string name="log_out_from_musixmatch">Se déconnecter de Musicxmatch</string>
     <string name="translation_language_message">Saisissez le code de langue (par exemple : en) (2 lettres). Si vous souhaitez définir la même langue que celle de SimpMusic, veuillez laisser la zone d\'édition vide.</string>
     <string name="invalid_language_code">Code de langue invalide</string>
     <string name="lyrics_provider_youtube">Paroles fournies par YouTube</string>
@@ -444,4 +438,15 @@
     <string name="set_crossfade_duration">Définir la durée du fondu enchaîné en secondes (%1$ds)</string>
     <string name="youtube_subtitle_language">Langue de traduction des sous-titres YouTube</string>
     <string name="youtube_subtitle_language_message">Saisissez le code de langue (ex. : en) (2 lettres). Il s\'agit de la langue de traduction préférée pour les sous-titres YouTube.</string>
+    <string name="use_anonymous">Utilisez un nom anonyme pour contribuer</string>
+    <string name="contributor_name">Nom du contributeur</string>
+    <string name="contributor_email">Email du contributeur</string>
+    <string name="anonymous">Anonyme</string>
+    <string name="simpmusic_lyrics">Paroles de SimpMusic</string>
+    <string name="lyrics_provider_simpmusic">Paroles fournies par SimpMusic</string>
+    <string name="backup_in_progress">Sauvegarde en cours</string>
+    <string name="restore_in_progress">Restauration en cours</string>
+    <string name="backup_downloaded">Sauvegarder les données téléchargées</string>
+    <string name="backup_downloaded_description">Sauvegarder toutes les données des titres téléchargés</string>
+    <string name="no_playlist_found">Aucune playlist locale trouvée, veuillez d\'abord en créer une.</string>
 </resources>

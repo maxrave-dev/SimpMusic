@@ -7,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s مسارات  %2$s</string>
     <string name="view_count">%1$s مشاهدات</string>
-    <string name="lyrics_provider">كلمات الأغاني مقدمة من Musixmatch</string>
     <string name="clear_search_history">حذف سجل البحث</string>
     <string name="liked">معجب</string>
     <string name="like">أعجبني</string>
@@ -144,6 +143,7 @@
     <string name="log_in_to_YouTube">تسجيل الدخول إلى YouTube</string>
     <string name="log_in_to_get_personally_data">قم بتسجيل الدخول للحصول على البيانات الشخصية</string>
     <string name="login_success">تم تسجيل الدخول بنجاح</string>
+    <string name="login_failed">فشل الدخول</string>
     <string name="log_out">تسجيل الخروج من YouTube</string>
     <string name="logged_in">تم تسجيل الدخول</string>
     <string name="logged_out">تم تسجيل الخروج</string>
@@ -169,6 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">حفظ الوضع العشوائي و التكرار</string>
     <string name="skip_silent">تخطي الوضع الصامت</string>
     <string name="skip_no_music_part">تخطي لا جزء موسيقى</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">إنتهى الوقت، تأكد من إتصالك بالانترنت (%1$d)</string>
     <string name="save_last_played">حفظ آخر تشغيل</string>
     <string name="save_last_played_track_and_queue">حفظ آخر مسار وقائمة الانتظار تم تشغيله</string>
     <string name="update_available">تحديث جديد متوفر</string>
@@ -185,6 +186,7 @@
     <string name="preview">استعراض</string>
     <string name="music_off_topic">موسيقى خارج الموضوع</string>
     <string name="poi_highlight">تسليط الضوء على النقاط الهامة</string>
+    <string name="filler">ملأ الفراغ</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">تمكين SponsorBlock</string>
     <string name="categories_sponsor_block">حدد سلوك تخطي الجزء</string>
@@ -195,6 +197,8 @@
     <string name="skip_sponsor_part_of_video">تخطي جزء الراعي من الفيديو</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">حدث خطأ غير متوقع. نأسف للإزعاج.</string>
     <string name="customactivityoncrash_error_activity_restart_app">إعادة تشغيل التطبيق</string>
+    <string name="help_build_lyrics_database">ساعدنا لتقوية قاعدة البيانات الخاصة بكلمات الأغاني</string>
+    <string name="help_build_lyrics_database_description">أرسل كلمات الأغاني المسجلة إلى قاعدة البيانات</string>
     <string name="customactivityoncrash_error_activity_close_app">إغلاق التطبيق</string>
     <string name="customactivityoncrash_error_activity_error_details">تفاصيل الخطأ</string>
     <string name="customactivityoncrash_error_activity_error_details_title">تفاصيل الخطأ</string>
@@ -238,19 +242,13 @@
     <string name="update_playlist">تحديث قائمة التشغيل من YouTube Music</string>
     <string name="backup_create_success">تم إنشاء النسخة الاحتياطية بنجاح</string>
     <string name="backup_create_failed">فشل إنشاء النسخ الاحتياطي</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">مورد كلمات الأغاني الرئيسي</string>
-    <string name="log_in_to_Musixmatch">تسجيل الدخول إلى Musixmatch</string>
-    <string name="only_support_email_and_password_type">فقط دعم نوع البريد الإلكتروني وكلمة المرور</string>
-    <string name="musixmatch_login_description">يعمل API Musixmatch للترجمة فقط مع المستخدم المسجل دخول. SimpMusic يستخدم Musixmatch Developer API. للمزيد من المعلومات، انتقل إلى https://github.com/maxrave-dev/SimpMusic أو https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">استخدم ترجمة Musixmatch</string>
-    <string name="use_musixmatch_translation_description">تمكين ترجمة الكلمات باستخدام Musixmatch. يتطلب تسجيل الدخول إلى Musixmatch</string>
+    <string name="use_ai_translation">استخدم الذكاء الاصطناعي لترجمة كلمات الأغنية</string>
     <string name="translation_language">لغة التّرجمة</string>
     <string name="follow_app_language">تتبع لغة التطبيق</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="password">كلمة المرور</string>
     <string name="please_enter_your_email_and_password">يرجى إدخال اسم المستخدم وكلمة المرور</string>
-    <string name="log_out_from_musixmatch">تسجيل الخروج من Musixmatch</string>
     <string name="translation_language_message">أدخل كود اللغة (مثال: en) (من حرفين بالإنجليزية). إذا كنت تريد ضبط نفس اللغة مع لغة SimpMusic، فيرجى جعل مربع التحرير فارغًا.</string>
     <string name="invalid_language_code">رمز اللغة غير صحيح</string>
     <string name="lyrics_provider_youtube">كلمات الأغاني المقدمة من YouTube</string>

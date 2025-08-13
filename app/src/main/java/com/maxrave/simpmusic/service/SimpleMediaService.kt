@@ -18,13 +18,16 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
+import com.maxrave.simpmusic.di.mediaServiceModule
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.widget.BasicWidget
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
 import org.koin.core.qualifier.named
+import kotlin.system.exitProcess
 
 @UnstableApi
 class SimpleMediaService :
@@ -41,9 +44,20 @@ class SimpleMediaService :
 
     private val binder = MusicBinder()
 
+    inner class MusicBinder : Binder() {
+        val service: SimpleMediaService
+            get() = this@SimpleMediaService
+    }
+
+    override fun onBind(intent: Intent?): IBinder {
+        Log.w("Service", "Simple Media Service Bound")
+        return super.onBind(intent) ?: binder
+    }
+
     @UnstableApi
     override fun onCreate() {
         super.onCreate()
+        loadKoinModules(mediaServiceModule)
         Log.w("Service", "Simple Media Service Created")
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
@@ -111,14 +125,23 @@ class SimpleMediaService :
     }
 
     @UnstableApi
-    private fun release() {
+    fun release() {
+        Log.w("Service", "Starting release process")
         runBlocking {
-            simpleMediaServiceHandler.release()
-            mediaSession?.run {
-                player.stop()
-                this.release()
-                player.release()
+            try {
+                // Release MediaSession and Player
+                mediaSession?.run {
+                    this.player.pause()
+                    this.player.playWhenReady = false
+                    this.player.release()
+                    this.release()
+                }
+                // Release handler first (contains coroutines and jobs)
+                simpleMediaServiceHandler.release()
                 mediaSession = null
+                Log.w("Service", "Simple Media Service Released")
+            } catch (e: Exception) {
+                Log.e("Service", "Error during release", e)
             }
         }
     }
@@ -130,24 +153,19 @@ class SimpleMediaService :
     }
 
     override fun onTrimMemory(level: Int) {
-        super.onTrimMemory(level)
+        Log.w("Service", "Simple Media Service Trim Memory Level: $level")
         simpleMediaServiceHandler.mayBeSaveRecentSong()
     }
 
     @UnstableApi
     override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.w("Service", "Simple Media Service Task Removed")
         if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
             release()
+            super.onTaskRemoved(rootIntent)
+            exitProcess(0)
         }
-        super.onTaskRemoved(rootIntent)
     }
-
-    inner class MusicBinder : Binder() {
-        val service: SimpleMediaService
-            get() = this@SimpleMediaService
-    }
-
-    override fun onBind(intent: Intent?): IBinder = super.onBind(intent) ?: binder
 
     // Can't inject by Koin because it depend on service
     @UnstableApi

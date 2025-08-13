@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="Song_and_artist_name">Song • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
@@ -6,7 +7,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s tracks  %2$s</string>
     <string name="view_count">%1$s views</string>
-    <string name="lyrics_provider">Lyrics provided by Musixmatch</string>
     <string name="clear_search_history">Clear search history</string>
     <string name="liked">Liked</string>
     <string name="like">Like</string>
@@ -245,21 +245,14 @@
     <string name="update_playlist">Update playlist from YouTube Music</string>
     <string name="backup_create_success">Backup create success</string>
     <string name="backup_create_failed">Backup create failed</string>
-    <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Main Lyrics Provider</string>
-    <string name="log_in_to_Musixmatch">Log in to Musixmatch</string>
-    <string name="only_support_email_and_password_type">Only support email and password type</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. SimpMusic used Musixmatch Developer API. More information, go to https://github.com/maxrave-dev/SimpMusic or https://developer.musixmatch.com/</string>
-    <string name="use_musixmatch_translation">Use Musixmatch Translation</string>
     <string name="use_ai_translation">Use AI Lyric Translation</string>
-    <string name="use_musixmatch_translation_description">Enable lyrics translation using Musixmatch. Require Musixmatch Login</string>
-    <string name="use_ai_translation_description">Enable lyrics translation using AI. Turn off Musixmatch translation to use</string>
+    <string name="use_ai_translation_description">Enable lyrics translation using AI</string>
     <string name="translation_language">Translation Language</string>
     <string name="follow_app_language">Follow app language</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="please_enter_your_email_and_password">Please enter your email and password</string>
-    <string name="log_out_from_musixmatch">Log out from Musixmatch</string>
     <string name="translation_language_message">Type language code (Eg: en) (2 letters). If you want to set same with SimpMusic\'s language, please make edit box empty.</string>
     <string name="invalid_language_code">Invalid language code</string>
     <string name="lyrics_provider_youtube">Lyrics provided by YouTube</string>
@@ -457,4 +450,9 @@
     <string name="anonymous">Anonymous</string>
     <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
     <string name="lyrics_provider_simpmusic">Lyrics provided by SimpMusic Lyrics</string>
+    <string name="backup_in_progress">Backup in progress</string>
+    <string name="restore_in_progress">Restore in progress</string>
+    <string name="backup_downloaded">Backup downloaded data</string>
+    <string name="backup_downloaded_description">Backup all downloaded songs\'s data</string>
+    <string name="no_playlist_found">No local playlists found, please create one first</string>
 </resources>

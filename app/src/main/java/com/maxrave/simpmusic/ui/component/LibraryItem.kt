@@ -75,14 +75,14 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @UnstableApi
 fun LibraryItem(
     state: LibraryItemState,
-    viewModel: LibraryViewModel = koinInject(),
+    viewModel: LibraryViewModel = koinViewModel(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -119,6 +119,9 @@ fun LibraryItem(
                 },
                 navController = navController,
                 song = songEntity ?: return,
+                onLibraryDelete = {
+                    songEntity?.videoId?.let { viewModel.deleteSong(it) }
+                },
             )
         }
         Column {

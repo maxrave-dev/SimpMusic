@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.room)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.sentry.gradle)
 }
 
@@ -92,6 +93,12 @@ android {
             } catch (e: Exception) {
                 println("Failed to load SENTRY_DSN from local.properties: ${e.message}")
             }
+        }
+    }
+
+    bundle {
+        language {
+            enableSplit = false
         }
     }
 
@@ -185,7 +192,6 @@ dependencies {
     val fullImplementation = "fullImplementation"
     val debugImplementation = "debugImplementation"
 
-    implementation(project(":lyricsProviders"))
     // Compose
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)

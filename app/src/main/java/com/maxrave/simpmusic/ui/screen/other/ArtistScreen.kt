@@ -51,6 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
@@ -100,9 +101,9 @@ fun ArtistScreen(
     val TAG = "ArtistScreen"
     val context = LocalContext.current
 
-    val artistScreenState by viewModel.artistScreenState.collectAsState()
-    val isFollowed by viewModel.followed.collectAsState()
-    val canvasUrl by viewModel.canvasUrl.collectAsState()
+    val artistScreenState by viewModel.artistScreenState.collectAsStateWithLifecycle()
+    val isFollowed by viewModel.followed.collectAsStateWithLifecycle()
+    val canvasUrl by viewModel.canvasUrl.collectAsStateWithLifecycle()
 
     val playingTrack by sharedViewModel.nowPlayingState.map { it?.track?.videoId }.collectAsState(null)
 

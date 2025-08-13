@@ -37,7 +37,6 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -114,9 +114,9 @@ fun SearchScreen(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val searchScreenState by searchViewModel.searchScreenState.collectAsState()
-    val uiState by searchViewModel.searchScreenUIState.collectAsState()
-    val searchHistory by searchViewModel.searchHistory.collectAsState()
+    val searchScreenState by searchViewModel.searchScreenState.collectAsStateWithLifecycle()
+    val uiState by searchViewModel.searchScreenUIState.collectAsStateWithLifecycle()
+    val searchHistory by searchViewModel.searchHistory.collectAsStateWithLifecycle()
 
     var searchUIType by rememberSaveable { mutableStateOf(SearchUIType.EMPTY) }
     var searchText by rememberSaveable { mutableStateOf("") }
@@ -129,7 +129,7 @@ fun SearchScreen(
 
     var sheetSong by remember { mutableStateOf<SongEntity?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
-    val currentVideoId by searchViewModel.nowPlayingVideoId.collectAsState()
+    val currentVideoId by searchViewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val chipRowState = rememberScrollState()
     val pullToRefreshState = rememberPullToRefreshState()
 

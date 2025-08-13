@@ -24,9 +24,6 @@ import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
-import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
-import com.maxrave.lyricsproviders.parser.parseMusixmatchLyrics
-import com.maxrave.lyricsproviders.parser.parseUnsyncedLyrics
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
@@ -58,6 +55,8 @@ import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse
 import org.simpmusic.lyrics.models.response.LyricsResponse
 import org.simpmusic.lyrics.models.response.TranslatedLyricsResponse
+import org.simpmusic.lyrics.parser.parseSyncedLyrics
+import org.simpmusic.lyrics.parser.parseUnsyncedLyrics
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -645,7 +644,7 @@ fun <T> Iterable<T>.indexMap(): Map<T, Int> {
     return map
 }
 
-fun com.maxrave.lyricsproviders.models.lyrics.Lyrics.toLyrics(): Lyrics {
+fun org.simpmusic.lyrics.domain.Lyrics.toLyrics(): Lyrics {
     val lines: ArrayList<Line> = arrayListOf()
     if (this.lyrics != null) {
         this.lyrics?.lines?.forEach {
@@ -672,13 +671,13 @@ fun com.maxrave.lyricsproviders.models.lyrics.Lyrics.toLyrics(): Lyrics {
     }
 }
 
-fun Lyrics.toLibraryLyrics(): com.maxrave.lyricsproviders.models.lyrics.Lyrics =
-    com.maxrave.lyricsproviders.models.lyrics.Lyrics(
+fun Lyrics.toLibraryLyrics(): org.simpmusic.lyrics.domain.Lyrics =
+    org.simpmusic.lyrics.domain.Lyrics(
         lyrics =
-            com.maxrave.lyricsproviders.models.lyrics.Lyrics.LyricsX(
+            org.simpmusic.lyrics.domain.Lyrics.LyricsX(
                 lines =
                     this.lines?.map {
-                        com.maxrave.lyricsproviders.models.lyrics.Line(
+                        org.simpmusic.lyrics.domain.Lyrics.LyricsX.Line(
                             endTimeMs = it.endTimeMs,
                             startTimeMs = it.startTimeMs,
                             syllables = listOf(),
@@ -770,38 +769,6 @@ fun YouTubeInitialPage.toTrack(): Track {
         resultType = "",
         year = "",
     )
-}
-
-fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics? {
-    if (this.message.body.translations_list
-            .isEmpty()
-    ) {
-        return null
-    } else {
-        val listTranslation = this.message.body.translations_list
-        val translation =
-            originalLyrics.copy(
-                lines =
-                    originalLyrics.lines?.mapIndexed { index, line ->
-                        line.copy(
-                            words =
-                                if (!line.words.contains("♫")) {
-                                    listTranslation
-                                        .find {
-                                            it.translation.matched_line == line.words ||
-                                                it.translation.subtitle_matched_line == line.words ||
-                                                it.translation.snippet == line.words
-                                        }?.translation
-                                        ?.description
-                                        ?: ""
-                                } else {
-                                    line.words
-                                },
-                        )
-                    },
-            )
-        return translation
-    }
 }
 
 fun TranslatedLyricsEntity.toLyrics(): Lyrics =
@@ -1081,7 +1048,7 @@ fun Lyrics.toPlainLrcString(): String? {
 // SimpMusic Lyrics Extension
 fun LyricsResponse.toLyrics(): Lyrics? =
     (
-        syncedLyrics?.let { if (it.isNotEmpty() && it.isNotBlank()) parseMusixmatchLyrics(it) else null }
+        syncedLyrics?.let { if (it.isNotEmpty() && it.isNotBlank()) parseSyncedLyrics(it) else null }
             ?: (
                 if (plainLyric.isNotEmpty() && plainLyric.isNotBlank()) {
                     parseUnsyncedLyrics(plainLyric)
@@ -1091,4 +1058,4 @@ fun LyricsResponse.toLyrics(): Lyrics? =
             )
     )?.toLyrics()
 
-fun TranslatedLyricsResponse.toLyrics(): Lyrics = parseMusixmatchLyrics(this.translatedLyric).toLyrics()
+fun TranslatedLyricsResponse.toLyrics(): Lyrics = parseSyncedLyrics(this.translatedLyric).toLyrics()

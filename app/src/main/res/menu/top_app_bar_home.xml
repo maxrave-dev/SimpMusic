@@ -11,5 +11,4 @@
         android:icon="@drawable/baseline_settings_24"
         android:title="@string/settings"
         app:showAsAction="ifRoom"/>
-
 </menu>

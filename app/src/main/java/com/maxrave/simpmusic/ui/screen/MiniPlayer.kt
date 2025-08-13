@@ -213,7 +213,7 @@ fun MiniPlayer(
                             if (offsetY.value + dragAmount > 0) {
                                 coroutineScope.launch {
                                     change.consume()
-                                    offsetY.animateTo(offsetY.value + dragAmount)
+                                    offsetY.animateTo(offsetY.value + 2 * dragAmount)
                                     Log.w("MiniPlayer", "Dragged ${offsetY.value}")
                                 }
                             }
@@ -258,7 +258,7 @@ fun MiniPlayer(
                                             ->
                                             coroutineScope.launch {
                                                 change.consume()
-                                                offsetX.animateTo(offsetX.value + dragAmount)
+                                                offsetX.animateTo(offsetX.value + dragAmount * 2)
                                                 Log.w("MiniPlayer", "Dragged ${offsetX.value}")
                                             }
                                         },

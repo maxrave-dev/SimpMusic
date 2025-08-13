@@ -12,5 +12,4 @@
         android:id="@+id/bottom_navigation_item_library"
         android:icon="@drawable/round_library_music_24"
         android:title="@string/library" />
-
 </menu>
