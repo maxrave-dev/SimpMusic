@@ -870,6 +870,14 @@ class SimpleMediaServiceHandler(
         }
     }
 
+    fun setShuffle(enable: Boolean) {
+        if (_controlState.value.isShuffle != enable) {
+            coroutineScope.launch {
+                onPlayerEvent(PlayerEvent.Shuffle)
+            }
+        }
+    }
+
     override fun onEvents(
         player: Player,
         events: Player.Events,
@@ -1730,6 +1738,50 @@ class SimpleMediaServiceHandler(
     fun getPlayerDuration(): Long = player.duration
 
     fun getProgress(): Long = player.currentPosition
+
+    fun setShuffledQueue(
+        orderedPlaylist: ArrayList<Track>,
+        playlistId: String,
+        playlistName: String,
+        playlistType: PlaylistType
+    ) {
+        if (orderedPlaylist.isEmpty()) return
+
+        originalQueueBeforeShuffle = ArrayList(orderedPlaylist)
+
+        val randomIndex = orderedPlaylist.indices.random()
+        val firstPlayedTrack = orderedPlaylist[randomIndex]
+
+        val shuffledRest = orderedPlaylist.toMutableList().apply {
+            removeAt(randomIndex)
+            shuffle()
+        }
+
+        val finalQueue = ArrayList<Track>().apply {
+            add(firstPlayedTrack)
+            addAll(shuffledRest)
+        }
+
+        setQueueData(
+            QueueData(
+                listTracks = finalQueue,
+                firstPlayedTrack = firstPlayedTrack,
+                playlistId = playlistId,
+                playlistName = playlistName,
+                playlistType = playlistType,
+                continuation = null
+            )
+        )
+
+        clearMediaItems()
+        player.setMediaItems(finalQueue.map { it.toMediaItem() })
+        player.prepare()
+        player.playWhenReady = true
+
+        _controlState.update { it.copy(isShuffle = true) }
+        player.shuffleModeEnabled = false
+//        updateNotification()
+    }
 
     @UnstableApi
     suspend fun moveItemUp(position: Int) {

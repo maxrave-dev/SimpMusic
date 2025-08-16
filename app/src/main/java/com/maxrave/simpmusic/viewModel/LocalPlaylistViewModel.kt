@@ -865,6 +865,7 @@ class LocalPlaylistViewModel(
                             },
                     ),
                 )
+                simpleMediaServiceHandler.setShuffle(false)
                 loadMediaItem(
                     firstPlayTrack,
                     Config.PLAYLIST_CLICK,
@@ -874,31 +875,21 @@ class LocalPlaylistViewModel(
 
             is LocalPlaylistUIEvent.ShuffleClick -> {
                 viewModelScope.launch {
-                    val listVideoId = localPlaylistManager.getListTrackVideoId(uiState.value.id)
-                    log("ShuffleClick: uiState id ${uiState.value.id}", Log.DEBUG)
-                    log("ShuffleClick: $listVideoId", Log.DEBUG)
-                    if (listVideoId.isEmpty()) {
+                    val fullTracks = localPlaylistManager.getFullPlaylistTracks(uiState.value.id)
+                    if (fullTracks.isEmpty()) {
                         makeToast(getString(R.string.playlist_is_empty))
                         return@launch
                     }
-                    val random = listVideoId.random()
-                    val randomIndex = listVideoId.indexOf(random)
-                    val firstPlayedTrack = mainRepository.getSongById(random).singleOrNull()?.toTrack() ?: return@launch
-                    setQueueData(
-                        QueueData(
-                            listTracks = arrayListOf(firstPlayedTrack),
-                            firstPlayedTrack = firstPlayedTrack,
-                            playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                            playlistName = "${
-                                getString(
-                                    R.string.playlist,
-                                )
-                            } \"${uiState.value.title}\"",
-                            playlistType = PlaylistType.LOCAL_PLAYLIST,
-                            continuation = "",
-                        ),
+                    simpleMediaServiceHandler.setShuffledQueue(
+                        orderedPlaylist = ArrayList(fullTracks.map { it.toTrack() }),
+                        playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
+                        playlistName = "${
+                            getString(
+                                R.string.playlist,
+                            )
+                        } \"${uiState.value.title}\"",
+                        playlistType = PlaylistType.LOCAL_PLAYLIST
                     )
-                    shufflePlaylist(randomIndex)
                 }
             }
         }

@@ -531,6 +531,7 @@ class PlaylistViewModel(
                         continuation = continuation.value,
                     ),
                 )
+                simpleMediaServiceHandler.setShuffle(false)
                 loadMediaItem(
                     clickedSong,
                     Config.PLAYLIST_CLICK,
@@ -538,41 +539,23 @@ class PlaylistViewModel(
                 )
             }
             PlaylistUIEvent.Shuffle -> {
-                if (data.shuffleEndpoint == null) {
-                    makeToast(
-                        application.getString(R.string.shuffle_not_available),
-                    )
-                    return
-                } else {
-                    viewModelScope.launch {
-                        mainRepository.getRadioArtist(data.shuffleEndpoint).collectLatest { res ->
-                            val result = res.data
-                            when (res) {
-                                is Resource.Success if (result != null) -> {
-                                    Log.d(tag, "Shuffle data: ${result.first.size}")
-                                    setQueueData(
-                                        QueueData(
-                                            listTracks = result.first.toCollection(arrayListOf<Track>()),
-                                            firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
-                                            playlistId = data.shuffleEndpoint.playlistId,
-                                            playlistName = "\"${data.title}\" ${getString(R.string.shuffle)}",
-                                            playlistType = PlaylistType.RADIO,
-                                            continuation = result.second,
-                                        ),
-                                    )
-                                    loadMediaItem(
-                                        result.first.firstOrNull() ?: return@collectLatest,
-                                        Config.RADIO_CLICK,
-                                        0,
-                                    )
-                                }
-                                else -> {
-                                    makeToast(
-                                        res.message ?: application.getString(R.string.error),
-                                    )
-                                }
-                            }
+                viewModelScope.launch {
+                    getFullTracks { orderedTracks ->
+                        if (orderedTracks.isEmpty()) {
+                            makeToast(application.getString(R.string.playlist_is_empty))
+                            return@getFullTracks
                         }
+
+                        simpleMediaServiceHandler.setShuffledQueue(
+                            orderedPlaylist = ArrayList(orderedTracks),
+                            playlistId = data.id,
+                            playlistName = "${
+                                getString(
+                                    R.string.playlist,
+                                )
+                            } \"${data.title}\"",
+                            playlistType = PlaylistType.PLAYLIST
+                        )
                     }
                 }
             }
