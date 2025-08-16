@@ -554,24 +554,21 @@ class PlaylistViewModel(
                 )
             }
             PlaylistUIEvent.Shuffle -> {
-                viewModelScope.launch {
-                    getFullTracks { orderedTracks ->
-                        if (orderedTracks.isEmpty()) {
-                            makeToast(application.getString(R.string.playlist_is_empty))
-                            return@getFullTracks
-                        }
-
-                        simpleMediaServiceHandler.setShuffledQueue(
-                            orderedPlaylist = ArrayList(orderedTracks),
-                            playlistId = data.id,
-                            playlistName = "${
-                                getString(
-                                    R.string.playlist,
-                                )
-                            } \"${data.title}\"",
-                            playlistType = PlaylistType.PLAYLIST
-                        )
+                getFullTracks { orderedTracks ->
+                    if (orderedTracks.isEmpty()) {
+                        makeToast(application.getString(R.string.playlist_is_empty))
+                        return@getFullTracks
                     }
+                    simpleMediaServiceHandler.setShuffledQueue(
+                        orderedPlaylist = ArrayList(orderedTracks),
+                        playlistId = data.id,
+                        playlistName = "${
+                            getString(
+                                R.string.playlist,
+                            )
+                        } \"${data.title}\"",
+                        playlistType = PlaylistType.PLAYLIST
+                    )
                 }
             }
             PlaylistUIEvent.StartRadio -> {
