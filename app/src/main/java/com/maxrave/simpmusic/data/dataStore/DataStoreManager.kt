@@ -383,8 +383,6 @@ class DataStoreManager(
         }
     }
 
-
-
     val translationLanguage =
         settingsDataStore.data.map { preferences ->
             val languageValue = language.first()
@@ -403,8 +401,6 @@ class DataStoreManager(
             }
         }
     }
-
-
 
     val maxSongCacheSize =
         settingsDataStore.data.map { preferences ->
@@ -744,6 +740,19 @@ class DataStoreManager(
                 settingsDataStore.edit { settings ->
                     settings[AUTO_CHECK_FOR_UPDATES] = FALSE
                 }
+            }
+        }
+    }
+
+    val updateChannel =
+        settingsDataStore.data.map { preferences ->
+            preferences[UPDATE_CHANNEL] ?: FDROID
+        }
+
+    suspend fun setUpdateChannel(channel: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[UPDATE_CHANNEL] = channel
             }
         }
     }
@@ -1093,6 +1102,9 @@ class DataStoreManager(
         val ENDLESS_QUEUE = stringPreferencesKey("endless_queue")
         val SHOULD_SHOW_LOG_IN_REQUIRED_ALERT = stringPreferencesKey("should_show_log_in_required_alert")
         val AUTO_CHECK_FOR_UPDATES = stringPreferencesKey("auto_check_for_updates")
+        val UPDATE_CHANNEL = stringPreferencesKey("update_channel")
+        const val FDROID = "fdroid"
+        const val GITHUB = "github"
         val BLUR_FULLSCREEN_LYRICS = stringPreferencesKey("blur_fullscreen_lyrics")
         val BLUR_PLAYER_BACKGROUND = stringPreferencesKey("blur_player_background")
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")

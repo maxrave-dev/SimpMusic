@@ -455,4 +455,5 @@
     <string name="backup_downloaded">Backup downloaded data</string>
     <string name="backup_downloaded_description">Backup all downloaded songs\'s data</string>
     <string name="no_playlist_found">No local playlists found, please create one first</string>
+    <string name="update_channel">Update channel</string>
 </resources>

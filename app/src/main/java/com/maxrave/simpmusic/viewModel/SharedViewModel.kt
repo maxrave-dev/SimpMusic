@@ -104,6 +104,9 @@ class SharedViewModel(
     var isFirstSuggestions: Boolean = false
     var showedUpdateDialog: Boolean = false
 
+    private val _isCheckingUpdate = MutableStateFlow(false)
+    val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
+
     private val downloadedCache: SimpleCache by inject(qualifier = named(DOWNLOAD_CACHE))
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
@@ -841,15 +844,21 @@ class SharedViewModel(
     private var _githubResponse = MutableStateFlow<GithubResponse?>(null)
     val githubResponse: StateFlow<GithubResponse?> = _githubResponse
 
-    fun checkForUpdate() {
+    fun checkForUpdate(updateChannel: String) {
         viewModelScope.launch {
-            mainRepository.checkForUpdate().collect { response ->
-                dataStoreManager.putString(
-                    "CheckForUpdateAt",
-                    System.currentTimeMillis().toString(),
-                )
-                _githubResponse.value = response
-                showedUpdateDialog = true
+            _isCheckingUpdate.value = true
+            if (updateChannel == DataStoreManager.GITHUB) {
+                mainRepository.checkForGithubUpdate().collect { response ->
+                    dataStoreManager.putString(
+                        "CheckForUpdateAt",
+                        System.currentTimeMillis().toString(),
+                    )
+                    _githubResponse.value = response
+                    showedUpdateDialog = true
+                    _isCheckingUpdate.value = false
+                }
+            } else {
+                mainRepository.checkForFdroidUpdate()
             }
         }
     }
@@ -1281,25 +1290,23 @@ class SharedViewModel(
                         val data = it.data
                         when (it) {
                             is Resource.Success if (data != null) -> {
-                                if (true) {
-                                    Log.d(tag, "Get AI Translate Lyrics Success")
-                                    mainRepository.insertTranslatedLyrics(
-                                        TranslatedLyricsEntity(
-                                            videoId = videoId,
-                                            language = dataStoreManager.translationLanguage.first(),
-                                            error = false,
-                                            lines = data.lines,
-                                            syncType = data.syncType,
-                                        ),
-                                    )
-                                    updateLyrics(
-                                        videoId,
-                                        0,
-                                        data,
-                                        true,
-                                        LyricsProvider.AI,
-                                    )
-                                }
+                                Log.d(tag, "Get AI Translate Lyrics Success")
+                                mainRepository.insertTranslatedLyrics(
+                                    TranslatedLyricsEntity(
+                                        videoId = videoId,
+                                        language = dataStoreManager.translationLanguage.first(),
+                                        error = false,
+                                        lines = data.lines,
+                                        syncType = data.syncType,
+                                    ),
+                                )
+                                updateLyrics(
+                                    videoId,
+                                    0,
+                                    data,
+                                    true,
+                                    LyricsProvider.AI,
+                                )
                             }
 
                             else -> {

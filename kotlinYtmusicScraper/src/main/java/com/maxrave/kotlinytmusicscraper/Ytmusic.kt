@@ -502,7 +502,7 @@ class Ytmusic {
             parameter("service", "YouTube")
         }
 
-    suspend fun checkForUpdate() =
+    suspend fun checkForGithubUpdate() =
         httpClient.get("https://api.github.com/repos/maxrave-dev/SimpMusic/releases/latest") {
             contentType(ContentType.Application.Json)
         }

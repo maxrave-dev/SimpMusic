@@ -880,9 +880,9 @@ class YouTube(
             ytMusic.getSkipSegments(videoId).body<List<SkipSegments>>()
         }
 
-    suspend fun checkForUpdate() =
+    suspend fun checkForGithubUpdate() =
         runCatching {
-            ytMusic.checkForUpdate().body<GithubResponse>()
+            ytMusic.checkForGithubUpdate().body<GithubResponse>()
         }
 
     suspend fun newRelease(): Result<ExplorePage> =

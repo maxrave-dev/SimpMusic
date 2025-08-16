@@ -3009,16 +3009,19 @@ class MainRepository(
                 }
         }.flowOn(Dispatchers.IO)
 
-    fun checkForUpdate(): Flow<GithubResponse?> =
+    fun checkForGithubUpdate(): Flow<GithubResponse?> =
         flow {
             youTube
-                .checkForUpdate()
+                .checkForGithubUpdate()
                 .onSuccess {
                     emit(it)
                 }.onFailure {
                     emit(null)
                 }
-        }
+        }.flowOn(Dispatchers.IO)
+
+    fun checkForFdroidUpdate() {
+    }
 
     suspend fun getYouTubeSetVideoId(youtubePlaylistId: String): Flow<ArrayList<SetVideoIdEntity>?> =
         flow {

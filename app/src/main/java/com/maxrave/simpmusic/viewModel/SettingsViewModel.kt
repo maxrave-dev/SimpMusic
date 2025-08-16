@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.app.usage.StorageStatsManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -53,7 +52,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.io.File
@@ -129,6 +127,8 @@ class SettingsViewModel(
     val proxyPort: StateFlow<Int> = _proxyPort
     private var _autoCheckUpdate = MutableStateFlow(false)
     val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate
+    private var _updateChannel: MutableStateFlow<String> = MutableStateFlow(DataStoreManager.GITHUB)
+    val updateChannel: StateFlow<String> = _updateChannel
     private var _blurFullscreenLyrics = MutableStateFlow(false)
     val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
     private var _blurPlayerBackground = MutableStateFlow(false)
@@ -222,8 +222,24 @@ class SettingsViewModel(
         getCrossfadeDuration()
         getContributorNameAndEmail()
         getBackupDownloaded()
+        getUpdateChannel()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getUpdateChannel() {
+        viewModelScope.launch {
+            dataStoreManager.updateChannel.collect { channel ->
+                _updateChannel.value = channel
+            }
+        }
+    }
+
+    fun setUpdateChannel(channel: String) {
+        viewModelScope.launch {
+            dataStoreManager.setUpdateChannel(channel)
+            getUpdateChannel()
         }
     }
 
