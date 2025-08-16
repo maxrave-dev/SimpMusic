@@ -488,10 +488,10 @@ class PlaylistViewModel(
                 val loadedList = tracks.value
                 val clickedSong = loadedList.first { it.videoId == videoId }
                 val index = loadedList.indexOf(clickedSong)
-                setQueueData(
-                    QueueData(
-                        listTracks = loadedList.toCollection(arrayListOf<Track>()),
-                        firstPlayedTrack = clickedSong,
+
+                if (simpleMediaServiceHandler.getShuffleState()) {
+                    simpleMediaServiceHandler.setShuffledQueue(
+                        orderedPlaylist = ArrayList(loadedList),
                         playlistId = data.id,
                         playlistName = "${
                             getString(
@@ -499,14 +499,29 @@ class PlaylistViewModel(
                             )
                         } \"${data.title}\"",
                         playlistType = PlaylistType.PLAYLIST,
-                        continuation = continuation.value,
-                    ),
-                )
-                loadMediaItem(
-                    clickedSong,
-                    Config.PLAYLIST_CLICK,
-                    index,
-                )
+                        index = index
+                    )
+                } else {
+                    setQueueData(
+                        QueueData(
+                            listTracks = loadedList.toCollection(arrayListOf<Track>()),
+                            firstPlayedTrack = clickedSong,
+                            playlistId = data.id,
+                            playlistName = "${
+                                getString(
+                                    R.string.playlist,
+                                )
+                            } \"${data.title}\"",
+                            playlistType = PlaylistType.PLAYLIST,
+                            continuation = continuation.value,
+                        ),
+                    )
+                    loadMediaItem(
+                        clickedSong,
+                        Config.PLAYLIST_CLICK,
+                        index,
+                    )
+                }
             }
             PlaylistUIEvent.PlayAll -> {
                 val loadedList = tracks.value

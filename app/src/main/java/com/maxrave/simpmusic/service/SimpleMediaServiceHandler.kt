@@ -878,6 +878,8 @@ class SimpleMediaServiceHandler(
         }
     }
 
+    fun getShuffleState(): Boolean = _controlState.value.isShuffle
+
     override fun onEvents(
         player: Player,
         events: Player.Events,
@@ -1743,13 +1745,14 @@ class SimpleMediaServiceHandler(
         orderedPlaylist: ArrayList<Track>,
         playlistId: String,
         playlistName: String,
-        playlistType: PlaylistType
+        playlistType: PlaylistType,
+        index: Int? = null
     ) {
         if (orderedPlaylist.isEmpty()) return
 
         originalQueueBeforeShuffle = ArrayList(orderedPlaylist)
 
-        val randomIndex = orderedPlaylist.indices.random()
+        val randomIndex = index ?: orderedPlaylist.indices.random()
         val firstPlayedTrack = orderedPlaylist[randomIndex]
 
         val shuffledRest = orderedPlaylist.toMutableList().apply {

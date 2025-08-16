@@ -773,11 +773,11 @@ class LocalPlaylistViewModel(
             is LocalPlaylistUIEvent.ItemClick -> {
                 val loadedList = lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
                 val clickedSong = loadedList.find { it?.videoId == ev.videoId } ?: return
+                val index = loadedList.indexOf(clickedSong)
 
-                setQueueData(
-                    QueueData(
-                        listTracks = loadedList.filterNotNull().toArrayListTrack(),
-                        firstPlayedTrack = clickedSong.toTrack(),
+                if (simpleMediaServiceHandler.getShuffleState()) {
+                    simpleMediaServiceHandler.setShuffledQueue(
+                        orderedPlaylist = ArrayList(loadedList.filterNotNull().map { it.toTrack() }),
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
                         playlistName = "${
                             getString(
@@ -785,7 +785,21 @@ class LocalPlaylistViewModel(
                             )
                         } \"${uiState.value.title}\"",
                         playlistType = PlaylistType.LOCAL_PLAYLIST,
-                        continuation =
+                        index = index
+                    )
+                } else {
+                    setQueueData(
+                        QueueData(
+                            listTracks = loadedList.filterNotNull().toArrayListTrack(),
+                            firstPlayedTrack = clickedSong.toTrack(),
+                            playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
+                            playlistName = "${
+                                getString(
+                                    R.string.playlist,
+                                )
+                            } \"${uiState.value.title}\"",
+                            playlistType = PlaylistType.LOCAL_PLAYLIST,
+                            continuation =
                             if (offset.value > 0) {
                                 if (uiState.value.filterState == FilterState.OlderFirst) {
                                     ASC + offset.value.toString()
@@ -795,13 +809,14 @@ class LocalPlaylistViewModel(
                             } else {
                                 null
                             },
-                    ),
-                )
-                loadMediaItem(
-                    clickedSong,
-                    Config.PLAYLIST_CLICK,
-                    loadedList.indexOf(clickedSong),
-                )
+                        ),
+                    )
+                    loadMediaItem(
+                        clickedSong,
+                        Config.PLAYLIST_CLICK,
+                        index,
+                    )
+                }
             }
 
             is LocalPlaylistUIEvent.SuggestionsItemClick -> {
