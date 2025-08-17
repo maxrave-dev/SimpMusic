@@ -1488,8 +1488,8 @@ class YouTube(
             print("URL $url")
             val nSigParam = url.parameters["n"] ?: throw Exception("Could not parse cipher signature parameter")
 //            YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url.toString())
-            val decodedCipher = mAppService.decipher(cipher)
-            val fixedThrottling = mAppService.fixThrottling(nSigParam)
+            val decodedCipher = mAppService.extractSig(cipher)
+            val fixedThrottling = mAppService.extractNSig(nSigParam)
             val newUrl = URLBuilder(url.toString())
             newUrl.parameters["n"] = fixedThrottling
             newUrl.parameters[signatureParam] = decodedCipher
