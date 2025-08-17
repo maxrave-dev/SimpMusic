@@ -183,7 +183,6 @@ koin-android = { module = "io.insert-koin:koin-android"}
 
 #Sentry
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
-androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle-runtime-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }
