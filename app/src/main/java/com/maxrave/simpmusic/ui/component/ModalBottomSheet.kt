@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -46,7 +47,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -94,6 +98,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
@@ -2757,6 +2763,99 @@ fun DevLogInBottomSheet(
                     Text(text = stringResource(R.string.set), style = typo.labelSmall)
                 }
                 Spacer(modifier = Modifier.height(5.dp))
+                EndOfModalBottomSheet()
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DevCookieLogInBottomSheet(
+    onDismiss: () -> Unit,
+    type: DevLogInType,
+    cookies: List<Pair<String, String?>>,
+) {
+    val clipboardManager = LocalClipboard.current
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = stringResource(R.string.list_all_cookies_of_this_page), style = typo.labelSmall)
+                cookies.forEach { cookie ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(12.dp),
+                    ) {
+                        Text(
+                            text = cookie.first,
+                            style = typo.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SelectionContainer(
+                            modifier = Modifier.weight(2f),
+                        ) {
+                            Text(
+                                text = cookie.second ?: "",
+                                style = typo.bodyMedium,
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    clipboardManager.setClipEntry(
+                                        ClipEntry(
+                                            clipData = ClipData.newPlainText(cookie.first, cookie.second ?: ""),
+                                        ),
+                                    )
+                                    Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = "Copy",
+                            )
+                        }
+                    }
+                }
                 EndOfModalBottomSheet()
             }
         }
