@@ -648,6 +648,7 @@ class SimpleMediaServiceHandler(
                 listTracks = temp ?: arrayListOf(),
             )
         _currentSongIndex.value = player.currentMediaItemIndex
+        updateNextPreviousTrackAvailability()
     }
 
     fun addMediaItem(
@@ -1800,6 +1801,7 @@ class SimpleMediaServiceHandler(
             }
         }
         _currentSongIndex.value = player.currentMediaItemIndex
+        updateNextPreviousTrackAvailability()
     }
 
     @UnstableApi
@@ -1816,6 +1818,7 @@ class SimpleMediaServiceHandler(
             }
         }
         _currentSongIndex.value = player.currentMediaItemIndex
+        updateNextPreviousTrackAvailability()
     }
 
     @UnstableApi
