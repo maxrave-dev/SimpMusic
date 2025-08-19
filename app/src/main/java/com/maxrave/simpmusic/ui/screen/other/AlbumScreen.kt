@@ -306,7 +306,7 @@ fun AlbumScreen(
                                                     fillMaxSize = true,
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
-                                                    viewModel.playTrack(uiState.listTrack.firstOrNull() ?: return@RippleIconButton)
+                                                    viewModel.playAll(uiState.listTrack.firstOrNull() ?: return@RippleIconButton)
                                                 }
                                                 Spacer(modifier = Modifier.size(5.dp))
                                                 Crossfade(targetState = uiState.downloadState) {

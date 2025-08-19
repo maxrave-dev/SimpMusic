@@ -199,9 +199,61 @@ class AlbumViewModel(
     }
 
     fun playTrack(track: Track) {
+        val fullTrackList = uiState.value.listTrack
+        val index = uiState.value.listTrack.indexOf(track)
+
+        if (simpleMediaServiceHandler.getShuffleState()){
+            simpleMediaServiceHandler.setShuffledQueue(
+                orderedPlaylist = ArrayList(fullTrackList),
+                playlistId = uiState.value.browseId.replaceFirst("VL", ""),
+                playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
+                playlistType = PlaylistType.PLAYLIST,
+                index = index
+            )
+        } else {
+            setQueueData(
+                QueueData(
+                    listTracks = ArrayList(fullTrackList),
+                    firstPlayedTrack = track,
+                    playlistId = uiState.value.browseId.replaceFirst("VL", ""),
+                    playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
+                    playlistType = PlaylistType.PLAYLIST,
+                    continuation = null,
+                ),
+            )
+            loadMediaItem(track, Config.ALBUM_CLICK, if (index == -1) 0 else index)
+        }
+    }
+
+    fun shuffle() {
+        val fullTrackList = uiState.value.listTrack
+
+        if (fullTrackList.isEmpty()) {
+            makeToast(getString(R.string.playlist_is_empty))
+            return
+        }
+
+        simpleMediaServiceHandler.setShuffledQueue(
+            orderedPlaylist = ArrayList(fullTrackList),
+            playlistId = uiState.value.browseId.replaceFirst("VL", ""),
+            playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
+            playlistType = PlaylistType.PLAYLIST
+        )
+    }
+
+    fun playAll(track: Track) {
+        val fullTrackList = uiState.value.listTrack
+
+        if (fullTrackList.isEmpty()) {
+            makeToast(getString(R.string.playlist_is_empty))
+            return
+        }
+
+        val index = uiState.value.listTrack.indexOf(track)
+
         setQueueData(
             QueueData(
-                listTracks = uiState.value.listTrack.toCollection(ArrayList()),
+                listTracks = ArrayList(fullTrackList),
                 firstPlayedTrack = track,
                 playlistId = uiState.value.browseId.replaceFirst("VL", ""),
                 playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
@@ -209,28 +261,8 @@ class AlbumViewModel(
                 continuation = null,
             ),
         )
-        val index = uiState.value.listTrack.indexOf(track)
+        simpleMediaServiceHandler.setShuffle(false)
         loadMediaItem(track, Config.ALBUM_CLICK, if (index == -1) 0 else index)
-    }
-
-    fun shuffle() {
-        if (uiState.value.listTrack.isEmpty()) {
-            makeToast(getString(R.string.playlist_is_empty))
-            return
-        }
-        val shuffleList = uiState.value.listTrack.shuffled()
-        val randomIndex = shuffleList.indices.random()
-        setQueueData(
-            QueueData(
-                listTracks = shuffleList.toCollection(ArrayList()),
-                firstPlayedTrack = shuffleList[randomIndex],
-                playlistId = uiState.value.browseId.replaceFirst("VL", ""),
-                playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
-                playlistType = PlaylistType.PLAYLIST,
-                continuation = null,
-            ),
-        )
-        loadMediaItem(shuffleList[randomIndex], Config.ALBUM_CLICK, randomIndex)
     }
 
     fun downloadFullAlbum() {
