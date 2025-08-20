@@ -32,6 +32,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
@@ -1239,8 +1240,8 @@ class YouTube(
             val listUrlSig = mutableListOf<String>()
             var decodedSigResponse: PlayerResponse? = null
             val listClients = listOf(WEB_REMIX, TVHTML5)
-            var sigResponse: PlayerResponse? = null
-            var currentClient = listClients.first()
+            var sigResponse: PlayerResponse?
+            var currentClient: YouTubeClient
             for (client in listClients) {
                 listUrlSig.removeAll(listUrlSig)
                 decodedSigResponse = null
@@ -1315,7 +1316,7 @@ class YouTube(
                         decodedSigResponse
                             .streamingData
                             ?.formats
-                            ?.mapNotNull { Pair(it.itag, it.url) }
+                            ?.map { Pair(it.itag, it.url) }
                             ?.toMutableList() ?: mutableListOf()
                     ).apply {
                         addAll(
@@ -1327,7 +1328,8 @@ class YouTube(
                 listFormat.forEach {
                     println("YouTube Format ${it.first} ${it.second}")
                 }
-                if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
+                if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.last())) {
+                    println("YouTube SmartTube Found URL ${listUrlSig.last()}")
                     break
                 } else {
                     listUrlSig.clear()
@@ -1378,7 +1380,8 @@ class YouTube(
                                 ?.let { addAll(it) }
                         },
                     )
-                    if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
+                    if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.last())) {
+                        println("YouTube NewPipe Found URL ${listUrlSig.last()}")
                         break
                     }
                 }
@@ -1396,7 +1399,7 @@ class YouTube(
                             .bodyAsText()
                             .let { challenge ->
                                 val listChallenge = poTokenJsonDeserializer.decodeFromString<List<String?>>(challenge)
-                                listChallenge.filterIsInstance<String>().firstOrNull()
+                                listChallenge.filterNotNull().firstOrNull()
                             }?.let { poTokenChallenge ->
                                 ytMusic.generatePoToken(poTokenChallenge).bodyAsText().getPoToken().also { poToken ->
                                     if (poToken != null) {
