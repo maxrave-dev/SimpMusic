@@ -405,6 +405,9 @@ fun NowPlayingScreen(
                 showSheet = false
             },
             navController = navController,
+            onNavigateToOtherScreen = {
+                onDismiss()
+            },
             song = null, // Auto set now playing
             setSleepTimerEnable = true,
             changeMainLyricsProviderEnable = true,
@@ -1042,7 +1045,7 @@ fun NowPlayingScreen(
                                                     top = 15.dp,
                                                 ).padding(horizontal = 40.dp)
                                                 .isElementVisible {
-                                                    shouldShowToolbar = !it
+                                                    shouldShowToolbar = !it && sheetState.currentValue == SheetValue.Expanded
                                                 },
                                         ) {
                                             Box(
