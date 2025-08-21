@@ -1424,8 +1424,22 @@ class YouTube(
                 println("Player Response formatList $formatList")
                 val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
                 println("Player Response adaptiveFormat $adaptiveFormatsList")
+                val randomUrl =
+                    playerResponse.streamingData
+                        ?.formats
+                        ?.randomOrNull()
+                        ?.url
+                        ?: playerResponse.streamingData
+                            ?.adaptiveFormats
+                            ?.randomOrNull()
+                            ?.url
+                println("Player Response randomUrl $randomUrl")
 
-                if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
+                if (playerResponse.playabilityStatus.status == "OK" &&
+                    (formatList != null || adaptiveFormatsList != null) &&
+                    randomUrl != null &&
+                    !is403Url(randomUrl)
+                ) {
                     return@runCatching Triple(
                         cpn,
                         playerResponse.copy(
@@ -1435,6 +1449,7 @@ class YouTube(
                         thumbnails,
                     )
                 } else {
+                    println("Player Response is not OK or formatList is null or randomUrl is null")
                     for (instance in listPipedInstances) {
                         try {
                             val piped = ytMusic.pipedStreams(videoId, instance).body<PipedResponse>()
