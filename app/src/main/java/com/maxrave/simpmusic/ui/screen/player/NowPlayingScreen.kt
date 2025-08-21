@@ -1045,7 +1045,7 @@ fun NowPlayingScreen(
                                                     top = 15.dp,
                                                 ).padding(horizontal = 40.dp)
                                                 .isElementVisible {
-                                                    shouldShowToolbar = !it
+                                                    shouldShowToolbar = !it && sheetState.currentValue == SheetValue.Expanded
                                                 },
                                         ) {
                                             Box(
