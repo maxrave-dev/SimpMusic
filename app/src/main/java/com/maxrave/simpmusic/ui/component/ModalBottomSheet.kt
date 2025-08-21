@@ -1181,6 +1181,7 @@ fun NowPlayingBottomSheet(
     viewModel: NowPlayingBottomSheetViewModel = koinViewModel(),
     setSleepTimerEnable: Boolean = false,
     changeMainLyricsProviderEnable: Boolean = false,
+    onNavigateToOtherScreen: () -> Unit = {}, // Fix the now playing screen not disappearing when navigating to other screen
     // Delete is specific to playlist
     onDelete: (() -> Unit)? = null,
     onLibraryDelete: (() -> Unit)? = null,
@@ -1259,6 +1260,7 @@ fun NowPlayingBottomSheet(
             isBottomSheetVisible = artist,
             artists = uiState.songUIState.listArtists,
             navController = navController,
+            onNavigateToOtherScreen = onNavigateToOtherScreen,
             onDismiss = { artist = false },
         )
     }
@@ -1622,6 +1624,7 @@ fun NowPlayingBottomSheet(
                         enable = uiState.songUIState.album != null,
                     ) {
                         uiState.songUIState.album?.id?.let { id ->
+                            onNavigateToOtherScreen()
                             navController.navigate(
                                 AlbumDestination(
                                     browseId = id,
@@ -2136,6 +2139,7 @@ fun ArtistModalBottomSheet(
     isBottomSheetVisible: Boolean,
     artists: List<Artist>,
     navController: NavController,
+    onNavigateToOtherScreen: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -2192,13 +2196,13 @@ fun ArtistModalBottomSheet(
                                         .fillMaxWidth()
                                         .clickable {
                                             if (!artist.id.isNullOrBlank()) {
+                                                onNavigateToOtherScreen()
                                                 navController.navigate(
                                                     ArtistDestination(
                                                         artist.id,
                                                     ),
                                                 )
                                             }
-                                            hideModalBottomSheet()
                                         },
                             ) {
                                 Row(

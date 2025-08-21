@@ -405,6 +405,9 @@ fun NowPlayingScreen(
                 showSheet = false
             },
             navController = navController,
+            onNavigateToOtherScreen = {
+                onDismiss()
+            },
             song = null, // Auto set now playing
             setSleepTimerEnable = true,
             changeMainLyricsProviderEnable = true,
