@@ -49,7 +49,7 @@
         android:localeConfig="@xml/locale_config"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SimpMusic"
+        android:theme="@style/Theme.Material3.Light.NoActionBar"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="tiramisu">
         <receiver
@@ -72,6 +72,7 @@
             android:supportsPictureInPicture="true"
             android:enableOnBackInvokedCallback="true"
             android:launchMode="singleTask"
+            android:theme="@style/Theme.Material3.Light.NoActionBar"
             tools:ignore="DiscouragedApi,LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -176,9 +177,6 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
         <meta-data
             android:name="androidx.car.app.TintableAttributionIcon"
             android:resource="@drawable/monochrome" />

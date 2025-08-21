@@ -151,7 +151,7 @@ fun SongFullWidthItems(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable(),
                 )
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     AnimatedVisibility(
                         visible =
                             if (songEntity != null || track != null) {

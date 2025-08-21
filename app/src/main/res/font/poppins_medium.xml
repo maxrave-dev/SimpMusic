@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<font-family xmlns:app="http://schemas.android.com/apk/res-auto"
-        app:fontProviderAuthority="com.google.android.gms.fonts"
-        app:fontProviderPackage="com.google.android.gms"
-        app:fontProviderQuery="name=Poppins&amp;weight=500"
-        app:fontProviderCerts="@array/com_google_android_gms_fonts_certs">
-</font-family>
