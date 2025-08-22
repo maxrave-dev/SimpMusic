@@ -102,6 +102,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SearchScreenUIState
 import com.maxrave.simpmusic.viewModel.SearchType
 import com.maxrave.simpmusic.viewModel.SearchViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.toStringRes
 import org.koin.compose.koinInject
 
@@ -110,6 +111,7 @@ import org.koin.compose.koinInject
 @UnstableApi
 fun SearchScreen(
     searchViewModel: SearchViewModel = koinInject(),
+    sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -610,6 +612,11 @@ fun SearchScreen(
                                                                             )
                                                                             searchViewModel.loadMediaItem(firstTrack, Config.SONG_CLICK)
                                                                         },
+                                                                        onAddToQueue = {
+                                                                            sharedViewModel.addListToQueue(
+                                                                                arrayListOf(result.toTrack()),
+                                                                            )
+                                                                        },
                                                                     )
 
                                                                 is VideosResult ->
@@ -634,6 +641,11 @@ fun SearchScreen(
                                                                                 ),
                                                                             )
                                                                             searchViewModel.loadMediaItem(firstTrack, Config.VIDEO_CLICK)
+                                                                        },
+                                                                        onAddToQueue = {
+                                                                            sharedViewModel.addListToQueue(
+                                                                                arrayListOf(result.toTrack()),
+                                                                            )
                                                                         },
                                                                     )
 
@@ -660,6 +672,11 @@ fun SearchScreen(
                                                                             )
                                                                             searchViewModel.loadMediaItem(firstTrack, Config.SONG_CLICK)
                                                                         },
+                                                                        onAddToQueue = {
+                                                                            sharedViewModel.addListToQueue(
+                                                                                arrayListOf(result.toTrack()),
+                                                                            )
+                                                                        },
                                                                     )
 
                                                                 is VideoItem ->
@@ -684,6 +701,11 @@ fun SearchScreen(
                                                                                 ),
                                                                             )
                                                                             searchViewModel.loadMediaItem(firstTrack, Config.VIDEO_CLICK)
+                                                                        },
+                                                                        onAddToQueue = {
+                                                                            sharedViewModel.addListToQueue(
+                                                                                arrayListOf(result.toTrack()),
+                                                                            )
                                                                         },
                                                                     )
 
