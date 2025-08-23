@@ -134,7 +134,6 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.extension.toListName
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.StateSource
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -869,13 +868,7 @@ fun QueueBottomSheet(
                 SongFullWidthItems(
                     songEntity = songEntity,
                     isPlaying = false,
-                    onAddToQueue = {
-                        songEntity?.toTrack()?.let {
-                            sharedViewModel.addListToQueue(
-                                arrayListOf(it),
-                            )
-                        }
-                    },
+                    onAddToQueue = null,
                     modifier =
                         Modifier
                             .fillMaxWidth()

@@ -89,7 +89,7 @@ fun SongFullWidthItems(
     isPlaying: Boolean,
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
-    onAddToQueue: ((videoId: String) -> Unit),
+    onAddToQueue: ((videoId: String) -> Unit)? = null,
     modifier: Modifier,
 ) {
     val maxOffset = 360f
@@ -139,7 +139,7 @@ fun SongFullWidthItems(
                         onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
                     }.animateContentSize()
                     .pointerInput(Unit) {
-                        if (!isPlaying) {
+                        if (!isPlaying && onAddToQueue != null) {
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { change, dragAmount ->
                                     if (offsetX.value + dragAmount > 0) {

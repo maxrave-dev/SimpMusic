@@ -78,6 +78,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
@@ -1027,7 +1028,6 @@ class SimpleMediaServiceHandler(
         val firstPlayedTrack = _queueData.value?.firstPlayedTrack ?: return
         coroutineScope.launch {
             if (playlistId.startsWith(LOCAL_PLAYLIST_ID)) {
-                _stateFlow.value = StateSource.STATE_INITIALIZING
                 mainRepository.insertSong(firstPlayedTrack.toSongEntity()).collect {
                     Log.w(TAG, "Inserted song: ${firstPlayedTrack.title}")
                 }
@@ -1037,7 +1037,7 @@ class SimpleMediaServiceHandler(
                 }
                 addMediaItem(firstPlayedTrack.toMediaItem(), playWhenReady = true)
                 val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
-                val localPlaylist = mainRepository.getLocalPlaylist(longId).singleOrNull()
+                val localPlaylist = mainRepository.getLocalPlaylist(longId).lastOrNull()
                 if (localPlaylist != null) {
                     Log.w(TAG, "shufflePlaylist: Local playlist track size ${localPlaylist.tracks?.size}")
                     val trackCount = localPlaylist.tracks?.size ?: return@launch
@@ -1045,7 +1045,7 @@ class SimpleMediaServiceHandler(
                         (0 until trackCount).toMutableList().apply {
                             remove(randomTrackIndex)
                         }
-                    if (listPosition.size <= 0) return@launch
+                    if (listPosition.isEmpty()) return@launch
                     listPosition.shuffle()
                     _queueData.update {
                         it?.copy(
