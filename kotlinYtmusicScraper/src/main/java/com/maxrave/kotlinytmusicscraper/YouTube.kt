@@ -1213,36 +1213,37 @@ class YouTube(
 //                    Log.w("YouTube", "[$videoId] No po token")
 //                }
             var webPlayerPot = ""
-            try {
-                if (GlobalPreferences.sInstance == null) {
-                    GlobalPreferences.instance(context)
-                }
-                val mediaServiceData = MediaServiceData.instance()
-                mediaServiceData.visitorCookie = cookie
-                mAppService.resetClientPlaybackNonce()
-                mAppService.clientPlaybackNonce?.let {
-                    println("Client playback nonce $it")
-                }
-                mAppService.refreshCacheIfNeeded()
-                mAppService.refreshPoTokenIfNeeded()
-                webPlayerPot = mAppService.sessionPoToken
-                println("YouTube poToken $webPlayerPot")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            val sigTimestamp =
-                try {
-                    mAppService.signatureTimestamp?.toInt()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
             val listUrlSig = mutableListOf<String>()
             var decodedSigResponse: PlayerResponse? = null
             val listClients = listOf(WEB_REMIX, TVHTML5)
             var sigResponse: PlayerResponse?
             var currentClient: YouTubeClient
             for (client in listClients) {
+                // Reload every 403
+                try {
+                    if (GlobalPreferences.sInstance == null) {
+                        GlobalPreferences.instance(context)
+                    }
+                    val mediaServiceData = MediaServiceData.instance()
+                    mediaServiceData.visitorCookie = cookie
+                    mAppService.resetClientPlaybackNonce()
+                    mAppService.clientPlaybackNonce?.let {
+                        println("Client playback nonce $it")
+                    }
+                    mAppService.refreshCacheIfNeeded()
+                    mAppService.refreshPoTokenIfNeeded()
+                    webPlayerPot = mAppService.sessionPoToken
+                    println("YouTube poToken $webPlayerPot")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                val sigTimestamp =
+                    try {
+                        mAppService.signatureTimestamp?.toInt()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
                 listUrlSig.removeAll(listUrlSig)
                 decodedSigResponse = null
                 println("YouTube Client $client")
@@ -1328,8 +1329,9 @@ class YouTube(
                 listFormat.forEach {
                     println("YouTube Format ${it.first} ${it.second}")
                 }
-                if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.last())) {
-                    println("YouTube SmartTube Found URL ${listUrlSig.last()}")
+                val randomUrl = listUrlSig.random()
+                if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
+                    println("YouTube SmartTube Found URL $randomUrl")
                     break
                 } else {
                     listUrlSig.clear()
@@ -1380,8 +1382,9 @@ class YouTube(
                                 ?.let { addAll(it) }
                         },
                     )
-                    if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.last())) {
-                        println("YouTube NewPipe Found URL ${listUrlSig.last()}")
+                    val randomUrl = listUrlSig.random()
+                    if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
+                        println("YouTube NewPipe Found URL $randomUrl")
                         break
                     }
                 }

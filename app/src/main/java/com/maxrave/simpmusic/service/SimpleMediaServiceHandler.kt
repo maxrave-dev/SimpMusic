@@ -56,7 +56,7 @@ import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toMediaItem
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.pushYouTubeError
+import com.maxrave.simpmusic.pushPlayerError
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.utils.Resource
@@ -847,7 +847,6 @@ class SimpleMediaServiceHandler(
     }
 
     override fun onPlayerError(error: PlaybackException) {
-        pushYouTubeError(error)
         when (error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
                 Log.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
@@ -869,6 +868,7 @@ class SimpleMediaServiceHandler(
 
             else -> {
                 Log.e("Player Error", "onPlayerError (${error.errorCode}): ${error.message}")
+                pushPlayerError(error)
                 if (Helpers.isAppInForeground()) {
                     Toast
                         .makeText(
