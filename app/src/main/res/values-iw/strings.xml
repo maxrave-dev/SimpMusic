@@ -168,7 +168,7 @@
     <string name="save_shuffle_and_repeat_mode">שמור מצב ערבוב וחזרה</string>
     <string name="skip_silent">דלג על שקט</string>
     <string name="skip_no_music_part">לא לדלג על אף קטע מוזיקה</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">(%1$d) פסק זמן, בדוק את החיבור לאינטרנט</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">(%1$s) פסק זמן, בדוק את החיבור לאינטרנט</string>
     <string name="save_last_played">שמור הושמע לאחרונה</string>
     <string name="save_last_played_track_and_queue">שמור את הרצועה האחרונה שהושמעה ואת התור</string>
     <string name="update_available">עדכון חדש זמין</string>

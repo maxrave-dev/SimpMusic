@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Сохранить перемешивание и повтор</string>
     <string name="skip_silent">Пропустить без звука</string>
     <string name="skip_no_music_part">Пропустить без музыкальной части</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Время исчерпано, проверьте подключение к интернету (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Время исчерпано, проверьте подключение к интернету (%1$s)</string>
     <string name="save_last_played">Сохранить последнюю воспроизводимую</string>
     <string name="save_last_played_track_and_queue">Сохранить последний воспроизведенный трек и очередь</string>
     <string name="update_available">Доступно новое обновление</string>

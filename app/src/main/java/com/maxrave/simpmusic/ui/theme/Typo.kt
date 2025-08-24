@@ -10,9 +10,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.maxrave.simpmusic.R
 
-val poppinsFamily =
+val fontFamily =
     FontFamily(
-        Font(R.font.poppins_lib, FontWeight.Normal, FontStyle.Normal, FontLoadingStrategy.Async),
+        Font(R.font.poppins_medium, FontWeight.Normal, FontStyle.Normal, FontLoadingStrategy.Async),
     )
 
 val typo =
@@ -24,67 +24,67 @@ val typo =
             TextStyle(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         titleMedium =
             TextStyle(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         titleLarge =
             TextStyle(
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         bodySmall =
             TextStyle(
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Normal,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         bodyMedium =
             TextStyle(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Normal,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         bodyLarge =
             TextStyle(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Normal,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         displayLarge =
             TextStyle(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Normal,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         headlineMedium =
             TextStyle(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         headlineLarge =
             TextStyle(
                 fontSize = 23.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         labelMedium =
             TextStyle(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         labelSmall =
             TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = poppinsFamily,
+                fontFamily = fontFamily,
             ),
         // ...
     )

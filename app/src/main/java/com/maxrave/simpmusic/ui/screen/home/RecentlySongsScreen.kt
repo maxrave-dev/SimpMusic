@@ -124,6 +124,11 @@ fun RecentlySongsScreen(
                                     0,
                                 )
                             },
+                            onAddToQueue = {
+                                sharedViewModel.addListToQueue(
+                                    arrayListOf(item.toTrack()),
+                                )
+                            },
                             modifier = Modifier.animateItem(),
                         )
                     }

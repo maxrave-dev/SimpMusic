@@ -9,5 +9,5 @@ fun reportCrash(throwable: Throwable) {
 fun configCrashlytics(applicationContext: Context) {
 }
 
-fun pushYouTubeError(error: Throwable) {
+fun pushPlayerError(error: Throwable) {
 }

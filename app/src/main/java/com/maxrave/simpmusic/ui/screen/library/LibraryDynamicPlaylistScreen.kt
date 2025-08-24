@@ -43,6 +43,7 @@ import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
@@ -51,12 +52,14 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -67,6 +70,7 @@ fun LibraryDynamicPlaylistScreen(
     navController: NavController,
     type: String,
     viewModel: LibraryDynamicPlaylistViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val nowPlayingVideoId by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
 
@@ -168,6 +172,11 @@ fun LibraryDynamicPlaylistScreen(
                     },
                     onClickListener = { videoId ->
                         viewModel.playSong(videoId, type = type)
+                    },
+                    onAddToQueue = {
+                        sharedViewModel.addListToQueue(
+                            arrayListOf(song.toTrack()),
+                        )
                     },
                 )
             }

@@ -4,9 +4,9 @@ version-name="0.2.19"
 version-code="38"
 
 android = "8.11.1"
-kotlin = "2.2.0"
-serialization = "2.2.0"
-ksp = "2.2.0-2.0.2"
+kotlin = "2.2.10"
+serialization = "2.2.10"
+ksp = "2.2.10-2.0.2"
 compose-bom = "2025.08.00"
 constraintlayout-compose = "1.1.1"
 activity-compose = "1.10.1"
@@ -59,18 +59,17 @@ koin-bom = "4.1.0"
 md = "0.35.0"
 store = "5.1.0-alpha06"
 ui-text-android = "1.9.0"
-haze = "1.6.9"
+haze = "1.6.10"
 smart-exception = "0.2.1"
 onetimepassword = "2.4.1"
 common = "1.19.0"
 json = "1.9.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.18.0"
-sentry-gradle = "5.8.1"
-newpipe = "7adbc48a0aa872c016b8ec089e278d5e12772054"
+sentry-android = "8.19.1"
+sentry-gradle = "5.9.0"
+newpipe = "0.24.8"
 leakcanary = "3.0-alpha-8"
-lifecycle-runtime-compose = "2.9.2"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -183,7 +182,6 @@ koin-android = { module = "io.insert-koin:koin-android"}
 
 #Sentry
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
-androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle-runtime-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

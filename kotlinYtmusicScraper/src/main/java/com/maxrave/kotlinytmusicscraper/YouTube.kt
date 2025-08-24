@@ -32,6 +32,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
@@ -1212,36 +1213,37 @@ class YouTube(
 //                    Log.w("YouTube", "[$videoId] No po token")
 //                }
             var webPlayerPot = ""
-            try {
-                if (GlobalPreferences.sInstance == null) {
-                    GlobalPreferences.instance(context)
-                }
-                val mediaServiceData = MediaServiceData.instance()
-                mediaServiceData.visitorCookie = cookie
-                mAppService.resetClientPlaybackNonce()
-                mAppService.clientPlaybackNonce?.let {
-                    println("Client playback nonce $it")
-                }
-                mAppService.refreshCacheIfNeeded()
-                mAppService.refreshPoTokenIfNeeded()
-                webPlayerPot = mAppService.sessionPoToken
-                println("YouTube poToken $webPlayerPot")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            val sigTimestamp =
-                try {
-                    mAppService.signatureTimestamp?.toInt()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
             val listUrlSig = mutableListOf<String>()
             var decodedSigResponse: PlayerResponse? = null
             val listClients = listOf(WEB_REMIX, TVHTML5)
-            var sigResponse: PlayerResponse? = null
-            var currentClient = listClients.first()
+            var sigResponse: PlayerResponse?
+            var currentClient: YouTubeClient
             for (client in listClients) {
+                // Reload every 403
+                try {
+                    if (GlobalPreferences.sInstance == null) {
+                        GlobalPreferences.instance(context)
+                    }
+                    val mediaServiceData = MediaServiceData.instance()
+                    mediaServiceData.visitorCookie = cookie
+                    mAppService.resetClientPlaybackNonce()
+                    mAppService.clientPlaybackNonce?.let {
+                        println("Client playback nonce $it")
+                    }
+                    mAppService.refreshCacheIfNeeded()
+                    mAppService.refreshPoTokenIfNeeded()
+                    webPlayerPot = mAppService.sessionPoToken
+                    println("YouTube poToken $webPlayerPot")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                val sigTimestamp =
+                    try {
+                        mAppService.signatureTimestamp?.toInt()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
                 listUrlSig.removeAll(listUrlSig)
                 decodedSigResponse = null
                 println("YouTube Client $client")
@@ -1315,7 +1317,7 @@ class YouTube(
                         decodedSigResponse
                             .streamingData
                             ?.formats
-                            ?.mapNotNull { Pair(it.itag, it.url) }
+                            ?.map { Pair(it.itag, it.url) }
                             ?.toMutableList() ?: mutableListOf()
                     ).apply {
                         addAll(
@@ -1327,7 +1329,9 @@ class YouTube(
                 listFormat.forEach {
                     println("YouTube Format ${it.first} ${it.second}")
                 }
-                if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
+                val randomUrl = listUrlSig.random()
+                if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
+                    println("YouTube SmartTube Found URL $randomUrl")
                     break
                 } else {
                     listUrlSig.clear()
@@ -1378,7 +1382,9 @@ class YouTube(
                                 ?.let { addAll(it) }
                         },
                     )
-                    if (listUrlSig.isNotEmpty() && !is403Url(listUrlSig.first())) {
+                    val randomUrl = listUrlSig.random()
+                    if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
+                        println("YouTube NewPipe Found URL $randomUrl")
                         break
                     }
                 }
@@ -1396,7 +1402,7 @@ class YouTube(
                             .bodyAsText()
                             .let { challenge ->
                                 val listChallenge = poTokenJsonDeserializer.decodeFromString<List<String?>>(challenge)
-                                listChallenge.filterIsInstance<String>().firstOrNull()
+                                listChallenge.filterNotNull().firstOrNull()
                             }?.let { poTokenChallenge ->
                                 ytMusic.generatePoToken(poTokenChallenge).bodyAsText().getPoToken().also { poToken ->
                                     if (poToken != null) {
@@ -1421,8 +1427,22 @@ class YouTube(
                 println("Player Response formatList $formatList")
                 val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
                 println("Player Response adaptiveFormat $adaptiveFormatsList")
+                val randomUrl =
+                    playerResponse.streamingData
+                        ?.formats
+                        ?.randomOrNull()
+                        ?.url
+                        ?: playerResponse.streamingData
+                            ?.adaptiveFormats
+                            ?.randomOrNull()
+                            ?.url
+                println("Player Response randomUrl $randomUrl")
 
-                if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
+                if (playerResponse.playabilityStatus.status == "OK" &&
+                    (formatList != null || adaptiveFormatsList != null) &&
+                    randomUrl != null &&
+                    !is403Url(randomUrl)
+                ) {
                     return@runCatching Triple(
                         cpn,
                         playerResponse.copy(
@@ -1432,6 +1452,7 @@ class YouTube(
                         thumbnails,
                     )
                 } else {
+                    println("Player Response is not OK or formatList is null or randomUrl is null")
                     for (instance in listPipedInstances) {
                         try {
                             val piped = ytMusic.pipedStreams(videoId, instance).body<PipedResponse>()
@@ -1488,8 +1509,8 @@ class YouTube(
             print("URL $url")
             val nSigParam = url.parameters["n"] ?: throw Exception("Could not parse cipher signature parameter")
 //            YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url.toString())
-            val decodedCipher = mAppService.decipher(cipher)
-            val fixedThrottling = mAppService.fixThrottling(nSigParam)
+            val decodedCipher = mAppService.extractSig(cipher)
+            val fixedThrottling = mAppService.extractNSig(nSigParam)
             val newUrl = URLBuilder(url.toString())
             newUrl.parameters["n"] = fixedThrottling
             newUrl.parameters[signatureParam] = decodedCipher

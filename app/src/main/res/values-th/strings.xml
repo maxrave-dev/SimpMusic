@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">บันทึกโหมดสุ่มและเล่นซ้ำ</string>
     <string name="skip_silent">ข้ามเสียงเงียบ</string>
     <string name="skip_no_music_part">ไม่ข้ามส่วนดนตรี</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">หมดเวลาเชื่อมต่อ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">หมดเวลาเชื่อมต่อ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต (%1$s)</string>
     <string name="save_last_played">บันทึกการเล่นครั้งล่าสุด</string>
     <string name="save_last_played_track_and_queue">บันทึกเพลงและคิวที่เล่นล่าสุด</string>
     <string name="update_available">อัปเดตใหม่พร้อมใช้งานแล้ว</string>

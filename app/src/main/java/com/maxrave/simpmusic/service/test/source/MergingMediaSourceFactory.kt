@@ -41,15 +41,10 @@ class MergingMediaSourceFactory(
                     .setMediaId("$isVideo${mediaItem.mediaId}")
                     .setCustomCacheKey("$isVideo${mediaItem.mediaId}")
                     .build()
-            Log.w("Stream", "Video Item " + videoItem.mediaId)
-            val videoSource =
-                defaultMediaSourceFactory.createMediaSource(
-                    videoItem,
-                )
-            Log.w("Stream", "VideoSource " + videoSource.mediaItem.mediaId)
-            val audioSource = defaultMediaSourceFactory.createMediaSource(mediaItem)
-            Log.w("Stream", "AudioSource " + audioSource.mediaItem.mediaId)
-            return MergingMediaSource(videoSource, audioSource)
+            return MergingMediaSource(
+                defaultMediaSourceFactory.createMediaSource(videoItem),
+                defaultMediaSourceFactory.createMediaSource(mediaItem),
+            )
         } else {
             return defaultMediaSourceFactory.createMediaSource(mediaItem)
         }

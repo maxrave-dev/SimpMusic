@@ -577,6 +577,11 @@ fun PlaylistScreen(
                                         Log.w("PlaylistScreen", "index: $index")
                                         onPlaylistItemClick(it)
                                     },
+                                    onAddToQueue = {
+                                        sharedViewModel.addListToQueue(
+                                            arrayListOf(item),
+                                        )
+                                    },
                                     modifier = Modifier.animateItem(),
                                 )
                             } else {
@@ -587,6 +592,11 @@ fun PlaylistScreen(
                                     onClickListener = {
                                         Log.w("PlaylistScreen", "index: $index")
                                         onPlaylistItemClick(it)
+                                    },
+                                    onAddToQueue = {
+                                        sharedViewModel.addListToQueue(
+                                            arrayListOf(item),
+                                        )
                                     },
                                     modifier = Modifier.animateItem(),
                                 )

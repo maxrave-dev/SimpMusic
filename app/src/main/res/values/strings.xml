@@ -170,7 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">Save shuffle and repeat mode</string>
     <string name="skip_silent">Skip Silent</string>
     <string name="skip_no_music_part">Skip no music part</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection (%1$s)</string>
     <string name="save_last_played">Save Last Played</string>
     <string name="save_last_played_track_and_queue">Save last played track and queue</string>
     <string name="update_available">New update available</string>
@@ -455,5 +455,6 @@
     <string name="backup_downloaded">Backup downloaded data</string>
     <string name="backup_downloaded_description">Backup all downloaded songs\'s data</string>
     <string name="no_playlist_found">No local playlists found, please create one first</string>
-    <string name="update_channel">Update channel</string>
+    <string name="list_all_cookies_of_this_page">List all cookies of this page</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
 </resources>
