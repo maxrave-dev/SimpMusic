@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Salva la modalità casuale e di ripetizione</string>
     <string name="skip_silent">Salta silenzioso</string>
     <string name="skip_no_music_part">Non saltare alcuna parte musicale</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo scaduto, controlla la connessione internet (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo scaduto, controlla la connessione internet (%1$s)</string>
     <string name="save_last_played">Salva l\'ultima riproduzione</string>
     <string name="save_last_played_track_and_queue">Salva l\'ultima traccia riprodotta e la coda</string>
     <string name="update_available">Nuovo aggiornamento disponibile</string>
@@ -199,6 +199,7 @@
     <string name="customactivityoncrash_error_activity_restart_app">Riavvia l\'app</string>
     <string name="help_build_lyrics_database">Aiuta SimpMusic a costruire il database dei testi</string>
     <string name="help_build_lyrics_database_description">Invia i tuoi testi salvati al database dei testi di SimpMusic</string>
+    <string name="lyrics_database_description">Stiamo costruendo il nostro database di testi per SimpMusic e altri client, open-source</string>
     <string name="customactivityoncrash_error_activity_close_app">Chiudi l\'app</string>
     <string name="customactivityoncrash_error_activity_error_details">Dettagli errore</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Dettagli errore</string>
@@ -442,7 +443,10 @@
     <string name="contributor_name">Nome del collaboratore</string>
     <string name="contributor_email">Email del collaboratore</string>
     <string name="anonymous">Anonimo</string>
+    <string name="simpmusic_lyrics">Testi di SimpMusic</string>
+    <string name="lyrics_provider_simpmusic">Testi forniti da SimpMusic Lyrics</string>
     <string name="backup_in_progress">Backup in corso</string>
     <string name="restore_in_progress">Ripristino in corso</string>
     <string name="backup_downloaded">Backup dei dati scaricati</string>
+    <string name="no_playlist_found">Nessuna playlist locale trovata, per favore creane prima una</string>
 </resources>

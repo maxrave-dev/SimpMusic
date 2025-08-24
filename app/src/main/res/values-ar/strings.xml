@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">حفظ الوضع العشوائي و التكرار</string>
     <string name="skip_silent">تخطي الوضع الصامت</string>
     <string name="skip_no_music_part">تخطي لا جزء موسيقى</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">إنتهى الوقت، تأكد من إتصالك بالانترنت (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">إنتهى الوقت، تأكد من إتصالك بالانترنت (%1$s)</string>
     <string name="save_last_played">حفظ آخر تشغيل</string>
     <string name="save_last_played_track_and_queue">حفظ آخر مسار وقائمة الانتظار تم تشغيله</string>
     <string name="update_available">تحديث جديد متوفر</string>

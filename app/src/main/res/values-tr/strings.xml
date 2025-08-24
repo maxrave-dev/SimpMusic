@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Karıştır ve tekrarla modunu kaydet</string>
     <string name="skip_silent">Sessizliği Atla</string>
     <string name="skip_no_music_part">Müziksiz bölümü atla</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Zaman aşımı, internet bağlantısını kontrol edin (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Zaman aşımı, internet bağlantısını kontrol edin (%1$s)</string>
     <string name="save_last_played">Son Oynatılanı Kaydet</string>
     <string name="save_last_played_track_and_queue">Son çalınan parçayı ve sırayı kaydet</string>
     <string name="update_available">Yeni güncelleme mevcut</string>
@@ -245,6 +245,7 @@
     <string name="backup_create_failed">Yedekleme oluşturma başarısız</string>
     <string name="main_lyrics_provider">Ana Şarkı Sözü Sağlayıcısı</string>
     <string name="use_ai_translation">Al Şarkı Sözü Çevirisini Kullan</string>
+    <string name="use_ai_translation_description">Al kullanarak şarkı sözü çevirisini etkinleştirin</string>
     <string name="translation_language">Çeviri dili</string>
     <string name="follow_app_language">Uygulama dilini kullan</string>
     <string name="email">E-Posta</string>
@@ -444,4 +445,9 @@
     <string name="anonymous">Anonim</string>
     <string name="simpmusic_lyrics">SimpMusic Şarkı Sözleri</string>
     <string name="lyrics_provider_simpmusic">Şarkı sözleri SimpMusic tarafından sağlanmıştır</string>
+    <string name="backup_in_progress">Yedekleme devam ediyor</string>
+    <string name="restore_in_progress">Geri yükleme devam ediyor</string>
+    <string name="backup_downloaded">İndirilen verileri yedekleyin</string>
+    <string name="backup_downloaded_description">İndirilen tüm şarkıların verilerini yedekleyin</string>
+    <string name="no_playlist_found">Yerel çalma listesi bulunamadı, lütfen önce bir tane oluşturun</string>
 </resources>

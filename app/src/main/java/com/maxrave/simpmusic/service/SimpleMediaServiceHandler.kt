@@ -856,7 +856,7 @@ class SimpleMediaServiceHandler(
                             context,
                             context.getString(
                                 R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
-                                error.errorCode,
+                                error.errorCodeName,
                             ),
                             Toast.LENGTH_LONG,
                         ).show()
@@ -875,7 +875,7 @@ class SimpleMediaServiceHandler(
                             context,
                             context.getString(
                                 R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings,
-                                error.errorCode,
+                                error.errorCodeName,
                             ),
                             Toast.LENGTH_LONG,
                         ).show()
