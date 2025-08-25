@@ -53,6 +53,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
+import com.maxrave.kotlinytmusicscraper.models.simpmusic.FdroidResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.GhostResponse
@@ -881,9 +882,14 @@ class YouTube(
             ytMusic.getSkipSegments(videoId).body<List<SkipSegments>>()
         }
 
-    suspend fun checkForGithubUpdate() =
+    suspend fun checkForGithubReleaseUpdate() =
         runCatching {
-            ytMusic.checkForGithubUpdate().body<GithubResponse>()
+            ytMusic.checkForGithubReleaseUpdate().body<GithubResponse>()
+        }
+
+    suspend fun checkForFdroidUpdate() =
+        runCatching {
+            ytMusic.checkForFdroidUpdate().body<FdroidResponse>()
         }
 
     suspend fun newRelease(): Result<ExplorePage> =

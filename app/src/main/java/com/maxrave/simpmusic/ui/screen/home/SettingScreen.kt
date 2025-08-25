@@ -1378,9 +1378,7 @@ fun SettingScreen(
                     title = stringResource(R.string.check_for_update),
                     subtitle = checkForUpdateSubtitle,
                     onClick = {
-                        sharedViewModel.checkForUpdate(
-                            updateChannel,
-                        )
+                        sharedViewModel.checkForUpdate()
                     },
                 )
                 SettingItem(

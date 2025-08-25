@@ -17,7 +17,6 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
 import com.maxrave.simpmusic.common.Config.DOWNLOAD_CACHE
@@ -44,6 +43,7 @@ import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
+import com.maxrave.simpmusic.data.model.update.UpdateData
 import com.maxrave.simpmusic.extension.isSong
 import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toListName
@@ -841,24 +841,52 @@ class SharedViewModel(
             }
     }
 
-    private var _githubResponse = MutableStateFlow<GithubResponse?>(null)
-    val githubResponse: StateFlow<GithubResponse?> = _githubResponse
+    private var _updateResponse = MutableStateFlow<UpdateData?>(null)
+    val updateResponse: StateFlow<UpdateData?> = _updateResponse
 
-    fun checkForUpdate(updateChannel: String) {
+    fun checkForUpdate() {
         viewModelScope.launch {
             _isCheckingUpdate.value = true
+            val updateChannel = dataStoreManager.updateChannel.first()
             if (updateChannel == DataStoreManager.GITHUB) {
-                mainRepository.checkForGithubUpdate().collect { response ->
+                mainRepository.checkForGithubReleaseUpdate().collectLatest { response ->
                     dataStoreManager.putString(
                         "CheckForUpdateAt",
                         System.currentTimeMillis().toString(),
                     )
-                    _githubResponse.value = response
-                    showedUpdateDialog = true
+                    if (response != null) {
+                        _updateResponse.value =
+                            UpdateData(
+                                tagName = response.tagName ?: "",
+                                releaseTime = response.publishedAt ?: "",
+                                body = response.body ?: "",
+                            )
+                        showedUpdateDialog = true
+                    }
                     _isCheckingUpdate.value = false
                 }
-            } else {
-                mainRepository.checkForFdroidUpdate()
+            } else if (updateChannel == DataStoreManager.FDROID) {
+                mainRepository.checkForFdroidUpdate().collectLatest { response ->
+                    dataStoreManager.putString(
+                        "CheckForUpdateAt",
+                        System.currentTimeMillis().toString(),
+                    )
+                    if (response != null) {
+                        val latestVersion = response.packages.maxBy { it.versionCode }
+                        _updateResponse.value =
+                            UpdateData(
+                                tagName = latestVersion.versionName,
+                                releaseTime = null,
+                                body =
+                                    $$"""
+                                    ### Update via F-Droid, changelogs: 
+                                    - https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/changelogs/$${latestVersion.versionCode}.txt
+                                    """.trimIndent(),
+                            )
+                        showedUpdateDialog = true
+                    }
+                    _isCheckingUpdate.value = false
+                }
             }
         }
     }

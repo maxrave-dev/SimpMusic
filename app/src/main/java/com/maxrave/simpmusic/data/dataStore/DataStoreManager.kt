@@ -1104,7 +1104,9 @@ class DataStoreManager(
         val AUTO_CHECK_FOR_UPDATES = stringPreferencesKey("auto_check_for_updates")
         val UPDATE_CHANNEL = stringPreferencesKey("update_channel")
         const val FDROID = "fdroid"
-        const val GITHUB = "github"
+
+        const val GITHUB_FOSS_NIGHTLY = "github_foss_nightly"
+        const val GITHUB = "github_release"
         val BLUR_FULLSCREEN_LYRICS = stringPreferencesKey("blur_fullscreen_lyrics")
         val BLUR_PLAYER_BACKGROUND = stringPreferencesKey("blur_player_background")
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
