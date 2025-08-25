@@ -16,6 +16,7 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
+import com.maxrave.kotlinytmusicscraper.models.simpmusic.FdroidResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
@@ -3009,16 +3010,29 @@ class MainRepository(
                 }
         }.flowOn(Dispatchers.IO)
 
-    fun checkForUpdate(): Flow<GithubResponse?> =
+    fun checkForGithubReleaseUpdate(): Flow<GithubResponse?> =
         flow {
             youTube
-                .checkForUpdate()
+                .checkForGithubReleaseUpdate()
                 .onSuccess {
                     emit(it)
                 }.onFailure {
                     emit(null)
                 }
-        }
+        }.flowOn(Dispatchers.IO)
+
+    fun checkForGithubFossNightlyUpdate() {}
+
+    fun checkForFdroidUpdate(): Flow<FdroidResponse?> =
+        flow {
+            youTube
+                .checkForFdroidUpdate()
+                .onSuccess {
+                    emit(it)
+                }.onFailure {
+                    emit(null)
+                }
+        }.flowOn(Dispatchers.IO)
 
     suspend fun getYouTubeSetVideoId(youtubePlaylistId: String): Flow<ArrayList<SetVideoIdEntity>?> =
         flow {

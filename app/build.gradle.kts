@@ -20,6 +20,7 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xwhen-guards")
         freeCompilerArgs.add("-Xcontext-receivers")
+        freeCompilerArgs.add("-Xmulti-dollar-interpolation")
     }
 }
 

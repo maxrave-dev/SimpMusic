@@ -17,7 +17,6 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
 import com.maxrave.simpmusic.common.Config.DOWNLOAD_CACHE
@@ -44,6 +43,7 @@ import com.maxrave.simpmusic.data.db.entities.TranslatedLyricsEntity
 import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
+import com.maxrave.simpmusic.data.model.update.UpdateData
 import com.maxrave.simpmusic.extension.isSong
 import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toListName
@@ -103,6 +103,9 @@ class SharedViewModel(
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
     var showedUpdateDialog: Boolean = false
+
+    private val _isCheckingUpdate = MutableStateFlow(false)
+    val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
 
     private val downloadedCache: SimpleCache by inject(qualifier = named(DOWNLOAD_CACHE))
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -838,18 +841,52 @@ class SharedViewModel(
             }
     }
 
-    private var _githubResponse = MutableStateFlow<GithubResponse?>(null)
-    val githubResponse: StateFlow<GithubResponse?> = _githubResponse
+    private var _updateResponse = MutableStateFlow<UpdateData?>(null)
+    val updateResponse: StateFlow<UpdateData?> = _updateResponse
 
     fun checkForUpdate() {
         viewModelScope.launch {
-            mainRepository.checkForUpdate().collect { response ->
-                dataStoreManager.putString(
-                    "CheckForUpdateAt",
-                    System.currentTimeMillis().toString(),
-                )
-                _githubResponse.value = response
-                showedUpdateDialog = true
+            _isCheckingUpdate.value = true
+            val updateChannel = dataStoreManager.updateChannel.first()
+            if (updateChannel == DataStoreManager.GITHUB) {
+                mainRepository.checkForGithubReleaseUpdate().collectLatest { response ->
+                    dataStoreManager.putString(
+                        "CheckForUpdateAt",
+                        System.currentTimeMillis().toString(),
+                    )
+                    if (response != null) {
+                        _updateResponse.value =
+                            UpdateData(
+                                tagName = response.tagName ?: "",
+                                releaseTime = response.publishedAt ?: "",
+                                body = response.body ?: "",
+                            )
+                        showedUpdateDialog = true
+                    }
+                    _isCheckingUpdate.value = false
+                }
+            } else if (updateChannel == DataStoreManager.FDROID) {
+                mainRepository.checkForFdroidUpdate().collectLatest { response ->
+                    dataStoreManager.putString(
+                        "CheckForUpdateAt",
+                        System.currentTimeMillis().toString(),
+                    )
+                    if (response != null) {
+                        val latestVersion = response.packages.maxBy { it.versionCode }
+                        _updateResponse.value =
+                            UpdateData(
+                                tagName = latestVersion.versionName,
+                                releaseTime = null,
+                                body =
+                                    $$"""
+                                    ### Update via F-Droid, changelogs: 
+                                    - https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/changelogs/$${latestVersion.versionCode}.txt
+                                    """.trimIndent(),
+                            )
+                        showedUpdateDialog = true
+                    }
+                    _isCheckingUpdate.value = false
+                }
             }
         }
     }
@@ -1281,25 +1318,23 @@ class SharedViewModel(
                         val data = it.data
                         when (it) {
                             is Resource.Success if (data != null) -> {
-                                if (true) {
-                                    Log.d(tag, "Get AI Translate Lyrics Success")
-                                    mainRepository.insertTranslatedLyrics(
-                                        TranslatedLyricsEntity(
-                                            videoId = videoId,
-                                            language = dataStoreManager.translationLanguage.first(),
-                                            error = false,
-                                            lines = data.lines,
-                                            syncType = data.syncType,
-                                        ),
-                                    )
-                                    updateLyrics(
-                                        videoId,
-                                        0,
-                                        data,
-                                        true,
-                                        LyricsProvider.AI,
-                                    )
-                                }
+                                Log.d(tag, "Get AI Translate Lyrics Success")
+                                mainRepository.insertTranslatedLyrics(
+                                    TranslatedLyricsEntity(
+                                        videoId = videoId,
+                                        language = dataStoreManager.translationLanguage.first(),
+                                        error = false,
+                                        lines = data.lines,
+                                        syncType = data.syncType,
+                                    ),
+                                )
+                                updateLyrics(
+                                    videoId,
+                                    0,
+                                    data,
+                                    true,
+                                    LyricsProvider.AI,
+                                )
                             }
 
                             else -> {
