@@ -51,6 +51,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.Light.NoActionBar"
         android:enableOnBackInvokedCallback="true"
+        android:extractNativeLibs="true"
         tools:targetApi="tiramisu">
         <receiver
             android:name=".ui.widget.BasicWidget"
@@ -85,7 +86,7 @@
             </intent-filter>
 
             <!-- Youtube filter -->
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
@@ -110,7 +111,7 @@
                 <!-- playlist prefix -->
                 <data android:pathPrefix="/playlist" />
             </intent-filter>
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />

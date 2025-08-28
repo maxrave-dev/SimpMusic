@@ -70,6 +70,8 @@ sentry-android = "8.19.1"
 sentry-gradle = "5.9.0"
 newpipe = "0.24.8"
 leakcanary = "3.0-alpha-8"
+ytdlp-android = "0.17.4"
+webkit = "1.14.0"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -173,6 +175,7 @@ gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.
 logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
 newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
 leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp-android" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
@@ -182,6 +185,7 @@ koin-android = { module = "io.insert-koin:koin-android"}
 
 #Sentry
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

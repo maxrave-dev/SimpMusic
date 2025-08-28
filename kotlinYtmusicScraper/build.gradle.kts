@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.ui.text.android)
+    implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
@@ -91,6 +92,7 @@ dependencies {
     implementation(project(mapOf("path" to ":youtubeapi")))
     implementation(project(mapOf("path" to ":sharedutils")))
     api(project(":ffmpeg-kit"))
+//    implementation(libs.ytdlp.android)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

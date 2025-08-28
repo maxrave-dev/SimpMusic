@@ -10,13 +10,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
-import com.maxrave.kotlinytmusicscraper.test.main
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADED
 import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADING
-import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
@@ -33,7 +31,9 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.utils.collectLatestResource
-import com.maxrave.simpmusic.viewModel.PlaylistUIState.*
+import com.maxrave.simpmusic.viewModel.PlaylistUIState.Error
+import com.maxrave.simpmusic.viewModel.PlaylistUIState.Loading
+import com.maxrave.simpmusic.viewModel.PlaylistUIState.Success
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,14 +44,12 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
@@ -272,14 +270,17 @@ class PlaylistViewModel(
                         fromPlaylist = true,
                     ).collectLatest { res ->
                         res.first?.forEach { track ->
-                            mainRepository.insertSong(
-                                track.toSongEntity()
-                                    .copy(
-                                        inLibrary = Config.REMOVED_SONG_DATE_TIME
-                                    )
-                            ).singleOrNull()?.let {
-                                log("Insert song: $it")
-                            }
+                            mainRepository
+                                .insertSong(
+                                    track
+                                        .toSongEntity()
+                                        .copy(
+                                            inLibrary = Config.REMOVED_SONG_DATE_TIME,
+                                        ),
+                                ).singleOrNull()
+                                ?.let {
+                                    log("Insert song: $it")
+                                }
                         }
                         _tracks.update {
                             val newList = it.toMutableList()
@@ -327,11 +328,15 @@ class PlaylistViewModel(
                         )
                     }
                     playlistBrowse.tracks.forEach { tracks ->
-                        mainRepository.insertSong(tracks.toSongEntity().copy(
-                            inLibrary = Config.REMOVED_SONG_DATE_TIME
-                        )).firstOrNull()?.let {
-                            log("Insert song: $it")
-                        }
+                        mainRepository
+                            .insertSong(
+                                tracks.toSongEntity().copy(
+                                    inLibrary = Config.REMOVED_SONG_DATE_TIME,
+                                ),
+                            ).firstOrNull()
+                            ?.let {
+                                log("Insert song: $it")
+                            }
                     }
                 } else if (playlistEntity != null) {
                     _playlistEntity.value = playlistEntity
@@ -368,17 +373,22 @@ class PlaylistViewModel(
                     }
                     _tracksListState.value = ListState.PAGINATION_EXHAUST
                     if (playlistEntity.downloadState != STATE_DOWNLOADED) {
-                        checkDownloadedPlaylist = launch {
-                            val listSong = mainRepository.getSongsByListVideoId(
-                                playlistEntity.tracks ?: emptyList(),
-                            ).firstOrNull()
-                            Log.d(tag, "List song: $listSong")
-                            if (!listSong.isNullOrEmpty() && listSong.size == playlistEntity.tracks?.size && listSong.all {
-                                it.downloadState == STATE_DOWNLOADED
-                                }) {
-                                updatePlaylistDownloadState(playlistEntity.id, STATE_DOWNLOADED)
+                        checkDownloadedPlaylist =
+                            launch {
+                                val listSong =
+                                    mainRepository
+                                        .getSongsByListVideoId(
+                                            playlistEntity.tracks ?: emptyList(),
+                                        ).firstOrNull()
+                                Log.d(tag, "List song: $listSong")
+                                if (!listSong.isNullOrEmpty() && listSong.size == playlistEntity.tracks?.size &&
+                                    listSong.all {
+                                        it.downloadState == STATE_DOWNLOADED
+                                    }
+                                ) {
+                                    updatePlaylistDownloadState(playlistEntity.id, STATE_DOWNLOADED)
+                                }
                             }
-                        }
                     }
                 } else {
                     _uiState.value = Error("Empty response")

@@ -128,6 +128,7 @@ import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import okio.Path.Companion.toPath
 import org.simpmusic.aiservice.AIHost
 import org.simpmusic.aiservice.AiClient
 import org.simpmusic.lyrics.SimpMusicLyricsClient
@@ -180,6 +181,7 @@ class MainRepository(
                 chain.proceed(builder.build())
             }
         youTube.cachePath = File(context.cacheDir, "http-cache")
+        youTube.cookiePath = File(context.filesDir, "cookie.txt").path.toPath()
         scope.launch {
             val resetSpotifyToken =
                 launch {
