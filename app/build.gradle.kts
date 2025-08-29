@@ -46,6 +46,7 @@ android {
             libs.versions.version.name
                 .get()
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled = true
 
         @Suppress("UnstableApiUsage")
         androidResources {
@@ -199,6 +200,8 @@ dependencies {
     val fullImplementation = "fullImplementation"
     val debugImplementation = "debugImplementation"
 
+    coreLibraryDesugaring(libs.desugaring)
+
     // Compose
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
@@ -315,9 +318,6 @@ dependencies {
     // Custom Activity On Crash
     implementation(libs.customactivityoncrash)
 
-    implementation(libs.sdp.android)
-    implementation(libs.ssp.android)
-
     implementation(libs.aboutlibraries)
     implementation(libs.aboutlibraries.compose.m3)
 
@@ -326,8 +326,6 @@ dependencies {
 
     // InsetsX
     implementation(libs.insetsx)
-
-    coreLibraryDesugaring(libs.desugaring)
 
     // Koin
     implementation(platform(libs.koin.bom))

@@ -7,18 +7,18 @@ android = "8.11.1"
 kotlin = "2.2.10"
 serialization = "2.2.10"
 ksp = "2.2.10-2.0.2"
-compose-bom = "2025.08.00"
+compose-bom = "2025.08.01"
 constraintlayout-compose = "1.1.1"
 activity-compose = "1.10.1"
-lifecycle-viewmodel-compose = "2.9.2"
-lifecycle-runtime-ktx = "2.9.2"
+lifecycle-viewmodel-compose = "2.9.3"
+lifecycle-runtime-ktx = "2.9.3"
 core-ktx = "1.17.0"
 appcompat = "1.7.1"
 work = "2.10.3"
 material = "1.12.0"
 startup-runtime = "1.2.0"
-lifecycle-livedata-ktx = "2.9.2"
-lifecycle-viewmodel-ktx = "2.9.2"
+lifecycle-livedata-ktx = "2.9.3"
+lifecycle-viewmodel-ktx = "2.9.3"
 ui-tooling = "1.9.0"
 media3 = "1.8.0"
 okhttp3 = "5.1.0"
@@ -45,8 +45,6 @@ insetter = "0.6.1"
 lottie = "6.6.7"
 paging = "3.3.6"
 customactivityoncrash = "2.4.0"
-sdp-android = "1.1.1"
-ssp-android = "1.1.1"
 aboutlibraries = "12.2.4"
 flexbox = "3.0.0"
 balloon = "1.6.13"
@@ -74,7 +72,7 @@ ytdlp-android = "0.17.4"
 webkit = "1.14.0"
 
 [libraries]
-desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3" }
 compose-material3-sizeclass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
@@ -138,8 +136,6 @@ lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", versio
 paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
 customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }
-sdp-android = { group = "com.intuit.sdp", name = "sdp-android", version.ref = "sdp-android" }
-ssp-android = { group = "com.intuit.ssp", name = "ssp-android", version.ref = "ssp-android" }
 aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
 aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }

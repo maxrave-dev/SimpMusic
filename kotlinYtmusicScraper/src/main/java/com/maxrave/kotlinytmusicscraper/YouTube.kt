@@ -110,6 +110,8 @@ import okio.IOException
 import okio.Path
 import okio.Path.Companion.toPath
 import org.json.JSONArray
+import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.stream.StreamInfo
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -1357,29 +1359,30 @@ class YouTube(
         playlistId: String? = null,
         cpn: String,
     ): PlayerResponse? {
-        CookieManager.getInstance().setCookie("https://www.youtube.com", null)
-        val webPlayerPot = getWebClientPoTokenOrNull(videoId)?.playerRequestPoToken ?: ""
-        println("YouTube NewPipe poToken $webPlayerPot")
+        CookieManager.getInstance().setCookie("https://www.youtube.com", cookie)
         val listUrlSig = mutableListOf<String>()
         var decodedSigResponse: PlayerResponse?
         var sigResponse: PlayerResponse?
         val tempRes =
             ytMusic
                 .player(
-                    YouTubeClient.WEB,
+                    WEB,
                     videoId,
                     playlistId,
                     cpn,
                     signatureTimestamp = newPipeUtils.getSignatureTimestamp(videoId).getOrNull(),
-                    poToken = webPlayerPot,
                 ).body<PlayerResponse>()
         println("YouTube TempRes ${tempRes.playabilityStatus}")
         if (tempRes.playabilityStatus.status != "OK") {
-            CookieManager.getInstance().setCookie("https://www.youtube.com", cookie)
             return null
         } else {
             sigResponse = tempRes
         }
+        val streamInfo = StreamInfo.getInfo(NewPipe.getService(0), "https://www.youtube.com/watch?v=$videoId")
+        streamInfo.audioStreams.forEach {
+            println("YouTube NewPipe Audio Stream ${it.itag} ${it.content}")
+        }
+        val streamsList = streamInfo.audioStreams + streamInfo.videoStreams
         decodedSigResponse =
             sigResponse.copy(
                 streamingData =
@@ -1387,27 +1390,13 @@ class YouTube(
                         formats =
                             sigResponse.streamingData.formats?.map { format ->
                                 format.copy(
-                                    url =
-                                        newPipeUtils.getStreamUrl(format, videoId)?.let { url ->
-                                            if (webPlayerPot.isNotEmpty()) {
-                                                "$url&pot=$webPlayerPot"
-                                            } else {
-                                                url
-                                            }
-                                        },
+                                    url = streamsList.find { it.itagItem?.id == format.itag }?.content,
                                 )
                             },
                         adaptiveFormats =
                             sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
                                 adaptiveFormats.copy(
-                                    url =
-                                        newPipeUtils.getStreamUrl(adaptiveFormats, videoId)?.let { url ->
-                                            if (webPlayerPot.isNotEmpty()) {
-                                                "$url&pot=$webPlayerPot"
-                                            } else {
-                                                url
-                                            }
-                                        },
+                                    url = streamsList.find { it.itagItem?.id == adaptiveFormats.itag }?.content,
                                 )
                             },
                     ),
@@ -1431,7 +1420,6 @@ class YouTube(
             println("YouTube NewPipe URL $it")
         }
         val randomUrl = listUrlSig.random()
-        CookieManager.getInstance().setCookie("https://www.youtube.com", cookie)
         if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
             println("YouTube NewPipe Found URL $randomUrl")
             return decodedSigResponse
@@ -1463,7 +1451,8 @@ class YouTube(
             var decodedSigResponse: PlayerResponse? = null
             var currentClient: YouTubeClient
             for (client in listClients) {
-                val response = smartTubePlayer(videoId, playlistId, cpn, client)
+                val response =
+                    smartTubePlayer(videoId, playlistId, cpn, client) ?: newPipePlayer(videoId, playlistId, cpn)
                 if (response != null) {
                     decodedSigResponse = response
                     currentClient = client
