@@ -1376,10 +1376,10 @@ class YouTube(
             sigResponse = tempRes
         }
         val streamInfo = StreamInfo.getInfo(NewPipe.getService(0), "https://www.youtube.com/watch?v=$videoId")
-        streamInfo.audioStreams.forEach {
-            println("YouTube NewPipe Audio Stream ${it.itag} ${it.content}")
+        val streamsList = streamInfo.audioStreams + streamInfo.videoStreams + streamInfo.videoOnlyStreams
+        streamsList.forEach {
+            println("YouTube NewPipe Audio Stream ${it.itagItem?.id} ${it.content}")
         }
-        val streamsList = streamInfo.audioStreams + streamInfo.videoStreams
         decodedSigResponse =
             sigResponse.copy(
                 streamingData =

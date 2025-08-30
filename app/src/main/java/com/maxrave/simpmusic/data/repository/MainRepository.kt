@@ -15,6 +15,7 @@ import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
+import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.FdroidResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
@@ -2778,18 +2779,23 @@ class MainRepository(
                                 ?.map { it.itag }
                                 .toString(),
                     )
-
+                    val formatList = mutableListOf<PlayerResponse.StreamingData.Format>()
+                    formatList.addAll(
+                        response.streamingData?.formats?.filter { it.url.isNullOrEmpty().not() } ?: emptyList(),
+                    )
+                    formatList.addAll(
+                        response.streamingData?.adaptiveFormats?.filter { it.url.isNullOrEmpty().not() }
+                            ?: emptyList(),
+                    )
                     Log.w("Stream", "Get stream for video $isVideo")
                     val videoFormat =
-                        response.streamingData?.formats?.find { it.itag == videoItag }
-                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
-                            ?: response.streamingData?.formats?.find { it.itag == 136 }
-                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
-                            ?: response.streamingData?.formats?.find { it.itag == 134 }
-                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
+                        formatList.find { it.itag == videoItag }
+                            ?: formatList.find { it.itag == 136 }
+                            ?: formatList.find { it.itag == 134 }
+                            ?: formatList.find { !it.isAudio && it.url.isNullOrEmpty().not() }
                     val audioFormat =
-                        response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
-                            ?: response.streamingData?.adaptiveFormats?.find { it.itag == itag }
+                        formatList.find { it.itag == itag } ?: formatList.find { it.itag == 141 }
+                            ?: formatList.find { it.isAudio && it.url.isNullOrEmpty().not() }
                     var format =
                         if (isVideo) {
                             videoFormat
@@ -2797,20 +2803,18 @@ class MainRepository(
                             audioFormat
                         }
                     if (format == null) {
-                        format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
+                        format = formatList.lastOrNull { it.url.isNullOrEmpty().not() }
                     }
                     val superFormat =
-                        response.streamingData
-                            ?.let { streamData ->
-                                streamData.adaptiveFormats.apply {
-                                    plus(streamData.formats)
-                                }
-                            }?.filter {
+                        formatList
+                            .filter {
                                 it.audioQuality == "AUDIO_QUALITY_HIGH"
-                            }?.let { highFormat ->
+                            }.let { highFormat ->
                                 highFormat.firstOrNull {
-                                    it.itag == 774
-                                } ?: highFormat.firstOrNull()
+                                    it.itag == 774 && it.url.isNullOrEmpty().not()
+                                } ?: highFormat.firstOrNull {
+                                    it.url.isNullOrEmpty().not()
+                                }
                             }
                     if (!isVideo && superFormat != null) {
                         format = superFormat
