@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
 import android.util.Log
-import android.webkit.CookieManager
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.liskovsoft.sharedutils.prefs.GlobalPreferences
@@ -128,7 +127,7 @@ import kotlin.random.Random
 class YouTube(
     private val context: Context,
 ) {
-    private val ytMusic = Ytmusic(context)
+    private val ytMusic = Ytmusic()
 
     private var newPipeDownloader = NewPipeDownloaderImpl(proxy = null)
     private var newPipeUtils = NewPipeUtils(newPipeDownloader)
@@ -193,7 +192,6 @@ class YouTube(
     var cookie: String?
         get() = ytMusic.cookie
         set(value) {
-            CookieManager.getInstance().setCookie("https://www.youtube.com", value)
             newPipeDownloader = NewPipeDownloaderImpl(proxy = ytMusic.proxy, cookie = cookie)
             newPipeUtils = NewPipeUtils(newPipeDownloader)
             poTokenGenerator =
@@ -1344,7 +1342,7 @@ class YouTube(
         listFormat.forEach {
             println("YouTube Format ${it.first} ${it.second}")
         }
-        val randomUrl = listUrlSig.random()
+        val randomUrl = listUrlSig.randomOrNull() ?: return null
         if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
             println("YouTube SmartTube Found URL $randomUrl")
             return decodedSigResponse
@@ -1359,7 +1357,6 @@ class YouTube(
         playlistId: String? = null,
         cpn: String,
     ): PlayerResponse? {
-        CookieManager.getInstance().setCookie("https://www.youtube.com", cookie)
         val listUrlSig = mutableListOf<String>()
         var decodedSigResponse: PlayerResponse?
         var sigResponse: PlayerResponse?
@@ -1419,7 +1416,7 @@ class YouTube(
         listUrlSig.forEach {
             println("YouTube NewPipe URL $it")
         }
-        val randomUrl = listUrlSig.random()
+        val randomUrl = listUrlSig.randomOrNull() ?: return null
         if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
             println("YouTube NewPipe Found URL $randomUrl")
             return decodedSigResponse

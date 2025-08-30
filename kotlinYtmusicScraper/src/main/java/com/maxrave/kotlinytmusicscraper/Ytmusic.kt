@@ -22,7 +22,6 @@ import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
 import com.maxrave.kotlinytmusicscraper.utils.CurlLogger
 import com.maxrave.kotlinytmusicscraper.utils.KtorToCurl
-import com.maxrave.kotlinytmusicscraper.utils.generateNetscapeCookies
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.HttpClient
@@ -72,10 +71,7 @@ import java.io.File
 import java.net.Proxy
 import java.util.Locale
 
-class Ytmusic(
-    context: android.content.Context,
-) {
-//    var ytDlp = createYtdlp(context)
+class Ytmusic {
     private var httpClient = createClient()
 
     var cacheControlInterceptor: Interceptor? = null
@@ -110,7 +106,6 @@ class Ytmusic(
         set(value) {
             field = value
             cookieMap = if (value == null) emptyMap() else parseCookieString(value)
-            writeCookieToFile(cookieMap)
         }
     private var cookieMap = emptyMap<String, String>()
 
@@ -203,36 +198,6 @@ class Ytmusic(
         userAgent(client.userAgent)
         parameter("prettyPrint", false)
     }
-
-    private fun writeCookieToFile(cookie: Map<String, String>) {
-        cookiePath?.let { path ->
-            try {
-                val fileSystem = FileSystem.SYSTEM
-                if (fileSystem.exists(path)) {
-                    fileSystem.delete(path)
-                }
-                fileSystem.write(path) {
-                    writeUtf8(
-                        generateNetscapeCookies(
-                            cookies = cookie,
-                            domain = ".youtube.com",
-                        ),
-                    )
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-//    private fun createYtdlp(context: android.content.Context): YoutubeDL =
-//        try {
-//            YoutubeDL.getInstance().init(context)
-//            val ytdlp = YoutubeDL.getInstance()
-//            ytdlp
-//        } catch (e: YoutubeDLException) {
-//            throw RuntimeException("Failed to initialize youtubedl-android", e)
-//        }
 
     suspend fun search(
         client: YouTubeClient,
