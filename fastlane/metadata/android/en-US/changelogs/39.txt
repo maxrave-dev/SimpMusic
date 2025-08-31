@@ -1,0 +1,8 @@
+- Fixed player error
+- Fixed playlist shuffle bug
+- Improved slider and full-screen UI
+- Add Fdroid update channel
+- Simply screens transitions
+- Spotify Login with cookie viewer
+- Fixed font error in Vietnamese language
+- Swipe to add to queue

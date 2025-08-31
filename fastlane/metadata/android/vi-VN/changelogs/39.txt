@@ -1,0 +1,8 @@
+- Sửa lỗi phát nhạc
+- Sửa lỗi phát nhạc ngẫu nhiên trong playlist
+- Cải thiện giao diện thanh trượt và chế độ toàn màn hình
+- Thêm kênh cập nhật Fdroid
+- Đơn giản hóa hiệu ứng chuyển màn hình
+- Đăng nhập Spotify với trình xem cookie
+- Sửa lỗi font chữ trong ngôn ngữ tiếng Việt
+- Vuốt để thêm vào hàng đợi

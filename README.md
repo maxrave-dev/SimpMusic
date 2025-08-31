@@ -39,6 +39,7 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Spon
 > **Warning**    
  > This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,      
 > please create an issue or contact me via email or Discord server.   
+> Because of depending on YouTube Music, the player error will happen and it's normally, please don't ask me about the stable state of this app.
     
 ## Screenshots    
  <p align="center">          
