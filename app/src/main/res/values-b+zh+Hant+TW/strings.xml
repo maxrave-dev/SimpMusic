@@ -414,7 +414,6 @@
     <string name="ai_api_key">你的AI API金鑰</string>
     <string name="invalid_api_key">此金鑰不可用</string>
     <string name="custom_ai_model_id">自訂大模型ID</string>
-    <string name="default_models">預設大模型為Gemini-2.0-flash-lite和GPT-4o</string>
     <string name="invalid">不可用</string>
     <string name="custom_model_id_messages">請鍵入確實的大模型ID。</string>
     <string name="favorite_podcasts">我的最愛 Podcast</string>

@@ -421,7 +421,6 @@
     <string name="ai_api_key">Ваш ключ API</string>
     <string name="invalid_api_key">Неверный ключ API</string>
     <string name="custom_ai_model_id">Пользовательский идентификатор ИИ модели</string>
-    <string name="default_models">Стандартные модели - это \"gemini-2.0-flash\" и \"gpt-4o\"</string>
     <string name="invalid">Некорректный</string>
     <string name="custom_model_id_messages">Введите идентификатор модели вашего провайдера ИИ.</string>
     <string name="favorite_podcasts">Любимые подкасты</string>
@@ -452,4 +451,6 @@
     <string name="backup_downloaded">Резервное копирование загруженных данных</string>
     <string name="backup_downloaded_description">Резервное копирование всех загруженных данных песен</string>
     <string name="no_playlist_found">Локальные плейлисты не найдены. Для начала создайте их</string>
+    <string name="list_all_cookies_of_this_page">Список всех cookies этой страницы</string>
+    <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
 </resources>

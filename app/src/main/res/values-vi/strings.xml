@@ -449,4 +449,7 @@
     <string name="backup_downloaded">Sao lưu dữ liệu đã tải xuống</string>
     <string name="backup_downloaded_description">Sao lưu tất cả các bài hát đã tải xuống</string>
     <string name="no_playlist_found">Không tìm thấy bất kỳ danh sách phát nội bộ nào, hãy tạo một danh sách phát trước</string>
+    <string name="list_all_cookies_of_this_page">Danh sách cookie của trang này</string>
+    <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
+    <string name="update_channel">Kênh cập nhật</string>
 </resources>

@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Enregistrer les modes aléatoire et répétition</string>
     <string name="skip_silent">Sauter le silence</string>
     <string name="skip_no_music_part">Sauter la partie sans musique</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délai expiré. Vérifiez la connexion Internet (%1$s)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délai d\'expiration, vérifiez la connexion Internet (%1$s)</string>
     <string name="save_last_played">Sauvegarder la dernière lecture</string>
     <string name="save_last_played_track_and_queue">Sauvegarder le dernier titre joué et la file d\'attente</string>
     <string name="update_available">Nouvelle mise à jour disponible !</string>
@@ -450,4 +450,7 @@
     <string name="backup_downloaded">Sauvegarder les données téléchargées</string>
     <string name="backup_downloaded_description">Sauvegarder toutes les données des titres téléchargés</string>
     <string name="no_playlist_found">Aucune playlist locale trouvée, veuillez d\'abord en créer une.</string>
+    <string name="list_all_cookies_of_this_page">Lister tous les cookies de cette page</string>
+    <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
+    <string name="update_channel">Mettre à jour la chaîne</string>
 </resources>

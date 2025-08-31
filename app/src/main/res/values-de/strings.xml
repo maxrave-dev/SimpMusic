@@ -241,8 +241,8 @@
     <string name="added_to_youtube_playlist">Zur YouTube-Playlist hinzugefügt</string>
     <string name="removed_from_YouTube_playlist">Aus der YouTube-Playlist entfernt</string>
     <string name="update_playlist">Playlist von YouTube Music aktualisieren</string>
-    <string name="backup_create_success">Sicherung erfolgreich erstellt</string>
-    <string name="backup_create_failed">Das Erstellen der Sicherung ist fehlgeschlagen</string>
+    <string name="backup_create_success">Backup erfolgreich erstellt</string>
+    <string name="backup_create_failed">Backup-Erstellung fehlgeschlagen</string>
     <string name="main_lyrics_provider">Hauptanbieter von Songtexten</string>
     <string name="use_ai_translation">KI-Songtext-Übersetzung verwenden</string>
     <string name="use_ai_translation_description">Songtext-Übersetzung mit Hilfe von KI aktivieren</string>
@@ -448,6 +448,8 @@
     <string name="backup_in_progress">Backup wird erstellt</string>
     <string name="restore_in_progress">Backup wird wiederhergestellt</string>
     <string name="backup_downloaded">Backup der heruntergeladenen Daten</string>
-    <string name="backup_downloaded_description">Alle heruntergeladenen Songs sichern</string>
+    <string name="backup_downloaded_description">Backup aller heruntergeladenen Songs</string>
     <string name="no_playlist_found">Keine lokalen Playlisten gefunden, bitte erstellen Sie zuerst eine</string>
+    <string name="list_all_cookies_of_this_page">Alle Cookies dieser Seite auflisten</string>
+    <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
 </resources>
