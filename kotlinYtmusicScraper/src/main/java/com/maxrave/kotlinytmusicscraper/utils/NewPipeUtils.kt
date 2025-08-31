@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.utils
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import io.ktor.http.URLBuilder
@@ -16,7 +17,8 @@ import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerMana
 import java.io.IOException
 import java.net.Proxy
 
-private class NewPipeDownloaderImpl(
+class NewPipeDownloaderImpl(
+    private val cookie: String? = null,
     proxy: Proxy?,
 ) : Downloader() {
     private val client =
@@ -50,6 +52,10 @@ private class NewPipeDownloaderImpl(
             }
         }
 
+        cookie?.let {
+            requestBuilder.addHeader("Cookie", it)
+        }
+
         val response = client.newCall(requestBuilder.build()).execute()
 
         if (response.code == 429) {
@@ -66,10 +72,10 @@ private class NewPipeDownloaderImpl(
 }
 
 class NewPipeUtils(
-    proxy: Proxy? = null,
+    downloader: Downloader,
 ) {
     init {
-        NewPipe.init(NewPipeDownloaderImpl(proxy))
+        NewPipe.init(downloader)
     }
 
     fun getSignatureTimestamp(videoId: String): Result<Int> =
@@ -82,6 +88,7 @@ class NewPipeUtils(
         videoId: String,
     ): String? =
         try {
+            Log.d("NewPipeUtils", "Getting stream url: ${format.url ?: format.signatureCipher}")
             val url =
                 format.url ?: format.signatureCipher?.let { signatureCipher ->
                     val params = parseQueryString(signatureCipher)

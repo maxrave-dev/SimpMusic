@@ -106,6 +106,7 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
@@ -776,6 +777,11 @@ fun LocalPlaylistScreen(
                             Log.w("PlaylistScreen", "index: $index")
                             onPlaylistItemClick(it)
                         },
+                        onAddToQueue = {
+                            sharedViewModel.addListToQueue(
+                                arrayListOf(item.toTrack()),
+                            )
+                        },
                         modifier = Modifier.animateItem(),
                     )
                 } else {
@@ -786,6 +792,11 @@ fun LocalPlaylistScreen(
                         onClickListener = {
                             Log.w("PlaylistScreen", "index: $index")
                             onPlaylistItemClick(it)
+                        },
+                        onAddToQueue = {
+                            sharedViewModel.addListToQueue(
+                                arrayListOf(item.toTrack()),
+                            )
                         },
                         modifier = Modifier.animateItem(),
                     )

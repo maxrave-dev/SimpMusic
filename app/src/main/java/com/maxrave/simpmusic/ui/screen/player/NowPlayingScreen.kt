@@ -171,6 +171,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
+import kotlin.math.roundToLong
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
 @UnstableApi
@@ -314,16 +315,21 @@ fun NowPlayingScreen(
         }
     }
 
+    var isSliding by rememberSaveable {
+        mutableStateOf(false)
+    }
     var sliderValue by rememberSaveable {
         mutableFloatStateOf(0f)
     }
-    LaunchedEffect(key1 = timelineState) {
-        sliderValue =
-            if (timelineState.total > 0L) {
-                timelineState.current.toFloat() * 100 / timelineState.total.toFloat()
-            } else {
-                0f
-            }
+    LaunchedEffect(key1 = timelineState, key2 = isSliding) {
+        if (!isSliding) {
+            sliderValue =
+                if (timelineState.total > 0L) {
+                    timelineState.current.toFloat() * 100 / timelineState.total.toFloat()
+                } else {
+                    0f
+                }
+        }
     }
     // Show ControlLayout Or Show Artist Badge
     var showHideControlLayout by rememberSaveable {
@@ -405,6 +411,9 @@ fun NowPlayingScreen(
                 showSheet = false
             },
             navController = navController,
+            onNavigateToOtherScreen = {
+                onDismiss()
+            },
             song = null, // Auto set now playing
             setSleepTimerEnable = true,
             changeMainLyricsProviderEnable = true,
@@ -1042,7 +1051,7 @@ fun NowPlayingScreen(
                                                     top = 15.dp,
                                                 ).padding(horizontal = 40.dp)
                                                 .isElementVisible {
-                                                    shouldShowToolbar = !it
+                                                    shouldShowToolbar = !it && sheetState.currentValue == SheetValue.Expanded
                                                 },
                                         ) {
                                             Box(
@@ -1098,10 +1107,15 @@ fun NowPlayingScreen(
                                             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                                 Slider(
                                                     value = sliderValue,
-                                                    onValueChange = {
+                                                    onValueChangeFinished = {
+                                                        isSliding = false
                                                         sharedViewModel.onUIEvent(
-                                                            UIEvent.UpdateProgress(it),
+                                                            UIEvent.UpdateProgress(sliderValue),
                                                         )
+                                                    },
+                                                    onValueChange = {
+                                                        isSliding = true
+                                                        sliderValue = it
                                                     },
                                                     valueRange = 0f..100f,
                                                     modifier =
@@ -1162,7 +1176,7 @@ fun NowPlayingScreen(
                                                 .padding(horizontal = 40.dp),
                                         ) {
                                             Text(
-                                                text = formatDuration(timelineState.current, context),
+                                                text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong(), context),
                                                 style = typo.bodyMedium,
                                                 modifier = Modifier.weight(1f),
                                                 textAlign = TextAlign.Left,

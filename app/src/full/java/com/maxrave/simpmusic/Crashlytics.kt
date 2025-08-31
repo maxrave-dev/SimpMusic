@@ -18,7 +18,7 @@ fun configCrashlytics(applicationContext: Context) {
     }
 }
 
-fun pushYouTubeError(error: Throwable) {
+fun pushPlayerError(error: Throwable) {
     Sentry.withScope { scope ->
         Sentry.captureException(error)
     }

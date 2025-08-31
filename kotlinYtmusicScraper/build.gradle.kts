@@ -54,19 +54,20 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
 dependencies {
-
+    coreLibraryDesugaring(libs.desugaring)
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.ui.text.android)
+    implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
-    coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -91,6 +92,7 @@ dependencies {
     implementation(project(mapOf("path" to ":youtubeapi")))
     implementation(project(mapOf("path" to ":sharedutils")))
     api(project(":ffmpeg-kit"))
+//    implementation(libs.ytdlp.android)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

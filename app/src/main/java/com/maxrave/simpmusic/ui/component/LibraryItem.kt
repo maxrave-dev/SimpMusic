@@ -74,8 +74,10 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +85,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LibraryItem(
     state: LibraryItemState,
     viewModel: LibraryViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -207,6 +210,11 @@ fun LibraryItem(
                                                             item,
                                                             type = Config.SONG_CLICK,
                                                             index = 0,
+                                                        )
+                                                    },
+                                                    onAddToQueue = { videoId ->
+                                                        sharedViewModel.addListToQueue(
+                                                            arrayListOf(item.toTrack()),
                                                         )
                                                     },
                                                 )

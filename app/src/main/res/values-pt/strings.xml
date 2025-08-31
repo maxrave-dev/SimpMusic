@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Salvar modo aleatório e de repetição</string>
     <string name="skip_silent">Pular Silencioso</string>
     <string name="skip_no_music_part">Pular parte da silenciosa da música</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo esgotado, verifique a conexão com a internet (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo esgotado, verifique a conexão com a internet (%1$s)</string>
     <string name="save_last_played">Salvar Última Reprodução</string>
     <string name="save_last_played_track_and_queue">Salvar a última faixa e fila reproduzidas</string>
     <string name="update_available">Nova atualização disponível</string>
@@ -418,7 +418,6 @@
     <string name="ai_api_key">Sua Chave de API de IA</string>
     <string name="invalid_api_key">Chave de API inválida</string>
     <string name="custom_ai_model_id">ID de modelo de IA personalizado</string>
-    <string name="default_models">Os modelos padrão são \"gemini-2.0-flash-lite\" e \"gpt-4o\"</string>
     <string name="invalid">Inválido</string>
     <string name="custom_model_id_messages">Insira o exato ID do seu provedor de IA, por favor.</string>
     <string name="favorite_podcasts">\"Podcasts\" Favoritos</string>

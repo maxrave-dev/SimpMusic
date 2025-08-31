@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.LogoDev
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -41,6 +43,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.ui.component.DevCookieLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -69,7 +72,14 @@ fun SpotifyLoginScreen(
     val context = LocalContext.current
     val hazeState = rememberHazeState()
     val spotifyStatus by viewModel.spotifyStatus.collectAsStateWithLifecycle()
+
+    val fullSpotifyCookies by viewModel.fullSpotifyCookies.collectAsStateWithLifecycle()
+
     var devLoginSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showCookiesBottomSheet by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -122,6 +132,14 @@ fun SpotifyLoginScreen(
                                     view: WebView?,
                                     url: String?,
                                 ) {
+                                    CookieManager.getInstance().getCookie(url)?.let { cookie ->
+                                        val cookies =
+                                            cookie.split("; ").map {
+                                                val (key, value) = it.split("=")
+                                                key to value
+                                            }
+                                        viewModel.setFullSpotifyCookies(cookies)
+                                    }
                                     if (url == Config.SPOTIFY_ACCOUNT_URL) {
                                         CookieManager.getInstance().getCookie(url)?.let {
                                             viewModel.saveSpotifySpdc(it)
@@ -190,6 +208,26 @@ fun SpotifyLoginScreen(
                     containerColor = Color.Transparent,
                 ),
         )
+
+        FloatingActionButton(
+            onClick = {
+                showCookiesBottomSheet = true
+            },
+            containerColor = Color(0xFF40D96A),
+            modifier =
+                Modifier
+                    .align(
+                        Alignment.BottomStart,
+                    ).padding(innerPadding)
+                    .padding(
+                        25.dp,
+                    ),
+        ) {
+            Icon(
+                Icons.Default.Cookie,
+                "Cookies",
+            )
+        }
     }
     if (devLoginSheet) {
         DevLogInBottomSheet(
@@ -209,6 +247,16 @@ fun SpotifyLoginScreen(
                 navController.navigateUp()
             },
             type = DevLogInType.Spotify,
+        )
+    }
+
+    if (showCookiesBottomSheet) {
+        DevCookieLogInBottomSheet(
+            onDismiss = {
+                showCookiesBottomSheet = false
+            },
+            type = DevLogInType.Spotify,
+            cookies = fullSpotifyCookies,
         )
     }
 }

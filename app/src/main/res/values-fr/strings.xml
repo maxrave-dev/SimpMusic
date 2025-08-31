@@ -29,7 +29,7 @@
     <string name="no_playlists_downloaded">Aucune liste de lecture téléchargée</string>
     <string name="your_playlists">Vos Playlists</string>
     <string name="no_playlists_added">Aucune playlist ajoutée</string>
-    <string name="recently_added">Ajoutés récemment</string>
+    <string name="recently_added">Ajoutés Récemment</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">Rechercher des titres, des artistes, des albums, des playlists et plus encore</string>
     <string name="everything_you_need">Tout ce dont vous avez besoin !</string>
     <string name="restore_failed">Échec de la restauration</string>
@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Enregistrer les modes aléatoire et répétition</string>
     <string name="skip_silent">Sauter le silence</string>
     <string name="skip_no_music_part">Sauter la partie sans musique</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délai expiré. Vérifiez la connexion Internet (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délai d\'expiration, vérifiez la connexion Internet (%1$s)</string>
     <string name="save_last_played">Sauvegarder la dernière lecture</string>
     <string name="save_last_played_track_and_queue">Sauvegarder le dernier titre joué et la file d\'attente</string>
     <string name="update_available">Nouvelle mise à jour disponible !</string>
@@ -245,6 +245,7 @@
     <string name="backup_create_failed">Échec de la création de la sauvegarde</string>
     <string name="main_lyrics_provider">Fournisseur principal de paroles</string>
     <string name="use_ai_translation">Utiliser la traduction lyrique par IA</string>
+    <string name="use_ai_translation_description">Activer la traduction des paroles à l\'aide de l\'IA</string>
     <string name="translation_language">Langue de traduction</string>
     <string name="follow_app_language">Suivre la langue de l\'application</string>
     <string name="email">E-mail</string>
@@ -418,7 +419,7 @@
     <string name="ai_api_key">Votre clé API IA</string>
     <string name="invalid_api_key">Clé API non valide</string>
     <string name="custom_ai_model_id">ID de modèle d\'IA personnalisé</string>
-    <string name="default_models">Les modèles par défaut sont « gemini-2.0-flash-lite » et « gpt-4o »</string>
+    <string name="default_models">Les modèles par défaut sont « gemini-2.0-flash » et « gpt-4o »</string>
     <string name="invalid">Invalide</string>
     <string name="custom_model_id_messages">Veuillez saisir l\'ID de modèle exact de votre fournisseur d\'IA.</string>
     <string name="favorite_podcasts">Podcasts Préférés</string>
@@ -449,4 +450,7 @@
     <string name="backup_downloaded">Sauvegarder les données téléchargées</string>
     <string name="backup_downloaded_description">Sauvegarder toutes les données des titres téléchargés</string>
     <string name="no_playlist_found">Aucune playlist locale trouvée, veuillez d\'abord en créer une.</string>
+    <string name="list_all_cookies_of_this_page">Lister tous les cookies de cette page</string>
+    <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
+    <string name="update_channel">Mettre à jour la chaîne</string>
 </resources>

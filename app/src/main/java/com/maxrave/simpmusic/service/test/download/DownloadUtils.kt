@@ -29,7 +29,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -64,15 +64,14 @@ class DownloadUtils(
             Log.w("Stream", mediaId)
             Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
             val length = if (dataSpec.length >= 0) dataSpec.length else 1
-            if (downloadCache.isCached(mediaId, dataSpec.position, length) || playerCache.isCached(mediaId, dataSpec.position, length)
-            ) {
+            if (downloadCache.isCached(mediaId, dataSpec.position, length) || playerCache.isCached(mediaId, dataSpec.position, length)) {
                 return@Factory dataSpec
             }
             var dataSpecReturn: DataSpec = dataSpec
             runBlocking(Dispatchers.IO) {
                 if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
                     val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
-                    mainRepository.getNewFormat(id).firstOrNull()?.let {
+                    mainRepository.getNewFormat(id).lastOrNull()?.let {
                         if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
                             Log.d("Stream", it.videoUrl)
                             Log.w("Stream", "Video from format")
@@ -87,12 +86,12 @@ class DownloadUtils(
                         .getStream(
                             id,
                             true,
-                        ).singleOrNull()
+                        ).lastOrNull()
                         ?.let {
                             dataSpecReturn = dataSpec.withUri(it.toUri())
                         }
                 } else {
-                    mainRepository.getNewFormat(mediaId).firstOrNull()?.let {
+                    mainRepository.getNewFormat(mediaId).lastOrNull()?.let {
                         if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
                             Log.d("Stream", it.audioUrl)
                             Log.w("Stream", "Audio from format")
@@ -107,7 +106,7 @@ class DownloadUtils(
                         .getStream(
                             mediaId,
                             isVideo = false,
-                        ).singleOrNull()
+                        ).lastOrNull()
                         ?.let {
                             dataSpecReturn = dataSpec.withUri(it.toUri())
                         }

@@ -23,4 +23,23 @@
     <string name="most_played">가장 많이 재생된 노래</string>
     <string name="Downloaded">다운로드됨</string>
     <string name="favorite_playlists">즐겨 찾는 재생목록</string>
+    <string name="restore_failed">복원 실패</string>
+    <string name="restore_success">복원 성공</string>
+    <string name="search">검색</string>
+    <string name="songs">곡</string>
+    <string name="albums">앨범</string>
+    <string name="playlists">재생 목록</string>
+    <string name="artists">아티스트</string>
+    <string name="library">라이브러리</string>
+    <string name="home">홈</string>
+    <string name="popular">인기</string>
+    <string name="error">오류</string>
+    <string name="follow">팔로우</string>
+    <string name="retry">재시도</string>
+    <string name="removed_download">다운로드 제거</string>
+    <string name="share_url">URL 공유</string>
+    <string name="available_online">온라인으로 이용가능</string>
+    <string name="unavailable">사용할 수 없음</string>
+    <string name="good_morning">좋은 아침</string>
+    <string name="quick_picks">빠른 선택</string>
 </resources>

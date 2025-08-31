@@ -63,6 +63,7 @@ import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Interceptor
 import okio.FileSystem
 import okio.IOException
+import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
@@ -90,6 +91,8 @@ class Ytmusic {
             field = value
             httpClient = createClient()
         }
+
+    var cookiePath: Path? = null
 
     var locale =
         YouTubeLocale(
@@ -334,6 +337,14 @@ class Ytmusic {
 
     suspend fun test403Error(url: String): Boolean = httpClient.get(url).status.value in 200..299
 
+//    suspend fun ytdlpGetStreamUrl(videoId: String): VideoInfo {
+//        val ytRequest = YoutubeDLRequest("https://music.youtube.com/watch?v=$videoId")
+//        if (!cookie.isNullOrEmpty()) {
+//            ytRequest.addOption("--cookies", cookiePath?.toString() ?: "")
+//        }
+//        return ytDlp.getInfo(ytRequest)
+//    }
+
     suspend fun player(
         client: YouTubeClient,
         videoId: String,
@@ -502,8 +513,13 @@ class Ytmusic {
             parameter("service", "YouTube")
         }
 
-    suspend fun checkForUpdate() =
+    suspend fun checkForGithubReleaseUpdate() =
         httpClient.get("https://api.github.com/repos/maxrave-dev/SimpMusic/releases/latest") {
+            contentType(ContentType.Application.Json)
+        }
+
+    suspend fun checkForFdroidUpdate() =
+        httpClient.get("https://f-droid.org/api/v1/packages/com.maxrave.simpmusic") {
             contentType(ContentType.Application.Json)
         }
 

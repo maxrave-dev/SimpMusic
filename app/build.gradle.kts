@@ -20,6 +20,7 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xwhen-guards")
         freeCompilerArgs.add("-Xcontext-receivers")
+        freeCompilerArgs.add("-Xmulti-dollar-interpolation")
     }
 }
 
@@ -45,6 +46,7 @@ android {
             libs.versions.version.name
                 .get()
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled = true
 
         @Suppress("UnstableApiUsage")
         androidResources {
@@ -79,6 +81,12 @@ android {
                 )
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters.add("x86_64")
+            abiFilters.add("armeabi-v7a")
+            abiFilters.add("arm64-v8a")
+        }
 
         if (isFullBuild) {
             try {
@@ -191,6 +199,8 @@ sentry {
 dependencies {
     val fullImplementation = "fullImplementation"
     val debugImplementation = "debugImplementation"
+
+    coreLibraryDesugaring(libs.desugaring)
 
     // Compose
     val composeBom = platform(libs.compose.bom)
@@ -308,9 +318,6 @@ dependencies {
     // Custom Activity On Crash
     implementation(libs.customactivityoncrash)
 
-    implementation(libs.sdp.android)
-    implementation(libs.ssp.android)
-
     implementation(libs.aboutlibraries)
     implementation(libs.aboutlibraries.compose.m3)
 
@@ -319,8 +326,6 @@ dependencies {
 
     // InsetsX
     implementation(libs.insetsx)
-
-    coreLibraryDesugaring(libs.desugaring)
 
     // Koin
     implementation(platform(libs.koin.bom))
@@ -342,13 +347,18 @@ dependencies {
 
 //    debugImplementation(libs.leak.canary)
 }
+/**
+ * Task to generate the aboutlibraries.json file
+ * Run with:
+ ./gradlew :app:exportLibraryDefinitions --no-daemon --no-configuration-cache --no-build-cache
+ **/
 aboutLibraries {
+    android.registerAndroidTasks = false
     export {
+        exportVariant = "fullRelease"
         prettyPrint = true
         excludeFields = listOf("generated")
-    }
-    android {
-        registerAndroidTasks = false
+        outputPath = File(project.projectDir, "src/main/res/raw/aboutlibraries.json")
     }
 }
 tasks.withType<CompileArtProfileTask> {

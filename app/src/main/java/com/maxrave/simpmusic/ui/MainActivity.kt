@@ -23,6 +23,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -227,7 +228,7 @@ class MainActivity : AppCompatActivity() {
 
             val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
             val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
-            val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
+            val updateData by viewModel.updateResponse.collectAsStateWithLifecycle()
             val intent by viewModel.intent.collectAsStateWithLifecycle()
 
             val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
@@ -330,8 +331,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            LaunchedEffect(githubResponse) {
-                val response = githubResponse ?: return@LaunchedEffect
+            LaunchedEffect(updateData) {
+                val response = updateData ?: return@LaunchedEffect
                 if (!this@MainActivity.isInPictureInPictureMode &&
                     viewModel.showedUpdateDialog &&
                     response.tagName != getString(R.string.version_format, VersionManager.getVersionName())
@@ -449,7 +450,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         if (shouldShowUpdateDialog) {
-                            val response = githubResponse ?: return@Scaffold
+                            val response = updateData ?: return@Scaffold
                             AlertDialog(
                                 properties =
                                     DialogProperties(
@@ -503,11 +504,11 @@ class MainActivity : AppCompatActivity() {
                                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
                                     val formatted =
-                                        response.publishedAt?.let { input ->
+                                        response.releaseTime?.let { input ->
                                             inputFormat
                                                 .parse(input)
                                                 ?.let { outputFormat.format(it) }
-                                        }
+                                        } ?: stringResource(R.string.unknown)
                                     val updateMessage =
                                         getString(
                                             R.string.update_message,
@@ -517,8 +518,8 @@ class MainActivity : AppCompatActivity() {
                                         )
                                     Column(
                                         Modifier
-                                            .height(
-                                                400.dp,
+                                            .heightIn(
+                                                max = 400.dp,
                                             ).verticalScroll(
                                                 rememberScrollState(),
                                             ),
@@ -532,7 +533,7 @@ class MainActivity : AppCompatActivity() {
                                                 ),
                                         )
                                         Markdown(
-                                            response.body ?: "",
+                                            response.body,
                                             typography =
                                                 markdownTypography(
                                                     h1 = typo.labelLarge,
