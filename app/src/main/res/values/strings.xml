@@ -424,7 +424,7 @@
     <string name="ai_api_key">Your AI API Key</string>
     <string name="invalid_api_key">Invalid API key</string>
     <string name="custom_ai_model_id">Custom AI model ID</string>
-    <string name="default_models">Default models are \"gemini-2.0-flash-lite\" and \"gpt-4o\"</string>
+    <string name="default_models">Default models are \"gemini-2.0-flash\" and \"gpt-4o\"</string>
     <string name="invalid">Invalid</string>
     <string name="custom_model_id_messages">Please enter the exactly model ID from your AI provider.</string>
     <string name="favorite_podcasts">Favorite Podcasts</string>

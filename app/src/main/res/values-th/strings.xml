@@ -414,7 +414,7 @@
     <string name="ai_api_key">คีย์ API สำหรับ AI ของคุณ</string>
     <string name="invalid_api_key">คีย์ API ไม่ถูกต้อง</string>
     <string name="custom_ai_model_id">รหัสโมเดล AI ที่ปรับแต่งเอง</string>
-    <string name="default_models">โมเดลที่ใช้โดยค่าเริ่มต้นคือ \'gemini-2.0-flash-lite\' และ \'gpt-4o\'</string>
+    <string name="default_models">โมเดลที่ใช้โดยค่าเริ่มต้นคือ \'gemini-2.0-flash\' และ \'gpt-4o\'</string>
     <string name="invalid">ไม่ถูกต้อง</string>
     <string name="custom_model_id_messages">กรุณากรอกรหัสโมเดลที่ถูกต้องจากผู้ให้บริการ AI ของคุณ</string>
     <string name="favorite_podcasts">พอดแคสต์ที่ชื่นชอบ</string>

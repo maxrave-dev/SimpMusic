@@ -347,13 +347,18 @@ dependencies {
 
 //    debugImplementation(libs.leak.canary)
 }
+/**
+ * Task to generate the aboutlibraries.json file
+ * Run with:
+ ./gradlew :app:exportLibraryDefinitions --no-daemon --no-configuration-cache --no-build-cache
+ **/
 aboutLibraries {
+    android.registerAndroidTasks = false
     export {
+        exportVariant = "fullRelease"
         prettyPrint = true
         excludeFields = listOf("generated")
-    }
-    android {
-        registerAndroidTasks = false
+        outputPath = File(project.projectDir, "src/main/res/raw/aboutlibraries.json")
     }
 }
 tasks.withType<CompileArtProfileTask> {

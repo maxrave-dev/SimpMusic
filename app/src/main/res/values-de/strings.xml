@@ -419,7 +419,7 @@
     <string name="ai_api_key">Dein KI API Key</string>
     <string name="invalid_api_key">Ungültiger API-Schlüssel</string>
     <string name="custom_ai_model_id">Benutzerdefinierte KI-Model-ID</string>
-    <string name="default_models">Standardmodelle sind \"gemini-2.0-flash-lite\" und \"gpt-4o\"</string>
+    <string name="default_models">Standardmodelle sind \"gemini-2.0-flash\" und \"gpt-4o\"</string>
     <string name="invalid">Ungültig</string>
     <string name="custom_model_id_messages">Bitte geben Sie die genaue Modell-ID Ihres KI-Providers ein.</string>
     <string name="favorite_podcasts">Lieblings-Podcasts</string>

@@ -414,7 +414,7 @@
     <string name="ai_api_key">AI の API キー</string>
     <string name="invalid_api_key">API キーが無効です</string>
     <string name="custom_ai_model_id">AI のモデル ID を指定</string>
-    <string name="default_models">初期設定のモデルは gemini-2.0-flash-lite と gpt-4o</string>
+    <string name="default_models">初期設定のモデルは gemini-2.0-flash と gpt-4o</string>
     <string name="invalid">無効です</string>
     <string name="custom_model_id_messages">AI 提供元によるモデルIDを正確に入力します。</string>
     <string name="favorite_podcasts">お気に入りのポッドキャスト</string>

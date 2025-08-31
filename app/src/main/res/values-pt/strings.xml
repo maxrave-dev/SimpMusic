@@ -418,7 +418,7 @@
     <string name="ai_api_key">Sua Chave de API de IA</string>
     <string name="invalid_api_key">Chave de API inválida</string>
     <string name="custom_ai_model_id">ID de modelo de IA personalizado</string>
-    <string name="default_models">Os modelos padrão são \"gemini-2.0-flash-lite\" e \"gpt-4o\"</string>
+    <string name="default_models">Os modelos padrão são \"gemini-2.0-flash\" e \"gpt-4o\"</string>
     <string name="invalid">Inválido</string>
     <string name="custom_model_id_messages">Insira o exato ID do seu provedor de IA, por favor.</string>
     <string name="favorite_podcasts">\"Podcasts\" Favoritos</string>

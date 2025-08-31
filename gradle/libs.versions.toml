@@ -1,7 +1,7 @@
 [versions]
 # App version
-version-name="0.2.19"
-version-code="38"
+version-name="0.2.20"
+version-code="39"
 
 android = "8.11.1"
 kotlin = "2.2.10"
@@ -170,8 +170,8 @@ common = { module = "commons-codec:commons-codec", version.ref = "common" }
 gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
 logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
 newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
-leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
-ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp-android" }
+#leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+#ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp-android" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

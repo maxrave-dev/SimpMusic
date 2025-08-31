@@ -418,7 +418,7 @@
     <string name="ai_api_key">Khóa API của AI</string>
     <string name="invalid_api_key">Khóa API không hợp lệ</string>
     <string name="custom_ai_model_id">Tùy chỉnh ID của mô hình AI</string>
-    <string name="default_models">Các mô hình mặc định là “gemini-2.0-flash-lite” và “gpt-4o”</string>
+    <string name="default_models">Các mô hình mặc định là “gemini-2.0-flash” và “gpt-4o”</string>
     <string name="invalid">Không hợp lệ</string>
     <string name="custom_model_id_messages">Vui lòng nhập chính xác ID mô hình từ nhà cung cấp AI của bạn.</string>
     <string name="favorite_podcasts">Podcasts yêu thích</string>

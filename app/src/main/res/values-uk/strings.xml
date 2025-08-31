@@ -421,7 +421,7 @@
     <string name="ai_api_key">Ваш ключ API</string>
     <string name="invalid_api_key">Невірний ключ API</string>
     <string name="custom_ai_model_id">Користувальницький ідентифікатор AI моделі</string>
-    <string name="default_models">Стандартні моделі - це \"gemini-2.0-flash-lite\" та \"gpt-4o\"</string>
+    <string name="default_models">Стандартні моделі - це \"gemini-2.0-flash\" та \"gpt-4o\"</string>
     <string name="invalid">Некоректний</string>
     <string name="custom_model_id_messages">Будь ласка, введіть ідентифікатор моделі вашого провайдера ШІ.</string>
     <string name="favorite_podcasts">Улюблені подкасти</string>

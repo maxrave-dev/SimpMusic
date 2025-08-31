@@ -419,7 +419,7 @@
     <string name="ai_api_key">Votre clé API IA</string>
     <string name="invalid_api_key">Clé API non valide</string>
     <string name="custom_ai_model_id">ID de modèle d\'IA personnalisé</string>
-    <string name="default_models">Les modèles par défaut sont « gemini-2.0-flash-lite » et « gpt-4o »</string>
+    <string name="default_models">Les modèles par défaut sont « gemini-2.0-flash » et « gpt-4o »</string>
     <string name="invalid">Invalide</string>
     <string name="custom_model_id_messages">Veuillez saisir l\'ID de modèle exact de votre fournisseur d\'IA.</string>
     <string name="favorite_podcasts">Podcasts Préférés</string>
