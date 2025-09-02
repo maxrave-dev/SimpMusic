@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Сохранить перемешивание и повтор</string>
     <string name="skip_silent">Пропустить без звука</string>
     <string name="skip_no_music_part">Пропустить без музыкальной части</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Время исчерпано, проверьте подключение к интернету (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Время исчерпано, проверьте подключение к интернету (%1$s)</string>
     <string name="save_last_played">Сохранить последнюю воспроизводимую</string>
     <string name="save_last_played_track_and_queue">Сохранить последний воспроизведенный трек и очередь</string>
     <string name="update_available">Доступно новое обновление</string>
@@ -421,7 +421,6 @@
     <string name="ai_api_key">Ваш ключ API</string>
     <string name="invalid_api_key">Неверный ключ API</string>
     <string name="custom_ai_model_id">Пользовательский идентификатор ИИ модели</string>
-    <string name="default_models">Стандартные модели - это \"gemini-2.0-flash-lite\" и \"gpt-4o\"</string>
     <string name="invalid">Некорректный</string>
     <string name="custom_model_id_messages">Введите идентификатор модели вашего провайдера ИИ.</string>
     <string name="favorite_podcasts">Любимые подкасты</string>
@@ -452,4 +451,6 @@
     <string name="backup_downloaded">Резервное копирование загруженных данных</string>
     <string name="backup_downloaded_description">Резервное копирование всех загруженных данных песен</string>
     <string name="no_playlist_found">Локальные плейлисты не найдены. Для начала создайте их</string>
+    <string name="list_all_cookies_of_this_page">Список всех cookies этой страницы</string>
+    <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
 </resources>

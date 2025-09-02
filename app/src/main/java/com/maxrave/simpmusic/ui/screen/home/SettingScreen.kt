@@ -216,14 +216,30 @@ fun SettingScreen(
     val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
+    val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
+
+    val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
     val hazeState =
         rememberHazeState(
             blurEnabled = true,
         )
 
-    var checkForUpdateSubtitle by rememberSaveable {
-        mutableStateOf("")
+    val checkForUpdateSubtitle by remember {
+        derivedStateOf {
+            if (isCheckingUpdate) {
+                context.getString(R.string.checking)
+            } else {
+                val lastCheckLong = lastCheckUpdate?.toLong() ?: 0L
+                context.getString(
+                    R.string.last_checked_at,
+                    DateTimeFormatter
+                        .ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.systemDefault())
+                        .format(Instant.ofEpochMilli(lastCheckLong)),
+                )
+            }
+        }
     }
     var showYouTubeAccountDialog by rememberSaveable {
         mutableStateOf(false)
@@ -234,20 +250,6 @@ fun SettingScreen(
 
     LaunchedEffect(true) {
         viewModel.getAllGoogleAccount()
-    }
-
-    LaunchedEffect(lastCheckUpdate) {
-        val lastCheckLong = lastCheckUpdate?.toLong() ?: 0L
-        if (lastCheckLong > 0L) {
-            checkForUpdateSubtitle =
-                context.getString(
-                    R.string.last_checked_at,
-                    DateTimeFormatter
-                        .ofPattern("yyyy-MM-dd HH:mm:ss")
-                        .withZone(ZoneId.systemDefault())
-                        .format(Instant.ofEpochMilli(lastCheckLong)),
-                )
-        }
     }
 
     LaunchedEffect(true) {
@@ -1338,10 +1340,44 @@ fun SettingScreen(
                     switch = (autoCheckUpdate to { viewModel.setAutoCheckUpdate(it) }),
                 )
                 SettingItem(
+                    title = stringResource(R.string.update_channel),
+                    subtitle =
+                        if (updateChannel == DataStoreManager.FDROID) {
+                            "F-Droid"
+                        } else {
+                            "SimpMusic GitHub Release"
+                        },
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.update_channel),
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            listOf(
+                                                (updateChannel == DataStoreManager.FDROID) to "F-Droid",
+                                                (updateChannel == DataStoreManager.GITHUB) to "SimpMusic GitHub Release",
+                                            ),
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setUpdateChannel(
+                                            when (state.selectOne?.getSelected()) {
+                                                "F-Droid" -> DataStoreManager.FDROID
+                                                "SimpMusic GitHub Release" -> DataStoreManager.GITHUB
+                                                else -> DataStoreManager.GITHUB
+                                            },
+                                        )
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
                     title = stringResource(R.string.check_for_update),
                     subtitle = checkForUpdateSubtitle,
                     onClick = {
-                        checkForUpdateSubtitle = context.getString(R.string.checking)
                         sharedViewModel.checkForUpdate()
                     },
                 )

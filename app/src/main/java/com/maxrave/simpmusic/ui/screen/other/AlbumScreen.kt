@@ -93,9 +93,11 @@ import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,6 +106,7 @@ fun AlbumScreen(
     browseId: String,
     navController: NavController,
     viewModel: AlbumViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -441,6 +444,11 @@ fun AlbumScreen(
                                 },
                                 onClickListener = {
                                     viewModel.playTrack(item)
+                                },
+                                onAddToQueue = {
+                                    sharedViewModel.addListToQueue(
+                                        arrayListOf(item),
+                                    )
                                 },
                                 modifier = Modifier.animateItem(),
                             )

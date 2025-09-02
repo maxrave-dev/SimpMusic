@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Зберегти режим перемішування та повтору</string>
     <string name="skip_silent">Пропустити мовчання</string>
     <string name="skip_no_music_part">Пропустити частини без музики</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Час вичерпано, перевірте підключення до інтернету (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Час вичерпано, перевірте підключення до інтернету (%1$s)</string>
     <string name="save_last_played">Зберегти останнє відтворене</string>
     <string name="save_last_played_track_and_queue">Зберегти останній відтворений трек і чергу</string>
     <string name="update_available">Доступне нове оновлення</string>
@@ -421,7 +421,6 @@
     <string name="ai_api_key">Ваш ключ API</string>
     <string name="invalid_api_key">Невірний ключ API</string>
     <string name="custom_ai_model_id">Користувальницький ідентифікатор AI моделі</string>
-    <string name="default_models">Стандартні моделі - це \"gemini-2.0-flash-lite\" та \"gpt-4o\"</string>
     <string name="invalid">Некоректний</string>
     <string name="custom_model_id_messages">Будь ласка, введіть ідентифікатор моделі вашого провайдера ШІ.</string>
     <string name="favorite_podcasts">Улюблені подкасти</string>
@@ -452,4 +451,6 @@
     <string name="backup_downloaded">Резервне копіювання завантажених даних</string>
     <string name="backup_downloaded_description">Резервне копіювання всіх завантажених даних композицій</string>
     <string name="no_playlist_found">Локальних плейлистів не знайдено. Для початку створіть їх</string>
+    <string name="list_all_cookies_of_this_page">Список усіх cookies цієї сторінки</string>
+    <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
 </resources>

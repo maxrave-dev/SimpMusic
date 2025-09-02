@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Lưu chế độ trộn và phát lại</string>
     <string name="skip_silent">Bỏ qua im lặng</string>
     <string name="skip_no_music_part">Bỏ qua phần không có nhạc</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet (%1$d)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet (%1$s)</string>
     <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
     <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
     <string name="update_available">Phiên bản mới có sẵn</string>
@@ -418,7 +418,7 @@
     <string name="ai_api_key">Khóa API của AI</string>
     <string name="invalid_api_key">Khóa API không hợp lệ</string>
     <string name="custom_ai_model_id">Tùy chỉnh ID của mô hình AI</string>
-    <string name="default_models">Các mô hình mặc định là “gemini-2.0-flash-lite” và “gpt-4o”</string>
+    <string name="default_models">Các mô hình mặc định là “gemini-2.0-flash” và “gpt-4o”</string>
     <string name="invalid">Không hợp lệ</string>
     <string name="custom_model_id_messages">Vui lòng nhập chính xác ID mô hình từ nhà cung cấp AI của bạn.</string>
     <string name="favorite_podcasts">Podcasts yêu thích</string>
@@ -449,4 +449,7 @@
     <string name="backup_downloaded">Sao lưu dữ liệu đã tải xuống</string>
     <string name="backup_downloaded_description">Sao lưu tất cả các bài hát đã tải xuống</string>
     <string name="no_playlist_found">Không tìm thấy bất kỳ danh sách phát nội bộ nào, hãy tạo một danh sách phát trước</string>
+    <string name="list_all_cookies_of_this_page">Danh sách cookie của trang này</string>
+    <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
+    <string name="update_channel">Kênh cập nhật</string>
 </resources>

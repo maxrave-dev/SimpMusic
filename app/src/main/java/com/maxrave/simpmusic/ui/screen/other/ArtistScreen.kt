@@ -353,6 +353,11 @@ fun ArtistScreen(
                                                 type = Config.SONG_CLICK,
                                             )
                                         },
+                                        onAddToQueue = {
+                                            sharedViewModel.addListToQueue(
+                                                arrayListOf(song),
+                                            )
+                                        },
                                     )
                                 }
                             }

@@ -236,7 +236,7 @@ private fun provideResolvingDataSourceFactory(
         runBlocking(Dispatchers.IO) {
             if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
                 val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
-                mainRepository.getNewFormat(id).firstOrNull()?.let {
+                mainRepository.getNewFormat(id).lastOrNull()?.let {
                     if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
                         Log.d("Stream", it.videoUrl)
                         Log.w("Stream", "Video from format")
@@ -259,7 +259,7 @@ private fun provideResolvingDataSourceFactory(
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                     }
             } else {
-                mainRepository.getNewFormat(mediaId).firstOrNull()?.let {
+                mainRepository.getNewFormat(mediaId).lastOrNull()?.let {
                     if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
                         Log.d("Stream", it.audioUrl)
                         Log.w("Stream", "Audio from format")
