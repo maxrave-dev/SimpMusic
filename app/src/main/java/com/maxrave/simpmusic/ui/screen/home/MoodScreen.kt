@@ -20,7 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.MoodAndGenresContentItem
 import com.maxrave.simpmusic.ui.component.NormalAppBar

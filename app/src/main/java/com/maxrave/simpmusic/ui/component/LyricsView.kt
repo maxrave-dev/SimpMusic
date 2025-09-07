@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -89,7 +89,8 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
@@ -100,7 +101,6 @@ import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.TimeLine
 import com.maxrave.simpmusic.viewModel.UIEvent
-import com.moriatsushi.insetsx.systemBars
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
@@ -177,7 +177,7 @@ fun LyricsView(
             val boxStart = listState.layoutInfo.viewportStartOffset
             val viewPort = boxEnd - boxStart
             val offset = viewPort / 2 - currentLineHeight / 2
-            Log.w(TAG, "Offset: $offset")
+            Logger.w(TAG, "Offset: $offset")
             listState.animateScrollAndCentralizeItem(
                 index = currentLineIndex,
                 this,
@@ -219,7 +219,7 @@ fun LyricsView(
             val line = lyricsData.lyrics.lines?.getOrNull(index)
             // Tìm translated lyrics phù hợp dựa vào thời gian
             val translatedWords = line?.startTimeMs?.let { findClosestTranslatedLine(it) }
-            Log.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
+            Logger.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
 
             line?.words?.let {
                 LyricsLineItem(

@@ -6,12 +6,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.navigation.safeargs)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.aboutlibraries)
-    alias(libs.plugins.room)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.sentry.gradle)
 }
 
@@ -29,10 +25,6 @@ android {
 
     namespace = "com.maxrave.simpmusic"
     compileSdk = 36
-
-    room {
-        schemaDirectory("$projectDir/schemas")
-    }
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
@@ -232,12 +224,10 @@ dependencies {
     implementation(libs.material)
     // Runtime
     implementation(libs.startup.runtime)
+    implementation(project(":common"))
     // Other module
-    implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
-    implementation(project(mapOf("path" to ":spotify")))
-    implementation(project(mapOf("path" to ":aiService")))
-    implementation(project(mapOf("path" to ":sharedutils")))
-    implementation(project(mapOf("path" to ":lyricsService")))
+    implementation(project(":domain"))
+    implementation(project(":data"))
 
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -256,27 +246,15 @@ dependencies {
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.okhttp3.logging.interceptor)
 
-    // Palette Color
-    implementation(libs.palette.ktx)
-    // Expandable Text View
-    implementation(libs.expandable.text)
-
-    implementation(libs.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
 
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
     // Legacy Support
     implementation(libs.legacy.support.v4)
     // Coroutines
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.guava)
-    // Navigation
-    implementation(libs.navigation.fragment.ktx)
-    implementation(libs.navigation.ui.ktx)
 
     // Navigation Compose
     implementation(libs.navigation.compose)
@@ -290,22 +268,12 @@ dependencies {
     implementation(libs.kmpalette.core)
     // Easy Permissions
     implementation(libs.easypermissions)
-    // Palette Color
-    implementation(libs.palette.ktx)
 
     // Preference
     implementation(libs.preference.ktx)
 
-    // Fragment KTX
-    implementation(libs.fragment.ktx)
-    ksp(libs.kotlinx.metadata.jvm)
     // DataStore
     implementation(libs.datastore.preferences)
-    // Swipe To Refresh
-    implementation(libs.swiperefreshlayout)
-    // Insetter
-    implementation(libs.insetter)
-    implementation(libs.insetter.dbx)
 
     // Lottie
     implementation(libs.lottie)
@@ -321,11 +289,7 @@ dependencies {
     implementation(libs.aboutlibraries)
     implementation(libs.aboutlibraries.compose.m3)
 
-    implementation(libs.flexbox)
     implementation(libs.balloon)
-
-    // InsetsX
-    implementation(libs.insetsx)
 
     // Koin
     implementation(platform(libs.koin.bom))

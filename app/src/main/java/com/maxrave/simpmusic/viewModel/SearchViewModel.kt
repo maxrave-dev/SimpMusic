@@ -2,22 +2,22 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import com.maxrave.kotlinytmusicscraper.models.YTItem
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
-import com.maxrave.simpmusic.data.db.entities.SearchHistory
-import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
-import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
-import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
-import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
-import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.extension.toQueryList
-import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.common.R
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.domain.data.entities.SearchHistory
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.model.searchResult.songs.SongsResult
+import com.maxrave.domain.data.model.searchResult.videos.VideosResult
+import com.maxrave.domain.data.type.SearchResultType
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.repository.SearchRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.toQueryList
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +32,7 @@ import kotlinx.coroutines.runBlocking
 // State cho tìm kiếm
 data class SearchScreenState(
     val searchType: SearchType = SearchType.ALL,
-    val searchAllResult: List<Any> = emptyList(),
+    val searchAllResult: List<SearchResultType> = emptyList(),
     val searchSongsResult: List<SongsResult> = emptyList(),
     val searchVideosResult: List<VideosResult> = emptyList(),
     val searchAlbumsResult: List<AlbumsResult> = emptyList(),
@@ -41,7 +41,7 @@ data class SearchScreenState(
     val searchFeaturedPlaylistsResult: List<PlaylistsResult> = emptyList(),
     val searchPodcastsResult: List<PlaylistsResult> = emptyList(),
     val suggestQueries: List<String> = emptyList(),
-    val suggestYTItems: List<YTItem> = emptyList(),
+    val suggestYTItems: List<SearchResultType> = emptyList(),
 )
 
 // Loại tìm kiếm
@@ -81,7 +81,9 @@ sealed class SearchScreenUIState {
 
 @UnstableApi
 class SearchViewModel(
-    private val application: Application,
+    application: Application,
+    private val dataStoreManager: DataStoreManager,
+    private val searchRepository: SearchRepository,
 ) : BaseViewModel(application) {
     private val _searchScreenUIState = MutableStateFlow<SearchScreenUIState>(SearchScreenUIState.Empty)
     val searchScreenUIState: StateFlow<SearchScreenUIState> get() = _searchScreenUIState.asStateFlow()
@@ -103,7 +105,7 @@ class SearchViewModel(
 
     private fun getSearchHistory() {
         viewModelScope.launch {
-            mainRepository.getSearchHistory().collect { values ->
+            searchRepository.getSearchHistory().collect { values ->
                 if (values.isNotEmpty()) {
                     values.toQueryList().reversed().let { list ->
                         _searchHistory.value = list
@@ -116,8 +118,8 @@ class SearchViewModel(
 
     fun insertSearchHistory(query: String) {
         viewModelScope.launch {
-            mainRepository.insertSearchHistory(SearchHistory(query = query)).collectLatest {
-                Log.d(tag, "Inserted search history: $query, $it")
+            searchRepository.insertSearchHistory(SearchHistory(query = query)).collectLatest {
+                Logger.d(tag, "Inserted search history: $query, $it")
                 getSearchHistory()
             }
         }
@@ -125,7 +127,7 @@ class SearchViewModel(
 
     fun deleteSearchHistory() {
         viewModelScope.launch {
-            mainRepository.deleteSearchHistory()
+            searchRepository.deleteSearchHistory()
             delay(1000)
             getSearchHistory()
         }
@@ -134,7 +136,7 @@ class SearchViewModel(
     fun searchSongs(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
-            mainRepository.getSearchDataSong(query).collect { values ->
+            searchRepository.getSearchDataSong(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { songsList ->
@@ -162,11 +164,11 @@ class SearchViewModel(
             var playlist = ArrayList<PlaylistsResult>()
             var featuredPlaylist = ArrayList<PlaylistsResult>()
             var podcast = ArrayList<PlaylistsResult>()
-            val temp: ArrayList<Any> = ArrayList()
+            val temp: ArrayList<SearchResultType> = ArrayList()
 
             val job1 =
                 launch {
-                    mainRepository.getSearchDataSong(query).collect { values ->
+                    searchRepository.getSearchDataSong(query).collect { values ->
                         when (values) {
                             is Resource.Success -> values.data?.let { song = it }
                             is Resource.Error -> {}
@@ -175,7 +177,7 @@ class SearchViewModel(
                 }
             val job2 =
                 launch {
-                    mainRepository.getSearchDataArtist(query).collect { values ->
+                    searchRepository.getSearchDataArtist(query).collect { values ->
                         when (values) {
                             is Resource.Success -> values.data?.let { artist = it }
                             is Resource.Error -> {}
@@ -184,16 +186,18 @@ class SearchViewModel(
                 }
             val job3 =
                 launch {
-                    mainRepository.getSearchDataAlbum(query).collect { values ->
-                        when (values) {
-                            is Resource.Success -> values.data?.let { album = it }
-                            is Resource.Error -> {}
+                    searchRepository
+                        .getSearchDataAlbum(query)
+                        .collect { values ->
+                            when (values) {
+                                is Resource.Success -> values.data?.let { album = it }
+                                is Resource.Error -> {}
+                            }
                         }
-                    }
                 }
             val job4 =
                 launch {
-                    mainRepository.getSearchDataPlaylist(query).collect { values ->
+                    searchRepository.getSearchDataPlaylist(query).collect { values ->
                         when (values) {
                             is Resource.Success -> values.data?.let { playlist = it }
                             is Resource.Error -> {}
@@ -202,7 +206,7 @@ class SearchViewModel(
                 }
             val job5 =
                 launch {
-                    mainRepository.getSearchDataVideo(query).collect { values ->
+                    searchRepository.getSearchDataVideo(query).collect { values ->
                         when (values) {
                             is Resource.Success -> values.data?.let { video.addAll(it) }
                             is Resource.Error -> {}
@@ -211,7 +215,7 @@ class SearchViewModel(
                 }
             val job6 =
                 launch {
-                    mainRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
+                    searchRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
                         when (values) {
                             is Resource.Success -> values.data?.let { featuredPlaylist = it }
                             is Resource.Error -> {}
@@ -220,7 +224,7 @@ class SearchViewModel(
                 }
             val job7 =
                 launch {
-                    mainRepository.getSearchDataPodcast(query).collect { values ->
+                    searchRepository.getSearchDataPodcast(query).collect { values ->
                         when (values) {
                             is Resource.Success -> values.data?.let { podcast = it }
                             is Resource.Error -> {}
@@ -279,7 +283,7 @@ class SearchViewModel(
 
     fun suggestQuery(query: String) {
         viewModelScope.launch {
-            mainRepository.getSuggestQuery(query).collect { values ->
+            searchRepository.getSuggestQuery(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { suggestData ->
@@ -303,7 +307,7 @@ class SearchViewModel(
     fun searchAlbums(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
-            mainRepository.getSearchDataAlbum(query).collect { values ->
+            searchRepository.getSearchDataAlbum(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { albumsList ->
@@ -327,7 +331,7 @@ class SearchViewModel(
     fun searchFeaturedPlaylist(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
-            mainRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
+            searchRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { featuredPlaylistList ->
@@ -351,7 +355,7 @@ class SearchViewModel(
     fun searchPodcast(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
-            mainRepository.getSearchDataPodcast(query).collect { values ->
+            searchRepository.getSearchDataPodcast(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { podcastList ->
@@ -375,7 +379,7 @@ class SearchViewModel(
     fun searchArtists(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
-            mainRepository.getSearchDataArtist(query).collect { values ->
+            searchRepository.getSearchDataArtist(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { artistsList ->
@@ -399,7 +403,7 @@ class SearchViewModel(
     fun searchPlaylists(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
-            mainRepository.getSearchDataPlaylist(query).collect { values ->
+            searchRepository.getSearchDataPlaylist(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { playlistsList ->
@@ -423,7 +427,7 @@ class SearchViewModel(
     fun searchVideos(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
-            mainRepository.getSearchDataVideo(query).collect { values ->
+            searchRepository.getSearchDataVideo(query).collect { values ->
                 when (values) {
                     is Resource.Success -> {
                         values.data?.let { videosList ->
@@ -441,48 +445,6 @@ class SearchViewModel(
                     }
                 }
             }
-        }
-    }
-
-    fun updateLikeStatus(
-        videoId: String,
-        b: Boolean,
-    ) {
-        viewModelScope.launch {
-            if (b) {
-                mainRepository.updateLikeStatus(videoId, 1)
-            } else {
-                mainRepository.updateLikeStatus(videoId, 0)
-            }
-        }
-    }
-
-    fun updateLocalPlaylistTracks(
-        list: List<String>,
-        id: Long,
-    ) {
-        viewModelScope.launch {
-            mainRepository.getSongsByListVideoId(list).collect { values ->
-                var count = 0
-                values.forEach { song ->
-                    if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
-                        count++
-                    }
-                }
-                mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
-                if (count == values.size) {
-                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
-                } else {
-                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
-                }
-            }
-        }
-    }
-
-    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
-        viewModelScope.launch {
-            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
 

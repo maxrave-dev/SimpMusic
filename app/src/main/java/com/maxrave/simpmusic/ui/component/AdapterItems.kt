@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -56,31 +55,33 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.db.entities.AlbumEntity
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
-import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
-import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
-import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
-import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
-import com.maxrave.simpmusic.data.model.home.Content
-import com.maxrave.simpmusic.data.model.home.HomeItem
-import com.maxrave.simpmusic.data.model.home.chart.ItemArtist
-import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
-import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
-import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
-import com.maxrave.simpmusic.data.type.HomeContentType
-import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.AlbumEntity
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.PlaylistEntity
+import com.maxrave.domain.data.entities.PodcastsEntity
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.browse.artist.ResultAlbum
+import com.maxrave.domain.data.model.browse.artist.ResultPlaylist
+import com.maxrave.domain.data.model.browse.artist.ResultSingle
+import com.maxrave.domain.data.model.home.Content
+import com.maxrave.domain.data.model.home.HomeItem
+import com.maxrave.domain.data.model.home.chart.ItemArtist
+import com.maxrave.domain.data.model.home.chart.ItemVideo
+import com.maxrave.domain.data.model.mood.genre.ItemsPlaylist
+import com.maxrave.domain.data.model.mood.moodmoments.Item
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.type.HomeContentType
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.domain.utils.toListName
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.generateRandomColor
-import com.maxrave.simpmusic.extension.toListName
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.extension.ifNullOrEmpty
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -112,16 +113,17 @@ fun HomeItem(
         )
     }
 
+    val channelId = data.channelId
     Column {
         Row(
             modifier =
-                if (data.channelId != null) {
+                if (channelId != null) {
                     Modifier
                         .focusable(true)
                         .clickable {
                             navController.navigate(
                                 ArtistDestination(
-                                    channelId = data.channelId,
+                                    channelId = channelId,
                                 ),
                             )
                         }
@@ -182,14 +184,14 @@ fun HomeItem(
         ) {
             items(data.contents) { temp ->
                 if (temp != null) {
-                    if ((temp.playlistId != null && temp.videoId == null) || (temp.playlistId != null && temp.videoId == "")) {
-                        if (temp.playlistId.startsWith("UC")) {
+                    val browseId = temp.browseId
+                    val playlistId = temp.playlistId
+                    if ((playlistId != null && temp.videoId == null) || (playlistId != null && temp.videoId == "")) {
+                        if (playlistId.startsWith("UC")) {
                             HomeItemArtist(onClick = {
-                                val channelId =
-                                    temp.playlistId
                                 navController.navigate(
                                     ArtistDestination(
-                                        channelId = channelId,
+                                        channelId = playlistId,
                                     ),
                                 )
                             }, data = temp)
@@ -197,19 +199,17 @@ fun HomeItem(
                             HomeItemContentPlaylist(onClick = {
                                 navController.navigate(
                                     PlaylistDestination(
-                                        playlistId = temp.playlistId,
+                                        playlistId = playlistId,
                                     ),
                                 )
                             }, data = temp)
                         }
-                    } else if ((temp.browseId != null && temp.videoId == null) || (temp.browseId != null && temp.videoId == "")) {
-                        if (temp.browseId.startsWith("UC")) {
+                    } else if ((browseId != null && temp.videoId == null) || (browseId != null && temp.videoId == "")) {
+                        if (browseId.startsWith("UC")) {
                             HomeItemArtist(onClick = {
-                                val channelId =
-                                    temp.browseId
                                 navController.navigate(
                                     ArtistDestination(
-                                        channelId = channelId,
+                                        channelId = browseId,
                                     ),
                                 )
                             }, data = temp)
@@ -217,7 +217,7 @@ fun HomeItem(
                             HomeItemContentPlaylist(onClick = {
                                 navController.navigate(
                                     AlbumDestination(
-                                        browseId = temp.browseId,
+                                        browseId = browseId,
                                     ),
                                 )
                             }, data = temp)
@@ -301,8 +301,8 @@ fun HomeItemContentPlaylist(
             val thumb =
                 when (data) {
                     is Content -> data.thumbnails.lastOrNull()?.url
-                    is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
-                    is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
+                    is com.maxrave.domain.data.model.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
+                    is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
                     is LocalPlaylistEntity -> data.thumbnail
                     is PlaylistsResult -> data.thumbnails.lastOrNull()?.url
                     is AlbumEntity -> data.thumbnails
@@ -338,8 +338,8 @@ fun HomeItemContentPlaylist(
                 text =
                     when (data) {
                         is Content -> data.title
-                        is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.title.title
-                        is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.title
+                        is com.maxrave.domain.data.model.mood.genre.Content -> data.title.title
+                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.title
                         is LocalPlaylistEntity -> data.title
                         is PlaylistsResult -> data.title
                         is AlbumEntity -> data.title
@@ -385,8 +385,8 @@ fun HomeItemContentPlaylist(
                                     )
                                 }
 
-                        is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.title.subtitle
-                        is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.subtitle
+                        is com.maxrave.domain.data.model.mood.genre.Content -> data.title.subtitle
+                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.subtitle
                         is LocalPlaylistEntity -> stringResource(R.string.you)
                         is PlaylistsResult -> data.author
                         is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(id = R.string.album)
@@ -410,7 +410,7 @@ fun HomeItemContentPlaylist(
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
             )
-            if (data is com.maxrave.simpmusic.data.type.PlaylistType && data !is AlbumsResult) {
+            if (data is com.maxrave.domain.data.type.PlaylistType && data !is AlbumsResult) {
                 val subtitle =
                     if (data is LocalPlaylistEntity) {
                         if (data.downloadState != DownloadState.STATE_DOWNLOADED) {
@@ -578,7 +578,7 @@ fun HomeItemSong(
                         it
                     }
                 }
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -681,7 +681,7 @@ fun HomeItemVideo(
                     .padding(10.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -734,7 +734,7 @@ fun HomeItemVideo(
                         .padding(vertical = 3.dp),
             )
             Text(
-                text = if (data.views != null) data.views else stringResource(id = R.string.videos),
+                text = data.views ?: stringResource(id = R.string.videos),
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier =
@@ -770,7 +770,7 @@ fun HomeItemArtist(
                     .padding(10.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -809,7 +809,7 @@ fun HomeItemArtist(
                         ).focusable(),
             )
             Text(
-                text = if (data.description != null) data.description else stringResource(id = R.string.artists),
+                text = data.description.ifNullOrEmpty { stringResource(id = R.string.artists) },
                 style = typo.bodySmall,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
@@ -900,7 +900,7 @@ fun ItemVideoChart(
                     .padding(10.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1021,7 +1021,7 @@ fun ItemArtistChart(
                         .padding(end = 20.dp),
             )
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1132,7 +1132,7 @@ fun ItemTrackChart(
                 }
             }
             val thumb = data.thumbnails?.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1238,10 +1238,10 @@ fun MoodAndGenresContentItem(
                     navController.navigate(
                         PlaylistDestination(
                             playlistId =
-                                if (item is com.maxrave.simpmusic.data.model.explore.mood.genre.Content) {
+                                if (item is com.maxrave.domain.data.model.mood.genre.Content) {
                                     item.playlistBrowseId
                                 } else {
-                                    (item as com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content).playlistBrowseId
+                                    (item as com.maxrave.domain.data.model.mood.moodmoments.Content).playlistBrowseId
                                 },
                         ),
                     )

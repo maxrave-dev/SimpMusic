@@ -26,8 +26,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
+import com.maxrave.common.Config
+import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import kotlinx.coroutines.launch

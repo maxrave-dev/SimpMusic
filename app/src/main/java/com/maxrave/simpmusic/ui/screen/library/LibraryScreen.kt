@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -20,14 +19,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.domain.utils.LocalResource
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LibraryItem
 import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -59,7 +59,7 @@ fun LibraryScreen(
         )
 
     LaunchedEffect(true) {
-        Log.w("LibraryScreen", "Check youtubePlaylist: ${youTubePlaylist.data}")
+        Logger.w("LibraryScreen", "Check youtubePlaylist: ${youTubePlaylist.data}")
         if (youTubePlaylist.data.isNullOrEmpty()) {
             viewModel.getYouTubePlaylist()
         }
@@ -71,7 +71,7 @@ fun LibraryScreen(
         viewModel.getRecentlyAdded()
     }
     LaunchedEffect(nowPlaying) {
-        Log.w("LibraryScreen", "Check nowPlaying: $nowPlaying")
+        Logger.w("LibraryScreen", "Check nowPlaying: $nowPlaying")
         viewModel.getRecentlyAdded()
     }
 

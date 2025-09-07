@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontLoadingStrategy
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
 
 val fontFamily =
     FontFamily(

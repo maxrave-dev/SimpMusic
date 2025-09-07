@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -100,13 +99,15 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.utils.FilterState
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
@@ -118,7 +119,6 @@ import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -148,7 +148,7 @@ fun LocalPlaylistScreen(
     val context = LocalContext.current
 
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.downloading_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
     )
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -224,7 +224,7 @@ fun LocalPlaylistScreen(
         snapshotFlow {
             trackPagingItems.loadState
         }.collectLatest {
-            Log.d("PlaylistScreen", "loadState: ${trackPagingItems.loadState}")
+            Logger.d("PlaylistScreen", "loadState: ${trackPagingItems.loadState}")
             viewModel.setLazyTrackPagingItems(trackPagingItems)
         }
     }
@@ -260,7 +260,7 @@ fun LocalPlaylistScreen(
 
     LaunchedEffect(key1 = id) {
         if (id != uiState.id) {
-            Log.w("PlaylistScreen", "new id: $id")
+            Logger.w("PlaylistScreen", "new id: $id")
             viewModel.setOffset(0)
             viewModel.removeListSuggestion()
             viewModel.updatePlaylistState(id, true)
@@ -514,7 +514,7 @@ fun LocalPlaylistScreen(
                                                     resId = R.drawable.download_button,
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
-                                                    Log.w("PlaylistScreen", "downloadState: $downloadState")
+                                                    Logger.w("PlaylistScreen", "downloadState: $downloadState")
                                                     viewModel.downloadFullPlaylist()
                                                 }
                                             }
@@ -774,7 +774,7 @@ fun LocalPlaylistScreen(
                         songEntity = item,
                         onMoreClickListener = { onItemMoreClick(it) },
                         onClickListener = {
-                            Log.w("PlaylistScreen", "index: $index")
+                            Logger.w("PlaylistScreen", "index: $index")
                             onPlaylistItemClick(it)
                         },
                         onAddToQueue = {
@@ -790,7 +790,7 @@ fun LocalPlaylistScreen(
                         songEntity = item,
                         onMoreClickListener = { onItemMoreClick(it) },
                         onClickListener = {
-                            Log.w("PlaylistScreen", "index: $index")
+                            Logger.w("PlaylistScreen", "index: $index")
                             onPlaylistItemClick(it)
                         },
                         onAddToQueue = {
@@ -833,7 +833,7 @@ fun LocalPlaylistScreen(
         )
     }
     if (playlistBottomSheetShow) {
-        Log.w("PlaylistScreen", "PlaylistBottomSheet")
+        Logger.w("PlaylistScreen", "PlaylistBottomSheet")
         LocalPlaylistBottomSheet(
             isBottomSheetVisible = playlistBottomSheetShow,
             onDismiss = { playlistBottomSheetShow = false },

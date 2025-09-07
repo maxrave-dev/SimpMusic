@@ -20,7 +20,7 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.MainActivity
 import kotlinx.coroutines.runBlocking
 
@@ -51,8 +51,16 @@ object NotificationHandler {
                     ImageRequest
                         .Builder(context)
                         .data(
-                            noti.single.firstOrNull()?.thumbnail
-                                ?: noti.album.firstOrNull()?.thumbnail,
+                            noti.single
+                                .firstOrNull()
+                                ?.thumbnails
+                                ?.lastOrNull()
+                                ?.url
+                                ?: noti.album
+                                    .firstOrNull()
+                                    ?.thumbnails
+                                    ?.lastOrNull()
+                                    ?.url,
                         ).allowHardware(false) // Disable hardware bitmaps.
                         .build()
 

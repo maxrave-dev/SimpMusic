@@ -3,6 +3,8 @@ package com.maxrave.kotlinytmusicscraper
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
@@ -83,7 +85,6 @@ import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
 import com.maxrave.kotlinytmusicscraper.utils.NewPipeDownloaderImpl
 import com.maxrave.kotlinytmusicscraper.utils.NewPipeUtils
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.NewPipePoTokenProviderImpl
-import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.PoTokenGenerator
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
@@ -103,7 +104,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.CacheControl
 import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import okio.FileSystem
 import okio.IOException
 import okio.Path
@@ -259,6 +263,36 @@ class YouTube(
         }.onFailure {
             it.printStackTrace()
         }
+    }
+
+    fun setUpInterceptors(context: Context) {
+        cacheControlInterceptor =
+            object : Interceptor {
+                override fun intercept(chain: Interceptor.Chain): Response {
+                    val originalResponse = chain.proceed(chain.request())
+                    if (isNetworkAvailable(context)) {
+                        val maxAge = 60 // read from cache for 1 minute
+                        return originalResponse
+                            .newBuilder()
+                            .header("Cache-Control", "public, max-age=$maxAge")
+                            .build()
+                    } else {
+                        val maxStale = 60 * 60 * 24 * 28 // tolerate 4-weeks stale
+                        return originalResponse
+                            .newBuilder()
+                            .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
+                            .build()
+                    }
+                }
+            }
+        forceCacheInterceptor =
+            Interceptor { chain ->
+                val builder: Request.Builder = chain.request().newBuilder()
+                if (!isNetworkAvailable(context)) {
+                    builder.cacheControl(CacheControl.FORCE_CACHE)
+                }
+                chain.proceed(builder.build())
+            }
     }
 
     private val listPipedInstances =
@@ -2340,6 +2374,29 @@ class YouTube(
         }.flowOn(Dispatchers.IO)
 
     suspend fun is403Url(url: String) = ytMusic.is403Url(url)
+
+    private fun isNetworkAvailable(context: Context?): Boolean {
+        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        // Returns a Network object corresponding to
+        // the currently active default data network.
+        val network = connectivityManager.activeNetwork ?: return false
+
+        // Representation of the capabilities of an active network.
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+        return when {
+            // Indicates this network uses a Wi-Fi transport,
+            // or WiFi has network connectivity
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+
+            // Indicates this network uses a Cellular transport. or
+            // Cellular has network connectivity
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+
+            // else return false
+            else -> false
+        }
+    }
 
     companion object {
         const val MAX_GET_QUEUE_SIZE = 1000

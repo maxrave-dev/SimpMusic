@@ -55,23 +55,23 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.db.entities.AlbumEntity
-import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
-import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
-import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
-import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.data.type.ArtistType
-import com.maxrave.simpmusic.data.type.PlaylistType
-import com.maxrave.simpmusic.extension.connectArtists
-import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.AlbumEntity
+import com.maxrave.domain.data.entities.ArtistEntity
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.PlaylistEntity
+import com.maxrave.domain.data.entities.PodcastsEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.type.ArtistType
+import com.maxrave.domain.data.type.PlaylistType
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.domain.utils.toListName
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
@@ -95,13 +95,13 @@ fun SongFullWidthItems(
     val maxOffset = 360f
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val mainRepository: MainRepository = koinInject()
-    val downloadState by mainRepository
+    val songRepository: SongRepository = koinInject<SongRepository>()
+    val downloadState by songRepository
         .getSongAsFlow(songEntity?.videoId ?: track?.videoId ?: "")
         .mapNotNull { it?.downloadState }
         .collectAsState(initial = DownloadState.STATE_NOT_DOWNLOADED)
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.audio_playing_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.audio_playing_animation),
     )
     val offsetX = remember { Animatable(initialValue = 0f) }
     var heightDp by remember { mutableStateOf(0.dp) }
@@ -301,7 +301,7 @@ fun SuggestItems(
     onAddClickListener: (() -> Unit)? = null,
 ) {
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.audio_playing_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.audio_playing_animation),
     )
     Box(
         modifier =

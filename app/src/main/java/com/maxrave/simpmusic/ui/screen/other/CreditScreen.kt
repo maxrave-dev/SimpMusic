@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
 import com.maxrave.simpmusic.extension.adaptiveIconPainterResource
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
@@ -73,7 +73,7 @@ fun CreditScreen(
 
         // App icon
         Image(
-            painter = adaptiveIconPainterResource(R.mipmap.ic_launcher_round) ?: painterResource(R.drawable.holder),
+            painter = adaptiveIconPainterResource(com.maxrave.simpmusic.R.mipmap.ic_launcher_round) ?: painterResource(R.drawable.holder),
             contentDescription = "App Icon",
             modifier =
                 Modifier

@@ -72,12 +72,12 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.google.android.material.snackbar.Snackbar
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -298,10 +298,11 @@ fun PodcastScreen(
                                                                     .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
                                                             contentPadding = PaddingValues(vertical = 1.dp),
                                                             onClick = {
-                                                                if (data.author.id?.isNotEmpty() == true) {
+                                                                val authorId = data.author.id
+                                                                if (authorId.isNullOrEmpty().not()) {
                                                                     navController.navigate(
                                                                         ArtistDestination(
-                                                                            data.author.id,
+                                                                            authorId,
                                                                         ),
                                                                     )
                                                                 }

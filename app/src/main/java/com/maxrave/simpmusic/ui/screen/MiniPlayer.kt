@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen
 
-import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
@@ -71,9 +70,10 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -214,7 +214,7 @@ fun MiniPlayer(
                                 coroutineScope.launch {
                                     change.consume()
                                     offsetY.animateTo(offsetY.value + 2 * dragAmount)
-                                    Log.w("MiniPlayer", "Dragged ${offsetY.value}")
+                                    Logger.w("MiniPlayer", "Dragged ${offsetY.value}")
                                 }
                             }
                         },
@@ -224,7 +224,7 @@ fun MiniPlayer(
                             }
                         },
                         onDragEnd = {
-                            Log.w("MiniPlayer", "Drag Ended")
+                            Logger.w("MiniPlayer", "Drag Ended")
                             coroutineScope.launch {
                                 if (offsetY.value > 70) {
                                     onClose()
@@ -259,11 +259,11 @@ fun MiniPlayer(
                                             coroutineScope.launch {
                                                 change.consume()
                                                 offsetX.animateTo(offsetX.value + dragAmount * 2)
-                                                Log.w("MiniPlayer", "Dragged ${offsetX.value}")
+                                                Logger.w("MiniPlayer", "Dragged ${offsetX.value}")
                                             }
                                         },
                                         onDragCancel = {
-                                            Log.w("MiniPlayer", "Drag Cancelled")
+                                            Logger.w("MiniPlayer", "Drag Cancelled")
                                             coroutineScope.launch {
                                                 if (offsetX.value > 200) {
                                                     sharedViewModel.onUIEvent(UIEvent.Previous)
@@ -274,7 +274,7 @@ fun MiniPlayer(
                                             }
                                         },
                                         onDragEnd = {
-                                            Log.w("MiniPlayer", "Drag Ended")
+                                            Logger.w("MiniPlayer", "Drag Ended")
                                             coroutineScope.launch {
                                                 if (offsetX.value > 200) {
                                                     sharedViewModel.onUIEvent(UIEvent.Previous)

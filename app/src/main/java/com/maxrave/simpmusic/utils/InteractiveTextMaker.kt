@@ -6,7 +6,6 @@ import android.text.SpannableString
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.ColorRes
@@ -14,6 +13,7 @@ import androidx.annotation.FontRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
+import com.maxrave.logger.Logger
 
 class InteractiveTextMaker private constructor(
     private val textView: TextView,
@@ -85,7 +85,7 @@ class InteractiveTextMaker private constructor(
         val words = regex.findAll(textView.text)
         val span = SpannableString(textView.text)
         if (words.toList().isEmpty()) {
-            Log.w(
+            Logger.w(
                 TAG,
                 "initialize: WARNING can't found in ${textView.text} to make it interactive.",
             )
@@ -94,7 +94,7 @@ class InteractiveTextMaker private constructor(
         words.forEachIndexed { index: Int, wordResult: MatchResult ->
             val startIndex = wordResult.range.first
             val endIndex = wordResult.range.last + 1
-            Log.i(
+            Logger.i(
                 TAG,
                 "initialize: text:'${textView.text}' startIndex:$startIndex endIndex:$endIndex",
             )

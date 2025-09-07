@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
@@ -21,42 +20,50 @@ import androidx.media3.session.SessionResult
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.home.HomeItem
-import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.extension.connectArtists
-import com.maxrave.simpmusic.extension.toListName
-import com.maxrave.simpmusic.extension.toListTrack
+import com.maxrave.common.MEDIA_CUSTOM_COMMAND
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.home.HomeItem
+import com.maxrave.domain.repository.HomeRepository
+import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.repository.PlaylistRepository
+import com.maxrave.domain.repository.SearchRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.StreamRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.domain.utils.toListName
+import com.maxrave.domain.utils.toListTrack
+import com.maxrave.domain.utils.toPlaylistEntity
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.toMediaItem
-import com.maxrave.simpmusic.extension.toPlaylistEntity
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.utils.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.guava.future
+
+private const val TAG = "AndroidAuto"
 
 class SimpleMediaSessionCallback(
     private val context: Context,
-    private val mainRepository: MainRepository,
+    private val searchRepository: SearchRepository,
+    private val songRepository: SongRepository,
+    private val localPlaylistRepository: LocalPlaylistRepository,
+    private val playlistRepository: PlaylistRepository,
+    private val homeRepository: HomeRepository,
+    private val streamRepository: StreamRepository,
 ) : MediaLibrarySession.Callback {
-    private val tag = "AndroidAuto"
     var toggleLike: () -> Unit = {}
     var toggleRadio: () -> Unit = {}
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private val searchTempList = mutableListOf<Track>()
     private val listHomeItem = mutableListOf<HomeItem>()
-
-    init {
-        if (!mainRepository.init) {
-            mainRepository.initYouTube(scope)
-        }
-    }
 
     override fun onConnect(
         session: MediaSession,
@@ -142,7 +149,7 @@ class SimpleMediaSessionCallback(
     ): ListenableFuture<LibraryResult<Void>> =
         scope.future(Dispatchers.IO) {
             val searchResult =
-                mainRepository.getSearchDataSong(query).first().let { resource ->
+                searchRepository.getSearchDataSong(query).lastOrNull()?.let { resource ->
                     when (resource) {
                         is Resource.Success -> {
                             resource.data?.let {
@@ -229,14 +236,14 @@ class SimpleMediaSessionCallback(
                         )
 
                     SONG ->
-                        mainRepository
+                        songRepository
                             .getAllSongs()
-                            .first()
+                            .last()
                             .sortedBy { it.inLibrary }
                             .map { it.toMediaItem(parentId) }
 
                     PLAYLIST ->
-                        mainRepository
+                        localPlaylistRepository
                             .getAllLocalPlaylists()
                             .first()
                             .sortedBy { it.inLibrary }
@@ -251,7 +258,7 @@ class SimpleMediaSessionCallback(
                             }
 
                     HOME -> {
-                        val temp = mainRepository.getHomeData().first().data
+                        val temp = homeRepository.getHomeData(context).lastOrNull()?.data
                         listHomeItem.clear()
                         listHomeItem.addAll(temp ?: emptyList())
                         temp?.map {
@@ -303,18 +310,18 @@ class SimpleMediaSessionCallback(
                                     val playlistId = parentId.split("/").getOrNull(3)
                                     if (playlistId != null) {
                                         val playlist =
-                                            mainRepository.getFullPlaylistData(playlistId).first()
-                                        if (playlist.data?.tracks.isNullOrEmpty()) {
+                                            playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                                        if (playlist?.data?.tracks.isNullOrEmpty()) {
                                             emptyList()
                                         } else {
-                                            mainRepository.insertAndReplacePlaylist(playlist.data.toPlaylistEntity())
-                                            playlist.data.tracks.map { track ->
+                                            playlist.data?.toPlaylistEntity()?.let { playlistRepository.insertAndReplacePlaylist(it) }
+                                            playlist.data?.tracks?.map { track ->
                                                 track
                                                     .toSongEntity()
                                                     .also {
-                                                        mainRepository.insertSong(it).first()
+                                                        songRepository.insertSong(it).first()
                                                     }.toMediaItem(parentId)
-                                            }
+                                            } ?: emptyList()
                                         }
                                     } else {
                                         emptyList()
@@ -326,16 +333,17 @@ class SimpleMediaSessionCallback(
                                 val playlistId = parentId.split("/").getOrNull(1)
                                 if (playlistId != null) {
                                     val playlist =
-                                        mainRepository.getLocalPlaylist(playlistId.toLong()).first()
+                                        localPlaylistRepository.getLocalPlaylist(playlistId.toLong()).lastOrNull()?.data
                                     if (playlist != null) {
-                                        Log.w(tag, "onGetChildren: $playlist")
-                                        if (playlist.tracks.isNullOrEmpty()) {
+                                        Logger.w(TAG, "onGetChildren: $playlist")
+                                        val tracks = playlist.tracks
+                                        if (tracks.isNullOrEmpty()) {
                                             emptyList()
                                         } else {
-                                            mainRepository
-                                                .getSongsByListVideoId(playlist.tracks)
-                                                .first()
-                                                .map { it.toMediaItem(parentId) }
+                                            songRepository
+                                                .getSongsByListVideoId(tracks)
+                                                .lastOrNull()
+                                                ?.map { it.toMediaItem(parentId) } ?: emptyList()
                                         }
                                     } else {
                                         emptyList()
@@ -360,10 +368,10 @@ class SimpleMediaSessionCallback(
         mediaId: String,
     ): ListenableFuture<LibraryResult<MediaItem>> =
         scope.future(Dispatchers.IO) {
-            mainRepository.getSongById(mediaId).first()?.let {
+            songRepository.getSongById(mediaId).first()?.let {
                 LibraryResult.ofItem(it.toMediaItem(), null)
-            } ?: mainRepository.getFullMetadata(mediaId).first()?.let {
-                LibraryResult.ofItem(it.toTrack().toMediaItemWithoutPath(), null)
+            } ?: streamRepository.getFullMetadata(mediaId).lastOrNull()?.data?.let {
+                LibraryResult.ofItem(it.toMediaItemWithoutPath(), null)
             } ?: LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
         }
 
@@ -385,13 +393,13 @@ class SimpleMediaSessionCallback(
             when (path.firstOrNull()) {
                 SONG -> {
                     val songId = path.getOrNull(1) ?: return@future defaultResult
-                    val allSongs = mainRepository.getAllSongs().first().sortedBy { it.inLibrary }
+                    val allSongs = songRepository.getAllSongs().lastOrNull()?.sortedBy { it.inLibrary } ?: emptyList()
                     if (allSongs.find { it.videoId == songId } == null) {
                         val song =
                             searchTempList.find { it.videoId == songId }
-                                ?: mainRepository.getFullMetadata(songId).first()?.toTrack()
+                                ?: streamRepository.getFullMetadata(songId).lastOrNull()?.data
                                 ?: return@future defaultResult
-                        mainRepository.insertSong(song.toSongEntity()).first()
+                        songRepository.insertSong(song.toSongEntity()).lastOrNull()
                         val cloneList = allSongs.toMutableList()
                         cloneList.add(0, song.toSongEntity())
                         MediaSession.MediaItemsWithStartPosition(
@@ -411,16 +419,17 @@ class SimpleMediaSessionCallback(
                 PLAYLIST -> {
                     val songId = path.getOrNull(2) ?: return@future defaultResult
                     val playlistId = path.getOrNull(1) ?: return@future defaultResult
-                    Log.d("SimpleMediaSessionCallback", "onSetMediaItems playlistId: $playlistId")
+                    Logger.d("SimpleMediaSessionCallback", "onSetMediaItems playlistId: $playlistId")
                     val songs =
-                        mainRepository
+                        localPlaylistRepository
                             .getLocalPlaylist(playlistId.toLong())
-                            .first()
+                            .lastOrNull()
+                            ?.data
                             ?.tracks
                             ?.let {
-                                mainRepository.getSongsByListVideoId(it)
-                            }?.first()
-                    Log.w("SimpleMediaSessionCallback", "onSetMediaItems songs: $songs")
+                                songRepository.getSongsByListVideoId(it)
+                            }?.lastOrNull()
+                    Logger.w("SimpleMediaSessionCallback", "onSetMediaItems songs: $songs")
                     if (songs.isNullOrEmpty()) {
                         defaultResult
                     } else {
@@ -445,7 +454,7 @@ class SimpleMediaSessionCallback(
                             defaultResult
                         } else {
                             songs.forEach {
-                                mainRepository.insertSong(it.toSongEntity()).first()
+                                songRepository.insertSong(it.toSongEntity()).first()
                             }
                             MediaSession.MediaItemsWithStartPosition(
                                 songs.map { it.toMediaItem() },
@@ -456,21 +465,22 @@ class SimpleMediaSessionCallback(
                     } else if (type == PLAYLIST) {
                         val songId = path.getOrNull(4) ?: return@future defaultResult
                         val playlistId = path.getOrNull(3) ?: return@future defaultResult
-                        Log.d(tag, "onSetMediaItems playlistId: $playlistId")
-                        val playlistEntity = mainRepository.getPlaylist(playlistId).first()
-                        Log.w(tag, "onSetMediaItems playlistEntity: $playlistEntity")
-                        if (playlistEntity?.tracks.isNullOrEmpty()) {
+                        Logger.d(TAG, "onSetMediaItems playlistId: $playlistId")
+                        val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
+                        Logger.w(TAG, "onSetMediaItems playlistEntity: $playlistEntity")
+                        val tracks = playlistEntity?.tracks
+                        if (tracks.isNullOrEmpty()) {
                             defaultResult
-                        } else if (playlistEntity?.tracks?.isNotEmpty() == true) {
-                            playlistEntity.tracks
-                                .let { tracks ->
-                                    mainRepository
+                        } else if (tracks.isNotEmpty()) {
+                            tracks
+                                .let {
+                                    songRepository
                                         .getSongsByListVideoId(tracks)
                                         .first()
                                         .sortedBy {
                                             tracks.indexOf(it.videoId)
                                         }.also {
-                                            Log.w(tag, "onSetMediaItems list songs: $it")
+                                            Logger.w(TAG, "onSetMediaItems list songs: $it")
                                         }.map { it.toMediaItem() }
                                 }.let { mediaItemList ->
                                     MediaSession.MediaItemsWithStartPosition(

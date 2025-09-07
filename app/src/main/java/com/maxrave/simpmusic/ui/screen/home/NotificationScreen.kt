@@ -45,8 +45,8 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.db.entities.NotificationEntity
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.formatTimeAgo
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage

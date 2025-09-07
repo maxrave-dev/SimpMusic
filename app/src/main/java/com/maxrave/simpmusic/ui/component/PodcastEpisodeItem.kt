@@ -28,8 +28,8 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.ui.theme.typo
 
 @Composable
@@ -104,9 +104,10 @@ fun PodcastEpisodeFullWidthItem(
                             ).focusable(),
                 )
 
-                if (episode.description != null) {
+                val description = episode.description
+                if (description != null) {
                     Text(
-                        text = episode.description,
+                        text = description,
                         style = typo.bodyMedium,
                         maxLines = 1,
                         color = Color(0xC4FFFFFF),

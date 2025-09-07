@@ -11,7 +11,7 @@ import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
 import org.koin.android.ext.android.inject
 
 @UnstableApi

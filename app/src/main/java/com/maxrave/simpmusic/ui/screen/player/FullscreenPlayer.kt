@@ -84,8 +84,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
+import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.common.R
 import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.rememberIsInPipMode

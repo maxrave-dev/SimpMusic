@@ -40,6 +40,10 @@ val sharedDir =
 rootProject.name = "SimpMusic"
 include(
     "app",
+    ":common",
+    ":data",
+    ":domain",
+    ":platform",
     ":kotlinYtmusicScraper",
     ":spotify",
     ":aiService",

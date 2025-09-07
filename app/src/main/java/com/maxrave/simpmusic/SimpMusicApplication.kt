@@ -15,7 +15,10 @@ import coil3.request.CachePolicy
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import com.maxrave.simpmusic.di.databaseModule
+import com.maxrave.data.di.coroutinesModule
+import com.maxrave.data.di.databaseModule
+import com.maxrave.data.di.repositoryModule
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.mediaServiceModule
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.MainActivity
@@ -59,7 +62,9 @@ class SimpMusicApplication :
             androidLogger(level = Level.DEBUG)
             androidContext(this@SimpMusicApplication)
             modules(
+                coroutinesModule,
                 databaseModule,
+                repositoryModule,
                 mediaServiceModule,
                 viewModelModule,
             )
@@ -91,6 +96,6 @@ class SimpMusicApplication :
     override fun onTerminate() {
         super.onTerminate()
 
-        Log.w("Terminate", "Checking")
+        Logger.w("Terminate", "Checking")
     }
 }
