@@ -73,12 +73,12 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -119,7 +119,7 @@ fun AlbumScreen(
     var chosenSong: Track? by remember { mutableStateOf(null) }
 
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.downloading_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
     )
 
     LaunchedEffect(browseId) {

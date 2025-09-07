@@ -54,14 +54,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.home.Content
-import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.home.Content
+import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.extension.rgbFactor
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -513,10 +513,11 @@ fun ArtistScreen(
                                     )
                                     TextButton(
                                         onClick = {
-                                            if (state.data.video?.videoListParam != null) {
+                                            val videoListParam = state.data.video?.videoListParam
+                                            if (videoListParam != null) {
                                                 navController.navigate(
                                                     PlaylistDestination(
-                                                        state.data.video.videoListParam,
+                                                        videoListParam,
                                                     ),
                                                 )
                                             } else {

@@ -1,12 +1,12 @@
 // package com.maxrave.simpmusic.service.test.source
 //
-// import android.util.Log
+// import com.maxrave.logger.Logger
 // import androidx.core.net.toUri
 // import androidx.media3.common.MediaItem
 // import androidx.media3.common.MediaMetadata
 // import androidx.media3.common.util.UnstableApi
-// import com.maxrave.simpmusic.data.model.browse.album.Track
-// import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+// import com.maxrave.domain.model.Track
+// import com.maxrave.domain.model.Artist
 // import com.maxrave.simpmusic.data.queue.Queue
 // import com.maxrave.simpmusic.data.repository.MainRepository
 // import com.maxrave.simpmusic.extension.connectArtists
@@ -56,13 +56,13 @@
 //
 //    fun addFirstMediaItem(mediaItem: MediaItem?) {
 //        if (mediaItem != null){
-//            Log.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
+//            Logger.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
 //        }
 //    }
 //    @UnstableApi
 //    fun addFirstMediaItemToIndex(mediaItem: MediaItem?, index: Int) {
 //        if (mediaItem != null){
-//            Log.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
+//            Logger.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
 //            simpleMediaServiceHandler.moveMediaItem(0, index)
 //        }
 //    }
@@ -154,7 +154,7 @@
 //                    simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
 //                    catalogMetadata.add(track)
 //                }
-//                Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
+//                Logger.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
 //                added.value = true
 //            }
 //            else {
@@ -220,12 +220,12 @@
 //                        )
 //                        catalogMetadata.add(track)
 //                    }
-//                    Log.d(
+//                    Logger.d(
 //                        "MusicSource",
 //                        "updateCatalog: ${track.title}, ${catalogMetadata.size}"
 //                    )
 //                    added.value = true
-//                    Log.d("MusicSource", "updateCatalog: ${track.title}")
+//                    Logger.d("MusicSource", "updateCatalog: ${track.title}")
 //                }
 //            }
 //        }
@@ -238,7 +238,7 @@
 //    fun addFirstMetadata(it: Track) {
 //        added.value = true
 //        catalogMetadata.add(0, it)
-//        Log.d("MusicSource", "addFirstMetadata: ${it.title}, ${catalogMetadata.size}")
+//        Logger.d("MusicSource", "addFirstMetadata: ${it.title}, ${catalogMetadata.size}")
 //    }
 //
 //    @UnstableApi

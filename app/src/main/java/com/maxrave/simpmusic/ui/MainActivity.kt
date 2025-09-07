@@ -8,7 +8,6 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -51,13 +50,14 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.STATUS_DONE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.common.FIRST_TIME_MIGRATION
+import com.maxrave.common.R
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.common.STATUS_DONE
+import com.maxrave.common.SUPPORTED_LANGUAGE
+import com.maxrave.common.SUPPORTED_LOCATION
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
@@ -95,13 +95,13 @@ class MainActivity : AppCompatActivity() {
                 service: IBinder?,
             ) {
                 if (service is SimpleMediaService.MusicBinder) {
-                    Log.w("MainActivity", "onServiceConnected: ")
+                    Logger.w("MainActivity", "onServiceConnected: ")
                     mBound = true
                 }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
-                Log.w("MainActivity", "onServiceDisconnected: ")
+                Logger.w("MainActivity", "onServiceDisconnected: ")
                 mBound = false
             }
         }
@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d("MainActivity", "onNewIntent: $intent")
+        Logger.d("MainActivity", "onNewIntent: $intent")
         viewModel.setIntent(intent)
     }
 
@@ -148,18 +148,18 @@ class MainActivity : AppCompatActivity() {
         } else {
             startMusicService()
         }
-        Log.d("MainActivity", "onCreate: ")
+        Logger.d("MainActivity", "onCreate: ")
         val data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
         if (data != null) {
             viewModel.setIntent(intent)
         }
-        Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
+        Logger.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
-            Log.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
+            Logger.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
             if (SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())) {
-                Log.d(
+                Logger.d(
                     "Contains",
                     "onCreate: ${
                         SUPPORTED_LANGUAGE.codes.contains(
@@ -178,7 +178,7 @@ class MainActivity : AppCompatActivity() {
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
-                Log.d("Locale Key", "getString: $it")
+                Logger.d("Locale Key", "getString: $it")
                 // Set this locale using the AndroidX library that will handle the storage itself
                 val localeList = LocaleListCompat.forLanguageTags(it)
                 AppCompatDelegate.setApplicationLocales(localeList)
@@ -191,7 +191,7 @@ class MainActivity : AppCompatActivity() {
                 SELECTED_LANGUAGE,
             )
         ) {
-            Log.d(
+            Logger.d(
                 "Locale Key",
                 "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}",
             )
@@ -251,17 +251,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             LaunchedEffect(nowPlayingData) {
-                if (nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == MediaItem.EMPTY) {
-                    isShowMiniPlayer = false
-                } else {
-                    isShowMiniPlayer = true
-                }
+                isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == MediaItem.EMPTY)
             }
 
             LaunchedEffect(intent) {
                 val intent = intent ?: return@LaunchedEffect
                 val data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-                Log.d("MainActivity", "onCreate: $data")
+                Logger.d("MainActivity", "onCreate: $data")
                 if (data != null) {
                     if (data == "simpmusic://notification".toUri()) {
                         viewModel.setIntent(null)
@@ -269,7 +265,7 @@ class MainActivity : AppCompatActivity() {
                             NotificationDestination,
                         )
                     } else {
-                        Log.d("MainActivity", "onCreate: $data")
+                        Logger.d("MainActivity", "onCreate: $data")
                         when (val path = data.pathSegments.firstOrNull()) {
                             "playlist" ->
                                 data
@@ -343,7 +339,7 @@ class MainActivity : AppCompatActivity() {
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             LaunchedEffect(navBackStackEntry) {
-                Log.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
+                Logger.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
                 if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
                     isShowNowPlaylistScreen = false
                 }
@@ -414,7 +410,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         if (sleepTimerState.isDone) {
-                            Log.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
+                            Logger.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
                             AlertDialog(
                                 properties =
                                     DialogProperties(
@@ -560,7 +556,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         val shouldStopMusicService = viewModel.shouldStopMusicService()
-        Log.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
+        Logger.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
 
         // Always unbind service if it was bound to prevent MusicBinder leak
         if (shouldStopMusicService && shouldUnbind && isFinishing) {
@@ -568,7 +564,7 @@ class MainActivity : AppCompatActivity() {
         }
         unloadKoinModules(viewModelModule)
         super.onDestroy()
-        Log.d("MainActivity", "onDestroy: ")
+        Logger.d("MainActivity", "onDestroy: ")
     }
 
     override fun onRestart() {
@@ -582,7 +578,7 @@ class MainActivity : AppCompatActivity() {
         bindService(intent, serviceConnection, BIND_AUTO_CREATE)
         viewModel.isServiceRunning = true
         shouldUnbind = true
-        Log.d("Service", "Service started")
+        Logger.d("Service", "Service started")
     }
 
     private fun checkForUpdate() {

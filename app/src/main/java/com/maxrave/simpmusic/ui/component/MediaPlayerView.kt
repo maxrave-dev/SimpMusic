@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.component
 
 import android.app.PictureInPictureParams
 import android.os.Build
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -59,8 +58,9 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.model.metadata.Lyrics
+import com.maxrave.common.Config
+import com.maxrave.domain.data.model.metadata.Lyrics
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -97,10 +97,10 @@ fun MediaPlayerView(
             object : Player.Listener {
                 override fun onVideoSizeChanged(videoSize: VideoSize) {
                     super.onVideoSizeChanged(videoSize)
-                    Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
+                    Logger.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
                     if (videoSize.width != 0 && videoSize.height != 0) {
                         val h = (videoSize.width.toFloat() / videoSize.height) * screenSize.hPX
-                        Log.w("MediaPlayerView", "Calculated width: $h")
+                        Logger.w("MediaPlayerView", "Calculated width: $h")
                         widthPx = h.roundToInt()
                     }
                 }
@@ -320,11 +320,12 @@ fun MediaPlayerViewWithSubtitle(
 
                 override fun onVideoSizeChanged(videoSize: VideoSize) {
                     super.onVideoSizeChanged(videoSize)
-                    videoRatio = if (videoSize.width != 0 && videoSize.height != 0) {
-                        videoSize.width.toFloat() / videoSize.height
-                    } else {
-                        16f / 9 // Default ratio if video size is not available
-                    }
+                    videoRatio =
+                        if (videoSize.width != 0 && videoSize.height != 0) {
+                            videoSize.width.toFloat() / videoSize.height
+                        } else {
+                            16f / 9 // Default ratio if video size is not available
+                        }
                 }
 
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -339,7 +340,7 @@ fun MediaPlayerViewWithSubtitle(
         onDispose {
             shouldEnterPipMode = false
             player.removeListener(playerListener)
-            Log.w("MediaPlayerView", "Disposing ExoPlayer")
+            Logger.w("MediaPlayerView", "Disposing ExoPlayer")
             if (shouldPip && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val builder = PictureInPictureParams.Builder()
 
@@ -357,7 +358,7 @@ fun MediaPlayerViewWithSubtitle(
     val presentationState = rememberPresentationState(player)
 
     LaunchedEffect(shouldEnterPipMode) {
-        Log.w("MediaPlayerView", "shouldEnterPipMode: $shouldEnterPipMode")
+        Logger.w("MediaPlayerView", "shouldEnterPipMode: $shouldEnterPipMode")
     }
 
     if (shouldPip && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {

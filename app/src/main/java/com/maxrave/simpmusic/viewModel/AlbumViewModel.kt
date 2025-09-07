@@ -5,25 +5,28 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
-import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-import com.maxrave.simpmusic.extension.toAlbumEntity
-import com.maxrave.simpmusic.extension.toArrayListTrack
-import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.browse.artist.ResultAlbum
+import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.toAlbumEntity
+import com.maxrave.domain.utils.toArrayListTrack
+import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
-import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,7 +35,9 @@ import java.time.LocalDateTime
 
 @UnstableApi
 class AlbumViewModel(
-    private val application: Application,
+    application: Application,
+    private val songRepository: SongRepository,
+    private val albumRepository: AlbumRepository,
 ) : BaseViewModel(application) {
     private val downloadUtils: DownloadUtils by inject()
     private val _uiState: MutableStateFlow<AlbumUIState> = MutableStateFlow(AlbumUIState.initial())
@@ -44,7 +49,7 @@ class AlbumViewModel(
     fun updateBrowseId(browseId: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(browseId = browseId) }
-            mainRepository.getAlbumData(browseId).collectLatest { res ->
+            albumRepository.getAlbumData(browseId).collectLatest { res ->
                 when (res) {
                     is Resource.Success -> {
                         val data = res.data
@@ -68,25 +73,28 @@ class AlbumViewModel(
                                     loadState = LocalPlaylistState.PlaylistLoadState.Success,
                                 )
                             }
-                            mainRepository.getAlbum(browseId).singleOrNull().let { album ->
-                                if (album != null) {
-                                    _uiState.update {
-                                        it.copy(
-                                            downloadState = album.downloadState,
-                                            liked = album.liked,
-                                        )
-                                    }
-                                    mainRepository.updateAlbumInLibrary(LocalDateTime.now(), browseId)
-                                } else {
-                                    mainRepository.insertAlbum(data.toAlbumEntity(browseId)).singleOrNull().let {
-                                        log("Insert Album $it", Log.DEBUG)
-                                        data.tracks.forEach { track ->
-                                            mainRepository.insertSong(track.toSongEntity().copy(
-                                                inLibrary = Config.REMOVED_SONG_DATE_TIME
-                                            )).singleOrNull()?.let {
-                                                log("Insert Song $it", Log.DEBUG)
+                            val localAlbum = albumRepository.getAlbum(browseId).lastOrNull()
+                            if (localAlbum != null) {
+                                _uiState.update {
+                                    it.copy(
+                                        downloadState = localAlbum.downloadState,
+                                        liked = localAlbum.liked,
+                                    )
+                                }
+                                albumRepository.updateAlbumInLibrary(LocalDateTime.now(), browseId)
+                            } else {
+                                albumRepository.insertAlbum(data.toAlbumEntity(browseId)).singleOrNull().let {
+                                    log("Insert Album $it")
+                                    data.tracks.forEach { track ->
+                                        songRepository
+                                            .insertSong(
+                                                track.toSongEntity().copy(
+                                                    inLibrary = Config.REMOVED_SONG_DATE_TIME,
+                                                ),
+                                            ).singleOrNull()
+                                            ?.let {
+                                                log("Insert Song $it")
                                             }
-                                        }
                                     }
                                 }
                             }
@@ -101,7 +109,7 @@ class AlbumViewModel(
                         }
                     }
                     is Resource.Error -> {
-                        mainRepository.getAlbum(browseId).singleOrNull().let { albumEntity ->
+                        albumRepository.getAlbum(browseId).singleOrNull().let { albumEntity ->
                             if (albumEntity != null) {
                                 _uiState.update {
                                     it.copy(
@@ -119,7 +127,7 @@ class AlbumViewModel(
                                         length = albumEntity.duration ?: "",
                                         listTrack =
                                             (
-                                                mainRepository
+                                                songRepository
                                                     .getSongsByListVideoId(albumEntity.tracks ?: emptyList())
                                                     .singleOrNull() ?: emptyList()
                                             ).toArrayListTrack(),
@@ -152,7 +160,7 @@ class AlbumViewModel(
 
     fun setAlbumLike() {
         viewModelScope.launch {
-            mainRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0)
+            albumRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0)
             _uiState.update {
                 it.copy(
                     liked = !it.liked,
@@ -166,7 +174,7 @@ class AlbumViewModel(
         collectDownloadStateJob?.cancel()
         job =
             viewModelScope.launch {
-                mainRepository.getAlbumAsFlow(browseId).collectLatest { album ->
+                albumRepository.getAlbumAsFlow(browseId).collectLatest { album ->
                     if (album != null) {
                         _uiState.update {
                             it.copy(
@@ -182,12 +190,12 @@ class AlbumViewModel(
                 downloadUtils.downloadTask.collectLatest { downloadTask ->
                     var count = 0
                     uiState.value.listTrack.forEach { track ->
-                        if (downloadTask.get(track.videoId) == DownloadState.STATE_DOWNLOADED) {
+                        if (downloadTask[track.videoId] == DownloadState.STATE_DOWNLOADED) {
                             count++
                         }
                     }
                     if (count == uiState.value.listTrack.size) {
-                        mainRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADED)
+                        albumRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADED)
                         _uiState.update {
                             it.copy(
                                 downloadState = DownloadState.STATE_DOWNLOADED,
@@ -237,28 +245,28 @@ class AlbumViewModel(
         viewModelScope.launch {
             // Insert all song to database
             uiState.value.listTrack.forEach { track ->
-                mainRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
-                    log("Insert Song $it", Log.DEBUG)
+                songRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
+                    log("Insert Song $it")
                 }
             }
             val fullListSong =
-                mainRepository
+                songRepository
                     .getSongsByListVideoId(uiState.value.listTrack.map { it.videoId })
                     .singleOrNull() ?: emptyList()
-            log("Full list song: $fullListSong", Log.DEBUG)
+            log("Full list song: $fullListSong")
             if (fullListSong.isEmpty()) {
                 makeToast(getString(R.string.playlist_is_empty))
                 return@launch
             }
             val listJob = fullListSong.filter { it.downloadState != DownloadState.STATE_DOWNLOADED }
-            log("List job: $listJob", Log.DEBUG)
+            log("List job: $listJob")
             if (listJob.isEmpty()) {
                 makeToast(getString(R.string.downloaded))
                 return@launch
             }
-            mainRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADING)
+            albumRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADING)
             listJob.forEach {
-                log("Download: ${it.videoId} ${it.thumbnails}", Log.DEBUG)
+                log("Download: ${it.videoId} ${it.thumbnails}")
                 downloadUtils.downloadTrack(
                     it.videoId,
                     it.title,

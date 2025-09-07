@@ -4,10 +4,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import androidx.media3.common.util.UnstableApi
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.ui.MainActivity
@@ -35,18 +35,18 @@ class BasicWidget : BaseAppWidget() {
             R.id.media_titles,
             View.INVISIBLE,
         )
-        appWidgetView.setImageViewResource(R.id.image, R.drawable.holder_video)
+        appWidgetView.setImageViewResource(R.id.image, com.maxrave.common.R.drawable.holder_video)
         appWidgetView.setImageViewResource(
             R.id.button_toggle_play_pause,
-            R.drawable.play_widget,
+            com.maxrave.common.R.drawable.play_widget,
         )
         appWidgetView.setImageViewResource(
             R.id.button_next,
-            R.drawable.next_widget,
+            com.maxrave.common.R.drawable.next_widget,
         )
         appWidgetView.setImageViewResource(
             R.id.button_prev,
-            R.drawable.previous_widget,
+            com.maxrave.common.R.drawable.previous_widget,
         )
         appWidgetView.setImageViewResource(
             R.id.logo,
@@ -65,7 +65,7 @@ class BasicWidget : BaseAppWidget() {
         handler: SimpleMediaServiceHandler,
         appWidgetIds: IntArray?,
     ) {
-        Log.d("BasicWidget", "performUpdate")
+        Logger.d("BasicWidget", "performUpdate")
         val appWidgetView =
             RemoteViews(
                 context.packageName,
@@ -85,24 +85,24 @@ class BasicWidget : BaseAppWidget() {
                 R.id.media_titles,
                 View.VISIBLE,
             )
-            appWidgetView.setTextViewText(R.id.title, song?.mediaMetadata?.title)
+            appWidgetView.setTextViewText(R.id.title, song.mediaMetadata.title)
             appWidgetView.setTextViewText(
                 R.id.text,
-                song?.mediaMetadata?.artist,
+                song.mediaMetadata.artist,
             )
         }
         // Set prev/next button drawables
         appWidgetView.setImageViewResource(
             R.id.button_next,
-            R.drawable.next_widget,
+            com.maxrave.common.R.drawable.next_widget,
         )
         appWidgetView.setImageViewResource(
             R.id.button_prev,
-            R.drawable.previous_widget,
+            com.maxrave.common.R.drawable.previous_widget,
         )
         appWidgetView.setImageViewResource(
             R.id.button_toggle_play_pause,
-            if (!isPlaying) R.drawable.play_widget else R.drawable.pause_widget,
+            if (!isPlaying) com.maxrave.common.R.drawable.play_widget else com.maxrave.common.R.drawable.pause_widget,
         )
         appWidgetView.setImageViewResource(
             R.id.logo,
@@ -120,7 +120,7 @@ class BasicWidget : BaseAppWidget() {
         context: Context,
         bitmap: Bitmap,
     ) {
-        Log.w("BasicWidget", "updateImage")
+        Logger.w("BasicWidget", "updateImage")
         val appWidgetView =
             RemoteViews(
                 context.packageName,
@@ -141,7 +141,7 @@ class BasicWidget : BaseAppWidget() {
             )
         appWidgetView.setImageViewResource(
             R.id.button_toggle_play_pause,
-            if (!isPlaying) R.drawable.play_widget else R.drawable.pause_widget,
+            if (!isPlaying) com.maxrave.common.R.drawable.play_widget else com.maxrave.common.R.drawable.pause_widget,
         )
         pushUpdatePartially(context, appWidgetView)
     }

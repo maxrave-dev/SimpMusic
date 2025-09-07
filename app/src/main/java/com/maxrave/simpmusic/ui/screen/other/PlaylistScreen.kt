@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -81,12 +80,13 @@ import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.google.android.material.snackbar.Snackbar
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -126,7 +126,7 @@ fun PlaylistScreen(
     val tag = "PlaylistScreen"
 
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.downloading_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
     )
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -146,8 +146,8 @@ fun PlaylistScreen(
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
-        Log.d(tag, "uiState hash: ${uiState.hashCode()}")
-        Log.d(tag, "uiState data: ${uiState.data}")
+        Logger.d(tag, "uiState hash: ${uiState.hashCode()}")
+        Logger.d(tag, "uiState data: ${uiState.data}")
     }
 
     val shouldStartPaginate =
@@ -163,9 +163,9 @@ fun PlaylistScreen(
         }
 
     LaunchedEffect(key1 = shouldStartPaginate.value) {
-        Log.d(tag, "shouldStartPaginate: ${shouldStartPaginate.value}")
-        Log.d(tag, "tracksListState: $tracksListState")
-        Log.d(tag, "Continuation: $continuation")
+        Logger.d(tag, "shouldStartPaginate: ${shouldStartPaginate.value}")
+        Logger.d(tag, "tracksListState: $tracksListState")
+        Logger.d(tag, "Continuation: $continuation")
         if (shouldStartPaginate.value && tracksListState == ListState.IDLE) {
             viewModel.getContinuationTrack(
                 playlistId,
@@ -210,7 +210,7 @@ fun PlaylistScreen(
 
     LaunchedEffect(key1 = playlistId) {
         if (playlistId != uiState.data?.id) {
-            Log.w(tag, "new id: $playlistId")
+            Logger.w(tag, "new id: $playlistId")
             viewModel.getData(playlistId)
         }
     }
@@ -249,11 +249,11 @@ fun PlaylistScreen(
     Crossfade(
         targetState = uiState,
     ) { state ->
-        Log.w(tag, "State hash: ${state.hashCode()}")
+        Logger.w(tag, "State hash: ${state.hashCode()}")
         when (state) {
             is PlaylistUIState.Success -> {
                 val data = state.data
-                Log.d(tag, "data: $data")
+                Logger.d(tag, "data: $data")
                 if (data == null) return@Crossfade
                 LazyColumn(
                     modifier =
@@ -483,7 +483,7 @@ fun PlaylistScreen(
                                                                     resId = R.drawable.download_button,
                                                                     modifier = Modifier.size(36.dp),
                                                                 ) {
-                                                                    Log.w("PlaylistScreen", "downloadState: $downloadState")
+                                                                    Logger.w("PlaylistScreen", "downloadState: $downloadState")
                                                                     viewModel.onUIEvent(PlaylistUIEvent.Download)
                                                                 }
                                                             }
@@ -574,7 +574,7 @@ fun PlaylistScreen(
                                     track = item,
                                     onMoreClickListener = { onItemMoreClick(it) },
                                     onClickListener = {
-                                        Log.w("PlaylistScreen", "index: $index")
+                                        Logger.w("PlaylistScreen", "index: $index")
                                         onPlaylistItemClick(it)
                                     },
                                     onAddToQueue = {
@@ -590,7 +590,7 @@ fun PlaylistScreen(
                                     track = item,
                                     onMoreClickListener = { onItemMoreClick(it) },
                                     onClickListener = {
-                                        Log.w("PlaylistScreen", "index: $index")
+                                        Logger.w("PlaylistScreen", "index: $index")
                                         onPlaylistItemClick(it)
                                     },
                                     onAddToQueue = {
@@ -667,7 +667,7 @@ fun PlaylistScreen(
                     )
                 }
                 if (playlistBottomSheetShow) {
-                    Log.w("PlaylistScreen", "PlaylistBottomSheet")
+                    Logger.w("PlaylistScreen", "PlaylistBottomSheet")
                     val addToQueue = {
                         viewModel.getFullTracks { track ->
                             sharedViewModel.addListToQueue(

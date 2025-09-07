@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -34,8 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.extension.toAlbumsResult
+import com.maxrave.common.R
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
@@ -66,7 +65,7 @@ fun MoreAlbumsScreen(
     val hazeState = rememberHazeState()
 
     LaunchedEffect(id, type) {
-        Log.w("MoreAlbumsScreen", "id: $id, type: $type")
+        Logger.w("MoreAlbumsScreen", "id: $id, type: $type")
         if (id != null) {
             if (type != null) {
                 when (type) {
@@ -105,13 +104,13 @@ fun MoreAlbumsScreen(
                         )
                     }
                     items(data) { album ->
-                        val data = album.toAlbumsResult()
+                        val data = album
                         HomeItemContentPlaylist(
                             data = data,
                             onClick = {
                                 navController.navigate(
                                     AlbumDestination(
-                                        browseId = album.id,
+                                        browseId = album.browseId,
                                     ),
                                 )
                             },

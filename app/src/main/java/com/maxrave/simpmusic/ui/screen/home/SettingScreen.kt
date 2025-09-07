@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.screen.home
 
 import android.content.Intent
 import android.media.audiofx.AudioEffect
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -93,18 +92,20 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.kotlinytmusicscraper.extension.isTwoLetterCode
-import com.maxrave.kotlinytmusicscraper.extension.isValidProxyHost
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
-import com.maxrave.simpmusic.common.QUALITY
-import com.maxrave.simpmusic.common.SPONSOR_BLOCK
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
-import com.maxrave.simpmusic.common.VIDEO_QUALITY
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.common.LIMIT_CACHE_SIZE
+import com.maxrave.common.QUALITY
+import com.maxrave.common.R
+import com.maxrave.common.SPONSOR_BLOCK
+import com.maxrave.common.SUPPORTED_LANGUAGE
+import com.maxrave.common.SUPPORTED_LOCATION
+import com.maxrave.common.VIDEO_QUALITY
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.utils.LocalResource
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.bytesToMB
+import com.maxrave.simpmusic.extension.isTwoLetterCode
+import com.maxrave.simpmusic.extension.isValidProxyHost
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -117,7 +118,6 @@ import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_outline
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
@@ -456,8 +456,8 @@ fun SettingScreen(
                             title = stringResource(R.string.proxy_type),
                             subtitle =
                                 when (proxyType) {
-                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP -> stringResource(R.string.http)
-                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS -> stringResource(R.string.socks)
+                                    DataStoreManager.ProxyType.PROXY_TYPE_HTTP -> stringResource(R.string.http)
+                                    DataStoreManager.ProxyType.PROXY_TYPE_SOCKS -> stringResource(R.string.socks)
                                 },
                             onClick = {
                                 viewModel.setAlertData(
@@ -467,11 +467,11 @@ fun SettingScreen(
                                             SettingAlertState.SelectData(
                                                 listSelect =
                                                     listOf(
-                                                        (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP) to
+                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_HTTP) to
                                                             context.getString(
                                                                 R.string.http,
                                                             ),
-                                                        (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS) to
+                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_SOCKS) to
                                                             context.getString(R.string.socks),
                                                     ),
                                             ),
@@ -479,9 +479,9 @@ fun SettingScreen(
                                             context.getString(R.string.change) to { state ->
                                                 viewModel.setProxy(
                                                     if (state.selectOne?.getSelected() == context.getString(R.string.socks)) {
-                                                        DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS
+                                                        DataStoreManager.ProxyType.PROXY_TYPE_SOCKS
                                                     } else {
-                                                        DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP
+                                                        DataStoreManager.ProxyType.PROXY_TYPE_HTTP
                                                     },
                                                     proxyHost,
                                                     proxyPort,
@@ -577,7 +577,7 @@ fun SettingScreen(
                         eqIntent.putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
                         val packageManager = context.packageManager
                         val resolveInfo: List<*> = packageManager.queryIntentActivities(eqIntent, 0)
-                        Log.d("EQ", resolveInfo.toString())
+                        Logger.d("EQ", resolveInfo.toString())
                         if (resolveInfo.isEmpty()) {
                             Toast.makeText(context, context.getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
                         } else {
@@ -950,8 +950,8 @@ fun SettingScreen(
                                                         ) == true
                                                     ) to item
                                                 }.also {
-                                                    Log.w("SettingScreen", "SettingAlertState: $skipSegments")
-                                                    Log.w("SettingScreen", "SettingAlertState: $it")
+                                                    Logger.w("SettingScreen", "SettingAlertState: $skipSegments")
+                                                    Logger.w("SettingScreen", "SettingAlertState: $it")
                                                 },
                                     ),
                                 confirm =
@@ -1461,7 +1461,7 @@ fun SettingScreen(
                     minActiveState = Lifecycle.State.RESUMED,
                 )
                 LaunchedEffect(googleAccounts) {
-                    Log.w(
+                    Logger.w(
                         "SettingScreen",
                         "LaunchedEffect: ${
                             googleAccounts.data?.map {
@@ -1786,7 +1786,7 @@ fun SettingScreen(
     }
 
     if (showThirdPartyLibraries) {
-        val libraries by rememberLibraries(R.raw.aboutlibraries)
+        val libraries by rememberLibraries(com.maxrave.simpmusic.R.raw.aboutlibraries)
         val lazyListState = rememberLazyListState()
         val canScrollBackward by remember {
             derivedStateOf {

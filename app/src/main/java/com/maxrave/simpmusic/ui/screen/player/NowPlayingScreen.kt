@@ -2,7 +2,6 @@
 
 package com.maxrave.simpmusic.ui.screen.player
 
-import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -39,6 +38,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -126,8 +126,9 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
+import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.common.R
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -158,7 +159,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import com.moriatsushi.insetsx.statusBars
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
@@ -209,7 +209,7 @@ fun NowPlayingScreen(
         )
 
     LaunchedEffect(swipeEnabled) {
-        Log.d(TAG, "Swipe Enabled: $swipeEnabled")
+        Logger.d(TAG, "Swipe Enabled: $swipeEnabled")
     }
 
     var showHideMiddleLayout by rememberSaveable {
@@ -258,7 +258,7 @@ fun NowPlayingScreen(
     val blurBg by sharedViewModel.blurBg.collectAsStateWithLifecycle()
 
     LaunchedEffect(screenDataState) {
-        Log.d(TAG, "ScreenDataState: $screenDataState")
+        Logger.d(TAG, "ScreenDataState: $screenDataState")
         showHideMiddleLayout = screenDataState.canvasData == null
         snapshotFlow { screenDataState.bitmap }.collectLatest {
             if (it != null) {
@@ -278,7 +278,7 @@ fun NowPlayingScreen(
     }
 
     LaunchedEffect(spotShadowColor) {
-        Log.d(TAG, "spotShadowColor: $spotShadowColor")
+        Logger.d(TAG, "spotShadowColor: $spotShadowColor")
     }
     // Height
     var topAppBarHeightDp by rememberSaveable {

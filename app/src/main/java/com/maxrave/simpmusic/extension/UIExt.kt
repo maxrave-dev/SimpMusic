@@ -6,7 +6,6 @@ import android.content.ContextWrapper
 import android.graphics.Point
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.os.Build
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
@@ -53,6 +52,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
@@ -62,6 +62,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.util.Consumer
 import com.kmpalette.palette.graphics.Palette
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
 import com.maxrave.simpmusic.ui.theme.shimmerLine
@@ -312,7 +313,7 @@ fun getScreenSizeInfo(): ScreenSizeInfo {
     return remember(configuration) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = activity?.windowManager?.currentWindowMetrics
-            Log.w("getScreenSizeInfo", "WindowMetrics: ${windowMetrics?.bounds?.height()}")
+            Logger.w("getScreenSizeInfo", "WindowMetrics: ${windowMetrics?.bounds?.height()}")
             ScreenSizeInfo(
                 hDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
                 wDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
@@ -322,7 +323,7 @@ fun getScreenSizeInfo(): ScreenSizeInfo {
         } else {
             val point = Point()
             activity?.windowManager?.defaultDisplay?.getRealSize(point)
-            Log.w("getScreenSizeInfo", "WindowMetrics: ${point.y}")
+            Logger.w("getScreenSizeInfo", "WindowMetrics: ${point.y}")
             ScreenSizeInfo(
                 hDP =
                     with(localDensity) {
@@ -423,7 +424,7 @@ fun LazyListState.isScrollingUp(): Boolean {
 
     LaunchedEffect(Unit) {
         snapshotFlow { layoutInfo.totalItemsCount }.collect {
-            Log.w("isScrollingUp", "firstVisibleItemIndex: $firstVisibleItemIndex")
+            Logger.w("isScrollingUp", "firstVisibleItemIndex: $firstVisibleItemIndex")
             previousIndex = firstVisibleItemIndex
             previousScrollOffset = firstVisibleItemScrollOffset
         }
@@ -524,7 +525,7 @@ fun TextStyle.greyScale(): TextStyle =
 fun adaptiveIconPainterResource(
     @DrawableRes id: Int,
 ): Painter? {
-    val res = LocalContext.current.resources
+    val res = LocalResources.current
     val theme = LocalContext.current.theme
 
     val adaptiveIcon = ResourcesCompat.getDrawable(res, id, theme) as? AdaptiveIconDrawable

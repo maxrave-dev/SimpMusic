@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -15,9 +14,10 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
-import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
+import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.common.MEDIA_NOTIFICATION
+import com.maxrave.common.R
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.mediaServiceModule
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
@@ -50,7 +50,7 @@ class SimpleMediaService :
     }
 
     override fun onBind(intent: Intent?): IBinder {
-        Log.w("Service", "Simple Media Service Bound")
+        Logger.w("Service", "Simple Media Service Bound")
         return super.onBind(intent) ?: binder
     }
 
@@ -58,7 +58,7 @@ class SimpleMediaService :
     override fun onCreate() {
         super.onCreate()
         loadKoinModules(mediaServiceModule)
-        Log.w("Service", "Simple Media Service Created")
+        Logger.w("Service", "Simple Media Service Created")
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
                 this,
@@ -93,7 +93,7 @@ class SimpleMediaService :
         flags: Int,
         startId: Int,
     ): Int {
-        Log.w("Service", "Simple Media Service Received Action: ${intent?.action}")
+        Logger.w("Service", "Simple Media Service Received Action: ${intent?.action}")
         if (intent != null && intent.action != null) {
             when (intent.action) {
                 BasicWidget.ACTION_TOGGLE_PAUSE -> {
@@ -126,7 +126,7 @@ class SimpleMediaService :
 
     @UnstableApi
     fun release() {
-        Log.w("Service", "Starting release process")
+        Logger.w("Service", "Starting release process")
         runBlocking {
             try {
                 // Release MediaSession and Player
@@ -139,9 +139,9 @@ class SimpleMediaService :
                 // Release handler first (contains coroutines and jobs)
                 simpleMediaServiceHandler.release()
                 mediaSession = null
-                Log.w("Service", "Simple Media Service Released")
+                Logger.w("Service", "Simple Media Service Released")
             } catch (e: Exception) {
-                Log.e("Service", "Error during release", e)
+                Logger.e("Service", "Error during release")
             }
         }
     }
@@ -149,17 +149,17 @@ class SimpleMediaService :
     @UnstableApi
     override fun onDestroy() {
         super.onDestroy()
-        Log.w("Service", "Simple Media Service Destroyed")
+        Logger.w("Service", "Simple Media Service Destroyed")
     }
 
     override fun onTrimMemory(level: Int) {
-        Log.w("Service", "Simple Media Service Trim Memory Level: $level")
+        Logger.w("Service", "Simple Media Service Trim Memory Level: $level")
         simpleMediaServiceHandler.mayBeSaveRecentSong()
     }
 
     @UnstableApi
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Log.w("Service", "Simple Media Service Task Removed")
+        Logger.w("Service", "Simple Media Service Task Removed")
         if (simpleMediaServiceHandler.shouldReleaseOnTaskRemoved()) {
             release()
             super.onTaskRemoved(rootIntent)

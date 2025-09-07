@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
@@ -12,32 +11,34 @@ import androidx.paging.cachedIn
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.filter
 import androidx.paging.insertFooterItem
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.ASC
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.DESC
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADED
-import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADING
-import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
-import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
-import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.extension.toArrayListTrack
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.common.ASC
+import com.maxrave.common.Config
+import com.maxrave.common.DESC
+import com.maxrave.common.LOCAL_PLAYLIST_ID
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
+import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADING
+import com.maxrave.domain.data.entities.DownloadState.STATE_NOT_DOWNLOADED
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.SetVideoIdEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.FilterState
+import com.maxrave.domain.utils.collectLatestResource
+import com.maxrave.domain.utils.collectResource
+import com.maxrave.domain.utils.toArrayListTrack
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.pagination.PagingActions
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
-import com.maxrave.simpmusic.utils.collectLatestResource
-import com.maxrave.simpmusic.utils.collectResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,21 +49,20 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
 @UnstableApi
 class LocalPlaylistViewModel(
     private val application: Application,
+    private val dataStoreManager: DataStoreManager,
+    private val songRepository: SongRepository,
+    private val localPlaylistRepository: LocalPlaylistRepository,
 ) : BaseViewModel(application) {
-    private val localPlaylistManager: LocalPlaylistManager by inject()
-
     private val downloadUtils: DownloadUtils by inject()
 
     private var _offset: MutableStateFlow<Int> = MutableStateFlow(0)
@@ -115,20 +115,20 @@ class LocalPlaylistViewModel(
                                 newUpdateJob?.cancel()
                                 newUpdateJob =
                                     launch(Dispatchers.IO) {
-                                        localPlaylistManager
+                                        localPlaylistRepository
                                             .listTrackFlow(uiState.value.id)
                                             .distinctUntilChanged()
                                             .collectLatest { list ->
                                                 delay(500)
                                                 val currentList = uiState.value.trackCount
                                                 val newList = list.size
-                                                log("newList: $list", Log.DEBUG)
-                                                log("currentList: $currentList, newList: $newList", Log.DEBUG)
+                                                log("newList: $list")
+                                                log("currentList: $currentList, newList: $newList")
                                                 if (newList > currentList) {
                                                     updatePlaylistState(uiState.value.id, refresh = true)
                                                 }
                                                 delay(500)
-                                                val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = uiState.value.id)
+                                                val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
                                                 val notDownloadedList =
                                                     fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
                                                 if (fullTracks.isEmpty()) {
@@ -138,7 +138,7 @@ class LocalPlaylistViewModel(
                                                 ) {
                                                     updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
                                                 } else if (
-                                                    fullTracks.filter { it.downloadState == STATE_DOWNLOADING }.isNotEmpty() &&
+                                                    fullTracks.any { it.downloadState == STATE_DOWNLOADING } &&
                                                     notDownloadedList.isNotEmpty() &&
                                                     downloadState != STATE_DOWNLOADING
                                                 ) {
@@ -180,7 +180,7 @@ class LocalPlaylistViewModel(
 
     fun setLazyTrackPagingItems(lazyPagingItems: LazyPagingItems<SongEntity>) {
         lazyTrackPagingItems.value = lazyPagingItems
-        Log.d(tag, "setLazyTrackPagingItems: ${lazyTrackPagingItems.value?.itemCount}")
+        Logger.d(tag, "setLazyTrackPagingItems: ${lazyTrackPagingItems.value?.itemCount}")
     }
 
     private val modifications = MutableStateFlow<List<PagingActions<SongEntity>>>(emptyList())
@@ -190,9 +190,9 @@ class LocalPlaylistViewModel(
         filterState: FilterState,
     ) {
         viewModelScope.launch {
-            Log.w("LocalPlaylistViewModel", "getTracksPagingState: ${uiState.value}")
+            Logger.w("LocalPlaylistViewModel", "getTracksPagingState: ${uiState.value}")
             modifications.value = listOf()
-            localPlaylistManager
+            localPlaylistRepository
                 .getTracksPaging(
                     id,
                     filterState,
@@ -222,7 +222,7 @@ class LocalPlaylistViewModel(
                         ?.filterNotNull()
                         ?.map { it.videoId }
                         ?: emptyList()
-                Log.w(tag, "applyActions: $loadState")
+                Logger.w(tag, "applyActions: $loadState")
                 if (loadState?.refresh is LoadState.NotLoading &&
                     loadState.append is LoadState.NotLoading &&
                     !list.contains(actions.item.videoId)
@@ -248,7 +248,7 @@ class LocalPlaylistViewModel(
     fun getSuggestions(playlistId: Long) {
         loading.value = true
         viewModelScope.launch {
-            localPlaylistManager.getSuggestionsTrackForPlaylist(playlistId).collectLatestResource(
+            localPlaylistRepository.getSuggestionsTrackForPlaylist(playlistId).collectLatestResource(
                 onSuccess = { res ->
                     val reloadParams = res?.first
                     val songs = res?.second
@@ -284,61 +284,45 @@ class LocalPlaylistViewModel(
         }
     }
 
-    private val _songEntity = MutableStateFlow<SongEntity?>(null)
-    val songEntity: StateFlow<SongEntity?> get() = _songEntity
-
-    fun getSongEntity(song: SongEntity) {
-        viewModelScope.launch {
-            mainRepository.insertSong(song).first().let {
-                println("Insert song $it")
-            }
-            delay(200)
-            mainRepository.getSongById(song.videoId).collect {
-                if (it != null) _songEntity.emit(it)
-            }
-        }
-    }
-
     fun reloadSuggestion() {
         loading.value = true
         viewModelScope.launch {
             val param = uiState.value.suggestions?.reloadParams
             if (param != null) {
-                mainRepository.reloadSuggestionPlaylist(param).collect { res ->
-                    val reloadParams = res?.first
-                    val songs = res?.second
-                    if (reloadParams != null && songs != null) {
-                        _uiState.update {
-                            it.copy(
-                                suggestions =
-                                    LocalPlaylistState.SuggestionSongs(
-                                        reloadParams = reloadParams,
-                                        songs = songs,
-                                    ),
-                            )
+                localPlaylistRepository.reloadSuggestionPlaylist(param).collectLatestResource(
+                    onSuccess = { res ->
+                        val reloadParams = res?.first
+                        val songs = res?.second
+                        if (reloadParams != null && songs != null) {
+                            _uiState.update {
+                                it.copy(
+                                    suggestions =
+                                        LocalPlaylistState.SuggestionSongs(
+                                            reloadParams = reloadParams,
+                                            songs = songs,
+                                        ),
+                                )
+                            }
+                        } else {
+                            _uiState.update {
+                                it.copy(
+                                    suggestions = null,
+                                )
+                            }
                         }
-                    } else {
-                        _uiState.update {
-                            it.copy(
-                                suggestions = null,
-                            )
-                        }
-                    }
-                    withContext(Dispatchers.Main) {
                         loading.value = false
-                    }
-                }
-            } else {
-                _uiState.update { it.copy(suggestions = null) }
-                Toast
-                    .makeText(
-                        application,
-                        application.getString(R.string.error),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                withContext(Dispatchers.Main) {
-                    loading.value = false
-                }
+                    },
+                    onError = {
+                        _uiState.update { it.copy(suggestions = null) }
+                        Toast
+                            .makeText(
+                                application,
+                                application.getString(R.string.error),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        loading.value = false
+                    },
+                )
             }
         }
     }
@@ -348,9 +332,9 @@ class LocalPlaylistViewModel(
         state: Int,
     ) {
         viewModelScope.launch {
-            localPlaylistManager.updateDownloadState(id, state).collectLatestResource(
+            localPlaylistRepository.updateDownloadState(id, state).collectLatestResource(
                 onSuccess = { mess ->
-                    Log.d(tag, "updatePlaylistDownloadState: $mess")
+                    Logger.d(tag, "updatePlaylistDownloadState: $mess")
                     _uiState.update {
                         it.copy(
                             downloadState = state,
@@ -388,7 +372,7 @@ class LocalPlaylistViewModel(
 //                                }
 //                            }
 //                        }
-//                        Log.d("Check Downloaded", "Downloaded")
+//                        Logger.d("Check Downloaded", "Downloaded")
 //                        updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADED)
 //                        Toast.makeText(getApplication(), "Download Completed", Toast.LENGTH_SHORT).show()
 //                    }
@@ -409,7 +393,7 @@ class LocalPlaylistViewModel(
     ) {
         viewModelScope.launch {
             showLoadingDialog(message = getString(R.string.updating))
-            localPlaylistManager
+            localPlaylistRepository
                 .updateTitleLocalPlaylist(id, title)
                 .collectResource(
                     onSuccess = {
@@ -429,7 +413,7 @@ class LocalPlaylistViewModel(
         showLoadingDialog(message = getString(R.string.delete))
         viewModelScope.launch {
             _uiState.value = LocalPlaylistState.initial()
-            localPlaylistManager.deleteLocalPlaylist(id).collectLatestResource(
+            localPlaylistRepository.deleteLocalPlaylist(id).collectLatestResource(
                 onSuccess = {
                     makeToast(it)
                     hideLoadingDialog()
@@ -448,7 +432,7 @@ class LocalPlaylistViewModel(
     ) {
         showLoadingDialog(message = getString(R.string.updating))
         viewModelScope.launch {
-            localPlaylistManager.updateThumbnailLocalPlaylist(id, uri).collectResource(
+            localPlaylistRepository.updateThumbnailLocalPlaylist(id, uri).collectResource(
                 onSuccess = {
                     makeToast(it)
                     updatePlaylistState(id)
@@ -462,21 +446,12 @@ class LocalPlaylistViewModel(
         }
     }
 
-    fun updateDownloadState(
-        videoId: String,
-        state: Int,
-    ) {
-        viewModelScope.launch {
-            mainRepository.updateDownloadState(videoId, state)
-        }
-    }
-
     fun deleteItem(
         id: Long,
         song: SongEntity,
     ) {
         viewModelScope.launch {
-            localPlaylistManager.removeTrackFromLocalPlaylist(id, song).collectLatestResource(
+            localPlaylistRepository.removeTrackFromLocalPlaylist(id, song).collectLatestResource(
                 onSuccess = {
                     makeToast(it)
                     onApplyActions(PagingActions.Remove(song))
@@ -500,19 +475,19 @@ class LocalPlaylistViewModel(
                     ui.copy(
                         downloadState =
                             if (listJob.all { download[it] == STATE_DOWNLOADED }) {
-                                mainRepository.updateLocalPlaylistDownloadState(
+                                localPlaylistRepository.updateLocalPlaylistDownloadState(
                                     STATE_DOWNLOADED,
                                     id,
                                 )
                                 STATE_DOWNLOADED
                             } else if (listJob.any { download[it] == STATE_DOWNLOADING }) {
-                                mainRepository.updateLocalPlaylistDownloadState(
+                                localPlaylistRepository.updateLocalPlaylistDownloadState(
                                     STATE_DOWNLOADING,
                                     id,
                                 )
                                 STATE_DOWNLOADING
                             } else {
-                                mainRepository.updateLocalPlaylistDownloadState(
+                                localPlaylistRepository.updateLocalPlaylistDownloadState(
                                     STATE_NOT_DOWNLOADED,
                                     id,
                                 )
@@ -524,13 +499,13 @@ class LocalPlaylistViewModel(
         }
     }
 
-    private var _listSetVideoId: MutableStateFlow<ArrayList<SetVideoIdEntity>?> =
+    private var _listSetVideoId: MutableStateFlow<List<SetVideoIdEntity>?> =
         MutableStateFlow(null)
-    val listSetVideoId: StateFlow<ArrayList<SetVideoIdEntity>?> = _listSetVideoId
+    val listSetVideoId: StateFlow<List<SetVideoIdEntity>?> = _listSetVideoId
 
     fun getSetVideoId(youtubePlaylistId: String) {
         viewModelScope.launch {
-            mainRepository.getYouTubeSetVideoId(youtubePlaylistId).collect {
+            localPlaylistRepository.getYouTubeSetVideoId(youtubePlaylistId).collect {
                 _listSetVideoId.value = it
             }
         }
@@ -540,7 +515,7 @@ class LocalPlaylistViewModel(
         makeToast(getString(R.string.syncing))
         showLoadingDialog(message = getString(R.string.syncing))
         viewModelScope.launch {
-            localPlaylistManager
+            localPlaylistRepository
                 .syncLocalPlaylistToYouTubePlaylist(id)
                 .collectLatestResource(
                     onSuccess = { ytId ->
@@ -600,7 +575,7 @@ class LocalPlaylistViewModel(
     ) {
         showLoadingDialog()
         viewModelScope.launch {
-            localPlaylistManager.updateSyncState(id, syncState).collectLatestResource(
+            localPlaylistRepository.updateSyncState(id, syncState).collectLatestResource(
                 onSuccess = { mess ->
                     makeToast(mess)
                     _uiState.update {
@@ -616,9 +591,9 @@ class LocalPlaylistViewModel(
                 },
             )
             if (ytId != null) {
-                localPlaylistManager.updateYouTubePlaylistId(id, ytId).collectLatestResource(
+                localPlaylistRepository.updateYouTubePlaylistId(id, ytId).collectLatestResource(
                     onSuccess = { mess ->
-                        Log.d(tag, "updateLocalPlaylistSyncState: $mess")
+                        Logger.d(tag, "updateLocalPlaylistSyncState: $mess")
                         _uiState.update {
                             it.copy(
                                 ytPlaylistId = ytId,
@@ -634,7 +609,7 @@ class LocalPlaylistViewModel(
         makeToast(getString(R.string.unsyncing))
         showLoadingDialog(message = getString(R.string.unsyncing))
         viewModelScope.launch {
-            localPlaylistManager.unsyncLocalPlaylist(id).collectLatestResource(
+            localPlaylistRepository.unsyncLocalPlaylist(id).collectLatestResource(
                 onSuccess = { mess ->
                     makeToast(mess)
                     _uiState.update {
@@ -657,68 +632,13 @@ class LocalPlaylistViewModel(
         makeToast(getString(R.string.syncing))
         showLoadingDialog(message = getString(R.string.syncing))
         viewModelScope.launch {
-            localPlaylistManager.updateListTrackSynced(id).collectLatest { done ->
+            localPlaylistRepository.updateListTrackSynced(id).collectLatest { done ->
                 if (done) {
                     makeToast(application.getString(R.string.updated))
                     updatePlaylistState(id, refresh = true)
                 }
                 hideLoadingDialog()
             }
-        }
-    }
-
-    fun updateInLibrary(videoId: String) {
-        viewModelScope.launch {
-            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
-        }
-    }
-
-    fun updateLocalPlaylistTracks(
-        list: List<String>,
-        id: Long,
-    ) {
-        viewModelScope.launch {
-            mainRepository.getSongsByListVideoId(list).collect { values ->
-                var count = 0
-                values.forEach { song ->
-                    if (song.downloadState == STATE_DOWNLOADED) {
-                        count++
-                    }
-                }
-                mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast
-                    .makeText(
-                        application,
-                        application.getString(R.string.added_to_playlist),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                if (count == values.size) {
-                    mainRepository.updateLocalPlaylistDownloadState(
-                        STATE_DOWNLOADED,
-                        id,
-                    )
-                } else {
-                    mainRepository.updateLocalPlaylistDownloadState(
-                        STATE_NOT_DOWNLOADED,
-                        id,
-                    )
-                }
-                updatePlaylistState(id)
-            }
-        }
-    }
-
-    fun insertSong(song: Track) {
-        viewModelScope.launch {
-            mainRepository.insertSong(song.toSongEntity()).collect {
-                println("Insert Song $it")
-            }
-        }
-    }
-
-    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
-        viewModelScope.launch {
-            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
 
@@ -737,7 +657,7 @@ class LocalPlaylistViewModel(
                 )
             }
             _uiState.value.id.let { id ->
-                localPlaylistManager
+                localPlaylistRepository
                     .addTrackToLocalPlaylist(id, track.toSongEntity())
                     .collectLatestResource(
                         onSuccess = {
@@ -766,7 +686,7 @@ class LocalPlaylistViewModel(
                     )
                 }
                 setFilter(ev.filterState)
-                Log.w("PlaylistScreen", "new filterState: ${ev.filterState}")
+                Logger.w("PlaylistScreen", "new filterState: ${ev.filterState}")
                 getTracksPagingState(uiState.value.id, ev.filterState)
             }
 
@@ -874,16 +794,16 @@ class LocalPlaylistViewModel(
 
             is LocalPlaylistUIEvent.ShuffleClick -> {
                 viewModelScope.launch {
-                    val listVideoId = localPlaylistManager.getListTrackVideoId(uiState.value.id)
-                    log("ShuffleClick: uiState id ${uiState.value.id}", Log.DEBUG)
-                    log("ShuffleClick: $listVideoId", Log.DEBUG)
+                    val listVideoId = localPlaylistRepository.getListTrackVideoId(uiState.value.id)
+                    log("ShuffleClick: uiState id ${uiState.value.id}")
+                    log("ShuffleClick: $listVideoId")
                     if (listVideoId.isEmpty()) {
                         makeToast(getString(R.string.playlist_is_empty))
                         return@launch
                     }
                     val random = listVideoId.random()
                     val randomIndex = listVideoId.indexOf(random)
-                    val firstPlayedTrack = mainRepository.getSongById(random).singleOrNull()?.toTrack() ?: return@launch
+                    val firstPlayedTrack = songRepository.getSongById(random).singleOrNull()?.toTrack() ?: return@launch
                     setQueueData(
                         QueueData(
                             listTracks = arrayListOf(firstPlayedTrack),
@@ -909,7 +829,7 @@ class LocalPlaylistViewModel(
         refresh: Boolean = false,
     ) {
         viewModelScope.launch {
-            localPlaylistManager.getLocalPlaylist(id).collectLatestResource(
+            localPlaylistRepository.getLocalPlaylist(id).collectLatestResource(
                 onSuccess = { pl ->
                     if (pl != null) {
                         _uiState.update {
@@ -936,7 +856,7 @@ class LocalPlaylistViewModel(
     private fun downloadTracks(listJob: List<String>) {
         viewModelScope.launch {
             listJob.forEach { videoId ->
-                mainRepository.getSongById(videoId).singleOrNull()?.let { song ->
+                songRepository.getSongById(videoId).singleOrNull()?.let { song ->
                     if (song.downloadState != STATE_DOWNLOADED) {
                         downloadUtils.downloadTrack(videoId, song.title, song.thumbnails ?: "")
                     }
@@ -947,7 +867,7 @@ class LocalPlaylistViewModel(
 
     fun downloadFullPlaylist() {
         viewModelScope.launch {
-            val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = uiState.value.id)
+            val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
             val listJob = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
             if (listJob.isNotEmpty()) {
                 downloadTracks(listJob)
@@ -963,7 +883,7 @@ class LocalPlaylistViewModel(
     fun addAllToQueue() {
         viewModelScope.launch {
             showLoadingDialog(getString(R.string.add_to_queue))
-            val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = uiState.value.id)
+            val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
             if (fullTracks.isNotEmpty()) {
                 simpleMediaServiceHandler.loadMoreCatalog(fullTracks.toArrayListTrack(), true)
                 makeToast(getString(R.string.added_to_queue))
@@ -973,22 +893,6 @@ class LocalPlaylistViewModel(
                 hideLoadingDialog()
             }
         }
-    }
-}
-
-sealed interface FilterState {
-    val displayNameRes: Int
-
-    object OlderFirst : FilterState {
-        override val displayNameRes = R.string.older_first
-    }
-
-    object NewerFirst : FilterState {
-        override val displayNameRes = R.string.newer_first
-    }
-
-    object Title : FilterState {
-        override val displayNameRes = R.string.title
     }
 }
 

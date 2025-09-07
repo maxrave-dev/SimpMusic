@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.service.test.download
 
 import android.content.Context
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
@@ -18,10 +17,13 @@ import androidx.media3.exoplayer.offline.DownloadService
 import coil3.ImageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.common.MERGING_DATA_TYPE
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.StreamRepository
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService.Companion.CHANNEL_ID
-import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
@@ -42,7 +44,9 @@ class DownloadUtils(
     private val context: Context,
     private val playerCache: SimpleCache,
     private val downloadCache: SimpleCache,
-    private val mainRepository: MainRepository,
+    private val dataStoreManager: DataStoreManager,
+    private val streamRepository: StreamRepository,
+    private val songRepository: SongRepository,
     databaseProvider: DatabaseProvider,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -61,29 +65,31 @@ class DownloadUtils(
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
-            Log.w("Stream", mediaId)
-            Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
+            Logger.w("Stream", mediaId)
+            Logger.w("Stream", mediaId.startsWith(MERGING_DATA_TYPE.VIDEO).toString())
             val length = if (dataSpec.length >= 0) dataSpec.length else 1
             if (downloadCache.isCached(mediaId, dataSpec.position, length) || playerCache.isCached(mediaId, dataSpec.position, length)) {
                 return@Factory dataSpec
             }
             var dataSpecReturn: DataSpec = dataSpec
             runBlocking(Dispatchers.IO) {
-                if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
-                    val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
-                    mainRepository.getNewFormat(id).lastOrNull()?.let {
-                        if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
-                            Log.d("Stream", it.videoUrl)
-                            Log.w("Stream", "Video from format")
-                            val is403Url = mainRepository.is403Url(it.videoUrl).firstOrNull() != false
+                if (mediaId.contains(MERGING_DATA_TYPE.VIDEO)) {
+                    val id = mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO)
+                    streamRepository.getNewFormat(id).lastOrNull()?.let {
+                        val videoUrl = it.videoUrl
+                        if (videoUrl != null && it.expiredTime > LocalDateTime.now()) {
+                            Logger.d("Stream", videoUrl)
+                            Logger.w("Stream", "Video from format")
+                            val is403Url = streamRepository.is403Url(videoUrl).firstOrNull() != false
                             if (!is403Url) {
-                                dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri())
+                                dataSpecReturn = dataSpec.withUri(videoUrl.toUri())
                                 return@runBlocking
                             }
                         }
                     }
-                    mainRepository
+                    streamRepository
                         .getStream(
+                            dataStoreManager,
                             id,
                             true,
                         ).lastOrNull()
@@ -91,19 +97,21 @@ class DownloadUtils(
                             dataSpecReturn = dataSpec.withUri(it.toUri())
                         }
                 } else {
-                    mainRepository.getNewFormat(mediaId).lastOrNull()?.let {
-                        if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
-                            Log.d("Stream", it.audioUrl)
-                            Log.w("Stream", "Audio from format")
-                            val is403Url = mainRepository.is403Url(it.audioUrl).firstOrNull() != false
+                    streamRepository.getNewFormat(mediaId).lastOrNull()?.let {
+                        val audioUrl = it.audioUrl
+                        if (audioUrl != null && it.expiredTime > LocalDateTime.now()) {
+                            Logger.d("Stream", audioUrl)
+                            Logger.w("Stream", "Audio from format")
+                            val is403Url = streamRepository.is403Url(audioUrl).firstOrNull() != false
                             if (!is403Url) {
-                                dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri())
+                                dataSpecReturn = dataSpec.withUri(audioUrl.toUri())
                                 return@runBlocking
                             }
                         }
                     }
-                    mainRepository
+                    streamRepository
                         .getStream(
+                            dataStoreManager,
                             mediaId,
                             isVideo = false,
                         ).lastOrNull()
@@ -174,7 +182,7 @@ class DownloadUtils(
             false,
         )
         if (isVideo) {
-            val id = MergingMediaSourceFactory.isVideo + videoId
+            val id = MERGING_DATA_TYPE.VIDEO + videoId
             val downloadRequestVideo =
                 DownloadRequest
                     .Builder(id, id.toUri())
@@ -197,7 +205,7 @@ class DownloadUtils(
             videoId,
             false,
         )
-        val id = MergingMediaSourceFactory.isVideo + videoId
+        val id = MERGING_DATA_TYPE.VIDEO + videoId
         DownloadService.sendRemoveDownload(
             context,
             MusicDownloadService::class.java,
@@ -245,10 +253,10 @@ class DownloadUtils(
                                     remove(videoId)
                                 }
                             }
-                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
+                            songRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
                         }
                         DownloadState.STATE_DOWNLOADING -> {
-                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
+                            songRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
                         }
                         DownloadState.STATE_NOT_DOWNLOADED -> {
                             downloadingVideoIds.update {
@@ -256,10 +264,10 @@ class DownloadUtils(
                                     remove(videoId)
                                 }
                             }
-                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                            songRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
                         }
                         DownloadState.STATE_PREPARING -> {
-                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
+                            songRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
                         }
                     }
                 }
@@ -271,10 +279,10 @@ class DownloadUtils(
         val cursor = downloadManager.downloadIndex.getDownloads()
         while (cursor.moveToNext()) {
             val id = cursor.download.request.id
-            val isVideo = id.contains(MergingMediaSourceFactory.isVideo)
+            val isVideo = id.contains(MERGING_DATA_TYPE.VIDEO)
             val songId =
-                if (id.contains(MergingMediaSourceFactory.isVideo)) {
-                    id.removePrefix(MergingMediaSourceFactory.isVideo)
+                if (id.contains(MERGING_DATA_TYPE.VIDEO)) {
+                    id.removePrefix(MERGING_DATA_TYPE.VIDEO)
                 } else {
                     id
                 }
@@ -296,9 +304,9 @@ class DownloadUtils(
                     download.request.id.let { id ->
                         var isVideo = false
                         val songId =
-                            if (id.contains(MergingMediaSourceFactory.isVideo)) {
+                            if (id.contains(MERGING_DATA_TYPE.VIDEO)) {
                                 isVideo = true
-                                id.removePrefix(MergingMediaSourceFactory.isVideo)
+                                id.removePrefix(MERGING_DATA_TYPE.VIDEO)
                             } else {
                                 id
                             }
@@ -324,7 +332,7 @@ class DownloadUtils(
                                             add(songId)
                                         }
                                     }
-                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADING)
+                                    songRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADING)
                                 }
                             }
                             else -> {

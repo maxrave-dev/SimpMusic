@@ -1,21 +1,23 @@
 package com.maxrave.simpmusic.service.test.notification
 
 import android.content.Context
-import android.util.Log
+import androidx.media3.common.util.UnstableApi
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.maxrave.kotlinytmusicscraper.models.AlbumItem
-import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
-import com.maxrave.simpmusic.data.db.entities.NotificationEntity
-import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
-import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
-import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.domain.data.entities.ArtistEntity
+import com.maxrave.domain.data.entities.FollowedArtistSingleAndAlbum
+import com.maxrave.domain.data.entities.NotificationEntity
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.domain.repository.ArtistRepository
+import com.maxrave.domain.repository.CommonRepository
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.symmetricDifference
 import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -26,42 +28,46 @@ class NotifyWork(
     params: WorkerParameters,
 ) : CoroutineWorker(context, params),
     KoinComponent {
-    val mainRepository: MainRepository by inject()
+    private val albumRepository: AlbumRepository by inject()
+    private val artistRepository: ArtistRepository by inject()
+
+    private val commonRepository: CommonRepository by inject()
 
     private val mapOfNotification = arrayListOf<NotificationModel>()
 
+    @UnstableApi
     override suspend fun doWork(): Result =
         withContext(Dispatchers.IO) {
-            Log.w("NotifyWork", "doWork: ")
-            val artistList: List<ArtistEntity> = mainRepository.getFollowedArtists().first()
+            Logger.w("NotifyWork", "doWork: ")
+            val artistList: List<ArtistEntity> = artistRepository.getFollowedArtists().lastOrNull() ?: listOf()
             val listFollowedArtistSingleAndAlbum =
-                mainRepository.getAllFollowedArtistSingleAndAlbums().first() ?: listOf()
-            Log.w("NotifyWork", "doWork: $artistList")
-            Log.w("NotifyWork", "doWork: $listFollowedArtistSingleAndAlbum")
+                albumRepository.getAllFollowedArtistSingleAndAlbums().lastOrNull() ?: listOf()
+            Logger.w("NotifyWork", "doWork: $artistList")
+            Logger.w("NotifyWork", "doWork: $listFollowedArtistSingleAndAlbum")
             artistList.forEach { art ->
                 combine(
-                    mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.ALBUM_PARAM),
-                    mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.SINGLE_PARAM),
+                    albumRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.ALBUM_PARAM),
+                    albumRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.SINGLE_PARAM),
                 ) { album, single ->
                     Pair(album, single)
                 }.first().let { pair ->
                     val albumItem =
                         pair.first
-                            ?.items
-                            ?.firstOrNull()
-                            ?.items
+                            ?.second
                     val singleItem =
                         pair.second
-                            ?.items
-                            ?.firstOrNull()
-                            ?.items
+                            ?.second
                     val savedAlbum = listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }?.album
                     if (!savedAlbum.isNullOrEmpty() && !albumItem.isNullOrEmpty()) {
                         val differentAlbum =
                             albumItem
                                 .filter { ytItem ->
-                                    (albumItem.map { item -> item.id } symmetricDifference (savedAlbum.map { it["browseId"] })).contains(ytItem.id)
-                                }.filterIsInstance<AlbumItem>()
+                                    (
+                                        albumItem.map { item ->
+                                            item.browseId
+                                        } symmetricDifference (savedAlbum.map { it["browseId"] })
+                                    ).contains(ytItem.browseId)
+                                }
                         mapOfNotification.add(
                             NotificationModel(
                                 name = art.name,
@@ -76,8 +82,12 @@ class NotifyWork(
                         val differentSingle =
                             singleItem
                                 .filter { ytItem ->
-                                    (singleItem.map { item -> item.id } symmetricDifference (savedSingle.map { it["browseId"] })).contains(ytItem.id)
-                                }.filterIsInstance<AlbumItem>()
+                                    (
+                                        singleItem.map { item ->
+                                            item.browseId
+                                        } symmetricDifference (savedSingle.map { it["browseId"] })
+                                    ).contains(ytItem.browseId)
+                                }
                         mapOfNotification.add(
                             NotificationModel(
                                 name = art.name,
@@ -87,7 +97,7 @@ class NotifyWork(
                             ),
                         )
                     }
-                    mainRepository.insertFollowedArtistSingleAndAlbum(
+                    albumRepository.insertFollowedArtistSingleAndAlbum(
                         FollowedArtistSingleAndAlbum(
                             channelId = art.channelId,
                             name = art.name,
@@ -97,7 +107,7 @@ class NotifyWork(
                     )
                 }
             }
-            Log.w("NotifyWork", "doWork: $mapOfNotification")
+            Logger.w("NotifyWork", "doWork: $mapOfNotification")
             NotificationHandler.createNotificationChannel(applicationContext)
             mapOfNotification.forEach { noti ->
                 if (noti.album.isNotEmpty() || noti.single.isNotEmpty()) {
@@ -105,7 +115,7 @@ class NotifyWork(
                         applicationContext,
                         noti,
                     )
-                    mainRepository.insertNotification(
+                    commonRepository.insertNotification(
                         NotificationEntity(
                             channelId = noti.channelId,
                             thumbnail = artistList.find { it.channelId == noti.channelId }?.thumbnails,
@@ -121,46 +131,18 @@ class NotifyWork(
         }
 }
 
-private fun List<Any>?.toMap(): List<Map<String, String>> =
-    when (this?.firstOrNull()) {
-        is ResultSingle -> {
-            this.map {
-                val single = it as ResultSingle
-                mapOf(
-                    "browseId" to single.browseId,
-                    "title" to single.title,
-                    "thumbnails" to (single.thumbnails.lastOrNull()?.url ?: ""),
-                )
-            }
-        }
-
-        is ResultAlbum -> {
-            this.map {
-                val album = it as ResultAlbum
-                mapOf(
-                    "browseId" to album.browseId,
-                    "title" to album.title,
-                    "thumbnails" to (album.thumbnails.lastOrNull()?.url ?: ""),
-                )
-            }
-        }
-
-        is AlbumItem -> {
-            this.map {
-                val album = it as AlbumItem
-                mapOf(
-                    "browseId" to album.id,
-                    "title" to album.title,
-                    "thumbnails" to album.thumbnail,
-                )
-            }
-        }
-        else -> listOf()
-    }
+private fun List<AlbumsResult>?.toMap(): List<Map<String, String>> =
+    this?.map { single ->
+        mapOf(
+            "browseId" to single.browseId,
+            "title" to single.title,
+            "thumbnails" to (single.thumbnails.lastOrNull()?.url ?: ""),
+        )
+    } ?: emptyList()
 
 data class NotificationModel(
     val name: String,
     val channelId: String,
-    val single: List<AlbumItem>,
-    val album: List<AlbumItem>,
+    val single: List<AlbumsResult>,
+    val album: List<AlbumsResult>,
 )

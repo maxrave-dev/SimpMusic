@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -65,7 +64,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rgbFactor
@@ -114,7 +114,7 @@ fun CollapsingToolbarParallaxEffect(
 
     LaunchedEffect(bitmap) {
         val bm = bitmap
-        Log.w("ArtistScreen", "Bitmap: $bm")
+        Logger.w("ArtistScreen", "Bitmap: $bm")
         if (bm != null) {
             paletteState.generate(bm)
         }
@@ -125,7 +125,7 @@ fun CollapsingToolbarParallaxEffect(
             .distinctUntilChanged()
             .collectLatest {
                 color = it.getColorFromPalette()
-                Log.w("ArtistScreen", "Color: $color")
+                Logger.w("ArtistScreen", "Color: $color")
             }
     }
 

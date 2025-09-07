@@ -5,16 +5,17 @@ import android.content.Intent
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.db.entities.EpisodeEntity
-import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
-import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
-import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.EpisodeEntity
+import com.maxrave.domain.data.entities.PodcastsEntity
+import com.maxrave.domain.data.model.podcast.PodcastBrowse
+import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.repository.PodcastRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +67,7 @@ sealed class PodcastUIEvent {
 @UnstableApi
 class PodcastViewModel(
     application: Application,
+    private val podcastRepository: PodcastRepository,
 ) : BaseViewModel(application) {
     private val _uiState = MutableStateFlow<PodcastUIState>(PodcastUIState.Loading)
     val uiState: StateFlow<PodcastUIState> = _uiState.asStateFlow()
@@ -86,12 +88,12 @@ class PodcastViewModel(
         _uiState.value = PodcastUIState.Loading
         viewModelScope.launch {
             // Kiểm tra xem có PodcastEntity trong database không
-            mainRepository.getPodcast(id).collectLatest { entity ->
+            podcastRepository.getPodcast(id).collectLatest { entity ->
                 _podcastEntity.value = entity
                 _isFavorite.value = entity?.isFavorite == true
 
                 // Tải dữ liệu từ API
-                mainRepository.getPodcastData(id).collectLatest { resource ->
+                podcastRepository.getPodcastData(id).collectLatest { resource ->
                     when (resource) {
                         is Resource.Success -> {
                             resource.data?.let { podcastBrowse ->
@@ -101,7 +103,7 @@ class PodcastViewModel(
                                         podcastBrowse,
                                     )
 
-                                val podcastEntity = mainRepository.getPodcast(id).firstOrNull()
+                                val podcastEntity = podcastRepository.getPodcast(id).firstOrNull()
                                 if (podcastEntity == null) {
                                     // Lưu podcast vào database
                                     savePodcastToDatabase(id, podcastBrowse)
@@ -116,7 +118,7 @@ class PodcastViewModel(
                             // Nếu đã có dữ liệu trong database, sử dụng dữ liệu đó
                             if (_podcastEntity.value != null) {
                                 // Lấy episodes từ database
-                                mainRepository.getPodcastWithEpisodes(id).first()?.let { podcastWithEpisodes ->
+                                podcastRepository.getPodcastWithEpisodes(id).first()?.let { podcastWithEpisodes ->
                                     val episodes =
                                         podcastWithEpisodes.episodes.map { episode ->
                                             PodcastBrowse.EpisodeItem(
@@ -187,7 +189,7 @@ class PodcastViewModel(
                         },
                 )
 
-            mainRepository.insertPodcast(podcastEntity).collectLatest {
+            podcastRepository.insertPodcast(podcastEntity).collectLatest {
                 _podcastEntity.value = podcastEntity
             }
 
@@ -207,10 +209,10 @@ class PodcastViewModel(
                     )
                 }
 
-            mainRepository.insertEpisodes(episodes).firstOrNull()?.let {
+            podcastRepository.insertEpisodes(episodes).firstOrNull()?.let {
                 // Episodes đã được lưu
             }
-            _podcastEntity.value = mainRepository.getPodcast(id).firstOrNull()
+            _podcastEntity.value = podcastRepository.getPodcast(id).firstOrNull()
         }
     }
 
@@ -220,7 +222,7 @@ class PodcastViewModel(
                 val newFavoriteState = !podcast.isFavorite
                 _isFavorite.value = newFavoriteState
 
-                mainRepository.favoritePodcast(podcast.podcastId, newFavoriteState).collectLatest {
+                podcastRepository.favoritePodcast(podcast.podcastId, newFavoriteState).collectLatest {
                     _podcastEntity.update { it?.copy(isFavorite = newFavoriteState) }
                 }
             }
@@ -247,7 +249,7 @@ class PodcastViewModel(
                     )
                 }
 
-            mainRepository.insertEpisodes(episodes).collectLatest {
+            podcastRepository.insertEpisodes(episodes).collectLatest {
                 // Episodes đã được cập nhật
             }
         }
@@ -255,8 +257,9 @@ class PodcastViewModel(
 
     fun updatePodcastInLibraryNow(id: String) {
         viewModelScope.launch {
-            mainRepository.updatePodcastInLibraryNow(id).collectLatest {
+            podcastRepository.updatePodcastInLibraryNow(id).collectLatest {
                 // Podcast đã được cập nhật trong thư viện
+                log("Podcast $id updated in library at ${System.currentTimeMillis()}")
             }
         }
     }

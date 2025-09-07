@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.di
 
 import android.content.Context
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
@@ -33,14 +32,17 @@ import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
+import androidx.media3.extractor.mp4.Mp4Extractor
 import androidx.media3.extractor.text.DefaultSubtitleParserFactory
-import com.maxrave.simpmusic.common.Config.CANVAS_CACHE
-import com.maxrave.simpmusic.common.Config.DOWNLOAD_CACHE
-import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
-import com.maxrave.simpmusic.common.Config.PLAYER_CACHE
-import com.maxrave.simpmusic.common.Config.SERVICE_SCOPE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.common.Config.CANVAS_CACHE
+import com.maxrave.common.Config.DOWNLOAD_CACHE
+import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.common.Config.PLAYER_CACHE
+import com.maxrave.common.Config.SERVICE_SCOPE
+import com.maxrave.common.MERGING_DATA_TYPE
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.repository.StreamRepository
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaSessionCallback
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
@@ -98,7 +100,15 @@ val mediaServiceModule =
         }
         // MediaSession Callback for main player
         single {
-            SimpleMediaSessionCallback(androidContext(), get<MainRepository>())
+            SimpleMediaSessionCallback(
+                androidContext(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+            )
         }
         // DownloadUtils
         single {
@@ -106,8 +116,10 @@ val mediaServiceModule =
                 context = androidContext(),
                 playerCache = get(named(PLAYER_CACHE)),
                 downloadCache = get(named(DOWNLOAD_CACHE)),
-                mainRepository = get(),
+                dataStoreManager = get(),
                 databaseProvider = get(),
+                streamRepository = get(),
+                songRepository = get(),
             )
         }
 
@@ -167,22 +179,17 @@ val mediaServiceModule =
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
         }
 
-        // MediaSessionCallback
-        single<SimpleMediaSessionCallback>(createdAtStart = true) {
-            SimpleMediaSessionCallback(
-                androidContext(),
-                get(),
-            )
-        }
         // MediaServiceHandler
         single<SimpleMediaServiceHandler>(createdAtStart = true) {
             SimpleMediaServiceHandler(
-                player = get<ExoPlayer>(named(MAIN_PLAYER)),
+                player = get(named(MAIN_PLAYER)),
                 dataStoreManager = get(),
-                mainRepository = get(),
                 mediaSessionCallback = get(),
                 context = androidContext(),
                 coroutineScope = get(named(SERVICE_SCOPE)),
+                songRepository = get(),
+                streamRepository = get(),
+                localPlaylistRepository = get(),
             )
         }
     }
@@ -192,14 +199,15 @@ private fun provideResolvingDataSourceFactory(
     cacheDataSourceFactory: CacheDataSource.Factory,
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
-    mainRepository: MainRepository,
+    dataStoreManager: DataStoreManager,
+    streamRepository: StreamRepository,
     coroutineScope: CoroutineScope,
 ): DataSource.Factory {
     val chunkLength = 10 * 512 * 1024L
     return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
         val mediaId = dataSpec.key ?: error("No media id")
-        Log.w("Stream", mediaId)
-        Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
+        Logger.w("Stream", mediaId)
+        Logger.w("Stream", mediaId.startsWith(MERGING_DATA_TYPE.VIDEO).toString())
         val length = if (dataSpec.length >= 0) dataSpec.length else 1
         if (downloadCache.isCached(
                 mediaId,
@@ -208,77 +216,81 @@ private fun provideResolvingDataSourceFactory(
             )
         ) {
             coroutineScope.launch(Dispatchers.IO) {
-                mainRepository.updateFormat(
-                    if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
-                        mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                streamRepository.updateFormat(
+                    if (mediaId.contains(MERGING_DATA_TYPE.VIDEO)) {
+                        mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO)
                     } else {
                         mediaId
                     },
                 )
             }
-            Log.w("Stream", "Downloaded $mediaId")
+            Logger.w("Stream", "Downloaded $mediaId")
             return@Factory dataSpec
         }
         if (playerCache.isCached(mediaId, dataSpec.position, chunkLength)) {
             coroutineScope.launch(Dispatchers.IO) {
-                mainRepository.updateFormat(
-                    if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
-                        mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                streamRepository.updateFormat(
+                    if (mediaId.contains(MERGING_DATA_TYPE.VIDEO)) {
+                        mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO)
                     } else {
                         mediaId
                     },
                 )
             }
-            Log.w("Stream", "Cached $mediaId")
+            Logger.w("Stream", "Cached $mediaId")
             return@Factory dataSpec
         }
         var dataSpecReturn: DataSpec = dataSpec
         runBlocking(Dispatchers.IO) {
-            if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
-                val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
-                mainRepository.getNewFormat(id).lastOrNull()?.let {
-                    if (it.videoUrl != null && it.expiredTime > LocalDateTime.now()) {
-                        Log.d("Stream", it.videoUrl)
-                        Log.w("Stream", "Video from format")
-                        val is403Url = mainRepository.is403Url(it.videoUrl).firstOrNull() != false
-                        Log.d("Stream", "is 403 $is403Url")
+            if (mediaId.contains(MERGING_DATA_TYPE.VIDEO)) {
+                val id = mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO)
+                streamRepository.getNewFormat(id).lastOrNull()?.let {
+                    val videoUrl = it.videoUrl
+                    if (videoUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        Logger.d("Stream", videoUrl)
+                        Logger.w("Stream", "Video from format")
+                        val is403Url = streamRepository.is403Url(videoUrl).firstOrNull() != false
+                        Logger.d("Stream", "is 403 $is403Url")
                         if (!is403Url) {
-                            dataSpecReturn = dataSpec.withUri(it.videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
+                            dataSpecReturn = dataSpec.withUri(videoUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                             return@runBlocking
                         }
                     }
                 }
-                mainRepository
+                streamRepository
                     .getStream(
+                        dataStoreManager,
                         id,
                         true,
                     ).lastOrNull()
                     ?.let {
-                        Log.d("Stream", it)
-                        Log.w("Stream", "Video")
+                        Logger.d("Stream", it)
+                        Logger.w("Stream", "Video")
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                     }
             } else {
-                mainRepository.getNewFormat(mediaId).lastOrNull()?.let {
-                    if (it.audioUrl != null && it.expiredTime > LocalDateTime.now()) {
-                        Log.d("Stream", it.audioUrl)
-                        Log.w("Stream", "Audio from format")
-                        val is403Url = mainRepository.is403Url(it.audioUrl).firstOrNull() != false
-                        Log.d("Stream", "is 403 $is403Url")
+                streamRepository.getNewFormat(mediaId).lastOrNull()?.let {
+                    val audioUrl = it.audioUrl
+                    if (audioUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        Logger.d("Stream", audioUrl)
+                        Logger.w("Stream", "Audio from format")
+                        val is403Url = streamRepository.is403Url(audioUrl).firstOrNull() != false
+                        Logger.d("Stream", "is 403 $is403Url")
                         if (!is403Url) {
-                            dataSpecReturn = dataSpec.withUri(it.audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
+                            dataSpecReturn = dataSpec.withUri(audioUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                             return@runBlocking
                         }
                     }
                 }
-                mainRepository
+                streamRepository
                     .getStream(
+                        dataStoreManager,
                         mediaId,
                         isVideo = false,
                     ).lastOrNull()
                     ?.let {
-                        Log.d("Stream", it)
-                        Log.w("Stream", "Audio")
+                        Logger.d("Stream", it)
+                        Logger.w("Stream", "Audio")
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
                     }
             }
@@ -297,7 +309,7 @@ private fun provideExtractorFactory(): ExtractorsFactory =
             FragmentedMp4Extractor(
                 DefaultSubtitleParserFactory(),
             ),
-            androidx.media3.extractor.mp4.Mp4Extractor(
+            Mp4Extractor(
                 DefaultSubtitleParserFactory(),
             ),
         )
@@ -308,7 +320,7 @@ private fun provideMediaSourceFactory(
     context: Context,
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
-    mainRepository: MainRepository,
+    streamRepository: StreamRepository,
     dataStoreManager: DataStoreManager,
     coroutineScope: CoroutineScope,
 ): DefaultMediaSourceFactory =
@@ -322,7 +334,8 @@ private fun provideMediaSourceFactory(
             ),
             downloadCache,
             playerCache,
-            mainRepository,
+            dataStoreManager,
+            streamRepository,
             coroutineScope,
         ),
         provideExtractorFactory(),
@@ -333,7 +346,7 @@ private fun provideMergingMediaSource(
     context: Context,
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
-    mainRepository: MainRepository,
+    streamRepository: StreamRepository,
     coroutineScope: CoroutineScope,
     dataStoreManager: DataStoreManager,
 ): MergingMediaSourceFactory =
@@ -342,7 +355,7 @@ private fun provideMergingMediaSource(
             context,
             downloadCache,
             playerCache,
-            mainRepository,
+            streamRepository,
             dataStoreManager,
             coroutineScope,
         ),

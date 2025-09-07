@@ -5,7 +5,6 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,6 +35,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -123,28 +123,28 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.download.DownloadProgress
+import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.utils.FilterState
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.domain.utils.toListName
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.greyScale
-import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.StateSource
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.moriatsushi.insetsx.systemBars
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -747,12 +747,12 @@ fun QueueBottomSheet(
     }
 
     LaunchedEffect(queue) {
-        Log.w("QueueBottomSheet", "queue: $queue")
+        Logger.w("QueueBottomSheet", "queue: $queue")
     }
 
     DisposableEffect(Unit) {
         val currentSongIndex = musicServiceHandler.currentSongIndex()
-        Log.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
+        Logger.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
         coroutineScope.launch {
             lazyListState.requestScrollToItem(
                 currentSongIndex,
@@ -910,7 +910,7 @@ fun QueueBottomSheet(
                             .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
                                     onDrag = { change, offset ->
-                                        Log.d("QueueBottomSheet", "onDrag $offset")
+                                        Logger.d("QueueBottomSheet", "onDrag $offset")
                                         change.consume()
                                         dragDropState.onDrag(offset = offset)
 
@@ -933,16 +933,16 @@ fun QueueBottomSheet(
                                             ?: run { overscrollJob?.cancel() }
                                     },
                                     onDragStart = { offset ->
-                                        Log.d("QueueBottomSheet", "onDragStart $offset")
+                                        Logger.d("QueueBottomSheet", "onDragStart $offset")
                                         dragDropState.onDragStart(offset)
                                     },
                                     onDragEnd = {
-                                        Log.d("QueueBottomSheet", "onDragEnd")
+                                        Logger.d("QueueBottomSheet", "onDragEnd")
                                         dragDropState.onDragInterrupted(true)
                                         overscrollJob?.cancel()
                                     },
                                     onDragCancel = {
-                                        Log.d("QueueBottomSheet", "onDragCancel")
+                                        Logger.d("QueueBottomSheet", "onDragCancel")
                                         dragDropState.onDragInterrupted()
                                         overscrollJob?.cancel()
                                     },
@@ -1191,7 +1191,7 @@ fun NowPlayingBottomSheet(
     // Delete is specific to playlist
     onDelete: (() -> Unit)? = null,
     onLibraryDelete: (() -> Unit)? = null,
-    dataStoreManager: DataStoreManager = koinInject(),
+    dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
 ) {
     val context = LocalContext.current
 
@@ -2201,11 +2201,12 @@ fun ArtistModalBottomSheet(
                                     Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            if (!artist.id.isNullOrBlank()) {
+                                            val id = artist.id
+                                            if (!id.isNullOrBlank()) {
                                                 onNavigateToOtherScreen()
                                                 navController.navigate(
                                                     ArtistDestination(
-                                                        artist.id,
+                                                        id,
                                                     ),
                                                 )
                                             }
@@ -2251,7 +2252,7 @@ fun PlaylistBottomSheet(
     isYourYouTubePlaylist: Boolean,
     onSaveToLocal: () -> Unit,
     onAddToQueue: (() -> Unit)? = null,
-    mainRepository: MainRepository = koinInject(),
+    localPlaylistRepository: LocalPlaylistRepository = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isSavedToLocal by remember { mutableStateOf(false) }
@@ -2269,7 +2270,7 @@ fun PlaylistBottomSheet(
     val context = LocalContext.current
 
     LaunchedEffect(true) {
-        mainRepository.getAllLocalPlaylists().collect {
+        localPlaylistRepository.getAllLocalPlaylists().collect {
             isSavedToLocal = it.any { playlist -> playlist.youtubePlaylistId == playlistId }
         }
     }
@@ -2389,7 +2390,7 @@ fun LocalPlaylistBottomSheet(
             ActivityResultContracts.StartActivityForResult(),
         ) { activityResult ->
             if (activityResult.resultCode == Activity.RESULT_OK) {
-                Log.d("ID", Build.ID.toString())
+                Logger.d("ID", Build.ID.toString())
                 val intentRef = activityResult.data
                 val data = intentRef?.data
                 if (data != null) {
