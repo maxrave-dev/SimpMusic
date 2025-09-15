@@ -75,6 +75,8 @@ import com.maxrave.domain.data.model.mood.moodmoments.Item
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.HomeContentType
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
@@ -82,8 +84,6 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.ifNullOrEmpty
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
@@ -227,7 +227,7 @@ fun HomeItem(
                             onClick = {
                                 val firstQueue: Track = temp.toTrack()
                                 homeViewModel.setQueueData(
-                                    QueueData(
+                                    QueueData.Data(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM${temp.videoId}",
@@ -252,7 +252,7 @@ fun HomeItem(
                             onClick = {
                                 val firstQueue: Track = temp.toTrack()
                                 homeViewModel.setQueueData(
-                                    QueueData(
+                                    QueueData.Data(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM${temp.videoId}",

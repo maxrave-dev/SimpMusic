@@ -6,7 +6,6 @@ import android.app.Application
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.Download
 import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
@@ -16,6 +15,9 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.playlist.Author
 import com.maxrave.domain.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.domain.data.model.browse.playlist.PlaylistState
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
@@ -26,9 +28,6 @@ import com.maxrave.domain.utils.toPlaylistEntity
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.Error
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.Loading
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.Success
@@ -56,7 +55,7 @@ class PlaylistViewModel(
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val playlistRepository: PlaylistRepository,
 ) : BaseViewModel(application) {
-    val downloadUtils: DownloadUtils by inject()
+    val downloadUtils: DownloadHandler by inject<DownloadHandler>()
     private var _uiState = MutableStateFlow<PlaylistUIState>(Loading)
     val uiState: StateFlow<PlaylistUIState> = _uiState
 
@@ -113,13 +112,14 @@ class PlaylistViewModel(
                                                 var count = 0
                                                 tracks.forEachIndexed { index, track ->
                                                     val trackDownloadState = downloads[track.videoId]?.first?.state
-                                                    val videoDownloadState = downloads[track.videoId]?.second?.state ?: Download.STATE_COMPLETED
-                                                    if (trackDownloadState == Download.STATE_DOWNLOADING ||
-                                                        videoDownloadState == Download.STATE_DOWNLOADING
+                                                    val videoDownloadState =
+                                                        downloads[track.videoId]?.second?.state ?: DownloadHandler.State.STATE_COMPLETED
+                                                    if (trackDownloadState == DownloadHandler.State.STATE_DOWNLOADING ||
+                                                        videoDownloadState == DownloadHandler.State.STATE_DOWNLOADING
                                                     ) {
                                                         updatePlaylistDownloadState(id, STATE_DOWNLOADING)
-                                                    } else if (trackDownloadState == Download.STATE_COMPLETED &&
-                                                        videoDownloadState == Download.STATE_COMPLETED
+                                                    } else if (trackDownloadState == DownloadHandler.State.STATE_COMPLETED &&
+                                                        videoDownloadState == DownloadHandler.State.STATE_COMPLETED
                                                     ) {
                                                         count++
                                                     }
@@ -421,7 +421,7 @@ class PlaylistViewModel(
                 val clickedSong = loadedList.first { it.videoId == videoId }
                 val index = loadedList.indexOf(clickedSong)
                 setQueueData(
-                    QueueData(
+                    QueueData.Data(
                         listTracks = loadedList.toCollection(arrayListOf<Track>()),
                         firstPlayedTrack = clickedSong,
                         playlistId = data.id,
@@ -450,7 +450,7 @@ class PlaylistViewModel(
                 }
                 val clickedSong = loadedList.first()
                 setQueueData(
-                    QueueData(
+                    QueueData.Data(
                         listTracks = loadedList.toCollection(arrayListOf<Track>()),
                         firstPlayedTrack = clickedSong,
                         playlistId = data.id,
@@ -484,7 +484,7 @@ class PlaylistViewModel(
                                 is Resource.Success if (result != null) -> {
                                     Logger.d(tag, "Shuffle data: ${result.first.size}")
                                     setQueueData(
-                                        QueueData(
+                                        QueueData.Data(
                                             listTracks = result.first.toCollection(arrayListOf<Track>()),
                                             firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
                                             playlistId = shuffleEndpoint.playlistId,
@@ -524,7 +524,7 @@ class PlaylistViewModel(
                                 is Resource.Success if (result != null) -> {
                                     Logger.d(tag, "Radio data: ${result.first.size}")
                                     setQueueData(
-                                        QueueData(
+                                        QueueData.Data(
                                             listTracks = result.first.toCollection(arrayListOf<Track>()),
                                             firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
                                             playlistId = radioEndpoint.playlistId,

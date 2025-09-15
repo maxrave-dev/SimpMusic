@@ -32,9 +32,9 @@ import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -109,7 +109,7 @@ fun RecentlySongsScreen(
                             onClickListener = { videoId ->
                                 val firstQueue = item.toTrack()
                                 viewModel.setQueueData(
-                                    QueueData(
+                                    QueueData.Data(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM$videoId",

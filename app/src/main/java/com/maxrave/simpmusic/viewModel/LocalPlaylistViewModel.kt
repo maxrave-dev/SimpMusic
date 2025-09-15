@@ -25,6 +25,9 @@ import com.maxrave.domain.data.entities.SetVideoIdEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.FilterState
@@ -35,9 +38,6 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.pagination.PagingActions
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +63,7 @@ class LocalPlaylistViewModel(
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
 ) : BaseViewModel(application) {
-    private val downloadUtils: DownloadUtils by inject()
+    private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
 
     private var _offset: MutableStateFlow<Int> = MutableStateFlow(0)
     val offset: StateFlow<Int> = _offset
@@ -695,7 +695,7 @@ class LocalPlaylistViewModel(
                 val clickedSong = loadedList.find { it?.videoId == ev.videoId } ?: return
 
                 setQueueData(
-                    QueueData(
+                    QueueData.Data(
                         listTracks = loadedList.filterNotNull().toArrayListTrack(),
                         firstPlayedTrack = clickedSong.toTrack(),
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
@@ -729,7 +729,7 @@ class LocalPlaylistViewModel(
                 val clickedSong = suggestionsList.find { it.videoId == ev.videoId } ?: return
 
                 setQueueData(
-                    QueueData(
+                    QueueData.Data(
                         listTracks = suggestionsList.toCollection(ArrayList()),
                         firstPlayedTrack = clickedSong,
                         playlistId = "RDAMVM${clickedSong.videoId}",
@@ -763,7 +763,7 @@ class LocalPlaylistViewModel(
                     }
                 val firstPlayTrack = loadedList.firstOrNull()
                 setQueueData(
-                    QueueData(
+                    QueueData.Data(
                         listTracks = loadedList,
                         firstPlayedTrack = firstPlayTrack,
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
@@ -805,7 +805,7 @@ class LocalPlaylistViewModel(
                     val randomIndex = listVideoId.indexOf(random)
                     val firstPlayedTrack = songRepository.getSongById(random).singleOrNull()?.toTrack() ?: return@launch
                     setQueueData(
-                        QueueData(
+                        QueueData.Data(
                             listTracks = arrayListOf(firstPlayedTrack),
                             firstPlayedTrack = firstPlayedTrack,
                             playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
@@ -885,7 +885,7 @@ class LocalPlaylistViewModel(
             showLoadingDialog(getString(R.string.add_to_queue))
             val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
             if (fullTracks.isNotEmpty()) {
-                simpleMediaServiceHandler.loadMoreCatalog(fullTracks.toArrayListTrack(), true)
+                mediaPlayerHandler.loadMoreCatalog(fullTracks.toArrayListTrack(), true)
                 makeToast(getString(R.string.added_to_queue))
                 hideLoadingDialog()
             } else {

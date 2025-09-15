@@ -75,11 +75,11 @@ import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.SongsResult
 import com.maxrave.domain.data.model.searchResult.videos.VideosResult
 import com.maxrave.domain.data.type.SearchResultType
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -277,7 +277,7 @@ fun SearchScreen(
                                         is SongsResult, is VideosResult -> {
                                             val firstTrack: Track = (item as? SongsResult)?.toTrack() ?: (item as VideosResult).toTrack()
                                             searchViewModel.setQueueData(
-                                                QueueData(
+                                                QueueData.Data(
                                                     listTracks = arrayListOf(firstTrack),
                                                     firstPlayedTrack = firstTrack,
                                                     playlistId = "RDAMVM${firstTrack.videoId}",
@@ -593,7 +593,7 @@ fun SearchScreen(
                                                                         onClickListener = {
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
-                                                                                QueueData(
+                                                                                QueueData.Data(
                                                                                     listTracks = arrayListOf(firstTrack),
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",
@@ -623,7 +623,7 @@ fun SearchScreen(
                                                                         onClickListener = {
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
-                                                                                QueueData(
+                                                                                QueueData.Data(
                                                                                     listTracks = arrayListOf(firstTrack),
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",

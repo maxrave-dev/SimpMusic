@@ -12,6 +12,7 @@ kotlin {
     jvmToolchain(17)
     compilerOptions {
         freeCompilerArgs.add("-Xmulti-dollar-interpolation")
+        freeCompilerArgs.add("-Xwhen-guards")
     }
 }
 
@@ -68,6 +69,9 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
+
+    // Media3
+    implementation(project(":media3"))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

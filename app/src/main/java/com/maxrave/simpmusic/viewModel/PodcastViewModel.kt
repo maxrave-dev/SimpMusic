@@ -11,11 +11,11 @@ import com.maxrave.domain.data.entities.EpisodeEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
 import com.maxrave.domain.data.model.podcast.PodcastBrowse
 import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -274,7 +274,7 @@ class PodcastViewModel(
                 if (podcastData.listEpisode.isNotEmpty()) {
                     val firstEpisode = podcastData.listEpisode.first()
                     val queueData =
-                        QueueData(
+                        QueueData.Data(
                             listTracks = podcastData.listEpisode.map { it.toTrack() },
                             firstPlayedTrack = firstEpisode.toTrack(),
                             playlistId = event.podcastId,
@@ -300,7 +300,7 @@ class PodcastViewModel(
                     shuffleList.add(0, firstPlayItem)
 
                     val queueData =
-                        QueueData(
+                        QueueData.Data(
                             listTracks = shuffleList.map { it.toTrack() },
                             firstPlayedTrack = firstPlayItem.toTrack(),
                             playlistId = event.podcastId,
@@ -323,7 +323,7 @@ class PodcastViewModel(
                 val index = podcastData.listEpisode.indexOf(episode)
 
                 val queueData =
-                    QueueData(
+                    QueueData.Data(
                         listTracks = podcastData.listEpisode.map { it.toTrack() },
                         firstPlayedTrack = episode.toTrack(),
                         playlistId = event.podcastId,

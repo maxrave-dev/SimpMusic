@@ -183,7 +183,7 @@
             android:resource="@drawable/monochrome" />
 
         <service
-            android:name=".service.SimpleMediaService"
+            android:name="com.maxrave.media3.service.SimpleMediaService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback"
             android:stopWithTask="false">
@@ -195,7 +195,7 @@
             </intent-filter>
         </service>
         <service
-            android:name=".service.test.download.MusicDownloadService"
+            android:name="com.maxrave.media3.service.download.MusicDownloadService"
             android:exported="true"
             android:foregroundServiceType="dataSync">
             <intent-filter>

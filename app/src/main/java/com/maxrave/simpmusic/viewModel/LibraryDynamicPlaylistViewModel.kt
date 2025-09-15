@@ -7,12 +7,12 @@ import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,7 +90,7 @@ class LibraryDynamicPlaylistViewModel(
             }
         if (playTrack == null) return
         setQueueData(
-            QueueData(
+            QueueData.Data(
                 listTracks = targetList.toArrayListTrack(),
                 firstPlayedTrack = playTrack.toTrack(),
                 playlistId = null,

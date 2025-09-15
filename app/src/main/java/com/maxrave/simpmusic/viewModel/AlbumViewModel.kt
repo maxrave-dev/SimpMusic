@@ -11,15 +11,15 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.artist.ResultAlbum
 import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toAlbumEntity
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -39,7 +39,7 @@ class AlbumViewModel(
     private val songRepository: SongRepository,
     private val albumRepository: AlbumRepository,
 ) : BaseViewModel(application) {
-    private val downloadUtils: DownloadUtils by inject()
+    private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
     private val _uiState: MutableStateFlow<AlbumUIState> = MutableStateFlow(AlbumUIState.initial())
     val uiState: StateFlow<AlbumUIState> = _uiState
 
@@ -208,7 +208,7 @@ class AlbumViewModel(
 
     fun playTrack(track: Track) {
         setQueueData(
-            QueueData(
+            QueueData.Data(
                 listTracks = uiState.value.listTrack.toCollection(ArrayList()),
                 firstPlayedTrack = track,
                 playlistId = uiState.value.browseId.replaceFirst("VL", ""),
@@ -229,7 +229,7 @@ class AlbumViewModel(
         val shuffleList = uiState.value.listTrack.shuffled()
         val randomIndex = shuffleList.indices.random()
         setQueueData(
-            QueueData(
+            QueueData.Data(
                 listTracks = shuffleList.toCollection(ArrayList()),
                 firstPlayedTrack = shuffleList[randomIndex],
                 playlistId = uiState.value.browseId.replaceFirst("VL", ""),

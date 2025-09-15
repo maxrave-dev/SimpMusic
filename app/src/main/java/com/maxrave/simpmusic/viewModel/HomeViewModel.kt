@@ -127,6 +127,7 @@ class HomeViewModel(
                 launch {
                     dataStoreManager
                         .cookie
+                        .distinctUntilChanged()
                         .collectLatest {
                             if (it.isNotEmpty()) {
                                 Logger.w(tag, "Cookie changed, refreshing home")

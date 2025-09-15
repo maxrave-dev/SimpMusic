@@ -56,10 +56,11 @@ import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
 import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LOCATION
+import com.maxrave.data.di.loader.setActivitySession
+import com.maxrave.data.di.loader.startMediaService
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
-import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -94,10 +95,9 @@ class MainActivity : AppCompatActivity() {
                 name: ComponentName?,
                 service: IBinder?,
             ) {
-                if (service is SimpleMediaService.MusicBinder) {
-                    Logger.w("MainActivity", "onServiceConnected: ")
-                    mBound = true
-                }
+                setActivitySession(this@MainActivity, MainActivity::class.java, service)
+                Logger.w("MainActivity", "onServiceConnected: ")
+                mBound = true
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
@@ -573,9 +573,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startMusicService() {
-        val intent = Intent(this, SimpleMediaService::class.java)
-        startService(intent)
-        bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+        startMediaService(this, serviceConnection)
         viewModel.isServiceRunning = true
         shouldUnbind = true
         Logger.d("Service", "Service started")

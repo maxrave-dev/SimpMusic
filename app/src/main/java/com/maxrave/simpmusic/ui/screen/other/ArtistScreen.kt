@@ -59,11 +59,11 @@ import com.maxrave.common.R
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.extension.rgbFactor
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.CollapsingToolbarParallaxEffect
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -203,7 +203,7 @@ fun ArtistScreen(
                                                         .clickable {
                                                             val firstQueue: Track = canvas.second.toTrack()
                                                             viewModel.setQueueData(
-                                                                QueueData(
+                                                                QueueData.Data(
                                                                     listTracks = arrayListOf(firstQueue),
                                                                     firstPlayedTrack = firstQueue,
                                                                     playlistId = "RDAMVM${firstQueue.videoId}",
@@ -339,7 +339,7 @@ fun ArtistScreen(
                                         onClickListener = {
                                             val firstQueue: Track = song
                                             viewModel.setQueueData(
-                                                QueueData(
+                                                QueueData.Data(
                                                     listTracks = arrayListOf(firstQueue),
                                                     firstPlayedTrack = firstQueue,
                                                     playlistId = "RDAMVM${song.videoId}",
@@ -545,7 +545,7 @@ fun ArtistScreen(
                                             onClick = {
                                                 val firstQueue: Track = video
                                                 viewModel.setQueueData(
-                                                    QueueData(
+                                                    QueueData.Data(
                                                         listTracks = arrayListOf(firstQueue),
                                                         firstPlayedTrack = firstQueue,
                                                         playlistId = "RDAMVM${video.videoId}",

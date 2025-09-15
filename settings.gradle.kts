@@ -43,7 +43,6 @@ include(
     ":common",
     ":data",
     ":domain",
-    ":platform",
     ":kotlinYtmusicScraper",
     ":spotify",
     ":aiService",
@@ -62,3 +61,4 @@ project(":googleapi").projectDir = File(mediaServiceCore, "googleapi")
 project(":sharedtests").projectDir = File(sharedDir, "sharedtests")
 project(":commons-io-2.8.0").projectDir = File(sharedDir, "commons-io-2.8.0")
 project(":sharedutils").projectDir = File(sharedDir, "sharedutils")
+include(":media3")

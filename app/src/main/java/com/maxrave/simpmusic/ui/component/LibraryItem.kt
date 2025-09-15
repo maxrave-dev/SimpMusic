@@ -64,9 +64,9 @@ import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.LibraryType
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
@@ -78,6 +78,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.maxrave.domain.mediaservice.handler.PlaylistType as DomainPlaylistType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -197,12 +198,12 @@ fun LibraryItem(
                                                     },
                                                     onClickListener = {
                                                         viewModel.setQueueData(
-                                                            QueueData(
+                                                            QueueData.Data(
                                                                 listTracks = arrayListOf(item.toTrack()),
                                                                 firstPlayedTrack = item.toTrack(),
                                                                 playlistId = "RDAMVM${item.videoId}",
                                                                 playlistName = item.title,
-                                                                playlistType = com.maxrave.simpmusic.service.PlaylistType.RADIO,
+                                                                playlistType = DomainPlaylistType.RADIO,
                                                                 continuation = null,
                                                             ),
                                                         )
@@ -282,12 +283,12 @@ fun LibraryItem(
                                                 .clickable {
                                                     val firstQueue: Track = song.toTrack()
                                                     viewModel.setQueueData(
-                                                        QueueData(
+                                                        QueueData.Data(
                                                             listTracks = arrayListOf(firstQueue),
                                                             firstPlayedTrack = firstQueue,
                                                             playlistId = "RDAMVM${firstQueue.videoId}",
                                                             playlistName = "\"${song.title}\" ${context.getString(R.string.radio)}",
-                                                            playlistType = com.maxrave.simpmusic.service.PlaylistType.RADIO,
+                                                            playlistType = DomainPlaylistType.RADIO,
                                                             continuation = null,
                                                         ),
                                                     )

@@ -130,14 +130,14 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.greyScale
-import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
-import com.maxrave.simpmusic.service.StateSource
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
@@ -150,7 +150,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -696,7 +695,7 @@ fun InfoPlayerBottomSheet(
 fun QueueBottomSheet(
     onDismiss: () -> Unit,
     sharedViewModel: SharedViewModel = koinInject(),
-    musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
+    musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
     dataStoreManager: DataStoreManager = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -719,10 +718,17 @@ fun QueueBottomSheet(
     var clickMoreIndex by rememberSaveable { mutableIntStateOf(0) }
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
-    val queue by musicServiceHandler.queueData
-        .mapLatest { it?.listTracks?.toList() ?: emptyList() }
-        .collectAsState(emptyList())
-    val loadMoreState by musicServiceHandler.stateFlow.collectAsStateWithLifecycle()
+    val queueData by musicServiceHandler.queueData.collectAsStateWithLifecycle()
+    val queue by remember {
+        derivedStateOf {
+            queueData?.data?.listTracks ?: emptyList()
+        }
+    }
+    val loadMoreState by remember {
+        derivedStateOf {
+            queueData?.queueState ?: QueueData.StateSource.STATE_CREATED
+        }
+    }
     val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
 
     val shouldLoadMore =
@@ -742,7 +748,7 @@ fun QueueBottomSheet(
         snapshotFlow { shouldLoadMore.value }
             .collect {
                 // if should load more, then invoke loadMore
-                if (it && loadMoreState == StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore()
+                if (it && loadMoreState == QueueData.StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore()
             }
     }
 
@@ -984,7 +990,7 @@ fun QueueBottomSheet(
                         }
                     }
                     item {
-                        if (loadMoreState == StateSource.STATE_INITIALIZING) {
+                        if (loadMoreState == QueueData.StateSource.STATE_INITIALIZING) {
                             CenterLoadingBox(
                                 modifier =
                                     Modifier
@@ -1014,7 +1020,7 @@ private enum class QueueItemAction {
 fun QueueItemBottomSheet(
     onDismiss: () -> Unit,
     index: Int,
-    musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
+    musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -1072,6 +1078,7 @@ fun QueueItemBottomSheet(
                         index > 0 &&
                             index < (
                                 musicServiceHandler.queueData.value
+                                    ?.data
                                     ?.listTracks
                                     ?.size ?: 0
                             )
@@ -1079,6 +1086,7 @@ fun QueueItemBottomSheet(
                         index >= 0 &&
                             index < (
                                 musicServiceHandler.queueData.value
+                                    ?.data
                                     ?.listTracks
                                     ?.size ?: 0
                             ) - 1

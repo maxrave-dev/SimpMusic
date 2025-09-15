@@ -128,6 +128,7 @@ import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.common.R
+import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
@@ -137,7 +138,6 @@ import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
-import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet

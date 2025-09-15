@@ -81,11 +81,12 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
 import com.maxrave.domain.data.model.home.chart.Chart
 import com.maxrave.domain.data.model.mood.Mood
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.isScrollingUp
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
@@ -631,7 +632,7 @@ fun HomeTopAppBar(navController: NavController) {
         title = {
             Column {
                 Text(
-                    text = stringResource(id = R.string.app_name),
+                    text = stringResource(id = AppResString.app_name),
                     style = typo.titleMedium,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -772,7 +773,7 @@ fun QuickPicks(
                         onClick = {
                             val firstQueue: Track = it.toTrack()
                             viewModel.setQueueData(
-                                QueueData(
+                                QueueData.Data(
                                     listTracks = arrayListOf(firstQueue),
                                     firstPlayedTrack = firstQueue,
                                     playlistId = "RDAMVM${it.videoId}",

@@ -14,12 +14,12 @@ import com.maxrave.domain.data.model.browse.artist.Related
 import com.maxrave.domain.data.model.browse.artist.ResultPlaylist
 import com.maxrave.domain.data.model.browse.artist.Singles
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.simpmusic.extension.toArtistScreenData
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Error
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Loading
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Success
@@ -125,7 +125,7 @@ class ArtistViewModel(
                 when (res) {
                     is Resource.Success if data != null && data.first.isNotEmpty() -> {
                         setQueueData(
-                            QueueData(
+                            QueueData.Data(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,
@@ -155,7 +155,7 @@ class ArtistViewModel(
                 when (res) {
                     is Resource.Success if data != null && data.first.isNotEmpty() -> {
                         setQueueData(
-                            QueueData(
+                            QueueData.Data(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,

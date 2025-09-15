@@ -39,7 +39,6 @@ android {
 }
 
 dependencies {
-//    api(libs.paging.runtime.ktx)
     implementation(libs.room.runtime)
     implementation(libs.kotlinx.serialization.json)
     implementation(project(":common"))

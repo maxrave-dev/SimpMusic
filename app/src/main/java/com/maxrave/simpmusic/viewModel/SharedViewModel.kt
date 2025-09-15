@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
-import androidx.media3.exoplayer.offline.Download
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -40,9 +39,21 @@ import com.maxrave.domain.data.model.canvas.CanvasResult
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.data.model.update.UpdateData
+import com.maxrave.domain.extension.isSong
+import com.maxrave.domain.extension.isVideo
+import com.maxrave.domain.extension.toGenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.mediaservice.handler.ControlState
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.mediaservice.handler.NowPlayingTrackState
+import com.maxrave.domain.mediaservice.handler.PlayerEvent
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.mediaservice.handler.RepeatState
+import com.maxrave.domain.mediaservice.handler.SimpleMediaState
+import com.maxrave.domain.mediaservice.handler.SleepTimerState
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.LyricsCanvasRepository
@@ -57,17 +68,6 @@ import com.maxrave.domain.utils.toLyricsEntity
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.extension.isSong
-import com.maxrave.simpmusic.extension.isVideo
-import com.maxrave.simpmusic.extension.toMediaItem
-import com.maxrave.simpmusic.service.ControlState
-import com.maxrave.simpmusic.service.NowPlayingTrackState
-import com.maxrave.simpmusic.service.PlayerEvent
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.service.RepeatState
-import com.maxrave.simpmusic.service.SimpleMediaState
-import com.maxrave.simpmusic.service.SleepTimerState
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -238,7 +238,7 @@ class SharedViewModel(
                                     Logger.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
                                     getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
                                 }
-                                nowPlaying.songEntity.let { song ->
+                                nowPlaying.songEntity?.let { song ->
                                     if (nowPlayingScreenData.value.lyricsData == null) {
                                         Logger.w(tag, "Get lyrics from format")
                                         getLyricsFromFormat(nowPlaying.mediaItem.isVideo(), song, (timeline.total / 1000).toInt())
@@ -284,7 +284,7 @@ class SharedViewModel(
             }
         }
         viewModelScope.launch {
-            simpleMediaServiceHandler.nowPlayingState
+            mediaPlayerHandler.nowPlayingState
                 .distinctUntilChangedBy {
                     it.songEntity?.videoId
                 }.collectLatest { state ->
@@ -294,9 +294,9 @@ class SharedViewModel(
                     state.track?.let { track ->
                         _nowPlayingScreenData.value =
                             NowPlayingScreenData(
-                                nowPlayingTitle = state.track.title,
+                                nowPlayingTitle = track.title,
                                 artistName =
-                                    state.track
+                                    track
                                         .artists
                                         .toListName()
                                         .joinToString(", "),
@@ -305,7 +305,10 @@ class SharedViewModel(
                                 canvasData = null,
                                 lyricsData = null,
                                 songInfoData = null,
-                                playlistName = simpleMediaServiceHandler.queueData.value?.playlistName ?: "",
+                                playlistName =
+                                    mediaPlayerHandler.queueData.value
+                                        ?.data
+                                        ?.playlistName ?: "",
                             )
                     }
                     state.mediaItem.let { now ->
@@ -333,7 +336,7 @@ class SharedViewModel(
         viewModelScope.launch {
             val job1 =
                 launch {
-                    simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
+                    mediaPlayerHandler.simpleMediaState.collect { mediaState ->
                         when (mediaState) {
                             is SimpleMediaState.Buffering -> {
                                 _timeline.update {
@@ -371,7 +374,7 @@ class SharedViewModel(
                                             it.copy(
                                                 current = mediaState.progress,
                                                 loading = true,
-                                                total = simpleMediaServiceHandler.getPlayerDuration(),
+                                                total = mediaPlayerHandler.getPlayerDuration(),
                                             )
                                         }
                                     }
@@ -396,7 +399,7 @@ class SharedViewModel(
                             is SimpleMediaState.Ready -> {
                                 _timeline.update {
                                     it.copy(
-                                        current = simpleMediaServiceHandler.getProgress(),
+                                        current = mediaPlayerHandler.getProgress(),
                                         loading = false,
                                         total = mediaState.duration,
                                     )
@@ -408,20 +411,20 @@ class SharedViewModel(
             val controllerJob =
                 launch {
                     Logger.w(tag, "ControllerJob is running")
-                    simpleMediaServiceHandler.controlState.collectLatest {
+                    mediaPlayerHandler.controlState.collectLatest {
                         Logger.w(tag, "ControlState is $it")
                         _controllerState.value = it
                     }
                 }
             val sleepTimerJob =
                 launch {
-                    simpleMediaServiceHandler.sleepTimerState.collectLatest {
+                    mediaPlayerHandler.sleepTimerState.collectLatest {
                         _sleepTimerState.value = it
                     }
                 }
             val playlistNameJob =
                 launch {
-                    simpleMediaServiceHandler.queueData.collectLatest {
+                    mediaPlayerHandler.queueData.collectLatest {
                         _nowPlayingScreenData.update {
                             it.copy(playlistName = it.playlistName)
                         }
@@ -512,15 +515,15 @@ class SharedViewModel(
     }
 
     fun setSleepTimer(minutes: Int) {
-        simpleMediaServiceHandler.sleepStart(minutes)
+        mediaPlayerHandler.sleepStart(minutes)
     }
 
     fun stopSleepTimer() {
-        simpleMediaServiceHandler.sleepStop()
+        mediaPlayerHandler.sleepStop()
     }
 
-    private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
-    var downloadState: StateFlow<Download?> = _downloadState.asStateFlow()
+    private var _downloadState: MutableStateFlow<DownloadHandler.Download?> = MutableStateFlow(null)
+    var downloadState: StateFlow<DownloadHandler.Download?> = _downloadState.asStateFlow()
 
     fun checkIsRestoring() {
         viewModelScope.launch {
@@ -624,8 +627,8 @@ class SharedViewModel(
                 val track = response.data
                 when (response) {
                     is Resource.Success if (track != null) -> {
-                        simpleMediaServiceHandler.setQueueData(
-                            QueueData(
+                        mediaPlayerHandler.setQueueData(
+                            QueueData.Data(
                                 listTracks = arrayListOf(track),
                                 firstPlayedTrack = track,
                                 playlistId = "RDAMVM$videoId",
@@ -653,7 +656,7 @@ class SharedViewModel(
     ) {
         quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
-            simpleMediaServiceHandler.clearMediaItems()
+            mediaPlayerHandler.clearMediaItems()
             songRepository.insertSong(track.toSongEntity()).lastOrNull()?.let {
                 println("insertSong: $it")
                 songRepository
@@ -672,20 +675,20 @@ class SharedViewModel(
                 )
             }
             withContext(Dispatchers.Main) {
-                simpleMediaServiceHandler.addMediaItem(track.toMediaItem(), playWhenReady = type != RECOVER_TRACK_QUEUE)
+                mediaPlayerHandler.addMediaItem(track.toGenericMediaItem(), playWhenReady = type != RECOVER_TRACK_QUEUE)
             }
 
             when (type) {
                 SONG_CLICK -> {
-                    simpleMediaServiceHandler.getRelated(track.videoId)
+                    mediaPlayerHandler.getRelated(track.videoId)
                 }
 
                 VIDEO_CLICK -> {
-                    simpleMediaServiceHandler.getRelated(track.videoId)
+                    mediaPlayerHandler.getRelated(track.videoId)
                 }
 
                 SHARE -> {
-                    simpleMediaServiceHandler.getRelated(track.videoId)
+                    mediaPlayerHandler.getRelated(track.videoId)
                 }
 
                 PLAYLIST_CLICK -> {
@@ -716,36 +719,36 @@ class SharedViewModel(
         viewModelScope.launch {
             when (uiEvent) {
                 UIEvent.Backward ->
-                    simpleMediaServiceHandler.onPlayerEvent(
+                    mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.Backward,
                     )
 
-                UIEvent.Forward -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Forward)
+                UIEvent.Forward -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Forward)
                 UIEvent.PlayPause ->
-                    simpleMediaServiceHandler.onPlayerEvent(
+                    mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.PlayPause,
                     )
 
-                UIEvent.Next -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Next)
+                UIEvent.Next -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Next)
                 UIEvent.Previous ->
-                    simpleMediaServiceHandler.onPlayerEvent(
+                    mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.Previous,
                     )
 
-                UIEvent.Stop -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
+                UIEvent.Stop -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Stop)
                 is UIEvent.UpdateProgress -> {
-                    simpleMediaServiceHandler.onPlayerEvent(
+                    mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.UpdateProgress(
                             uiEvent.newProgress,
                         ),
                     )
                 }
 
-                UIEvent.Repeat -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Repeat)
-                UIEvent.Shuffle -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Shuffle)
+                UIEvent.Repeat -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Repeat)
+                UIEvent.Shuffle -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Shuffle)
                 UIEvent.ToggleLike -> {
                     Logger.w(tag, "ToggleLike")
-                    simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.ToggleLike)
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.ToggleLike)
                 }
             }
         }
@@ -894,12 +897,12 @@ class SharedViewModel(
     fun stopPlayer() {
         _nowPlayingScreenData.value = NowPlayingScreenData.initial()
         _nowPlayingState.value = null
-        simpleMediaServiceHandler.resetSongAndQueue()
+        mediaPlayerHandler.resetSongAndQueue()
         onUIEvent(UIEvent.Stop)
     }
 
     private fun loadPlaylistOrAlbum(index: Int? = null) {
-        simpleMediaServiceHandler.loadPlaylistOrAlbum(index)
+        mediaPlayerHandler.loadPlaylistOrAlbum(index)
     }
 
     private fun updateLyrics(
@@ -1096,9 +1099,9 @@ class SharedViewModel(
                 ) {
                     artistName.firstOrNull()
                 } else {
-                    simpleMediaServiceHandler.nowPlaying
+                    mediaPlayerHandler.nowPlaying
                         .first()
-                        ?.mediaMetadata
+                        ?.metadata
                         ?.artist
                         ?: ""
                 }
@@ -1429,7 +1432,7 @@ class SharedViewModel(
 
     fun addListToQueue(listTrack: ArrayList<Track>) {
         viewModelScope.launch {
-            simpleMediaServiceHandler.loadMoreCatalog(listTrack)
+            mediaPlayerHandler.loadMoreCatalog(listTrack)
             Toast
                 .makeText(
                     context,
@@ -1441,13 +1444,13 @@ class SharedViewModel(
 
     fun addToYouTubeLiked() {
         viewModelScope.launch {
-            val videoId = simpleMediaServiceHandler.nowPlaying.first()?.mediaId
+            val videoId = mediaPlayerHandler.nowPlaying.first()?.mediaId
             if (videoId != null) {
                 val like = likeStatus.value
                 if (!like) {
                     songRepository
                         .addToYouTubeLiked(
-                            simpleMediaServiceHandler.nowPlaying.first()?.mediaId,
+                            mediaPlayerHandler.nowPlaying.first()?.mediaId,
                         ).collect { response ->
                             if (response == 200) {
                                 Toast
@@ -1469,7 +1472,7 @@ class SharedViewModel(
                 } else {
                     songRepository
                         .removeFromYouTubeLiked(
-                            simpleMediaServiceHandler.nowPlaying.first()?.mediaId,
+                            mediaPlayerHandler.nowPlaying.first()?.mediaId,
                         ).collect {
                             if (it == 200) {
                                 Toast

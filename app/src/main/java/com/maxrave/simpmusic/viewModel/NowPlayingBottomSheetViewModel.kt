@@ -17,15 +17,15 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.LRCLIB
 import com.maxrave.domain.manager.DataStoreManager.Values.SIMPMUSIC
 import com.maxrave.domain.manager.DataStoreManager.Values.YOUTUBE
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.mediaservice.handler.SleepTimerState
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.service.SleepTimerState
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +44,7 @@ class NowPlayingBottomSheetViewModel(
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val songRepository: SongRepository,
 ) : BaseViewModel(application) {
-    private val downloadUtils: DownloadUtils by inject()
+    private val downloadUtils: DownloadHandler by inject()
     private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> =
         MutableStateFlow(
             NowPlayingBottomSheetUIState(
@@ -65,7 +65,7 @@ class NowPlayingBottomSheetViewModel(
         viewModelScope.launch {
             val sleepTimerJob =
                 launch {
-                    simpleMediaServiceHandler.sleepTimerState.collectLatest { sl ->
+                    mediaPlayerHandler.sleepTimerState.collectLatest { sl ->
                         _uiState.update { it.copy(sleepTimer = sl) }
                     }
                 }
@@ -101,7 +101,7 @@ class NowPlayingBottomSheetViewModel(
     }
 
     fun setSongEntity(songEntity: SongEntity?) {
-        val songOrNowPlaying = songEntity ?: (simpleMediaServiceHandler.nowPlayingState.value.songEntity ?: return)
+        val songOrNowPlaying = songEntity ?: (mediaPlayerHandler.nowPlayingState.value.songEntity ?: return)
         viewModelScope.launch {
             songOrNowPlaying.videoId.let {
                 songRepository.getSongById(it).singleOrNull().let { song ->
@@ -214,12 +214,12 @@ class NowPlayingBottomSheetViewModel(
                 }
                 is NowPlayingBottomSheetUIEvent.PlayNext -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
-                    simpleMediaServiceHandler.playNext(songEntity.toTrack())
+                    mediaPlayerHandler.playNext(songEntity.toTrack())
                     makeToast(getString(R.string.play_next))
                 }
                 is NowPlayingBottomSheetUIEvent.AddToQueue -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
-                    simpleMediaServiceHandler.loadMoreCatalog(arrayListOf(songEntity.toTrack()), isAddToQueue = true)
+                    mediaPlayerHandler.loadMoreCatalog(arrayListOf(songEntity.toTrack()), isAddToQueue = true)
                     makeToast(getString(R.string.added_to_queue))
                 }
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
@@ -231,10 +231,10 @@ class NowPlayingBottomSheetViewModel(
                 }
                 is NowPlayingBottomSheetUIEvent.SetSleepTimer -> {
                     if (ev.cancel) {
-                        simpleMediaServiceHandler.sleepStop()
+                        mediaPlayerHandler.sleepStop()
                         makeToast(getString(R.string.sleep_timer_off_done))
                     } else if (ev.minutes > 0) {
-                        simpleMediaServiceHandler.sleepStart(ev.minutes)
+                        mediaPlayerHandler.sleepStart(ev.minutes)
                     }
                 }
                 is NowPlayingBottomSheetUIEvent.ChangePlaybackSpeedPitch -> {
@@ -265,7 +265,7 @@ class NowPlayingBottomSheetViewModel(
                             when (res) {
                                 is Resource.Success if (data != null && data.first.isNotEmpty()) -> {
                                     setQueueData(
-                                        QueueData(
+                                        QueueData.Data(
                                             listTracks = data.first,
                                             firstPlayedTrack = data.first.first(),
                                             playlistId = "RDAMVM${ev.videoId}",

@@ -15,11 +15,8 @@ import coil3.request.CachePolicy
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import com.maxrave.data.di.coroutinesModule
-import com.maxrave.data.di.databaseModule
-import com.maxrave.data.di.repositoryModule
+import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.di.mediaServiceModule
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.theme.newDiskCache
@@ -27,6 +24,7 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
+import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
@@ -61,13 +59,8 @@ class SimpMusicApplication :
         startKoin {
             androidLogger(level = Level.DEBUG)
             androidContext(this@SimpMusicApplication)
-            modules(
-                coroutinesModule,
-                databaseModule,
-                repositoryModule,
-                mediaServiceModule,
-                viewModelModule,
-            )
+            loadAllModules()
+            loadKoinModules(viewModelModule)
         }
         // provide custom configuration
         val workConfig =
@@ -99,3 +92,6 @@ class SimpMusicApplication :
         Logger.w("Terminate", "Checking")
     }
 }
+
+typealias AppResString = R.string
+typealias CommonResString = com.maxrave.common.R.string

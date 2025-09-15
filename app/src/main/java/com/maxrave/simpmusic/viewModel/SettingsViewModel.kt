@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.SimpleCache
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import com.maxrave.common.Config
@@ -25,10 +24,13 @@ import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.SETTINGS_FILENAME
 import com.maxrave.common.VIDEO_QUALITY
+import com.maxrave.data.di.loader.stopMediaService
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
+import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
@@ -38,8 +40,6 @@ import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.getSizeOfFile
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
-import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -56,7 +56,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
-import org.koin.core.qualifier.named
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -71,12 +70,10 @@ class SettingsViewModel(
     private val commonRepository: CommonRepository,
     private val songRepository: SongRepository,
     private val accountRepository: AccountRepository,
+    private val cacheRepository: CacheRepository,
 ) : BaseViewModel(application) {
     private val databasePath: String? = commonRepository.getDatabasePath()
-    private val playerCache: SimpleCache by inject(qualifier = named(Config.PLAYER_CACHE))
-    private val downloadCache: SimpleCache by inject(qualifier = named(Config.DOWNLOAD_CACHE))
-    private val canvasCache: SimpleCache by inject(qualifier = named(Config.CANVAS_CACHE))
-    private val downloadUtils: DownloadUtils by inject()
+    private val downloadUtils: DownloadHandler by inject()
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -183,7 +180,7 @@ class SettingsViewModel(
         getHelpBuildLyricsDatabase()
     }
 
-    fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
+    fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
 
     fun getData() {
         getLocation()
@@ -398,7 +395,9 @@ class SettingsViewModel(
     }
 
     private fun getCanvasCache() {
-        _canvasCacheSize.value = canvasCache.cacheSpace
+        viewModelScope.launch {
+            _canvasCacheSize.value = cacheRepository.getCacheSize(Config.CANVAS_CACHE)
+        }
     }
 
     fun setAlertData(alertData: SettingAlertState?) {
@@ -470,6 +469,9 @@ class SettingsViewModel(
 
     private suspend fun calculateDataFraction() {
         withContext(Dispatchers.Default) {
+            val playerCache = cacheRepository.getCacheSize(Config.PLAYER_CACHE)
+            val downloadCache = cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE)
+            val canvasCache = cacheRepository.getCacheSize(Config.CANVAS_CACHE)
             val mStorageStatsManager =
                 application.getSystemService(StorageStatsManager::class.java)
             if (mStorageStatsManager != null) {
@@ -482,7 +484,7 @@ class SettingsViewModel(
                 val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
                 val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
                 val databaseSize =
-                    simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
+                    simpMusicSize - playerCache.bytesToMB() - downloadCache.bytesToMB() - canvasCache.bytesToMB()
                 if (totalByte ==
                     freeSpace + otherApp + simpMusicSize + thumbSize
                 ) {
@@ -491,17 +493,17 @@ class SettingsViewModel(
                             it.copy(
                                 otherApp = otherApp.toFloat().div(totalByte.toFloat()),
                                 downloadCache =
-                                    downloadCache.cacheSpace
+                                    downloadCache
                                         .bytesToMB()
                                         .toFloat()
                                         .div(totalByte.toFloat()),
                                 playerCache =
-                                    playerCache.cacheSpace
+                                    playerCache
                                         .bytesToMB()
                                         .toFloat()
                                         .div(totalByte.toFloat()),
                                 canvasCache =
-                                    canvasCache.cacheSpace
+                                    canvasCache
                                         .bytesToMB()
                                         .toFloat()
                                         .div(totalByte.toFloat()),
@@ -718,19 +720,17 @@ class SettingsViewModel(
     private val _cacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
     var cacheSize: StateFlow<Long?> = _cacheSize
 
-    @UnstableApi
     fun getPlayerCacheSize() {
-        _cacheSize.value = playerCache.cacheSpace
+        viewModelScope.launch {
+            _cacheSize.value = cacheRepository.getCacheSize(Config.PLAYER_CACHE)
+        }
     }
 
-    @UnstableApi
     fun clearPlayerCache() {
         viewModelScope.launch {
-            playerCache.keys.forEach { key ->
-                playerCache.removeResource(key)
-            }
+            cacheRepository.clearCache(Config.PLAYER_CACHE)
             makeToast(getString(R.string.clear_player_cache))
-            _cacheSize.value = playerCache.cacheSpace
+            getPlayerCacheSize()
         }
     }
 
@@ -739,22 +739,22 @@ class SettingsViewModel(
 
     @UnstableApi
     fun getDownloadedCacheSize() {
-        _downloadedCacheSize.value = downloadCache.cacheSpace
+        viewModelScope.launch {
+            _downloadedCacheSize.value = cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE)
+        }
     }
 
     @UnstableApi
     fun clearDownloadedCache() {
         viewModelScope.launch {
-            downloadCache.keys.forEach { key ->
-                downloadCache.removeResource(key)
-            }
+            cacheRepository.clearCache(Config.DOWNLOAD_CACHE)
             songRepository.getDownloadedSongs().singleOrNull()?.let { songs ->
                 songs.forEach { song ->
                     songRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
             makeToast(getString(R.string.clear_downloaded_cache))
-            _cacheSize.value = playerCache.cacheSpace
+            getDownloadedCacheSize()
             downloadUtils.removeAllDownloads()
         }
     }
@@ -762,11 +762,9 @@ class SettingsViewModel(
     @UnstableApi
     fun clearCanvasCache() {
         viewModelScope.launch {
-            canvasCache.keys.forEach { key ->
-                canvasCache.removeResource(key)
-            }
+            cacheRepository.clearCache(Config.CANVAS_CACHE)
             makeToast(getString(R.string.clear_canvas_cache))
-            _canvasCacheSize.value = canvasCache.cacheSpace
+            getCanvasCache()
         }
     }
 
@@ -991,7 +989,7 @@ class SettingsViewModel(
 
                     withContext(Dispatchers.Main) {
                         makeToast(getString(R.string.restore_success))
-                        application.stopService(Intent(application, SimpleMediaService::class.java))
+                        stopMediaService(application)
                         getData()
                         val ctx = application.applicationContext
                         val pm: PackageManager = ctx.packageManager

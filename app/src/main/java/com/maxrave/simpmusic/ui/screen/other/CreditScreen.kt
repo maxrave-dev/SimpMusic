@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.maxrave.common.R
+import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.adaptiveIconPainterResource
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
@@ -85,7 +86,7 @@ fun CreditScreen(
 
         // App name
         Text(
-            text = stringResource(id = R.string.app_name),
+            text = stringResource(id = AppResString.app_name),
             style = typo.titleLarge,
             fontSize = 22.sp,
         )
@@ -220,7 +221,7 @@ fun CreditScreen(
                 },
         title = {
             Text(
-                text = stringResource(R.string.app_name),
+                text = stringResource(AppResString.app_name),
                 style = typo.titleMedium,
                 maxLines = 1,
                 modifier =

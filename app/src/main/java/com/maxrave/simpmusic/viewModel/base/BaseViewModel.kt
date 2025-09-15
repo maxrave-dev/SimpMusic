@@ -7,9 +7,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.R
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,7 @@ abstract class BaseViewModel(
     private val application: Application,
 ) : AndroidViewModel(application),
     KoinComponent {
-    protected val simpleMediaServiceHandler: SimpleMediaServiceHandler by inject<SimpleMediaServiceHandler>()
+    protected val mediaPlayerHandler: MediaPlayerHandler by inject<MediaPlayerHandler>()
     private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
 
     /**
@@ -86,7 +86,7 @@ abstract class BaseViewModel(
 
     private fun getNowPlayingVideoId() {
         viewModelScope.launch {
-            combine(simpleMediaServiceHandler.nowPlayingState, simpleMediaServiceHandler.controlState) { nowPlayingState, controlState ->
+            combine(mediaPlayerHandler.nowPlayingState, mediaPlayerHandler.controlState) { nowPlayingState, controlState ->
                 Pair(nowPlayingState, controlState)
             }.collect { (nowPlayingState, controlState) ->
                 if (controlState.isPlaying) {
@@ -101,9 +101,9 @@ abstract class BaseViewModel(
     /**
      * Communicate with SimpleMediaServiceHandler to load media item
      */
-    fun setQueueData(queueData: QueueData) {
-        simpleMediaServiceHandler.reset()
-        simpleMediaServiceHandler.setQueueData(queueData)
+    fun setQueueData(queueData: QueueData.Data) {
+        mediaPlayerHandler.reset()
+        mediaPlayerHandler.setQueueData(queueData)
     }
 
     fun <T> loadMediaItem(
@@ -112,7 +112,7 @@ abstract class BaseViewModel(
         index: Int? = null,
     ) {
         viewModelScope.launch {
-            simpleMediaServiceHandler.loadMediaItem(
+            mediaPlayerHandler.loadMediaItem(
                 anyTrack = anyTrack,
                 type = type,
                 index = index,
@@ -121,8 +121,6 @@ abstract class BaseViewModel(
     }
 
     fun shufflePlaylist(firstPlayIndex: Int = 0) {
-        simpleMediaServiceHandler.shufflePlaylist(firstPlayIndex)
+        mediaPlayerHandler.shufflePlaylist(firstPlayIndex)
     }
-
-    fun getQueueData() = simpleMediaServiceHandler.queueData.value
 }

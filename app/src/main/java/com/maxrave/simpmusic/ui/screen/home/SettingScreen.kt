@@ -103,6 +103,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.isTwoLetterCode
 import com.maxrave.simpmusic.extension.isValidProxyHost
@@ -1312,7 +1313,7 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.save_all_your_playlist_data),
                     onClick = {
                         val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                        backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
+                        backupLauncher.launch("${context.getString(AppResString.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
                     },
                 )
                 SettingItem(
