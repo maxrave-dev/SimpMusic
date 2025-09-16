@@ -1,7 +1,6 @@
 package com.maxrave.data.parser
 
 import android.content.Context
-import android.util.Log
 import com.maxrave.common.R
 import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.home.HomeItem
@@ -19,6 +18,7 @@ import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
 import com.maxrave.kotlinytmusicscraper.pages.ExplorePage
 import com.maxrave.kotlinytmusicscraper.pages.RelatedPage
+import com.maxrave.logger.Logger
 
 internal fun parseMixedContent(
     data: List<SectionListRenderer.Content>?,
@@ -62,9 +62,9 @@ internal fun parseMixedContent(
                 }
             } else {
                 val results1 = row.musicCarouselShelfRenderer
-                Log.w("parse_mixed_content", results1.toString())
+                Logger.w("parse_mixed_content", results1.toString())
                 val contentList = results1?.contents
-                Log.w("parse_mixed_content", results1?.contents?.size.toString())
+                Logger.w("parse_mixed_content", results1?.contents?.size.toString())
                 val title =
                     results1
                         ?.header
@@ -74,7 +74,7 @@ internal fun parseMixedContent(
                         ?.get(0)
                         ?.text
                         ?: ""
-                Log.w("parse_mixed_content", title)
+                Logger.w("parse_mixed_content", title)
                 val subtitle =
                     results1
                         ?.header
@@ -184,13 +184,13 @@ internal fun parseMixedContent(
                                 ) {
                                     runCatching { artists.removeAt(artists.lastIndex) }
                                         .onSuccess {
-                                            Log.i("parse_mixed_content", "Removed last artist")
+                                            Logger.i("parse_mixed_content", "Removed last artist")
                                         }.onFailure {
-                                            Log.e("parse_mixed_content", "Failed to remove last artist")
+                                            Logger.e("parse_mixed_content", "Failed to remove last artist")
                                             it.printStackTrace()
                                         }
                                 }
-                                Log.w("Song", ytItem.toString())
+                                Logger.w("Song", ytItem.toString())
                                 if (ytItem != null) {
                                     listContent.add(
                                         Content(
@@ -223,7 +223,7 @@ internal fun parseMixedContent(
                             } else if (musicTwoRowItemRenderer.isVideo) {
                                 val ytItem =
                                     ArtistPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as VideoItem?
-                                Log.w("Video", ytItem.toString())
+                                Logger.w("Video", ytItem.toString())
                                 val artists =
                                     ytItem
                                         ?.artists
@@ -240,9 +240,9 @@ internal fun parseMixedContent(
                                 ) {
                                     runCatching { artists.removeAt(artists.lastIndex) }
                                         .onSuccess {
-                                            Log.i("parse_mixed_content", "Removed last artist")
+                                            Logger.i("parse_mixed_content", "Removed last artist")
                                         }.onFailure {
-                                            Log.e("parse_mixed_content", "Failed to remove last artist")
+                                            Logger.e("parse_mixed_content", "Failed to remove last artist")
                                             it.printStackTrace()
                                         }
                                 }
@@ -278,7 +278,7 @@ internal fun parseMixedContent(
                             } else if (musicTwoRowItemRenderer.isArtist) {
                                 val ytItem =
                                     RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as ArtistItem?
-                                Log.w("Artists", ytItem.toString())
+                                Logger.w("Artists", ytItem.toString())
                                 if (ytItem != null) {
                                     listContent.add(
                                         Content(
@@ -412,7 +412,7 @@ internal fun parseMixedContent(
                                 continue
                             }
                         } else if (result1.musicResponsiveListItemRenderer != null) {
-                            Log.w(
+                            Logger.w(
                                 "parse Song flat",
                                 result1.musicResponsiveListItemRenderer.toString(),
                             )
@@ -463,7 +463,7 @@ internal fun parseMixedContent(
                         ),
                     )
                 }
-                Log.w("parse_mixed_content", list.toString())
+                Logger.w("parse_mixed_content", list.toString())
             }
         }
     }
@@ -627,7 +627,7 @@ internal fun parsePlaylist(
             }
         }
     }
-    Log.w("parse_playlist", description)
+    Logger.w("parse_playlist", description)
     return Content(
         album = null,
         artists = author,
@@ -672,7 +672,7 @@ internal fun parseSongArtistsRuns(
             }
         }
     }
-    Log.d("artists_log", artists.toString())
+    Logger.d("artists_log", artists.toString())
     return artists
 }
 
@@ -753,7 +753,7 @@ internal fun parseSong(
     var radioString = ""
     val listArtist: MutableList<Artist> = mutableListOf()
     val listAlbum: MutableList<Album> = mutableListOf()
-    Log.d("parse_runs", runs.toString())
+    Logger.d("parse_runs", runs.toString())
     if (runs != null) {
         for (i in runs.indices) {
             if (runs[0].text == context.getString(R.string.song)) {
@@ -792,8 +792,8 @@ internal fun parseSong(
             }
         }
     }
-    Log.d("parse_songArtist", listArtist.toString())
-    Log.d("parse_songAlbum", listAlbum.toString())
+    Logger.d("parse_songArtist", listArtist.toString())
+    Logger.d("parse_songAlbum", listAlbum.toString())
     return Content(
         album = listAlbum.firstOrNull(),
         artists = listArtist,
@@ -870,7 +870,7 @@ internal fun parseWatchPlaylist(data: MusicTwoRowItemRenderer): Content {
         data.thumbnailRenderer.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
-    Log.w("parse_watch_playlist", title.toString())
+    Logger.w("parse_watch_playlist", title.toString())
     return Content(
         album = null,
         artists = listOf(),
@@ -959,9 +959,9 @@ internal fun parseNewRelease(
                     ) {
                         runCatching { artists.removeAt(artists.lastIndex) }
                             .onSuccess {
-                                Log.i("parse_mixed_content", "Removed last artist")
+                                Logger.i("parse_mixed_content", "Removed last artist")
                             }.onFailure {
-                                Log.e("parse_mixed_content", "Failed to remove last artist")
+                                Logger.e("parse_mixed_content", "Failed to remove last artist")
                                 it.printStackTrace()
                             }
                     }

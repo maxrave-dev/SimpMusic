@@ -1,8 +1,8 @@
 package com.maxrave.kotlinytmusicscraper.utils
 
-import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
+import com.maxrave.logger.Logger
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
 import okhttp3.OkHttpClient
@@ -88,7 +88,7 @@ class NewPipeUtils(
         videoId: String,
     ): String? =
         try {
-            Log.d("NewPipeUtils", "Getting stream url: ${format.url ?: format.signatureCipher}")
+            Logger.d("NewPipeUtils", "Getting stream url: ${format.url ?: format.signatureCipher}")
             val url =
                 format.url ?: format.signatureCipher?.let { signatureCipher ->
                     val params = parseQueryString(signatureCipher)

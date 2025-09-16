@@ -28,7 +28,7 @@ import org.koin.core.qualifier.named
 import kotlin.system.exitProcess
 
 @UnstableApi
-class SimpleMediaService :
+internal class SimpleMediaService :
     MediaLibraryService(),
     KoinComponent {
     private val player: ExoPlayer by inject<ExoPlayer>(named(Config.MAIN_PLAYER))

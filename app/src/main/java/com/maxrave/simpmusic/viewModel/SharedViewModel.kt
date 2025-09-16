@@ -8,8 +8,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.SimpleCache
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -38,6 +36,7 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.canvas.CanvasResult
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.metadata.Lyrics
+import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.model.update.UpdateData
 import com.maxrave.domain.extension.isSong
 import com.maxrave.domain.extension.isVideo
@@ -55,6 +54,7 @@ import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
 import com.maxrave.domain.mediaservice.handler.SleepTimerState
 import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.LyricsCanvasRepository
 import com.maxrave.domain.repository.PlaylistRepository
@@ -95,14 +95,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.core.component.inject
-import org.koin.core.qualifier.named
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@UnstableApi
 class SharedViewModel(
     private val application: Application,
     private val dataStoreManager: DataStoreManager,
@@ -113,6 +110,7 @@ class SharedViewModel(
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val playlistRepository: PlaylistRepository,
     private val lyricsCanvasRepository: LyricsCanvasRepository,
+    private val cacheRepository: CacheRepository,
 ) : BaseViewModel(application) {
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
@@ -122,7 +120,6 @@ class SharedViewModel(
     private val _isCheckingUpdate = MutableStateFlow(false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
 
-    private val downloadedCache: SimpleCache by inject(qualifier = named(DOWNLOAD_CACHE))
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
 
@@ -527,9 +524,10 @@ class SharedViewModel(
 
     fun checkIsRestoring() {
         viewModelScope.launch {
+            val downloadedCacheKeys = cacheRepository.getAllCacheKeys(DOWNLOAD_CACHE)
             songRepository.getDownloadedSongs().first().let { songs ->
                 songs?.forEach { song ->
-                    if (!downloadedCache.keys.contains(song.videoId)) {
+                    if (!downloadedCacheKeys.contains(song.videoId)) {
                         songRepository.updateDownloadState(
                             song.videoId,
                             DownloadState.STATE_NOT_DOWNLOADED,
@@ -544,7 +542,7 @@ class SharedViewModel(
                             val tracks = data.tracks ?: emptyList()
                             if (tracks.isEmpty() ||
                                 (
-                                    !downloadedCache.keys.containsAll(
+                                    !downloadedCacheKeys.containsAll(
                                         tracks,
                                     )
                                 )
@@ -560,7 +558,7 @@ class SharedViewModel(
                             val tracks = data.tracks ?: emptyList()
                             if (tracks.isEmpty() ||
                                 (
-                                    !downloadedCache.keys.containsAll(
+                                    !downloadedCacheKeys.containsAll(
                                         tracks,
                                     )
                                 )
@@ -576,7 +574,7 @@ class SharedViewModel(
                             val tracks = data.tracks ?: emptyList()
                             if (tracks.isEmpty() ||
                                 (
-                                    !downloadedCache.keys.containsAll(
+                                    !downloadedCacheKeys.containsAll(
                                         tracks,
                                     )
                                 )
@@ -648,7 +646,6 @@ class SharedViewModel(
         }
     }
 
-    @UnstableApi
     fun loadMediaItemFromTrack(
         track: Track,
         type: String,
@@ -714,7 +711,6 @@ class SharedViewModel(
         }
     }
 
-    @UnstableApi
     fun onUIEvent(uiEvent: UIEvent) =
         viewModelScope.launch {
             when (uiEvent) {
@@ -753,7 +749,6 @@ class SharedViewModel(
             }
         }
 
-    @UnstableApi
     override fun onCleared() {
         Logger.w("Check onCleared", "onCleared")
     }
@@ -1623,13 +1618,6 @@ enum class LyricsProvider {
     AI,
     OFFLINE,
 }
-
-data class TimeLine(
-    val current: Long,
-    val total: Long,
-    val bufferedPercent: Int,
-    val loading: Boolean = true,
-)
 
 data class NowPlayingScreenData(
     val playlistName: String,

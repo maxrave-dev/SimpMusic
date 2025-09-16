@@ -1,7 +1,9 @@
-package com.maxrave.simpmusic.ui.component
+package com.maxrave.media3.ui
 
 import android.app.PictureInPictureParams
+import android.content.Context
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -33,8 +35,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -60,29 +63,24 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config
 import com.maxrave.domain.data.model.metadata.Lyrics
+import com.maxrave.domain.data.model.streams.TimeLine
+import com.maxrave.domain.data.model.ui.ScreenSizeInfo
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.extension.KeepScreenOn
-import com.maxrave.simpmusic.extension.findActivity
-import com.maxrave.simpmusic.extension.getScreenSizeInfo
-import com.maxrave.simpmusic.extension.rememberIsInPipMode
-import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.viewModel.TimeLine
+import com.maxrave.media3.ui.extension.KeepScreenOn
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 import kotlin.math.roundToInt
 
-@UnstableApi
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun MediaPlayerView(
     modifier: Modifier = Modifier,
+    context: Context,
+    density: Density,
     url: String,
-    canvasCache: SimpleCache = koinInject(named(Config.CANVAS_CACHE)),
+    screenSize: ScreenSizeInfo,
 ) {
-    // Get the current context
-    val context = LocalContext.current
-    val density = LocalDensity.current
-
-    val screenSize = getScreenSizeInfo()
+    val canvasCache: SimpleCache = koinInject<SimpleCache>(named(Config.CANVAS_CACHE))
 
     var widthPx by rememberSaveable {
         mutableIntStateOf(screenSize.wPX)
@@ -172,7 +170,6 @@ fun MediaPlayerView(
     }
 
     val presentationState = rememberPresentationState(exoPlayer)
-
     Box(modifier = modifier.graphicsLayer { clip = true }) {
         PlayerSurface(
             player = exoPlayer,
@@ -192,20 +189,23 @@ fun MediaPlayerView(
 }
 
 @Composable
-@UnstableApi
+@androidx.annotation.OptIn(UnstableApi::class)
 fun MediaPlayerViewWithSubtitle(
     modifier: Modifier = Modifier,
-    player: ExoPlayer,
+    context: Context,
+    activity: ComponentActivity,
+    playerName: String,
     shouldPip: Boolean = false,
     shouldShowSubtitle: Boolean,
     shouldScaleDownSubtitle: Boolean = false,
+    isInPipMode: Boolean,
     timelineState: TimeLine,
     lyricsData: Lyrics? = null,
     translatedLyricsData: Lyrics? = null,
+    mainTextStyle: TextStyle,
+    translatedTextStyle: TextStyle,
 ) {
-    val context = LocalContext.current
-
-    val isInPipMode = rememberIsInPipMode()
+    val player: ExoPlayer = koinInject(named(playerName))
 
     var shouldEnterPipMode by rememberSaveable {
         mutableStateOf(false)
@@ -346,7 +346,7 @@ fun MediaPlayerViewWithSubtitle(
 
                 // Add autoEnterEnabled for versions S and up
                 builder.setAutoEnterEnabled(false)
-                context.findActivity().setPictureInPictureParams(builder.build())
+                activity?.setPictureInPictureParams(builder.build())
             }
         }
     }
@@ -367,16 +367,14 @@ fun MediaPlayerViewWithSubtitle(
             val onUserLeaveBehavior =
                 Runnable {
                     if (currentShouldEnterPipMode) {
-                        context
-                            .findActivity()
-                            .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+                        activity?.enterPictureInPictureMode(PictureInPictureParams.Builder().build())
                     }
                 }
-            context.findActivity().addOnUserLeaveHintListener(
+            activity?.addOnUserLeaveHintListener(
                 onUserLeaveBehavior,
             )
             onDispose {
-                context.findActivity().removeOnUserLeaveHintListener(
+                activity?.removeOnUserLeaveHintListener(
                     onUserLeaveBehavior,
                 )
             }
@@ -393,7 +391,7 @@ fun MediaPlayerViewWithSubtitle(
 
                             // Add autoEnterEnabled for versions S and up
                             builder.setAutoEnterEnabled(shouldEnterPipMode)
-                            context.findActivity().setPictureInPictureParams(builder.build())
+                            activity?.setPictureInPictureParams(builder.build())
                         }
                     } else {
                         Modifier
@@ -465,7 +463,7 @@ fun MediaPlayerViewWithSubtitle(
                                 Text(
                                     text = lines.getOrNull(currentLineIndex)?.words ?: return@Crossfade,
                                     style =
-                                        typo.bodyLarge
+                                        mainTextStyle
                                             .let {
                                                 if (isInPipMode || shouldScaleDownSubtitle) {
                                                     it.copy(fontSize = it.fontSize * 0.8f)
@@ -487,7 +485,7 @@ fun MediaPlayerViewWithSubtitle(
                                         Text(
                                             text = translateLines.getOrNull(currentTranslatedLineIndex)?.words ?: return@Crossfade,
                                             style =
-                                                typo.bodyMedium.let {
+                                                translatedTextStyle.let {
                                                     if (isInPipMode || shouldScaleDownSubtitle) {
                                                         it.copy(fontSize = it.fontSize * 0.8f)
                                                     } else {

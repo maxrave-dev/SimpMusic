@@ -68,7 +68,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -149,7 +148,6 @@ private val listOfHomeChip =
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @ExperimentalFoundationApi
-@UnstableApi
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel =
@@ -726,7 +724,6 @@ fun AccountLayout(
     }
 }
 
-@UnstableApi
 @ExperimentalFoundationApi
 @Composable
 fun QuickPicks(
@@ -887,7 +884,6 @@ fun ChartTitle() {
     }
 }
 
-@UnstableApi
 @Composable
 fun ChartData(
     chart: Chart,

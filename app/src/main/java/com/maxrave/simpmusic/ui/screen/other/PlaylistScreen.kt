@@ -61,13 +61,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -78,7 +76,6 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.google.android.material.snackbar.Snackbar
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState
@@ -114,7 +111,6 @@ import org.koin.compose.koinInject
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun PlaylistScreen(
     viewModel: PlaylistViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
@@ -742,13 +738,7 @@ fun PlaylistScreen(
             }
 
             is PlaylistUIState.Error -> {
-                Snackbar
-                    .make(
-                        context,
-                        LocalView.current,
-                        "Error: ${state.message}",
-                        Snackbar.LENGTH_SHORT,
-                    ).show()
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
                 navController.navigateUp()
             }
         }

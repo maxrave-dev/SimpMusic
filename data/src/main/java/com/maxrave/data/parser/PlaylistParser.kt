@@ -1,7 +1,6 @@
 package com.maxrave.data.parser
 
 import android.content.Context
-import android.util.Log
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.SetVideoIdEntity
 import com.maxrave.domain.data.model.browse.album.Track
@@ -17,6 +16,7 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.pages.PodcastItem
+import com.maxrave.logger.Logger
 import java.time.LocalDateTime
 
 internal fun parsePlaylistData(
@@ -39,7 +39,7 @@ internal fun parsePlaylistData(
                     header.title.runs
                         ?.get(0)
                         ?.text
-                Log.d("PlaylistParser", "title: $title")
+                Logger.d("PlaylistParser", "title: $title")
                 if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 2) {
                     val author =
                         Author(
@@ -55,14 +55,14 @@ internal fun parsePlaylistData(
                                     ?.text ?: "",
                         )
                     listAuthor.add(author)
-                    Log.d("PlaylistParser", "author: $author")
+                    Logger.d("PlaylistParser", "author: $author")
                 }
                 val secondSubtitle = header.secondSubtitle.runs
-                Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
+                Logger.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
                 if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 2) {
                     duration += secondSubtitle.getOrNull(2)?.text
                 }
-                Log.d("PlaylistParser", "duration: $duration")
+                Logger.d("PlaylistParser", "duration: $duration")
                 if (!header.description?.runs.isNullOrEmpty()) {
                     for (run in header.description?.runs!!) {
                         description += (run.text)
@@ -88,7 +88,7 @@ internal fun parsePlaylistData(
                         ?.runs
                         ?.get(0)
                         ?.text
-                Log.d("PlaylistParser", "title: $title")
+                Logger.d("PlaylistParser", "title: $title")
                 val author =
                     Author(
                         id =
@@ -108,7 +108,7 @@ internal fun parsePlaylistData(
                                 ?.text ?: "",
                     )
                 listAuthor.add(author)
-                Log.d("PlaylistParser", "author: $author")
+                Logger.d("PlaylistParser", "author: $author")
                 if (header.header.musicDetailHeaderRenderer
                         ?.secondSubtitle
                         ?.runs
@@ -132,7 +132,7 @@ internal fun parsePlaylistData(
                             ?.get(2)
                             ?.text
                 }
-                Log.d("PlaylistParser", "duration: $duration")
+                Logger.d("PlaylistParser", "duration: $duration")
                 if (!header.header.musicDetailHeaderRenderer
                         ?.description
                         ?.runs
@@ -159,7 +159,7 @@ internal fun parsePlaylistData(
                         ?.runs
                         ?.firstOrNull()
                         ?.text
-                Log.d("PlaylistParser", "title: $title")
+                Logger.d("PlaylistParser", "title: $title")
                 val secondSubtitle = header.secondSubtitle?.runs
                 if (!secondSubtitle.isNullOrEmpty()) {
                     /**
@@ -184,7 +184,7 @@ internal fun parsePlaylistData(
                                     ?.toInt() ?: 0
                             }
                         } catch (e: Exception) {
-                            Log.e("PlaylistParser", "Error parsing track count: ${e.message}")
+                            Logger.e("PlaylistParser", "Error parsing track count: ${e.message}")
                             e.printStackTrace()
                             0
                         }
@@ -225,14 +225,14 @@ internal fun parsePlaylistData(
                                 ?: "YouTube Music",
                     )
                 listAuthor.add(author)
-                Log.d("PlaylistParser", "author: $author")
-                Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
+                Logger.d("PlaylistParser", "author: $author")
+                Logger.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
                 if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 4) {
                     duration += secondSubtitle.getOrNull(4)?.text
                 } else if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size == 3) {
                     duration += secondSubtitle.getOrNull(2)?.text
                 }
-                Log.d("PlaylistParser", "duration: $duration")
+                Logger.d("PlaylistParser", "duration: $duration")
                 if (!header.description
                         ?.musicDescriptionShelfRenderer
                         ?.description
@@ -254,7 +254,7 @@ internal fun parsePlaylistData(
                     ?.let { listThumbnails.addAll(it) }
             }
         }
-        Log.d("PlaylistParser", "description: $description")
+        Logger.d("PlaylistParser", "description: $description")
         val listTrack: MutableList<Track> = arrayListOf()
         for (content in listContent) {
             val track =
@@ -357,9 +357,9 @@ internal fun parsePlaylistData(
                 listTrack.add(track)
             }
         }
-        Log.d("PlaylistParser", "description: $description")
-        Log.d("PlaylistParser", "trackCount: $trackCount")
-        Log.d("PlaylistParser", "year: $year")
+        Logger.d("PlaylistParser", "description: $description")
+        Logger.d("PlaylistParser", "trackCount: $trackCount")
+        Logger.d("PlaylistParser", "year: $year")
         return PlaylistBrowse(
             author = listAuthor.firstOrNull() ?: Author("", "YouTube Music"),
             description = description,
@@ -401,10 +401,10 @@ internal fun parseSetVideoId(
         if (videoId != null && setVideoId != null) {
             listSetVideoId.add(SetVideoIdEntity(videoId, setVideoId, playlistId))
         } else {
-            Log.d("PlaylistParser", "videoId or setVideoId is null")
+            Logger.d("PlaylistParser", "videoId or setVideoId is null")
         }
     }
-    Log.w("PlaylistParser", "listSetVideoId: $listSetVideoId")
+    Logger.w("PlaylistParser", "listSetVideoId: $listSetVideoId")
     return listSetVideoId
 }
 

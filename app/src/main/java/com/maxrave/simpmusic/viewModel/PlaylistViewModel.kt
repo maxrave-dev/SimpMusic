@@ -5,7 +5,6 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
@@ -48,7 +47,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
-@UnstableApi
 class PlaylistViewModel(
     private val application: Application,
     private val songRepository: SongRepository,

@@ -220,23 +220,19 @@ dependencies {
     implementation(libs.work.runtime.ktx)
     androidTestImplementation(libs.work.testing)
 
-    // Material Design 3
-    implementation(libs.material)
     // Runtime
     implementation(libs.startup.runtime)
     implementation(project(":common"))
     // Other module
     implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":media3-ui"))
 
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
     debugImplementation(libs.ui.tooling)
 
     // ExoPlayer
-    implementation(libs.media3.exoplayer)
-    implementation(libs.media3.ui)
-    implementation(libs.media3.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

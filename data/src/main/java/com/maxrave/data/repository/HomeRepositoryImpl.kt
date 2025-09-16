@@ -1,7 +1,6 @@
 package com.maxrave.data.repository
 
 import android.content.Context
-import android.util.Log
 import com.maxrave.data.parser.parseChart
 import com.maxrave.data.parser.parseGenreObject
 import com.maxrave.data.parser.parseMixedContent
@@ -18,6 +17,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -145,18 +145,18 @@ internal class HomeRepositoryImpl(
                                                 0,
                                             )?.nextContinuationData
                                             ?.continuation
-                                    Log.d("Repository", "continueParam: $continueParam")
+                                    Logger.d("Repository", "continueParam: $continueParam")
                                     val dataContinue =
                                         response.continuationContents?.sectionListContinuation?.contents
                                     list.addAll(parseMixedContent(dataContinue, context))
                                     count++
-                                    Log.d("Repository", "count: $count")
+                                    Logger.d("Repository", "count: $count")
                                 }.onFailure {
-                                    Log.e("Repository", "Error: ${it.message}")
+                                    Logger.e("Repository", "Error: ${it.message}")
                                     count++
                                 }
                         }
-                        Log.d("Repository", "List size: ${list.size}")
+                        Logger.d("Repository", "List size: ${list.size}")
                         emit(Resource.Success<List<HomeItem>>(list.toList()))
                     }.onFailure { error ->
                         emit(Resource.Error<List<HomeItem>>(error.message.toString()))

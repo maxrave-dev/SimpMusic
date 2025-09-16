@@ -23,7 +23,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -40,7 +40,6 @@ dependencies {
 
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
-    implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
@@ -49,7 +48,7 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.gemini.kotlin)
 
-    implementation(project(":lyricsService"))
+    implementation(project(":domain"))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

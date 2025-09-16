@@ -117,7 +117,6 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -154,7 +153,6 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-@UnstableApi
 @ExperimentalMaterial3Api
 @Composable
 fun InfoPlayerBottomSheet(
@@ -690,7 +688,6 @@ fun InfoPlayerBottomSheet(
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class, ExperimentalFoundationApi::class)
-@UnstableApi
 @Composable
 fun QueueBottomSheet(
     onDismiss: () -> Unit,
@@ -1015,7 +1012,6 @@ private enum class QueueItemAction {
 }
 
 @Composable
-@UnstableApi
 @ExperimentalMaterial3Api
 fun QueueItemBottomSheet(
     onDismiss: () -> Unit,
@@ -1185,7 +1181,6 @@ fun QueueItemBottomSheet(
     }
 }
 
-@UnstableApi
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingBottomSheet(

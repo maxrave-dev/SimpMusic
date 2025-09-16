@@ -4,7 +4,6 @@ import android.app.Application
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState
@@ -33,7 +32,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
-@UnstableApi
 class AlbumViewModel(
     application: Application,
     private val songRepository: SongRepository,

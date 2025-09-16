@@ -43,6 +43,7 @@ object Logger {
     fun e(
         tag: String,
         message: String,
+        e: Throwable? = null,
     ) {
         logger.error {
             "[$tag]: $message"

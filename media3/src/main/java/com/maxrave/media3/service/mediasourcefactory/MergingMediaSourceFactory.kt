@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 @UnstableApi
-class MergingMediaSourceFactory(
+internal class MergingMediaSourceFactory(
     private val defaultMediaSourceFactory: DefaultMediaSourceFactory,
     private val dataStoreManager: DataStoreManager,
 ) : MediaSource.Factory {

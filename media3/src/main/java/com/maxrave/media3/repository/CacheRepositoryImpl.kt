@@ -6,7 +6,7 @@ import com.maxrave.common.Config
 import com.maxrave.domain.repository.CacheRepository
 
 @UnstableApi
-class CacheRepositoryImpl(
+internal class CacheRepositoryImpl(
     private val playerCache: SimpleCache,
     private val downloadCache: SimpleCache,
     private val canvasCache: SimpleCache,

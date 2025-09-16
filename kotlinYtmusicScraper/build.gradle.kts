@@ -24,7 +24,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -62,7 +62,6 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
-    implementation(libs.material)
     implementation(libs.androidx.ui.text.android)
     implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
@@ -93,6 +92,8 @@ dependencies {
     implementation(project(mapOf("path" to ":sharedutils")))
     api(project(":ffmpeg-kit"))
 //    implementation(libs.ytdlp.android)
+
+    implementation(project(":common"))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

@@ -118,7 +118,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -130,22 +129,24 @@ import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.common.R
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
+import com.maxrave.media3.ui.MediaPlayerView
+import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
+import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
+import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
 import com.maxrave.simpmusic.ui.component.LyricsView
-import com.maxrave.simpmusic.ui.component.MediaPlayerView
-import com.maxrave.simpmusic.ui.component.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
@@ -170,11 +171,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
-import org.koin.core.qualifier.named
 import kotlin.math.roundToLong
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
-@UnstableApi
 @ExperimentalMaterial3Api
 @Composable
 fun NowPlayingScreen(
@@ -201,6 +200,8 @@ fun NowPlayingScreen(
     val mainScrollState = rememberScrollState()
 
     var swipeEnabled by rememberSaveable { mutableStateOf(false) }
+
+    val isInPipMode = rememberIsInPipMode()
 
     val sheetState =
         rememberModalBottomSheetState(
@@ -577,6 +578,9 @@ fun NowPlayingScreen(
                                                 .fillMaxHeight()
                                                 .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
                                                 .align(Alignment.Center),
+                                        context = context,
+                                        density = localDensity,
+                                        screenSize = getScreenSizeInfo(),
                                     )
                                 }
                             } else if (isVideo == false) {
@@ -800,7 +804,7 @@ fun NowPlayingScreen(
                                             // Player
                                             Box(Modifier.fillMaxSize()) {
                                                 MediaPlayerViewWithSubtitle(
-                                                    player = koinInject(named(MAIN_PLAYER)),
+                                                    playerName = MAIN_PLAYER,
                                                     modifier = Modifier.align(Alignment.Center),
                                                     shouldShowSubtitle = true,
                                                     shouldPip = false,
@@ -808,6 +812,11 @@ fun NowPlayingScreen(
                                                     timelineState = timelineState,
                                                     lyricsData = screenDataState.lyricsData?.lyrics,
                                                     translatedLyricsData = screenDataState.lyricsData?.translatedLyrics,
+                                                    context = context,
+                                                    activity = context.findActivity(),
+                                                    isInPipMode = isInPipMode,
+                                                    mainTextStyle = typo.bodyLarge,
+                                                    translatedTextStyle = typo.bodyMedium,
                                                 )
                                             }
                                             Box(

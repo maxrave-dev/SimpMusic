@@ -45,7 +45,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -82,7 +81,6 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType as DomainPlaylistTyp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun LibraryItem(
     state: LibraryItemState,
     viewModel: LibraryViewModel = koinViewModel(),

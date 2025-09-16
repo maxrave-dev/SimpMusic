@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.liskovsoft.sharedutils.prefs.GlobalPreferences
@@ -85,6 +84,7 @@ import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
 import com.maxrave.kotlinytmusicscraper.utils.NewPipeDownloaderImpl
 import com.maxrave.kotlinytmusicscraper.utils.NewPipeUtils
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.NewPipePoTokenProviderImpl
+import com.maxrave.logger.Logger
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
@@ -558,7 +558,7 @@ class YouTube(
                 description += run.text
             }
         }
-        Log.d("description", description)
+        Logger.d("description", description)
         return description
     }
 
@@ -1095,7 +1095,7 @@ class YouTube(
                             super.onText(text)
                             if (text.contains("var ytInitialPlayerResponse")) {
                                 val temp = text.replace("var ytInitialPlayerResponse = ", "").dropLast(1)
-                                Log.d("Scrape", "Temp $temp")
+                                Logger.d("Scrape", "Temp $temp")
                                 response = temp.trimIndent()
                             }
                         }
@@ -1128,7 +1128,7 @@ class YouTube(
                     ?.likeButtonRenderer
                     ?.likeStatus
                     ?.toLikeStatus()
-            Log.w("YouTube", "Like Status ${response.playerOverlays}")
+            Logger.w("YouTube", "Like Status ${response.playerOverlays}")
             return@runCatching likeStatus ?: LikeStatus.INDIFFERENT
         }
 
@@ -1780,7 +1780,7 @@ class YouTube(
                         endpoint.params,
                         continuation,
                     ).body<NextResponse>()
-            Log.w("YouTube", response.toString())
+            Logger.w("YouTube", response.toString())
             val playlistPanelRenderer =
                 response.continuationContents?.playlistPanelContinuation
                     ?: response.contents.singleColumnMusicWatchNextResultsRenderer
@@ -1888,7 +1888,7 @@ class YouTube(
                     endpoint = endpoint,
                 )
             } else {
-                Log.e("YouTube", response.toString())
+                Logger.e("YouTube", response.toString())
                 val musicPlaylistShelfContinuation = response.continuationContents?.musicPlaylistShelfContinuation!!
                 return@runCatching NextResult(
                     items =

@@ -12,7 +12,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import com.maxrave.common.Config
@@ -24,7 +23,6 @@ import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.SETTINGS_FILENAME
 import com.maxrave.common.VIDEO_QUALITY
-import com.maxrave.data.di.loader.stopMediaService
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.manager.DataStoreManager
@@ -63,7 +61,6 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-@UnstableApi
 class SettingsViewModel(
     private val application: Application,
     private val dataStoreManager: DataStoreManager,
@@ -737,14 +734,12 @@ class SettingsViewModel(
     private val _downloadedCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
     var downloadedCacheSize: StateFlow<Long?> = _downloadedCacheSize
 
-    @UnstableApi
     fun getDownloadedCacheSize() {
         viewModelScope.launch {
             _downloadedCacheSize.value = cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE)
         }
     }
 
-    @UnstableApi
     fun clearDownloadedCache() {
         viewModelScope.launch {
             cacheRepository.clearCache(Config.DOWNLOAD_CACHE)
@@ -759,7 +754,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun clearCanvasCache() {
         viewModelScope.launch {
             cacheRepository.clearCache(Config.CANVAS_CACHE)
@@ -914,7 +908,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun restore(uri: Uri) {
         viewModelScope.launch {
             makeToast(getString(R.string.restore_in_progress))
@@ -989,7 +982,7 @@ class SettingsViewModel(
 
                     withContext(Dispatchers.Main) {
                         makeToast(getString(R.string.restore_success))
-                        stopMediaService(application)
+                        mediaPlayerHandler.stopMediaService(application)
                         getData()
                         val ctx = application.applicationContext
                         val pm: PackageManager = ctx.packageManager
@@ -1016,7 +1009,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun changeLanguage(code: String) {
         viewModelScope.launch {
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
@@ -1054,7 +1046,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun setNormalizeVolume(normalizeVolume: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setNormalizeVolume(normalizeVolume)
@@ -1085,7 +1076,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun setSkipSilent(skip: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setSkipSilent(skip)

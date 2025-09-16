@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-@UnstableApi
 class LogInViewModel(
     application: Application,
     private val dataStoreManager: DataStoreManager,

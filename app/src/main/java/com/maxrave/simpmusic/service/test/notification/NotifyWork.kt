@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.service.test.notification
 
 import android.content.Context
-import androidx.media3.common.util.UnstableApi
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.maxrave.domain.data.entities.ArtistEntity
@@ -35,7 +34,6 @@ class NotifyWork(
 
     private val mapOfNotification = arrayListOf<NotificationModel>()
 
-    @UnstableApi
     override suspend fun doWork(): Result =
         withContext(Dispatchers.IO) {
             Logger.w("NotifyWork", "doWork: ")

@@ -64,7 +64,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -88,7 +87,6 @@ import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 
 @Composable
-@UnstableApi
 fun MiniPlayer(
     modifier: Modifier,
     sharedViewModel: SharedViewModel = koinInject(),

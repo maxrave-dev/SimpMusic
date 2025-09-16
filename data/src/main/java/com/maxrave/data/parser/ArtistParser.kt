@@ -1,6 +1,5 @@
 package com.maxrave.data.parser
 
-import android.util.Log
 import com.maxrave.data.mapping.toYouTubeWatchEndpoint
 import com.maxrave.domain.data.model.browse.artist.Albums
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
@@ -22,11 +21,12 @@ import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
+import com.maxrave.logger.Logger
 
 internal fun parseArtistData(data: ArtistPage): ArtistBrowse {
     for (i in data.sections) {
-        Log.d("data", "title: ${i.title}")
-        Log.d("data", "items: ${i.items}")
+        Logger.d("data", "title: ${i.title}")
+        Logger.d("data", "items: ${i.items}")
     }
     val songSection = data.sections.find { it.items.firstOrNull() is SongItem }
     val albumSection =
@@ -41,8 +41,8 @@ internal fun parseArtistData(data: ArtistPage): ArtistBrowse {
         data.sections.find { it.items.firstOrNull() is VideoItem }
     val featuredOnSection =
         data.sections.find { it.items.firstOrNull() is PlaylistItem }
-    Log.w("ArtistParser", "videoSection: ${videoSection?.items}")
-    Log.w("ArtistParser", "featuredOnSection: ${featuredOnSection?.items}")
+    Logger.w("ArtistParser", "videoSection: ${videoSection?.items}")
+    Logger.w("ArtistParser", "featuredOnSection: ${featuredOnSection?.items}")
     val relatedSection = data.sections.find { it.items.firstOrNull() is ArtistItem }
     val listSong: ArrayList<ResultSong> = arrayListOf()
     val listAlbum: ArrayList<ResultAlbum> = arrayListOf()
@@ -141,10 +141,10 @@ internal fun parseArtistData(data: ArtistPage): ArtistBrowse {
             ),
         )
     }
-    Log.d("ArtistParser", "listSong: ${listSong.size}")
-    Log.d("ArtistParser", "listAlbum: ${listAlbum.size}")
-    Log.d("ArtistParser", "listSingle: ${listSingle.size}")
-    Log.d("ArtistParser", "listRelated: ${listRelated.size}")
+    Logger.d("ArtistParser", "listSong: ${listSong.size}")
+    Logger.d("ArtistParser", "listAlbum: ${listAlbum.size}")
+    Logger.d("ArtistParser", "listSingle: ${listSingle.size}")
+    Logger.d("ArtistParser", "listRelated: ${listRelated.size}")
     return ArtistBrowse(
         albums = Albums(browseId = "", results = listAlbum, params = ""),
         channelId = data.artist.id,

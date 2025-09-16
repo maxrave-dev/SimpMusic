@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -27,7 +26,6 @@ import com.maxrave.simpmusic.ui.component.NormalAppBar
 import com.maxrave.simpmusic.viewModel.MoodViewModel
 
 @Composable
-@UnstableApi
 fun MoodScreen(
     navController: NavController,
     viewModel: MoodViewModel = viewModel(),

@@ -40,7 +40,7 @@ import java.time.LocalDateTime
 import java.util.concurrent.Executor
 
 @UnstableApi
-class DownloadUtils(
+internal class DownloadUtils(
     private val context: Context,
     private val playerCache: SimpleCache,
     private val downloadCache: SimpleCache,

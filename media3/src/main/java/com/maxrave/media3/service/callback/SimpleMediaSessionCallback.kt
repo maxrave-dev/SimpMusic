@@ -51,7 +51,7 @@ import kotlinx.coroutines.guava.future
 private const val TAG = "AndroidAuto"
 
 @UnstableApi
-class SimpleMediaSessionCallback(
+internal class SimpleMediaSessionCallback(
     private val context: Context,
     private val scope: CoroutineScope,
     private val mediaPlayerHandler: MediaPlayerHandler,

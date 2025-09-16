@@ -16,7 +16,7 @@ import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import org.koin.android.ext.android.inject
 
 @UnstableApi
-class MusicDownloadService :
+internal class MusicDownloadService :
     DownloadService(
         NOTIFICATION_ID,
         1000L,

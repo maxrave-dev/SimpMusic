@@ -32,7 +32,6 @@ import io.ktor.serialization.kotlinx.protobuf.protobuf
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
-import okhttp3.internal.userAgent
 import java.net.Proxy
 import kotlin.random.Random
 

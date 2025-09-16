@@ -1,6 +1,5 @@
 package com.maxrave.data.di
 
-import android.util.Log
 import androidx.core.content.contentValuesOf
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -21,6 +20,7 @@ import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SetVideoIdEntity
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.logger.Logger
 import com.maxrave.spotify.Spotify
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
@@ -52,7 +52,7 @@ val databaseModule =
                                     if (input != null) {
                                         val tracks =
                                             json.decodeFromString<ArrayList<String?>?>(input)
-                                        Log.w("MIGRATION_5_6", "tracks: $tracks")
+                                        Logger.w("MIGRATION_5_6", "tracks: $tracks")
                                         tracks?.mapIndexed { index, track ->
                                             if (track != null) {
                                                 playlistSongMaps.add(

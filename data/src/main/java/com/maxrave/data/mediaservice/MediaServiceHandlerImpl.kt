@@ -1,12 +1,15 @@
 package com.maxrave.data.mediaservice
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.ActivityManager
 import android.app.ActivityManager.RunningAppProcessInfo
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.media.audiofx.AudioEffect
 import android.media.audiofx.LoudnessEnhancer
+import android.os.IBinder
 import android.widget.Toast
 import com.maxrave.common.ASC
 import com.maxrave.common.Config.ALBUM_CLICK
@@ -60,6 +63,9 @@ import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.media3.di.setServiceActivitySession
+import com.maxrave.media3.di.startService
+import com.maxrave.media3.di.stopService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -89,7 +95,7 @@ import kotlin.math.pow
 
 private val TAG = "Media3ServiceHandlerImpl"
 
-class MediaServiceHandlerImpl(
+internal class MediaServiceHandlerImpl(
     inputPlayer: MediaPlayerInterface,
     private val context: Context,
     private val dataStoreManager: DataStoreManager,
@@ -2114,6 +2120,25 @@ class MediaServiceHandlerImpl(
         } else {
             stopBufferedUpdate()
         }
+    }
+
+    override fun startMediaService(
+        context: Context,
+        serviceConnection: ServiceConnection,
+    ) {
+        startService(context, serviceConnection)
+    }
+
+    override fun stopMediaService(context: Context) {
+        stopService(context)
+    }
+
+    override fun setActivitySession(
+        context: Context,
+        cls: Class<out Activity>,
+        service: IBinder?,
+    ) {
+        setServiceActivitySession(context, cls, service)
     }
 }
 

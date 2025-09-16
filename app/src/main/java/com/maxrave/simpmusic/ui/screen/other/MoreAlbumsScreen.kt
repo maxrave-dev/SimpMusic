@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.common.R
 import com.maxrave.logger.Logger
@@ -52,7 +51,6 @@ import dev.chrisbanes.haze.rememberHazeState
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
-@UnstableApi
 @Composable
 fun MoreAlbumsScreen(
     innerPadding: PaddingValues,

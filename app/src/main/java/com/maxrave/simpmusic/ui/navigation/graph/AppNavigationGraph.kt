@@ -6,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,7 +21,6 @@ import com.maxrave.simpmusic.ui.screen.player.FullscreenPlayer
 @Composable
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
-@UnstableApi
 fun AppNavigationGraph(
     innerPadding: PaddingValues,
     navController: NavHostController,

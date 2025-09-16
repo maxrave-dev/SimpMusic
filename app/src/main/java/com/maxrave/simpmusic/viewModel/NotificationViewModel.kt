@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-@UnstableApi
 class NotificationViewModel(
     application: Application,
     commonRepository: CommonRepository,

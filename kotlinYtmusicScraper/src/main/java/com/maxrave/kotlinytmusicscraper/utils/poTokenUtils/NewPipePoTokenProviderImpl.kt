@@ -3,7 +3,7 @@ package com.maxrave.kotlinytmusicscraper.utils.poTokenUtils
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import com.maxrave.logger.Logger
 import kotlinx.coroutines.runBlocking
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
@@ -13,6 +13,8 @@ import org.schabi.newpipe.extractor.services.youtube.PoTokenResult
 import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor
 
+private const val TAG = "NewPipePoTokenProviderImpl"
+
 class NewPipePoTokenProviderImpl(
     private val context: Context,
     downloader: Downloader,
@@ -21,7 +23,6 @@ class NewPipePoTokenProviderImpl(
         YoutubeStreamExtractor.setPoTokenProvider(this)
     }
 
-    val TAG = NewPipePoTokenProviderImpl::class.simpleName
     private var webViewBadImpl = false // whether the system has a bad WebView implementation
     private val poTokenProviderImpl = PoTokenWebViewImpl(downloader)
 
@@ -40,7 +41,7 @@ class NewPipePoTokenProviderImpl(
             // RxJava's Single wraps exceptions into RuntimeErrors, so we need to unwrap them here
             when (val cause = e.cause) {
                 is BadWebViewException -> {
-                    Log.e(TAG, "Could not obtain poToken because WebView is broken", e)
+                    Logger.e(TAG, "Could not obtain poToken because WebView is broken", e)
                     webViewBadImpl = true
                     return null
                 }
@@ -122,12 +123,12 @@ class NewPipePoTokenProviderImpl(
                     // retry, this time recreating the [webPoTokenGenerator] from scratch;
                     // this might happen for example if NewPipe goes in the background and the WebView
                     // content is lost
-                    Log.e(TAG, "Failed to obtain poToken, retrying", throwable)
+                    Logger.e(TAG, "Failed to obtain poToken, retrying", throwable)
                     return getWebClientPoToken(videoId = videoId, forceRecreate = true)
                 }
             }
 
-        Log.d(
+        Logger.d(
             TAG,
             "poToken for $videoId: playerPot=$playerPot, " +
                 "streamingPot=$streamingPot, visitor_data=$visitorData",

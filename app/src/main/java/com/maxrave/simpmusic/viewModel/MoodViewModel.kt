@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.domain.data.model.mood.moodmoments.MoodsMomentObject
 import com.maxrave.domain.manager.DataStoreManager
@@ -18,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-@UnstableApi
 class MoodViewModel(
     application: Application,
     dataStoreManager: DataStoreManager,

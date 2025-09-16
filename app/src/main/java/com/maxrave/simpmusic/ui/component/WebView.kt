@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.theme.typo
@@ -34,7 +33,6 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-@UnstableApi
 @Composable
 fun GetDataSyncIdBottomSheet(
     cookie: String,
@@ -113,7 +111,6 @@ fun GetDataSyncIdBottomSheet(
                         addJavascriptInterface(
                             object {
                                 @JavascriptInterface
-                                @UnstableApi
                                 fun onRetrieveVisitorData(newVisitorData: String?) {
                                     if (newVisitorData != null) {
                                         viewModel.setVisitorData(newVisitorData)
@@ -130,7 +127,6 @@ fun GetDataSyncIdBottomSheet(
                                 }
 
                                 @JavascriptInterface
-                                @UnstableApi
                                 fun onRetrieveDataSyncId(newDataSyncId: String?) {
                                     if (newDataSyncId != null) {
                                         viewModel.setDataSyncId(newDataSyncId.substringBefore("||"))

@@ -1,7 +1,6 @@
 package com.maxrave.data.dataStore
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -26,6 +25,7 @@ import com.maxrave.domain.manager.DataStoreManager.Values.REPEAT_MODE_OFF
 import com.maxrave.domain.manager.DataStoreManager.Values.REPEAT_ONE
 import com.maxrave.domain.manager.DataStoreManager.Values.SIMPMUSIC
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -284,7 +284,7 @@ internal class DataStoreManagerImpl(
         mediaId: String,
         position: Long,
     ) {
-        Log.w("saveRecentSong", "$mediaId $position")
+        Logger.w("saveRecentSong", "$mediaId $position")
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
                 settings[RECENT_SONG_MEDIA_ID_KEY] = mediaId
@@ -354,7 +354,7 @@ internal class DataStoreManagerImpl(
 
     override suspend fun setSponsorBlockCategories(categories: ArrayList<String>) {
         withContext(Dispatchers.IO) {
-            Log.w("setSponsorBlockCategories", categories.toString())
+            Logger.w("setSponsorBlockCategories", categories.toString())
             for (category in categories) {
                 settingsDataStore.edit { settings ->
                     settings[stringPreferencesKey(category)] = TRUE

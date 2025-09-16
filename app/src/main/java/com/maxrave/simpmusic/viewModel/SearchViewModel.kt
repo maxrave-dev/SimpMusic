@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.domain.data.entities.SearchHistory
@@ -79,7 +78,6 @@ sealed class SearchScreenUIState {
     object Error : SearchScreenUIState()
 }
 
-@UnstableApi
 class SearchViewModel(
     application: Application,
     private val dataStoreManager: DataStoreManager,

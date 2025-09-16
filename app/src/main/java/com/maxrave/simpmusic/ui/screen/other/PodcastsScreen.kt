@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.other
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -57,20 +58,17 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
-import com.google.android.material.snackbar.Snackbar
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.R
 import com.maxrave.domain.data.model.browse.album.Track
@@ -97,7 +95,6 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun PodcastScreen(
     viewModel: PodcastViewModel = koinViewModel(),
     podcastId: String,
@@ -494,13 +491,7 @@ fun PodcastScreen(
             }
 
             is PodcastUIState.Error -> {
-                Snackbar
-                    .make(
-                        context,
-                        LocalView.current,
-                        "Error: ${state.message}",
-                        Snackbar.LENGTH_SHORT,
-                    ).show()
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
                 navController.navigateUp()
             }
         }

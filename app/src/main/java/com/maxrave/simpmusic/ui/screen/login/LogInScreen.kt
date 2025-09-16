@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.common.Config
 import com.maxrave.common.R
@@ -58,7 +57,6 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @SuppressLint("SetJavaScriptEnabled")
-@UnstableApi
 @Composable
 fun LoginScreen(
     innerPadding: PaddingValues,

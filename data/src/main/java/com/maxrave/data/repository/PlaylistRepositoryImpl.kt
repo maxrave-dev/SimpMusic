@@ -1,7 +1,6 @@
 package com.maxrave.data.repository
 
 import android.content.Context
-import android.util.Log
 import com.maxrave.common.R
 import com.maxrave.data.db.LocalDataSource
 import com.maxrave.data.mapping.toListTrack
@@ -557,7 +556,7 @@ internal class PlaylistRepositoryImpl(
                             ?.items
                     val listItem = mutableListOf<PlaylistsResult>()
                     if (input.isNullOrEmpty()) {
-                        Log.w("Library", "No playlists found")
+                        Logger.w("Library", "No playlists found")
                         emit(null)
                         return@onSuccess
                     }
@@ -584,14 +583,14 @@ internal class PlaylistRepositoryImpl(
                             .nextYouTubePlaylists(continuation)
                             .onSuccess { nextData ->
                                 continuation = nextData.second
-                                Log.w("Library", "continuation: $continuation")
+                                Logger.w("Library", "continuation: $continuation")
                                 val nextInput = nextData.first
                                 listItem.addAll(
                                     parseNextLibraryPlaylist(nextInput),
                                 )
                             }.onFailure { exception ->
                                 exception.printStackTrace()
-                                Log.e("Library", "Error: ${exception.message}")
+                                Logger.e("Library", "Error: ${exception.message}")
                                 continuation = null
                             }
                     }
@@ -601,7 +600,7 @@ internal class PlaylistRepositoryImpl(
                         emit(null)
                     }
                 }.onFailure { e ->
-                    Log.e("Library", "Error: ${e.message}")
+                    Logger.e("Library", "Error: ${e.message}")
                     e.printStackTrace()
                     emit(null)
                 }

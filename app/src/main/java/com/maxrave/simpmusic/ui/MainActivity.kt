@@ -46,8 +46,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.maxrave.common.FIRST_TIME_MIGRATION
@@ -56,9 +54,9 @@ import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
 import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LOCATION
-import com.maxrave.data.di.loader.setActivitySession
-import com.maxrave.data.di.loader.startMediaService
+import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
@@ -82,10 +80,10 @@ import pub.devrel.easypermissions.EasyPermissions
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@UnstableApi
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
+    val mediaPlayerHandler by inject<MediaPlayerHandler>()
 
     private var mBound = false
     private var shouldUnbind = false
@@ -95,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                 name: ComponentName?,
                 service: IBinder?,
             ) {
-                setActivitySession(this@MainActivity, MainActivity::class.java, service)
+                mediaPlayerHandler.setActivitySession(this@MainActivity, MainActivity::class.java, service)
                 Logger.w("MainActivity", "onServiceConnected: ")
                 mBound = true
             }
@@ -133,7 +131,6 @@ class MainActivity : AppCompatActivity() {
 //        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
 //    }
 
-    @UnstableApi
     @ExperimentalMaterial3Api
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -251,7 +248,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             LaunchedEffect(nowPlayingData) {
-                isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == MediaItem.EMPTY)
+                isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
             }
 
             LaunchedEffect(intent) {
@@ -573,7 +570,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startMusicService() {
-        startMediaService(this, serviceConnection)
+        mediaPlayerHandler.startMediaService(this, serviceConnection)
         viewModel.isServiceRunning = true
         shouldUnbind = true
         Logger.d("Service", "Service started")

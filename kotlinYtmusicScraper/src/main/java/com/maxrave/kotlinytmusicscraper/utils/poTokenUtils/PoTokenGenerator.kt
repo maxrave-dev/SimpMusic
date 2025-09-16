@@ -3,7 +3,6 @@ package com.maxrave.kotlinytmusicscraper.utils.poTokenUtils
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -15,6 +14,7 @@ import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.JavaScriptUtil.parseC
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.JavaScriptUtil.parseIntegrityTokenData
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.JavaScriptUtil.stringToU8
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.JavaScriptUtil.u8ToBase64
+import com.maxrave.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -66,7 +66,7 @@ class PoTokenWebView(
                         val exception =
                             _root_ide_package_.com.maxrave.kotlinytmusicscraper.utils.poTokenUtils
                                 .BadWebViewException(fmt)
-                        Log.e(TAG, "This WebView implementation is broken: $fmt")
+                        Logger.e(TAG, "This WebView implementation is broken: $fmt")
 
                         onInitializationErrorCloseAndCancel(exception)
                         popAllPoTokenContinuations().forEach { (_, continuation) -> continuation.resumeWithException(exception) }
@@ -82,7 +82,7 @@ class PoTokenWebView(
      * run it, and obtain an `integrityToken`.
      */
     fun loadHtmlAndObtainBotguard(context: Context) {
-        Log.d(TAG, "loadHtmlAndObtainBotguard() called")
+        Logger.d(TAG, "loadHtmlAndObtainBotguard() called")
 
         coroutineScope.launch {
             try {
@@ -119,7 +119,7 @@ class PoTokenWebView(
      */
     @JavascriptInterface
     fun downloadAndRunBotguard() {
-        Log.d(TAG, "downloadAndRunBotguard() called")
+        Logger.d(TAG, "downloadAndRunBotguard() called")
 
         coroutineScope.launch {
             try {
@@ -158,7 +158,7 @@ class PoTokenWebView(
      */
     @JavascriptInterface
     fun onJsInitializationError(error: String) {
-        Log.e(TAG, "Initialization error from JavaScript: $error")
+        Logger.e(TAG, "Initialization error from JavaScript: $error")
         onInitializationErrorCloseAndCancel(buildExceptionForJsError(error))
     }
 
@@ -168,7 +168,7 @@ class PoTokenWebView(
      */
     @JavascriptInterface
     fun onRunBotguardResult(botguardResponse: String) {
-        Log.d(TAG, "botguardResponse: $botguardResponse")
+        Logger.d(TAG, "botguardResponse: $botguardResponse")
 
         coroutineScope.launch {
             try {
@@ -178,7 +178,7 @@ class PoTokenWebView(
                         "[ \"$REQUEST_KEY\", \"$botguardResponse\" ]",
                     )
 
-                Log.d(TAG, "GenerateIT response: $responseBody")
+                Logger.d(TAG, "GenerateIT response: $responseBody")
 
                 val (integrityToken, expirationTimeInSeconds) = parseIntegrityTokenData(responseBody)
 
@@ -189,7 +189,7 @@ class PoTokenWebView(
                     webView.evaluateJavascript(
                         "this.integrityToken = $integrityToken",
                     ) {
-                        Log.d(TAG, "initialization finished, expiration=${expirationTimeInSeconds}s")
+                        Logger.d(TAG, "initialization finished, expiration=${expirationTimeInSeconds}s")
                         generatorContinuation.resume(this@PoTokenWebView)
                     }
                 }
@@ -202,7 +202,7 @@ class PoTokenWebView(
 
     //region Obtaining poTokens
     override suspend fun generatePoToken(identifier: String): String {
-        Log.d(TAG, "generatePoToken() called with identifier $identifier")
+        Logger.d(TAG, "generatePoToken() called with identifier $identifier")
 
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
@@ -241,7 +241,7 @@ class PoTokenWebView(
         identifier: String,
         error: String,
     ) {
-        Log.e(TAG, "obtainPoToken error from JavaScript: $error")
+        Logger.e(TAG, "obtainPoToken error from JavaScript: $error")
         popPoTokenContinuation(identifier)?.resumeWithException(buildExceptionForJsError(error))
     }
 
@@ -254,7 +254,7 @@ class PoTokenWebView(
         identifier: String,
         poTokenU8: String,
     ) {
-        Log.d(TAG, "Generated poToken (before decoding): identifier=$identifier poTokenU8=$poTokenU8")
+        Logger.d(TAG, "Generated poToken (before decoding): identifier=$identifier poTokenU8=$poTokenU8")
         val poToken =
             try {
                 u8ToBase64(poTokenU8)
@@ -263,7 +263,7 @@ class PoTokenWebView(
                 return
             }
 
-        Log.d(TAG, "Generated poToken: identifier=$identifier poToken=$poToken")
+        Logger.d(TAG, "Generated poToken: identifier=$identifier poToken=$poToken")
         popPoTokenContinuation(identifier)?.resume(poToken)
     }
 
@@ -339,8 +339,7 @@ class PoTokenWebView(
 
             val httpCode = response.responseCode()
             if (httpCode != 200) {
-                throw _root_ide_package_.com.maxrave.kotlinytmusicscraper.utils.poTokenUtils
-                    .PoTokenException("Invalid response code: $httpCode")
+                throw PoTokenException("Invalid response code: $httpCode")
             }
 
             return@withContext response.responseBody()
@@ -377,7 +376,7 @@ class PoTokenWebView(
     }
 
     companion object {
-        private val TAG = PoTokenWebView::class.simpleName
+        private val TAG = "PoTokenWebView"
 
         // Public API key used by BotGuard, which has been got by looking at BotGuard requests
         const val GOOGLE_API_KEY = "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw" // NOSONAR

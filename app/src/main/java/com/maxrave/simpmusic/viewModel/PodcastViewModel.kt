@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.EpisodeEntity
@@ -64,7 +63,6 @@ sealed class PodcastUIEvent {
     ) : PodcastUIEvent()
 }
 
-@UnstableApi
 class PodcastViewModel(
     application: Application,
     private val podcastRepository: PodcastRepository,

@@ -3,7 +3,6 @@ package com.maxrave.simpmusic
 import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.media3.common.util.UnstableApi
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import cat.ereza.customactivityoncrash.config.CaocConfig
@@ -51,7 +50,6 @@ class SimpMusicApplication :
             .crossfade(true)
             .build()
 
-    @UnstableApi
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)

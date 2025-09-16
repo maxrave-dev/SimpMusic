@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.ArtistEntity
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-@UnstableApi
 class LibraryDynamicPlaylistViewModel(
     application: Application,
     private val songRepository: SongRepository,

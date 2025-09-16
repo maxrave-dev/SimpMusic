@@ -1,6 +1,5 @@
 package com.maxrave.data.repository
 
-import android.util.Log
 import com.maxrave.data.db.LocalDataSource
 import com.maxrave.data.parser.parseArtistData
 import com.maxrave.domain.data.entities.ArtistEntity
@@ -8,6 +7,7 @@ import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -73,7 +73,7 @@ internal class ArtistRepositoryImpl(
                     .onSuccess { result ->
                         emit(Resource.Success<ArtistBrowse>(parseArtistData(result)))
                     }.onFailure { e ->
-                        Log.d("Artist", "Error: ${e.message}")
+                        Logger.d("Artist", "Error: ${e.message}")
                         emit(Resource.Error<ArtistBrowse>(e.message.toString()))
                     }
             }

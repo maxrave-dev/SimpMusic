@@ -1,6 +1,5 @@
 package com.maxrave.data.db
 
-import android.util.Log
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.EpisodeEntity
@@ -20,6 +19,7 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.entities.SongInfoEntity
 import com.maxrave.domain.data.entities.TranslatedLyricsEntity
 import com.maxrave.domain.utils.FilterState
+import com.maxrave.logger.Logger
 import java.time.LocalDateTime
 
 internal class LocalDataSource(
@@ -298,20 +298,20 @@ internal class LocalDataSource(
             offset * 50,
         )
     } else {
-        Log.w("Pair LocalPlaylistViewModel", "getPlaylistPairSongByOffset: ${totalCount - (offset + 1) * 50}")
+        Logger.w("Pair LocalPlaylistViewModel", "getPlaylistPairSongByOffset: ${totalCount - (offset + 1) * 50}")
         if ((totalCount - (offset + 1) * 50) > 0) {
             databaseDao
                 .getPlaylistPairSongByOffsetDesc(
                     playlistId,
                     totalCount - (offset + 1) * 50,
-                )?.reversed()
+                ).reversed()
         } else if ((totalCount - (offset + 1) * 50) >= -50) {
             databaseDao
                 .getPlaylistPairSongByFromToDesc(
                     playlistId,
                     0,
                     totalCount - (offset + 1) * 50 + 50,
-                )?.reversed()
+                ).reversed()
         } else if (offset == 0) {
             databaseDao
                 .getPlaylistPairSongByOffsetDesc(

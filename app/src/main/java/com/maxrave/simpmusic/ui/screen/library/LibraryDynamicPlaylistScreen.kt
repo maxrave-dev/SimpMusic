@@ -37,7 +37,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.ArtistEntity
@@ -63,7 +62,6 @@ import org.koin.compose.koinInject
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
-@UnstableApi
 @ExperimentalMaterial3Api
 fun LibraryDynamicPlaylistScreen(
     innerPadding: PaddingValues,

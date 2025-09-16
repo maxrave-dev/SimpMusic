@@ -62,6 +62,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.util.Consumer
 import com.kmpalette.palette.graphics.Palette
+import com.maxrave.domain.data.model.ui.ScreenSizeInfo
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
@@ -345,13 +346,6 @@ fun getScreenSizeInfo(): ScreenSizeInfo {
         }
     }
 }
-
-data class ScreenSizeInfo(
-    val hDP: Int,
-    val wDP: Int,
-    val hPX: Int,
-    val wPX: Int,
-)
 
 @Composable
 fun NonLazyGrid(

@@ -4,7 +4,6 @@ import android.app.Application
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
@@ -56,7 +55,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
-@UnstableApi
 class LocalPlaylistViewModel(
     private val application: Application,
     private val dataStoreManager: DataStoreManager,
@@ -464,7 +462,6 @@ class LocalPlaylistViewModel(
         }
     }
 
-    @UnstableApi
     fun downloadFullPlaylistState(
         id: Long,
         listJob: List<String>,

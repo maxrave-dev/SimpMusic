@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState
@@ -37,7 +36,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
-@UnstableApi
 class NowPlayingBottomSheetViewModel(
     private val application: Application,
     private val dataStoreManager: DataStoreManager,

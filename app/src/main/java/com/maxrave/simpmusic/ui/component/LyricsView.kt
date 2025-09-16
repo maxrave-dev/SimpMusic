@@ -77,19 +77,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.R
+import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -99,7 +98,6 @@ import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.TimeLine
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -119,7 +117,6 @@ fun LyricsView(
     @Suppress("ktlint:standard:property-naming")
     val TAG = "LyricsView"
 
-    rememberTextMeasurer()
     val localDensity = LocalDensity.current
 
     var columnHeightDp by remember {
@@ -291,7 +288,6 @@ fun LyricsLineItem(
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
-@UnstableApi
 @Composable
 fun FullscreenLyricsSheet(
     sharedViewModel: SharedViewModel,

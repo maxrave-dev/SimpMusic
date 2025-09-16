@@ -86,7 +86,6 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImage
@@ -144,7 +143,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class, ExperimentalHazeMaterialsApi::class)
-@UnstableApi
 @Composable
 fun SettingScreen(
     innerPadding: PaddingValues,
