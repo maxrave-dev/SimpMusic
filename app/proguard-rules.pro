@@ -191,3 +191,6 @@
 -dontwarn java.beans.IntrospectionException
 -dontwarn java.beans.Introspector
 -dontwarn java.beans.PropertyDescriptor
+
+-dontwarn com.maxrave.data.di.loader.LoaderKt
+-dontwarn com.maxrave.media3.ui.MediaPlayerViewKt
