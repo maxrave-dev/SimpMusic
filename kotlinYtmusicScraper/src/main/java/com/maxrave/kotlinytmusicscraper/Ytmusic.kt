@@ -24,6 +24,7 @@ import com.maxrave.kotlinytmusicscraper.utils.CurlLogger
 import com.maxrave.kotlinytmusicscraper.utils.KtorToCurl
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
+import com.maxrave.logger.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.compression.ContentEncoding
@@ -70,6 +71,8 @@ import okio.use
 import java.io.File
 import java.net.Proxy
 import java.util.Locale
+
+private const val TAG = "YouTubeScraperClient"
 
 class Ytmusic {
     private var httpClient = createClient()
@@ -124,8 +127,8 @@ class Ytmusic {
                 converter =
                     object : CurlLogger {
                         override fun log(curl: String) {
-                            println("Curl command:")
-                            println(curl)
+                            Logger.d(TAG, "Curl command:")
+                            Logger.d(TAG, curl)
                         }
                     }
             }
@@ -190,7 +193,7 @@ class Ytmusic {
                     val currentTime = System.currentTimeMillis() / 1000
                     val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
                     val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
-                    println("SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
+                    Logger.d(TAG, "SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
                     append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
                 }
             }
@@ -780,7 +783,7 @@ class Ytmusic {
                                     }
                                 }
                             }.onSuccess {
-                                println("Downloaded $downloadedBytes bytes")
+                                Logger.d(TAG, "Downloaded $downloadedBytes bytes")
                                 jobDone = 1
                             }.onFailure { e ->
                                 e.printStackTrace()
@@ -795,8 +798,8 @@ class Ytmusic {
                                 seconds += 0.1f
                                 val progress = downloadedBytes.toFloat() / length
                                 val speed = (downloadedBytes / seconds / 1024).toInt()
-                                println("Downloaded: $progress")
-                                println("Speed: $speed KB/s")
+                                Logger.d(TAG, "Downloaded: $progress")
+                                Logger.d(TAG, "Speed: $speed KB/s")
                                 trySend(Triple(false, progress, speed))
                                     .onFailure { e ->
                                         e?.printStackTrace()
@@ -806,8 +809,8 @@ class Ytmusic {
                     downloadJob.join()
                     emitJob.join()
                 }
-                println("Downloaded $downloadedBytes bytes")
-                println("Merged $pathString")
+                Logger.d(TAG, "Downloaded $downloadedBytes bytes")
+                Logger.d(TAG, "Merged $pathString")
                 trySend(Triple(true, 1f, 0)).onFailure { e ->
                     e?.printStackTrace()
                 }

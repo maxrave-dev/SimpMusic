@@ -39,9 +39,7 @@ lottie = "6.6.7"
 paging = "3.3.6"
 customactivityoncrash = "2.4.0"
 aboutlibraries = "12.2.4"
-flexbox = "3.0.0"
 balloon = "1.6.13"
-insetsx = "0.1.0-alpha10"
 ktor = "3.3.0"
 brotli = "0.1.2"
 ksoup = "0.6.0"
@@ -63,8 +61,9 @@ newpipe = "0.24.8"
 leakcanary = "3.0-alpha-8"
 ytdlp-android = "0.17.4"
 webkit = "1.14.0"
-kotlin-logging = "7.0.13"
+napier = "2.7.1"
 paging-common = "3.3.6"
+glance = "1.1.1"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -154,7 +153,9 @@ logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
 newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
 #leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 #ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp-android" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging-android", version.ref = "kotlin-logging" }
+napier-logging = { module = "io.github.aakira:napier", version.ref = "napier" }
+glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

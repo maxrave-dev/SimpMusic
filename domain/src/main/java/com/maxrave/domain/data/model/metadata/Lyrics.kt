@@ -1,5 +1,8 @@
 package com.maxrave.domain.data.model.metadata
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Lyrics(
     val error: Boolean,
     val lines: List<Line>?,

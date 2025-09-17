@@ -144,11 +144,10 @@
 -dontwarn org.openjsse.**
 -dontwarn okhttp3.internal.Util
 
--keep class com.liskovsoft.youtubeapi.** { *; }
--keep interface com.liskovsoft.youtubeapi.** { *; }
--keep class com.liskovsoft.googleapi.** { *; }
--keep interface com.liskovsoft.googleapi.** { *; }
+-keep class com.liskovsoft.** { *; }
+-keep interface com.liskovsoft.** { *; }
 -keep class com.eclipsesource.v8.** { *; }
+-keep class com.maxrave.kotlinytmusicscraper.** { *; }
 
 -dontwarn javax.script.AbstractScriptEngine
 -dontwarn javax.script.Bindings
@@ -194,3 +193,14 @@
 
 -dontwarn com.maxrave.data.di.loader.LoaderKt
 -dontwarn com.maxrave.media3.ui.MediaPlayerViewKt
+
+-keep class com.maxrave.data.di.loader.LoaderKt { *; }
+-keep class com.maxrave.data.mapping.MappingKt { *; }
+-keep class com.maxrave.data.extension.** { *; }
+-keep class com.maxrave.data.di.** { *; }
+
+-keep class com.maxrave.kotlinytmusicscraper.** { *; }
+
+-keep class org.simpmusic.lyrics.parser.** { *; }
+-keep class org.simpmusic.lyrics.models.** { *; }
+-keep class com.simpmusic.lyrics.parser.** { *; }

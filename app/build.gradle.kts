@@ -119,6 +119,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                "consumer-rules.pro",
                 "proguard-rules.pro",
             )
             splits {
@@ -207,10 +208,11 @@ dependencies {
     implementation(libs.compose.ui.viewbinding)
     implementation(libs.constraintlayout.compose)
 
-    // Android Studio Preview support
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
+
     implementation(libs.ui.tooling.preview)
     implementation(libs.activity.compose)
-    // Optional - Integration with ViewModels
     implementation(libs.lifecycle.viewmodel.compose)
 
     implementation(libs.lifecycle.runtime.ktx)
@@ -226,6 +228,7 @@ dependencies {
     // Other module
     implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":media3"))
     implementation(project(":media3-ui"))
 
     implementation(libs.lifecycle.livedata.ktx)

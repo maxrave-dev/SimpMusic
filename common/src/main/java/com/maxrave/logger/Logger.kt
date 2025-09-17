@@ -1,43 +1,34 @@
 package com.maxrave.logger
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 
 object Logger {
-    object Static {
-        init {
-            System.setProperty("kotlin-logging-to-android-native", "true")
-        }
+    init {
+        Napier.base(DebugAntilog())
     }
 
-    private val static = Static
-
-    private val logger = KotlinLogging.logger("com.maxrave.simpmusic.dev")
+    private val logger = Napier
 
     fun d(
         tag: String,
         message: String,
     ) {
-        logger.debug {
-            "[$tag]: $message"
-        }
+        logger.d(tag = tag, message = message)
     }
 
     fun i(
         tag: String,
         message: String,
     ) {
-        logger.info {
-            "[$tag]: $message"
-        }
+        logger.i(tag = tag, message = message)
     }
 
     fun w(
         tag: String,
         message: String,
     ) {
-        logger.warn {
-            "[$tag]: $message"
-        }
+        logger.w(tag = tag, message = message)
     }
 
     fun e(
@@ -45,8 +36,6 @@ object Logger {
         message: String,
         e: Throwable? = null,
     ) {
-        logger.error {
-            "[$tag]: $message"
-        }
+        logger.e(tag = tag, message = message, throwable = e)
     }
 }

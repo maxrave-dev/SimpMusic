@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.kotlin.logging)
+    implementation(libs.napier.logging)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false
