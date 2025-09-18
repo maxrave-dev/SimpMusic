@@ -58,6 +58,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
+import com.maxrave.common.Config
 import com.maxrave.common.R
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
@@ -70,21 +71,42 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.qualifier.named
 
 class MainAppWidget :
     GlanceAppWidget(),
     KoinComponent {
     val sharedViewModel by inject<SharedViewModel>()
+    val serviceScope by inject<CoroutineScope>(named(Config.SERVICE_SCOPE))
 
     @SuppressLint("RestrictedApi")
     override suspend fun provideGlance(
         context: Context,
         id: GlanceId,
     ) {
+        serviceScope.launch {
+            val controllerJob =
+                launch {
+                    sharedViewModel.controllerState.collectLatest {
+                        updateWidget(context)
+                    }
+                }
+            val nowPlayingJob =
+                launch {
+                    sharedViewModel.nowPlayingScreenData.collectLatest {
+                        updateWidget(context)
+                    }
+                }
+            controllerJob.join()
+            nowPlayingJob.join()
+        }
+
         provideContent {
             GlanceTheme {
                 val scope = rememberCoroutineScope()
@@ -119,7 +141,7 @@ class MainAppWidget :
 
                 var randomImage by remember(thumbUrl) { mutableStateOf<Bitmap?>(null) }
 
-                LaunchedEffect(controllerState, screenDataState, bgColor) {
+                LaunchedEffect(bgColor) {
                     updateWidget(context)
                 }
 
