@@ -154,6 +154,7 @@ newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", versio
 #leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 #ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp-android" }
 napier-logging = { module = "io.github.aakira:napier", version.ref = "napier" }
+glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 

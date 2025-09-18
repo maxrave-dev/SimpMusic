@@ -45,3 +45,6 @@ val overlay = Color(0x32242424)
 val blackMoreOverlay = Color(0x8f242424)
 
 val seed = Color(0xFF8ECAE6)
+
+val white = Color(0xFFFFFFFF)
+val transparent = Color(0x00000000)

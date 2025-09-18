@@ -148,6 +148,10 @@ android {
         compose = true
         buildConfig = true
     }
+    @Suppress("UnstableApiUsage")
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
+    }
     packaging {
         jniLibs.useLegacyPackaging = true
         jniLibs.excludes +=
@@ -208,6 +212,7 @@ dependencies {
     implementation(libs.compose.ui.viewbinding)
     implementation(libs.constraintlayout.compose)
 
+    implementation(libs.glance)
     implementation(libs.glance.appwidget)
     implementation(libs.glance.material3)
 

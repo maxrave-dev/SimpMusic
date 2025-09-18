@@ -1210,6 +1210,7 @@ internal class MediaServiceHandlerImpl(
             if (index != 0 && index != null) {
                 moveMediaItem(0, index)
             }
+            updateNextPreviousTrackAvailability()
             _queueData.update {
                 it.copy(
                     queueState = QueueData.StateSource.STATE_INITIALIZED,
@@ -2099,6 +2100,7 @@ internal class MediaServiceHandlerImpl(
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
+        updateNextPreviousTrackAvailability()
         when (repeatMode) {
             PlayerConstants.REPEAT_MODE_OFF ->
                 _controlState.value =
