@@ -363,9 +363,9 @@ fun HomeScreen(
                                         topAppBarHeightPx.toDp()
                                     },
                             ),
-                    containerColor = PullToRefreshDefaults.containerColor,
+                    containerColor = PullToRefreshDefaults.indicatorContainerColor,
                     color = PullToRefreshDefaults.indicatorColor,
-                    threshold = PullToRefreshDefaults.PositionalThreshold,
+                    maxDistance = PullToRefreshDefaults.PositionalThreshold,
                 )
             },
         ) {

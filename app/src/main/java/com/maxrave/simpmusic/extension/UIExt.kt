@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -31,6 +33,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.DrawModifier
@@ -545,4 +549,12 @@ fun rememberIsInPipMode(): Boolean {
         onDispose { activity.removeOnPictureInPictureModeChangedListener(observer) }
     }
     return pipMode
+}
+
+@Composable
+fun animateAlignmentAsState(targetAlignment: Alignment): State<Alignment> {
+    val biased = targetAlignment as BiasAlignment
+    val horizontal by animateFloatAsState(biased.horizontalBias)
+    val vertical by animateFloatAsState(biased.verticalBias)
+    return remember { derivedStateOf { BiasAlignment(horizontal, vertical) } }
 }

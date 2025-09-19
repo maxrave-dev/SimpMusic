@@ -539,9 +539,9 @@ fun SearchScreen(
                                     state = pullToRefreshState,
                                     isRefreshing = uiState is SearchScreenUIState.Loading,
                                     modifier = Modifier.align(Alignment.TopCenter),
-                                    containerColor = PullToRefreshDefaults.containerColor,
+                                    containerColor = PullToRefreshDefaults.indicatorContainerColor,
                                     color = PullToRefreshDefaults.indicatorColor,
-                                    threshold = PullToRefreshDefaults.PositionalThreshold - 5.dp,
+                                    maxDistance = PullToRefreshDefaults.PositionalThreshold - 5.dp,
                                 )
                             },
                         ) {
