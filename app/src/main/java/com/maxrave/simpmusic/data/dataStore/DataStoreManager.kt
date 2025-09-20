@@ -746,7 +746,7 @@ class DataStoreManager(
 
     val updateChannel =
         settingsDataStore.data.map { preferences ->
-            preferences[UPDATE_CHANNEL] ?: FDROID
+            preferences[UPDATE_CHANNEL] ?: GITHUB
         }
 
     suspend fun setUpdateChannel(channel: String) {
