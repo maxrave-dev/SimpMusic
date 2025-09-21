@@ -78,12 +78,20 @@ data class RelatedPage(
                                 ?.firstOrNull()
                                 ?.text ?: return null,
                         artists =
-                            renderer.subtitle?.runs?.splitBySeparator()?.firstOrNull()?.oddElements()?.map {
-                                Artist(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId,
-                                )
-                            } ?: return null,
+                            renderer.subtitle
+                                ?.runs
+                                ?.splitBySeparator()
+                                ?.filterNot {
+                                    it.firstOrNull()?.text == "Song" &&
+                                        it.firstOrNull()?.navigationEndpoint == null
+                                }?.firstOrNull()
+                                ?.oddElements()
+                                ?.map {
+                                    Artist(
+                                        name = it.text,
+                                        id = it.navigationEndpoint?.browseEndpoint?.browseId,
+                                    )
+                                } ?: return null,
                         album = null,
                         duration = null,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,

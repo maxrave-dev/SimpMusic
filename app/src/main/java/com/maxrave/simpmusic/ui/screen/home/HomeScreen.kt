@@ -383,7 +383,7 @@ fun HomeScreen(
                                         },
                                 ),
                         state = scrollState,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
 //                        item {
 //                            Spacer(
@@ -754,11 +754,12 @@ fun QuickPicks(
     ) {
         Text(
             text = stringResource(id = R.string.let_s_start_with_a_radio),
-            style = typo.bodyMedium,
+            style = typo.bodySmall,
         )
         Text(
             text = stringResource(id = R.string.quick_picks),
             style = typo.headlineMedium,
+            color = Color.White,
             maxLines = 1,
             modifier =
                 Modifier

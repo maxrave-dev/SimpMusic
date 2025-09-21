@@ -132,9 +132,6 @@ internal class HomeRepositoryImpl(
                                 ?.sectionListRenderer
                                 ?.contents
                         list.addAll(parseMixedContent(data, context))
-                        list.find { it.title == "Your daily discover" }.let {
-                            Logger.d("HomeRepository", "Found daily discover")
-                        }
                         var count = 0
                         while (count < limit && continueParam != null) {
                             youTube

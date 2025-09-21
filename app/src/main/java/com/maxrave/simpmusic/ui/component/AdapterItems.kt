@@ -162,12 +162,13 @@ fun HomeItem(
                 AnimatedVisibility(visible = (data.subtitle != null && data.subtitle != "")) {
                     Text(
                         text = data.subtitle ?: "",
-                        style = typo.bodyMedium,
+                        style = typo.bodySmall,
                     )
                 }
                 Text(
                     text = data.title,
                     style = typo.headlineMedium,
+                    color = Color.White,
                     maxLines = 1,
                     modifier = Modifier.fillMaxWidth(),
                 )
