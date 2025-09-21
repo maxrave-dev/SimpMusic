@@ -2,6 +2,8 @@ package com.maxrave.simpmusic.ui.navigation.graph
 
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,16 +35,16 @@ fun AppNavigationGraph(
         navController,
         startDestination = startDestination,
         enterTransition = {
-            fadeIn()
+            fadeIn() + slideInHorizontally { -it }
         },
         exitTransition = {
-            fadeOut()
+            fadeOut() + slideOutHorizontally { it }
         },
         popEnterTransition = {
-            fadeIn()
+            fadeIn() + slideInHorizontally { -it }
         },
         popExitTransition = {
-            fadeOut()
+            fadeOut() + slideOutHorizontally { it }
         },
     ) {
         // Bottom bar destinations

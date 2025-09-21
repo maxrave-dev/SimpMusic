@@ -1,16 +1,10 @@
 package com.maxrave.simpmusic.ui.component
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
@@ -28,7 +22,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.maxrave.common.R
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
@@ -136,47 +129,4 @@ fun AppBottomNavigationBar(
             }
         }
     }
-}
-
-sealed class BottomNavScreen(
-    val ordinal: Int,
-    val destination: Any,
-    @param:StringRes val title: Int,
-    val icon: @Composable () -> Unit,
-) {
-    data object Home : BottomNavScreen(
-        ordinal = 0,
-        destination = HomeDestination,
-        title = R.string.home,
-        icon = {
-            Icon(
-                Icons.Rounded.Home,
-                contentDescription = null,
-            )
-        },
-    )
-
-    data object Search : BottomNavScreen(
-        ordinal = 1,
-        destination = SearchDestination,
-        title = R.string.search,
-        icon = {
-            Icon(
-                Icons.Rounded.Search,
-                contentDescription = null,
-            )
-        },
-    )
-
-    data object Library : BottomNavScreen(
-        ordinal = 2,
-        destination = LibraryDestination,
-        title = R.string.library,
-        icon = {
-            Icon(
-                imageVector = Icons.Filled.LibraryMusic,
-                contentDescription = null,
-            )
-        },
-    )
 }

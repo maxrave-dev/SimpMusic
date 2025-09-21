@@ -259,6 +259,10 @@ interface DataStoreManager {
 
     suspend fun setBackupDownloaded(backupDownloaded: Boolean)
 
+    val enableLiquidGlass: Flow<String>
+
+    suspend fun setEnableLiquidGlass(enable: Boolean)
+
     enum class ProxyType {
         PROXY_TYPE_HTTP,
         PROXY_TYPE_SOCKS,

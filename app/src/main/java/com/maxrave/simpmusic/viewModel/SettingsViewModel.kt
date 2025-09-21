@@ -155,6 +155,9 @@ class SettingsViewModel(
     private var _backupDownloaded: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val backupDownloaded: StateFlow<Boolean> = _backupDownloaded
 
+    private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -222,8 +225,24 @@ class SettingsViewModel(
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
+        getEnableLiquidGlass()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getEnableLiquidGlass() {
+        viewModelScope.launch {
+            dataStoreManager.enableLiquidGlass.collect { enableLiquidGlass ->
+                _enableLiquidGlass.value = enableLiquidGlass == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setEnableLiquidGlass(enableLiquidGlass: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setEnableLiquidGlass(enableLiquidGlass)
+            getEnableLiquidGlass()
         }
     }
 

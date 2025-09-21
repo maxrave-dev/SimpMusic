@@ -148,10 +148,6 @@ android {
         compose = true
         buildConfig = true
     }
-    @Suppress("UnstableApiUsage")
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
-    }
     packaging {
         jniLibs.useLegacyPackaging = true
         jniLibs.excludes +=
@@ -233,7 +229,6 @@ dependencies {
     // Other module
     implementation(project(":domain"))
     implementation(project(":data"))
-    implementation(project(":media3"))
     implementation(project(":media3-ui"))
 
     implementation(libs.lifecycle.livedata.ktx)
@@ -303,6 +298,8 @@ dependencies {
     implementation(libs.haze.material)
 
     fullImplementation(libs.sentry.android)
+
+    implementation(libs.liquid.glass)
 
 //    debugImplementation(libs.leak.canary)
 }

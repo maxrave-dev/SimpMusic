@@ -19,7 +19,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -40,14 +42,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.kyant.backdrop.backdrop
+import com.kyant.backdrop.rememberBackdrop
 import com.maxrave.common.FIRST_TIME_MIGRATION
 import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
@@ -60,14 +69,17 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
+import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -229,9 +241,14 @@ class MainActivity : AppCompatActivity() {
             val intent by viewModel.intent.collectAsStateWithLifecycle()
 
             val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+            val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
             // MiniPlayer visibility logic
             var isShowMiniPlayer by rememberSaveable {
                 mutableStateOf(true)
+            }
+
+            var isInSearchPage by rememberSaveable {
+                mutableStateOf(false)
             }
 
             // Now playing screen
@@ -340,8 +357,11 @@ class MainActivity : AppCompatActivity() {
                 if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
                     isShowNowPlaylistScreen = false
                 }
+                navBackStackEntry?.destination?.let { current ->
+                    isInSearchPage = current.hasRoute(SearchDestination::class)
+                }
             }
-
+            val backdrop = rememberBackdrop()
             AppTheme {
                 Scaffold(
                     bottomBar = {
@@ -352,7 +372,7 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Column {
                                 AnimatedVisibility(
-                                    isShowMiniPlayer,
+                                    isShowMiniPlayer && (!isInSearchPage || isLiquidGlassEnabled == DataStoreManager.FALSE),
                                     enter = fadeIn() + slideInHorizontally(),
                                     exit = fadeOut(),
                                 ) {
@@ -365,6 +385,7 @@ class MainActivity : AppCompatActivity() {
                                             ).padding(
                                                 bottom = 4.dp,
                                             ),
+                                        backdrop = backdrop,
                                         onClick = {
                                             isShowNowPlaylistScreen = true
                                         },
@@ -374,29 +395,47 @@ class MainActivity : AppCompatActivity() {
                                         },
                                     )
                                 }
-                                AppBottomNavigationBar(
-                                    navController = navController,
-                                    isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
-                                ) { klass ->
-                                    viewModel.reloadDestination(klass)
+                                if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                                    LiquidGlassAppBottomNavigationBar(
+                                        navController = navController,
+                                        backdrop = backdrop,
+                                        viewModel = viewModel,
+                                        shouldShowMiniPlayer = isShowMiniPlayer,
+                                        onOpenNowPlaying = { isShowNowPlaylistScreen = true },
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
+                                } else {
+                                    AppBottomNavigationBar(
+                                        navController = navController,
+                                        isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
                                 }
                             }
                         }
                     },
                     content = { innerPadding ->
-                        AppNavigationGraph(
-                            innerPadding = innerPadding,
-                            navController = navController,
-                            hideNavBar = {
-                                isNavBarVisible = false
-                            },
-                            showNavBar = {
-                                isNavBarVisible = true
-                            },
-                            showNowPlayingSheet = {
-                                isShowNowPlaylistScreen = true
-                            },
-                        )
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .backdrop(backdrop),
+                        ) {
+                            AppNavigationGraph(
+                                innerPadding = innerPadding,
+                                navController = navController,
+                                hideNavBar = {
+                                    isNavBarVisible = false
+                                },
+                                showNavBar = {
+                                    isNavBarVisible = true
+                                },
+                                showNowPlayingSheet = {
+                                    isShowNowPlaylistScreen = true
+                                },
+                            )
+                        }
 
                         if (isShowNowPlaylistScreen) {
                             NowPlayingScreen(
@@ -535,9 +574,14 @@ class MainActivity : AppCompatActivity() {
                                                     text = typo.bodySmall,
                                                     bullet = typo.bodySmall,
                                                     paragraph = typo.bodySmall,
-                                                    link =
-                                                        typo.bodySmall.copy(
-                                                            textDecoration = TextDecoration.Underline,
+                                                    textLink =
+                                                        TextLinkStyles(
+                                                            SpanStyle(
+                                                                fontSize = 11.sp,
+                                                                fontWeight = FontWeight.Normal,
+                                                                fontFamily = fontFamily,
+                                                                textDecoration = TextDecoration.Underline,
+                                                            ),
                                                         ),
                                                 ),
                                         )
