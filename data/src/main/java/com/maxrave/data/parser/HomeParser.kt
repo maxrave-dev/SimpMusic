@@ -75,6 +75,9 @@ internal fun parseMixedContent(
                         ?.text
                         ?: ""
                 Logger.w("parse_mixed_content", title)
+                if (title == "Your daily discover") {
+                    Logger.w("parse_mixed_content", list.toString())
+                }
                 val subtitle =
                     results1
                         ?.header
@@ -447,6 +450,36 @@ internal fun parseMixedContent(
                                     )
                                 listContent.add(content)
                             }
+                        } else if (result1.musicMultiRowListItemRenderer != null) {
+                            val multiRow = result1.musicMultiRowListItemRenderer ?: break
+                            val content =
+                                Content(
+                                    description =
+                                        multiRow.description
+                                            ?.runs
+                                            ?.firstOrNull()
+                                            ?.text,
+                                    thumbnails =
+                                        multiRow.thumbnail
+                                            ?.musicThumbnailRenderer
+                                            ?.thumbnail
+                                            ?.thumbnails
+                                            ?.toListThumbnail()
+                                            ?: listOf(),
+                                    title =
+                                        multiRow.title
+                                            ?.runs
+                                            ?.get(0)
+                                            ?.text ?: "",
+                                    videoId = multiRow.onTap?.watchEndpoint?.videoId ?: "",
+                                    album = null,
+                                    artists = emptyList(),
+                                    isExplicit = false,
+                                    playlistId = null,
+                                    browseId = null,
+                                    views = null,
+                                )
+                            listContent.add(content)
                         } else {
                             break
                         }

@@ -373,22 +373,29 @@ fun HomeScreen(
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
                     LazyColumn(
-                        modifier = Modifier.padding(horizontal = 15.dp),
-                        state = scrollState,
-                    ) {
-                        item {
-                            Spacer(
-                                Modifier.height(
-                                    with(LocalDensity.current) {
-                                        topAppBarHeightPx.toDp()
-                                    },
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 15.dp)
+                                .padding(
+                                    top =
+                                        with(LocalDensity.current) {
+                                            topAppBarHeightPx.toDp()
+                                        },
                                 ),
-                            )
-                        }
-                        item {
-                            AnimatedVisibility(
-                                visible = accountInfo != null && accountShow,
-                            ) {
+                        state = scrollState,
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+//                        item {
+//                            Spacer(
+//                                Modifier.height(
+//                                    with(LocalDensity.current) {
+//                                        (topAppBarHeightPx.toDp().value - 16f).coerceAtLeast(0f).dp
+//                                    },
+//                                ),
+//                            )
+//                        }
+                        if (accountInfo != null && accountShow) {
+                            item {
                                 AccountLayout(
                                     accountName = accountInfo?.first ?: "",
                                     url = accountInfo?.second ?: "",
@@ -760,7 +767,7 @@ fun QuickPicks(
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(4),
-            modifier = Modifier.height(280.dp),
+            modifier = Modifier.height(256.dp),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {

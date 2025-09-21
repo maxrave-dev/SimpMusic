@@ -8,8 +8,10 @@ import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.kotlinytmusicscraper.models.oddElements
+import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
 
 data class RelatedPage(
     val songs: List<SongItem>,
@@ -68,6 +70,44 @@ data class RelatedPage(
 
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
+                renderer.isSong ->
+                    SongItem(
+                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                        title =
+                            renderer.title.runs
+                                ?.firstOrNull()
+                                ?.text ?: return null,
+                        artists =
+                            renderer.subtitle?.runs?.splitBySeparator()?.firstOrNull()?.oddElements()?.map {
+                                Artist(
+                                    name = it.text,
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId,
+                                )
+                            } ?: return null,
+                        album = null,
+                        duration = null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        endpoint = renderer.navigationEndpoint.watchEndpoint,
+                    )
+                renderer.isVideo ->
+                    VideoItem(
+                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                        title =
+                            renderer.title.runs
+                                ?.firstOrNull()
+                                ?.text ?: return null,
+                        artists =
+                            renderer.subtitle?.runs?.splitBySeparator()?.firstOrNull()?.oddElements()?.map {
+                                Artist(
+                                    name = it.text,
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId,
+                                )
+                            } ?: return null,
+                        album = null,
+                        duration = null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        endpoint = renderer.navigationEndpoint.watchEndpoint,
+                    )
                 renderer.isAlbum ->
                     AlbumItem(
                         browseId =
