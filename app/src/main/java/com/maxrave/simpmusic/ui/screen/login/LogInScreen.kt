@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.screen.login
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.CookieManager
-import android.webkit.JavascriptInterface
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -109,8 +108,6 @@ fun LoginScreen(
                                     view: WebView?,
                                     url: String?,
                                 ) {
-                                    loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
-                                    loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
                                     if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
                                         coroutineScope.launch {
                                             val success =
@@ -150,24 +147,7 @@ fun LoginScreen(
                             }
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
-                        addJavascriptInterface(
-                            object {
-                                @JavascriptInterface
-                                fun onRetrieveVisitorData(newVisitorData: String?) {
-                                    if (newVisitorData != null) {
-                                        viewModel.setVisitorData(newVisitorData)
-                                    }
-                                }
 
-                                @JavascriptInterface
-                                fun onRetrieveDataSyncId(newDataSyncId: String?) {
-                                    if (newDataSyncId != null) {
-                                        viewModel.setDataSyncId(newDataSyncId.substringBefore("||"))
-                                    }
-                                }
-                            },
-                            "Android",
-                        )
                         loadUrl(Config.LOG_IN_URL)
                     }
                 },

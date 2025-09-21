@@ -157,6 +157,7 @@ fun SpotifyLoginScreen(
                             }
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
+
                         loadUrl(Config.SPOTIFY_LOG_IN_URL)
                     }
                 },

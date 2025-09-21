@@ -108,6 +108,7 @@ fun GetDataSyncIdBottomSheet(
                             }
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
+                        settings.userAgentString = Config.WEBVIEW_UA
                         addJavascriptInterface(
                             object {
                                 @JavascriptInterface
