@@ -216,6 +216,7 @@ fun SettingScreen(
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
+    val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
@@ -286,6 +287,12 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.blur_player_background_description),
                     smallSubtitle = true,
                     switch = (blurPlayerBackground to { viewModel.setBlurPlayerBackground(it) }),
+                )
+                SettingItem(
+                    title = stringResource(R.string.enable_liquid_glass_effect),
+                    subtitle = stringResource(R.string.enable_liquid_glass_effect_description),
+                    smallSubtitle = true,
+                    switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
                 )
             }
         }

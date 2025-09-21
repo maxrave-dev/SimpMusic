@@ -1493,6 +1493,8 @@ class SharedViewModel(
 
     fun getTranslucentBottomBar() = dataStoreManager.translucentBottomBar
 
+    fun getEnableLiquidGlass() = dataStoreManager.enableLiquidGlass
+
     private val _reloadDestination: MutableStateFlow<KClass<*>?> = MutableStateFlow(null)
     val reloadDestination: StateFlow<KClass<*>?> = _reloadDestination.asStateFlow()
 

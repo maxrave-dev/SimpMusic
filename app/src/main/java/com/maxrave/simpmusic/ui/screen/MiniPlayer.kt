@@ -33,9 +33,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
@@ -64,19 +64,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
+import com.kyant.backdrop.Backdrop
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.extension.drawBackdropCustomShape
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
+import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -89,10 +94,13 @@ import kotlin.math.roundToInt
 @Composable
 fun MiniPlayer(
     modifier: Modifier,
+    backdrop: Backdrop,
     sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
+    val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+
     val (songEntity, setSongEntity) =
         remember {
             mutableStateOf<SongEntity?>(null)
@@ -190,16 +198,22 @@ fun MiniPlayer(
         job4.join()
     }
 
-    ElevatedCard(
-        elevation = CardDefaults.elevatedCardElevation(10.dp),
+    Card(
         shape = RoundedCornerShape(8.dp),
         colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = background.value,
+            CardDefaults.cardColors(
+                containerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
+                disabledContainerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
             ),
         modifier =
             modifier
-                .clipToBounds()
+                .then(
+                    if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                        Modifier.drawBackdropCustomShape(backdrop, RoundedCornerShape(16.dp))
+                    } else {
+                        Modifier
+                    },
+                ).clipToBounds()
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .clickable(
                     onClick = onClick,

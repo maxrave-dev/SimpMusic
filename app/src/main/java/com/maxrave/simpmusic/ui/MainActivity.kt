@@ -52,6 +52,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kyant.backdrop.backdrop
@@ -68,10 +69,12 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
+import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
@@ -238,9 +241,14 @@ class MainActivity : AppCompatActivity() {
             val intent by viewModel.intent.collectAsStateWithLifecycle()
 
             val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+            val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
             // MiniPlayer visibility logic
             var isShowMiniPlayer by rememberSaveable {
                 mutableStateOf(true)
+            }
+
+            var isInSearchPage by rememberSaveable {
+                mutableStateOf(false)
             }
 
             // Now playing screen
@@ -349,6 +357,9 @@ class MainActivity : AppCompatActivity() {
                 if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
                     isShowNowPlaylistScreen = false
                 }
+                navBackStackEntry?.destination?.let { current ->
+                    isInSearchPage = current.hasRoute(SearchDestination::class)
+                }
             }
             val backdrop = rememberBackdrop()
             AppTheme {
@@ -361,7 +372,7 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Column {
                                 AnimatedVisibility(
-                                    isShowMiniPlayer,
+                                    isShowMiniPlayer && (!isInSearchPage || isLiquidGlassEnabled == DataStoreManager.FALSE),
                                     enter = fadeIn() + slideInHorizontally(),
                                     exit = fadeOut(),
                                 ) {
@@ -374,6 +385,7 @@ class MainActivity : AppCompatActivity() {
                                             ).padding(
                                                 bottom = 4.dp,
                                             ),
+                                        backdrop = backdrop,
                                         onClick = {
                                             isShowNowPlaylistScreen = true
                                         },
@@ -383,12 +395,23 @@ class MainActivity : AppCompatActivity() {
                                         },
                                     )
                                 }
-                                AppBottomNavigationBar(
-                                    navController = navController,
-                                    isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
-                                    backdrop = backdrop,
-                                ) { klass ->
-                                    viewModel.reloadDestination(klass)
+                                if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                                    LiquidGlassAppBottomNavigationBar(
+                                        navController = navController,
+                                        backdrop = backdrop,
+                                        viewModel = viewModel,
+                                        shouldShowMiniPlayer = isShowMiniPlayer,
+                                        onOpenNowPlaying = { isShowNowPlaylistScreen = true },
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
+                                } else {
+                                    AppBottomNavigationBar(
+                                        navController = navController,
+                                        isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
                                 }
                             }
                         }

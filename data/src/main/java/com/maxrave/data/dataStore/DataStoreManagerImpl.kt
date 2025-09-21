@@ -1069,6 +1069,26 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val enableLiquidGlass: Flow<String>
+        get() =
+            settingsDataStore.data.map { preferences ->
+                preferences[LIQUID_GLASS] ?: FALSE
+            }
+
+    override suspend fun setEnableLiquidGlass(enable: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (enable) {
+                settingsDataStore.edit { settings ->
+                    settings[LIQUID_GLASS] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[LIQUID_GLASS] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -1137,5 +1157,7 @@ internal class DataStoreManagerImpl(
         val CONTRIBUTOR_EMAIL = stringPreferencesKey("contributor_email")
 
         val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")
+
+        val LIQUID_GLASS = stringPreferencesKey("liquid_glass")
     }
 }

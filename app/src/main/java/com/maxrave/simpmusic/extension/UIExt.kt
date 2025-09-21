@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -60,12 +61,18 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.core.app.PictureInPictureModeChangedInfo
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.util.Consumer
 import com.kmpalette.palette.graphics.Palette
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.dispersion
+import com.kyant.backdrop.effects.refraction
+import com.kyant.backdrop.effects.saturation
 import com.maxrave.domain.data.model.ui.ScreenSizeInfo
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
@@ -558,3 +565,28 @@ fun animateAlignmentAsState(targetAlignment: Alignment): State<Alignment> {
     val vertical by animateFloatAsState(biased.verticalBias)
     return remember { derivedStateOf { BiasAlignment(horizontal, vertical) } }
 }
+
+fun Modifier.drawBackdropCustomShape(
+    backdrop: Backdrop,
+    shape: Shape,
+    alpha: Float = 0.6f,
+): Modifier =
+    this.drawBackdrop(
+        backdrop = backdrop,
+        shapeProvider = { shape },
+        onDrawSurface = { drawRect(Color.Black.copy(alpha = alpha.coerceIn(0f, 1f))) },
+    ) {
+        // saturation boost
+        saturation()
+        // blur
+        // lens
+        refraction(
+            height = 24f.dp.toPx(),
+            amount = 64f.dp.toPx(),
+            hasDepthEffect = true,
+        )
+        dispersion(
+            height = 12.dp.toPx(),
+            amount = 24.dp.toPx(),
+        )
+    }
