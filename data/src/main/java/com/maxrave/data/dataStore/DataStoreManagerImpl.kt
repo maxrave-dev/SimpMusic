@@ -763,7 +763,7 @@ internal class DataStoreManagerImpl(
 
     override val updateChannel =
         settingsDataStore.data.map { preferences ->
-            preferences[UPDATE_CHANNEL] ?: FDROID
+            preferences[UPDATE_CHANNEL] ?: GITHUB
         }
 
     override suspend fun setUpdateChannel(channel: String) {
