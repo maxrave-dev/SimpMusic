@@ -16,7 +16,7 @@ import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.AI_PROVIDER_GEMINI
 import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
-import com.maxrave.domain.manager.DataStoreManager.Values.FDROID
+import com.maxrave.domain.manager.DataStoreManager.Values.GITHUB
 import com.maxrave.domain.manager.DataStoreManager.Values.LOCAL_PLAYLIST_FILTER_OLDER_FIRST
 import com.maxrave.domain.manager.DataStoreManager.Values.PROXY_TYPE_HTTP
 import com.maxrave.domain.manager.DataStoreManager.Values.PROXY_TYPE_SOCKS
