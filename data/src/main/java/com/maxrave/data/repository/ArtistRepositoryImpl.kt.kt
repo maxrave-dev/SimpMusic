@@ -19,9 +19,9 @@ internal class ArtistRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
 ) : ArtistRepository {
-    override fun getAllArtists(): Flow<List<ArtistEntity>> =
+    override fun getAllArtists(limit: Int): Flow<List<ArtistEntity>> =
         flow {
-            emit(localDataSource.getAllArtists())
+            emit(localDataSource.getAllArtists(limit))
         }.flowOn(Dispatchers.IO)
 
     override fun getArtistById(id: String): Flow<ArtistEntity> =

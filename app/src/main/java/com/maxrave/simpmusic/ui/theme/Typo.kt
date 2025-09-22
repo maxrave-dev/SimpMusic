@@ -26,21 +26,21 @@ val typo =
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = fontFamily,
-                color = Color(0xFFA8A8A8),
+                color = Color.White,
             ),
         titleMedium =
             TextStyle(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = fontFamily,
-                color = Color(0xFFA8A8A8),
+                color = Color.White,
             ),
         titleLarge =
             TextStyle(
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = fontFamily,
-                color = Color(0xFFA8A8A8),
+                color = Color.White,
             ),
         bodySmall =
             TextStyle(

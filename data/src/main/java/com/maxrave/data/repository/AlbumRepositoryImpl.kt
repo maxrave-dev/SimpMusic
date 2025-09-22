@@ -25,9 +25,9 @@ internal class AlbumRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
 ) : AlbumRepository {
-    override fun getAllAlbums(): Flow<List<AlbumEntity>> =
+    override fun getAllAlbums(limit: Int): Flow<List<AlbumEntity>> =
         flow {
-            emit(localDataSource.getAllAlbums())
+            emit(localDataSource.getAllAlbums(limit))
         }.flowOn(Dispatchers.IO)
 
     override fun getAlbum(id: String): Flow<AlbumEntity?> =

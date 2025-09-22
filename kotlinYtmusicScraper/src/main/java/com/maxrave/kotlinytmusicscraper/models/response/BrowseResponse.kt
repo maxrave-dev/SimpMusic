@@ -76,9 +76,14 @@ data class BrowseResponse(
         @Serializable
         data class GridContinuation(
             val itemSize: String?,
-            val items: List<MusicTwoRowItemRenderer>,
+            val items: List<GridContinuation.Item>,
             val continuations: List<Continuation>?,
-        )
+        ) {
+            @Serializable
+            data class Item(
+                val musicTwoRowItemRenderer: MusicTwoRowItemRenderer?,
+            )
+        }
 
         @Serializable
         data class SectionListContinuation(

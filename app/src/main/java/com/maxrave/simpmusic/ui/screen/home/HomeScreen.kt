@@ -581,6 +581,7 @@ fun HomeScreen(
                         .horizontalScroll(chipRowState)
                         .padding(vertical = 8.dp, horizontal = 15.dp)
                         .background(Color.Transparent),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 listOfHomeChip.forEach { id ->
                     val isSelected =
@@ -597,7 +598,6 @@ fun HomeScreen(
                             HOME_PARAMS_FOCUS -> id == R.string.focus
                             else -> id == R.string.all
                         }
-                    Spacer(modifier = Modifier.width(4.dp))
                     Chip(
                         isAnimated = loading,
                         isSelected = isSelected,
@@ -617,7 +617,6 @@ fun HomeScreen(
                             R.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
                         }
                     }
-                    Spacer(modifier = Modifier.width(4.dp))
                 }
             }
         }

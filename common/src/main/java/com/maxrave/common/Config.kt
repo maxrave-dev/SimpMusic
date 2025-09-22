@@ -474,3 +474,12 @@ object MERGING_DATA_TYPE {
     const val SONG = "Song"
     const val VIDEO = "Video"
 }
+
+enum class LibraryChipType {
+    YOUR_LIBRARY,
+    YOUTUBE_MUSIC_PLAYLIST,
+    LOCAL_PLAYLIST,
+    FAVORITE_PLAYLIST,
+    DOWNLOADED_PLAYLIST,
+    FAVORITE_PODCAST,
+}

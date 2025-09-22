@@ -16,7 +16,7 @@ interface PodcastRepository {
 
     fun getPodcastWithEpisodes(podcastId: String): Flow<PodcastWithEpisodes?>
 
-    fun getAllPodcasts(): Flow<List<PodcastsEntity>>
+    fun getAllPodcasts(limit: Int): Flow<List<PodcastsEntity>>
 
     fun getAllPodcastWithEpisodes(): Flow<List<PodcastWithEpisodes>>
 

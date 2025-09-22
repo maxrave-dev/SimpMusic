@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
 interface PlaylistRepository {
-    fun getAllPlaylists(): Flow<List<PlaylistEntity>>
+    fun getAllPlaylists(limit: Int): Flow<List<PlaylistEntity>>
 
     fun getPlaylist(id: String): Flow<PlaylistEntity?>
 
