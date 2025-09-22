@@ -36,9 +36,9 @@ internal class SongRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
 ) : SongRepository {
-    override fun getAllSongs(): Flow<List<SongEntity>> =
+    override fun getAllSongs(limit: Int): Flow<List<SongEntity>> =
         flow {
-            emit(localDataSource.getAllSongs())
+            emit(localDataSource.getAllSongs(limit))
         }.flowOn(Dispatchers.IO)
 
     override suspend fun setInLibrary(

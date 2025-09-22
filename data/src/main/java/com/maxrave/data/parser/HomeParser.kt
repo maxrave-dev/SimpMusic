@@ -75,6 +75,9 @@ internal fun parseMixedContent(
                         ?.text
                         ?: ""
                 Logger.w("parse_mixed_content", title)
+                if (title == "Your daily discover") {
+                    Logger.w("parse_mixed_content", list.toString())
+                }
                 val subtitle =
                     results1
                         ?.header
@@ -207,7 +210,8 @@ internal fun parseMixedContent(
                                             playlistId = null,
                                             browseId = null,
                                             thumbnails =
-                                                musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer
+                                                musicTwoRowItemRenderer.thumbnailRenderer
+                                                    ?.musicThumbnailRenderer
                                                     ?.thumbnail
                                                     ?.thumbnails
                                                     ?.toListThumbnail()
@@ -262,7 +266,8 @@ internal fun parseMixedContent(
                                             playlistId = null,
                                             browseId = null,
                                             thumbnails =
-                                                musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer
+                                                musicTwoRowItemRenderer.thumbnailRenderer
+                                                    ?.musicThumbnailRenderer
                                                     ?.thumbnail
                                                     ?.thumbnails
                                                     ?.toListThumbnail()
@@ -289,7 +294,8 @@ internal fun parseMixedContent(
                                             playlistId = null,
                                             browseId = ytItem.id,
                                             thumbnails =
-                                                musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer
+                                                musicTwoRowItemRenderer.thumbnailRenderer
+                                                    ?.musicThumbnailRenderer
                                                     ?.thumbnail
                                                     ?.thumbnails
                                                     ?.toListThumbnail()
@@ -307,7 +313,7 @@ internal fun parseMixedContent(
                                         album =
                                             Album(
                                                 id =
-                                                    musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId
+                                                    musicTwoRowItemRenderer.navigationEndpoint?.browseEndpoint?.browseId
                                                         ?: "",
                                                 name = title,
                                             ),
@@ -315,15 +321,17 @@ internal fun parseMixedContent(
                                         description = null,
                                         isExplicit = false,
                                         playlistId = null,
-                                        browseId = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId,
+                                        browseId = musicTwoRowItemRenderer.navigationEndpoint?.browseEndpoint?.browseId,
                                         thumbnails =
-                                            musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer
+                                            musicTwoRowItemRenderer.thumbnailRenderer
+                                                ?.musicThumbnailRenderer
                                                 ?.thumbnail
                                                 ?.thumbnails
                                                 ?.toListThumbnail()
                                                 ?: listOf(),
                                         title =
-                                            musicTwoRowItemRenderer.title.runs
+                                            musicTwoRowItemRenderer.title
+                                                ?.runs
                                                 ?.get(0)
                                                 ?.text
                                                 ?: "",
@@ -341,7 +349,7 @@ internal fun parseMixedContent(
                                         }
                                     }
                                 }
-                                if (musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId?.startsWith(
+                                if (musicTwoRowItemRenderer.navigationEndpoint?.browseEndpoint?.browseId?.startsWith(
                                         "MPRE",
                                     ) == true
                                 ) {
@@ -350,7 +358,7 @@ internal fun parseMixedContent(
                                             album =
                                                 Album(
                                                     id =
-                                                        musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId
+                                                        musicTwoRowItemRenderer.navigationEndpoint?.browseEndpoint?.browseId
                                                             ?: "",
                                                     name = title,
                                                 ),
@@ -358,15 +366,17 @@ internal fun parseMixedContent(
                                             description = null,
                                             isExplicit = false,
                                             playlistId = null,
-                                            browseId = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId,
+                                            browseId = musicTwoRowItemRenderer.navigationEndpoint?.browseEndpoint?.browseId,
                                             thumbnails =
-                                                musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer
+                                                musicTwoRowItemRenderer.thumbnailRenderer
+                                                    ?.musicThumbnailRenderer
                                                     ?.thumbnail
                                                     ?.thumbnails
                                                     ?.toListThumbnail()
                                                     ?: listOf(),
                                             title =
-                                                musicTwoRowItemRenderer.title.runs
+                                                musicTwoRowItemRenderer.title
+                                                    ?.runs
                                                     ?.get(
                                                         0,
                                                     )?.text ?: "",
@@ -395,7 +405,8 @@ internal fun parseMixedContent(
                                                 playlistId = ytItem.id,
                                                 browseId = ytItem.id,
                                                 thumbnails =
-                                                    musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer
+                                                    musicTwoRowItemRenderer.thumbnailRenderer
+                                                        ?.musicThumbnailRenderer
                                                         ?.thumbnail
                                                         ?.thumbnails
                                                         ?.toListThumbnail()
@@ -447,6 +458,36 @@ internal fun parseMixedContent(
                                     )
                                 listContent.add(content)
                             }
+                        } else if (result1.musicMultiRowListItemRenderer != null) {
+                            val multiRow = result1.musicMultiRowListItemRenderer ?: break
+                            val content =
+                                Content(
+                                    description =
+                                        multiRow.description
+                                            ?.runs
+                                            ?.firstOrNull()
+                                            ?.text,
+                                    thumbnails =
+                                        multiRow.thumbnail
+                                            ?.musicThumbnailRenderer
+                                            ?.thumbnail
+                                            ?.thumbnails
+                                            ?.toListThumbnail()
+                                            ?: listOf(),
+                                    title =
+                                        multiRow.title
+                                            ?.runs
+                                            ?.get(0)
+                                            ?.text ?: "",
+                                    videoId = multiRow.onTap?.watchEndpoint?.videoId ?: "",
+                                    album = null,
+                                    artists = emptyList(),
+                                    isExplicit = false,
+                                    playlistId = null,
+                                    browseId = null,
+                                    views = null,
+                                )
+                            listContent.add(content)
                         } else {
                             break
                         }
@@ -599,7 +640,8 @@ internal fun parsePlaylist(
     var count = ""
     val author: MutableList<Artist> = mutableListOf()
     val thumbnails =
-        data.thumbnailRenderer.musicThumbnailRenderer
+        data.thumbnailRenderer
+            ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
     if (subtitle != null) {
@@ -634,7 +676,8 @@ internal fun parsePlaylist(
         description = description,
         isExplicit = false,
         playlistId =
-            data.title.runs
+            data.title
+                ?.runs
                 ?.get(0)
                 ?.navigationEndpoint
                 ?.browseEndpoint
@@ -642,7 +685,8 @@ internal fun parsePlaylist(
         browseId = null,
         thumbnails = thumbnails?.toListThumbnail() ?: listOf(),
         title =
-            data.title.runs
+            data.title
+                ?.runs
                 ?.get(0)
                 ?.text ?: "",
         videoId = null,
@@ -690,19 +734,22 @@ internal fun parseRelatedArtists(data: MusicTwoRowItemRenderer): Content =
         isExplicit = false,
         playlistId = null,
         browseId =
-            data.title.runs
+            data.title
+                ?.runs
                 ?.get(0)
                 ?.navigationEndpoint
                 ?.browseEndpoint
                 ?.browseId,
         thumbnails =
-            data.thumbnailRenderer.musicThumbnailRenderer
+            data.thumbnailRenderer
+                ?.musicThumbnailRenderer
                 ?.thumbnail
                 ?.thumbnails
                 ?.toListThumbnail()
                 ?: listOf(),
         title =
-            data.title.runs
+            data.title
+                ?.runs
                 ?.get(0)
                 ?.text ?: "",
         videoId = null,
@@ -711,12 +758,14 @@ internal fun parseRelatedArtists(data: MusicTwoRowItemRenderer): Content =
 
 internal fun parseAlbum(data: MusicTwoRowItemRenderer): Content {
     val title =
-        data.title.runs
+        data.title
+            ?.runs
             ?.get(0)
             ?.text
-    val browseId = data.navigationEndpoint.browseEndpoint?.browseId
+    val browseId = data.navigationEndpoint?.browseEndpoint?.browseId
     val thumbnails =
-        data.thumbnailRenderer.musicThumbnailRenderer
+        data.thumbnailRenderer
+            ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
     return Content(
@@ -738,12 +787,14 @@ internal fun parseSong(
     context: Context,
 ): Content {
     val title =
-        data.title.runs
+        data.title
+            ?.runs
             ?.get(0)
             ?.text
-    val videoId = data.navigationEndpoint.watchEndpoint?.videoId
+    val videoId = data.navigationEndpoint?.watchEndpoint?.videoId
     val thumbnails =
-        data.thumbnailRenderer.musicThumbnailRenderer
+        data.thumbnailRenderer
+            ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
     val runs = data.subtitle?.runs
@@ -862,12 +913,14 @@ internal fun parseSongRuns(runs: List<Run>?): Triple<Album?, List<Artist>, Map<S
 
 internal fun parseWatchPlaylist(data: MusicTwoRowItemRenderer): Content {
     val title =
-        data.title.runs
+        data.title
+            ?.runs
             ?.get(0)
             ?.text
-    val playlistId = data.navigationEndpoint.watchPlaylistEndpoint?.playlistId
+    val playlistId = data.navigationEndpoint?.watchPlaylistEndpoint?.playlistId
     val thumbnails =
-        data.thumbnailRenderer.musicThumbnailRenderer
+        data.thumbnailRenderer
+            ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
     Logger.w("parse_watch_playlist", title.toString())

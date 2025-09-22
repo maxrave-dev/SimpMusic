@@ -373,22 +373,29 @@ fun HomeScreen(
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
                     LazyColumn(
-                        modifier = Modifier.padding(horizontal = 15.dp),
-                        state = scrollState,
-                    ) {
-                        item {
-                            Spacer(
-                                Modifier.height(
-                                    with(LocalDensity.current) {
-                                        topAppBarHeightPx.toDp()
-                                    },
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 15.dp)
+                                .padding(
+                                    top =
+                                        with(LocalDensity.current) {
+                                            topAppBarHeightPx.toDp()
+                                        },
                                 ),
-                            )
-                        }
-                        item {
-                            AnimatedVisibility(
-                                visible = accountInfo != null && accountShow,
-                            ) {
+                        state = scrollState,
+                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                    ) {
+//                        item {
+//                            Spacer(
+//                                Modifier.height(
+//                                    with(LocalDensity.current) {
+//                                        (topAppBarHeightPx.toDp().value - 16f).coerceAtLeast(0f).dp
+//                                    },
+//                                ),
+//                            )
+//                        }
+                        if (accountInfo != null && accountShow) {
+                            item {
                                 AccountLayout(
                                     accountName = accountInfo?.first ?: "",
                                     url = accountInfo?.second ?: "",
@@ -574,6 +581,7 @@ fun HomeScreen(
                         .horizontalScroll(chipRowState)
                         .padding(vertical = 8.dp, horizontal = 15.dp)
                         .background(Color.Transparent),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 listOfHomeChip.forEach { id ->
                     val isSelected =
@@ -590,7 +598,6 @@ fun HomeScreen(
                             HOME_PARAMS_FOCUS -> id == R.string.focus
                             else -> id == R.string.all
                         }
-                    Spacer(modifier = Modifier.width(4.dp))
                     Chip(
                         isAnimated = loading,
                         isSelected = isSelected,
@@ -610,7 +617,6 @@ fun HomeScreen(
                             R.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
                         }
                     }
-                    Spacer(modifier = Modifier.width(4.dp))
                 }
             }
         }
@@ -747,11 +753,12 @@ fun QuickPicks(
     ) {
         Text(
             text = stringResource(id = R.string.let_s_start_with_a_radio),
-            style = typo.bodyMedium,
+            style = typo.bodySmall,
         )
         Text(
             text = stringResource(id = R.string.quick_picks),
             style = typo.headlineMedium,
+            color = Color.White,
             maxLines = 1,
             modifier =
                 Modifier
@@ -760,7 +767,7 @@ fun QuickPicks(
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(4),
-            modifier = Modifier.height(280.dp),
+            modifier = Modifier.height(256.dp),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {

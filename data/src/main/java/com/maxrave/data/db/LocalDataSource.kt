@@ -39,7 +39,7 @@ internal class LocalDataSource(
 
     suspend fun insertSearchHistory(searchHistory: SearchHistory) = databaseDao.insertSearchHistory(searchHistory)
 
-    suspend fun getAllSongs() = databaseDao.getAllSongs()
+    suspend fun getAllSongs(limit: Int) = databaseDao.getAllSongs(limit)
 
     suspend fun getRecentSongs(
         limit: Int,
@@ -114,7 +114,7 @@ internal class LocalDataSource(
         videoId: String,
     ) = databaseDao.updateDownloadState(downloadState, videoId)
 
-    suspend fun getAllArtists() = databaseDao.getAllArtists()
+    suspend fun getAllArtists(limit: Int) = databaseDao.getAllArtists(limit)
 
     suspend fun insertArtist(artist: ArtistEntity) = databaseDao.insertArtist(artist)
 
@@ -137,7 +137,7 @@ internal class LocalDataSource(
         channelId: String,
     ) = databaseDao.updateArtistInLibrary(inLibrary, channelId)
 
-    suspend fun getAllAlbums() = databaseDao.getAllAlbums()
+    suspend fun getAllAlbums(limit: Int) = databaseDao.getAllAlbums(limit)
 
     suspend fun insertAlbum(album: AlbumEntity) = databaseDao.insertAlbum(album)
 
@@ -162,7 +162,7 @@ internal class LocalDataSource(
         albumId: String,
     ) = databaseDao.updateAlbumDownloadState(downloadState, albumId)
 
-    suspend fun getAllPlaylists() = databaseDao.getAllPlaylists()
+    suspend fun getAllPlaylists(limit: Int) = databaseDao.getAllPlaylists(limit)
 
     suspend fun insertPlaylist(playlist: PlaylistEntity) = databaseDao.insertPlaylist(playlist)
 
@@ -379,7 +379,7 @@ internal class LocalDataSource(
 
     suspend fun getPodcastWithEpisodes(podcastId: String) = databaseDao.getPodcastWithEpisodes(podcastId)
 
-    suspend fun getAllPodcasts() = databaseDao.getAllPodcasts()
+    suspend fun getAllPodcasts(limit: Int) = databaseDao.getAllPodcasts(limit)
 
     suspend fun getAllPodcastWithEpisodes() = databaseDao.getAllPodcastWithEpisodes()
 

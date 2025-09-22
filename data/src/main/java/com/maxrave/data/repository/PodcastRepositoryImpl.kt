@@ -199,9 +199,9 @@ internal class PodcastRepositoryImpl(
             emit(localDataSource.getPodcastWithEpisodes(podcastId))
         }.flowOn(Dispatchers.IO)
 
-    override fun getAllPodcasts(): Flow<List<PodcastsEntity>> =
+    override fun getAllPodcasts(limit: Int): Flow<List<PodcastsEntity>> =
         flow {
-            emit(localDataSource.getAllPodcasts())
+            emit(localDataSource.getAllPodcasts(limit))
         }.flowOn(Dispatchers.IO)
 
     override fun getAllPodcastWithEpisodes(): Flow<List<PodcastWithEpisodes>> =

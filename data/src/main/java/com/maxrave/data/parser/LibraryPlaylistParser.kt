@@ -9,7 +9,7 @@ internal fun parseLibraryPlaylist(input: List<GridRenderer.Item>): List<Playlist
     if (input.isNotEmpty()) {
         for (i in input.indices) {
             input[i].musicTwoRowItemRenderer?.let {
-                if (it.navigationEndpoint.browseEndpoint?.browseId != "VLSE" && it.navigationEndpoint.browseEndpoint?.browseId != null) {
+                if (it.navigationEndpoint?.browseEndpoint?.browseId != "VLSE" && it.navigationEndpoint?.browseEndpoint?.browseId != null) {
                     list.add(
                         PlaylistsResult(
                             author =
@@ -17,17 +17,19 @@ internal fun parseLibraryPlaylist(input: List<GridRenderer.Item>): List<Playlist
                                     ?.runs
                                     ?.get(0)
                                     ?.text ?: "",
-                            browseId = it.navigationEndpoint.browseEndpoint?.browseId ?: "",
+                            browseId = it.navigationEndpoint?.browseEndpoint?.browseId ?: "",
                             category = "",
                             itemCount = "",
                             resultType = "",
                             thumbnails =
-                                it.thumbnailRenderer.musicThumbnailRenderer
+                                it.thumbnailRenderer
+                                    ?.musicThumbnailRenderer
                                     ?.thumbnail
                                     ?.thumbnails
                                     ?.toListThumbnail() ?: listOf(),
                             title =
-                                it.title.runs
+                                it.title
+                                    ?.runs
                                     ?.get(0)
                                     ?.text ?: "",
                         ),
@@ -47,17 +49,19 @@ internal fun parseNextLibraryPlaylist(input: List<MusicTwoRowItemRenderer>): Lis
                     ?.runs
                     ?.get(0)
                     ?.text ?: "",
-            browseId = it.navigationEndpoint.browseEndpoint?.browseId ?: "",
+            browseId = it.navigationEndpoint?.browseEndpoint?.browseId ?: "",
             category = "",
             itemCount = "",
             resultType = "",
             thumbnails =
-                it.thumbnailRenderer.musicThumbnailRenderer
+                it.thumbnailRenderer
+                    ?.musicThumbnailRenderer
                     ?.thumbnail
                     ?.thumbnails
                     ?.toListThumbnail() ?: listOf(),
             title =
-                it.title.runs
+                it.title
+                    ?.runs
                     ?.get(0)
                     ?.text ?: "",
         )

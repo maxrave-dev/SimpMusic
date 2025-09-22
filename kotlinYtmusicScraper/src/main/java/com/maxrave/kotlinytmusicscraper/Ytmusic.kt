@@ -30,6 +30,9 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
@@ -131,6 +134,10 @@ class Ytmusic {
                             Logger.d(TAG, curl)
                         }
                     }
+            }
+            install(Logging) {
+                logger = io.ktor.client.plugins.logging.Logger.DEFAULT
+                level = LogLevel.ALL
             }
             install(ContentNegotiation) {
                 protobuf()
@@ -613,6 +620,22 @@ class Ytmusic {
             ),
         )
         parameter("alt", "json")
+    }
+
+    suspend fun nextCtoken(
+        client: YouTubeClient,
+        continuation: String,
+    ) = httpClient.post("browse") {
+        ytClient(client, setLogin = true)
+        parameter("ctoken", continuation)
+        parameter("continuation", continuation)
+        parameter("type", "next")
+        parameter("prettyPrint", false)
+        setBody(
+            BrowseBody(
+                context = client.toContext(locale, visitorData),
+            ),
+        )
     }
 
     suspend fun next(

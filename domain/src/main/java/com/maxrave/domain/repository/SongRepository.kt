@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
 interface SongRepository {
-    fun getAllSongs(): Flow<List<SongEntity>>
+    fun getAllSongs(limit: Int): Flow<List<SongEntity>>
 
     suspend fun setInLibrary(
         videoId: String,

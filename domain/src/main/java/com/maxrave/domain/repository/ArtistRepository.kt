@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
 interface ArtistRepository {
-    fun getAllArtists(): Flow<List<ArtistEntity>>
+    fun getAllArtists(limit: Int): Flow<List<ArtistEntity>>
 
     fun getArtistById(id: String): Flow<ArtistEntity>
 

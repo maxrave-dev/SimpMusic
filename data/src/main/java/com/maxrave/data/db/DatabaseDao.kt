@@ -39,11 +39,11 @@ internal interface DatabaseDao {
     @Transaction
     suspend fun getAllRecentData(): List<RecentlyType> {
         val a = mutableListOf<RecentlyType>()
-        a.addAll(getAllSongs())
-        a.addAll(getAllArtists())
-        a.addAll(getAllAlbums())
-        a.addAll(getAllPlaylists())
-        a.addAll(getAllPodcasts())
+        a.addAll(getAllSongs(30))
+        a.addAll(getAllArtists(30))
+        a.addAll(getAllAlbums(30))
+        a.addAll(getAllPlaylists(30))
+        a.addAll(getAllPodcasts(30))
         val sortedList =
             a.sortedWith<RecentlyType>(
                 Comparator { p0, p1 ->
@@ -77,7 +77,7 @@ internal interface DatabaseDao {
                     timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
                 },
             )
-        return sortedList.takeLast(20)
+        return sortedList.takeLast(30)
     }
 
     @Transaction
@@ -140,8 +140,8 @@ internal interface DatabaseDao {
         offset: Int,
     ): List<SongEntity>
 
-    @Query("SELECT * FROM song")
-    suspend fun getAllSongs(): List<SongEntity>
+    @Query("SELECT * FROM song ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
+    suspend fun getAllSongs(limit: Int): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE liked = 1")
     fun getLikedSongs(): Flow<List<SongEntity>>
@@ -234,8 +234,8 @@ internal interface DatabaseDao {
     fun getDownloadedVideoIdByListVideoId(primaryKeyList: List<String>): Flow<List<String>>
 
     // Artist
-    @Query("SELECT * FROM artist")
-    suspend fun getAllArtists(): List<ArtistEntity>
+    @Query("SELECT * FROM artist ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
+    suspend fun getAllArtists(limit: Int): List<ArtistEntity>
 
     @Query("SELECT * FROM artist WHERE channelId = :channelId")
     suspend fun getArtist(channelId: String): ArtistEntity
@@ -265,8 +265,8 @@ internal interface DatabaseDao {
     )
 
     // Album
-    @Query("SELECT * FROM album")
-    suspend fun getAllAlbums(): List<AlbumEntity>
+    @Query("SELECT * FROM album ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
+    suspend fun getAllAlbums(limit: Int): List<AlbumEntity>
 
     @Query("SELECT * FROM album WHERE browseId = :browseId")
     suspend fun getAlbum(browseId: String): AlbumEntity?
@@ -305,8 +305,8 @@ internal interface DatabaseDao {
     suspend fun getDownloadingAlbums(): List<AlbumEntity>
 
     // Playlist
-    @Query("SELECT * FROM playlist")
-    suspend fun getAllPlaylists(): List<PlaylistEntity>
+    @Query("SELECT * FROM playlist ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
+    suspend fun getAllPlaylists(limit: Int): List<PlaylistEntity>
 
     @Query("SELECT * FROM playlist WHERE id = :playlistId")
     suspend fun getPlaylist(playlistId: String): PlaylistEntity?
@@ -604,8 +604,8 @@ internal interface DatabaseDao {
     @Query("SELECT * FROM podcast_table")
     suspend fun getAllPodcastWithEpisodes(): List<PodcastWithEpisodes>
 
-    @Query("SELECT * FROM podcast_table")
-    suspend fun getAllPodcasts(): List<PodcastsEntity>
+    @Query("SELECT * FROM podcast_table ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
+    suspend fun getAllPodcasts(limit: Int): List<PodcastsEntity>
 
     @Query("SELECT * FROM podcast_table WHERE podcastId = :podcastId")
     suspend fun getPodcast(podcastId: String): PodcastsEntity?

@@ -44,9 +44,9 @@ internal class PlaylistRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
 ) : PlaylistRepository {
-    override fun getAllPlaylists(): Flow<List<PlaylistEntity>> =
+    override fun getAllPlaylists(limit: Int): Flow<List<PlaylistEntity>> =
         flow {
-            emit(localDataSource.getAllPlaylists())
+            emit(localDataSource.getAllPlaylists(limit))
         }.flowOn(Dispatchers.IO)
 
     override fun getPlaylist(id: String): Flow<PlaylistEntity?> =

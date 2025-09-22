@@ -17,18 +17,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.MoodAndGenresContentItem
 import com.maxrave.simpmusic.ui.component.NormalAppBar
+import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.MoodViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MoodScreen(
     navController: NavController,
-    viewModel: MoodViewModel = viewModel(),
+    viewModel: MoodViewModel = koinViewModel(),
     params: String?,
 ) {
     val moodData by viewModel.moodsMomentObject.collectAsStateWithLifecycle()
@@ -43,7 +44,10 @@ fun MoodScreen(
     Column {
         NormalAppBar(
             title = {
-                Text(text = moodData?.header ?: "")
+                Text(
+                    text = moodData?.header ?: "",
+                    style = typo.labelMedium,
+                )
             },
             leftIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {

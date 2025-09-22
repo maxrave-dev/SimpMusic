@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -128,6 +129,7 @@ fun HomeItem(
                 } else {
                     Modifier
                 },
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             AnimatedVisibility(
                 visible = (data.thumbnail?.lastOrNull() != null),
@@ -147,7 +149,7 @@ fun HomeItem(
                     error = painterResource(R.drawable.holder),
                     modifier =
                         Modifier
-                            .size(45.dp)
+                            .size(36.dp)
                             .clip(
                                 CircleShape,
                             ),
@@ -155,28 +157,24 @@ fun HomeItem(
             }
             Column(
                 Modifier
-                    .padding(vertical = 8.dp)
                     .padding(start = 10.dp),
             ) {
                 AnimatedVisibility(visible = (data.subtitle != null && data.subtitle != "")) {
                     Text(
                         text = data.subtitle ?: "",
-                        style = typo.bodyMedium,
+                        style = typo.bodySmall,
                     )
                 }
                 Text(
                     text = data.title,
                     style = typo.headlineMedium,
+                    color = Color.White,
                     maxLines = 1,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
         LazyRow(
-            modifier =
-                Modifier.padding(
-                    vertical = 15.dp,
-                ),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
@@ -281,7 +279,7 @@ fun HomeItem(
 fun HomeItemContentPlaylist(
     onClick: () -> Unit,
     data: HomeContentType,
-    thumbSize: Dp = 180.dp,
+    thumbSize: Dp = 160.dp,
 ) {
     Box(
         Modifier
@@ -356,7 +354,7 @@ fun HomeItemContentPlaylist(
                     Modifier
                         .width(thumbSize)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -402,7 +400,7 @@ fun HomeItemContentPlaylist(
                     Modifier
                         .width(thumbSize)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 4.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -433,7 +431,7 @@ fun HomeItemContentPlaylist(
                         Modifier
                             .width(thumbSize)
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .padding(top = 10.dp)
+                            .padding(top = 4.dp)
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
@@ -482,7 +480,7 @@ fun QuickPicksItem(
                 modifier =
                     Modifier
                         .align(Alignment.CenterVertically)
-                        .size(50.dp)
+                        .size(44.dp)
                         .clip(
                             RoundedCornerShape(10),
                         ),
@@ -490,7 +488,7 @@ fun QuickPicksItem(
             Column(
                 Modifier
                     .padding(
-                        start = 20.dp,
+                        start = 16.dp,
                     ).align(Alignment.CenterVertically),
                 verticalArrangement = Arrangement.SpaceEvenly,
             ) {
@@ -593,7 +591,7 @@ fun HomeItemSong(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
-                        .size(180.dp)
+                        .size(160.dp)
                         .clip(
                             RoundedCornerShape(10.dp),
                         ),
@@ -605,7 +603,7 @@ fun HomeItemSong(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .padding(top = 10.dp)
                         .basicMarquee(
@@ -629,7 +627,7 @@ fun HomeItemSong(
                     maxLines = 1,
                     modifier =
                         Modifier
-                            .width(180.dp)
+                            .width(160.dp)
                             .wrapContentHeight(align = Alignment.CenterVertically)
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
@@ -644,7 +642,7 @@ fun HomeItemSong(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
@@ -696,8 +694,8 @@ fun HomeItemVideo(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
-                        .width(320.dp)
-                        .height(180.dp)
+                        .height(160.dp)
+                        .aspectRatio(16f / 9f)
                         .clip(
                             RoundedCornerShape(10.dp),
                         ),
@@ -709,9 +707,9 @@ fun HomeItemVideo(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(320.dp)
+                        .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -723,13 +721,13 @@ fun HomeItemVideo(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(320.dp)
+                        .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable()
-                        .padding(vertical = 3.dp),
+                        .padding(vertical = 2.dp),
             )
             Text(
                 text = data.views ?: stringResource(id = R.string.videos),
@@ -737,7 +735,7 @@ fun HomeItemVideo(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(320.dp)
+                        .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
@@ -785,7 +783,7 @@ fun HomeItemArtist(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
-                        .size(180.dp)
+                        .size(160.dp)
                         .clip(
                             CircleShape,
                         ),
@@ -798,9 +796,9 @@ fun HomeItemArtist(
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -813,7 +811,7 @@ fun HomeItemArtist(
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
@@ -828,7 +826,7 @@ fun HomeItemArtist(
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
@@ -853,7 +851,7 @@ fun MoodMomentAndGenreHomeItem(
         shape = RoundedCornerShape(5.dp),
         modifier =
             Modifier
-                .width(180.dp)
+                .width(160.dp)
                 .height(50.dp)
                 .padding(8.dp),
     ) {
@@ -1044,7 +1042,7 @@ fun ItemArtistChart(
             Column(
                 Modifier
                     .padding(start = 15.dp)
-                    .width(180.dp)
+                    .width(160.dp)
                     .align(Alignment.CenterVertically),
             ) {
                 Text(
@@ -1210,19 +1208,19 @@ fun MoodAndGenresContentItem(
                     is Item -> (data).header
                     else -> ""
                 },
-            style = typo.titleLarge,
+            style = typo.titleMedium,
             color = Color.White,
             modifier =
                 Modifier
+                    .padding(top = 8.dp)
                     .padding(
-                        vertical = 13.dp,
                         horizontal = 15.dp,
                     ).fillMaxWidth(),
         )
         LazyRow(
             modifier =
                 Modifier.padding(
-                    15.dp,
+                    10.dp,
                 ),
         ) {
             val itemList =

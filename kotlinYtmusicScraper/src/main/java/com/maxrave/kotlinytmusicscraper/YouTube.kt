@@ -1742,22 +1742,20 @@ class YouTube(
 
     suspend fun nextYouTubePlaylists(continuation: String): Result<Pair<List<MusicTwoRowItemRenderer>, String?>> =
         runCatching {
-            val response =
+            val res =
                 ytMusic
-                    .next(
+                    .nextCtoken(
                         WEB_REMIX,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
                         continuation,
-                    ).body<BrowseResponse>()
+                    )
+            Logger.d(TAG, "Next Playlists ${res.bodyAsText()}")
+            val response = res.body<BrowseResponse>()
             Pair(
                 response
                     .continuationContents
                     ?.gridContinuation
-                    ?.items ?: emptyList(),
+                    ?.items
+                    ?.mapNotNull { it.musicTwoRowItemRenderer } ?: emptyList(),
                 response.continuationContents
                     ?.gridContinuation
                     ?.continuations

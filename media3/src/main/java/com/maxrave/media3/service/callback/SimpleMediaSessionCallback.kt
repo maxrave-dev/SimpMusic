@@ -243,7 +243,7 @@ internal class SimpleMediaSessionCallback(
 
                     SONG ->
                         songRepository
-                            .getAllSongs()
+                            .getAllSongs(1000)
                             .last()
                             .sortedBy { it.inLibrary }
                             .map { it.toMediaItem(parentId) }
@@ -399,7 +399,7 @@ internal class SimpleMediaSessionCallback(
             when (path.firstOrNull()) {
                 SONG -> {
                     val songId = path.getOrNull(1) ?: return@future defaultResult
-                    val allSongs = songRepository.getAllSongs().lastOrNull()?.sortedBy { it.inLibrary } ?: emptyList()
+                    val allSongs = songRepository.getAllSongs(1000).lastOrNull()?.sortedBy { it.inLibrary } ?: emptyList()
                     if (allSongs.find { it.videoId == songId } == null) {
                         val song =
                             searchTempList.find { it.videoId == songId }
