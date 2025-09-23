@@ -372,7 +372,7 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Column {
                                 AnimatedVisibility(
-                                    isShowMiniPlayer && (!isInSearchPage || isLiquidGlassEnabled == DataStoreManager.FALSE),
+                                    isShowMiniPlayer && isLiquidGlassEnabled == DataStoreManager.FALSE,
                                     enter = fadeIn() + slideInHorizontally(),
                                     exit = fadeOut(),
                                 ) {

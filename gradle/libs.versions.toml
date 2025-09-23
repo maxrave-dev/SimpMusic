@@ -65,7 +65,7 @@ webkit = "1.14.0"
 napier = "2.7.1"
 paging-common = "3.3.6"
 glance = "1.1.1"
-liquid-glass = "1.0.0-alpha12"
+liquid-glass = "1.0.0-alpha13"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}

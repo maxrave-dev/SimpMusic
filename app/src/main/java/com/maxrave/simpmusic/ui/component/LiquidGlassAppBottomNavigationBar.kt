@@ -4,10 +4,11 @@ import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -42,6 +44,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,8 +54,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -60,7 +68,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kyant.backdrop.Backdrop
 import com.maxrave.common.R
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.extension.animateAlignmentAsState
 import com.maxrave.simpmusic.extension.drawBackdropCustomShape
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
@@ -87,6 +94,8 @@ fun LiquidGlassAppBottomNavigationBar(
     onOpenNowPlaying: () -> Unit = {},
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
+    val density = LocalDensity.current
+
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val bottomNavScreens =
         listOf(
@@ -111,10 +120,6 @@ fun LiquidGlassAppBottomNavigationBar(
         mutableStateOf(true)
     }
 
-    val alignment by animateAlignmentAsState(
-        if (isExpanded) Alignment.Center else Alignment.CenterStart,
-    )
-
     var isInSearchDestination by remember {
         mutableStateOf(false)
     }
@@ -130,25 +135,54 @@ fun LiquidGlassAppBottomNavigationBar(
         isExpanded = !isInSearchDestination
     }
 
-    Box(
+    val constraintSet by remember {
+        derivedStateOf {
+            decoupledConstraints(isExpanded)
+        }
+    }
+
+    var maxWidth by remember {
+        mutableStateOf(0.dp)
+    }
+    var toolbarWidthTarget by remember {
+        mutableStateOf(0.dp)
+    }
+    val miniPlayerWidthDp by animateDpAsState(
+        if (!isExpanded) {
+            maxWidth - toolbarWidthTarget - 12.dp - 16.dp
+        } else {
+            maxWidth - 24.dp
+        },
+    )
+
+    ConstraintLayout(
+        constraintSet = constraintSet,
         modifier =
             Modifier
-                .fillMaxWidth(),
-        contentAlignment = alignment,
+                .fillMaxWidth()
+                .padding(
+                    WindowInsets.navigationBars.asPaddingValues(),
+                ).padding(
+                    bottom = 8.dp,
+                ).onPlaced {
+                    maxWidth = with(density) { it.size.width.toDp() }
+                },
+        animateChangesSpec = tween(durationMillis = 300),
     ) {
         /**
          * LTR: HOME -> MIX FOR YOU -> LIBRARY | SEARCH
          */
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier =
                 Modifier
-                    .padding(
-                        WindowInsets.navigationBars.asPaddingValues(),
-                    ).padding(vertical = 8.dp, horizontal = 16.dp)
+                    .padding(horizontal = 16.dp)
                     .imePadding()
-                    .wrapContentSize(),
+                    .wrapContentSize()
+                    .layoutId("toolbar")
+                    .onPlaced {
+                        toolbarWidthTarget = with(density) { it.size.width.toDp() }
+                    },
         ) {
             HorizontalFloatingToolbar(
                 modifier =
@@ -294,6 +328,7 @@ fun LiquidGlassAppBottomNavigationBar(
                                         BottomNavScreen.Library -> Icons.Filled.LibraryMusic
                                         else -> Icons.Filled.Search
                                     }
+
                                 BottomNavScreen.Library.ordinal -> Icons.Filled.LibraryMusic
                                 else -> Icons.Outlined.Home
                             },
@@ -330,36 +365,62 @@ fun LiquidGlassAppBottomNavigationBar(
                             "",
                         )
                     }
-                } else {
-                    AnimatedVisibility(
-                        visible = shouldShowMiniPlayer && isInSearchDestination,
-                        enter = fadeIn() + slideInHorizontally(),
-                        exit = fadeOut(),
-                    ) {
-                        MiniPlayer(
-                            Modifier
-                                .height(56.dp)
-                                .fillMaxWidth()
-                                .padding(
-                                    horizontal = 12.dp,
-                                ).padding(
-                                    bottom = 4.dp,
-                                ),
-                            backdrop = backdrop,
-                            onClick = {
-                                onOpenNowPlaying()
-                            },
-                            onClose = {
-                                viewModel.stopPlayer()
-                                viewModel.isServiceRunning = false
-                            },
-                        )
-                    }
                 }
             }
         }
+        AnimatedVisibility(
+            visible = shouldShowMiniPlayer,
+            enter = fadeIn() + slideInHorizontally(),
+            exit = fadeOut(),
+            modifier =
+                Modifier.layoutId("miniPlayer"),
+        ) {
+            MiniPlayer(
+                Modifier
+                    .height(56.dp)
+                    .width(
+                        miniPlayerWidthDp,
+                    ).animateEnterExit(),
+                backdrop = backdrop,
+                onClick = {
+                    onOpenNowPlaying()
+                },
+                onClose = {
+                    viewModel.stopPlayer()
+                    viewModel.isServiceRunning = false
+                },
+            )
+        }
     }
 }
+
+private fun decoupledConstraints(isExpanded: Boolean): ConstraintSet =
+    ConstraintSet {
+        val toolbar = createRefFor("toolbar")
+        val miniPlayer = createRefFor("miniPlayer")
+
+        constrain(toolbar) {
+            bottom.linkTo(parent.bottom)
+            if (!isExpanded) {
+                start.linkTo(parent.start)
+            } else {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            }
+        }
+        constrain(miniPlayer) {
+            if (!isExpanded) {
+                start.linkTo(toolbar.end, margin = 0.dp)
+                end.linkTo(parent.end, margin = 16.dp)
+                top.linkTo(toolbar.top)
+                bottom.linkTo(toolbar.bottom)
+            } else {
+                start.linkTo(parent.start, margin = 12.dp)
+                end.linkTo(parent.end, margin = 16.dp)
+                bottom.linkTo(toolbar.top, margin = 12.dp)
+            }
+        }
+    }
 
 private fun Modifier.circleDrawBackdrop(backdrop: Backdrop): Modifier = drawBackdropCustomShape(backdrop, CircleShape)
 

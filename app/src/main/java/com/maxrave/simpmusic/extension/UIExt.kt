@@ -25,6 +25,10 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SheetValue.Hidden
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -610,4 +615,38 @@ fun PaddingValues.copy(
         end = end ?: this.calculateEndPadding(layoutDirection),
         bottom = bottom ?: this.calculateBottomPadding(),
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun rememberNoBouncyBottomSheetState(
+    skipPartiallyExpanded: Boolean = false,
+    confirmValueChange: (SheetValue) -> Boolean = { true },
+    initialValue: SheetValue = Hidden,
+    skipHiddenState: Boolean = false,
+): SheetState {
+    val positionalThresholdToPx = 0f
+    val velocityThresholdToPx = 0f
+    return rememberSaveable(
+        skipPartiallyExpanded,
+        confirmValueChange,
+        skipHiddenState,
+        saver =
+            SheetState.Saver(
+                skipPartiallyExpanded = skipPartiallyExpanded,
+                positionalThreshold = { positionalThresholdToPx },
+                velocityThreshold = { velocityThresholdToPx },
+                confirmValueChange = confirmValueChange,
+                skipHiddenState = skipHiddenState,
+            ),
+    ) {
+        SheetState(
+            skipPartiallyExpanded,
+            { positionalThresholdToPx },
+            { velocityThresholdToPx },
+            initialValue,
+            confirmValueChange,
+            skipHiddenState,
+        )
+    }
 }

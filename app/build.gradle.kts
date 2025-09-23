@@ -15,7 +15,7 @@ kotlin {
     jvmToolchain(17) // or appropriate version
     compilerOptions {
         freeCompilerArgs.add("-Xwhen-guards")
-        freeCompilerArgs.add("-Xcontext-receivers")
+        freeCompilerArgs.add("-Xcontext-parameters")
         freeCompilerArgs.add("-Xmulti-dollar-interpolation")
     }
 }
