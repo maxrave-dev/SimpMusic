@@ -56,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -150,6 +151,7 @@ private val listOfHomeChip =
 @ExperimentalFoundationApi
 @Composable
 fun HomeScreen(
+    onScrolling: (onTop: Boolean) -> Unit = {},
     viewModel: HomeViewModel =
         koinViewModel(),
     sharedViewModel: SharedViewModel =
@@ -200,12 +202,12 @@ fun HomeScreen(
             blurEnabled = true,
         )
 
-//    LaunchedEffect(dataSyncId, youTubeCookie) {
-//        Logger.d("HomeScreen", "dataSyncId: $dataSyncId, youTubeCookie: $youTubeCookie")
-//        if (dataSyncId.isEmpty() && youTubeCookie.isNotEmpty()) {
-//            shouldShowGetDataSyncIdBottomSheet = true
-//        }
-//    }
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.firstVisibleItemIndex }
+            .collect {
+                onScrolling.invoke(it <= 1)
+            }
+    }
 
     val onRefresh: () -> Unit = {
         isRefreshing = true

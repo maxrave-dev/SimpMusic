@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -26,6 +28,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,10 +60,18 @@ inline fun <reified T> GridLibraryPlaylist(
     navController: NavController,
     contentPadding: PaddingValues,
     data: LocalResource<List<T>>,
+    noinline onScrolling: (onTop: Boolean) -> Unit = { _ -> },
     noinline createNewPlaylist: (() -> Unit)? = null,
     noinline onReload: () -> Unit,
 ) {
     Logger.w("GridLibraryPlaylist", "Generic Type: ${T::class.java}")
+    val state = rememberLazyGridState()
+    LaunchedEffect(state) {
+        snapshotFlow { state.firstVisibleItemIndex }
+            .collect {
+                onScrolling.invoke(it <= 1)
+            }
+    }
     val pullToRefreshState = rememberPullToRefreshState()
     PullToRefreshBox(
         modifier = Modifier.fillMaxSize(),
@@ -88,6 +100,7 @@ inline fun <reified T> GridLibraryPlaylist(
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 125.dp),
                     contentPadding = contentPadding,
+                    state = state,
                 ) {
                     if (createNewPlaylist != null) {
                         item {

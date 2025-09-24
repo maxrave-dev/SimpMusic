@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,6 +77,7 @@ fun LibraryScreen(
     innerPadding: PaddingValues,
     viewModel: LibraryViewModel = koinViewModel(),
     navController: NavController,
+    onScrolling: (onTop: Boolean) -> Unit = {},
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
@@ -140,11 +143,19 @@ fun LibraryScreen(
     ) { filter ->
         when (filter) {
             LibraryChipType.YOUR_LIBRARY -> {
+                val state = rememberLazyListState()
+                LaunchedEffect(state) {
+                    snapshotFlow { state.firstVisibleItemIndex }
+                        .collect {
+                            onScrolling.invoke(it <= 1)
+                        }
+                }
                 LazyColumn(
                     contentPadding =
                         innerPadding.copy(
                             top = topAppBarHeight,
                         ),
+                    state = state
                 ) {
                     item {
                         LibraryTilingBox(navController)
@@ -186,6 +197,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     youTubePlaylist,
+                    onScrolling = onScrolling,
                 ) {
                     viewModel.getYouTubePlaylist()
                 }
@@ -195,6 +207,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     yourLocalPlaylist,
+                    onScrolling = onScrolling,
                     createNewPlaylist = {
                         showAddSheet = true
                     },
@@ -207,6 +220,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     favoritePlaylist,
+                    onScrolling = onScrolling,
                 ) {
                     viewModel.getPlaylistFavorite()
                 }
@@ -216,6 +230,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     downloadedPlaylist,
+                    onScrolling = onScrolling,
                 ) {
                     viewModel.getDownloadedPlaylist()
                 }
@@ -225,6 +240,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     favoritePodcasts,
+                    onScrolling = onScrolling,
                 ) {
                     viewModel.getFavoritePodcasts()
                 }

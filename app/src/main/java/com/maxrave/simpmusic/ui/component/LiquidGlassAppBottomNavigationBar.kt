@@ -1,14 +1,17 @@
 package com.maxrave.simpmusic.ui.component
 
+import android.R.attr.visible
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -77,7 +80,11 @@ import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.materials.CupertinoMaterials
 import kotlin.reflect.KClass
 
 private const val TAG = "LiquidGlassAppBottomNavigationBar"
@@ -91,6 +98,7 @@ fun LiquidGlassAppBottomNavigationBar(
     backdrop: Backdrop,
     shouldShowMiniPlayer: Boolean,
     viewModel: SharedViewModel,
+    isScrolledToTop: Boolean = false,
     onOpenNowPlaying: () -> Unit = {},
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
@@ -141,6 +149,12 @@ fun LiquidGlassAppBottomNavigationBar(
         }
     }
 
+    LaunchedEffect(isScrolledToTop) {
+        if (!isInSearchDestination) {
+            isExpanded = isScrolledToTop
+        }
+    }
+
     var maxWidth by remember {
         mutableStateOf(0.dp)
     }
@@ -186,8 +200,17 @@ fun LiquidGlassAppBottomNavigationBar(
         ) {
             HorizontalFloatingToolbar(
                 modifier =
-                    Modifier.circleDrawBackdrop(backdrop),
-                contentPadding = PaddingValues(0.dp),
+                    Modifier.circleDrawBackdrop(backdrop)
+                        .then(
+                            if (!isExpanded) {
+                                Modifier.size(48.dp)
+                            } else {
+                                Modifier
+                            }
+                        ),
+                contentPadding = PaddingValues(
+                    horizontal = if (isExpanded) 4.dp else 0.dp,
+                ),
                 colors =
                     FloatingToolbarDefaults
                         .standardFloatingToolbarColors()
@@ -228,7 +251,11 @@ fun LiquidGlassAppBottomNavigationBar(
                                     .buttonColors()
                                     .copy(
                                         disabledContainerColor = transparent,
-                                        containerColor = transparent,
+                                        containerColor = if (selectedIndex == screen.ordinal) {
+                                            Color(0x33FFFFFF)
+                                        } else {
+                                            transparent
+                                        },
                                         contentColor =
                                             if (selectedIndex == screen.ordinal) {
                                                 seed
@@ -256,6 +283,11 @@ fun LiquidGlassAppBottomNavigationBar(
                                         } else {
                                             typo.bodySmall.greyScale()
                                         },
+                                    color = if (selectedIndex == screen.ordinal) {
+                                        white
+                                    } else {
+                                        Color(0xFFA8A8A8)
+                                    },
                                 )
                             }
                         }
@@ -290,28 +322,29 @@ fun LiquidGlassAppBottomNavigationBar(
                                     restoreState = true
                                 }
                             } else {
-                                if (selectedIndex == screen.ordinal) {
-                                    if (currentBackStackEntry?.destination?.hierarchy?.any {
-                                            it.hasRoute(screen.destination::class)
-                                        } == true
-                                    ) {
-                                        reloadDestinationIfNeeded(
-                                            screen.destination::class,
-                                        )
-                                    } else {
-                                        navController.navigate(screen.destination)
-                                    }
-                                } else {
-                                    previousSelectedIndex = selectedIndex
-                                    selectedIndex = screen.ordinal
-                                    navController.navigate(screen.destination) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
+//                                if (selectedIndex == screen.ordinal) {
+//                                    if (currentBackStackEntry?.destination?.hierarchy?.any {
+//                                            it.hasRoute(screen.destination::class)
+//                                        } == true
+//                                    ) {
+//                                        reloadDestinationIfNeeded(
+//                                            screen.destination::class,
+//                                        )
+//                                    } else {
+//                                        navController.navigate(screen.destination)
+//                                    }
+//                                } else {
+//                                    previousSelectedIndex = selectedIndex
+//                                    selectedIndex = screen.ordinal
+//                                    navController.navigate(screen.destination) {
+//                                        popUpTo(navController.graph.startDestinationId) {
+//                                            saveState = true
+//                                        }
+//                                        launchSingleTop = true
+//                                        restoreState = true
+//                                    }
+//                                }
+                                isExpanded = true
                             }
                         },
                         colors =
@@ -342,8 +375,15 @@ fun LiquidGlassAppBottomNavigationBar(
                 Spacer(Modifier.size(12.dp))
             }
 
-            Crossfade(targetState = selectedIndex == BottomNavScreen.Search.ordinal) { isSearchSelected ->
-                if (!isSearchSelected) {
+            AnimatedVisibility(
+                visible = selectedIndex != BottomNavScreen.Search.ordinal && isExpanded,
+                enter = slideInHorizontally(
+                    tween(100)
+                ) { it / 2 },
+                exit = slideOutHorizontally(
+                    tween(100)
+                ) { - it / 2 },
+            ) {
                     FloatingActionButton(
                         modifier = Modifier.circleDrawBackdrop(backdrop),
                         onClick = {
@@ -366,7 +406,6 @@ fun LiquidGlassAppBottomNavigationBar(
                         )
                     }
                 }
-            }
         }
         AnimatedVisibility(
             visible = shouldShowMiniPlayer,

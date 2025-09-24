@@ -80,6 +80,7 @@ import androidx.core.util.Consumer
 import com.kmpalette.palette.graphics.Palette
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.dispersion
 import com.kyant.backdrop.effects.refraction
 import com.kyant.backdrop.effects.saturation
@@ -579,26 +580,31 @@ fun animateAlignmentAsState(targetAlignment: Alignment): State<Alignment> {
 fun Modifier.drawBackdropCustomShape(
     backdrop: Backdrop,
     shape: Shape,
-    alpha: Float = 0.6f,
+    alpha: Float = 0.3f,
 ): Modifier =
     this.drawBackdrop(
         backdrop = backdrop,
         shapeProvider = { shape },
-        onDrawSurface = { drawRect(Color.Black.copy(alpha = alpha.coerceIn(0f, 1f))) },
+        onDrawSurface = {
+            drawRect(
+                Color.Black.copy(alpha = alpha.coerceIn(0f, 1f)),
+            )
+        },
     ) {
         // saturation boost
         saturation()
         // blur
         // lens
         refraction(
-            height = 24f.dp.toPx(),
-            amount = 64f.dp.toPx(),
+            height = 16f.dp.toPx(),
+            amount = 84f.dp.toPx(),
             hasDepthEffect = true,
         )
         dispersion(
             height = 12.dp.toPx(),
             amount = 24.dp.toPx(),
         )
+        blur(6.dp.toPx())
     }
 
 @Composable

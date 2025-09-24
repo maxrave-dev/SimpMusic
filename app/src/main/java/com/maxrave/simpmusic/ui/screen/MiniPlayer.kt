@@ -393,6 +393,7 @@ fun MiniPlayer(
                                             text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
                                             style = typo.bodySmall,
                                             maxLines = 1,
+                                            color = Color.LightGray,
                                             modifier =
                                                 Modifier
                                                     .weight(1f)

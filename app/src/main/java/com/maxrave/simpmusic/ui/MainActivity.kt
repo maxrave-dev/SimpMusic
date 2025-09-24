@@ -85,6 +85,8 @@ import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
@@ -357,11 +359,11 @@ class MainActivity : AppCompatActivity() {
                 if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
                     isShowNowPlaylistScreen = false
                 }
-                navBackStackEntry?.destination?.let { current ->
-                    isInSearchPage = current.hasRoute(SearchDestination::class)
-                }
             }
             val backdrop = rememberBackdrop()
+            var isScrolledToTop by rememberSaveable {
+                mutableStateOf(false)
+            }
             AppTheme {
                 Scaffold(
                     bottomBar = {
@@ -402,6 +404,7 @@ class MainActivity : AppCompatActivity() {
                                         viewModel = viewModel,
                                         shouldShowMiniPlayer = isShowMiniPlayer,
                                         onOpenNowPlaying = { isShowNowPlaylistScreen = true },
+                                        isScrolledToTop = isScrolledToTop
                                     ) { klass ->
                                         viewModel.reloadDestination(klass)
                                     }
@@ -420,7 +423,13 @@ class MainActivity : AppCompatActivity() {
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .backdrop(backdrop),
+                                .then(
+                                    if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                                        Modifier.backdrop(backdrop)
+                                    } else {
+                                        Modifier
+                                    },
+                                ),
                         ) {
                             AppNavigationGraph(
                                 innerPadding = innerPadding,
@@ -434,6 +443,9 @@ class MainActivity : AppCompatActivity() {
                                 showNowPlayingSheet = {
                                     isShowNowPlaylistScreen = true
                                 },
+                                onScrolling = {
+                                    isScrolledToTop = it
+                                }
                             )
                         }
 
