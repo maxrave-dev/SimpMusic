@@ -400,7 +400,6 @@ fun HomeItemContentPlaylist(
                     Modifier
                         .width(thumbSize)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 4.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -431,7 +430,6 @@ fun HomeItemContentPlaylist(
                         Modifier
                             .width(thumbSize)
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .padding(top = 4.dp)
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
@@ -605,7 +603,7 @@ fun HomeItemSong(
                     Modifier
                         .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -816,8 +814,7 @@ fun HomeItemArtist(
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable()
-                        .padding(vertical = 3.dp),
+                        ).focusable(),
             )
             Text(
                 text = "",

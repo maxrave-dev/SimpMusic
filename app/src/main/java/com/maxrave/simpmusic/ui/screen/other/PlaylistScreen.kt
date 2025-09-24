@@ -95,12 +95,14 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ListState
 import com.maxrave.simpmusic.viewModel.PlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.PlaylistUIState
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -167,6 +169,13 @@ fun PlaylistScreen(
                 playlistId,
                 continuation,
             )
+        }
+    }
+
+    val queueData by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val playingPlaylistId by remember {
+        derivedStateOf {
+            queueData?.data?.playlistId
         }
     }
 
@@ -404,12 +413,26 @@ fun PlaylistScreen(
                                                     Modifier.fillMaxWidth(),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
-                                                RippleIconButton(
-                                                    resId = R.drawable.baseline_play_circle_24,
-                                                    fillMaxSize = true,
-                                                    modifier = Modifier.size(36.dp),
-                                                ) {
-                                                    viewModel.onUIEvent(PlaylistUIEvent.PlayAll)
+                                                Crossfade(isPlaying && playingPlaylistId == data.id) { isThisPlaying ->
+                                                    if (isThisPlaying) {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_pause_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                        }
+                                                    } else {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_play_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            viewModel.onUIEvent(PlaylistUIEvent.PlayAll)
+                                                        }
+                                                    }
                                                 }
                                                 if (!data.isRadio) {
                                                     HeartCheckBox(

@@ -173,10 +173,11 @@ fun SongFullWidthItems(
                 Modifier
                     .padding(vertical = 10.dp, horizontal = 15.dp)
                     .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Box(
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(48.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Crossfade(isPlaying) {
@@ -245,7 +246,7 @@ fun SongFullWidthItems(
                                     painter = painterResource(id = R.drawable.download_for_offline_white),
                                     tint = Color.White,
                                     contentDescription = "",
-                                    modifier = Modifier.size(20.dp).padding(2.dp),
+                                    modifier = Modifier.size(16.dp).padding(2.dp),
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                             }
@@ -461,8 +462,8 @@ fun PlaylistFullWidthItems(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Spacer(modifier = Modifier.width(10.dp))
-            Box(modifier = Modifier.size(50.dp)) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(modifier = Modifier.size(48.dp)) {
                 AsyncImage(
                     model =
                         ImageRequest
@@ -560,9 +561,10 @@ fun ArtistFullWidthItems(
             Modifier
                 .padding(vertical = 10.dp, horizontal = 15.dp)
                 .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Spacer(modifier = Modifier.width(10.dp))
-            Box(modifier = Modifier.size(50.dp)) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(modifier = Modifier.size(48.dp)) {
                 AsyncImage(
                     model =
                         ImageRequest

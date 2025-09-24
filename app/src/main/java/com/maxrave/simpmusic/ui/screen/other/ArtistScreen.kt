@@ -97,8 +97,6 @@ fun ArtistScreen(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
-    @Suppress("ktlint:standard:property-naming")
-    val TAG = "ArtistScreen"
     val context = LocalContext.current
 
     val artistScreenState by viewModel.artistScreenState.collectAsStateWithLifecycle()
@@ -157,13 +155,13 @@ fun ArtistScreen(
                             Row {
                                 Text(
                                     text = state.data.subscribers ?: stringResource(R.string.unknown),
-                                    style = typo.bodySmall,
+                                    style = typo.bodyMedium,
                                     textAlign = TextAlign.Start,
                                     modifier = Modifier.weight(1f),
                                 )
                                 Text(
                                     text = state.data.playCount ?: stringResource(R.string.unknown),
-                                    style = typo.bodySmall,
+                                    style = typo.bodyMedium,
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.weight(1f),
                                 )

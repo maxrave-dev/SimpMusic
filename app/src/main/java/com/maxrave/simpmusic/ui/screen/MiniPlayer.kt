@@ -213,39 +213,42 @@ fun MiniPlayer(
                     } else {
                         Modifier
                     },
-                ).clipToBounds()
-                .offset { IntOffset(0, offsetY.value.roundToInt()) }
-                .clickable(
-                    onClick = onClick,
-                ).pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragStart = {
+                ).then(
+                    Modifier
+                        .clipToBounds()
+                        .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                        .clickable(
+                            onClick = onClick,
+                        ).pointerInput(Unit) {
+                            detectVerticalDragGestures(
+                                onDragStart = {
+                                },
+                                onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
+                                    if (offsetY.value + dragAmount > 0) {
+                                        coroutineScope.launch {
+                                            change.consume()
+                                            offsetY.animateTo(offsetY.value + 2 * dragAmount)
+                                            Logger.w("MiniPlayer", "Dragged ${offsetY.value}")
+                                        }
+                                    }
+                                },
+                                onDragCancel = {
+                                    coroutineScope.launch {
+                                        offsetY.animateTo(0f)
+                                    }
+                                },
+                                onDragEnd = {
+                                    Logger.w("MiniPlayer", "Drag Ended")
+                                    coroutineScope.launch {
+                                        if (offsetY.value > 70) {
+                                            onClose()
+                                        }
+                                        offsetY.animateTo(0f)
+                                    }
+                                },
+                            )
                         },
-                        onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
-                            if (offsetY.value + dragAmount > 0) {
-                                coroutineScope.launch {
-                                    change.consume()
-                                    offsetY.animateTo(offsetY.value + 2 * dragAmount)
-                                    Logger.w("MiniPlayer", "Dragged ${offsetY.value}")
-                                }
-                            }
-                        },
-                        onDragCancel = {
-                            coroutineScope.launch {
-                                offsetY.animateTo(0f)
-                            }
-                        },
-                        onDragEnd = {
-                            Logger.w("MiniPlayer", "Drag Ended")
-                            coroutineScope.launch {
-                                if (offsetY.value > 70) {
-                                    onClose()
-                                }
-                                offsetY.animateTo(0f)
-                            }
-                        },
-                    )
-                },
+                ),
     ) {
         Box(modifier = Modifier.fillMaxHeight()) {
             Row(

@@ -118,6 +118,7 @@ import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_outline
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
@@ -269,7 +270,7 @@ fun SettingScreen(
         item(key = "user_interface") {
             Column {
                 Spacer(Modifier.height(16.dp))
-                Text(text = stringResource(R.string.user_interface), style = typo.labelMedium)
+                Text(text = stringResource(R.string.user_interface), style = typo.labelMedium, color = white)
                 SettingItem(
                     title = stringResource(R.string.translucent_bottom_navigation_bar),
                     subtitle = stringResource(R.string.you_can_see_the_content_below_the_bottom_bar),
@@ -298,7 +299,7 @@ fun SettingScreen(
         }
         item(key = "content") {
             Column {
-                Text(text = stringResource(R.string.content), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.content), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.youtube_account),
                     subtitle = stringResource(R.string.manage_your_youtube_accounts),
@@ -562,7 +563,7 @@ fun SettingScreen(
         }
         item(key = "audio") {
             Column {
-                Text(text = stringResource(R.string.audio), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.audio), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.normalize_volume),
                     subtitle = stringResource(R.string.balance_media_loudness),
@@ -595,7 +596,7 @@ fun SettingScreen(
         }
         item(key = "playback") {
             Column {
-                Text(text = stringResource(R.string.playback), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.playback), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.save_playback_state),
                     subtitle = stringResource(R.string.save_shuffle_and_repeat_mode),
@@ -615,7 +616,7 @@ fun SettingScreen(
         }
         item(key = "lyrics") {
             Column {
-                Text(text = stringResource(R.string.lyrics), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.lyrics), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.main_lyrics_provider),
                     subtitle =
@@ -784,7 +785,7 @@ fun SettingScreen(
         }
         item(key = "AI") {
             Column {
-                Text(text = stringResource(R.string.ai), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.ai), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.ai_provider),
                     subtitle =
@@ -885,7 +886,7 @@ fun SettingScreen(
         }
         item(key = "spotify") {
             Column {
-                Text(text = stringResource(R.string.spotify), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.spotify), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.log_in_to_spotify),
                     subtitle =
@@ -928,7 +929,12 @@ fun SettingScreen(
         }
         item(key = "sponsor_block") {
             Column {
-                Text(text = stringResource(R.string.sponsorBlock), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = stringResource(R.string.sponsorBlock),
+                    style = typo.labelMedium,
+                    color = white,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
                 SettingItem(
                     title = stringResource(R.string.enable_sponsor_block),
                     subtitle = stringResource(R.string.skip_sponsor_part_of_video),
@@ -1002,7 +1008,7 @@ fun SettingScreen(
         }
         item(key = "storage") {
             Column {
-                Text(text = stringResource(R.string.storage), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.storage), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.player_cache),
                     subtitle = "${playerCache.bytesToMB()} MB",
@@ -1307,7 +1313,7 @@ fun SettingScreen(
         }
         item(key = "backup") {
             Column {
-                Text(text = stringResource(R.string.backup), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.backup), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.backup_downloaded),
                     subtitle = stringResource(R.string.backup_downloaded_description),
@@ -1332,7 +1338,7 @@ fun SettingScreen(
         }
         item(key = "about_us") {
             Column {
-                Text(text = stringResource(R.string.about_us), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.about_us), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.version),
                     subtitle = stringResource(R.string.version_format, VersionManager.getVersionName()),
@@ -1551,7 +1557,7 @@ fun SettingScreen(
                                     )
                                     Spacer(Modifier.width(12.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(it.name, style = typo.labelMedium)
+                                        Text(it.name, style = typo.labelMedium, color = white)
                                         Text(it.email, style = typo.bodySmall)
                                     }
                                     Spacer(Modifier.width(12.dp))

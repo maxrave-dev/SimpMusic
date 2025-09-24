@@ -54,6 +54,12 @@ class NewPipeDownloaderImpl(
 
         cookie?.let {
             requestBuilder.addHeader("Cookie", it)
+            val cookieMap = parseCookieString(it)
+            if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
+            val currentTime = System.currentTimeMillis() / 1000
+            val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
+            val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
+            requestBuilder.addHeader("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
         }
 
         val response = client.newCall(requestBuilder.build()).execute()

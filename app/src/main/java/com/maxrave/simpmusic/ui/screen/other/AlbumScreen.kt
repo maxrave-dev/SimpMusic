@@ -89,10 +89,12 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
@@ -110,6 +112,13 @@ fun AlbumScreen(
     val uriHandler = LocalUriHandler.current
 
     val playingVideoId by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
+
+    val queueData by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val playingPlaylistId by remember {
+        derivedStateOf {
+            queueData?.data?.playlistId
+        }
+    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -302,12 +311,29 @@ fun AlbumScreen(
                                                     Modifier.fillMaxWidth(),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
-                                                RippleIconButton(
-                                                    resId = R.drawable.baseline_play_circle_24,
-                                                    fillMaxSize = true,
-                                                    modifier = Modifier.size(36.dp),
-                                                ) {
-                                                    viewModel.playTrack(uiState.listTrack.firstOrNull() ?: return@RippleIconButton)
+                                                Crossfade(
+                                                    playingVideoId.isNotEmpty() &&
+                                                        playingPlaylistId == browseId.replaceFirst("VL", ""),
+                                                ) { isThisPlaying ->
+                                                    if (isThisPlaying) {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_pause_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                        }
+                                                    } else {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_play_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            viewModel.playTrack(uiState.listTrack.firstOrNull() ?: return@RippleIconButton)
+                                                        }
+                                                    }
                                                 }
                                                 Spacer(modifier = Modifier.size(5.dp))
                                                 Crossfade(targetState = uiState.downloadState) {

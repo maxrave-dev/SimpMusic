@@ -385,7 +385,7 @@ fun HomeScreen(
                                         },
                                 ),
                         state = scrollState,
-                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(28.dp),
                     ) {
 //                        item {
 //                            Spacer(
@@ -396,52 +396,53 @@ fun HomeScreen(
 //                                ),
 //                            )
 //                        }
-                        if (accountInfo != null && accountShow) {
-                            item {
-                                AccountLayout(
-                                    accountName = accountInfo?.first ?: "",
-                                    url = accountInfo?.second ?: "",
-                                )
-                            }
-                        }
                         item {
-                            AnimatedVisibility(
-                                visible =
-                                    homeData.find {
-                                        it.title ==
-                                            context.getString(
-                                                R.string.quick_picks,
-                                            )
-                                    } != null,
-                            ) {
-                                QuickPicks(
-                                    homeItem =
-                                        (
-                                            homeData.find {
-                                                it.title ==
-                                                    context.getString(
-                                                        R.string.quick_picks,
-                                                    )
-                                            } ?: return@AnimatedVisibility
-                                        ).let { content ->
-                                            content.copy(
-                                                contents =
-                                                    content.contents.mapNotNull { ct ->
-                                                        ct?.copy(
-                                                            artists =
-                                                                ct.artists?.let { art ->
-                                                                    if (art.size > 1) {
-                                                                        art.dropLast(1)
-                                                                    } else {
-                                                                        art
-                                                                    }
-                                                                },
+                            Column {
+                                if (accountInfo != null && accountShow) {
+                                    AccountLayout(
+                                        accountName = accountInfo?.first ?: "",
+                                        url = accountInfo?.second ?: "",
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                }
+                                AnimatedVisibility(
+                                    visible =
+                                        homeData.find {
+                                            it.title ==
+                                                context.getString(
+                                                    R.string.quick_picks,
+                                                )
+                                        } != null,
+                                ) {
+                                    QuickPicks(
+                                        homeItem =
+                                            (
+                                                homeData.find {
+                                                    it.title ==
+                                                        context.getString(
+                                                            R.string.quick_picks,
                                                         )
-                                                    },
-                                            )
-                                        },
-                                    viewModel = viewModel,
-                                )
+                                                } ?: return@AnimatedVisibility
+                                            ).let { content ->
+                                                content.copy(
+                                                    contents =
+                                                        content.contents.mapNotNull { ct ->
+                                                            ct?.copy(
+                                                                artists =
+                                                                    ct.artists?.let { art ->
+                                                                        if (art.size > 1) {
+                                                                            art.dropLast(1)
+                                                                        } else {
+                                                                            art
+                                                                        }
+                                                                    },
+                                                            )
+                                                        },
+                                                )
+                                            },
+                                        viewModel = viewModel,
+                                    )
+                                }
                             }
                         }
                         items(homeData, key = { it.hashCode() }) {

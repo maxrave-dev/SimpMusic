@@ -17,6 +17,7 @@ fun RippleIconButton(
     @DrawableRes resId: Int,
     modifier: Modifier = Modifier,
     fillMaxSize: Boolean = false,
+    tint: Color = Color.White,
     onClick: () -> Unit,
 ) {
     IconButton(
@@ -26,7 +27,7 @@ fun RippleIconButton(
         Icon(
             painterResource(id = resId),
             null,
-            tint = Color.White,
+            tint = tint,
             modifier = if (fillMaxSize) Modifier.fillMaxSize().padding(4.dp) else Modifier,
         )
     }

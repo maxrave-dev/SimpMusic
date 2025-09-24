@@ -141,6 +141,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -425,6 +426,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = screenDataState.artistName,
@@ -449,6 +451,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = songEntity?.albumName ?: stringResource(R.string.unknown),
@@ -473,6 +476,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = format?.itag?.toString() ?: stringResource(R.string.unknown),
@@ -497,6 +501,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = format?.mimeType ?: stringResource(R.string.unknown),
@@ -521,6 +526,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = format?.codecs ?: stringResource(R.string.unknown),
@@ -545,6 +551,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = format?.bitrate?.toString() ?: stringResource(R.string.unknown),
@@ -569,6 +576,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = screenDataState.songInfoData?.viewCount?.toString() ?: stringResource(R.string.unknown),
@@ -593,6 +601,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text =
@@ -621,6 +630,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text = screenDataState.songInfoData?.description ?: stringResource(R.string.no_description),
@@ -640,6 +650,7 @@ fun InfoPlayerBottomSheet(
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
                     style = typo.labelMedium,
+                    color = white,
                 )
                 Text(
                     text =

@@ -155,6 +155,8 @@ class SharedViewModel(
     private var _nowPlayingState = MutableStateFlow<NowPlayingTrackState?>(null)
     val nowPlayingState: StateFlow<NowPlayingTrackState?> = _nowPlayingState
 
+    fun getQueueDataState() = mediaPlayerHandler.queueData
+
     val blurBg: StateFlow<Boolean> =
         dataStoreManager.blurPlayerBackground
             .map { it == TRUE }
@@ -1427,13 +1429,13 @@ class SharedViewModel(
 
     fun addListToQueue(listTrack: ArrayList<Track>) {
         viewModelScope.launch {
-            mediaPlayerHandler.loadMoreCatalog(listTrack)
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.added_to_queue),
-                    Toast.LENGTH_SHORT,
-                ).show()
+            if (listTrack.size == 1 && dataStoreManager.endlessQueue.first() == TRUE) {
+                mediaPlayerHandler.playNext(listTrack.first())
+                makeToast(getString(R.string.play_next))
+            } else {
+                mediaPlayerHandler.loadMoreCatalog(listTrack)
+                makeToast(getString(R.string.added_to_queue))
+            }
         }
     }
 

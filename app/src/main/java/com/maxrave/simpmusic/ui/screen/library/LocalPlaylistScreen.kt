@@ -98,6 +98,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
+import com.maxrave.common.LOCAL_PLAYLIST_ID
 import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
@@ -117,10 +118,12 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -194,6 +197,14 @@ fun LocalPlaylistScreen(
             it?.songEntity
         }.collectAsState(initial = null)
     val isPlaying by sharedViewModel.controllerState.map { it.isPlaying }.collectAsState(initial = false)
+
+    val queueData by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val playingPlaylistId by remember {
+        derivedStateOf {
+            queueData?.data?.playlistId
+        }
+    }
+
     val suggestedTracks by viewModel.uiState.map { it.suggestions?.songs ?: emptyList() }.collectAsState(initial = emptyList())
     val suggestionsLoading by viewModel.loading.collectAsStateWithLifecycle()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
@@ -444,12 +455,26 @@ fun LocalPlaylistScreen(
                                         Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    RippleIconButton(
-                                        resId = R.drawable.baseline_play_circle_24,
-                                        fillMaxSize = true,
-                                        modifier = Modifier.size(36.dp),
-                                    ) {
-                                        viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick)
+                                    Crossfade(isPlaying && playingPlaylistId == LOCAL_PLAYLIST_ID + uiState.id) { isThisPlaying ->
+                                        if (isThisPlaying) {
+                                            RippleIconButton(
+                                                resId = R.drawable.baseline_pause_circle_24,
+                                                fillMaxSize = true,
+                                                tint = seed,
+                                                modifier = Modifier.size(48.dp),
+                                            ) {
+                                                sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                            }
+                                        } else {
+                                            RippleIconButton(
+                                                resId = R.drawable.baseline_play_circle_24,
+                                                fillMaxSize = true,
+                                                tint = seed,
+                                                modifier = Modifier.size(48.dp),
+                                            ) {
+                                                viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick)
+                                            }
+                                        }
                                     }
                                     Spacer(modifier = Modifier.size(5.dp))
                                     Crossfade(targetState = downloadState) {

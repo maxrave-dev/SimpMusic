@@ -52,7 +52,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kyant.backdrop.backdrop
@@ -74,7 +73,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
-import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
@@ -85,8 +83,6 @@ import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
@@ -402,9 +398,8 @@ class MainActivity : AppCompatActivity() {
                                         navController = navController,
                                         backdrop = backdrop,
                                         viewModel = viewModel,
-                                        shouldShowMiniPlayer = isShowMiniPlayer,
                                         onOpenNowPlaying = { isShowNowPlaylistScreen = true },
-                                        isScrolledToTop = isScrolledToTop
+                                        isScrolledToTop = isScrolledToTop,
                                     ) { klass ->
                                         viewModel.reloadDestination(klass)
                                     }
@@ -445,7 +440,7 @@ class MainActivity : AppCompatActivity() {
                                 },
                                 onScrolling = {
                                     isScrolledToTop = it
-                                }
+                                },
                             )
                         }
 
