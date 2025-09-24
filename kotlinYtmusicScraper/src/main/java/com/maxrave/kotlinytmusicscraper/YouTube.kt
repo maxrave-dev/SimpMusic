@@ -196,13 +196,6 @@ class YouTube(
     var cookie: String?
         get() = ytMusic.cookie
         set(value) {
-            newPipeDownloader = NewPipeDownloaderImpl(proxy = ytMusic.proxy, cookie = cookie)
-            newPipeUtils = NewPipeUtils(newPipeDownloader)
-            poTokenGenerator =
-                NewPipePoTokenProviderImpl(
-                    context = context,
-                    downloader = newPipeDownloader,
-                )
             ytMusic.cookie = value
         }
 
@@ -232,13 +225,6 @@ class YouTube(
      */
     fun removeProxy() {
         ytMusic.proxy = null
-        newPipeDownloader = NewPipeDownloaderImpl(proxy = null, cookie = cookie)
-        newPipeUtils = NewPipeUtils(newPipeDownloader)
-        poTokenGenerator =
-            NewPipePoTokenProviderImpl(
-                context = context,
-                downloader = newPipeDownloader,
-            )
     }
 
     /**
@@ -253,13 +239,6 @@ class YouTube(
             if (isHttp) ProxyBuilder.http("$host:$port") else ProxyBuilder.socks(host, port)
         }.onSuccess {
             ytMusic.proxy = it
-            newPipeDownloader = NewPipeDownloaderImpl(proxy = it, cookie = cookie)
-            newPipeUtils = NewPipeUtils(newPipeDownloader)
-            poTokenGenerator =
-                NewPipePoTokenProviderImpl(
-                    context = context,
-                    downloader = newPipeDownloader,
-                )
         }.onFailure {
             it.printStackTrace()
         }
