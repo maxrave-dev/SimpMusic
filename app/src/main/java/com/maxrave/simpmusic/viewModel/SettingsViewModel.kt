@@ -713,6 +713,7 @@ class SettingsViewModel(
                 when (quality) {
                     QUALITY.items[0].toString() -> _quality.emit(QUALITY.items[0].toString())
                     QUALITY.items[1].toString() -> _quality.emit(QUALITY.items[1].toString())
+                    QUALITY.items[2].toString() -> _quality.emit(QUALITY.items[2].toString())
                 }
             }
         }
@@ -729,6 +730,7 @@ class SettingsViewModel(
 
     fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
+            log("changeQuality: $qualityItem")
             dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
             getQuality()
         }
@@ -1231,7 +1233,7 @@ class SettingsViewModel(
                                 thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
                                 cache = cookie,
                                 isUsed = true,
-                                netscapeCookie = cookieItem.toNetScapeString()
+                                netscapeCookie = cookieItem.toNetScapeString(),
                             ),
                         ).firstOrNull()
                         ?.let {

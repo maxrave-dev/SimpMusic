@@ -83,16 +83,16 @@ internal class StreamRepositoryImpl(
         isVideo: Boolean,
     ): Flow<String?> =
         flow {
+            val itag = QUALITY.itags.getOrNull(QUALITY.items.indexOf(dataStoreManager.quality.first()))
+            val videoItag =
+                VIDEO_QUALITY.itags.getOrNull(
+                    VIDEO_QUALITY.items.indexOf(dataStoreManager.videoQuality.first()),
+                )
+                    ?: 134
             // 134, 136, 137
             youTube
-                .player(videoId)
+                .player(videoId, shouldYtdlp = itag == 774)
                 .onSuccess { data ->
-                    val itag = QUALITY.itags.getOrNull(QUALITY.items.indexOf(dataStoreManager.quality.first()))
-                    val videoItag =
-                        VIDEO_QUALITY.itags.getOrNull(
-                            VIDEO_QUALITY.items.indexOf(dataStoreManager.videoQuality.first()),
-                        )
-                            ?: 134
                     val response = data.second
                     if (data.third == MediaType.Song) {
                         Logger.w(

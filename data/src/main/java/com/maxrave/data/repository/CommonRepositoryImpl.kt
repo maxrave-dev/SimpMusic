@@ -1,6 +1,5 @@
 package com.maxrave.data.repository
 
-import android.R.attr.path
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.OPEN_READONLY
@@ -14,6 +13,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.logger.Logger
 import com.maxrave.spotify.Spotify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,13 +27,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okio.FileSystem
 import okio.IOException
-import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import org.simpmusic.aiservice.AIHost
 import org.simpmusic.aiservice.AiClient
 import java.io.File
-import kotlin.io.path.Path
 
 internal class CommonRepositoryImpl(
     private val context: Context,
@@ -82,6 +80,11 @@ internal class CommonRepositoryImpl(
                             }
                         } else {
                             youTube.cookie = null
+                        }
+                        Logger.d("YouTube", "New cookie")
+                        localDataSource.getUsedGoogleAccount()?.netscapeCookie?.let {
+                            writeTextToFile(it, File(context.filesDir, "ytdlp-cookie.txt").path)
+                            Logger.w("YouTube", "Wrote cookie to file")
                         }
                     }
                 }
@@ -166,6 +169,12 @@ internal class CommonRepositoryImpl(
             aiClientApiKeyJob.join()
             aiCustomModelIdJob.join()
         }
+
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                youTube.updateYtdlp()
+            }
+        }
     }
 
     // Database
@@ -201,7 +210,10 @@ internal class CommonRepositoryImpl(
             localDataSource.deleteNotification(id)
         }
 
-    override suspend fun writeTextToFile(text: String, filePath: String): Boolean {
+    override suspend fun writeTextToFile(
+        text: String,
+        filePath: String,
+    ): Boolean {
         try {
             FileSystem.SYSTEM.sink(filePath.toPath()).buffer().use { sink ->
                 sink.writeUtf8(text)
@@ -217,58 +229,68 @@ internal class CommonRepositoryImpl(
     /**
      * Original from YTDLnis app
      */
-    override suspend fun getCookiesFromInternalDatabase(url: String): CookieItem {
-        return withContext(Dispatchers.IO) {
+    override suspend fun getCookiesFromInternalDatabase(url: String): CookieItem =
+        withContext(Dispatchers.IO) {
             try {
-                val projection = arrayOf(
-                    CookieItem.HOST,
-                    CookieItem.EXPIRY,
-                    CookieItem.PATH,
-                    CookieItem.NAME,
-                    CookieItem.VALUE,
-                    CookieItem.SECURE
-                )
+                val projection =
+                    arrayOf(
+                        CookieItem.HOST,
+                        CookieItem.EXPIRY,
+                        CookieItem.PATH,
+                        CookieItem.NAME,
+                        CookieItem.VALUE,
+                        CookieItem.SECURE,
+                    )
                 CookieManager.getInstance().flush()
                 val cookieList = mutableListOf<CookieItem.Content>()
-                val dbPath = File("/data/data/${context.packageName}/").walkTopDown().find { it.name == "Cookies" }
-                    ?: throw Exception("Cookies File not found!")
+                val dbPath =
+                    File("/data/data/${context.packageName}/").walkTopDown().find { it.name == "Cookies" }
+                        ?: throw Exception("Cookies File not found!")
 
-                val db = SQLiteDatabase.openDatabase(
-                    dbPath.absolutePath, null, OPEN_READONLY
-                )
-                db.query(
-                    "cookies", projection, null, null, null, null, null
-                ).run {
-                    while (moveToNext()) {
-                        val expiry = getLong(getColumnIndexOrThrow(CookieItem.EXPIRY))
-                        val name = getString(getColumnIndexOrThrow(CookieItem.NAME))
-                        val value = getString(getColumnIndexOrThrow(CookieItem.VALUE))
-                        val path = getString(getColumnIndexOrThrow(CookieItem.PATH))
-                        val secure = getLong(getColumnIndexOrThrow(CookieItem.SECURE)) == 1L
-                        val hostKey = getString(getColumnIndexOrThrow(CookieItem.HOST))
+                val db =
+                    SQLiteDatabase.openDatabase(
+                        dbPath.absolutePath,
+                        null,
+                        OPEN_READONLY,
+                    )
+                db
+                    .query(
+                        "cookies",
+                        projection,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                    ).run {
+                        while (moveToNext()) {
+                            val expiry = getLong(getColumnIndexOrThrow(CookieItem.EXPIRY))
+                            val name = getString(getColumnIndexOrThrow(CookieItem.NAME))
+                            val value = getString(getColumnIndexOrThrow(CookieItem.VALUE))
+                            val path = getString(getColumnIndexOrThrow(CookieItem.PATH))
+                            val secure = getLong(getColumnIndexOrThrow(CookieItem.SECURE)) == 1L
+                            val hostKey = getString(getColumnIndexOrThrow(CookieItem.HOST))
 
-
-                        val host = if (hostKey[0] != '.') ".$hostKey" else hostKey
-                        cookieList.add(
-                            CookieItem.Content(
-                                domain = host,
-                                name = name,
-                                value = value,
-                                isSecure = secure,
-                                expiresUtc = expiry,
-                                hostKey = host,
-                                path = path,
+                            val host = if (hostKey[0] != '.') ".$hostKey" else hostKey
+                            cookieList.add(
+                                CookieItem.Content(
+                                    domain = host,
+                                    name = name,
+                                    value = value,
+                                    isSecure = secure,
+                                    expiresUtc = expiry,
+                                    hostKey = host,
+                                    path = path,
+                                ),
                             )
-                        )
+                        }
+                        close()
                     }
-                    close()
-                }
                 db.close()
-                 CookieItem(url, cookieList)
+                CookieItem(url, cookieList)
             } catch (e: Exception) {
                 e.printStackTrace()
                 CookieItem(url, emptyList())
             }
         }
-    }
 }

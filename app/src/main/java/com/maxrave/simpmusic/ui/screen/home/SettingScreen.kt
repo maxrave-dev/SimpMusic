@@ -7,8 +7,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -1719,7 +1722,19 @@ fun SettingScreen(
                                     },
                                 )
                                 Spacer(Modifier.width(8.dp))
-                                Text(text = item.second, style = typo.bodyMedium, maxLines = 1)
+                                Text(
+                                    text = item.second,
+                                    style = typo.bodyMedium,
+                                    maxLines = 1,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                )
                             }
                         }
                     }
