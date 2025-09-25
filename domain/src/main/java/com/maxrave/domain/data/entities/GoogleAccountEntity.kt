@@ -11,4 +11,5 @@ data class GoogleAccountEntity(
     val thumbnailUrl: String = "",
     val cache: String? = null,
     val isUsed: Boolean = false,
+    val netscapeCookie: String? = null,
 )

@@ -66,6 +66,7 @@ napier = "2.7.1"
 paging-common = "3.3.6"
 glance = "1.1.1"
 liquid-glass = "1.0.0-alpha13"
+ytdlp = "0.17.4"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -161,6 +162,8 @@ glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", versi
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 
 liquid-glass = { module = "com.github.Kyant0.AndroidLiquidGlass:backdrop", version.ref = "liquid-glass" }
+
+ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

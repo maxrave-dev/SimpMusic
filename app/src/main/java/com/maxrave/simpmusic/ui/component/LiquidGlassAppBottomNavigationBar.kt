@@ -1,6 +1,8 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.annotation.SuppressLint
+import android.net.http.SslCertificate.restoreState
+import android.net.http.SslCertificate.saveState
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
@@ -28,6 +30,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -52,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -60,6 +64,7 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.Visibility
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -146,9 +151,25 @@ fun LiquidGlassAppBottomNavigationBar(
         isExpanded = !isInSearchDestination
     }
 
-    val constraintSet by remember {
-        derivedStateOf {
+    var updateConstraints by remember {
+        mutableStateOf(true)
+    }
+
+    var constraintSet by remember {
+        mutableStateOf(
             decoupledConstraints(isShowMiniPlayer, isExpanded)
+        )
+    }
+
+    LaunchedEffect(isShowMiniPlayer, isExpanded) {
+        constraintSet = decoupledConstraints(isShowMiniPlayer, isExpanded)
+        updateConstraints = false
+    }
+
+    LaunchedEffect(updateConstraints) {
+        if (updateConstraints) {
+            constraintSet = decoupledConstraints(isShowMiniPlayer, isExpanded)
+            updateConstraints = false
         }
     }
 
@@ -191,7 +212,9 @@ fun LiquidGlassAppBottomNavigationBar(
                             } else {
                                 Modifier.wrapContentSize()
                             },
-                        ),
+                        ).onGloballyPositioned {
+                            updateConstraints = true
+                        },
                 contentPadding =
                     PaddingValues(
                         horizontal = if (isExpanded) 4.dp else 0.dp,
@@ -341,15 +364,15 @@ fun LiquidGlassAppBottomNavigationBar(
                     ) {
                         Icon(
                             when (selectedIndex) {
-                                BottomNavScreen.Home.ordinal -> Icons.Outlined.Home
+                                BottomNavScreen.Home.ordinal -> Icons.Rounded.Home
                                 BottomNavScreen.Search.ordinal ->
                                     when (previousScreen) {
-                                        BottomNavScreen.Home -> Icons.Outlined.Home
-                                        BottomNavScreen.Library -> Icons.Filled.LibraryMusic
+                                        BottomNavScreen.Home -> Icons.Rounded.Home
+                                        BottomNavScreen.Library -> Icons.Rounded.LibraryMusic
                                         else -> Icons.Filled.Search
                                     }
 
-                                BottomNavScreen.Library.ordinal -> Icons.Filled.LibraryMusic
+                                BottomNavScreen.Library.ordinal -> Icons.Rounded.LibraryMusic
                                 else -> Icons.Outlined.Home
                             },
                             "",
@@ -419,7 +442,6 @@ private fun decoupledConstraints(
     isExpanded: Boolean,
 ): ConstraintSet =
     ConstraintSet {
-        Logger.w(TAG, "decoupledConstraints: isExpanded: $isExpanded, isMiniplayerShow: $isMiniplayerShow")
         val toolbar = createRefFor("toolbar")
         constrain(toolbar) {
             bottom.linkTo(parent.bottom)

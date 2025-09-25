@@ -25,6 +25,7 @@ import com.maxrave.common.SETTINGS_FILENAME
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
+import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
@@ -1218,6 +1219,10 @@ class SettingsViewModel(
                         "AccountThumbUrl",
                         accountInfo.thumbnails.lastOrNull()?.url ?: "",
                     )
+                    val cookieItem = commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL)
+                    commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (application.filesDir / "ytdlp-cookie.txt").path).let {
+                        Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
+                    }
                     accountRepository
                         .insertGoogleAccount(
                             GoogleAccountEntity(
@@ -1226,6 +1231,7 @@ class SettingsViewModel(
                                 thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
                                 cache = cookie,
                                 isUsed = true,
+                                netscapeCookie = cookieItem.toNetScapeString()
                             ),
                         ).firstOrNull()
                         ?.let {
@@ -1273,6 +1279,9 @@ class SettingsViewModel(
                     ?.let {
                         Logger.w("getAllGoogleAccount", "set used: $it")
                     }
+                acc.netscapeCookie?.let { commonRepository.writeTextToFile(it, (application.filesDir / "ytdlp-cookie.txt").path) }.let {
+                    Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
+                }
                 dataStoreManager.setCookie(acc.cache ?: "")
                 dataStoreManager.setLoggedIn(true)
                 delay(500)

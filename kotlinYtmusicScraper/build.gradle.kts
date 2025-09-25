@@ -89,6 +89,8 @@ dependencies {
 
     implementation(libs.newpipe.extractor)
 
+    implementation(libs.ytdlp.android)
+
     implementation(project(mapOf("path" to ":youtubeapi")))
     implementation(project(mapOf("path" to ":sharedutils")))
     api(project(":ffmpeg-kit"))

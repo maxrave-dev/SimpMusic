@@ -20,11 +20,13 @@ import com.maxrave.kotlinytmusicscraper.models.body.LikeBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
-import com.maxrave.kotlinytmusicscraper.utils.CurlLogger
-import com.maxrave.kotlinytmusicscraper.utils.KtorToCurl
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import com.maxrave.logger.Logger
+import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLException
+import com.yausername.youtubedl_android.YoutubeDLRequest
+import com.yausername.youtubedl_android.mapper.VideoInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.compression.ContentEncoding
@@ -74,10 +76,19 @@ import okio.use
 import java.io.File
 import java.net.Proxy
 import java.util.Locale
+import android.content.Context as AndroidContext
 
 private const val TAG = "YouTubeScraperClient"
 
-class Ytmusic {
+class Ytmusic(context: AndroidContext) {
+
+    private val ytDlp = try {
+        YoutubeDL.getInstance().init(context)
+        YoutubeDL.getInstance()
+    } catch (e: YoutubeDLException) {
+        Logger.e(TAG, "failed to initialize youtubedl-android", e)
+        null
+    }
     private var httpClient = createClient()
 
     var cacheControlInterceptor: Interceptor? = null
@@ -126,15 +137,15 @@ class Ytmusic {
     private fun createClient() =
         HttpClient(OkHttp) {
             expectSuccess = true
-            install(KtorToCurl) {
-                converter =
-                    object : CurlLogger {
-                        override fun log(curl: String) {
-                            Logger.d(TAG, "Curl command:")
-                            Logger.d(TAG, curl)
-                        }
-                    }
-            }
+//            install(KtorToCurl) {
+//                converter =
+//                    object : CurlLogger {
+//                        override fun log(curl: String) {
+//                            Logger.d(TAG, "Curl command:")
+//                            Logger.d(TAG, curl)
+//                        }
+//                    }
+//            }
             install(Logging) {
                 logger = io.ktor.client.plugins.logging.Logger.DEFAULT
                 level = LogLevel.ALL
@@ -207,6 +218,17 @@ class Ytmusic {
         }
         userAgent(client.userAgent)
         parameter("prettyPrint", false)
+    }
+
+    internal fun getAuthorizationHeader(): String? {
+        return cookie?.let { cookie ->
+            if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) null
+            val currentTime = System.currentTimeMillis() / 1000
+            val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
+            val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
+            Logger.d(TAG, "SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
+            "SAPISIDHASH ${currentTime}_$sapisidHash"
+        }
     }
 
     suspend fun search(
@@ -347,13 +369,13 @@ class Ytmusic {
 
     suspend fun test403Error(url: String): Boolean = httpClient.get(url).status.value in 200..299
 
-//    suspend fun ytdlpGetStreamUrl(videoId: String): VideoInfo {
-//        val ytRequest = YoutubeDLRequest("https://music.youtube.com/watch?v=$videoId")
-//        if (!cookie.isNullOrEmpty()) {
-//            ytRequest.addOption("--cookies", cookiePath?.toString() ?: "")
-//        }
-//        return ytDlp.getInfo(ytRequest)
-//    }
+    suspend fun ytdlpGetStreamUrl(videoId: String): VideoInfo? {
+        val ytRequest = YoutubeDLRequest("https://music.youtube.com/watch?v=$videoId")
+        if (!cookie.isNullOrEmpty()) {
+            ytRequest.addOption("--cookies", cookiePath?.toString() ?: "")
+        }
+        return ytDlp?.getInfo(ytRequest)
+    }
 
     suspend fun player(
         client: YouTubeClient,
