@@ -46,5 +46,11 @@ val blackMoreOverlay = Color(0x8f242424)
 
 val seed = Color(0xFF8ECAE6)
 
+val bottomBarSeedDark = Color(0xff53a7d0)
+
+val customGray = Color(0x40ECECEC)
+val customDarkGray = Color(0x40383535)
+
 val white = Color(0xFFFFFFFF)
+
 val transparent = Color(0x00000000)

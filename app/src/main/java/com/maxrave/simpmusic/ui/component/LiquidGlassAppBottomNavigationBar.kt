@@ -1,14 +1,17 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.annotation.SuppressLint
-import android.net.http.SslCertificate.restoreState
-import android.net.http.SslCertificate.saveState
+import android.graphics.Bitmap
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Home
@@ -36,6 +38,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
@@ -44,27 +47,31 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.Visibility
+import androidx.core.graphics.scale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -79,12 +86,19 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.bottomBarSeedDark
+import com.maxrave.simpmusic.ui.theme.customDarkGray
+import com.maxrave.simpmusic.ui.theme.customGray
 import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
+import java.nio.IntBuffer
 import kotlin.reflect.KClass
+import androidx.compose.ui.graphics.lerp as colorLerp
 
 private const val TAG = "LiquidGlassAppBottomNavigationBar"
 
@@ -101,9 +115,57 @@ fun LiquidGlassAppBottomNavigationBar(
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val density = LocalDensity.current
+    val layer = rememberGraphicsLayer()
+    val luminanceAnimation = remember { Animatable(0f) }
+
+    val customGrayColor by animateColorAsState(
+        targetValue = colorLerp(customGray, customDarkGray, luminanceAnimation.value * 1.25f),
+        animationSpec = tween(1000),
+        label = "CustomGrayColorAnimation",
+    )
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { luminanceAnimation.value }.collect {
+            Logger.d(TAG, "Luminance animation: ${it}")
+        }
+    }
+    
+    LaunchedEffect(layer) {
+        val buffer = IntBuffer.allocate(25)
+        while (isActive) {
+            try {
+                withContext(Dispatchers.IO) {
+                    val imageBitmap = layer.toImageBitmap()
+                    val thumbnail =
+                        imageBitmap.asAndroidBitmap()
+                            .scale(5, 5, false)
+                            .copy(Bitmap.Config.ARGB_8888, false)
+                    buffer.rewind()
+                    thumbnail.copyPixelsToBuffer(buffer)
+                }
+            } catch (e: Exception) {
+                Logger.e(TAG, "Error getting pixels from layer: ${e.localizedMessage}")
+            }
+            val averageLuminance =
+                (0 until 25).sumOf { index ->
+                    val color = buffer.get(index)
+                    val r = (color shr 16 and 0xFF) / 255f
+                    val g = (color shr 8 and 0xFF) / 255f
+                    val b = (color and 0xFF) / 255f
+                    0.2126 * r + 0.7152 * g + 0.0722 * b
+                } / 25
+            Logger.d(TAG, "Average luminance: $averageLuminance")
+            luminanceAnimation.animateTo(
+                averageLuminance.coerceAtMost(0.8).toFloat(),
+                tween(500)
+            )
+        }
+    }
+
+
 
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
-// MiniPlayer visibility logic
+    // MiniPlayer visibility logic
     var isShowMiniPlayer by rememberSaveable {
         mutableStateOf(true)
     }
@@ -174,6 +236,7 @@ fun LiquidGlassAppBottomNavigationBar(
     }
 
     LaunchedEffect(isScrolledToTop) {
+        Logger.d(TAG, "isScrolledToTop: $isScrolledToTop")
         if (!isInSearchDestination) {
             isExpanded = isScrolledToTop
         }
@@ -189,7 +252,7 @@ fun LiquidGlassAppBottomNavigationBar(
                 ).padding(
                     bottom = 8.dp,
                 ).imePadding(),
-        animateChangesSpec = spring(),
+        animateChangesSpec = tween(300),
     ) {
         /**
          * LTR: HOME -> MIX FOR YOU -> LIBRARY | SEARCH
@@ -205,7 +268,12 @@ fun LiquidGlassAppBottomNavigationBar(
             HorizontalFloatingToolbar(
                 modifier =
                     Modifier
-                        .circleDrawBackdrop(backdrop)
+                        .drawBackdropCustomShape(
+                            backdrop,
+                            layer,
+                            luminanceAnimation.value,
+                            CircleShape
+                        )
                         .then(
                             if (!isExpanded) {
                                 Modifier.size(48.dp)
@@ -227,78 +295,96 @@ fun LiquidGlassAppBottomNavigationBar(
                         ),
                 expanded = isExpanded,
                 trailingContent = {
+                    var buttonSize by remember { mutableStateOf(0.dp to 0.dp) }
                     bottomNavScreens.filter { it != BottomNavScreen.Search }.forEach { screen ->
-                        Button(
-                            onClick = {
-                                if (selectedIndex == screen.ordinal) {
-                                    if (currentBackStackEntry?.destination?.hierarchy?.any {
-                                            it.hasRoute(screen.destination::class)
-                                        } == true
-                                    ) {
-                                        reloadDestinationIfNeeded(
-                                            screen.destination::class,
-                                        )
-                                    } else {
-                                        navController.navigate(screen.destination)
+                        Box {
+                            if (selectedIndex == screen.ordinal) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(buttonSize.first, buttonSize.second)
+                                        .clip(CircleShape)
+                                        .blur(8.dp)
+                                )
+                            }
+                            Button(
+                                modifier = Modifier.onGloballyPositioned {
+                                    if (selectedIndex == screen.ordinal) {
+                                        buttonSize = with(density) { it.size.width.toDp() to it.size.height.toDp() }
                                     }
-                                } else {
-                                    previousSelectedIndex = selectedIndex
-                                    selectedIndex = screen.ordinal
-                                    navController.navigate(screen.destination) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
+                                },
+                                onClick = {
+                                    if (selectedIndex == screen.ordinal) {
+                                        if (currentBackStackEntry?.destination?.hierarchy?.any {
+                                                it.hasRoute(screen.destination::class)
+                                            } == true
+                                        ) {
+                                            reloadDestinationIfNeeded(
+                                                screen.destination::class,
+                                            )
+                                        } else {
+                                            navController.navigate(screen.destination)
                                         }
-                                        launchSingleTop = true
-                                        restoreState = true
+                                    } else {
+                                        previousSelectedIndex = selectedIndex
+                                        selectedIndex = screen.ordinal
+                                        navController.navigate(screen.destination) {
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
                                     }
-                                }
-                            },
-                            shape = CircleShape,
-                            colors =
-                                ButtonDefaults
-                                    .buttonColors()
-                                    .copy(
-                                        disabledContainerColor = transparent,
-                                        containerColor =
-                                            if (selectedIndex == screen.ordinal) {
-                                                Color(0x33FFFFFF)
-                                            } else {
-                                                transparent
-                                            },
-                                        contentColor =
-                                            if (selectedIndex == screen.ordinal) {
-                                                seed
-                                            } else {
-                                                Color.Gray
-                                            },
-                                    ),
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                                },
+                                shape = CircleShape,
+                                colors =
+                                    ButtonDefaults
+                                        .buttonColors()
+                                        .copy(
+                                            disabledContainerColor = transparent,
+                                            containerColor =
+                                                if (selectedIndex == screen.ordinal) {
+                                                    customGrayColor
+                                                } else {
+                                                    transparent
+                                                },
+                                            contentColor =
+                                                if (selectedIndex == screen.ordinal) {
+                                                    bottomBarSeedDark
+                                                } else {
+                                                    white
+                                                },
+                                        ),
                             ) {
-                                Icon(
-                                    when (screen) {
-                                        BottomNavScreen.Home -> Icons.Filled.Home
-                                        BottomNavScreen.Search -> Icons.Filled.Search
-                                        BottomNavScreen.Library -> Icons.Filled.LibraryMusic
-                                    },
-                                    "",
-                                )
-                                Text(
-                                    stringResource(screen.title),
-                                    style =
-                                        if (selectedIndex == screen.ordinal) {
-                                            typo.bodySmall
-                                        } else {
-                                            typo.bodySmall.greyScale()
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Icon(
+                                        when (screen) {
+                                            BottomNavScreen.Home -> Icons.Rounded.Home
+                                            BottomNavScreen.Search -> Icons.Rounded.Search
+                                            BottomNavScreen.Library -> Icons.Rounded.LibraryMusic
                                         },
-                                    color =
-                                        if (selectedIndex == screen.ordinal) {
-                                            white
-                                        } else {
-                                            Color(0xFFA8A8A8)
-                                        },
-                                )
+                                        "",
+                                    )
+                                    Text(
+                                        stringResource(screen.title),
+                                        style =
+                                            if (selectedIndex == screen.ordinal) {
+                                                typo.bodySmall.copy(
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            } else {
+                                                typo.bodySmall.greyScale()
+                                            },
+                                        color =
+                                            if (selectedIndex == screen.ordinal) {
+                                                bottomBarSeedDark
+                                            } else {
+                                                white
+                                            },
+                                    )
+                                }
                             }
                         }
                     }
@@ -332,34 +418,12 @@ fun LiquidGlassAppBottomNavigationBar(
                                     restoreState = true
                                 }
                             } else {
-//                                if (selectedIndex == screen.ordinal) {
-//                                    if (currentBackStackEntry?.destination?.hierarchy?.any {
-//                                            it.hasRoute(screen.destination::class)
-//                                        } == true
-//                                    ) {
-//                                        reloadDestinationIfNeeded(
-//                                            screen.destination::class,
-//                                        )
-//                                    } else {
-//                                        navController.navigate(screen.destination)
-//                                    }
-//                                } else {
-//                                    previousSelectedIndex = selectedIndex
-//                                    selectedIndex = screen.ordinal
-//                                    navController.navigate(screen.destination) {
-//                                        popUpTo(navController.graph.startDestinationId) {
-//                                            saveState = true
-//                                        }
-//                                        launchSingleTop = true
-//                                        restoreState = true
-//                                    }
-//                                }
                                 isExpanded = true
                             }
                         },
                         colors =
                             IconButtonDefaults.iconButtonColors().copy(
-                                contentColor = seed,
+                                contentColor = bottomBarSeedDark,
                             ),
                     ) {
                         Icon(
@@ -390,14 +454,20 @@ fun LiquidGlassAppBottomNavigationBar(
                 enter =
                     slideInHorizontally(
                         tween(100),
-                    ) { it / 2 },
+                    ) { it / 2 } + fadeIn(),
                 exit =
                     slideOutHorizontally(
                         tween(100),
-                    ) { -it / 2 },
+                    ) { -it / 2 } + fadeOut(),
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.circleDrawBackdrop(backdrop),
+                    modifier = Modifier.drawBackdropCustomShape(
+                        backdrop,
+                        layer,
+                        luminanceAnimation.value,
+                        CircleShape
+                    ),
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
                     onClick = {
                         previousSelectedIndex = selectedIndex
                         selectedIndex = BottomNavScreen.Search.ordinal
@@ -411,10 +481,12 @@ fun LiquidGlassAppBottomNavigationBar(
                     },
                     shape = CircleShape,
                     containerColor = transparent,
+                    contentColor = transparent
                 ) {
                     Icon(
                         Icons.Outlined.Search,
                         "",
+                        tint = white
                     )
                 }
             }
@@ -426,6 +498,8 @@ fun LiquidGlassAppBottomNavigationBar(
                 .height(56.dp)
                 .layoutId("miniPlayer"),
             backdrop = backdrop,
+            layer = layer,
+            luminanceAnimation = luminanceAnimation.value,
             onClick = {
                 onOpenNowPlaying()
             },
@@ -476,8 +550,6 @@ private fun decoupledConstraints(
                 }
         }
     }
-
-private fun Modifier.circleDrawBackdrop(backdrop: Backdrop): Modifier = drawBackdropCustomShape(backdrop, CircleShape)
 
 sealed class BottomNavScreen(
     val ordinal: Int,

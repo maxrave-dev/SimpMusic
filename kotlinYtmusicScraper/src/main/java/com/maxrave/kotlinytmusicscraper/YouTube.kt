@@ -1542,8 +1542,7 @@ class YouTube(
                     if (shouldYtdlp) {
                         ytDlpPlayer(videoId, playlistId, cpn)
                     } else {
-                        smartTubePlayer(videoId, playlistId, cpn, client)
-                            ?: newPipePlayer(videoId, playlistId, cpn)
+                        newPipePlayer(videoId, playlistId, cpn) ?: smartTubePlayer(videoId, playlistId, cpn, client)
                     }
                 if (response != null) {
                     decodedSigResponse = response

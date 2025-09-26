@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -57,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -95,6 +97,8 @@ import kotlin.math.roundToInt
 fun MiniPlayer(
     modifier: Modifier,
     backdrop: Backdrop,
+    layer: GraphicsLayer? = null,
+    luminanceAnimation: Float? = null,
     sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
@@ -199,7 +203,7 @@ fun MiniPlayer(
     }
 
     Card(
-        shape = RoundedCornerShape(8.dp),
+        shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(0.dp),
         colors =
             CardDefaults.cardColors(
                 containerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
@@ -208,8 +212,8 @@ fun MiniPlayer(
         modifier =
             modifier
                 .then(
-                    if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                        Modifier.drawBackdropCustomShape(backdrop, RoundedCornerShape(16.dp))
+                    if (isLiquidGlassEnabled == DataStoreManager.TRUE && layer != null && luminanceAnimation != null) {
+                        Modifier.drawBackdropCustomShape(backdrop, layer, luminanceAnimation, RoundedCornerShape(16.dp))
                     } else {
                         Modifier
                     },
@@ -393,10 +397,10 @@ fun MiniPlayer(
                                             )
                                         }
                                         Text(
-                                            text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
+                                            text = (songEntity?.artistName?.connectArtists() ?: ""),
                                             style = typo.bodySmall,
                                             maxLines = 1,
-                                            color = Color.LightGray,
+                                            color = Color.White,
                                             modifier =
                                                 Modifier
                                                     .weight(1f)

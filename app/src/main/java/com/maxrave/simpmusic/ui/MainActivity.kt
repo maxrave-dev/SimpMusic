@@ -14,7 +14,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -36,10 +39,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -49,13 +55,15 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kyant.backdrop.backdrop
-import com.kyant.backdrop.rememberBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.maxrave.common.FIRST_TIME_MIGRATION
 import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
@@ -83,10 +91,14 @@ import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import pub.devrel.easypermissions.EasyPermissions
+import java.nio.IntBuffer
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -356,7 +368,7 @@ class MainActivity : AppCompatActivity() {
                     isShowNowPlaylistScreen = false
                 }
             }
-            val backdrop = rememberBackdrop()
+            val backdrop = rememberLayerBackdrop()
             var isScrolledToTop by rememberSaveable {
                 mutableStateOf(false)
             }
@@ -420,7 +432,7 @@ class MainActivity : AppCompatActivity() {
                                 .fillMaxSize()
                                 .then(
                                     if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                                        Modifier.backdrop(backdrop)
+                                        Modifier.layerBackdrop(backdrop)
                                     } else {
                                         Modifier
                                     },

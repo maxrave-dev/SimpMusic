@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.extension
 
+import androidx.compose.ui.graphics.lerp as colorLerp
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
@@ -46,6 +48,7 @@ import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.DrawModifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -55,9 +58,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.boundsInWindow
@@ -72,6 +77,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.core.app.PictureInPictureModeChangedInfo
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
@@ -81,6 +87,8 @@ import com.kmpalette.palette.graphics.Palette
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.colorControls
+import com.kyant.backdrop.effects.colorFilter
 import com.kyant.backdrop.effects.dispersion
 import com.kyant.backdrop.effects.refraction
 import com.kyant.backdrop.effects.saturation
@@ -97,6 +105,7 @@ import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -464,6 +473,37 @@ fun LazyListState.isScrollingUp(): Boolean {
     }.value
 }
 
+@Composable
+fun LazyGridState.isScrollingUp(): State<Boolean> {
+    var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
+    var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { layoutInfo.totalItemsCount }.collect {
+            Logger.w("isScrollingUp", "firstVisibleItemIndex: $firstVisibleItemIndex")
+            previousIndex = firstVisibleItemIndex
+            previousScrollOffset = firstVisibleItemScrollOffset
+        }
+    }
+
+    return remember(this) {
+        derivedStateOf {
+            if (firstVisibleItemIndex > 0) {
+                if (previousIndex != firstVisibleItemIndex) {
+                    previousIndex > firstVisibleItemIndex
+                } else {
+                    previousScrollOffset >= firstVisibleItemScrollOffset
+                }.also {
+                    previousIndex = firstVisibleItemIndex
+                    previousScrollOffset = firstVisibleItemScrollOffset
+                }
+            } else {
+                true
+            }
+        }
+    }
+}
+
 @Suppress("DEPRECATION")
 fun setStatusBarsColor(
     @ColorInt color: Int,
@@ -579,33 +619,35 @@ fun animateAlignmentAsState(targetAlignment: Alignment): State<Alignment> {
 
 fun Modifier.drawBackdropCustomShape(
     backdrop: Backdrop,
+    layer: GraphicsLayer,
+    luminanceAnimation: Float,
     shape: Shape,
-    alpha: Float = 0.3f,
 ): Modifier =
     this.drawBackdrop(
         backdrop = backdrop,
-        shapeProvider = { shape },
-        onDrawSurface = {
-            drawRect(
-                Color.Black.copy(alpha = alpha.coerceIn(0f, 1f)),
+        effects = {
+            val l = (luminanceAnimation * 2f - 1f).let { sign(it) * it * it }
+            colorControls(
+                brightness =
+                    if (l > 0f) lerp(0.1f, 0.5f, l)
+                    else lerp(0.1f, -0.2f, -l),
+                contrast =
+                    if (l > 0f) lerp(1f, 0f, l)
+                    else 1f,
+                saturation = 1.5f
             )
+            blur(
+                if (l > 0f) lerp(8f.dp.toPx(), 16f.dp.toPx(), l)
+                else lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)
+            )
+            refraction(24f.dp.toPx(), size.minDimension / 2f, true)
         },
-    ) {
-        // saturation boost
-        saturation()
-        // blur
-        // lens
-        refraction(
-            height = 16f.dp.toPx(),
-            amount = 84f.dp.toPx(),
-            hasDepthEffect = true,
-        )
-        dispersion(
-            height = 12.dp.toPx(),
-            amount = 24.dp.toPx(),
-        )
-        blur(6.dp.toPx())
-    }
+        onDrawBackdrop = { drawBackdrop ->
+            drawBackdrop()
+            layer.record { drawBackdrop() }
+        },
+        shape = { shape },
+    )
 
 @Composable
 fun PaddingValues.copy(

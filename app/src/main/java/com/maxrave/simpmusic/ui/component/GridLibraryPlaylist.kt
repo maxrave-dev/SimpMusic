@@ -23,12 +23,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +51,7 @@ import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
@@ -54,6 +59,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
+import kotlinx.coroutines.flow.combine
 
 @Composable
 inline fun <reified T> GridLibraryPlaylist(
@@ -66,10 +72,21 @@ inline fun <reified T> GridLibraryPlaylist(
 ) {
     Logger.w("GridLibraryPlaylist", "Generic Type: ${T::class.java}")
     val state = rememberLazyGridState()
+    val isScrollUp by state.isScrollingUp()
+
+    LaunchedEffect(isScrollUp) {
+        if (state.firstVisibleItemIndex <= 1) {
+            return@LaunchedEffect
+        }
+        onScrolling.invoke(isScrollUp)
+    }
+
     LaunchedEffect(state) {
         snapshotFlow { state.firstVisibleItemIndex }
             .collect {
-                onScrolling.invoke(it <= 1)
+                if (it <= 1) {
+                    onScrolling.invoke(true)
+                }
             }
     }
     val pullToRefreshState = rememberPullToRefreshState()
