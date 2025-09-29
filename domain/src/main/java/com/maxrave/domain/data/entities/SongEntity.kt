@@ -26,6 +26,8 @@ data class SongEntity(
     val liked: Boolean = false,
     val totalPlayTime: Long = 0,
     val downloadState: Int = STATE_NOT_DOWNLOADED,
+    val favoriteAt: LocalDateTime? = LocalDateTime.now(),
+    val downloadedAt: LocalDateTime? = LocalDateTime.now(),
     val inLibrary: LocalDateTime = LocalDateTime.now(),
     val canvasUrl: String? = null,
     val canvasThumbUrl: String? = null,

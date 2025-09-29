@@ -15,6 +15,7 @@ data class LocalPlaylistEntity(
     val title: String,
     val thumbnail: String? = null,
     val inLibrary: LocalDateTime = LocalDateTime.now(),
+    val downloadedAt: LocalDateTime? = LocalDateTime.now(),
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
     val youtubePlaylistId: String? = null,
     @ColumnInfo(name = "youtube_sync_state", defaultValue = "0")

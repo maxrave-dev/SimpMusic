@@ -90,14 +90,14 @@ internal interface DatabaseDao {
                 Comparator { p0, p1 ->
                     val timeP0: LocalDateTime? =
                         when (p0) {
-                            is AlbumEntity -> p0.inLibrary
-                            is PlaylistEntity -> p0.inLibrary
+                            is AlbumEntity -> p0.downloadedAt ?: p0.inLibrary
+                            is PlaylistEntity -> p0.downloadedAt ?: p0.inLibrary
                             else -> null
                         }
                     val timeP1: LocalDateTime? =
                         when (p1) {
-                            is AlbumEntity -> p1.inLibrary
-                            is PlaylistEntity -> p1.inLibrary
+                            is AlbumEntity -> p1.downloadedAt ?: p1.inLibrary
+                            is PlaylistEntity -> p1.downloadedAt ?: p1.inLibrary
                             else -> null
                         }
                     if (timeP0 == null || timeP1 == null) {
@@ -167,10 +167,11 @@ internal interface DatabaseDao {
         videoId: String,
     ): Int
 
-    @Query("UPDATE song SET liked = :liked WHERE videoId = :videoId")
+    @Query("UPDATE song SET liked = :liked, favoriteAt = :favoriteAt WHERE videoId = :videoId")
     suspend fun updateLiked(
         liked: Int,
         videoId: String,
+        favoriteAt: LocalDateTime? = if (liked == 1) LocalDateTime.now() else null,
     )
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -197,10 +198,11 @@ internal interface DatabaseDao {
     @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 50")
     fun getMostPlayedSongs(): Flow<List<SongEntity>>
 
-    @Query("UPDATE song SET downloadState = :downloadState WHERE videoId = :videoId")
+    @Query("UPDATE song SET downloadState = :downloadState, downloadedAt = :downloadedAt WHERE videoId = :videoId")
     suspend fun updateDownloadState(
         downloadState: Int,
         videoId: String,
+        downloadedAt: LocalDateTime? = if (downloadState == 3) LocalDateTime.now() else null,
     )
 
     @Query("UPDATE song SET durationSeconds = :durationSeconds WHERE videoId = :videoId")
@@ -252,10 +254,11 @@ internal interface DatabaseDao {
         thumbnails: String,
     )
 
-    @Query("UPDATE artist SET followed = :followed WHERE channelId = :channelId")
+    @Query("UPDATE artist SET followed = :followed, followedAt = :followedAt WHERE channelId = :channelId")
     suspend fun updateFollowed(
         followed: Int,
         channelId: String,
+        followedAt: LocalDateTime? = if (followed == 1) LocalDateTime.now() else null,
     )
 
     @Query("UPDATE artist SET inLibrary = :inLibrary WHERE channelId = :channelId")
@@ -280,10 +283,11 @@ internal interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAlbum(album: AlbumEntity): Long
 
-    @Query("UPDATE album SET liked = :liked WHERE browseId = :browseId")
+    @Query("UPDATE album SET liked = :liked, favoriteAt = :favoriteAt  WHERE browseId = :browseId")
     suspend fun updateAlbumLiked(
         liked: Int,
         browseId: String,
+        favoriteAt: LocalDateTime? = if (liked == 1) LocalDateTime.now() else null,
     )
 
     @Query("UPDATE album SET inLibrary = :inLibrary WHERE browseId = :browseId")
@@ -292,10 +296,11 @@ internal interface DatabaseDao {
         browseId: String,
     )
 
-    @Query("UPDATE album SET downloadState = :downloadState WHERE browseId = :browseId")
+    @Query("UPDATE album SET downloadState = :downloadState, downloadedAt = :downloadedAt WHERE browseId = :browseId")
     suspend fun updateAlbumDownloadState(
         downloadState: Int,
         browseId: String,
+        downloadedAt: LocalDateTime? = if (downloadState == 3) LocalDateTime.now() else null,
     )
 
     @Query("SELECT * FROM album WHERE downloadState = 3")
@@ -323,10 +328,11 @@ internal interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRadioPlaylist(playlist: PlaylistEntity)
 
-    @Query("UPDATE playlist SET liked = :liked WHERE id = :playlistId")
+    @Query("UPDATE playlist SET liked = :liked, favoriteAt = :favoriteAt WHERE id = :playlistId")
     suspend fun updatePlaylistLiked(
         liked: Int,
         playlistId: String,
+        favoriteAt: LocalDateTime? = if (liked == 1) LocalDateTime.now() else null,
     )
 
     @Query("UPDATE playlist SET inLibrary = :inLibrary WHERE id = :playlistId")
@@ -335,10 +341,11 @@ internal interface DatabaseDao {
         playlistId: String,
     )
 
-    @Query("UPDATE playlist SET downloadState = :downloadState WHERE id = :playlistId")
+    @Query("UPDATE playlist SET downloadState = :downloadState, downloadedAt = :downloadedAt WHERE id = :playlistId")
     suspend fun updatePlaylistDownloadState(
         downloadState: Int,
         playlistId: String,
+        downloadedAt: LocalDateTime? = if (downloadState == 3) LocalDateTime.now() else null,
     )
 
     @Query("SELECT * FROM playlist WHERE downloadState = 3")
@@ -387,10 +394,11 @@ internal interface DatabaseDao {
         id: Long,
     )
 
-    @Query("UPDATE local_playlist SET downloadState = :downloadState WHERE id = :id")
+    @Query("UPDATE local_playlist SET downloadState = :downloadState, downloadedAt = :downloadedAt WHERE id = :id")
     suspend fun updateLocalPlaylistDownloadState(
         downloadState: Int,
         id: Long,
+        downloadedAt: LocalDateTime? = if (downloadState == 3) LocalDateTime.now() else null,
     )
 
     @Query("SELECT * FROM local_playlist WHERE downloadState = 3")

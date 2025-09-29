@@ -366,7 +366,7 @@ fun LibraryScreen(
                     isSelected = type == currentFilter,
                     text =
                         when (type) {
-                            LibraryChipType.YOUR_LIBRARY -> "Your Library"
+                            LibraryChipType.YOUR_LIBRARY -> stringResource(R.string.your_library)
                             LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> stringResource(R.string.your_youtube_playlists)
                             LibraryChipType.LOCAL_PLAYLIST -> stringResource(R.string.your_playlists)
                             LibraryChipType.FAVORITE_PLAYLIST -> stringResource(R.string.favorite_playlists)

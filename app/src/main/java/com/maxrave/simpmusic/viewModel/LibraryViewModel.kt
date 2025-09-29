@@ -115,14 +115,14 @@ class LibraryViewModel(
                             Comparator { p0, p1 ->
                                 val timeP0: LocalDateTime? =
                                     when (p0) {
-                                        is AlbumEntity -> p0.inLibrary
-                                        is PlaylistEntity -> p0.inLibrary
+                                        is AlbumEntity -> p0.favoriteAt ?: p0.inLibrary
+                                        is PlaylistEntity -> p0.favoriteAt ?: p0.inLibrary
                                         else -> null
                                     }
                                 val timeP1: LocalDateTime? =
                                     when (p1) {
-                                        is AlbumEntity -> p1.inLibrary
-                                        is PlaylistEntity -> p1.inLibrary
+                                        is AlbumEntity -> p1.favoriteAt ?: p1.inLibrary
+                                        is PlaylistEntity -> p1.favoriteAt ?: p1.inLibrary
                                         else -> null
                                     }
                                 if (timeP0 == null || timeP1 == null) {

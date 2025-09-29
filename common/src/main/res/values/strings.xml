@@ -460,4 +460,5 @@
     <string name="update_channel">Update channel</string>
     <string name="enable_liquid_glass_effect">Enable liquid glass (BETA)</string>
     <string name="enable_liquid_glass_effect_description">Enable iOS\'s liquid glass effect in some position (Android 12+)</string>
+    <string name="your_library">Your library</string>
 </resources>

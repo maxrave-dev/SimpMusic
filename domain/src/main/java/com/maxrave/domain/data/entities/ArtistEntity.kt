@@ -13,6 +13,7 @@ data class ArtistEntity(
     val name: String,
     val thumbnails: String?,
     val followed: Boolean = false,
+    val followedAt: LocalDateTime? = LocalDateTime.now(),
     val inLibrary: LocalDateTime = LocalDateTime.now(),
 ) : RecentlyType,
     ArtistType {

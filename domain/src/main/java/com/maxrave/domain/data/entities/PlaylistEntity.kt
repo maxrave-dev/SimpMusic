@@ -22,6 +22,8 @@ data class PlaylistEntity(
     val year: String? = null,
     val liked: Boolean = false,
     val inLibrary: LocalDateTime = LocalDateTime.now(),
+    val favoriteAt: LocalDateTime? = LocalDateTime.now(),
+    val downloadedAt: LocalDateTime? = LocalDateTime.now(),
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
 ) : PlaylistType,
     RecentlyType {

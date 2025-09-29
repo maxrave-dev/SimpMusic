@@ -46,7 +46,9 @@ class LibraryDynamicPlaylistViewModel(
     private fun getFavoriteSong() {
         viewModelScope.launch {
             songRepository.getLikedSongs().collectLatest { likedSong ->
-                _listFavoriteSong.value = likedSong.reversed()
+                _listFavoriteSong.value = likedSong.sortedByDescending {
+                    it.favoriteAt ?: it.inLibrary
+                }
             }
         }
     }
@@ -54,7 +56,9 @@ class LibraryDynamicPlaylistViewModel(
     private fun getFollowedArtist() {
         viewModelScope.launch {
             artistRepository.getFollowedArtists().collectLatest { followedArtist ->
-                _listFollowedArtist.value = followedArtist.reversed()
+                _listFollowedArtist.value = followedArtist.sortedByDescending {
+                    it.followedAt ?: it.inLibrary
+                }
             }
         }
     }
@@ -70,7 +74,9 @@ class LibraryDynamicPlaylistViewModel(
     private fun getDownloadedSong() {
         viewModelScope.launch {
             songRepository.getDownloadedSongs().collectLatest { downloadedSong ->
-                _listDownloadedSong.value = downloadedSong?.reversed() ?: emptyList()
+                _listDownloadedSong.value = (downloadedSong ?: emptyList()).sortedByDescending {
+                    it.downloadedAt ?: it.inLibrary
+                }
             }
         }
     }
