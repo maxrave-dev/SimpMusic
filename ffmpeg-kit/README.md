@@ -1,3 +1,1 @@
-The AAR was built from https://github.com/maxrave-dev/ffmpeg-kit/actions/
-
-Commit: 9b487fccce5dad5772d4d2ed22d3be37b6ff2321
+The AAR was built from https://github.com/AliAkhgar/ffmpeg-kit-16KB/releases/tag/ffmpeg-kit-android-2025-07-29T20-51-04

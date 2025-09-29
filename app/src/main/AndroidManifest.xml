@@ -53,6 +53,7 @@
         android:theme="@style/Theme.Material3.Light.NoActionBar"
         android:enableOnBackInvokedCallback="true"
         android:extractNativeLibs="true"
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="tiramisu">
 
         <receiver android:name=".ui.widget.AppWidgetReceiver"
