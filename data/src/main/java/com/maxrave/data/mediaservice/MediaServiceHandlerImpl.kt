@@ -1089,6 +1089,7 @@ internal class MediaServiceHandlerImpl(
                                                 it.data.copy(
                                                     playlistId = radioId,
                                                 ),
+                                            queueState = QueueData.StateSource.STATE_INITIALIZED,
                                         )
                                     }
                                     Logger.d("Check loadMore", "queueData: ${queueData.value}")
@@ -1105,7 +1106,7 @@ internal class MediaServiceHandlerImpl(
                     .lastOrNull() ?: return
             _queueData.update {
                 it.copy(
-                    queueState = QueueData.StateSource.STATE_INITIALIZING,
+                    queueState = QueueData.StateSource.STATE_INITIALIZED,
                     data = it.data.copy(playlistId = "RDAMVM${lastTrack.videoId}"),
                 )
             }

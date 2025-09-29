@@ -68,6 +68,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
 
+    implementation(project(":common"))
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.encoding)
@@ -87,16 +89,12 @@ dependencies {
     implementation(libs.ksoup.entities)
     implementation(libs.smart.exception)
 
-    implementation(libs.newpipe.extractor)
-
-    implementation(libs.ytdlp.android)
-
     implementation(project(mapOf("path" to ":youtubeapi")))
     implementation(project(mapOf("path" to ":sharedutils")))
     api(project(":ffmpeg-kit"))
-//    implementation(libs.ytdlp.android)
+    implementation(libs.newpipe.extractor)
 
-    implementation(project(":common"))
+    implementation(libs.ytdlp.android)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false
