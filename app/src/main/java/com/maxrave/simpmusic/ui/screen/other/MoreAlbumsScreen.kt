@@ -155,7 +155,13 @@ fun MoreAlbumsScreen(
                         }
                     },
                     colors =
-                        TopAppBarDefaults.largeTopAppBarColors(Color.Transparent),
+                        TopAppBarDefaults.topAppBarColors(
+                            Color.Transparent,
+                            Color.Unspecified,
+                            Color.Unspecified,
+                            Color.Unspecified,
+                            Color.Unspecified,
+                        ),
                 )
             }
             is MoreAlbumsUIState.Error -> {

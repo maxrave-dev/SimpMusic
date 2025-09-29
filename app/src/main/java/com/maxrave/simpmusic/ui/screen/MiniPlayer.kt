@@ -4,8 +4,10 @@ import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -104,6 +106,12 @@ fun MiniPlayer(
     onClick: () -> Unit,
 ) {
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+
+    val textColor by animateColorAsState(
+        targetValue = if (luminanceAnimation != null && luminanceAnimation > 0.6f) Color.Black else Color.White,
+        label = "MiniPlayerTextColor",
+        animationSpec = tween(500),
+    )
 
     val (songEntity, setSongEntity) =
         remember {
@@ -374,7 +382,7 @@ fun MiniPlayer(
                                     Text(
                                         text = (songEntity?.title ?: "").toString(),
                                         style = typo.labelSmall,
-                                        color = Color.White,
+                                        color = textColor,
                                         maxLines = 1,
                                         modifier =
                                             Modifier
@@ -400,7 +408,7 @@ fun MiniPlayer(
                                             text = (songEntity?.artistName?.connectArtists() ?: ""),
                                             style = typo.bodySmall,
                                             maxLines = 1,
-                                            color = Color.White,
+                                            color = textColor,
                                             modifier =
                                                 Modifier
                                                     .weight(1f)

@@ -248,6 +248,12 @@ fun CreditScreen(
             }
         },
         colors =
-            TopAppBarDefaults.largeTopAppBarColors(Color.Transparent),
+            TopAppBarDefaults.topAppBarColors(
+                Color.Transparent,
+                Color.Unspecified,
+                Color.Unspecified,
+                Color.Unspecified,
+                Color.Unspecified,
+            ),
     )
 }

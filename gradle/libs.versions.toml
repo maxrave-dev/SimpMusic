@@ -47,7 +47,6 @@ ksoup = "0.6.0"
 desugaring = "2.1.5"
 koin-bom = "4.1.1"
 md = "0.37.0"
-store = "5.1.0-alpha06"
 ui-text-android = "1.9.2"
 haze = "1.6.10"
 smart-exception = "0.2.1"
@@ -70,7 +69,7 @@ ytdlp = "0.18.0"
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-expressive" }
-compose-material3-sizeclass = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3-expressive" }
+compose-material3-sizeclass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-material-ripple = { group = "androidx.compose.material", name = "material-ripple" }
 compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
@@ -145,7 +144,6 @@ ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", ve
 markdown = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "md" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-material = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
-store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
 androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "ui-text-android" }
 kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword", version.ref = "onetimepassword" }
 common = { module = "commons-codec:commons-codec", version.ref = "common" }
@@ -153,7 +151,6 @@ gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.
 logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
 newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
 #leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
-#ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp-android" }
 napier-logging = { module = "io.github.aakira:napier", version.ref = "napier" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }

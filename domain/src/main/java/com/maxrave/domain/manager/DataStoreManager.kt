@@ -263,6 +263,10 @@ interface DataStoreManager {
 
     suspend fun setEnableLiquidGlass(enable: Boolean)
 
+    val explicitContentEnabled: Flow<String>
+
+    suspend fun setExplicitContentEnabled(enabled: Boolean)
+
     enum class ProxyType {
         PROXY_TYPE_HTTP,
         PROXY_TYPE_SOCKS,

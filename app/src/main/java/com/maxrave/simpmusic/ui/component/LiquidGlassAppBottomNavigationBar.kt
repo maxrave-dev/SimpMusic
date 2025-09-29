@@ -7,8 +7,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
@@ -53,11 +51,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.layoutId
@@ -123,13 +121,6 @@ fun LiquidGlassAppBottomNavigationBar(
         animationSpec = tween(1000),
         label = "CustomGrayColorAnimation",
     )
-
-    LaunchedEffect(Unit) {
-        snapshotFlow { luminanceAnimation.value }.collect {
-            Logger.d(TAG, "Luminance animation: ${it}")
-        }
-    }
-    
     LaunchedEffect(layer) {
         val buffer = IntBuffer.allocate(25)
         while (isActive) {
@@ -137,7 +128,8 @@ fun LiquidGlassAppBottomNavigationBar(
                 withContext(Dispatchers.IO) {
                     val imageBitmap = layer.toImageBitmap()
                     val thumbnail =
-                        imageBitmap.asAndroidBitmap()
+                        imageBitmap
+                            .asAndroidBitmap()
                             .scale(5, 5, false)
                             .copy(Bitmap.Config.ARGB_8888, false)
                     buffer.rewind()
@@ -154,15 +146,12 @@ fun LiquidGlassAppBottomNavigationBar(
                     val b = (color and 0xFF) / 255f
                     0.2126 * r + 0.7152 * g + 0.0722 * b
                 } / 25
-            Logger.d(TAG, "Average luminance: $averageLuminance")
             luminanceAnimation.animateTo(
                 averageLuminance.coerceAtMost(0.8).toFloat(),
-                tween(500)
+                tween(500),
             )
         }
     }
-
-
 
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
     // MiniPlayer visibility logic
@@ -219,7 +208,7 @@ fun LiquidGlassAppBottomNavigationBar(
 
     var constraintSet by remember {
         mutableStateOf(
-            decoupledConstraints(isShowMiniPlayer, isExpanded)
+            decoupledConstraints(isShowMiniPlayer, isExpanded),
         )
     }
 
@@ -272,9 +261,8 @@ fun LiquidGlassAppBottomNavigationBar(
                             backdrop,
                             layer,
                             luminanceAnimation.value,
-                            CircleShape
-                        )
-                        .then(
+                            CircleShape,
+                        ).then(
                             if (!isExpanded) {
                                 Modifier.size(48.dp)
                             } else {
@@ -300,18 +288,20 @@ fun LiquidGlassAppBottomNavigationBar(
                         Box {
                             if (selectedIndex == screen.ordinal) {
                                 Box(
-                                    modifier = Modifier
-                                        .size(buttonSize.first, buttonSize.second)
-                                        .clip(CircleShape)
-                                        .blur(8.dp)
+                                    modifier =
+                                        Modifier
+                                            .size(buttonSize.first, buttonSize.second)
+                                            .clip(CircleShape)
+                                            .blur(8.dp),
                                 )
                             }
                             Button(
-                                modifier = Modifier.onGloballyPositioned {
-                                    if (selectedIndex == screen.ordinal) {
-                                        buttonSize = with(density) { it.size.width.toDp() to it.size.height.toDp() }
-                                    }
-                                },
+                                modifier =
+                                    Modifier.onGloballyPositioned {
+                                        if (selectedIndex == screen.ordinal) {
+                                            buttonSize = with(density) { it.size.width.toDp() to it.size.height.toDp() }
+                                        }
+                                    },
                                 onClick = {
                                     if (selectedIndex == screen.ordinal) {
                                         if (currentBackStackEntry?.destination?.hierarchy?.any {
@@ -372,7 +362,7 @@ fun LiquidGlassAppBottomNavigationBar(
                                         style =
                                             if (selectedIndex == screen.ordinal) {
                                                 typo.bodySmall.copy(
-                                                    fontWeight = FontWeight.Bold
+                                                    fontWeight = FontWeight.Bold,
                                                 )
                                             } else {
                                                 typo.bodySmall.greyScale()
@@ -449,24 +439,31 @@ fun LiquidGlassAppBottomNavigationBar(
                 Spacer(Modifier.size(12.dp))
             }
 
+            val searchColor by animateColorAsState(
+                targetValue = if (luminanceAnimation.value > 0.6f) Color.Black else Color.White,
+                label = "MiniPlayerTextColor",
+                animationSpec = tween(500),
+            )
+
             AnimatedVisibility(
                 visible = !isInSearchDestination && isExpanded,
                 enter =
                     slideInHorizontally(
                         tween(100),
-                    ) { it / 2 } + fadeIn(),
+                    ) { it / 2 },
                 exit =
                     slideOutHorizontally(
                         tween(100),
-                    ) { -it / 2 } + fadeOut(),
+                    ) { -it / 2 },
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.drawBackdropCustomShape(
-                        backdrop,
-                        layer,
-                        luminanceAnimation.value,
-                        CircleShape
-                    ),
+                    modifier =
+                        Modifier.drawBackdropCustomShape(
+                            backdrop,
+                            layer,
+                            luminanceAnimation.value,
+                            CircleShape,
+                        ),
                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
                     onClick = {
                         previousSelectedIndex = selectedIndex
@@ -481,12 +478,12 @@ fun LiquidGlassAppBottomNavigationBar(
                     },
                     shape = CircleShape,
                     containerColor = transparent,
-                    contentColor = transparent
+                    contentColor = transparent,
                 ) {
                     Icon(
                         Icons.Outlined.Search,
                         "",
-                        tint = white
+                        tint = searchColor,
                     )
                 }
             }

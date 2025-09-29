@@ -204,6 +204,7 @@ fun SettingScreen(
     val limitPlayerCache by viewModel.playerCacheLimit.collectAsStateWithLifecycle()
     val fraction by viewModel.fraction.collectAsStateWithLifecycle()
     val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
+    val explicitContentEnabled by viewModel.explicitContentEnabled.collectAsStateWithLifecycle()
     val usingProxy by viewModel.usingProxy.collectAsStateWithLifecycle()
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
     val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
@@ -450,6 +451,11 @@ fun SettingScreen(
                         ),
                     smallSubtitle = true,
                     switch = (sendData to { viewModel.setSendBackToGoogle(it) }),
+                )
+                SettingItem(
+                    title = stringResource(R.string.play_explicit_content),
+                    subtitle = stringResource(R.string.play_explicit_content_description),
+                    switch = (explicitContentEnabled to { viewModel.setExplicitContentEnabled(it) }),
                 )
                 SettingItem(
                     title = stringResource(R.string.proxy),

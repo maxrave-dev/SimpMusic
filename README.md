@@ -108,7 +108,7 @@ This project is following clean architecture and MVVM pattern (in UI, app module
 
  ### Dependencies graph
   <p float="left">        
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/dependencies_graph.svg?raw=true" width="300"> 
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/dependencies_graph.svg?raw=true" width="800"> 
   </p>
 
  ## Support & Donations 

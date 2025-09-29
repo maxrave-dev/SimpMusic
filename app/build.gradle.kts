@@ -287,9 +287,6 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
-    // Store5
-    implementation(libs.store)
-
     // Jetbrains Markdown
     api(libs.markdown)
 
@@ -309,7 +306,7 @@ dependencies {
  ./gradlew :app:exportLibraryDefinitions --no-daemon --no-configuration-cache --no-build-cache
  **/
 aboutLibraries {
-    android.registerAndroidTasks = false
+    android.registerAndroidTasks = true
     export {
         exportVariant = "fullRelease"
         prettyPrint = true

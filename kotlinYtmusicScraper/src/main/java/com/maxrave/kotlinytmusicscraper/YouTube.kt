@@ -9,7 +9,6 @@ import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.liskovsoft.sharedutils.prefs.GlobalPreferences
 import com.liskovsoft.youtubeapi.app.AppService
-import com.liskovsoft.youtubeapi.app.PoTokenGate
 import com.liskovsoft.youtubeapi.videoinfo.V2.VideoInfoService
 import com.maxrave.kotlinytmusicscraper.YouTube.Companion.DEFAULT_VISITOR_DATA
 import com.maxrave.kotlinytmusicscraper.extension.toListFormat
@@ -115,6 +114,7 @@ import okio.Path
 import okio.Path.Companion.toPath
 import org.json.JSONArray
 import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -1247,34 +1247,18 @@ class YouTube(
 
     suspend fun ytDlpPlayer(
         videoId: String,
-        playlistId: String? = null,
-        cpn: String,
+        tempRes: PlayerResponse,
     ): PlayerResponse? {
         val listUrlSig = mutableListOf<String>()
         var decodedSigResponse: PlayerResponse?
         var sigResponse: PlayerResponse?
-        if (GlobalPreferences.sInstance == null) {
-            GlobalPreferences.instance(context)
-        }
-        val poToken = PoTokenGate.getSessionPoToken() ?: ""
-        Logger.d(TAG, "ytdlp poToken $poToken")
-        val tempRes =
-            ytMusic
-                .player(
-                    WEB_REMIX,
-                    videoId,
-                    playlistId,
-                    cpn,
-                    poToken = poToken,
-                    signatureTimestamp = newPipeUtils.getSignatureTimestamp(videoId).getOrNull(),
-                ).body<PlayerResponse>()
         Logger.d(TAG, "YouTube TempRes ${tempRes.playabilityStatus}")
         if (tempRes.playabilityStatus.status != "OK") {
             return null
         } else {
             sigResponse = tempRes
         }
-        val streamInfo = ytMusic.ytdlpGetStreamUrl(videoId, poToken, "web_music", poTokenJsonDeserializer) ?: return null
+        val streamInfo = ytMusic.ytdlpGetStreamUrl(videoId, null, "tv", poTokenJsonDeserializer) ?: return null
         val streamsList = streamInfo.formats.takeIf { !it.isNullOrEmpty() } ?: return null
         streamsList.forEach {
             Logger.d(TAG, "YouTube Ytdlp Stream ${it?.formatId} ${it?.url}")
@@ -1327,42 +1311,21 @@ class YouTube(
 
     suspend fun smartTubePlayer(
         videoId: String,
-        playlistId: String? = null,
-        cpn: String,
-        client: YouTubeClient,
+        tempRes: PlayerResponse,
     ): PlayerResponse? {
-        var webPlayerPot = ""
-        val listUrlSig = mutableListOf<String>()
-        var decodedSigResponse: PlayerResponse? = null
-        var sigResponse: PlayerResponse?
         try {
             if (GlobalPreferences.sInstance == null) {
                 GlobalPreferences.instance(context)
             }
-            webPlayerPot = PoTokenGate.getSessionPoToken() ?: ""
-            Logger.d(TAG, "YouTube poToken $webPlayerPot")
+            mAppService.resetClientPlaybackNonce()
+            mAppService.refreshCacheIfNeeded()
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        val sigTimestamp =
-            try {
-                mAppService.signatureTimestamp?.toInt()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
+        val listUrlSig = mutableListOf<String>()
+        var decodedSigResponse: PlayerResponse?
+        var sigResponse: PlayerResponse?
         listUrlSig.removeAll(listUrlSig)
-        Logger.d(TAG, "YouTube Client $client")
-        val tempRes =
-            ytMusic
-                .player(
-                    client,
-                    videoId,
-                    playlistId,
-                    cpn,
-                    signatureTimestamp = sigTimestamp,
-                    poToken = webPlayerPot,
-                ).body<PlayerResponse>()
         Logger.d(TAG, "YouTube TempRes ${tempRes.playabilityStatus}")
         if (tempRes.playabilityStatus.status != "OK") {
             return null
@@ -1442,22 +1405,11 @@ class YouTube(
 
     suspend fun newPipePlayer(
         videoId: String,
-        playlistId: String? = null,
-        cpn: String,
+        tempRes: PlayerResponse,
     ): PlayerResponse? {
         val listUrlSig = mutableListOf<String>()
         var decodedSigResponse: PlayerResponse?
         var sigResponse: PlayerResponse?
-        val tempRes =
-            ytMusic
-                .player(
-                    WEB_REMIX,
-                    videoId,
-                    playlistId,
-                    cpn,
-                    poToken = poTokenGenerator.getWebClientPoToken(videoId)?.playerRequestPoToken?.getPoToken() ?: "",
-                    signatureTimestamp = newPipeUtils.getSignatureTimestamp(videoId).getOrNull(),
-                ).body<PlayerResponse>()
         Logger.d(TAG, "YouTube TempRes ${tempRes.playabilityStatus}")
         if (tempRes.playabilityStatus.status != "OK") {
             return null
@@ -1538,11 +1490,21 @@ class YouTube(
             var decodedSigResponse: PlayerResponse? = null
             var currentClient: YouTubeClient
             for (client in listClients) {
+                val tempRes =
+                    ytMusic
+                        .player(
+                            WEB_REMIX,
+                            videoId,
+                            playlistId,
+                            cpn,
+//                            signatureTimestamp = YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId),
+//                            poToken = getWebClientPoTokenOrNull(videoId)?.streamingDataPoToken,
+                        ).body<PlayerResponse>()
                 val response =
                     if (shouldYtdlp) {
-                        ytDlpPlayer(videoId, playlistId, cpn)
+                        ytDlpPlayer(videoId, tempRes)
                     } else {
-                        newPipePlayer(videoId, playlistId, cpn) ?: smartTubePlayer(videoId, playlistId, cpn, client)
+                        smartTubePlayer(videoId, tempRes) ?: newPipePlayer(videoId, tempRes)
                     }
                 if (response != null) {
                     decodedSigResponse = response
@@ -2158,6 +2120,60 @@ class YouTube(
         runCatching {
             ytMusic.removeFromLiked(mediaId).status.value
         }
+
+    private fun getNParam(listFormat: List<PlayerResponse.StreamingData.Format>): String? =
+        listFormat
+            .firstOrNull { it.itag == 251 }
+            ?.let {
+                val sc = it.signatureCipher ?: it.url ?: return null
+                val params = parseQueryString(sc)
+                val url =
+                    params["url"]?.let { URLBuilder(it) }
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher url")
+                            return null
+                        }
+                url.parameters["n"]
+            }
+
+    private fun getStreamUrl(
+        format: PlayerResponse.StreamingData.Format,
+        nParam: String,
+        videoId: String,
+    ): String? {
+        val url =
+            format.url ?: format.signatureCipher?.let { signatureCipher ->
+                val params = parseQueryString(signatureCipher)
+                val obfuscatedSignature =
+                    params["s"]
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher signature")
+                            return null
+                        }
+                val signatureParam =
+                    params["sp"]
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher signature parameter")
+                            return null
+                        }
+                val url =
+                    params["url"]?.let { URLBuilder(it) }
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher url")
+                            return null
+                        }
+                url.parameters[signatureParam] = YoutubeJavaScriptPlayerManager.deobfuscateSignature(videoId, obfuscatedSignature)
+                if (url.parameters["n"] == null) {
+                    url.parameters["n"] = nParam
+                }
+                url.toString()
+            } ?: run {
+                Logger.e(TAG, "Could not find format url")
+                return null
+            }
+
+        return YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url)
+    }
 
     fun download(
         track: SongItem,

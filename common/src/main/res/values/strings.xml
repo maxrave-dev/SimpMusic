@@ -461,4 +461,7 @@
     <string name="enable_liquid_glass_effect">Enable liquid glass (BETA)</string>
     <string name="enable_liquid_glass_effect_description">Enable iOS\'s liquid glass effect in some position (Android 12+)</string>
     <string name="your_library">Your library</string>
+    <string name="play_explicit_content">Play explicit content</string>
+    <string name="play_explicit_content_description">Enable to play explicit content</string>
+    <string name="explicit_content_blocked">Explicit content is skipped</string>
 </resources>

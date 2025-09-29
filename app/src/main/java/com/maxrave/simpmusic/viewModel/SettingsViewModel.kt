@@ -159,6 +159,9 @@ class SettingsViewModel(
     private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
 
+    private val _explicitContentEnabled = MutableStateFlow(false)
+    val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -227,8 +230,24 @@ class SettingsViewModel(
         getBackupDownloaded()
         getUpdateChannel()
         getEnableLiquidGlass()
+        getExplicitContentEnabled()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getExplicitContentEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.explicitContentEnabled.collect { enabled ->
+                _explicitContentEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setExplicitContentEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setExplicitContentEnabled(enabled)
+            getExplicitContentEnabled()
         }
     }
 

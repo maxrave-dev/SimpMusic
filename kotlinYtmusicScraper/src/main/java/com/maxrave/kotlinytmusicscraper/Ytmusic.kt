@@ -55,12 +55,14 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
 import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -376,24 +378,26 @@ class Ytmusic(
 
     suspend fun ytdlpGetStreamUrl(
         videoId: String,
-        poToken: String,
+        poToken: String?,
         clientName: String,
         json: Json,
-    ): YtdlpVideoInfo? {
-        Logger.d(TAG, "ytdlpGetStreamUrl: videoId: $videoId, poToken: $poToken, clientName: $clientName")
-        val ytRequest = YoutubeDLRequest("https://music.youtube.com/watch?v=$videoId")
-        if (!cookie.isNullOrEmpty()) {
-            ytRequest.addOption("--cookies", cookiePath?.toString() ?: "")
+    ): YtdlpVideoInfo? =
+        withContext(Dispatchers.IO) {
+            Logger.d(TAG, "ytdlpGetStreamUrl: videoId: $videoId, poToken: $poToken, clientName: $clientName")
+            val ytRequest = YoutubeDLRequest("https://music.youtube.com/watch?v=$videoId")
+            if (!cookie.isNullOrEmpty()) {
+                ytRequest.addOption("--cookies", cookiePath?.toString() ?: "")
+            }
+            ytRequest.addOption(
+                "--extractor-args",
+                "youtube:player_client=$clientName;youtube:webpage_skip" +
+                    if (clientName.contains("web") && poToken != null) ";youtube:po_token=$clientName.gvs+$poToken;" else "",
+            )
+            ytRequest.addOption("--dump-json")
+            val result = ytDlp?.execute(ytRequest)
+            val data = result?.out?.let { json.decodeFromString<YtdlpVideoInfo>(it) }
+            return@withContext data
         }
-        ytRequest.addOption(
-            "--extractor-args",
-            "youtube:player_client=$clientName;youtube:po_token=$clientName.gvs+$poToken;youtube:webpage_skip",
-        )
-        ytRequest.addOption("--dump-json")
-        val result = ytDlp?.execute(ytRequest)
-        val data = result?.out?.let { json.decodeFromString<YtdlpVideoInfo>(it) }
-        return data
-    }
 
     suspend fun player(
         client: YouTubeClient,

@@ -40,6 +40,7 @@ import com.maxrave.domain.extension.isVideo
 import com.maxrave.domain.extension.toGenericMediaItem
 import com.maxrave.domain.extension.toSongEntity
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
@@ -394,6 +395,17 @@ internal class MediaServiceHandlerImpl(
                 songEntityJob =
                     coroutineScope.launch {
                         songRepository.getSongAsFlow(videoId).cancellable().filterNotNull().collectLatest { songEntity ->
+                            if (dataStoreManager.explicitContentEnabled.first() == FALSE && songEntity.isExplicit) {
+                                Toast.makeText(context, context.getString(R.string.explicit_content_blocked), Toast.LENGTH_LONG).show()
+                                if (player.hasNextMediaItem()) {
+                                    player.seekToNext()
+                                } else if (player.hasPreviousMediaItem()) {
+                                    player.seekToPrevious()
+                                } else {
+                                    player.stop()
+                                }
+                                return@collectLatest
+                            }
                             _nowPlayingState.update {
                                 it.copy(
                                     songEntity = songEntity,
@@ -1709,6 +1721,10 @@ internal class MediaServiceHandlerImpl(
                 is SongEntity -> anyTrack.toTrack()
                 else -> return
             }
+        if (track.isExplicit && runBlocking { dataStoreManager.explicitContentEnabled.first() } == FALSE) {
+            Toast.makeText(context, context.getString(R.string.explicit_content_blocked), Toast.LENGTH_SHORT).show()
+            return
+        }
         songRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
             Logger.d(TAG, "Inserted song: ${track.title}")
         }

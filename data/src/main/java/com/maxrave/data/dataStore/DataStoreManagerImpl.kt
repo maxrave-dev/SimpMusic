@@ -1089,6 +1089,25 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val explicitContentEnabled: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[EXPLICIT_CONTENT_ENABLED] ?: TRUE
+        }
+
+    override suspend fun setExplicitContentEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (enabled) {
+                settingsDataStore.edit { settings ->
+                    settings[EXPLICIT_CONTENT_ENABLED] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[EXPLICIT_CONTENT_ENABLED] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
@@ -1159,5 +1178,7 @@ internal class DataStoreManagerImpl(
         val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")
 
         val LIQUID_GLASS = stringPreferencesKey("liquid_glass")
+
+        val EXPLICIT_CONTENT_ENABLED = stringPreferencesKey("explicit_content_enabled")
     }
 }
