@@ -29,14 +29,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
-import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.RepeatOne
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.PauseCircle
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.RepeatOne
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -477,7 +477,7 @@ fun FullscreenLyricsSheet(
                                 .weight(1f)
                                 .fillMaxHeight()
                                 .fillMaxWidth()
-                                .padding(horizontal = 50.dp),
+                                .padding(horizontal = 24.dp),
                     ) {
                         if (it) {
                             screenDataState.lyricsData?.let { lyrics ->
@@ -504,7 +504,7 @@ fun FullscreenLyricsSheet(
                                 Modifier
                                     .padding(
                                         top = 15.dp,
-                                    ).padding(horizontal = 40.dp),
+                                    ).padding(horizontal = 20.dp),
                             ) {
                                 Box(
                                     modifier =
@@ -617,7 +617,7 @@ fun FullscreenLyricsSheet(
                             Row(
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 40.dp),
+                                    .padding(horizontal = 20.dp),
                             ) {
                                 Text(
                                     text = formatDuration(timelineState.current, context),
@@ -647,7 +647,7 @@ fun FullscreenLyricsSheet(
                                     Modifier
                                         .fillMaxWidth()
                                         .height(96.dp)
-                                        .padding(horizontal = 40.dp),
+                                        .padding(horizontal = 20.dp),
                             ) {
                                 FilledTonalIconButton(
                                     colors =
@@ -668,14 +668,14 @@ fun FullscreenLyricsSheet(
                                     Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
                                         if (isShuffle) {
                                             Icon(
-                                                imageVector = Icons.Filled.Shuffle,
+                                                imageVector = Icons.Rounded.Shuffle,
                                                 tint = seed, // Accent color when shuffle is ON
                                                 contentDescription = "",
                                                 modifier = Modifier.size(32.dp),
                                             )
                                         } else {
                                             Icon(
-                                                imageVector = Icons.Filled.Shuffle,
+                                                imageVector = Icons.Rounded.Shuffle,
                                                 tint = Color.White, // White when shuffle is OFF
                                                 contentDescription = "",
                                                 modifier = Modifier.size(32.dp),
@@ -702,7 +702,7 @@ fun FullscreenLyricsSheet(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Filled.SkipPrevious,
+                                        imageVector = Icons.Rounded.SkipPrevious,
                                         tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                                         contentDescription = "",
                                         modifier = Modifier.size(52.dp),
@@ -727,14 +727,14 @@ fun FullscreenLyricsSheet(
                                     Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
                                         if (!isPlaying) {
                                             Icon(
-                                                imageVector = Icons.Filled.PlayCircle,
+                                                imageVector = Icons.Rounded.PlayCircle,
                                                 tint = Color.White,
                                                 contentDescription = "",
                                                 modifier = Modifier.size(72.dp),
                                             )
                                         } else {
                                             Icon(
-                                                imageVector = Icons.Filled.PauseCircle,
+                                                imageVector = Icons.Rounded.PauseCircle,
                                                 tint = Color.White,
                                                 contentDescription = "",
                                                 modifier = Modifier.size(72.dp),
@@ -761,7 +761,7 @@ fun FullscreenLyricsSheet(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Filled.SkipNext,
+                                        imageVector = Icons.Rounded.SkipNext,
                                         tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                                         contentDescription = "",
                                         modifier = Modifier.size(52.dp),
@@ -787,7 +787,7 @@ fun FullscreenLyricsSheet(
                                         when (rs) {
                                             is RepeatState.None -> {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Repeat,
+                                                    imageVector = Icons.Rounded.Repeat,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier = Modifier.size(32.dp),
@@ -796,7 +796,7 @@ fun FullscreenLyricsSheet(
 
                                             RepeatState.All -> {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Repeat,
+                                                    imageVector = Icons.Rounded.Repeat,
                                                     tint = seed,
                                                     contentDescription = "",
                                                     modifier = Modifier.size(32.dp),
@@ -805,7 +805,7 @@ fun FullscreenLyricsSheet(
 
                                             RepeatState.One -> {
                                                 Icon(
-                                                    imageVector = Icons.Filled.RepeatOne,
+                                                    imageVector = Icons.Rounded.RepeatOne,
                                                     tint = seed,
                                                     contentDescription = "",
                                                     modifier = Modifier.size(32.dp),

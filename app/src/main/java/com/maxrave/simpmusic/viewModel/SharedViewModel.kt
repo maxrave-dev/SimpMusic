@@ -939,6 +939,9 @@ class SharedViewModel(
                         if (timeDiff > 1000L) { // Lệch quá 1 giây
                             outOfSyncCount++
                         }
+                        if (closestTranslatedLine.words == originalLine.words) {
+                            outOfSyncCount++
+                        }
                     }
                 }
 
