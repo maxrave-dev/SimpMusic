@@ -2,11 +2,13 @@ package com.maxrave.simpmusic.ui.navigation.graph
 
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,7 +24,6 @@ import com.maxrave.simpmusic.ui.screen.player.FullscreenPlayer
 @Composable
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
-@UnstableApi
 fun AppNavigationGraph(
     innerPadding: PaddingValues,
     navController: NavHostController,
@@ -30,26 +31,28 @@ fun AppNavigationGraph(
     hideNavBar: () -> Unit = { },
     showNavBar: (shouldShowNowPlayingSheet: Boolean) -> Unit = { },
     showNowPlayingSheet: () -> Unit = {},
+    onScrolling: (onTop: Boolean) -> Unit = {},
 ) {
     NavHost(
         navController,
         startDestination = startDestination,
         enterTransition = {
-            fadeIn()
+            fadeIn() + slideInHorizontally { -it }
         },
         exitTransition = {
-            fadeOut()
+            fadeOut() + slideOutHorizontally { it }
         },
         popEnterTransition = {
-            fadeIn()
+            fadeIn() + slideInHorizontally { -it }
         },
         popExitTransition = {
-            fadeOut()
+            fadeOut() + slideOutHorizontally { it }
         },
     ) {
         // Bottom bar destinations
         composable<HomeDestination> {
             HomeScreen(
+                onScrolling = onScrolling,
                 navController = navController,
             )
         }
@@ -62,6 +65,7 @@ fun AppNavigationGraph(
             LibraryScreen(
                 innerPadding = innerPadding,
                 navController = navController,
+                onScrolling = onScrolling
             )
         }
         composable<FullscreenDestination> {

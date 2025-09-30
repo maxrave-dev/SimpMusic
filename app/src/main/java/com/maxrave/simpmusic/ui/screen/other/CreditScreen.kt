@@ -40,7 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.adaptiveIconPainterResource
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
@@ -73,7 +74,7 @@ fun CreditScreen(
 
         // App icon
         Image(
-            painter = adaptiveIconPainterResource(R.mipmap.ic_launcher_round) ?: painterResource(R.drawable.holder),
+            painter = adaptiveIconPainterResource(com.maxrave.simpmusic.R.mipmap.ic_launcher_round) ?: painterResource(R.drawable.holder),
             contentDescription = "App Icon",
             modifier =
                 Modifier
@@ -85,7 +86,7 @@ fun CreditScreen(
 
         // App name
         Text(
-            text = stringResource(id = R.string.app_name),
+            text = stringResource(id = AppResString.app_name),
             style = typo.titleLarge,
             fontSize = 22.sp,
         )
@@ -220,7 +221,7 @@ fun CreditScreen(
                 },
         title = {
             Text(
-                text = stringResource(R.string.app_name),
+                text = stringResource(AppResString.app_name),
                 style = typo.titleMedium,
                 maxLines = 1,
                 modifier =
@@ -247,6 +248,12 @@ fun CreditScreen(
             }
         },
         colors =
-            TopAppBarDefaults.largeTopAppBarColors(Color.Transparent),
+            TopAppBarDefaults.topAppBarColors(
+                Color.Transparent,
+                Color.Unspecified,
+                Color.Unspecified,
+                Color.Unspecified,
+                Color.Unspecified,
+            ),
     )
 }

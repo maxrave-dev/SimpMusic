@@ -81,15 +81,13 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config.MAIN_PLAYER
+import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.common.R
+import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
-import com.maxrave.simpmusic.ui.component.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.overlay
@@ -99,15 +97,12 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
-import org.koin.core.qualifier.named
 import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun FullscreenPlayer(
     navController: NavController,
-    player: ExoPlayer = koinInject(named(MAIN_PLAYER)),
     sharedViewModel: SharedViewModel = koinInject(),
     hideNavBar: () -> Unit = {},
     showNavBar: () -> Unit = {},
@@ -218,7 +213,7 @@ fun FullscreenPlayer(
 
     Box {
         MediaPlayerViewWithSubtitle(
-            player = player,
+            playerName = MAIN_PLAYER,
             modifier =
                 Modifier
                     .fillMaxSize(),
@@ -227,6 +222,11 @@ fun FullscreenPlayer(
             timelineState = timelineState,
             lyricsData = nowPlayingState.lyricsData?.lyrics,
             translatedLyricsData = nowPlayingState.lyricsData?.translatedLyrics,
+            context = context,
+            activity = context.findActivity(),
+            isInPipMode = isInPipMode,
+            mainTextStyle = typo.bodyLarge,
+            translatedTextStyle = typo.bodyMedium,
         )
         if (!isInPipMode) {
             Row(Modifier.fillMaxSize()) {

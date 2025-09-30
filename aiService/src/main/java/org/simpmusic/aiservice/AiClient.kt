@@ -1,6 +1,6 @@
 package org.simpmusic.aiservice
 
-import org.simpmusic.lyrics.domain.Lyrics
+import com.maxrave.domain.data.model.metadata.Lyrics
 
 class AiClient {
     private var aiService: AiService? = null
@@ -48,9 +48,9 @@ class AiClient {
         targetLanguage: String,
     ): Result<Lyrics> =
         runCatching {
-            aiService?.translateLyrics(inputLyrics, targetLanguage).also {
-                if (it?.lyrics?.lines?.map { it.words }?.containsAll(
-                        inputLyrics.lyrics?.lines?.map { it.words } ?: emptyList(),
+            aiService?.translateLyrics(inputLyrics, targetLanguage).also { data ->
+                if (data?.lines?.map { it.words }?.containsAll(
+                        inputLyrics.lines?.map { it.words } ?: emptyList(),
                     ) == true
                 ) {
                     throw IllegalStateException("Translation failed or returned empty lyrics.")

@@ -1,12 +1,13 @@
 package com.maxrave.simpmusic.ui.screen
 
-import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -33,10 +34,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
@@ -58,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -65,19 +68,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.extension.connectArtists
+import com.kyant.backdrop.Backdrop
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.extension.drawBackdropCustomShape
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
+import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -88,13 +96,23 @@ import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 
 @Composable
-@UnstableApi
 fun MiniPlayer(
     modifier: Modifier,
+    backdrop: Backdrop,
+    layer: GraphicsLayer? = null,
+    luminanceAnimation: Float? = null,
     sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
+    val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+
+    val textColor by animateColorAsState(
+        targetValue = if (luminanceAnimation != null && luminanceAnimation > 0.6f) Color.Black else Color.White,
+        label = "MiniPlayerTextColor",
+        animationSpec = tween(500),
+    )
+
     val (songEntity, setSongEntity) =
         remember {
             mutableStateOf<SongEntity?>(null)
@@ -192,48 +210,57 @@ fun MiniPlayer(
         job4.join()
     }
 
-    ElevatedCard(
-        elevation = CardDefaults.elevatedCardElevation(10.dp),
-        shape = RoundedCornerShape(8.dp),
+    Card(
+        shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(12.dp),
         colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = background.value,
+            CardDefaults.cardColors(
+                containerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
+                disabledContainerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
             ),
         modifier =
             modifier
-                .clipToBounds()
-                .offset { IntOffset(0, offsetY.value.roundToInt()) }
-                .clickable(
-                    onClick = onClick,
-                ).pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragStart = {
+                .then(
+                    if (isLiquidGlassEnabled == DataStoreManager.TRUE && layer != null && luminanceAnimation != null) {
+                        Modifier.drawBackdropCustomShape(backdrop, layer, luminanceAnimation, RoundedCornerShape(16.dp))
+                    } else {
+                        Modifier
+                    },
+                ).then(
+                    Modifier
+                        .clipToBounds()
+                        .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                        .clickable(
+                            onClick = onClick,
+                        ).pointerInput(Unit) {
+                            detectVerticalDragGestures(
+                                onDragStart = {
+                                },
+                                onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
+                                    if (offsetY.value + dragAmount > 0) {
+                                        coroutineScope.launch {
+                                            change.consume()
+                                            offsetY.animateTo(offsetY.value + 2 * dragAmount)
+                                            Logger.w("MiniPlayer", "Dragged ${offsetY.value}")
+                                        }
+                                    }
+                                },
+                                onDragCancel = {
+                                    coroutineScope.launch {
+                                        offsetY.animateTo(0f)
+                                    }
+                                },
+                                onDragEnd = {
+                                    Logger.w("MiniPlayer", "Drag Ended")
+                                    coroutineScope.launch {
+                                        if (offsetY.value > 70) {
+                                            onClose()
+                                        }
+                                        offsetY.animateTo(0f)
+                                    }
+                                },
+                            )
                         },
-                        onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
-                            if (offsetY.value + dragAmount > 0) {
-                                coroutineScope.launch {
-                                    change.consume()
-                                    offsetY.animateTo(offsetY.value + 2 * dragAmount)
-                                    Log.w("MiniPlayer", "Dragged ${offsetY.value}")
-                                }
-                            }
-                        },
-                        onDragCancel = {
-                            coroutineScope.launch {
-                                offsetY.animateTo(0f)
-                            }
-                        },
-                        onDragEnd = {
-                            Log.w("MiniPlayer", "Drag Ended")
-                            coroutineScope.launch {
-                                if (offsetY.value > 70) {
-                                    onClose()
-                                }
-                                offsetY.animateTo(0f)
-                            }
-                        },
-                    )
-                },
+                ),
     ) {
         Box(modifier = Modifier.fillMaxHeight()) {
             Row(
@@ -259,11 +286,11 @@ fun MiniPlayer(
                                             coroutineScope.launch {
                                                 change.consume()
                                                 offsetX.animateTo(offsetX.value + dragAmount * 2)
-                                                Log.w("MiniPlayer", "Dragged ${offsetX.value}")
+                                                Logger.w("MiniPlayer", "Dragged ${offsetX.value}")
                                             }
                                         },
                                         onDragCancel = {
-                                            Log.w("MiniPlayer", "Drag Cancelled")
+                                            Logger.w("MiniPlayer", "Drag Cancelled")
                                             coroutineScope.launch {
                                                 if (offsetX.value > 200) {
                                                     sharedViewModel.onUIEvent(UIEvent.Previous)
@@ -274,7 +301,7 @@ fun MiniPlayer(
                                             }
                                         },
                                         onDragEnd = {
-                                            Log.w("MiniPlayer", "Drag Ended")
+                                            Logger.w("MiniPlayer", "Drag Ended")
                                             coroutineScope.launch {
                                                 if (offsetX.value > 200) {
                                                     sharedViewModel.onUIEvent(UIEvent.Previous)
@@ -355,7 +382,7 @@ fun MiniPlayer(
                                     Text(
                                         text = (songEntity?.title ?: "").toString(),
                                         style = typo.labelSmall,
-                                        color = Color.White,
+                                        color = textColor,
                                         maxLines = 1,
                                         modifier =
                                             Modifier
@@ -378,9 +405,10 @@ fun MiniPlayer(
                                             )
                                         }
                                         Text(
-                                            text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
+                                            text = (songEntity?.artistName?.connectArtists() ?: ""),
                                             style = typo.bodySmall,
                                             maxLines = 1,
+                                            color = textColor,
                                             modifier =
                                                 Modifier
                                                     .weight(1f)

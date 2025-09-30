@@ -109,13 +109,27 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
 
--keep class com.liskovsoft.youtubeapi.** { *; }
--keep interface com.liskovsoft.youtubeapi.** { *; }
--keep class com.liskovsoft.googleapi.** { *; }
--keep interface com.liskovsoft.googleapi.** { *; }
+-keep class com.liskovsoft.** { *; }
+-keep interface com.liskovsoft.** { *; }
 -keep class com.eclipsesource.v8.** { *; }
 
 ## Rules for NewPipeExtractor
 -keep class org.mozilla.javascript.** { *; }
 -keep class org.mozilla.classfile.ClassFileWriter
 -dontwarn org.mozilla.javascript.tools.**
+
+-keep class com.maxrave.kotlinytmusicscraper.** { *; }
+
+-keep class com.liskovsoft.**
+
+-keep class org.apache.commons.io.** { *; }
+
+#YtDlp
+-keep class com.yausername.** { *; }
+-keep class org.apache.commons.compress.archivers.zip.** { *; }
+-keepattributes SourceFile
+
+-dontshrink
+-dontoptimize
+-dontpreverify
+-dontobfuscate

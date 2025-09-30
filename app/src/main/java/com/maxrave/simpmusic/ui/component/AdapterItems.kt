@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,39 +50,40 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.db.entities.AlbumEntity
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PodcastsEntity
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
-import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
-import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
-import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
-import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
-import com.maxrave.simpmusic.data.model.home.Content
-import com.maxrave.simpmusic.data.model.home.HomeItem
-import com.maxrave.simpmusic.data.model.home.chart.ItemArtist
-import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
-import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
-import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
-import com.maxrave.simpmusic.data.type.HomeContentType
-import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.AlbumEntity
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.PlaylistEntity
+import com.maxrave.domain.data.entities.PodcastsEntity
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.browse.artist.ResultAlbum
+import com.maxrave.domain.data.model.browse.artist.ResultPlaylist
+import com.maxrave.domain.data.model.browse.artist.ResultSingle
+import com.maxrave.domain.data.model.home.Content
+import com.maxrave.domain.data.model.home.HomeItem
+import com.maxrave.domain.data.model.home.chart.ItemArtist
+import com.maxrave.domain.data.model.home.chart.ItemVideo
+import com.maxrave.domain.data.model.mood.genre.ItemsPlaylist
+import com.maxrave.domain.data.model.mood.moodmoments.Item
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.type.HomeContentType
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.domain.utils.toListName
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.generateRandomColor
-import com.maxrave.simpmusic.extension.toListName
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
+import com.maxrave.simpmusic.extension.ifNullOrEmpty
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
@@ -90,7 +91,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
 
-@UnstableApi
 @Composable
 fun HomeItem(
     homeViewModel: HomeViewModel = koinViewModel(),
@@ -112,22 +112,24 @@ fun HomeItem(
         )
     }
 
+    val channelId = data.channelId
     Column {
         Row(
             modifier =
-                if (data.channelId != null) {
+                if (channelId != null) {
                     Modifier
                         .focusable(true)
                         .clickable {
                             navController.navigate(
                                 ArtistDestination(
-                                    channelId = data.channelId,
+                                    channelId = channelId,
                                 ),
                             )
                         }
                 } else {
                     Modifier
                 },
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             AnimatedVisibility(
                 visible = (data.thumbnail?.lastOrNull() != null),
@@ -147,7 +149,7 @@ fun HomeItem(
                     error = painterResource(R.drawable.holder),
                     modifier =
                         Modifier
-                            .size(45.dp)
+                            .size(36.dp)
                             .clip(
                                 CircleShape,
                             ),
@@ -155,41 +157,37 @@ fun HomeItem(
             }
             Column(
                 Modifier
-                    .padding(vertical = 8.dp)
                     .padding(start = 10.dp),
             ) {
                 AnimatedVisibility(visible = (data.subtitle != null && data.subtitle != "")) {
                     Text(
                         text = data.subtitle ?: "",
-                        style = typo.bodyMedium,
+                        style = typo.bodySmall,
                     )
                 }
                 Text(
                     text = data.title,
                     style = typo.headlineMedium,
+                    color = Color.White,
                     maxLines = 1,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
         LazyRow(
-            modifier =
-                Modifier.padding(
-                    vertical = 15.dp,
-                ),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
             items(data.contents) { temp ->
                 if (temp != null) {
-                    if ((temp.playlistId != null && temp.videoId == null) || (temp.playlistId != null && temp.videoId == "")) {
-                        if (temp.playlistId.startsWith("UC")) {
+                    val browseId = temp.browseId
+                    val playlistId = temp.playlistId
+                    if ((playlistId != null && temp.videoId == null) || (playlistId != null && temp.videoId == "")) {
+                        if (playlistId.startsWith("UC")) {
                             HomeItemArtist(onClick = {
-                                val channelId =
-                                    temp.playlistId
                                 navController.navigate(
                                     ArtistDestination(
-                                        channelId = channelId,
+                                        channelId = playlistId,
                                     ),
                                 )
                             }, data = temp)
@@ -197,19 +195,17 @@ fun HomeItem(
                             HomeItemContentPlaylist(onClick = {
                                 navController.navigate(
                                     PlaylistDestination(
-                                        playlistId = temp.playlistId,
+                                        playlistId = playlistId,
                                     ),
                                 )
                             }, data = temp)
                         }
-                    } else if ((temp.browseId != null && temp.videoId == null) || (temp.browseId != null && temp.videoId == "")) {
-                        if (temp.browseId.startsWith("UC")) {
+                    } else if ((browseId != null && temp.videoId == null) || (browseId != null && temp.videoId == "")) {
+                        if (browseId.startsWith("UC")) {
                             HomeItemArtist(onClick = {
-                                val channelId =
-                                    temp.browseId
                                 navController.navigate(
                                     ArtistDestination(
-                                        channelId = channelId,
+                                        channelId = browseId,
                                     ),
                                 )
                             }, data = temp)
@@ -217,7 +213,7 @@ fun HomeItem(
                             HomeItemContentPlaylist(onClick = {
                                 navController.navigate(
                                     AlbumDestination(
-                                        browseId = temp.browseId,
+                                        browseId = browseId,
                                     ),
                                 )
                             }, data = temp)
@@ -227,7 +223,7 @@ fun HomeItem(
                             onClick = {
                                 val firstQueue: Track = temp.toTrack()
                                 homeViewModel.setQueueData(
-                                    QueueData(
+                                    QueueData.Data(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM${temp.videoId}",
@@ -252,7 +248,7 @@ fun HomeItem(
                             onClick = {
                                 val firstQueue: Track = temp.toTrack()
                                 homeViewModel.setQueueData(
-                                    QueueData(
+                                    QueueData.Data(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM${temp.videoId}",
@@ -283,7 +279,7 @@ fun HomeItem(
 fun HomeItemContentPlaylist(
     onClick: () -> Unit,
     data: HomeContentType,
-    thumbSize: Dp = 180.dp,
+    thumbSize: Dp = 160.dp,
 ) {
     Box(
         Modifier
@@ -301,8 +297,8 @@ fun HomeItemContentPlaylist(
             val thumb =
                 when (data) {
                     is Content -> data.thumbnails.lastOrNull()?.url
-                    is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
-                    is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
+                    is com.maxrave.domain.data.model.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
+                    is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
                     is LocalPlaylistEntity -> data.thumbnail
                     is PlaylistsResult -> data.thumbnails.lastOrNull()?.url
                     is AlbumEntity -> data.thumbnails
@@ -338,8 +334,8 @@ fun HomeItemContentPlaylist(
                 text =
                     when (data) {
                         is Content -> data.title
-                        is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.title.title
-                        is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.title
+                        is com.maxrave.domain.data.model.mood.genre.Content -> data.title.title
+                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.title
                         is LocalPlaylistEntity -> data.title
                         is PlaylistsResult -> data.title
                         is AlbumEntity -> data.title
@@ -358,7 +354,7 @@ fun HomeItemContentPlaylist(
                     Modifier
                         .width(thumbSize)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -385,8 +381,8 @@ fun HomeItemContentPlaylist(
                                     )
                                 }
 
-                        is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.title.subtitle
-                        is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.subtitle
+                        is com.maxrave.domain.data.model.mood.genre.Content -> data.title.subtitle
+                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.subtitle
                         is LocalPlaylistEntity -> stringResource(R.string.you)
                         is PlaylistsResult -> data.author
                         is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(id = R.string.album)
@@ -404,13 +400,12 @@ fun HomeItemContentPlaylist(
                     Modifier
                         .width(thumbSize)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
             )
-            if (data is com.maxrave.simpmusic.data.type.PlaylistType && data !is AlbumsResult) {
+            if (data is com.maxrave.domain.data.type.PlaylistType && data !is AlbumsResult) {
                 val subtitle =
                     if (data is LocalPlaylistEntity) {
                         if (data.downloadState != DownloadState.STATE_DOWNLOADED) {
@@ -435,7 +430,6 @@ fun HomeItemContentPlaylist(
                         Modifier
                             .width(thumbSize)
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .padding(top = 10.dp)
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
@@ -484,7 +478,7 @@ fun QuickPicksItem(
                 modifier =
                     Modifier
                         .align(Alignment.CenterVertically)
-                        .size(50.dp)
+                        .size(44.dp)
                         .clip(
                             RoundedCornerShape(10),
                         ),
@@ -492,7 +486,7 @@ fun QuickPicksItem(
             Column(
                 Modifier
                     .padding(
-                        start = 20.dp,
+                        start = 16.dp,
                     ).align(Alignment.CenterVertically),
                 verticalArrangement = Arrangement.SpaceEvenly,
             ) {
@@ -578,7 +572,7 @@ fun HomeItemSong(
                         it
                     }
                 }
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -595,7 +589,7 @@ fun HomeItemSong(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
-                        .size(180.dp)
+                        .size(160.dp)
                         .clip(
                             RoundedCornerShape(10.dp),
                         ),
@@ -607,9 +601,9 @@ fun HomeItemSong(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -631,7 +625,7 @@ fun HomeItemSong(
                     maxLines = 1,
                     modifier =
                         Modifier
-                            .width(180.dp)
+                            .width(160.dp)
                             .wrapContentHeight(align = Alignment.CenterVertically)
                             .basicMarquee(
                                 iterations = Int.MAX_VALUE,
@@ -646,7 +640,7 @@ fun HomeItemSong(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
@@ -681,7 +675,7 @@ fun HomeItemVideo(
                     .padding(10.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -698,8 +692,8 @@ fun HomeItemVideo(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
-                        .width(320.dp)
-                        .height(180.dp)
+                        .height(160.dp)
+                        .aspectRatio(16f / 9f)
                         .clip(
                             RoundedCornerShape(10.dp),
                         ),
@@ -711,9 +705,9 @@ fun HomeItemVideo(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(320.dp)
+                        .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
@@ -725,21 +719,21 @@ fun HomeItemVideo(
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(320.dp)
+                        .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable()
-                        .padding(vertical = 3.dp),
+                        .padding(vertical = 2.dp),
             )
             Text(
-                text = if (data.views != null) data.views else stringResource(id = R.string.videos),
+                text = data.views ?: stringResource(id = R.string.videos),
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier =
                     Modifier
-                        .width(320.dp)
+                        .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
@@ -770,7 +764,7 @@ fun HomeItemArtist(
                     .padding(10.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -787,7 +781,7 @@ fun HomeItemArtist(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
-                        .size(180.dp)
+                        .size(160.dp)
                         .clip(
                             CircleShape,
                         ),
@@ -800,28 +794,27 @@ fun HomeItemArtist(
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 10.dp)
+                        .padding(top = 8.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
             )
             Text(
-                text = if (data.description != null) data.description else stringResource(id = R.string.artists),
+                text = data.description.ifNullOrEmpty { stringResource(id = R.string.artists) },
                 style = typo.bodySmall,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable()
-                        .padding(vertical = 3.dp),
+                        ).focusable(),
             )
             Text(
                 text = "",
@@ -830,7 +823,7 @@ fun HomeItemArtist(
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
-                        .width(180.dp)
+                        .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
@@ -855,7 +848,7 @@ fun MoodMomentAndGenreHomeItem(
         shape = RoundedCornerShape(5.dp),
         modifier =
             Modifier
-                .width(180.dp)
+                .width(160.dp)
                 .height(50.dp)
                 .padding(8.dp),
     ) {
@@ -900,7 +893,7 @@ fun ItemVideoChart(
                     .padding(10.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1021,7 +1014,7 @@ fun ItemArtistChart(
                         .padding(end = 20.dp),
             )
             val thumb = data.thumbnails.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1046,7 +1039,7 @@ fun ItemArtistChart(
             Column(
                 Modifier
                     .padding(start = 15.dp)
-                    .width(180.dp)
+                    .width(160.dp)
                     .align(Alignment.CenterVertically),
             ) {
                 Text(
@@ -1132,7 +1125,7 @@ fun ItemTrackChart(
                 }
             }
             val thumb = data.thumbnails?.lastOrNull()?.url
-            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1212,19 +1205,19 @@ fun MoodAndGenresContentItem(
                     is Item -> (data).header
                     else -> ""
                 },
-            style = typo.titleLarge,
+            style = typo.titleMedium,
             color = Color.White,
             modifier =
                 Modifier
+                    .padding(top = 8.dp)
                     .padding(
-                        vertical = 13.dp,
                         horizontal = 15.dp,
                     ).fillMaxWidth(),
         )
         LazyRow(
             modifier =
                 Modifier.padding(
-                    15.dp,
+                    10.dp,
                 ),
         ) {
             val itemList =
@@ -1238,10 +1231,10 @@ fun MoodAndGenresContentItem(
                     navController.navigate(
                         PlaylistDestination(
                             playlistId =
-                                if (item is com.maxrave.simpmusic.data.model.explore.mood.genre.Content) {
+                                if (item is com.maxrave.domain.data.model.mood.genre.Content) {
                                     item.playlistBrowseId
                                 } else {
-                                    (item as com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content).playlistBrowseId
+                                    (item as com.maxrave.domain.data.model.mood.moodmoments.Content).playlistBrowseId
                                 },
                         ),
                     )

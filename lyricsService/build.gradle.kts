@@ -39,7 +39,7 @@ android {
 dependencies {
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
-    implementation(libs.material)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.brotli.dec)
 
     implementation(libs.kotlin.reflect)
+
+    implementation(project(":common"))
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

@@ -40,6 +40,9 @@ val sharedDir =
 rootProject.name = "SimpMusic"
 include(
     "app",
+    ":common",
+    ":data",
+    ":domain",
     ":kotlinYtmusicScraper",
     ":spotify",
     ":aiService",
@@ -49,12 +52,12 @@ include(
     ":youtubeapi",
     ":googleapi",
     ":sharedtests",
-    ":commons-io-2.8.0",
     ":sharedutils",
 )
 project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
 project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
 project(":googleapi").projectDir = File(mediaServiceCore, "googleapi")
 project(":sharedtests").projectDir = File(sharedDir, "sharedtests")
-project(":commons-io-2.8.0").projectDir = File(sharedDir, "commons-io-2.8.0")
 project(":sharedutils").projectDir = File(sharedDir, "sharedutils")
+include(":media3")
+include(":media3-ui")

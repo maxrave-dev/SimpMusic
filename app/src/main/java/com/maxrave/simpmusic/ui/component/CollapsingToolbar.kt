@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -65,7 +64,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rgbFactor
@@ -98,7 +98,7 @@ fun CollapsingToolbarParallaxEffect(
         TopAppBarDefaults.TopAppBarExpandedHeight + with(density) { WindowInsets.statusBars.getTop(this).toDp() * 2 }
 
     val scroll: ScrollState = rememberScrollState(0)
-    val headerHeight = getScreenSizeInfo().hDP.dp * 2 / 5
+    val headerHeight = getScreenSizeInfo().hDP.dp * 2 / 6
 
     val headerHeightPx = with(density) { headerHeight.toPx() }
     val toolbarHeightPx = with(density) { toolbarHeight.toPx() }
@@ -114,7 +114,7 @@ fun CollapsingToolbarParallaxEffect(
 
     LaunchedEffect(bitmap) {
         val bm = bitmap
-        Log.w("ArtistScreen", "Bitmap: $bm")
+        Logger.w("ArtistScreen", "Bitmap: $bm")
         if (bm != null) {
             paletteState.generate(bm)
         }
@@ -125,7 +125,7 @@ fun CollapsingToolbarParallaxEffect(
             .distinctUntilChanged()
             .collectLatest {
                 color = it.getColorFromPalette()
-                Log.w("ArtistScreen", "Color: $color")
+                Logger.w("ArtistScreen", "Color: $color")
             }
     }
 
@@ -188,7 +188,7 @@ fun CollapsingToolbarParallaxEffect(
                         IconButtonDefaults.iconButtonColors().copy(
                             containerColor =
                                 Color.DarkGray.copy(
-                                    alpha = 0.3f,
+                                    alpha = 0.8f,
                                 ),
                             contentColor =
                                 Color.White.copy(
@@ -295,11 +295,11 @@ private fun Body(
 @Composable
 @ExperimentalMaterial3Api
 private fun Toolbar(
+    modifier: Modifier = Modifier,
     scroll: ScrollState,
     headerHeightPx: Float,
     toolbarHeightPx: Float,
     backgroundColor: Color = md_theme_dark_background,
-    modifier: Modifier = Modifier,
     onShow: (Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -374,7 +374,7 @@ private fun Title(
 
     Text(
         text = title,
-        fontSize = 35.sp,
+        fontSize = 48.sp,
         fontWeight = FontWeight.Bold,
         color = Color.White,
         modifier =

@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.parser
 
-import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
@@ -8,6 +7,7 @@ import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.getContinuation
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
+import com.maxrave.logger.Logger
 
 fun BrowseResponse.fromPlaylistToTrack(): List<SongItem> =
     (
@@ -330,7 +330,7 @@ fun MusicShelfRenderer.Content.toSongItem(): SongItem? {
         artists =
             flexColumns
                 .apply {
-                    Log.w(
+                    Logger.w(
                         "PlaylistParser",
                         "Artists: ${this.map {
                             it.musicResponsiveListItemFlexColumnRenderer.text
@@ -342,7 +342,7 @@ fun MusicShelfRenderer.Content.toSongItem(): SongItem? {
                 }.filter {
                     it.musicResponsiveListItemFlexColumnRenderer.isArtist()
                 }.apply {
-                    Log.w(
+                    Logger.w(
                         "PlaylistParser",
                         "Artists after filter: ${this.map {
                             it.musicResponsiveListItemFlexColumnRenderer.text

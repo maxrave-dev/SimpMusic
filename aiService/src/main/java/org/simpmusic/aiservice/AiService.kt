@@ -7,6 +7,7 @@ import com.aallam.openai.api.chat.chatCompletionRequest
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost.Companion.Gemini
+import com.maxrave.domain.data.model.metadata.Lyrics
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
@@ -14,7 +15,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
-import org.simpmusic.lyrics.domain.Lyrics
 
 class AiService(
     private val aiHost: AIHost = AIHost.GEMINI,

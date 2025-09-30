@@ -12,31 +12,33 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.SimpleCache
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.DB_NAME
-import com.maxrave.simpmusic.common.DOWNLOAD_EXOPLAYER_FOLDER
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.EXOPLAYER_DB_NAME
-import com.maxrave.simpmusic.common.QUALITY
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SETTINGS_FILENAME
-import com.maxrave.simpmusic.common.VIDEO_QUALITY
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
+import com.maxrave.common.Config
+import com.maxrave.common.DB_NAME
+import com.maxrave.common.DOWNLOAD_EXOPLAYER_FOLDER
+import com.maxrave.common.EXOPLAYER_DB_NAME
+import com.maxrave.common.QUALITY
+import com.maxrave.common.R
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.common.SETTINGS_FILENAME
+import com.maxrave.common.VIDEO_QUALITY
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.GoogleAccountEntity
+import com.maxrave.domain.extension.toNetScapeString
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.repository.AccountRepository
+import com.maxrave.domain.repository.CacheRepository
+import com.maxrave.domain.repository.CommonRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.LocalResource
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.getSizeOfFile
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
-import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -53,7 +55,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
-import org.koin.core.qualifier.named
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -61,15 +62,16 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-@UnstableApi
 class SettingsViewModel(
     private val application: Application,
+    private val dataStoreManager: DataStoreManager,
+    private val commonRepository: CommonRepository,
+    private val songRepository: SongRepository,
+    private val accountRepository: AccountRepository,
+    private val cacheRepository: CacheRepository,
 ) : BaseViewModel(application) {
-    private val databasePath: String? = mainRepository.getDatabasePath()
-    private val playerCache: SimpleCache by inject(qualifier = named(Config.PLAYER_CACHE))
-    private val downloadCache: SimpleCache by inject(qualifier = named(Config.DOWNLOAD_CACHE))
-    private val canvasCache: SimpleCache by inject(qualifier = named(Config.CANVAS_CACHE))
-    private val downloadUtils: DownloadUtils by inject()
+    private val databasePath: String? = commonRepository.getDatabasePath()
+    private val downloadUtils: DownloadHandler by inject()
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -87,8 +89,6 @@ class SettingsViewModel(
     val saveRecentSongAndQueue: StateFlow<String?> = _saveRecentSongAndQueue
     private var _lastCheckForUpdate: MutableStateFlow<String?> = MutableStateFlow(null)
     val lastCheckForUpdate: StateFlow<String?> = _lastCheckForUpdate
-    private var _githubResponse = MutableStateFlow<GithubResponse?>(null)
-    val githubResponse: StateFlow<GithubResponse?> = _githubResponse
     private var _sponsorBlockEnabled: MutableStateFlow<String?> = MutableStateFlow(null)
     val sponsorBlockEnabled: StateFlow<String?> = _sponsorBlockEnabled
     private var _sponsorBlockCategories: MutableStateFlow<ArrayList<String>?> =
@@ -119,8 +119,8 @@ class SettingsViewModel(
     val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
     private var _usingProxy = MutableStateFlow(false)
     val usingProxy: StateFlow<Boolean> = _usingProxy
-    private var _proxyType = MutableStateFlow(DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP)
-    val proxyType: StateFlow<DataStoreManager.Settings.ProxyType> = _proxyType
+    private var _proxyType = MutableStateFlow(DataStoreManager.ProxyType.PROXY_TYPE_HTTP)
+    val proxyType: StateFlow<DataStoreManager.ProxyType> = _proxyType
     private var _proxyHost = MutableStateFlow("")
     val proxyHost: StateFlow<String> = _proxyHost
     private var _proxyPort = MutableStateFlow(8000)
@@ -156,6 +156,12 @@ class SettingsViewModel(
     private var _backupDownloaded: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val backupDownloaded: StateFlow<Boolean> = _backupDownloaded
 
+    private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
+
+    private val _explicitContentEnabled = MutableStateFlow(false)
+    val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -178,7 +184,7 @@ class SettingsViewModel(
         getHelpBuildLyricsDatabase()
     }
 
-    fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
+    fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
 
     fun getData() {
         getLocation()
@@ -223,8 +229,40 @@ class SettingsViewModel(
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
+        getEnableLiquidGlass()
+        getExplicitContentEnabled()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getExplicitContentEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.explicitContentEnabled.collect { enabled ->
+                _explicitContentEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setExplicitContentEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setExplicitContentEnabled(enabled)
+            getExplicitContentEnabled()
+        }
+    }
+
+    private fun getEnableLiquidGlass() {
+        viewModelScope.launch {
+            dataStoreManager.enableLiquidGlass.collect { enableLiquidGlass ->
+                _enableLiquidGlass.value = enableLiquidGlass == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setEnableLiquidGlass(enableLiquidGlass: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setEnableLiquidGlass(enableLiquidGlass)
+            getEnableLiquidGlass()
         }
     }
 
@@ -332,7 +370,7 @@ class SettingsViewModel(
             dataStoreManager.aiApiKey.collect { aiApiKey ->
                 if (aiApiKey.isNotEmpty()) {
                     _isHasApiKey.value = true
-                    log("getAIApiKey: $aiApiKey", Log.DEBUG)
+                    log("getAIApiKey: $aiApiKey")
                 } else {
                     _isHasApiKey.value = false
                 }
@@ -393,7 +431,9 @@ class SettingsViewModel(
     }
 
     private fun getCanvasCache() {
-        _canvasCacheSize.value = canvasCache.cacheSpace
+        viewModelScope.launch {
+            _canvasCacheSize.value = cacheRepository.getCacheSize(Config.CANVAS_CACHE)
+        }
     }
 
     fun setAlertData(alertData: SettingAlertState?) {
@@ -441,7 +481,7 @@ class SettingsViewModel(
                 launch {
                     dataStoreManager.proxyType.collect {
                         _proxyType.value = it
-                        log("getProxy: $it", Log.DEBUG)
+                        log("getProxy: $it")
                     }
                 }
             host.join()
@@ -451,11 +491,11 @@ class SettingsViewModel(
     }
 
     fun setProxy(
-        proxyType: DataStoreManager.Settings.ProxyType,
+        proxyType: DataStoreManager.ProxyType,
         host: String,
         port: Int,
     ) {
-        log("setProxy: $proxyType, $host, $port", Log.DEBUG)
+        log("setProxy: $proxyType, $host, $port")
         viewModelScope.launch {
             dataStoreManager.setProxyType(proxyType)
             dataStoreManager.setProxyHost(host)
@@ -465,6 +505,9 @@ class SettingsViewModel(
 
     private suspend fun calculateDataFraction() {
         withContext(Dispatchers.Default) {
+            val playerCache = cacheRepository.getCacheSize(Config.PLAYER_CACHE)
+            val downloadCache = cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE)
+            val canvasCache = cacheRepository.getCacheSize(Config.CANVAS_CACHE)
             val mStorageStatsManager =
                 application.getSystemService(StorageStatsManager::class.java)
             if (mStorageStatsManager != null) {
@@ -477,7 +520,7 @@ class SettingsViewModel(
                 val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
                 val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
                 val databaseSize =
-                    simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
+                    simpMusicSize - playerCache.bytesToMB() - downloadCache.bytesToMB() - canvasCache.bytesToMB()
                 if (totalByte ==
                     freeSpace + otherApp + simpMusicSize + thumbSize
                 ) {
@@ -486,17 +529,17 @@ class SettingsViewModel(
                             it.copy(
                                 otherApp = otherApp.toFloat().div(totalByte.toFloat()),
                                 downloadCache =
-                                    downloadCache.cacheSpace
+                                    downloadCache
                                         .bytesToMB()
                                         .toFloat()
                                         .div(totalByte.toFloat()),
                                 playerCache =
-                                    playerCache.cacheSpace
+                                    playerCache
                                         .bytesToMB()
                                         .toFloat()
                                         .div(totalByte.toFloat()),
                                 canvasCache =
-                                    canvasCache.cacheSpace
+                                    canvasCache
                                         .bytesToMB()
                                         .toFloat()
                                         .div(totalByte.toFloat()),
@@ -626,7 +669,6 @@ class SettingsViewModel(
     fun getLastCheckForUpdate() {
         viewModelScope.launch {
             dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
-                _githubResponse.emit(null)
                 _lastCheckForUpdate.emit(lastCheckForUpdate)
             }
         }
@@ -690,6 +732,7 @@ class SettingsViewModel(
                 when (quality) {
                     QUALITY.items[0].toString() -> _quality.emit(QUALITY.items[0].toString())
                     QUALITY.items[1].toString() -> _quality.emit(QUALITY.items[1].toString())
+                    QUALITY.items[2].toString() -> _quality.emit(QUALITY.items[2].toString())
                 }
             }
         }
@@ -706,6 +749,7 @@ class SettingsViewModel(
 
     fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
+            log("changeQuality: $qualityItem")
             dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
             getQuality()
         }
@@ -714,55 +758,48 @@ class SettingsViewModel(
     private val _cacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
     var cacheSize: StateFlow<Long?> = _cacheSize
 
-    @UnstableApi
     fun getPlayerCacheSize() {
-        _cacheSize.value = playerCache.cacheSpace
+        viewModelScope.launch {
+            _cacheSize.value = cacheRepository.getCacheSize(Config.PLAYER_CACHE)
+        }
     }
 
-    @UnstableApi
     fun clearPlayerCache() {
         viewModelScope.launch {
-            playerCache.keys.forEach { key ->
-                playerCache.removeResource(key)
-            }
+            cacheRepository.clearCache(Config.PLAYER_CACHE)
             makeToast(getString(R.string.clear_player_cache))
-            _cacheSize.value = playerCache.cacheSpace
+            getPlayerCacheSize()
         }
     }
 
     private val _downloadedCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
     var downloadedCacheSize: StateFlow<Long?> = _downloadedCacheSize
 
-    @UnstableApi
     fun getDownloadedCacheSize() {
-        _downloadedCacheSize.value = downloadCache.cacheSpace
+        viewModelScope.launch {
+            _downloadedCacheSize.value = cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE)
+        }
     }
 
-    @UnstableApi
     fun clearDownloadedCache() {
         viewModelScope.launch {
-            downloadCache.keys.forEach { key ->
-                downloadCache.removeResource(key)
-            }
-            mainRepository.getDownloadedSongs().singleOrNull()?.let { songs ->
+            cacheRepository.clearCache(Config.DOWNLOAD_CACHE)
+            songRepository.getDownloadedSongs().singleOrNull()?.let { songs ->
                 songs.forEach { song ->
-                    mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                    songRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
             makeToast(getString(R.string.clear_downloaded_cache))
-            _cacheSize.value = playerCache.cacheSpace
+            getDownloadedCacheSize()
             downloadUtils.removeAllDownloads()
         }
     }
 
-    @UnstableApi
     fun clearCanvasCache() {
         viewModelScope.launch {
-            canvasCache.keys.forEach { key ->
-                canvasCache.removeResource(key)
-            }
+            cacheRepository.clearCache(Config.CANVAS_CACHE)
             makeToast(getString(R.string.clear_canvas_cache))
-            _canvasCacheSize.value = canvasCache.cacheSpace
+            getCanvasCache()
         }
     }
 
@@ -773,18 +810,18 @@ class SettingsViewModel(
     ) {
         if (!folder.exists() || !folder.isDirectory) return
 
-        Log.d("BackupRestore", "Backing up folder: ${folder.absolutePath} as $baseName")
+        Logger.d("BackupRestore", "Backing up folder: ${folder.absolutePath} as $baseName")
         folder.listFiles()?.forEach { file ->
             if (file.isFile) {
                 val entryName = "$baseName/${file.name}"
-                Log.d("BackupRestore", "Backing up file: $entryName")
+                Logger.d("BackupRestore", "Backing up file: $entryName")
                 zipOutputStream.putNextEntry(ZipEntry(entryName))
                 file.inputStream().buffered().use { inputStream ->
                     inputStream.copyTo(zipOutputStream)
                 }
                 zipOutputStream.closeEntry()
             } else if (file.isDirectory) {
-                Log.d("BackupRestore", "Entering subdirectory: ${file.name}")
+                Logger.d("BackupRestore", "Entering subdirectory: ${file.name}")
                 backupFolder(file, "$baseName/${file.name}", zipOutputStream)
             }
         }
@@ -795,14 +832,14 @@ class SettingsViewModel(
         level: Int = 0,
     ) {
         if (!folder.exists()) {
-            Log.d("BackupRestore", "${"  ".repeat(level)}Folder does not exist: ${folder.absolutePath}")
+            Logger.d("BackupRestore", "${"  ".repeat(level)}Folder does not exist: ${folder.absolutePath}")
             return
         }
 
-        Log.d("BackupRestore", "${"  ".repeat(level)}Folder: ${folder.name} (${folder.absolutePath})")
+        Logger.d("BackupRestore", "${"  ".repeat(level)}Folder: ${folder.name} (${folder.absolutePath})")
         folder.listFiles()?.forEach { file ->
             if (file.isFile) {
-                Log.d("BackupRestore", "${"  ".repeat(level + 1)}File: ${file.name} (${file.length()} bytes)")
+                Logger.d("BackupRestore", "${"  ".repeat(level + 1)}File: ${file.name} (${file.length()} bytes)")
             } else if (file.isDirectory) {
                 debugFolderContents(file, level + 1)
             }
@@ -811,14 +848,14 @@ class SettingsViewModel(
 
     private fun clearFolder(folder: File) {
         if (folder.exists() && folder.isDirectory) {
-            Log.d("BackupRestore", "Clearing folder: ${folder.absolutePath}")
+            Logger.d("BackupRestore", "Clearing folder: ${folder.absolutePath}")
             folder.listFiles()?.forEach { file ->
                 if (file.isFile) {
-                    Log.d("BackupRestore", "Deleting file: ${file.name}")
+                    Logger.d("BackupRestore", "Deleting file: ${file.name}")
                     file.delete()
                 } else if (file.isDirectory) {
                     clearFolder(file) // Recursive
-                    Log.d("BackupRestore", "Deleting directory: ${file.name}")
+                    Logger.d("BackupRestore", "Deleting directory: ${file.name}")
                     file.delete() // Delete empty directory
                 }
             }
@@ -830,34 +867,34 @@ class SettingsViewModel(
         zipInputStream: ZipInputStream,
         baseFolderName: String,
     ) {
-        Log.d("BackupRestore", "Restoring entry: $entryName")
+        Logger.d("BackupRestore", "Restoring entry: $entryName")
 
         // Extract relative path from entry name
         val relativePath = entryName.removePrefix("$baseFolderName/")
         val targetFile = application.filesDir / baseFolderName / relativePath
 
-        Log.d("BackupRestore", "Target file path: ${targetFile.absolutePath}")
-        Log.d("BackupRestore", "Relative path: $relativePath")
+        Logger.d("BackupRestore", "Target file path: ${targetFile.absolutePath}")
+        Logger.d("BackupRestore", "Relative path: $relativePath")
 
         // Create parent directories if they don't exist
         val parentCreated = targetFile.parentFile?.mkdirs()
-        Log.d("BackupRestore", "Parent dir created: $parentCreated, parent exists: ${targetFile.parentFile?.exists()}")
+        Logger.d("BackupRestore", "Parent dir created: $parentCreated, parent exists: ${targetFile.parentFile?.exists()}")
 
         try {
             // Restore the file content
             targetFile.outputStream().use { outputStream ->
                 val bytesWritten = zipInputStream.copyTo(outputStream)
-                Log.d("BackupRestore", "Restored file: ${targetFile.name}, bytes: $bytesWritten")
+                Logger.d("BackupRestore", "Restored file: ${targetFile.name}, bytes: $bytesWritten")
 
                 // Verify file was created
                 if (targetFile.exists()) {
-                    Log.d("BackupRestore", "File exists after restore: ${targetFile.name}, size: ${targetFile.length()}")
+                    Logger.d("BackupRestore", "File exists after restore: ${targetFile.name}, size: ${targetFile.length()}")
                 } else {
-                    Log.e("BackupRestore", "File NOT created: ${targetFile.name}")
+                    Logger.e("BackupRestore", "File NOT created: ${targetFile.name}")
                 }
             }
         } catch (e: Exception) {
-            Log.e("BackupRestore", "Error restoring file: ${targetFile.name}", e)
+            Logger.e("BackupRestore", "Error restoring file: ${targetFile.name}")
         }
     }
 
@@ -876,7 +913,7 @@ class SettingsViewModel(
                                     inputStream.copyTo(outputStream)
                                 }
                             runBlocking(Dispatchers.IO) {
-                                mainRepository.databaseDaoCheckpoint()
+                                commonRepository.databaseDaoCheckpoint()
                             }
                             FileInputStream(databasePath).use { inputStream ->
                                 outputStream.putNextEntry(ZipEntry(DB_NAME))
@@ -892,7 +929,7 @@ class SettingsViewModel(
                                     }
                                 // Backup download folder
                                 val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
-                                Log.d("BackupRestore", "=== BACKUP: Download folder contents BEFORE backup ===")
+                                Logger.d("BackupRestore", "=== BACKUP: Download folder contents BEFORE backup ===")
                                 debugFolderContents(downloadFolder)
                                 backupFolder(downloadFolder, DOWNLOAD_EXOPLAYER_FOLDER, outputStream)
                             }
@@ -912,7 +949,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun restore(uri: Uri) {
         viewModelScope.launch {
             makeToast(getString(R.string.restore_in_progress))
@@ -930,7 +966,7 @@ class SettingsViewModel(
                             var downloadFolderCleared = false
 
                             while (entry != null) {
-                                Log.d("BackupRestore", "Processing entry: ${entry.name}")
+                                Logger.d("BackupRestore", "Processing entry: ${entry.name}")
                                 when {
                                     entry.name == "$SETTINGS_FILENAME.preferences_pb" -> {
                                         (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb")
@@ -942,8 +978,8 @@ class SettingsViewModel(
 
                                     entry.name == DB_NAME -> {
                                         runBlocking(Dispatchers.IO) {
-                                            mainRepository.databaseDaoCheckpoint()
-                                            mainRepository.closeDatabase()
+                                            commonRepository.databaseDaoCheckpoint()
+                                            commonRepository.closeDatabase()
                                         }
                                         FileOutputStream(databasePath).use { outputStream ->
                                             inputStream.copyTo(outputStream)
@@ -957,15 +993,15 @@ class SettingsViewModel(
                                     }
 
                                     entry.name.startsWith("$DOWNLOAD_EXOPLAYER_FOLDER/") -> {
-                                        Log.d("BackupRestore", "Found download entry: ${entry.name}")
+                                        Logger.d("BackupRestore", "Found download entry: ${entry.name}")
                                         // Clear download folder on first encounter
                                         if (!downloadFolderCleared) {
                                             val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
-                                            Log.d("BackupRestore", "=== RESTORE: Download folder contents BEFORE clearing ===")
+                                            Logger.d("BackupRestore", "=== RESTORE: Download folder contents BEFORE clearing ===")
                                             debugFolderContents(downloadFolder)
-                                            Log.d("BackupRestore", "Clearing download folder: ${downloadFolder.absolutePath}")
+                                            Logger.d("BackupRestore", "Clearing download folder: ${downloadFolder.absolutePath}")
                                             clearFolder(downloadFolder)
-                                            Log.d("BackupRestore", "=== RESTORE: Download folder contents AFTER clearing ===")
+                                            Logger.d("BackupRestore", "=== RESTORE: Download folder contents AFTER clearing ===")
                                             debugFolderContents(downloadFolder)
                                             downloadFolderCleared = true
                                         }
@@ -973,7 +1009,7 @@ class SettingsViewModel(
                                     }
 
                                     else -> {
-                                        Log.d("BackupRestore", "Unhandled entry: ${entry.name}")
+                                        Logger.d("BackupRestore", "Unhandled entry: ${entry.name}")
                                     }
                                 }
                                 entry = inputStream.nextEntry
@@ -982,12 +1018,12 @@ class SettingsViewModel(
                     }
                     // Final debug check
                     val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
-                    Log.d("BackupRestore", "=== RESTORE: Download folder contents AFTER RESTORE ===")
+                    Logger.d("BackupRestore", "=== RESTORE: Download folder contents AFTER RESTORE ===")
                     debugFolderContents(downloadFolder)
 
                     withContext(Dispatchers.Main) {
                         makeToast(getString(R.string.restore_success))
-                        application.stopService(Intent(application, SimpleMediaService::class.java))
+                        mediaPlayerHandler.stopMediaService(application)
                         getData()
                         val ctx = application.applicationContext
                         val pm: PackageManager = ctx.packageManager
@@ -1014,11 +1050,10 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun changeLanguage(code: String) {
         viewModelScope.launch {
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
-            Log.w("SettingsViewModel", "changeLanguage: $code")
+            Logger.w("SettingsViewModel", "changeLanguage: $code")
             getLanguage()
             val localeList =
                 LocaleListCompat.forLanguageTags(
@@ -1032,7 +1067,7 @@ class SettingsViewModel(
                         code
                     },
                 )
-            Log.d("Language", localeList.toString())
+            Logger.d("Language", localeList.toString())
             AppCompatDelegate.setApplicationLocales(localeList)
         }
     }
@@ -1052,7 +1087,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun setNormalizeVolume(normalizeVolume: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setNormalizeVolume(normalizeVolume)
@@ -1083,7 +1117,6 @@ class SettingsViewModel(
         }
     }
 
-    @UnstableApi
     fun setSkipSilent(skip: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setSkipSilent(skip)
@@ -1133,38 +1166,38 @@ class SettingsViewModel(
     val googleAccounts: StateFlow<LocalResource<List<GoogleAccountEntity>>> = _googleAccounts
 
     fun getAllGoogleAccount() {
-        Log.w("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
+        Logger.w("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
         viewModelScope.launch {
             _googleAccounts.emit(LocalResource.Loading())
-            mainRepository.getGoogleAccounts().collectLatest { accounts ->
-                Log.w("getAllGoogleAccount", "getAllGoogleAccount: $accounts")
+            accountRepository.getGoogleAccounts().collectLatest { accounts ->
+                Logger.w("getAllGoogleAccount", "getAllGoogleAccount: $accounts")
                 if (!accounts.isNullOrEmpty()) {
                     _googleAccounts.emit(LocalResource.Success(accounts))
                 } else {
                     if (loggedIn.value == DataStoreManager.TRUE) {
-                        mainRepository
+                        accountRepository
                             .getAccountInfo(
                                 dataStoreManager.cookie.first(),
                             ).collect {
-                                Log.w("getAllGoogleAccount", "getAllGoogleAccount: $it")
+                                Logger.w("getAllGoogleAccount", "getAllGoogleAccount: $it")
                                 if (it != null) {
                                     dataStoreManager.putString("AccountName", it.name)
                                     dataStoreManager.putString(
                                         "AccountThumbUrl",
                                         it.thumbnails.lastOrNull()?.url ?: "",
                                     )
-                                    mainRepository
+                                    accountRepository
                                         .insertGoogleAccount(
                                             GoogleAccountEntity(
                                                 email = it.email,
                                                 name = it.name,
                                                 thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
-                                                cache = mainRepository.getYouTubeCookie(),
+                                                cache = accountRepository.getYouTubeCookie(),
                                                 isUsed = true,
                                             ),
                                         ).singleOrNull()
                                         ?.let { account ->
-                                            Log.w("getAllGoogleAccount", "inserted: $account")
+                                            Logger.w("getAllGoogleAccount", "inserted: $account")
                                         }
                                     getAllGoogleAccount()
                                 } else {
@@ -1187,19 +1220,19 @@ class SettingsViewModel(
                 dataStoreManager.setCookie(cookie)
                 dataStoreManager.setLoggedIn(true)
             }
-            return mainRepository
+            return accountRepository
                 .getAccountInfo(
                     cookie,
                 ).lastOrNull()
                 ?.let { accountInfo ->
-                    Log.d("getAllGoogleAccount", "addAccount: $accountInfo")
-                    mainRepository.getGoogleAccounts().lastOrNull()?.forEach {
-                        Log.d("getAllGoogleAccount", "set used: $it start")
-                        mainRepository
+                    Logger.d("getAllGoogleAccount", "addAccount: $accountInfo")
+                    accountRepository.getGoogleAccounts().lastOrNull()?.forEach {
+                        Logger.d("getAllGoogleAccount", "set used: $it start")
+                        accountRepository
                             .updateGoogleAccountUsed(it.email, false)
                             .singleOrNull()
                             ?.let {
-                                Log.w("getAllGoogleAccount", "set used: $it")
+                                Logger.w("getAllGoogleAccount", "set used: $it")
                             }
                     }
                     dataStoreManager.putString("AccountName", accountInfo.name)
@@ -1207,7 +1240,11 @@ class SettingsViewModel(
                         "AccountThumbUrl",
                         accountInfo.thumbnails.lastOrNull()?.url ?: "",
                     )
-                    mainRepository
+                    val cookieItem = commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL)
+                    commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (application.filesDir / "ytdlp-cookie.txt").path).let {
+                        Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
+                    }
+                    accountRepository
                         .insertGoogleAccount(
                             GoogleAccountEntity(
                                 email = accountInfo.email,
@@ -1215,6 +1252,7 @@ class SettingsViewModel(
                                 thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
                                 cache = cookie,
                                 isUsed = true,
+                                netscapeCookie = cookieItem.toNetScapeString(),
                             ),
                         ).firstOrNull()
                         ?.let {
@@ -1226,7 +1264,7 @@ class SettingsViewModel(
                     getLoggedIn()
                     true
                 } ?: run {
-                Log.w("getAllGoogleAccount", "addAccount: Account info is null")
+                Logger.w("getAllGoogleAccount", "addAccount: Account info is null")
                 runBlocking {
                     dataStoreManager.setCookie(currentCookie)
                     dataStoreManager.setLoggedIn(currentLoggedIn)
@@ -1234,7 +1272,7 @@ class SettingsViewModel(
                 false
             }
         } catch (e: Exception) {
-            Log.e("getAllGoogleAccount", "addAccount: ${e.message}", e)
+            Logger.e("getAllGoogleAccount", "addAccount: ${e.message}")
             runBlocking {
                 dataStoreManager.setCookie(currentCookie)
                 dataStoreManager.setLoggedIn(currentLoggedIn)
@@ -1247,21 +1285,24 @@ class SettingsViewModel(
         viewModelScope.launch {
             if (acc != null) {
                 googleAccounts.value.data?.forEach {
-                    mainRepository
+                    accountRepository
                         .updateGoogleAccountUsed(it.email, false)
                         .singleOrNull()
                         ?.let {
-                            Log.w("getAllGoogleAccount", "set used: $it")
+                            Logger.w("getAllGoogleAccount", "set used: $it")
                         }
                 }
                 dataStoreManager.putString("AccountName", acc.name)
                 dataStoreManager.putString("AccountThumbUrl", acc.thumbnailUrl)
-                mainRepository
+                accountRepository
                     .updateGoogleAccountUsed(acc.email, true)
                     .singleOrNull()
                     ?.let {
-                        Log.w("getAllGoogleAccount", "set used: $it")
+                        Logger.w("getAllGoogleAccount", "set used: $it")
                     }
+                acc.netscapeCookie?.let { commonRepository.writeTextToFile(it, (application.filesDir / "ytdlp-cookie.txt").path) }.let {
+                    Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
+                }
                 dataStoreManager.setCookie(acc.cache ?: "")
                 dataStoreManager.setLoggedIn(true)
                 delay(500)
@@ -1269,11 +1310,11 @@ class SettingsViewModel(
                 getLoggedIn()
             } else {
                 googleAccounts.value.data?.forEach {
-                    mainRepository
+                    accountRepository
                         .updateGoogleAccountUsed(it.email, false)
                         .singleOrNull()
                         ?.let {
-                            Log.w("getAllGoogleAccount", "set used: $it")
+                            Logger.w("getAllGoogleAccount", "set used: $it")
                         }
                 }
                 dataStoreManager.putString("AccountName", "")
@@ -1290,7 +1331,7 @@ class SettingsViewModel(
     fun logOutAllYouTube() {
         viewModelScope.launch {
             googleAccounts.value.data?.forEach { account ->
-                mainRepository.deleteGoogleAccount(account.email)
+                accountRepository.deleteGoogleAccount(account.email)
             }
             dataStoreManager.putString("AccountName", "")
             dataStoreManager.putString("AccountThumbUrl", "")

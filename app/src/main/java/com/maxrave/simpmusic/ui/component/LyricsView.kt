@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -26,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,14 +34,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
-import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.RepeatOne
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.PauseCircle
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.RepeatOne
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -87,30 +87,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.streams.TimeLine
+import com.maxrave.domain.mediaservice.handler.RepeatState
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.TimeLine
 import com.maxrave.simpmusic.viewModel.UIEvent
-import com.moriatsushi.insetsx.systemBars
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
@@ -134,7 +132,6 @@ fun LyricsView(
     @Suppress("ktlint:standard:property-naming")
     val TAG = "LyricsView"
 
-    rememberTextMeasurer()
     val localDensity = LocalDensity.current
 
     var columnHeightDp by remember {
@@ -216,7 +213,7 @@ fun LyricsView(
             val boxStart = listState.layoutInfo.viewportStartOffset
             val viewPort = boxEnd - boxStart
             val offset = viewPort / 2 - currentLineHeight / 2
-            Log.w(TAG, "Offset: $offset")
+            Logger.w(TAG, "Offset: $offset")
             listState.animateScrollAndCentralizeItem(
                 index = currentLineIndex,
                 this,
@@ -374,7 +371,6 @@ fun LyricsLineItem(
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
-@UnstableApi
 @Composable
 fun FullscreenLyricsSheet(
     sharedViewModel: SharedViewModel,
@@ -776,7 +772,7 @@ fun FullscreenLyricsSheet(
                                     Modifier
                                         .fillMaxWidth()
                                         .height(96.dp)
-                                        .padding(horizontal = 40.dp),
+                                        .padding(horizontal = 20.dp),
                             ) {
                                 FilledTonalIconButton(
                                     colors =
@@ -798,14 +794,14 @@ fun FullscreenLyricsSheet(
                                     Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
                                         if (isShuffle) {
                                             Icon(
-                                                imageVector = Icons.Filled.Shuffle,
+                                                imageVector = Icons.Rounded.Shuffle,
                                                 tint = seed, // Accent color when shuffle is ON
                                                 contentDescription = "",
                                                 modifier = Modifier.size(32.dp),
                                             )
                                         } else {
                                             Icon(
-                                                imageVector = Icons.Filled.Shuffle,
+                                                imageVector = Icons.Rounded.Shuffle,
                                                 tint = Color.White, // White when shuffle is OFF
                                                 contentDescription = "",
                                                 modifier = Modifier.size(32.dp),
@@ -833,7 +829,7 @@ fun FullscreenLyricsSheet(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Filled.SkipPrevious,
+                                        imageVector = Icons.Rounded.SkipPrevious,
                                         tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                                         contentDescription = "",
                                         modifier = Modifier.size(52.dp),
@@ -859,14 +855,14 @@ fun FullscreenLyricsSheet(
                                     Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
                                         if (!isPlaying) {
                                             Icon(
-                                                imageVector = Icons.Filled.PlayCircle,
+                                                imageVector = Icons.Rounded.PlayCircle,
                                                 tint = Color.White,
                                                 contentDescription = "",
                                                 modifier = Modifier.size(72.dp),
                                             )
                                         } else {
                                             Icon(
-                                                imageVector = Icons.Filled.PauseCircle,
+                                                imageVector = Icons.Rounded.PauseCircle,
                                                 tint = Color.White,
                                                 contentDescription = "",
                                                 modifier = Modifier.size(72.dp),
@@ -894,7 +890,7 @@ fun FullscreenLyricsSheet(
                                     },
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Filled.SkipNext,
+                                        imageVector = Icons.Rounded.SkipNext,
                                         tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                                         contentDescription = "",
                                         modifier = Modifier.size(52.dp),
@@ -921,7 +917,7 @@ fun FullscreenLyricsSheet(
                                         when (rs) {
                                             is RepeatState.None -> {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Repeat,
+                                                    imageVector = Icons.Rounded.Repeat,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier = Modifier.size(32.dp),
@@ -930,7 +926,7 @@ fun FullscreenLyricsSheet(
 
                                             RepeatState.All -> {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Repeat,
+                                                    imageVector = Icons.Rounded.Repeat,
                                                     tint = seed,
                                                     contentDescription = "",
                                                     modifier = Modifier.size(32.dp),
@@ -939,7 +935,7 @@ fun FullscreenLyricsSheet(
 
                                             RepeatState.One -> {
                                                 Icon(
-                                                    imageVector = Icons.Filled.RepeatOne,
+                                                    imageVector = Icons.Rounded.RepeatOne,
                                                     tint = seed,
                                                     contentDescription = "",
                                                     modifier = Modifier.size(32.dp),

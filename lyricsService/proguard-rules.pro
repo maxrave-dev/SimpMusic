@@ -36,3 +36,7 @@
 # However, since in this case they will not be used, we can disable these warnings
 -dontwarn kotlinx.serialization.internal.ClassValueReferences
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+
+-keep class org.simpmusic.lyrics.parser.** { *; }
+-keep class org.simpmusic.lyrics.models.** { *; }
+-keep class com.simpmusic.lyrics.parser.** { *; }

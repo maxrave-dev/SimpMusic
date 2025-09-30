@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -62,13 +61,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -79,14 +76,14 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.google.android.material.snackbar.Snackbar
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -98,12 +95,14 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ListState
 import com.maxrave.simpmusic.viewModel.PlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.PlaylistUIState
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -114,7 +113,6 @@ import org.koin.compose.koinInject
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun PlaylistScreen(
     viewModel: PlaylistViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
@@ -126,7 +124,7 @@ fun PlaylistScreen(
     val tag = "PlaylistScreen"
 
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.downloading_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
     )
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -146,8 +144,8 @@ fun PlaylistScreen(
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
-        Log.d(tag, "uiState hash: ${uiState.hashCode()}")
-        Log.d(tag, "uiState data: ${uiState.data}")
+        Logger.d(tag, "uiState hash: ${uiState.hashCode()}")
+        Logger.d(tag, "uiState data: ${uiState.data}")
     }
 
     val shouldStartPaginate =
@@ -163,14 +161,21 @@ fun PlaylistScreen(
         }
 
     LaunchedEffect(key1 = shouldStartPaginate.value) {
-        Log.d(tag, "shouldStartPaginate: ${shouldStartPaginate.value}")
-        Log.d(tag, "tracksListState: $tracksListState")
-        Log.d(tag, "Continuation: $continuation")
+        Logger.d(tag, "shouldStartPaginate: ${shouldStartPaginate.value}")
+        Logger.d(tag, "tracksListState: $tracksListState")
+        Logger.d(tag, "Continuation: $continuation")
         if (shouldStartPaginate.value && tracksListState == ListState.IDLE) {
             viewModel.getContinuationTrack(
                 playlistId,
                 continuation,
             )
+        }
+    }
+
+    val queueData by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val playingPlaylistId by remember {
+        derivedStateOf {
+            queueData?.data?.playlistId
         }
     }
 
@@ -210,7 +215,7 @@ fun PlaylistScreen(
 
     LaunchedEffect(key1 = playlistId) {
         if (playlistId != uiState.data?.id) {
-            Log.w(tag, "new id: $playlistId")
+            Logger.w(tag, "new id: $playlistId")
             viewModel.getData(playlistId)
         }
     }
@@ -249,11 +254,11 @@ fun PlaylistScreen(
     Crossfade(
         targetState = uiState,
     ) { state ->
-        Log.w(tag, "State hash: ${state.hashCode()}")
+        Logger.w(tag, "State hash: ${state.hashCode()}")
         when (state) {
             is PlaylistUIState.Success -> {
                 val data = state.data
-                Log.d(tag, "data: $data")
+                Logger.d(tag, "data: $data")
                 if (data == null) return@Crossfade
                 LazyColumn(
                     modifier =
@@ -408,12 +413,26 @@ fun PlaylistScreen(
                                                     Modifier.fillMaxWidth(),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
-                                                RippleIconButton(
-                                                    resId = R.drawable.baseline_play_circle_24,
-                                                    fillMaxSize = true,
-                                                    modifier = Modifier.size(36.dp),
-                                                ) {
-                                                    viewModel.onUIEvent(PlaylistUIEvent.PlayAll)
+                                                Crossfade(isPlaying && playingPlaylistId == data.id) { isThisPlaying ->
+                                                    if (isThisPlaying) {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_pause_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                        }
+                                                    } else {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_play_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            viewModel.onUIEvent(PlaylistUIEvent.PlayAll)
+                                                        }
+                                                    }
                                                 }
                                                 if (!data.isRadio) {
                                                     HeartCheckBox(
@@ -483,7 +502,7 @@ fun PlaylistScreen(
                                                                     resId = R.drawable.download_button,
                                                                     modifier = Modifier.size(36.dp),
                                                                 ) {
-                                                                    Log.w("PlaylistScreen", "downloadState: $downloadState")
+                                                                    Logger.w("PlaylistScreen", "downloadState: $downloadState")
                                                                     viewModel.onUIEvent(PlaylistUIEvent.Download)
                                                                 }
                                                             }
@@ -574,7 +593,7 @@ fun PlaylistScreen(
                                     track = item,
                                     onMoreClickListener = { onItemMoreClick(it) },
                                     onClickListener = {
-                                        Log.w("PlaylistScreen", "index: $index")
+                                        Logger.w("PlaylistScreen", "index: $index")
                                         onPlaylistItemClick(it)
                                     },
                                     onAddToQueue = {
@@ -590,7 +609,7 @@ fun PlaylistScreen(
                                     track = item,
                                     onMoreClickListener = { onItemMoreClick(it) },
                                     onClickListener = {
-                                        Log.w("PlaylistScreen", "index: $index")
+                                        Logger.w("PlaylistScreen", "index: $index")
                                         onPlaylistItemClick(it)
                                     },
                                     onAddToQueue = {
@@ -667,7 +686,7 @@ fun PlaylistScreen(
                     )
                 }
                 if (playlistBottomSheetShow) {
-                    Log.w("PlaylistScreen", "PlaylistBottomSheet")
+                    Logger.w("PlaylistScreen", "PlaylistBottomSheet")
                     val addToQueue = {
                         viewModel.getFullTracks { track ->
                             sharedViewModel.addListToQueue(
@@ -742,13 +761,7 @@ fun PlaylistScreen(
             }
 
             is PlaylistUIState.Error -> {
-                Snackbar
-                    .make(
-                        context,
-                        LocalView.current,
-                        "Error: ${state.message}",
-                        Snackbar.LENGTH_SHORT,
-                    ).show()
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
                 navController.navigateUp()
             }
         }

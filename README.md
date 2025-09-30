@@ -103,6 +103,14 @@ sometimes, some songs or videos get the wrong lyrics
 We're looking for more contributors, all contributions are welcome!
 See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/CODE_OF_CONDUCT.md)
 
+ ## Showcase
+This project is following clean architecture and MVVM pattern (in UI, app module).
+
+ ### Dependencies graph
+  <p float="left">        
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/dependencies_graph.svg?raw=true" width="800"> 
+  </p>
+
  ## Support & Donations 
  #### Special thanks to all supporter ❤️    
  <div align="left"> 

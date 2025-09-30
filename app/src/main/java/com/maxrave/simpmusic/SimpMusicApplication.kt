@@ -3,7 +3,6 @@ package com.maxrave.simpmusic
 import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.media3.common.util.UnstableApi
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import cat.ereza.customactivityoncrash.config.CaocConfig
@@ -15,8 +14,8 @@ import coil3.request.CachePolicy
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import com.maxrave.simpmusic.di.databaseModule
-import com.maxrave.simpmusic.di.mediaServiceModule
+import com.maxrave.data.di.loader.loadAllModules
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.theme.newDiskCache
@@ -24,6 +23,7 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
+import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
@@ -50,7 +50,6 @@ class SimpMusicApplication :
             .crossfade(true)
             .build()
 
-    @UnstableApi
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -58,11 +57,8 @@ class SimpMusicApplication :
         startKoin {
             androidLogger(level = Level.DEBUG)
             androidContext(this@SimpMusicApplication)
-            modules(
-                databaseModule,
-                mediaServiceModule,
-                viewModelModule,
-            )
+            loadAllModules()
+            loadKoinModules(viewModelModule)
         }
         // provide custom configuration
         val workConfig =
@@ -91,6 +87,9 @@ class SimpMusicApplication :
     override fun onTerminate() {
         super.onTerminate()
 
-        Log.w("Terminate", "Checking")
+        Logger.w("Terminate", "Checking")
     }
 }
+
+typealias AppResString = R.string
+typealias CommonResString = com.maxrave.common.R.string

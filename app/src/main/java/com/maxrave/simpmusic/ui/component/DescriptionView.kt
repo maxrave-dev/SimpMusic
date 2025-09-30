@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.clickable
@@ -27,7 +26,8 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.typo
 
 @Composable
@@ -107,24 +107,24 @@ fun DescriptionView(
                         detectTapGestures { offset ->
                             layoutResult?.let { layoutResult ->
                                 val position = layoutResult.getOffsetForPosition(offset)
-                                Log.w("DescriptionView", "Position: $position")
+                                Logger.w("DescriptionView", "Position: $position")
                                 annotatedString
                                     .toAnnotatedString()
                                     .getStringAnnotations(
                                         start = position,
                                         end = position,
                                     ).firstOrNull { annotation ->
-                                        Log.w("DescriptionView", "Annotation: ${annotation.tag}")
+                                        Logger.w("DescriptionView", "Annotation: ${annotation.tag}")
                                         annotation.tag.startsWith("CLICKABLE_USER_")
                                     }?.let { annotation ->
                                         when (annotation.tag) {
                                             "CLICKABLE_USER_TIME" -> {
-                                                Log.w("DescriptionView", "Time clicked: ${annotation.item}")
+                                                Logger.w("DescriptionView", "Time clicked: ${annotation.item}")
                                                 onTimeClicked(annotation.item)
                                             }
 
                                             "CLICKABLE_USER_URL" -> {
-                                                Log.w("DescriptionView", "URL clicked: ${annotation.item}")
+                                                Logger.w("DescriptionView", "URL clicked: ${annotation.item}")
                                                 onURLClicked(annotation.item)
                                             }
                                         }

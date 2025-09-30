@@ -62,17 +62,19 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
-    implementation(libs.material)
     implementation(libs.androidx.ui.text.android)
     implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
 
+    implementation(project(":common"))
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.encoding)
     implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.logging)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.xml)
@@ -87,12 +89,12 @@ dependencies {
     implementation(libs.ksoup.entities)
     implementation(libs.smart.exception)
 
-    implementation(libs.newpipe.extractor)
-
     implementation(project(mapOf("path" to ":youtubeapi")))
     implementation(project(mapOf("path" to ":sharedutils")))
     api(project(":ffmpeg-kit"))
-//    implementation(libs.ytdlp.android)
+    implementation(libs.newpipe.extractor)
+
+    implementation(libs.ytdlp.android)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

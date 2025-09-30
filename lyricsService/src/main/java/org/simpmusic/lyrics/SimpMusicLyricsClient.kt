@@ -1,7 +1,7 @@
 package org.simpmusic.lyrics
 
 import android.content.Context
-import android.util.Log
+import com.maxrave.logger.Logger
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import org.simpmusic.lyrics.models.request.LyricsBody
@@ -136,7 +136,7 @@ class SimpMusicLyricsClient(
             val data = body<BaseResponse<T>>()
             if (data.error != null) {
                 val error = data.error
-                Log.e(TAG, "Error response: ${error.reason} (code: ${error.code})")
+                Logger.e(TAG, "Error response: ${error.reason} (code: ${error.code})")
                 throw Exception("Error response: ${error.reason} (code: ${error.code})")
             }
             return data.data ?: throw Exception("Response data is null")

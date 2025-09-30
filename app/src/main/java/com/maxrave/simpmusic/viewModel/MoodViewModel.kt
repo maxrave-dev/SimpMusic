@@ -1,12 +1,13 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
-import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.domain.data.model.mood.moodmoments.MoodsMomentObject
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.repository.HomeRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,9 +17,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-@UnstableApi
 class MoodViewModel(
     application: Application,
+    dataStoreManager: DataStoreManager,
+    private val homeRepository: HomeRepository,
 ) : BaseViewModel(application) {
     private val _moodsMomentObject: MutableStateFlow<MoodsMomentObject?> = MutableStateFlow(null)
     var moodsMomentObject: StateFlow<MoodsMomentObject?> = _moodsMomentObject
@@ -38,8 +40,8 @@ class MoodViewModel(
 //            mainRepository.getMood(params, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
 //                _moodsMomentObject.value = values
 //            }
-            mainRepository.getMoodData(params).collect { values ->
-                Log.w("MoodViewModel", "getMood: $values")
+            homeRepository.getMoodData(params).collect { values ->
+                Logger.w("MoodViewModel", "getMood: $values")
                 when (values) {
                     is Resource.Success -> {
                         _moodsMomentObject.value = values.data

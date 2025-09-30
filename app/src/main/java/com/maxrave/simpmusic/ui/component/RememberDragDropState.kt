@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -23,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
+import com.maxrave.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -145,7 +145,7 @@ class DragDropState internal constructor(
     fun onDragInterrupted(end: Boolean = false) {
         currentSwapFromTo?.let { (from, to) ->
             if (from != to && from >= 0 && to >= 0 && end) {
-                Log.w("QueueBottomSheet", "onDragInterrupted: $from, $to")
+                Logger.w("QueueBottomSheet", "onDragInterrupted: $from, $to")
                 onSwap(from, to)
             }
             currentIndexOfDraggedItem = to
@@ -181,7 +181,7 @@ class DragDropState internal constructor(
                     .filterNot { item -> item.offsetEnd < startOffset || item.offset > endOffset || hovered.index == item.index }
                     .apply {
                         forEach { item ->
-                            Log.w("QueueBottomSheet", "onDrag: ${item.index}")
+                            Logger.w("QueueBottomSheet", "onDrag: ${item.index}")
                         }
                     }.firstOrNull { item ->
                         val delta = (startOffset - hovered.offset)

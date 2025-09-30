@@ -6,12 +6,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.navigation.safeargs)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.aboutlibraries)
-    alias(libs.plugins.room)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.sentry.gradle)
 }
 
@@ -19,7 +15,7 @@ kotlin {
     jvmToolchain(17) // or appropriate version
     compilerOptions {
         freeCompilerArgs.add("-Xwhen-guards")
-        freeCompilerArgs.add("-Xcontext-receivers")
+        freeCompilerArgs.add("-Xcontext-parameters")
         freeCompilerArgs.add("-Xmulti-dollar-interpolation")
     }
 }
@@ -29,10 +25,6 @@ android {
 
     namespace = "com.maxrave.simpmusic"
     compileSdk = 36
-
-    room {
-        schemaDirectory("$projectDir/schemas")
-    }
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
@@ -127,6 +119,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                "consumer-rules.pro",
                 "proguard-rules.pro",
             )
             splits {
@@ -215,10 +208,12 @@ dependencies {
     implementation(libs.compose.ui.viewbinding)
     implementation(libs.constraintlayout.compose)
 
-    // Android Studio Preview support
+    implementation(libs.glance)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
+
     implementation(libs.ui.tooling.preview)
     implementation(libs.activity.compose)
-    // Optional - Integration with ViewModels
     implementation(libs.lifecycle.viewmodel.compose)
 
     implementation(libs.lifecycle.runtime.ktx)
@@ -228,55 +223,28 @@ dependencies {
     implementation(libs.work.runtime.ktx)
     androidTestImplementation(libs.work.testing)
 
-    // Material Design 3
-    implementation(libs.material)
     // Runtime
     implementation(libs.startup.runtime)
+    implementation(project(":common"))
     // Other module
-    implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
-    implementation(project(mapOf("path" to ":spotify")))
-    implementation(project(mapOf("path" to ":aiService")))
-    implementation(project(mapOf("path" to ":sharedutils")))
-    implementation(project(mapOf("path" to ":lyricsService")))
+    implementation(project(":domain"))
+    implementation(project(":data"))
+    implementation(project(":media3-ui"))
 
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
     debugImplementation(libs.ui.tooling)
 
     // ExoPlayer
-    implementation(libs.media3.exoplayer)
-    implementation(libs.media3.ui)
-    implementation(libs.media3.compose)
-    implementation(libs.media3.session)
-    implementation(libs.media3.exoplayer.dash)
-    implementation(libs.media3.exoplayer.hls)
-    implementation(libs.media3.exoplayer.rtsp)
-    implementation(libs.media3.exoplayer.smoothstreaming)
-    implementation(libs.media3.exoplayer.workmanager)
-    implementation(libs.media3.datasource.okhttp)
-    implementation(libs.okhttp3.logging.interceptor)
 
-    // Palette Color
-    implementation(libs.palette.ktx)
-    // Expandable Text View
-    implementation(libs.expandable.text)
-
-    implementation(libs.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
 
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
     // Legacy Support
     implementation(libs.legacy.support.v4)
     // Coroutines
     implementation(libs.coroutines.android)
-    implementation(libs.coroutines.guava)
-    // Navigation
-    implementation(libs.navigation.fragment.ktx)
-    implementation(libs.navigation.ui.ktx)
 
     // Navigation Compose
     implementation(libs.navigation.compose)
@@ -290,22 +258,12 @@ dependencies {
     implementation(libs.kmpalette.core)
     // Easy Permissions
     implementation(libs.easypermissions)
-    // Palette Color
-    implementation(libs.palette.ktx)
 
     // Preference
     implementation(libs.preference.ktx)
 
-    // Fragment KTX
-    implementation(libs.fragment.ktx)
-    ksp(libs.kotlinx.metadata.jvm)
     // DataStore
     implementation(libs.datastore.preferences)
-    // Swipe To Refresh
-    implementation(libs.swiperefreshlayout)
-    // Insetter
-    implementation(libs.insetter)
-    implementation(libs.insetter.dbx)
 
     // Lottie
     implementation(libs.lottie)
@@ -321,20 +279,13 @@ dependencies {
     implementation(libs.aboutlibraries)
     implementation(libs.aboutlibraries.compose.m3)
 
-    implementation(libs.flexbox)
     implementation(libs.balloon)
-
-    // InsetsX
-    implementation(libs.insetsx)
 
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
-
-    // Store5
-    implementation(libs.store)
 
     // Jetbrains Markdown
     api(libs.markdown)
@@ -345,6 +296,8 @@ dependencies {
 
     fullImplementation(libs.sentry.android)
 
+    implementation(libs.liquid.glass)
+
 //    debugImplementation(libs.leak.canary)
 }
 /**
@@ -353,7 +306,7 @@ dependencies {
  ./gradlew :app:exportLibraryDefinitions --no-daemon --no-configuration-cache --no-build-cache
  **/
 aboutLibraries {
-    android.registerAndroidTasks = false
+    android.registerAndroidTasks = true
     export {
         exportVariant = "fullRelease"
         prettyPrint = true

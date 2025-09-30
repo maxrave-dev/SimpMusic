@@ -3,12 +3,13 @@ package com.maxrave.kotlinytmusicscraper
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
-import android.util.Log
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.liskovsoft.sharedutils.prefs.GlobalPreferences
 import com.liskovsoft.youtubeapi.app.AppService
-import com.liskovsoft.youtubeapi.service.internal.MediaServiceData
+import com.liskovsoft.youtubeapi.videoinfo.V2.VideoInfoService
 import com.maxrave.kotlinytmusicscraper.YouTube.Companion.DEFAULT_VISITOR_DATA
 import com.maxrave.kotlinytmusicscraper.extension.toListFormat
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
@@ -83,7 +84,7 @@ import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
 import com.maxrave.kotlinytmusicscraper.utils.NewPipeDownloaderImpl
 import com.maxrave.kotlinytmusicscraper.utils.NewPipeUtils
 import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.NewPipePoTokenProviderImpl
-import com.maxrave.kotlinytmusicscraper.utils.poTokenUtils.PoTokenGenerator
+import com.maxrave.logger.Logger
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
@@ -103,18 +104,24 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.CacheControl
 import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import okio.FileSystem
 import okio.IOException
 import okio.Path
 import okio.Path.Companion.toPath
 import org.json.JSONArray
 import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.random.Random
+
+private const val TAG = "YouTubeScraper"
 
 /**
  * Special thanks to [z-huang/InnerTune](https://github.com/z-huang/InnerTune)
@@ -127,7 +134,7 @@ import kotlin.random.Random
 class YouTube(
     private val context: Context,
 ) {
-    private val ytMusic = Ytmusic()
+    private val ytMusic = Ytmusic(context)
 
     private var newPipeDownloader = NewPipeDownloaderImpl(proxy = null)
     private var newPipeUtils = NewPipeUtils(newPipeDownloader)
@@ -137,6 +144,7 @@ class YouTube(
             downloader = newPipeDownloader,
         )
     private val mAppService = AppService.instance()
+    private val mVideoInfoService = VideoInfoService.instance()
 
     var cachePath: File?
         get() = ytMusic.cachePath
@@ -192,15 +200,16 @@ class YouTube(
     var cookie: String?
         get() = ytMusic.cookie
         set(value) {
-            newPipeDownloader = NewPipeDownloaderImpl(proxy = ytMusic.proxy, cookie = cookie)
-            newPipeUtils = NewPipeUtils(newPipeDownloader)
-            poTokenGenerator =
-                NewPipePoTokenProviderImpl(
-                    context = context,
-                    downloader = newPipeDownloader,
-                )
             ytMusic.cookie = value
         }
+
+    fun updateYtdlp() {
+        runCatching {
+            ytMusic.updateYtdlp()
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
 
     /**
      * Json deserializer for PO token request
@@ -228,13 +237,6 @@ class YouTube(
      */
     fun removeProxy() {
         ytMusic.proxy = null
-        newPipeDownloader = NewPipeDownloaderImpl(proxy = null, cookie = cookie)
-        newPipeUtils = NewPipeUtils(newPipeDownloader)
-        poTokenGenerator =
-            NewPipePoTokenProviderImpl(
-                context = context,
-                downloader = newPipeDownloader,
-            )
     }
 
     /**
@@ -249,16 +251,39 @@ class YouTube(
             if (isHttp) ProxyBuilder.http("$host:$port") else ProxyBuilder.socks(host, port)
         }.onSuccess {
             ytMusic.proxy = it
-            newPipeDownloader = NewPipeDownloaderImpl(proxy = it, cookie = cookie)
-            newPipeUtils = NewPipeUtils(newPipeDownloader)
-            poTokenGenerator =
-                NewPipePoTokenProviderImpl(
-                    context = context,
-                    downloader = newPipeDownloader,
-                )
         }.onFailure {
             it.printStackTrace()
         }
+    }
+
+    fun setUpInterceptors(context: Context) {
+        cacheControlInterceptor =
+            object : Interceptor {
+                override fun intercept(chain: Interceptor.Chain): Response {
+                    val originalResponse = chain.proceed(chain.request())
+                    if (isNetworkAvailable(context)) {
+                        val maxAge = 60 // read from cache for 1 minute
+                        return originalResponse
+                            .newBuilder()
+                            .header("Cache-Control", "public, max-age=$maxAge")
+                            .build()
+                    } else {
+                        val maxStale = 60 * 60 * 24 * 28 // tolerate 4-weeks stale
+                        return originalResponse
+                            .newBuilder()
+                            .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
+                            .build()
+                    }
+                }
+            }
+        forceCacheInterceptor =
+            Interceptor { chain ->
+                val builder: Request.Builder = chain.request().newBuilder()
+                if (!isNetworkAvailable(context)) {
+                    builder.cacheControl(CacheControl.FORCE_CACHE)
+                }
+                chain.proceed(builder.build())
+            }
     }
 
     private val listPipedInstances =
@@ -524,7 +549,7 @@ class YouTube(
                 description += run.text
             }
         }
-        Log.d("description", description)
+        Logger.d("description", description)
         return description
     }
 
@@ -560,7 +585,7 @@ class YouTube(
                     ArtistPage
                         .fromSectionListRendererContent(content.get(i))
                         ?.let { artistSections.add(it) }
-                    println("Section $i checking \n artistSection ${artistSections.lastOrNull()}")
+                    Logger.d(TAG, "Section $i checking \n artistSection ${artistSections.lastOrNull()}")
                 }
             }
             return@runCatching artistSections
@@ -694,7 +719,7 @@ class YouTube(
                         if (playlistId.startsWith("VL")) playlistId else "VL$playlistId",
                     ).body<BrowseResponse>()
             var continuation = initialResponse.getPlaylistContinuation()
-            println("YouTube: getSuggestionsTrackForPlaylist: $continuation")
+            Logger.d(TAG, "YouTube: getSuggestionsTrackForPlaylist: $continuation")
             while (continuation != null) {
                 val continuationResponse =
                     ytMusic
@@ -704,7 +729,7 @@ class YouTube(
                             params = "wAEB",
                             continuation = continuation,
                         ).body<BrowseResponse>()
-                println("YouTube: getSuggestionsTrackForPlaylist: ${continuationResponse.getReloadParams()}")
+                Logger.d(TAG, "YouTube: getSuggestionsTrackForPlaylist: ${continuationResponse.getReloadParams()}")
                 if (continuationResponse.hasReloadParams()) {
                     return@runCatching Pair(continuationResponse.getReloadParams(), continuationResponse.getSuggestionSongItems())
                 } else {
@@ -926,11 +951,6 @@ class YouTube(
         runCatching {
             val response =
                 ytMusic.browse(WEB_REMIX, browseId = "FEmusic_new_releases").body<BrowseResponse>()
-            println(response)
-//        response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer?.items
-//            ?.mapNotNull { it.musicTwoRowItemRenderer }
-//            ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer)
-//            .orEmpty()
             ExplorePage(
                 released =
                     response.contents
@@ -1061,7 +1081,7 @@ class YouTube(
                             super.onText(text)
                             if (text.contains("var ytInitialPlayerResponse")) {
                                 val temp = text.replace("var ytInitialPlayerResponse = ", "").dropLast(1)
-                                Log.d("Scrape", "Temp $temp")
+                                Logger.d("Scrape", "Temp $temp")
                                 response = temp.trimIndent()
                             }
                         }
@@ -1094,7 +1114,7 @@ class YouTube(
                     ?.likeButtonRenderer
                     ?.likeStatus
                     ?.toLikeStatus()
-            Log.w("YouTube", "Like Status ${response.playerOverlays}")
+            Logger.w("YouTube", "Like Status ${response.playerOverlays}")
             return@runCatching likeStatus ?: LikeStatus.INDIFFERENT
         }
 
@@ -1205,7 +1225,7 @@ class YouTube(
                     ?.params
                     ?.find { it.key == "logged_in" }
                     ?.value == "1"
-            println("Logged In $loggedIn")
+            Logger.d(TAG, "Logged In $loggedIn")
             val visitorData =
                 ytInitialPlayerResponse.responseContext.serviceTrackingParams
                     ?.find { it.service == "GFEEDBACK" }
@@ -1215,9 +1235,9 @@ class YouTube(
                     ?: ytInitialData.responseContext.webResponseContextExtensionData
                         ?.ytConfigData
                         ?.visitorData
-            println("Visitor Data $visitorData")
-            println("New Cookie $cookie")
-            println("Playback Tracking $playbackTracking")
+            Logger.d(TAG, "Visitor Data $visitorData")
+            Logger.d(TAG, "New Cookie $cookie")
+            Logger.d(TAG, "Playback Tracking $playbackTracking")
             return Triple(cookie, visitorData ?: this@YouTube.visitorData ?: "", playbackTracking)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1225,57 +1245,23 @@ class YouTube(
         }
     }
 
-    suspend fun smartTubePlayer(
+    suspend fun ytDlpPlayer(
         videoId: String,
-        playlistId: String? = null,
-        cpn: String,
-        client: YouTubeClient,
+        tempRes: PlayerResponse,
     ): PlayerResponse? {
-        var webPlayerPot = ""
         val listUrlSig = mutableListOf<String>()
-        var decodedSigResponse: PlayerResponse? = null
+        var decodedSigResponse: PlayerResponse?
         var sigResponse: PlayerResponse?
-        try {
-            if (GlobalPreferences.sInstance == null) {
-                GlobalPreferences.instance(context)
-            }
-            val mediaServiceData = MediaServiceData.instance()
-            mediaServiceData.visitorCookie = cookie
-            mAppService.resetClientPlaybackNonce()
-            mAppService.clientPlaybackNonce?.let {
-                println("Client playback nonce $it")
-            }
-            mAppService.refreshCacheIfNeeded()
-            mAppService.refreshPoTokenIfNeeded()
-            webPlayerPot = mAppService.sessionPoToken
-            println("YouTube poToken $webPlayerPot")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        val sigTimestamp =
-            try {
-                mAppService.signatureTimestamp?.toInt()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        listUrlSig.removeAll(listUrlSig)
-        println("YouTube Client $client")
-        val tempRes =
-            ytMusic
-                .player(
-                    client,
-                    videoId,
-                    playlistId,
-                    cpn,
-                    signatureTimestamp = sigTimestamp,
-                    poToken = webPlayerPot,
-                ).body<PlayerResponse>()
-        println("YouTube TempRes ${tempRes.playabilityStatus}")
+        Logger.d(TAG, "YouTube TempRes ${tempRes.playabilityStatus}")
         if (tempRes.playabilityStatus.status != "OK") {
             return null
         } else {
             sigResponse = tempRes
+        }
+        val streamInfo = ytMusic.ytdlpGetStreamUrl(videoId, null, "tv", poTokenJsonDeserializer) ?: return null
+        val streamsList = streamInfo.formats.takeIf { !it.isNullOrEmpty() } ?: return null
+        streamsList.forEach {
+            Logger.d(TAG, "YouTube Ytdlp Stream ${it?.formatId} ${it?.url}")
         }
         decodedSigResponse =
             sigResponse.copy(
@@ -1284,27 +1270,13 @@ class YouTube(
                         formats =
                             sigResponse.streamingData.formats?.map { format ->
                                 format.copy(
-                                    url =
-                                        format.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                            if (webPlayerPot.isNotEmpty() && client.clientName.contains("WEB")) {
-                                                "$url&pot=$webPlayerPot"
-                                            } else {
-                                                url
-                                            }
-                                        },
+                                    url = streamsList.find { it?.formatId == format.itag.toString() }?.url,
                                 )
                             },
                         adaptiveFormats =
                             sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
                                 adaptiveFormats.copy(
-                                    url =
-                                        adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(it) }?.let { url ->
-                                            if (webPlayerPot.isNotEmpty() && client.clientName.contains("WEB")) {
-                                                "$url&pot=$webPlayerPot"
-                                            } else {
-                                                url
-                                            }
-                                        },
+                                    url = streamsList.find { it?.formatId == adaptiveFormats.itag.toString() }?.url,
                                 )
                             },
                     ),
@@ -1324,7 +1296,86 @@ class YouTube(
                     ?.let { addAll(it) }
             },
         )
-        println("YouTube URL ${decodedSigResponse.streamingData?.formats?.mapNotNull { it.url }}")
+        listUrlSig.forEach {
+            Logger.d(TAG, "YouTube Ytdlp URL $it")
+        }
+        val randomUrl = listUrlSig.randomOrNull() ?: return null
+        if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
+            Logger.d(TAG, "YouTube Ytdlp Found URL $randomUrl")
+            return decodedSigResponse
+        } else {
+            Logger.d(TAG, "YouTube Ytdlp No URL Found")
+            return null
+        }
+    }
+
+    suspend fun smartTubePlayer(
+        videoId: String,
+        tempRes: PlayerResponse,
+    ): PlayerResponse? {
+        try {
+            if (GlobalPreferences.sInstance == null) {
+                GlobalPreferences.instance(context)
+            }
+            mAppService.resetClientPlaybackNonce()
+            mAppService.refreshCacheIfNeeded()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        val listUrlSig = mutableListOf<String>()
+        var decodedSigResponse: PlayerResponse?
+        var sigResponse: PlayerResponse?
+        listUrlSig.removeAll(listUrlSig)
+        Logger.d(TAG, "YouTube TempRes ${tempRes.playabilityStatus}")
+        if (tempRes.playabilityStatus.status != "OK") {
+            return null
+        } else {
+            sigResponse = tempRes
+        }
+        val videoInfo = mVideoInfoService.getVideoInfo(videoId, "")
+
+        val streamsList =
+            (videoInfo?.adaptiveFormats ?: emptyList()) +
+                (videoInfo?.regularFormats ?: emptyList()) +
+                (videoInfo?.restrictedFormats ?: emptyList())
+        streamsList.forEach {
+            Logger.d(TAG, "YouTube SmartTube Audio Stream ${it.iTag} ${it.url}")
+        }
+
+        decodedSigResponse =
+            sigResponse.copy(
+                streamingData =
+                    sigResponse.streamingData?.copy(
+                        formats =
+                            sigResponse.streamingData.formats?.map { format ->
+                                format.copy(
+                                    url = streamsList.find { it.iTag == format.itag }?.url,
+                                )
+                            },
+                        adaptiveFormats =
+                            sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                adaptiveFormats.copy(
+                                    url = streamsList.find { it.iTag == adaptiveFormats.itag }?.url,
+                                )
+                            },
+                    ),
+            )
+        listUrlSig.addAll(
+            (
+                decodedSigResponse
+                    .streamingData
+                    ?.adaptiveFormats
+                    ?.mapNotNull { it.url }
+                    ?.toMutableList() ?: mutableListOf()
+            ).apply {
+                decodedSigResponse
+                    .streamingData
+                    ?.formats
+                    ?.mapNotNull { it.url }
+                    ?.let { addAll(it) }
+            },
+        )
+        Logger.d(TAG, "YouTube URL ${decodedSigResponse.streamingData?.formats?.mapNotNull { it.url }}")
         val listFormat =
             (
                 decodedSigResponse
@@ -1340,36 +1391,26 @@ class YouTube(
                 )
             }
         listFormat.forEach {
-            println("YouTube Format ${it.first} ${it.second}")
+            Logger.d(TAG, "YouTube Format ${it.first} ${it.second}")
         }
         val randomUrl = listUrlSig.randomOrNull() ?: return null
         if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
-            println("YouTube SmartTube Found URL $randomUrl")
+            Logger.d(TAG, "YouTube SmartTube Found URL $randomUrl")
             return decodedSigResponse
         } else {
-            println("YouTube SmartTube No URL Found")
+            Logger.d(TAG, "YouTube SmartTube No URL Found")
             return null
         }
     }
 
     suspend fun newPipePlayer(
         videoId: String,
-        playlistId: String? = null,
-        cpn: String,
+        tempRes: PlayerResponse,
     ): PlayerResponse? {
         val listUrlSig = mutableListOf<String>()
         var decodedSigResponse: PlayerResponse?
         var sigResponse: PlayerResponse?
-        val tempRes =
-            ytMusic
-                .player(
-                    WEB,
-                    videoId,
-                    playlistId,
-                    cpn,
-                    signatureTimestamp = newPipeUtils.getSignatureTimestamp(videoId).getOrNull(),
-                ).body<PlayerResponse>()
-        println("YouTube TempRes ${tempRes.playabilityStatus}")
+        Logger.d(TAG, "YouTube TempRes ${tempRes.playabilityStatus}")
         if (tempRes.playabilityStatus.status != "OK") {
             return null
         } else {
@@ -1378,7 +1419,7 @@ class YouTube(
         val streamInfo = StreamInfo.getInfo(NewPipe.getService(0), "https://www.youtube.com/watch?v=$videoId")
         val streamsList = streamInfo.audioStreams + streamInfo.videoStreams + streamInfo.videoOnlyStreams
         streamsList.forEach {
-            println("YouTube NewPipe Audio Stream ${it.itagItem?.id} ${it.content}")
+            Logger.d(TAG, "YouTube NewPipe Audio Stream ${it.itagItem?.id} ${it.content}")
         }
         decodedSigResponse =
             sigResponse.copy(
@@ -1414,14 +1455,14 @@ class YouTube(
             },
         )
         listUrlSig.forEach {
-            println("YouTube NewPipe URL $it")
+            Logger.d(TAG, "YouTube NewPipe URL $it")
         }
         val randomUrl = listUrlSig.randomOrNull() ?: return null
         if (listUrlSig.isNotEmpty() && !is403Url(randomUrl)) {
-            println("YouTube NewPipe Found URL $randomUrl")
+            Logger.d(TAG, "YouTube NewPipe Found URL $randomUrl")
             return decodedSigResponse
         } else {
-            println("YouTube NewPipe No URL Found")
+            Logger.d(TAG, "YouTube NewPipe No URL Found")
             return null
         }
     }
@@ -1431,6 +1472,7 @@ class YouTube(
     suspend fun player(
         videoId: String,
         playlistId: String? = null,
+        shouldYtdlp: Boolean = false,
     ): Result<Triple<String?, PlayerResponse, MediaType>> =
         runCatching {
             val cpn =
@@ -1448,15 +1490,29 @@ class YouTube(
             var decodedSigResponse: PlayerResponse? = null
             var currentClient: YouTubeClient
             for (client in listClients) {
+                val tempRes =
+                    ytMusic
+                        .player(
+                            WEB_REMIX,
+                            videoId,
+                            playlistId,
+                            cpn,
+//                            signatureTimestamp = YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId),
+//                            poToken = getWebClientPoTokenOrNull(videoId)?.streamingDataPoToken,
+                        ).body<PlayerResponse>()
                 val response =
-                    smartTubePlayer(videoId, playlistId, cpn, client) ?: newPipePlayer(videoId, playlistId, cpn)
+                    if (shouldYtdlp) {
+                        ytDlpPlayer(videoId, tempRes)
+                    } else {
+                        smartTubePlayer(videoId, tempRes) ?: newPipePlayer(videoId, tempRes)
+                    }
                 if (response != null) {
                     decodedSigResponse = response
                     currentClient = client
-                    println("YouTube Player found URL with client ${currentClient.clientName}")
+                    Logger.d(TAG, "YouTube Player found URL with client ${currentClient.clientName}")
                     break
                 } else {
-                    println("YouTube Player no URL found with client ${client.clientName}")
+                    Logger.d(TAG, "YouTube Player no URL found with client ${client.clientName}")
                 }
             }
             if (decodedSigResponse == null) {
@@ -1464,7 +1520,7 @@ class YouTube(
                 val now = System.currentTimeMillis()
                 val poToken =
                     if (now < poTokenObject.second) {
-                        println("Use saved PoToken")
+                        Logger.d(TAG, "Use saved PoToken")
                         poTokenObject.first
                     } else {
                         ytMusic
@@ -1481,11 +1537,11 @@ class YouTube(
                                 }
                             }
                     }
-                println("PoToken $poToken")
+                Logger.d(TAG, "PoToken $poToken")
                 val playerResponse = ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
-                println("Player Response $playerResponse")
-                println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
-                println("Player Response status: ${playerResponse.playabilityStatus.status}")
+                Logger.d(TAG, "Player Response $playerResponse")
+                Logger.d(TAG, "Thumbnails " + playerResponse.videoDetails?.thumbnail)
+                Logger.d(TAG, "Player Response status: ${playerResponse.playabilityStatus.status}")
                 val firstThumb =
                     playerResponse.videoDetails
                         ?.thumbnail
@@ -1494,9 +1550,9 @@ class YouTube(
                 val thumbnails =
                     if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
                 val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
-                println("Player Response formatList $formatList")
+                Logger.d(TAG, "Player Response formatList $formatList")
                 val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
-                println("Player Response adaptiveFormat $adaptiveFormatsList")
+                Logger.d(TAG, "Player Response adaptiveFormat $adaptiveFormatsList")
                 val randomUrl =
                     playerResponse.streamingData
                         ?.formats
@@ -1506,7 +1562,7 @@ class YouTube(
                             ?.adaptiveFormats
                             ?.randomOrNull()
                             ?.url
-                println("Player Response randomUrl $randomUrl")
+                Logger.d(TAG, "Player Response randomUrl $randomUrl")
 
                 if (playerResponse.playabilityStatus.status == "OK" &&
                     (formatList != null || adaptiveFormatsList != null) &&
@@ -1522,7 +1578,7 @@ class YouTube(
                         thumbnails,
                     )
                 } else {
-                    println("Player Response is not OK or formatList is null or randomUrl is null")
+                    Logger.d(TAG, "Player Response is not OK or formatList is null or randomUrl is null")
                     for (instance in listPipedInstances) {
                         try {
                             val piped = ytMusic.pipedStreams(videoId, instance).body<PipedResponse>()
@@ -1618,7 +1674,7 @@ class YouTube(
             val watchtime = watchtimeList.dropLast(1).takeLast(2).joinToString(",")
             ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to watchtime, "et" to et), playlistId).status.value.let { status ->
                 if (status == 204) {
-                    println("watchtime done")
+                    Logger.d(TAG, "watchtime done")
                 }
                 return@runCatching status
             }
@@ -1637,10 +1693,10 @@ class YouTube(
                     ?.groupValues
                     ?.firstOrNull()
                     ?.drop(4) ?: "0"
-            println(length)
+            Logger.d(TAG, length)
             ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to length, "et" to length), playlistId).status.value.let { status ->
                 if (status == 204) {
-                    println("watchtime full done")
+                    Logger.d(TAG, "watchtime full done")
                 }
                 return@runCatching status
             }
@@ -1659,20 +1715,20 @@ class YouTube(
         cpn: String,
         playlistId: String?,
     ): Result<Pair<Int, Float>> {
-        println("playbackUrl $playbackUrl")
-        println("atrUrl $atrUrl")
-        println("watchtimeUrl $watchtimeUrl")
+        Logger.d(TAG, "playbackUrl $playbackUrl")
+        Logger.d(TAG, "atrUrl $atrUrl")
+        Logger.d(TAG, "watchtimeUrl $watchtimeUrl")
         return runCatching {
             ytMusic.initPlayback(playbackUrl, cpn, null, playlistId).status.value.let { status ->
                 if (status == 204) {
-                    println("playback done")
+                    Logger.d(TAG, "playback done")
                     ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to "0", "et" to "5.54"), playlistId).status.value.let { firstWatchTime ->
                         if (firstWatchTime == 204) {
-                            println("first watchtime done")
+                            Logger.d(TAG, "first watchtime done")
                             delay(5000)
                             ytMusic.atr(atrUrl, cpn, null, playlistId).status.value.let { atr ->
                                 if (atr == 204) {
-                                    println("atr done")
+                                    Logger.d(TAG, "atr done")
                                     delay(500)
                                     val secondWatchTime = (Math.round(Random.nextFloat() * 100.0) / 100.0).toFloat() + 12f
                                     ytMusic
@@ -1684,7 +1740,7 @@ class YouTube(
                                         ).status.value
                                         .let { watchtime ->
                                             if (watchtime == 204) {
-                                                println("watchtime done")
+                                                Logger.d(TAG, "watchtime done")
                                                 return@runCatching Pair(watchtime, secondWatchTime)
                                             } else {
                                                 return@runCatching Pair(watchtime, secondWatchTime)
@@ -1707,22 +1763,20 @@ class YouTube(
 
     suspend fun nextYouTubePlaylists(continuation: String): Result<Pair<List<MusicTwoRowItemRenderer>, String?>> =
         runCatching {
-            val response =
+            val res =
                 ytMusic
-                    .next(
+                    .nextCtoken(
                         WEB_REMIX,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
                         continuation,
-                    ).body<BrowseResponse>()
+                    )
+            Logger.d(TAG, "Next Playlists ${res.bodyAsText()}")
+            val response = res.body<BrowseResponse>()
             Pair(
                 response
                     .continuationContents
                     ?.gridContinuation
-                    ?.items ?: emptyList(),
+                    ?.items
+                    ?.mapNotNull { it.musicTwoRowItemRenderer } ?: emptyList(),
                 response.continuationContents
                     ?.gridContinuation
                     ?.continuations
@@ -1746,7 +1800,6 @@ class YouTube(
                         endpoint.params,
                         continuation,
                     ).body<NextResponse>()
-            Log.w("YouTube", response.toString())
             val playlistPanelRenderer =
                 response.continuationContents?.playlistPanelContinuation
                     ?: response.contents.singleColumnMusicWatchNextResultsRenderer
@@ -1854,7 +1907,6 @@ class YouTube(
                     endpoint = endpoint,
                 )
             } else {
-                Log.e("YouTube", response.toString())
                 val musicPlaylistShelfContinuation = response.continuationContents?.musicPlaylistShelfContinuation!!
                 return@runCatching NextResult(
                     items =
@@ -1933,7 +1985,7 @@ class YouTube(
             ytMusic
                 .accountMenu(customCookie, WEB_REMIX)
                 .apply {
-                    println(this.bodyAsText())
+                    Logger.d(TAG, this.bodyAsText())
                 }.body<AccountMenuResponse>()
                 .actions[0]
                 .openPopupAction.popup.multiPageMenuRenderer.header
@@ -2069,6 +2121,60 @@ class YouTube(
             ytMusic.removeFromLiked(mediaId).status.value
         }
 
+    private fun getNParam(listFormat: List<PlayerResponse.StreamingData.Format>): String? =
+        listFormat
+            .firstOrNull { it.itag == 251 }
+            ?.let {
+                val sc = it.signatureCipher ?: it.url ?: return null
+                val params = parseQueryString(sc)
+                val url =
+                    params["url"]?.let { URLBuilder(it) }
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher url")
+                            return null
+                        }
+                url.parameters["n"]
+            }
+
+    private fun getStreamUrl(
+        format: PlayerResponse.StreamingData.Format,
+        nParam: String,
+        videoId: String,
+    ): String? {
+        val url =
+            format.url ?: format.signatureCipher?.let { signatureCipher ->
+                val params = parseQueryString(signatureCipher)
+                val obfuscatedSignature =
+                    params["s"]
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher signature")
+                            return null
+                        }
+                val signatureParam =
+                    params["sp"]
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher signature parameter")
+                            return null
+                        }
+                val url =
+                    params["url"]?.let { URLBuilder(it) }
+                        ?: run {
+                            Logger.e(TAG, "Could not parse cipher url")
+                            return null
+                        }
+                url.parameters[signatureParam] = YoutubeJavaScriptPlayerManager.deobfuscateSignature(videoId, obfuscatedSignature)
+                if (url.parameters["n"] == null) {
+                    url.parameters["n"] = nParam
+                }
+                url.toString()
+            } ?: run {
+                Logger.e(TAG, "Could not find format url")
+                return null
+            }
+
+        return YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url)
+    }
+
     fun download(
         track: SongItem,
         filePath: String,
@@ -2084,13 +2190,13 @@ class YouTube(
                 val fileOutputStream = FileOutputStream("$filePath.jpg")
                 fileOutputStream.write(bytesArray)
                 fileOutputStream.close()
-                println("Thumbnail saved to $filePath.jpg")
+                Logger.d(TAG, "Thumbnail saved to $filePath.jpg")
             } catch (e: java.lang.Exception) {
                 throw RuntimeException(e)
             }
             // Video if videoId is not null
             trySend(DownloadProgress(0.00001f))
-            player(videoId = videoId)
+            player(videoId = videoId, shouldYtdlp = true)
                 .onSuccess { playerResponse ->
                     val audioFormat =
                         listOf(
@@ -2114,8 +2220,8 @@ class YouTube(
                                 ?.filter { !it.isAudio }
                                 ?.maxByOrNull { it.bitrate },
                         ).maxByOrNull { it?.bitrate ?: 0 }
-                    println("Audio Format $audioFormat")
-                    println("Video Format $videoFormat")
+                    Logger.d(TAG, "Audio Format $audioFormat")
+                    Logger.d(TAG, "Video Format $videoFormat")
                     val audioUrl = audioFormat?.url ?: return@channelFlow
                     val videoUrl = videoFormat?.url ?: return@channelFlow
                     if (isVideo) {
@@ -2163,7 +2269,7 @@ class YouTube(
                                         )
                                     if (ReturnCode.isSuccess(session.returnCode)) {
                                         // SUCCESS
-                                        println("Command succeeded ${session.state}, ${session.returnCode}")
+                                        Logger.d(TAG, "Command succeeded ${session.state}, ${session.returnCode}")
                                         try {
                                             FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
@@ -2174,7 +2280,7 @@ class YouTube(
                                         trySend(DownloadProgress.VIDEO_DONE)
                                     } else if (ReturnCode.isCancel(session.returnCode)) {
                                         // CANCEL
-                                        println("Command cancelled ${session.state}, ${session.returnCode}")
+                                        Logger.d(TAG, "Command cancelled ${session.state}, ${session.returnCode}")
                                         try {
                                             FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
@@ -2185,7 +2291,7 @@ class YouTube(
                                         trySend(DownloadProgress.failed(session.failStackTrace))
                                     } else {
                                         // FAILURE
-                                        println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
+                                        Logger.d(TAG, "Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
                                         try {
                                             FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                             FileSystem.SYSTEM.delete("$filePath.webm".toPath())
@@ -2198,7 +2304,7 @@ class YouTube(
                                 }
                             }
                         }.onSuccess {
-                            println("Download Video Success")
+                            Logger.d(TAG, "Download Video Success")
                         }.onFailure {
                             it.printStackTrace()
                             trySend(DownloadProgress.failed(it.message ?: "Download failed"))
@@ -2216,7 +2322,7 @@ class YouTube(
                                     }
                                 }
                         }.onSuccess {
-                            println("Download only Audio Success")
+                            Logger.d(TAG, "Download only Audio Success")
                             // Convert to mp3
                             val command =
                                 listOf(
@@ -2243,7 +2349,7 @@ class YouTube(
                                 )
                             if (ReturnCode.isSuccess(session.returnCode)) {
                                 // SUCCESS
-                                println("Command succeeded ${session.state}, ${session.returnCode}")
+                                Logger.d(TAG, "Command succeeded ${session.state}, ${session.returnCode}")
                                 try {
                                     FileSystem.SYSTEM.delete("$filePath.webm".toPath())
                                 } catch (e: IOException) {
@@ -2251,7 +2357,7 @@ class YouTube(
                                 }
                             } else if (ReturnCode.isCancel(session.returnCode)) {
                                 // CANCEL
-                                println("Command cancelled ${session.state}, ${session.returnCode}")
+                                Logger.d(TAG, "Command cancelled ${session.state}, ${session.returnCode}")
                                 try {
                                     FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                     FileSystem.SYSTEM.delete("$filePath.webm".toPath())
@@ -2261,7 +2367,7 @@ class YouTube(
                                 trySend(DownloadProgress.failed("Error"))
                             } else {
                                 // FAILURE
-                                println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
+                                Logger.d(TAG, "Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
                                 try {
                                     FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                     FileSystem.SYSTEM.delete("$filePath.webm".toPath())
@@ -2295,7 +2401,7 @@ class YouTube(
                                 )
                             if (ReturnCode.isSuccess(sessionInject.returnCode)) {
                                 // SUCCESS
-                                println("Command succeeded ${sessionInject.state}, ${sessionInject.returnCode}")
+                                Logger.d(TAG, "Command succeeded ${sessionInject.state}, ${sessionInject.returnCode}")
                                 try {
                                     FileSystem.SYSTEM.delete("$filePath.mp3".toPath())
                                     FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
@@ -2306,7 +2412,7 @@ class YouTube(
                                 trySend(DownloadProgress.AUDIO_DONE)
                             } else if (ReturnCode.isCancel(sessionInject.returnCode)) {
                                 // CANCEL
-                                println("Command cancelled ${sessionInject.state}, ${sessionInject.returnCode}")
+                                Logger.d(TAG, "Command cancelled ${sessionInject.state}, ${sessionInject.returnCode}")
                                 try {
                                     FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                     FileSystem.SYSTEM.delete("$filePath.webm".toPath())
@@ -2317,7 +2423,7 @@ class YouTube(
                                 trySend(DownloadProgress.failed("Error"))
                             } else {
                                 // FAILURE
-                                println("Command failed ${sessionInject.state}, ${sessionInject.returnCode}, ${sessionInject.failStackTrace}")
+                                Logger.d(TAG, "Command failed ${sessionInject.state}, ${sessionInject.returnCode}, ${sessionInject.failStackTrace}")
                                 try {
                                     FileSystem.SYSTEM.delete("$filePath.jpg".toPath())
                                     FileSystem.SYSTEM.delete("$filePath.webm".toPath())
@@ -2334,12 +2440,35 @@ class YouTube(
                     }
                 }.onFailure {
                     it.printStackTrace()
-                    println("Player Response is null")
+                    Logger.d(TAG, "Player Response is null")
                     trySend(DownloadProgress.failed(it.message ?: "Player response is null"))
                 }
         }.flowOn(Dispatchers.IO)
 
     suspend fun is403Url(url: String) = ytMusic.is403Url(url)
+
+    private fun isNetworkAvailable(context: Context?): Boolean {
+        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        // Returns a Network object corresponding to
+        // the currently active default data network.
+        val network = connectivityManager.activeNetwork ?: return false
+
+        // Representation of the capabilities of an active network.
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+        return when {
+            // Indicates this network uses a Wi-Fi transport,
+            // or WiFi has network connectivity
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+
+            // Indicates this network uses a Cellular transport. or
+            // Cellular has network connectivity
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+
+            // else return false
+            else -> false
+        }
+    }
 
     companion object {
         const val MAX_GET_QUEUE_SIZE = 1000

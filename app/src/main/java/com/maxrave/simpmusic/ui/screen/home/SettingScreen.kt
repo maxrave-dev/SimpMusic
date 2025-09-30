@@ -2,14 +2,16 @@ package com.maxrave.simpmusic.ui.screen.home
 
 import android.content.Intent
 import android.media.audiofx.AudioEffect
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,24 +89,26 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.kotlinytmusicscraper.extension.isTwoLetterCode
-import com.maxrave.kotlinytmusicscraper.extension.isValidProxyHost
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
-import com.maxrave.simpmusic.common.QUALITY
-import com.maxrave.simpmusic.common.SPONSOR_BLOCK
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
-import com.maxrave.simpmusic.common.VIDEO_QUALITY
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.common.LIMIT_CACHE_SIZE
+import com.maxrave.common.QUALITY
+import com.maxrave.common.R
+import com.maxrave.common.SPONSOR_BLOCK
+import com.maxrave.common.SUPPORTED_LANGUAGE
+import com.maxrave.common.SUPPORTED_LOCATION
+import com.maxrave.common.VIDEO_QUALITY
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.utils.LocalResource
+import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.bytesToMB
+import com.maxrave.simpmusic.extension.isTwoLetterCode
+import com.maxrave.simpmusic.extension.isValidProxyHost
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -117,7 +121,7 @@ import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_outline
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.utils.LocalResource
+import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
@@ -143,7 +147,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class, ExperimentalHazeMaterialsApi::class)
-@UnstableApi
 @Composable
 fun SettingScreen(
     innerPadding: PaddingValues,
@@ -201,6 +204,7 @@ fun SettingScreen(
     val limitPlayerCache by viewModel.playerCacheLimit.collectAsStateWithLifecycle()
     val fraction by viewModel.fraction.collectAsStateWithLifecycle()
     val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
+    val explicitContentEnabled by viewModel.explicitContentEnabled.collectAsStateWithLifecycle()
     val usingProxy by viewModel.usingProxy.collectAsStateWithLifecycle()
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
     val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
@@ -217,6 +221,7 @@ fun SettingScreen(
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
+    val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
@@ -269,7 +274,7 @@ fun SettingScreen(
         item(key = "user_interface") {
             Column {
                 Spacer(Modifier.height(16.dp))
-                Text(text = stringResource(R.string.user_interface), style = typo.labelMedium)
+                Text(text = stringResource(R.string.user_interface), style = typo.labelMedium, color = white)
                 SettingItem(
                     title = stringResource(R.string.translucent_bottom_navigation_bar),
                     subtitle = stringResource(R.string.you_can_see_the_content_below_the_bottom_bar),
@@ -288,11 +293,17 @@ fun SettingScreen(
                     smallSubtitle = true,
                     switch = (blurPlayerBackground to { viewModel.setBlurPlayerBackground(it) }),
                 )
+                SettingItem(
+                    title = stringResource(R.string.enable_liquid_glass_effect),
+                    subtitle = stringResource(R.string.enable_liquid_glass_effect_description),
+                    smallSubtitle = true,
+                    switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
+                )
             }
         }
         item(key = "content") {
             Column {
-                Text(text = stringResource(R.string.content), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.content), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.youtube_account),
                     subtitle = stringResource(R.string.manage_your_youtube_accounts),
@@ -442,6 +453,11 @@ fun SettingScreen(
                     switch = (sendData to { viewModel.setSendBackToGoogle(it) }),
                 )
                 SettingItem(
+                    title = stringResource(R.string.play_explicit_content),
+                    subtitle = stringResource(R.string.play_explicit_content_description),
+                    switch = (explicitContentEnabled to { viewModel.setExplicitContentEnabled(it) }),
+                )
+                SettingItem(
                     title = stringResource(R.string.proxy),
                     subtitle = stringResource(R.string.proxy_description),
                     switch = (usingProxy to { viewModel.setUsingProxy(it) }),
@@ -456,8 +472,8 @@ fun SettingScreen(
                             title = stringResource(R.string.proxy_type),
                             subtitle =
                                 when (proxyType) {
-                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP -> stringResource(R.string.http)
-                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS -> stringResource(R.string.socks)
+                                    DataStoreManager.ProxyType.PROXY_TYPE_HTTP -> stringResource(R.string.http)
+                                    DataStoreManager.ProxyType.PROXY_TYPE_SOCKS -> stringResource(R.string.socks)
                                 },
                             onClick = {
                                 viewModel.setAlertData(
@@ -467,11 +483,11 @@ fun SettingScreen(
                                             SettingAlertState.SelectData(
                                                 listSelect =
                                                     listOf(
-                                                        (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP) to
+                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_HTTP) to
                                                             context.getString(
                                                                 R.string.http,
                                                             ),
-                                                        (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS) to
+                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_SOCKS) to
                                                             context.getString(R.string.socks),
                                                     ),
                                             ),
@@ -479,9 +495,9 @@ fun SettingScreen(
                                             context.getString(R.string.change) to { state ->
                                                 viewModel.setProxy(
                                                     if (state.selectOne?.getSelected() == context.getString(R.string.socks)) {
-                                                        DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS
+                                                        DataStoreManager.ProxyType.PROXY_TYPE_SOCKS
                                                     } else {
-                                                        DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP
+                                                        DataStoreManager.ProxyType.PROXY_TYPE_HTTP
                                                     },
                                                     proxyHost,
                                                     proxyPort,
@@ -556,7 +572,7 @@ fun SettingScreen(
         }
         item(key = "audio") {
             Column {
-                Text(text = stringResource(R.string.audio), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.audio), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.normalize_volume),
                     subtitle = stringResource(R.string.balance_media_loudness),
@@ -577,7 +593,7 @@ fun SettingScreen(
                         eqIntent.putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
                         val packageManager = context.packageManager
                         val resolveInfo: List<*> = packageManager.queryIntentActivities(eqIntent, 0)
-                        Log.d("EQ", resolveInfo.toString())
+                        Logger.d("EQ", resolveInfo.toString())
                         if (resolveInfo.isEmpty()) {
                             Toast.makeText(context, context.getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
                         } else {
@@ -589,7 +605,7 @@ fun SettingScreen(
         }
         item(key = "playback") {
             Column {
-                Text(text = stringResource(R.string.playback), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.playback), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.save_playback_state),
                     subtitle = stringResource(R.string.save_shuffle_and_repeat_mode),
@@ -609,7 +625,7 @@ fun SettingScreen(
         }
         item(key = "lyrics") {
             Column {
-                Text(text = stringResource(R.string.lyrics), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.lyrics), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.main_lyrics_provider),
                     subtitle =
@@ -778,7 +794,7 @@ fun SettingScreen(
         }
         item(key = "AI") {
             Column {
-                Text(text = stringResource(R.string.ai), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.ai), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.ai_provider),
                     subtitle =
@@ -879,7 +895,7 @@ fun SettingScreen(
         }
         item(key = "spotify") {
             Column {
-                Text(text = stringResource(R.string.spotify), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.spotify), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.log_in_to_spotify),
                     subtitle =
@@ -922,7 +938,12 @@ fun SettingScreen(
         }
         item(key = "sponsor_block") {
             Column {
-                Text(text = stringResource(R.string.sponsorBlock), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = stringResource(R.string.sponsorBlock),
+                    style = typo.labelMedium,
+                    color = white,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
                 SettingItem(
                     title = stringResource(R.string.enable_sponsor_block),
                     subtitle = stringResource(R.string.skip_sponsor_part_of_video),
@@ -950,8 +971,8 @@ fun SettingScreen(
                                                         ) == true
                                                     ) to item
                                                 }.also {
-                                                    Log.w("SettingScreen", "SettingAlertState: $skipSegments")
-                                                    Log.w("SettingScreen", "SettingAlertState: $it")
+                                                    Logger.w("SettingScreen", "SettingAlertState: $skipSegments")
+                                                    Logger.w("SettingScreen", "SettingAlertState: $it")
                                                 },
                                     ),
                                 confirm =
@@ -996,7 +1017,7 @@ fun SettingScreen(
         }
         item(key = "storage") {
             Column {
-                Text(text = stringResource(R.string.storage), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.storage), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.player_cache),
                     subtitle = "${playerCache.bytesToMB()} MB",
@@ -1301,7 +1322,7 @@ fun SettingScreen(
         }
         item(key = "backup") {
             Column {
-                Text(text = stringResource(R.string.backup), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.backup), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.backup_downloaded),
                     subtitle = stringResource(R.string.backup_downloaded_description),
@@ -1312,7 +1333,7 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.save_all_your_playlist_data),
                     onClick = {
                         val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                        backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
+                        backupLauncher.launch("${context.getString(AppResString.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
                     },
                 )
                 SettingItem(
@@ -1326,7 +1347,7 @@ fun SettingScreen(
         }
         item(key = "about_us") {
             Column {
-                Text(text = stringResource(R.string.about_us), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
+                Text(text = stringResource(R.string.about_us), style = typo.labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.version),
                     subtitle = stringResource(R.string.version_format, VersionManager.getVersionName()),
@@ -1461,7 +1482,7 @@ fun SettingScreen(
                     minActiveState = Lifecycle.State.RESUMED,
                 )
                 LaunchedEffect(googleAccounts) {
-                    Log.w(
+                    Logger.w(
                         "SettingScreen",
                         "LaunchedEffect: ${
                             googleAccounts.data?.map {
@@ -1545,7 +1566,7 @@ fun SettingScreen(
                                     )
                                     Spacer(Modifier.width(12.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(it.name, style = typo.labelMedium)
+                                        Text(it.name, style = typo.labelMedium, color = white)
                                         Text(it.email, style = typo.bodySmall)
                                     }
                                     Spacer(Modifier.width(12.dp))
@@ -1707,7 +1728,19 @@ fun SettingScreen(
                                     },
                                 )
                                 Spacer(Modifier.width(8.dp))
-                                Text(text = item.second, style = typo.bodyMedium, maxLines = 1)
+                                Text(
+                                    text = item.second,
+                                    style = typo.bodyMedium,
+                                    maxLines = 1,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                )
                             }
                         }
                     }
@@ -1786,7 +1819,7 @@ fun SettingScreen(
     }
 
     if (showThirdPartyLibraries) {
-        val libraries by rememberLibraries(R.raw.aboutlibraries)
+        val libraries by rememberLibraries(com.maxrave.simpmusic.R.raw.aboutlibraries)
         val lazyListState = rememberLazyListState()
         val canScrollBackward by remember {
             derivedStateOf {

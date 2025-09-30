@@ -8,19 +8,23 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -35,32 +39,44 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.STATUS_DONE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.kyant.backdrop.backdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.maxrave.common.FIRST_TIME_MIGRATION
+import com.maxrave.common.R
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.common.STATUS_DONE
+import com.maxrave.common.SUPPORTED_LANGUAGE
+import com.maxrave.common.SUPPORTED_LOCATION
+import com.maxrave.domain.data.player.GenericMediaItem
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
-import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
+import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -69,22 +85,27 @@ import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import pub.devrel.easypermissions.EasyPermissions
+import java.nio.IntBuffer
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@UnstableApi
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
+    val mediaPlayerHandler by inject<MediaPlayerHandler>()
 
     private var mBound = false
     private var shouldUnbind = false
@@ -94,14 +115,13 @@ class MainActivity : AppCompatActivity() {
                 name: ComponentName?,
                 service: IBinder?,
             ) {
-                if (service is SimpleMediaService.MusicBinder) {
-                    Log.w("MainActivity", "onServiceConnected: ")
-                    mBound = true
-                }
+                mediaPlayerHandler.setActivitySession(this@MainActivity, MainActivity::class.java, service)
+                Logger.w("MainActivity", "onServiceConnected: ")
+                mBound = true
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
-                Log.w("MainActivity", "onServiceDisconnected: ")
+                Logger.w("MainActivity", "onServiceDisconnected: ")
                 mBound = false
             }
         }
@@ -120,7 +140,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d("MainActivity", "onNewIntent: $intent")
+        Logger.d("MainActivity", "onNewIntent: $intent")
         viewModel.setIntent(intent)
     }
 
@@ -133,7 +153,6 @@ class MainActivity : AppCompatActivity() {
 //        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
 //    }
 
-    @UnstableApi
     @ExperimentalMaterial3Api
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,18 +167,18 @@ class MainActivity : AppCompatActivity() {
         } else {
             startMusicService()
         }
-        Log.d("MainActivity", "onCreate: ")
+        Logger.d("MainActivity", "onCreate: ")
         val data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
         if (data != null) {
             viewModel.setIntent(intent)
         }
-        Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
+        Logger.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
-            Log.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
+            Logger.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
             if (SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())) {
-                Log.d(
+                Logger.d(
                     "Contains",
                     "onCreate: ${
                         SUPPORTED_LANGUAGE.codes.contains(
@@ -178,7 +197,7 @@ class MainActivity : AppCompatActivity() {
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
-                Log.d("Locale Key", "getString: $it")
+                Logger.d("Locale Key", "getString: $it")
                 // Set this locale using the AndroidX library that will handle the storage itself
                 val localeList = LocaleListCompat.forLanguageTags(it)
                 AppCompatDelegate.setApplicationLocales(localeList)
@@ -191,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 SELECTED_LANGUAGE,
             )
         ) {
-            Log.d(
+            Logger.d(
                 "Locale Key",
                 "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}",
             )
@@ -232,9 +251,14 @@ class MainActivity : AppCompatActivity() {
             val intent by viewModel.intent.collectAsStateWithLifecycle()
 
             val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+            val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
             // MiniPlayer visibility logic
             var isShowMiniPlayer by rememberSaveable {
                 mutableStateOf(true)
+            }
+
+            var isInSearchPage by rememberSaveable {
+                mutableStateOf(false)
             }
 
             // Now playing screen
@@ -251,17 +275,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             LaunchedEffect(nowPlayingData) {
-                if (nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == MediaItem.EMPTY) {
-                    isShowMiniPlayer = false
-                } else {
-                    isShowMiniPlayer = true
-                }
+                isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
             }
 
             LaunchedEffect(intent) {
                 val intent = intent ?: return@LaunchedEffect
                 val data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-                Log.d("MainActivity", "onCreate: $data")
+                Logger.d("MainActivity", "onCreate: $data")
                 if (data != null) {
                     if (data == "simpmusic://notification".toUri()) {
                         viewModel.setIntent(null)
@@ -269,7 +289,7 @@ class MainActivity : AppCompatActivity() {
                             NotificationDestination,
                         )
                     } else {
-                        Log.d("MainActivity", "onCreate: $data")
+                        Logger.d("MainActivity", "onCreate: $data")
                         when (val path = data.pathSegments.firstOrNull()) {
                             "playlist" ->
                                 data
@@ -343,12 +363,15 @@ class MainActivity : AppCompatActivity() {
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             LaunchedEffect(navBackStackEntry) {
-                Log.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
+                Logger.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
                 if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
                     isShowNowPlaylistScreen = false
                 }
             }
-
+            val backdrop = rememberLayerBackdrop()
+            var isScrolledToTop by rememberSaveable {
+                mutableStateOf(false)
+            }
             AppTheme {
                 Scaffold(
                     bottomBar = {
@@ -359,7 +382,7 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Column {
                                 AnimatedVisibility(
-                                    isShowMiniPlayer,
+                                    isShowMiniPlayer && isLiquidGlassEnabled == DataStoreManager.FALSE,
                                     enter = fadeIn() + slideInHorizontally(),
                                     exit = fadeOut(),
                                 ) {
@@ -372,6 +395,7 @@ class MainActivity : AppCompatActivity() {
                                             ).padding(
                                                 bottom = 4.dp,
                                             ),
+                                        backdrop = backdrop,
                                         onClick = {
                                             isShowNowPlaylistScreen = true
                                         },
@@ -381,29 +405,56 @@ class MainActivity : AppCompatActivity() {
                                         },
                                     )
                                 }
-                                AppBottomNavigationBar(
-                                    navController = navController,
-                                    isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
-                                ) { klass ->
-                                    viewModel.reloadDestination(klass)
+                                if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                                    LiquidGlassAppBottomNavigationBar(
+                                        navController = navController,
+                                        backdrop = backdrop,
+                                        viewModel = viewModel,
+                                        onOpenNowPlaying = { isShowNowPlaylistScreen = true },
+                                        isScrolledToTop = isScrolledToTop,
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
+                                } else {
+                                    AppBottomNavigationBar(
+                                        navController = navController,
+                                        isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
                                 }
                             }
                         }
                     },
                     content = { innerPadding ->
-                        AppNavigationGraph(
-                            innerPadding = innerPadding,
-                            navController = navController,
-                            hideNavBar = {
-                                isNavBarVisible = false
-                            },
-                            showNavBar = {
-                                isNavBarVisible = true
-                            },
-                            showNowPlayingSheet = {
-                                isShowNowPlaylistScreen = true
-                            },
-                        )
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .then(
+                                    if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                                        Modifier.layerBackdrop(backdrop)
+                                    } else {
+                                        Modifier
+                                    },
+                                ),
+                        ) {
+                            AppNavigationGraph(
+                                innerPadding = innerPadding,
+                                navController = navController,
+                                hideNavBar = {
+                                    isNavBarVisible = false
+                                },
+                                showNavBar = {
+                                    isNavBarVisible = true
+                                },
+                                showNowPlayingSheet = {
+                                    isShowNowPlaylistScreen = true
+                                },
+                                onScrolling = {
+                                    isScrolledToTop = it
+                                },
+                            )
+                        }
 
                         if (isShowNowPlaylistScreen) {
                             NowPlayingScreen(
@@ -414,7 +465,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         if (sleepTimerState.isDone) {
-                            Log.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
+                            Logger.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
                             AlertDialog(
                                 properties =
                                     DialogProperties(
@@ -542,9 +593,14 @@ class MainActivity : AppCompatActivity() {
                                                     text = typo.bodySmall,
                                                     bullet = typo.bodySmall,
                                                     paragraph = typo.bodySmall,
-                                                    link =
-                                                        typo.bodySmall.copy(
-                                                            textDecoration = TextDecoration.Underline,
+                                                    textLink =
+                                                        TextLinkStyles(
+                                                            SpanStyle(
+                                                                fontSize = 11.sp,
+                                                                fontWeight = FontWeight.Normal,
+                                                                fontFamily = fontFamily,
+                                                                textDecoration = TextDecoration.Underline,
+                                                            ),
                                                         ),
                                                 ),
                                         )
@@ -560,7 +616,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         val shouldStopMusicService = viewModel.shouldStopMusicService()
-        Log.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
+        Logger.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
 
         // Always unbind service if it was bound to prevent MusicBinder leak
         if (shouldStopMusicService && shouldUnbind && isFinishing) {
@@ -568,7 +624,7 @@ class MainActivity : AppCompatActivity() {
         }
         unloadKoinModules(viewModelModule)
         super.onDestroy()
-        Log.d("MainActivity", "onDestroy: ")
+        Logger.d("MainActivity", "onDestroy: ")
     }
 
     override fun onRestart() {
@@ -577,12 +633,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startMusicService() {
-        val intent = Intent(this, SimpleMediaService::class.java)
-        startService(intent)
-        bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+        mediaPlayerHandler.startMediaService(this, serviceConnection)
         viewModel.isServiceRunning = true
         shouldUnbind = true
-        Log.d("Service", "Service started")
+        Logger.d("Service", "Service started")
     }
 
     private fun checkForUpdate() {

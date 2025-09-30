@@ -20,15 +20,21 @@ import com.maxrave.kotlinytmusicscraper.models.body.LikeBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
-import com.maxrave.kotlinytmusicscraper.utils.CurlLogger
-import com.maxrave.kotlinytmusicscraper.utils.KtorToCurl
+import com.maxrave.kotlinytmusicscraper.models.ytdlp.YtdlpVideoInfo
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
+import com.maxrave.logger.Logger
+import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLException
+import com.yausername.youtubedl_android.YoutubeDLRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
@@ -49,12 +55,14 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
 import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -70,8 +78,21 @@ import okio.use
 import java.io.File
 import java.net.Proxy
 import java.util.Locale
+import android.content.Context as AndroidContext
 
-class Ytmusic {
+private const val TAG = "YouTubeScraperClient"
+
+class Ytmusic(
+    private val context: AndroidContext,
+) {
+    private val ytDlp =
+        try {
+            YoutubeDL.getInstance().init(context)
+            YoutubeDL.getInstance()
+        } catch (e: YoutubeDLException) {
+            Logger.e(TAG, "failed to initialize youtubedl-android", e)
+            null
+        }
     private var httpClient = createClient()
 
     var cacheControlInterceptor: Interceptor? = null
@@ -116,18 +137,26 @@ class Ytmusic {
             httpClient = createClient()
         }
 
+    internal fun updateYtdlp() {
+        YoutubeDL.getInstance().updateYoutubeDL(context)
+    }
+
     @OptIn(ExperimentalSerializationApi::class)
     private fun createClient() =
         HttpClient(OkHttp) {
             expectSuccess = true
-            install(KtorToCurl) {
-                converter =
-                    object : CurlLogger {
-                        override fun log(curl: String) {
-                            println("Curl command:")
-                            println(curl)
-                        }
-                    }
+//            install(KtorToCurl) {
+//                converter =
+//                    object : CurlLogger {
+//                        override fun log(curl: String) {
+//                            Logger.d(TAG, "Curl command:")
+//                            Logger.d(TAG, curl)
+//                        }
+//                    }
+//            }
+            install(Logging) {
+                logger = io.ktor.client.plugins.logging.Logger.DEFAULT
+                level = LogLevel.ALL
             }
             install(ContentNegotiation) {
                 protobuf()
@@ -190,7 +219,7 @@ class Ytmusic {
                     val currentTime = System.currentTimeMillis() / 1000
                     val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
                     val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
-                    println("SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
+                    Logger.d(TAG, "SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
                     append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
                 }
             }
@@ -198,6 +227,16 @@ class Ytmusic {
         userAgent(client.userAgent)
         parameter("prettyPrint", false)
     }
+
+    internal fun getAuthorizationHeader(): String? =
+        cookie?.let { cookie ->
+            if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) null
+            val currentTime = System.currentTimeMillis() / 1000
+            val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
+            val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
+            Logger.d(TAG, "SAPI SID Hash: SAPISIDHASH ${currentTime}_$sapisidHash")
+            "SAPISIDHASH ${currentTime}_$sapisidHash"
+        }
 
     suspend fun search(
         client: YouTubeClient,
@@ -337,13 +376,28 @@ class Ytmusic {
 
     suspend fun test403Error(url: String): Boolean = httpClient.get(url).status.value in 200..299
 
-//    suspend fun ytdlpGetStreamUrl(videoId: String): VideoInfo {
-//        val ytRequest = YoutubeDLRequest("https://music.youtube.com/watch?v=$videoId")
-//        if (!cookie.isNullOrEmpty()) {
-//            ytRequest.addOption("--cookies", cookiePath?.toString() ?: "")
-//        }
-//        return ytDlp.getInfo(ytRequest)
-//    }
+    suspend fun ytdlpGetStreamUrl(
+        videoId: String,
+        poToken: String?,
+        clientName: String,
+        json: Json,
+    ): YtdlpVideoInfo? =
+        withContext(Dispatchers.IO) {
+            Logger.d(TAG, "ytdlpGetStreamUrl: videoId: $videoId, poToken: $poToken, clientName: $clientName")
+            val ytRequest = YoutubeDLRequest("https://music.youtube.com/watch?v=$videoId")
+            if (!cookie.isNullOrEmpty()) {
+                ytRequest.addOption("--cookies", cookiePath?.toString() ?: "")
+            }
+            ytRequest.addOption(
+                "--extractor-args",
+                "youtube:player_client=$clientName;youtube:webpage_skip" +
+                    if (clientName.contains("web") && poToken != null) ";youtube:po_token=$clientName.gvs+$poToken;" else "",
+            )
+            ytRequest.addOption("--dump-json")
+            val result = ytDlp?.execute(ytRequest)
+            val data = result?.out?.let { json.decodeFromString<YtdlpVideoInfo>(it) }
+            return@withContext data
+        }
 
     suspend fun player(
         client: YouTubeClient,
@@ -612,6 +666,22 @@ class Ytmusic {
         parameter("alt", "json")
     }
 
+    suspend fun nextCtoken(
+        client: YouTubeClient,
+        continuation: String,
+    ) = httpClient.post("browse") {
+        ytClient(client, setLogin = true)
+        parameter("ctoken", continuation)
+        parameter("continuation", continuation)
+        parameter("type", "next")
+        parameter("prettyPrint", false)
+        setBody(
+            BrowseBody(
+                context = client.toContext(locale, visitorData),
+            ),
+        )
+    }
+
     suspend fun next(
         client: YouTubeClient,
         videoId: String?,
@@ -780,7 +850,7 @@ class Ytmusic {
                                     }
                                 }
                             }.onSuccess {
-                                println("Downloaded $downloadedBytes bytes")
+                                Logger.d(TAG, "Downloaded $downloadedBytes bytes")
                                 jobDone = 1
                             }.onFailure { e ->
                                 e.printStackTrace()
@@ -795,8 +865,8 @@ class Ytmusic {
                                 seconds += 0.1f
                                 val progress = downloadedBytes.toFloat() / length
                                 val speed = (downloadedBytes / seconds / 1024).toInt()
-                                println("Downloaded: $progress")
-                                println("Speed: $speed KB/s")
+                                Logger.d(TAG, "Downloaded: $progress")
+                                Logger.d(TAG, "Speed: $speed KB/s")
                                 trySend(Triple(false, progress, speed))
                                     .onFailure { e ->
                                         e?.printStackTrace()
@@ -806,8 +876,8 @@ class Ytmusic {
                     downloadJob.join()
                     emitJob.join()
                 }
-                println("Downloaded $downloadedBytes bytes")
-                println("Merged $pathString")
+                Logger.d(TAG, "Downloaded $downloadedBytes bytes")
+                Logger.d(TAG, "Merged $pathString")
                 trySend(Triple(true, 1f, 0)).onFailure { e ->
                     e?.printStackTrace()
                 }

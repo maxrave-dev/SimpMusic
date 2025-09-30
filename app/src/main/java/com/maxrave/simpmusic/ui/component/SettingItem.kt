@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.theme.white
 
 @Composable
 fun SettingItem(
@@ -72,6 +73,7 @@ fun SettingItem(
                         typo.labelMedium.let {
                             if (!isEnable) it.greyScale() else it
                         },
+                    color = white,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(

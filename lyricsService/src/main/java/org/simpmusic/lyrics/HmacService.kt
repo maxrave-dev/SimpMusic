@@ -1,6 +1,6 @@
 package org.simpmusic.lyrics
 
-import android.util.Log
+import com.maxrave.logger.Logger
 import java.time.Instant
 import java.util.Base64
 import javax.crypto.Mac
@@ -21,7 +21,7 @@ class HmacService {
                 init(SecretKeySpec(secretKey.toByteArray(), algorithm))
             }
         } catch (e: Exception) {
-            Log.e("HmacService", "Failed to initialize HMAC: ${e.message}", e)
+            Logger.e("HmacService", "Failed to initialize HMAC: ${e.message}", e)
             throw RuntimeException("Failed to initialize HMAC", e)
         }
     }
@@ -30,7 +30,7 @@ class HmacService {
         val timestamp = Instant.now().toEpochMilli().toString()
         val data = "$timestamp$uri"
         val hmac = this.generateHmac(data)
-        Log.d("HmacService", "Generated HMAC: $hmac for URI: $uri at timestamp: $timestamp")
+        Logger.d("HmacService", "Generated HMAC: $hmac for URI: $uri at timestamp: $timestamp")
         return hmac to timestamp
     }
 

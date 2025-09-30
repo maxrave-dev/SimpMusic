@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.navigation.graph
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -21,7 +20,6 @@ import com.maxrave.simpmusic.ui.screen.other.MoreAlbumsScreen
 import com.maxrave.simpmusic.ui.screen.other.PlaylistScreen
 import com.maxrave.simpmusic.ui.screen.other.PodcastScreen
 
-@UnstableApi
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
 fun NavGraphBuilder.listScreenGraph(
