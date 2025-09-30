@@ -211,7 +211,7 @@ fun MiniPlayer(
     }
 
     Card(
-        shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(0.dp),
+        shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(12.dp),
         colors =
             CardDefaults.cardColors(
                 containerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,

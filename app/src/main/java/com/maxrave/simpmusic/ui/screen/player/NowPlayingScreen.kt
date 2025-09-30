@@ -469,6 +469,7 @@ fun NowPlayingScreen(
         onDismissRequest = {
             onDismiss()
         },
+        sheetGesturesEnabled = swipeEnabled,
         containerColor = Color.Black,
         dragHandle = {},
         scrimColor = Color.Black,
