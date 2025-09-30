@@ -161,6 +161,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
+    val isScrollingUp by scrollState.isScrollingUp()
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
     val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
     val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
@@ -189,9 +190,6 @@ fun HomeScreen(
     var showRequestShareLyricsPermissions by rememberSaveable {
         mutableStateOf(false)
     }
-    var shouldShowGetDataSyncIdBottomSheet by rememberSaveable {
-        mutableStateOf(false)
-    }
 
     var topAppBarHeightPx by rememberSaveable {
         mutableIntStateOf(0)
@@ -205,7 +203,11 @@ fun HomeScreen(
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.firstVisibleItemIndex }
             .collect {
-                onScrolling.invoke(it <= 1)
+                if (it <= 1) {
+                    onScrolling.invoke(true)
+                } else {
+                    onScrolling.invoke(isScrollingUp)
+                }
             }
     }
 
@@ -558,14 +560,14 @@ fun HomeScreen(
                     },
         ) {
             AnimatedVisibility(
-                visible = scrollState.isScrollingUp(),
+                visible = isScrollingUp,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
                 HomeTopAppBar(navController)
             }
             AnimatedVisibility(
-                visible = !scrollState.isScrollingUp(),
+                visible = !isScrollingUp,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {

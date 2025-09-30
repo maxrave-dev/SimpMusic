@@ -92,10 +92,12 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import java.nio.IntBuffer
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.seconds
 import androidx.compose.ui.graphics.lerp as colorLerp
 
 private const val TAG = "LiquidGlassAppBottomNavigationBar"
@@ -121,6 +123,7 @@ fun LiquidGlassAppBottomNavigationBar(
         animationSpec = tween(1000),
         label = "CustomGrayColorAnimation",
     )
+
     LaunchedEffect(layer) {
         val buffer = IntBuffer.allocate(25)
         while (isActive) {
@@ -150,6 +153,7 @@ fun LiquidGlassAppBottomNavigationBar(
                 averageLuminance.coerceAtMost(0.8).toFloat(),
                 tween(500),
             )
+            delay(1.seconds)
         }
     }
 

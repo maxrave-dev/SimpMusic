@@ -67,20 +67,15 @@ inline fun <reified T> GridLibraryPlaylist(
 ) {
     Logger.w("GridLibraryPlaylist", "Generic Type: ${T::class.java}")
     val state = rememberLazyGridState()
-    val isScrollUp by state.isScrollingUp()
-
-    LaunchedEffect(isScrollUp) {
-        if (state.firstVisibleItemIndex <= 1) {
-            return@LaunchedEffect
-        }
-        onScrolling.invoke(isScrollUp)
-    }
+    val isScrollingUp by state.isScrollingUp()
 
     LaunchedEffect(state) {
         snapshotFlow { state.firstVisibleItemIndex }
             .collect {
                 if (it <= 1) {
                     onScrolling.invoke(true)
+                } else {
+                    onScrolling.invoke(isScrollingUp)
                 }
             }
     }
