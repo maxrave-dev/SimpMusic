@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.screen
 
+import android.graphics.Bitmap
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
@@ -59,8 +60,9 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -68,6 +70,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.scale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -89,29 +92,71 @@ import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
+import java.nio.IntBuffer
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
+
+private const val TAG = "MiniPlayer"
 
 @Composable
 fun MiniPlayer(
     modifier: Modifier,
     backdrop: Backdrop,
-    layer: GraphicsLayer? = null,
-    luminanceAnimation: Float? = null,
     sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
 
+    val layer = rememberGraphicsLayer()
+    val luminanceAnimation = remember { Animatable(0f) }
+
     val textColor by animateColorAsState(
-        targetValue = if (luminanceAnimation != null && luminanceAnimation > 0.6f) Color.Black else Color.White,
+        targetValue = if (luminanceAnimation.value > 0.6f) Color.Black else Color.White,
         label = "MiniPlayerTextColor",
         animationSpec = tween(500),
     )
+
+    LaunchedEffect(layer, isLiquidGlassEnabled) {
+        val buffer = IntBuffer.allocate(25)
+        while (isActive && isLiquidGlassEnabled == DataStoreManager.TRUE) {
+            try {
+                withContext(Dispatchers.Main) {
+                    val imageBitmap = layer.toImageBitmap()
+                    val thumbnail =
+                        imageBitmap
+                            .asAndroidBitmap()
+                            .scale(5, 5, false)
+                            .copy(Bitmap.Config.ARGB_8888, false)
+                    buffer.rewind()
+                    thumbnail.copyPixelsToBuffer(buffer)
+                }
+            } catch (e: Exception) {
+                Logger.e(TAG, "Error getting pixels from layer: ${e.localizedMessage}")
+            }
+            val averageLuminance =
+                (0 until 25).sumOf { index ->
+                    val color = buffer.get(index)
+                    val r = (color shr 16 and 0xFF) / 255f
+                    val g = (color shr 8 and 0xFF) / 255f
+                    val b = (color and 0xFF) / 255f
+                    0.2126 * r + 0.7152 * g + 0.0722 * b
+                } / 25
+            luminanceAnimation.animateTo(
+                averageLuminance.coerceAtMost(0.8).toFloat(),
+                tween(500),
+            )
+            delay(1.seconds)
+        }
+    }
 
     val (songEntity, setSongEntity) =
         remember {
@@ -220,8 +265,8 @@ fun MiniPlayer(
         modifier =
             modifier
                 .then(
-                    if (isLiquidGlassEnabled == DataStoreManager.TRUE && layer != null && luminanceAnimation != null) {
-                        Modifier.drawBackdropCustomShape(backdrop, layer, luminanceAnimation, RoundedCornerShape(16.dp))
+                    if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                        Modifier.drawBackdropCustomShape(backdrop, layer, luminanceAnimation.value, RoundedCornerShape(16.dp))
                     } else {
                         Modifier
                     },

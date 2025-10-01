@@ -1,0 +1,25 @@
+{
+    "uniqueId": "com.zionhuang.music",
+    "funding": [
+
+    ],
+    "developers": [
+        {
+            "name": "Zion Huang"
+        }
+    ],
+    "artifactVersion": "",
+    "description": "A Material 3 YouTube Music client for Android",
+    "scm": {
+        "connection": "scm:git:https://github.com/z-huang/InnerTune.git",
+        "url": "https://github.com/z-huang/InnerTune.git"
+    },
+    "name": "InnerTune",
+    "website": "https://github.com/z-huang/InnerTune",
+    "licenses": [
+        "GPL-3.0"
+    ],
+    "organization": {
+        "name": "Zion Huang"
+    }
+}

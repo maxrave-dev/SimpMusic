@@ -168,7 +168,7 @@ fun AppNavigationRail(
         )
     }
     NavigationRail {
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
         Box(Modifier.padding(horizontal = 16.dp)) {
             Box(
                 Modifier
@@ -228,6 +228,6 @@ fun AppNavigationRail(
                 },
             )
         }
-        Spacer(Modifier.height(64.dp))
+        Spacer(Modifier.height(32.dp))
     }
 }

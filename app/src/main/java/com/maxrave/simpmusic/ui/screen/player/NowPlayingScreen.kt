@@ -55,6 +55,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Forward5
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Repeat
@@ -105,6 +106,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -224,6 +226,7 @@ fun NowPlayingScreen(
             sharedViewModel = sharedViewModel,
             navController = navController,
             isExpanded = sheetState.currentValue == SheetValue.Expanded,
+            dismissIcon = Icons.Rounded.KeyboardArrowDown,
             onSwipeEnabledChange = {
                 swipeEnabled = it
             },
@@ -240,6 +243,7 @@ fun NowPlayingScreenContent(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
     isExpanded: Boolean,
+    dismissIcon: ImageVector,
     onSwipeEnabledChange: (Boolean) -> Unit = {},
     onDismiss: () -> Unit = {},
 ) {
@@ -702,7 +706,7 @@ fun NowPlayingScreenContent(
                             onDismiss()
                         }) {
                             Icon(
-                                painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
+                                imageVector = dismissIcon,
                                 contentDescription = "",
                                 tint = Color.White,
                             )
@@ -1086,7 +1090,7 @@ fun NowPlayingScreenContent(
                                                 top = 15.dp,
                                             ).padding(horizontal = 20.dp)
                                             .isElementVisible {
-                                                shouldShowToolbar = !it && isExpanded
+                                                shouldShowToolbar = !it && isExpanded && mainScrollState.value > 0
                                             },
                                     ) {
                                         Box(
@@ -1247,7 +1251,8 @@ fun NowPlayingScreenContent(
                                                     .size(42.dp)
                                                     .clip(
                                                         CircleShape,
-                                                    ).clickable {
+                                                    ).weight(1f)
+                                                    .clickable {
                                                         sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                                     },
                                             contentAlignment = Alignment.Center,
@@ -1277,7 +1282,8 @@ fun NowPlayingScreenContent(
                                                     .size(52.dp)
                                                     .clip(
                                                         CircleShape,
-                                                    ).clickable {
+                                                    ).weight(1f)
+                                                    .clickable {
                                                         if (controllerState.isPreviousAvailable) {
                                                             sharedViewModel.onUIEvent(UIEvent.Previous)
                                                         }
@@ -1298,7 +1304,8 @@ fun NowPlayingScreenContent(
                                                     .size(96.dp)
                                                     .clip(
                                                         CircleShape,
-                                                    ).clickable {
+                                                    ).weight(1f)
+                                                    .clickable {
                                                         sharedViewModel.onUIEvent(UIEvent.PlayPause)
                                                     },
                                             contentAlignment = Alignment.Center,
@@ -1328,7 +1335,8 @@ fun NowPlayingScreenContent(
                                                     .size(52.dp)
                                                     .clip(
                                                         CircleShape,
-                                                    ).clickable {
+                                                    ).weight(1f)
+                                                    .clickable {
                                                         if (controllerState.isNextAvailable) {
                                                             sharedViewModel.onUIEvent(UIEvent.Next)
                                                         }
@@ -1348,7 +1356,8 @@ fun NowPlayingScreenContent(
                                                     .size(42.dp)
                                                     .clip(
                                                         CircleShape,
-                                                    ).clickable {
+                                                    ).weight(1f)
+                                                    .clickable {
                                                         sharedViewModel.onUIEvent(UIEvent.Repeat)
                                                     },
                                             contentAlignment = Alignment.Center,

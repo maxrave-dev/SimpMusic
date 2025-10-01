@@ -6,9 +6,11 @@ import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -107,7 +109,8 @@ inline fun <reified T> GridLibraryPlaylist(
             val list = (data as? LocalResource.Success)?.data ?: emptyList()
             if (data is LocalResource.Success && list.isNotEmpty() || createNewPlaylist != null) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 125.dp),
+                    columns = GridCells.FixedSize(size = 132.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                     contentPadding = contentPadding,
                     state = state,
                 ) {
@@ -126,7 +129,8 @@ inline fun <reified T> GridLibraryPlaylist(
                                 ) {
                                     Box(
                                         Modifier
-                                            .size(125.dp)
+                                            .size(132.dp)
+                                            .aspectRatio(1f)
                                             .clip(RoundedCornerShape(10.dp))
                                             .angledGradientBackground(
                                                 colors =
@@ -152,7 +156,7 @@ inline fun <reified T> GridLibraryPlaylist(
                                         maxLines = 1,
                                         modifier =
                                             Modifier
-                                                .width(125.dp)
+                                                .width(132.dp)
                                                 .wrapContentHeight(align = Alignment.CenterVertically)
                                                 .padding(top = 8.dp)
                                                 .basicMarquee(
@@ -214,7 +218,7 @@ inline fun <reified T> GridLibraryPlaylist(
                                 }
                             },
                             data = item,
-                            thumbSize = 125.dp,
+                            thumbSize = 132.dp,
                         )
                     }
 

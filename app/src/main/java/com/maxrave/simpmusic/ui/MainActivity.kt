@@ -35,14 +35,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -66,6 +67,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.maxrave.common.FIRST_TIME_MIGRATION
@@ -147,7 +149,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.setIntent(intent)
     }
 
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @ExperimentalMaterial3Api
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -238,7 +239,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.getLocation()
 
         setContent {
-            val windowSize = calculateWindowSizeClass(activity = this)
+            val windowSize = currentWindowAdaptiveInfo().windowSizeClass
+            val resources = LocalResources.current
             val navController = rememberNavController()
 
             val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
@@ -364,7 +366,8 @@ class MainActivity : AppCompatActivity() {
             var isScrolledToTop by rememberSaveable {
                 mutableStateOf(false)
             }
-            val isTablet = windowSize.widthSizeClass == WindowWidthSizeClass.Medium || windowSize.widthSizeClass == WindowWidthSizeClass.Expanded
+            val isTablet = windowSize.windowWidthSizeClass != WindowWidthSizeClass.COMPACT
+            val isTabletLandscape = isTablet && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             AppTheme {
                 Scaffold(
                     bottomBar = {
@@ -426,7 +429,7 @@ class MainActivity : AppCompatActivity() {
                             Modifier
                                 .fillMaxSize()
                                 .then(
-                                    if (isLiquidGlassEnabled == TRUE) {
+                                    if (isLiquidGlassEnabled == TRUE && !isTablet) {
                                         Modifier.layerBackdrop(backdrop)
                                     } else {
                                         Modifier
@@ -446,22 +449,34 @@ class MainActivity : AppCompatActivity() {
                                 Box(
                                     Modifier.fillMaxSize().weight(1f),
                                 ) {
-                                    AppNavigationGraph(
-                                        innerPadding = innerPadding,
-                                        navController = navController,
-                                        hideNavBar = {
-                                            isNavBarVisible = false
-                                        },
-                                        showNavBar = {
-                                            isNavBarVisible = true
-                                        },
-                                        showNowPlayingSheet = {
-                                            isShowNowPlaylistScreen = true
-                                        },
-                                        onScrolling = {
-                                            isScrolledToTop = it
-                                        },
-                                    )
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .then(
+                                                if (isLiquidGlassEnabled == TRUE && isTablet) {
+                                                    Modifier.layerBackdrop(backdrop)
+                                                } else {
+                                                    Modifier
+                                                },
+                                            ),
+                                    ) {
+                                        AppNavigationGraph(
+                                            innerPadding = innerPadding,
+                                            navController = navController,
+                                            hideNavBar = {
+                                                isNavBarVisible = false
+                                            },
+                                            showNavBar = {
+                                                isNavBarVisible = true
+                                            },
+                                            showNowPlayingSheet = {
+                                                isShowNowPlaylistScreen = true
+                                            },
+                                            onScrolling = {
+                                                isScrolledToTop = it
+                                            },
+                                        )
+                                    }
                                     this@Row.AnimatedVisibility(
                                         modifier =
                                             Modifier
@@ -474,7 +489,7 @@ class MainActivity : AppCompatActivity() {
                                         MiniPlayer(
                                             Modifier
                                                 .height(56.dp)
-                                                .fillMaxWidth(0.5f)
+                                                .fillMaxWidth(0.8f)
                                                 .padding(
                                                     horizontal = 12.dp,
                                                 ).padding(
@@ -491,7 +506,7 @@ class MainActivity : AppCompatActivity() {
                                         )
                                     }
                                 }
-                                if (isTablet) {
+                                if (isTablet && isTabletLandscape) {
                                     AnimatedVisibility(
                                         isShowNowPlaylistScreen,
                                         enter = expandHorizontally() + fadeIn(),
@@ -508,6 +523,7 @@ class MainActivity : AppCompatActivity() {
                                                     navController = navController,
                                                     sharedViewModel = viewModel,
                                                     isExpanded = true,
+                                                    dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                                                     onSwipeEnabledChange = {},
                                                 ) {
                                                     isShowNowPlaylistScreen = false
@@ -519,7 +535,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
 
-                        if (isShowNowPlaylistScreen && !isTablet) {
+                        if (isShowNowPlaylistScreen && !isTabletLandscape) {
                             NowPlayingScreen(
                                 navController = navController,
                             ) {
