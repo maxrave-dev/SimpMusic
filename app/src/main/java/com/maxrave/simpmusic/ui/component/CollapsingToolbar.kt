@@ -98,7 +98,7 @@ fun CollapsingToolbarParallaxEffect(
         TopAppBarDefaults.TopAppBarExpandedHeight + with(density) { WindowInsets.statusBars.getTop(this).toDp() * 2 }
 
     val scroll: ScrollState = rememberScrollState(0)
-    val headerHeight = getScreenSizeInfo().hDP.dp * 2 / 6
+    val headerHeight = (getScreenSizeInfo().hDP.dp * 2 / 6).coerceAtLeast(200.dp)
 
     val headerHeightPx = with(density) { headerHeight.toPx() }
     val toolbarHeightPx = with(density) { toolbarHeight.toPx() }

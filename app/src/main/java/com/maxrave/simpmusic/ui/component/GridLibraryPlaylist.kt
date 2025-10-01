@@ -1,13 +1,16 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -61,6 +64,7 @@ inline fun <reified T> GridLibraryPlaylist(
     navController: NavController,
     contentPadding: PaddingValues,
     data: LocalResource<List<T>>,
+    @StringRes emptyText: Int,
     noinline onScrolling: (onTop: Boolean) -> Unit = { _ -> },
     noinline createNewPlaylist: (() -> Unit)? = null,
     noinline onReload: () -> Unit,
@@ -103,9 +107,10 @@ inline fun <reified T> GridLibraryPlaylist(
     ) {
         Crossfade(targetState = data) { data ->
             val list = (data as? LocalResource.Success)?.data ?: emptyList()
-            if (data is LocalResource.Success) {
+            if (data is LocalResource.Success && list.isNotEmpty() || createNewPlaylist != null) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 125.dp),
+                    columns = GridCells.FixedSize(size = 132.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                     contentPadding = contentPadding,
                     state = state,
                 ) {
@@ -124,7 +129,8 @@ inline fun <reified T> GridLibraryPlaylist(
                                 ) {
                                     Box(
                                         Modifier
-                                            .size(125.dp)
+                                            .size(132.dp)
+                                            .aspectRatio(1f)
                                             .clip(RoundedCornerShape(10.dp))
                                             .angledGradientBackground(
                                                 colors =
@@ -150,7 +156,7 @@ inline fun <reified T> GridLibraryPlaylist(
                                         maxLines = 1,
                                         modifier =
                                             Modifier
-                                                .width(125.dp)
+                                                .width(132.dp)
                                                 .wrapContentHeight(align = Alignment.CenterVertically)
                                                 .padding(top = 8.dp)
                                                 .basicMarquee(
@@ -212,7 +218,7 @@ inline fun <reified T> GridLibraryPlaylist(
                                 }
                             },
                             data = item,
-                            thumbSize = 125.dp,
+                            thumbSize = 132.dp,
                         )
                     }
 
@@ -220,10 +226,19 @@ inline fun <reified T> GridLibraryPlaylist(
                         EndOfPage()
                     }
                 }
-            } else if (data !is LocalResource.Loading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            } else if (data is LocalResource.Loading) {
+                CenterLoadingBox(
+                    Modifier.fillMaxSize(),
+                )
+            } else {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
-                        text = stringResource(R.string.no_results_found),
+                        text = stringResource(emptyText),
                         style = typo.bodyMedium,
                         color = Color.White,
                     )

@@ -3,6 +3,7 @@ package com.maxrave.data.repository
 import android.content.Context
 import com.maxrave.common.R
 import com.maxrave.data.db.LocalDataSource
+import com.maxrave.data.extension.getFullDataFromDB
 import com.maxrave.data.mapping.toListTrack
 import com.maxrave.data.mapping.toTrack
 import com.maxrave.data.mapping.toYouTubeWatchEndpoint
@@ -54,7 +55,11 @@ internal class PlaylistRepositoryImpl(
             emit(localDataSource.getPlaylist(id))
         }.flowOn(Dispatchers.IO)
 
-    override fun getLikedPlaylists(): Flow<List<PlaylistEntity>> = flow { emit(localDataSource.getLikedPlaylists()) }.flowOn(Dispatchers.IO)
+    override fun getLikedPlaylists(): Flow<List<PlaylistEntity>> = flow { emit(
+        getFullDataFromDB { limit, offset ->
+            localDataSource.getLikedPlaylists(limit, offset)
+        }
+    ) }.flowOn(Dispatchers.IO)
 
     override suspend fun insertPlaylist(playlistEntity: PlaylistEntity) =
         withContext(Dispatchers.IO) { localDataSource.insertPlaylist(playlistEntity) }

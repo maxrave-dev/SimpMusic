@@ -1003,7 +1003,7 @@ fun QueueBottomSheet(
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()
-                                        .height(50.dp),
+                                        .height(80.dp),
                             )
                         }
                     }

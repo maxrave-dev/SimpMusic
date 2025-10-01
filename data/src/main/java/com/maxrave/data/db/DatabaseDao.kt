@@ -83,8 +83,36 @@ internal interface DatabaseDao {
     @Transaction
     suspend fun getAllDownloadedPlaylist(): List<PlaylistType> {
         val a = mutableListOf<PlaylistType>()
-        a.addAll(getDownloadedAlbums())
-        a.addAll(getDownloadedPlaylists())
+        var shouldContinue = true to 0
+        while (shouldContinue.first) {
+            val fetched = getDownloadedAlbums(
+                limit = 100,
+                offset = shouldContinue.second,
+            )
+            a.addAll(
+                fetched,
+            )
+            shouldContinue = if (fetched.size < 100) {
+                false to 0
+            } else {
+                true to shouldContinue.second + 100
+            }
+        }
+        var shouldContinuePlaylist = true to 0
+        while (shouldContinuePlaylist.first) {
+            val fetched = getDownloadedPlaylists(
+                limit = 100,
+                offset = shouldContinue.second,
+            )
+            a.addAll(
+                fetched,
+            )
+            shouldContinuePlaylist = if (fetched.size < 100) {
+                false to 0
+            } else {
+                true to shouldContinuePlaylist.second + 100
+            }
+        }
         val sortedList =
             a.sortedWith<PlaylistType>(
                 Comparator { p0, p1 ->
@@ -118,8 +146,36 @@ internal interface DatabaseDao {
     @Transaction
     suspend fun getAllDownloadingPlaylist(): List<PlaylistType> {
         val a = mutableListOf<PlaylistType>()
-        a.addAll(getDownloadingAlbums())
-        a.addAll(getDownloadingPlaylists())
+        var shouldContinue = true to 0
+        while (shouldContinue.first) {
+            val fetched = getDownloadingAlbums(
+                limit = 100,
+                offset = shouldContinue.second,
+            )
+            a.addAll(
+                fetched,
+            )
+            shouldContinue = if (fetched.size < 100) {
+                false to 0
+            } else {
+                true to shouldContinue.second + 100
+            }
+        }
+        var shouldContinuePlaylist = true to 0
+        while (shouldContinuePlaylist.first) {
+            val fetched = getDownloadingPlaylists(
+                limit = 100,
+                offset = shouldContinue.second,
+            )
+            a.addAll(
+                fetched,
+            )
+            shouldContinuePlaylist = if (fetched.size < 100) {
+                false to 0
+            } else {
+                true to shouldContinuePlaylist.second + 100
+            }
+        }
         return a
     }
 
@@ -303,11 +359,17 @@ internal interface DatabaseDao {
         downloadedAt: LocalDateTime? = if (downloadState == 3) LocalDateTime.now() else null,
     )
 
-    @Query("SELECT * FROM album WHERE downloadState = 3")
-    suspend fun getDownloadedAlbums(): List<AlbumEntity>
+    @Query("SELECT * FROM album WHERE downloadState = 3 ORDER BY downloadedAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getDownloadedAlbums(
+        limit: Int,
+        offset: Int,
+    ): List<AlbumEntity>
 
-    @Query("SELECT * FROM album WHERE downloadState = 2 OR downloadState = 1")
-    suspend fun getDownloadingAlbums(): List<AlbumEntity>
+    @Query("SELECT * FROM album WHERE downloadState = 2 OR downloadState = 1 LIMIT :limit OFFSET :offset")
+    suspend fun getDownloadingAlbums(
+        limit: Int,
+        offset: Int,
+    ): List<AlbumEntity>
 
     // Playlist
     @Query("SELECT * FROM playlist ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
@@ -316,8 +378,11 @@ internal interface DatabaseDao {
     @Query("SELECT * FROM playlist WHERE id = :playlistId")
     suspend fun getPlaylist(playlistId: String): PlaylistEntity?
 
-    @Query("SELECT * FROM playlist WHERE liked = 1")
-    suspend fun getLikedPlaylists(): List<PlaylistEntity>
+    @Query("SELECT * FROM playlist WHERE liked = 1 ORDER BY favoriteAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getLikedPlaylists(
+        limit: Int,
+        offset: Int,
+    ): List<PlaylistEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPlaylist(playlist: PlaylistEntity)
@@ -348,18 +413,30 @@ internal interface DatabaseDao {
         downloadedAt: LocalDateTime? = if (downloadState == 3) LocalDateTime.now() else null,
     )
 
-    @Query("SELECT * FROM playlist WHERE downloadState = 3")
-    suspend fun getDownloadedPlaylists(): List<PlaylistEntity>
+    @Query("SELECT * FROM playlist WHERE downloadState = 3 ORDER BY downloadedAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getDownloadedPlaylists(
+        limit: Int,
+        offset: Int,
+    ): List<PlaylistEntity>
 
-    @Query("SELECT * FROM playlist WHERE downloadState = 1 OR downloadState = 2")
-    suspend fun getDownloadingPlaylists(): List<PlaylistEntity>
+    @Query("SELECT * FROM playlist WHERE downloadState = 1 OR downloadState = 2 LIMIT :limit OFFSET :offset")
+    suspend fun getDownloadingPlaylists(
+        limit: Int,
+        offset: Int,
+    ): List<PlaylistEntity>
 
     // Local Playlist
-    @Query("SELECT * FROM local_playlist")
-    suspend fun getAllLocalPlaylists(): List<LocalPlaylistEntity>
+    @Query("SELECT * FROM local_playlist ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
+    suspend fun getAllLocalPlaylists(
+        limit: Int,
+        offset: Int,
+    ): List<LocalPlaylistEntity>
 
-    @Query("SELECT * FROM local_playlist WHERE downloadState = 1 OR downloadState = 2")
-    suspend fun getAllDownloadingLocalPlaylists(): List<LocalPlaylistEntity>
+    @Query("SELECT * FROM local_playlist WHERE downloadState = 1 OR downloadState = 2 LIMIT :limit OFFSET :offset")
+    suspend fun getAllDownloadingLocalPlaylists(
+        limit: Int,
+        offset: Int,
+    ): List<LocalPlaylistEntity>
 
     @Query("SELECT * FROM local_playlist WHERE id = :id")
     suspend fun getLocalPlaylist(id: Long): LocalPlaylistEntity?
@@ -401,8 +478,11 @@ internal interface DatabaseDao {
         downloadedAt: LocalDateTime? = if (downloadState == 3) LocalDateTime.now() else null,
     )
 
-    @Query("SELECT * FROM local_playlist WHERE downloadState = 3")
-    suspend fun getDownloadedLocalPlaylists(): List<LocalPlaylistEntity>
+    @Query("SELECT * FROM local_playlist WHERE downloadState = 3 ORDER BY downloadedAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getDownloadedLocalPlaylists(
+        limit: Int,
+        offset: Int,
+    ): List<LocalPlaylistEntity>
 
     @Query("UPDATE local_playlist SET youtubePlaylistId = :youtubePlaylistId WHERE id = :id")
     suspend fun updateLocalPlaylistYouTubePlaylistId(
@@ -438,8 +518,11 @@ internal interface DatabaseDao {
         raw("pragma wal_checkpoint(full)".toSQLiteQuery())
     }
 
-    @Query("SELECT * FROM song WHERE downloadState = 1")
-    suspend fun getPreparingSongs(): List<SongEntity>
+    @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2 ORDER BY downloadedAt ASC LIMIT :limit OFFSET :offset")
+    suspend fun getPreparingSongs(
+        limit: Int,
+        offset: Int,
+    ): List<SongEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNewFormat(format: NewFormatEntity)
@@ -465,7 +548,7 @@ internal interface DatabaseDao {
     @Query("DELETE FROM queue")
     suspend fun deleteQueue()
 
-    @Query("SELECT * FROM queue")
+    @Query("SELECT * FROM queue LIMIT 1 OFFSET 0")
     suspend fun getQueue(): List<QueueEntity>
 
     @Query("SELECT * FROM local_playlist WHERE youtubePlaylistId = :youtubePlaylistId")
@@ -481,8 +564,12 @@ internal interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist)
 
-    @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId")
-    suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>
+    @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position ASC LIMIT :limit OFFSET :offset")
+    suspend fun getPlaylistPairSong(
+        playlistId: Long,
+        limit: Int,
+        offset: Int,
+    ): List<PairSongLocalPlaylist>
 
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position in (:positionList)")
     suspend fun getPlaylistPairSongByListPosition(
@@ -569,13 +656,16 @@ internal interface DatabaseDao {
     @Query("DELETE FROM followed_artist_single_and_album WHERE channelId = :channelId")
     suspend fun deleteFollowedArtistSingleAndAlbum(channelId: String)
 
-    @Query("SELECT * FROM followed_artist_single_and_album")
-    suspend fun getAllFollowedArtistSingleAndAlbum(): List<FollowedArtistSingleAndAlbum>
+    @Query("SELECT * FROM followed_artist_single_and_album LIMIT :limit OFFSET :offset")
+    suspend fun getAllFollowedArtistSingleAndAlbum(
+        limit: Int,
+        offset: Int,
+    ): List<FollowedArtistSingleAndAlbum>
 
     @Insert
     suspend fun insertNotification(notificationEntity: NotificationEntity)
 
-    @Query("SELECT * FROM notification")
+    @Query("SELECT * FROM notification ORDER BY time DESC LIMIT 100")
     suspend fun getAllNotification(): List<NotificationEntity>
 
     @Query("DELETE FROM notification WHERE id = :id")
@@ -609,8 +699,11 @@ internal interface DatabaseDao {
     suspend fun getPodcastWithEpisodes(podcastId: String): PodcastWithEpisodes?
 
     @Transaction
-    @Query("SELECT * FROM podcast_table")
-    suspend fun getAllPodcastWithEpisodes(): List<PodcastWithEpisodes>
+    @Query("SELECT * FROM podcast_table ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
+    suspend fun getAllPodcastWithEpisodes(
+        limit: Int,
+        offset: Int,
+    ): List<PodcastWithEpisodes>
 
     @Query("SELECT * FROM podcast_table ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
     suspend fun getAllPodcasts(limit: Int): List<PodcastsEntity>
@@ -618,14 +711,21 @@ internal interface DatabaseDao {
     @Query("SELECT * FROM podcast_table WHERE podcastId = :podcastId")
     suspend fun getPodcast(podcastId: String): PodcastsEntity?
 
-    @Query("SELECT * FROM podcast_episode_table WHERE podcastId = :podcastId")
-    suspend fun getPodcastEpisodes(podcastId: String): List<EpisodeEntity>
+    @Query("SELECT * FROM podcast_episode_table WHERE podcastId = :podcastId LIMIT :limit OFFSET :offset")
+    suspend fun getPodcastEpisodes(
+        podcastId: String,
+        limit: Int,
+        offset: Int,
+    ): List<EpisodeEntity>
 
     @Query("SELECT * FROM podcast_episode_table WHERE videoId = :videoId")
     suspend fun getEpisode(videoId: String): EpisodeEntity?
 
-    @Query("SELECT * FROM podcast_table WHERE isFavorite = 1")
-    suspend fun getFavoritePodcasts(): List<PodcastsEntity>
+    @Query("SELECT * FROM podcast_table WHERE isFavorite = 1 ORDER BY favoriteTime DESC LIMIT :limit OFFSET :offset")
+    suspend fun getFavoritePodcasts(
+        limit: Int,
+        offset: Int,
+    ): List<PodcastsEntity>
 
     @Query("UPDATE podcast_table SET inLibrary = :inLibrary WHERE podcastId = :id")
     suspend fun updatePodcastInLibrary(

@@ -326,6 +326,7 @@ fun HomeItemContentPlaylist(
                 modifier =
                     Modifier
                         .size(thumbSize)
+                        .aspectRatio(1f)
                         .clip(
                             RoundedCornerShape(10.dp),
                         ),

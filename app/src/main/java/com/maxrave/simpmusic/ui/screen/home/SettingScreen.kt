@@ -118,7 +118,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.DarkColors
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_outline
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
@@ -127,9 +126,10 @@ import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.ChipColors
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
-import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import dev.chrisbanes.haze.hazeEffect
@@ -137,6 +137,7 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -1588,7 +1589,7 @@ fun SettingScreen(
                             CenterLoadingBox(
                                 Modifier
                                     .fillMaxWidth()
-                                    .height(54.dp),
+                                    .height(80.dp),
                             )
                         }
                     }
@@ -1819,7 +1820,7 @@ fun SettingScreen(
     }
 
     if (showThirdPartyLibraries) {
-        val libraries by rememberLibraries(com.maxrave.simpmusic.R.raw.aboutlibraries)
+        val libraries by produceLibraries(com.maxrave.simpmusic.R.raw.aboutlibraries)
         val lazyListState = rememberLazyListState()
         val canScrollBackward by remember {
             derivedStateOf {
@@ -1849,17 +1850,25 @@ fun SettingScreen(
             shape = RectangleShape,
         ) {
             LibrariesContainer(
-                libraries,
+                libraries?.copy(
+                    libraries =
+                        libraries
+                            ?.libraries
+                            ?.distinctBy {
+                                it.name
+                            }?.toImmutableList() ?: emptyList<Library>().toImmutableList(),
+                ),
                 Modifier.fillMaxSize(),
                 lazyListState = lazyListState,
                 showDescription = true,
                 contentPadding = innerPadding,
+                typography = typo,
                 colors =
                     LibraryDefaults.libraryColors(
                         licenseChipColors =
                             object : ChipColors {
                                 override val containerColor: Color
-                                    get() = md_theme_dark_outline
+                                    get() = Color.DarkGray
                                 override val contentColor: Color
                                     get() = Color.White
                             },

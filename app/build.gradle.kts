@@ -1,3 +1,4 @@
+
 import com.android.build.gradle.internal.tasks.CompileArtProfileTask
 import java.util.Properties
 
@@ -201,6 +202,7 @@ dependencies {
     androidTestImplementation(composeBom)
     implementation(libs.compose.material3.lib)
     implementation(libs.compose.material3.sizeclass)
+    implementation(libs.compose.material3.adaptive)
     implementation(libs.compose.ui)
     implementation(libs.compose.material.ripple)
     implementation(libs.compose.material.icons.core)
@@ -302,11 +304,9 @@ dependencies {
 }
 /**
  * Task to generate the aboutlibraries.json file
- * Run with:
- ./gradlew :app:exportLibraryDefinitions --no-daemon --no-configuration-cache --no-build-cache
  **/
 aboutLibraries {
-    android.registerAndroidTasks = true
+    collect.configPath = file("../config")
     export {
         exportVariant = "fullRelease"
         prettyPrint = true

@@ -68,8 +68,7 @@
 
         <activity
             android:name=".ui.MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"
-            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|screenSize|screenLayout|smallestScreenSize"
             android:exported="true"
             android:supportsPictureInPicture="true"
             android:enableOnBackInvokedCallback="true"

@@ -499,8 +499,6 @@ fun LiquidGlassAppBottomNavigationBar(
                 .height(56.dp)
                 .layoutId("miniPlayer"),
             backdrop = backdrop,
-            layer = layer,
-            luminanceAnimation = luminanceAnimation.value,
             onClick = {
                 onOpenNowPlaying()
             },

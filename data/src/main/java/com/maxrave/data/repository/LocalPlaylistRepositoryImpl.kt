@@ -10,6 +10,7 @@ import androidx.paging.PagingData
 import com.maxrave.common.R
 import com.maxrave.data.db.Converters
 import com.maxrave.data.db.LocalDataSource
+import com.maxrave.data.extension.getFullDataFromDB
 import com.maxrave.data.mapping.toListTrack
 import com.maxrave.data.mapping.toTrack
 import com.maxrave.data.paging.LocalPlaylistPagingSource
@@ -61,7 +62,12 @@ internal class LocalPlaylistRepositoryImpl(
         }
 
     override fun getAllLocalPlaylists(): Flow<List<LocalPlaylistEntity>> =
-        flow { emit(localDataSource.getAllLocalPlaylists()) }.flowOn(Dispatchers.IO)
+        flow {
+            val list = getFullDataFromDB { limit, offset ->
+                localDataSource.getAllLocalPlaylists(limit, offset)
+            }
+            emit(list)
+        }.flowOn(Dispatchers.IO)
 
     override suspend fun updateLocalPlaylistTracks(
         tracks: List<String>,
@@ -89,7 +95,11 @@ internal class LocalPlaylistRepositoryImpl(
 
     override fun getAllDownloadingLocalPlaylists(): Flow<List<LocalPlaylistEntity>> =
         flow {
-            emit(localDataSource.getAllDownloadingLocalPlaylists())
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getAllDownloadingLocalPlaylists(limit, offset)
+                }
+            )
         }.flowOn(Dispatchers.IO)
 
     override fun listTrackFlow(id: Long): Flow<List<String>> =

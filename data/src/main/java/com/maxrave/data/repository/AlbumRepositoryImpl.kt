@@ -1,6 +1,7 @@
 package com.maxrave.data.repository
 
 import com.maxrave.data.db.LocalDataSource
+import com.maxrave.data.extension.getFullDataFromDB
 import com.maxrave.data.mapping.toAlbumsResult
 import com.maxrave.data.parser.parseAlbumData
 import com.maxrave.domain.data.entities.AlbumEntity
@@ -81,7 +82,10 @@ internal class AlbumRepositoryImpl(
 
     override suspend fun getAllFollowedArtistSingleAndAlbums(): Flow<List<FollowedArtistSingleAndAlbum>?> =
         flow {
-            emit(localDataSource.getAllFollowedArtistSingleAndAlbums())
+            val list = getFullDataFromDB { limit, offset ->
+                localDataSource.getAllFollowedArtistSingleAndAlbums(limit, offset)
+            }
+            emit(list)
         }.flowOn(Dispatchers.IO)
 
     override suspend fun getFollowedArtistSingleAndAlbum(channelId: String): Flow<FollowedArtistSingleAndAlbum?> =

@@ -93,3 +93,4 @@ class SimpMusicApplication :
 
 typealias AppResString = R.string
 typealias CommonResString = com.maxrave.common.R.string
+typealias CommonResDrawable = com.maxrave.common.R.drawable

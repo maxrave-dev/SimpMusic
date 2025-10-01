@@ -15,32 +15,45 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -54,6 +67,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.maxrave.common.FIRST_TIME_MIGRATION
@@ -64,10 +78,13 @@ import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LOCATION
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
+import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -76,6 +93,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
+import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
@@ -131,15 +149,6 @@ class MainActivity : AppCompatActivity() {
         Logger.d("MainActivity", "onNewIntent: $intent")
         viewModel.setIntent(intent)
     }
-
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray,
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-//    }
 
     @ExperimentalMaterial3Api
     @ExperimentalFoundationApi
@@ -231,6 +240,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.getLocation()
 
         setContent {
+            val windowSize = currentWindowAdaptiveInfo().windowSizeClass
+            val resources = LocalResources.current
             val navController = rememberNavController()
 
             val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
@@ -243,10 +254,6 @@ class MainActivity : AppCompatActivity() {
             // MiniPlayer visibility logic
             var isShowMiniPlayer by rememberSaveable {
                 mutableStateOf(true)
-            }
-
-            var isInSearchPage by rememberSaveable {
-                mutableStateOf(false)
             }
 
             // Now playing screen
@@ -360,55 +367,59 @@ class MainActivity : AppCompatActivity() {
             var isScrolledToTop by rememberSaveable {
                 mutableStateOf(false)
             }
+            val isTablet = windowSize.windowWidthSizeClass != WindowWidthSizeClass.COMPACT
+            val isTabletLandscape = isTablet && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             AppTheme {
                 Scaffold(
                     bottomBar = {
-                        AnimatedVisibility(
-                            isNavBarVisible,
-                            enter = fadeIn() + slideInHorizontally(),
-                            exit = fadeOut(),
-                        ) {
-                            Column {
-                                AnimatedVisibility(
-                                    isShowMiniPlayer && isLiquidGlassEnabled == DataStoreManager.FALSE,
-                                    enter = fadeIn() + slideInHorizontally(),
-                                    exit = fadeOut(),
-                                ) {
-                                    MiniPlayer(
-                                        Modifier
-                                            .height(56.dp)
-                                            .fillMaxWidth()
-                                            .padding(
-                                                horizontal = 12.dp,
-                                            ).padding(
-                                                bottom = 4.dp,
-                                            ),
-                                        backdrop = backdrop,
-                                        onClick = {
-                                            isShowNowPlaylistScreen = true
-                                        },
-                                        onClose = {
-                                            viewModel.stopPlayer()
-                                            viewModel.isServiceRunning = false
-                                        },
-                                    )
-                                }
-                                if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                                    LiquidGlassAppBottomNavigationBar(
-                                        navController = navController,
-                                        backdrop = backdrop,
-                                        viewModel = viewModel,
-                                        onOpenNowPlaying = { isShowNowPlaylistScreen = true },
-                                        isScrolledToTop = isScrolledToTop,
-                                    ) { klass ->
-                                        viewModel.reloadDestination(klass)
+                        if (!isTablet) {
+                            AnimatedVisibility(
+                                isNavBarVisible,
+                                enter = fadeIn() + slideInHorizontally(),
+                                exit = fadeOut(),
+                            ) {
+                                Column {
+                                    AnimatedVisibility(
+                                        isShowMiniPlayer && isLiquidGlassEnabled == DataStoreManager.FALSE,
+                                        enter = fadeIn() + slideInHorizontally(),
+                                        exit = fadeOut(),
+                                    ) {
+                                        MiniPlayer(
+                                            Modifier
+                                                .height(56.dp)
+                                                .fillMaxWidth()
+                                                .padding(
+                                                    horizontal = 12.dp,
+                                                ).padding(
+                                                    bottom = 4.dp,
+                                                ),
+                                            backdrop = backdrop,
+                                            onClick = {
+                                                isShowNowPlaylistScreen = true
+                                            },
+                                            onClose = {
+                                                viewModel.stopPlayer()
+                                                viewModel.isServiceRunning = false
+                                            },
+                                        )
                                     }
-                                } else {
-                                    AppBottomNavigationBar(
-                                        navController = navController,
-                                        isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
-                                    ) { klass ->
-                                        viewModel.reloadDestination(klass)
+                                    if (isLiquidGlassEnabled == TRUE) {
+                                        LiquidGlassAppBottomNavigationBar(
+                                            navController = navController,
+                                            backdrop = backdrop,
+                                            viewModel = viewModel,
+                                            onOpenNowPlaying = { isShowNowPlaylistScreen = true },
+                                            isScrolledToTop = isScrolledToTop,
+                                        ) { klass ->
+                                            viewModel.reloadDestination(klass)
+                                        }
+                                    } else {
+                                        AppBottomNavigationBar(
+                                            navController = navController,
+                                            isTranslucentBackground = isTranslucentBottomBar == TRUE,
+                                        ) { klass ->
+                                            viewModel.reloadDestination(klass)
+                                        }
                                     }
                                 }
                             }
@@ -419,32 +430,120 @@ class MainActivity : AppCompatActivity() {
                             Modifier
                                 .fillMaxSize()
                                 .then(
-                                    if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+                                    if (isLiquidGlassEnabled == TRUE && !isTablet) {
                                         Modifier.layerBackdrop(backdrop)
                                     } else {
                                         Modifier
                                     },
                                 ),
                         ) {
-                            AppNavigationGraph(
-                                innerPadding = innerPadding,
-                                navController = navController,
-                                hideNavBar = {
-                                    isNavBarVisible = false
-                                },
-                                showNavBar = {
-                                    isNavBarVisible = true
-                                },
-                                showNowPlayingSheet = {
-                                    isShowNowPlaylistScreen = true
-                                },
-                                onScrolling = {
-                                    isScrolledToTop = it
-                                },
-                            )
+                            Row(
+                                Modifier.fillMaxSize(),
+                            ) {
+                                if (isTablet) {
+                                    AppNavigationRail(
+                                        navController = navController,
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
+                                }
+                                Box(
+                                    Modifier.fillMaxSize().weight(1f),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .then(
+                                                if (isLiquidGlassEnabled == TRUE && isTablet) {
+                                                    Modifier.layerBackdrop(backdrop)
+                                                } else {
+                                                    Modifier
+                                                },
+                                            ),
+                                    ) {
+                                        AppNavigationGraph(
+                                            innerPadding = innerPadding,
+                                            navController = navController,
+                                            hideNavBar = {
+                                                isNavBarVisible = false
+                                            },
+                                            showNavBar = {
+                                                isNavBarVisible = true
+                                            },
+                                            showNowPlayingSheet = {
+                                                isShowNowPlaylistScreen = true
+                                            },
+                                            onScrolling = {
+                                                isScrolledToTop = it
+                                            },
+                                        )
+                                    }
+                                    this@Row.AnimatedVisibility(
+                                        modifier =
+                                            Modifier
+                                                .padding(innerPadding)
+                                                .align(Alignment.BottomCenter),
+                                        visible = isShowMiniPlayer && isTablet,
+                                        enter = fadeIn() + slideInHorizontally(),
+                                        exit = fadeOut(),
+                                    ) {
+                                        MiniPlayer(
+                                            Modifier
+                                                .height(56.dp)
+                                                .fillMaxWidth(0.8f)
+                                                .padding(
+                                                    horizontal = 12.dp,
+                                                ).padding(
+                                                    bottom = 4.dp,
+                                                ),
+                                            backdrop = backdrop,
+                                            onClick = {
+                                                isShowNowPlaylistScreen = true
+                                            },
+                                            onClose = {
+                                                viewModel.stopPlayer()
+                                                viewModel.isServiceRunning = false
+                                            },
+                                        )
+                                    }
+                                }
+                                if (isTablet && isTabletLandscape) {
+                                    AnimatedVisibility(
+                                        isShowNowPlaylistScreen,
+                                        enter = expandHorizontally() + fadeIn(),
+                                        exit = fadeOut() + shrinkHorizontally(),
+                                    ) {
+                                        Row(Modifier.fillMaxHeight().fillMaxWidth(0.35f)) {
+                                            Spacer(Modifier.width(8.dp))
+                                            Box(
+                                                Modifier
+                                                    .padding(
+                                                        innerPadding.copy(
+                                                            start = 0.dp,
+                                                            top = 0.dp,
+                                                            bottom = 0.dp,
+                                                        ),
+                                                    ).clip(
+                                                        RoundedCornerShape(12.dp),
+                                                    ),
+                                            ) {
+                                                NowPlayingScreenContent(
+                                                    navController = navController,
+                                                    sharedViewModel = viewModel,
+                                                    isExpanded = true,
+                                                    dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                                    onSwipeEnabledChange = {},
+                                                ) {
+                                                    isShowNowPlaylistScreen = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
 
-                        if (isShowNowPlaylistScreen) {
+                        if (isShowNowPlaylistScreen && !isTabletLandscape) {
                             NowPlayingScreen(
                                 navController = navController,
                             ) {
