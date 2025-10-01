@@ -30,12 +30,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -65,6 +67,7 @@ import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -80,7 +83,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -656,9 +658,10 @@ fun NowPlayingScreenContent(
                     }
                 }
 
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     modifier =
                         Modifier
+                            .fillMaxWidth()
                             .align(Alignment.TopCenter)
                             .onGloballyPositioned {
                                 topAppBarHeightDp =
@@ -672,6 +675,10 @@ fun NowPlayingScreenContent(
                     colors =
                         TopAppBarDefaults.topAppBarColors().copy(
                             containerColor = Color.Transparent,
+                        ),
+                    windowInsets =
+                        TopAppBarDefaults.windowInsets.only(
+                            WindowInsetsSides.Top,
                         ),
                     title = {
                         Column(

@@ -82,6 +82,7 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
@@ -515,9 +516,16 @@ class MainActivity : AppCompatActivity() {
                                         Row(Modifier.fillMaxHeight().fillMaxWidth(0.35f)) {
                                             Spacer(Modifier.width(8.dp))
                                             Box(
-                                                Modifier.clip(
-                                                    RoundedCornerShape(12.dp),
-                                                ),
+                                                Modifier
+                                                    .padding(
+                                                        innerPadding.copy(
+                                                            start = 0.dp,
+                                                            top = 0.dp,
+                                                            bottom = 0.dp,
+                                                        ),
+                                                    ).clip(
+                                                        RoundedCornerShape(12.dp),
+                                                    ),
                                             ) {
                                                 NowPlayingScreenContent(
                                                     navController = navController,
