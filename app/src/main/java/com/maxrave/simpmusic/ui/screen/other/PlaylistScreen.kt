@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -284,7 +283,7 @@ fun PlaylistScreen(
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
-                                            .aspectRatio(1f)
+                                            .height(260.dp)
                                             .clip(
                                                 RoundedCornerShape(8.dp),
                                             ).angledGradientBackground(listColors, 25f),
