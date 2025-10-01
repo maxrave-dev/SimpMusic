@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.library
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -166,8 +165,9 @@ fun LibraryScreen(
                     item {
                         LibraryTilingBox(navController)
                     }
-                    item {
-                        AnimatedVisibility(!listCanvasSong.data.isNullOrEmpty()) {
+
+                    if (!listCanvasSong.data.isNullOrEmpty()) {
+                        item {
                             LibraryItem(
                                 state =
                                     LibraryItemState(
@@ -179,6 +179,7 @@ fun LibraryScreen(
                             )
                         }
                     }
+
                     item {
                         LibraryItem(
                             state =
@@ -203,6 +204,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     youTubePlaylist,
+                    emptyText = R.string.no_YouTube_playlists,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getYouTubePlaylist()
@@ -214,6 +216,7 @@ fun LibraryScreen(
                     innerPadding.copy(top = topAppBarHeight),
                     yourLocalPlaylist,
                     onScrolling = onScrolling,
+                    emptyText = R.string.no_playlists_added,
                     createNewPlaylist = {
                         showAddSheet = true
                     },
@@ -226,6 +229,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     favoritePlaylist,
+                    emptyText = R.string.no_favorite_playlists,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getPlaylistFavorite()
@@ -236,6 +240,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     downloadedPlaylist,
+                    emptyText = R.string.no_playlists_downloaded,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getDownloadedPlaylist()
@@ -246,6 +251,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     favoritePodcasts,
+                    emptyText = R.string.no_favorite_podcasts,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getFavoritePodcasts()

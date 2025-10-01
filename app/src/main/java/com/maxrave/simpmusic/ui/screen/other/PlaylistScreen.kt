@@ -634,12 +634,11 @@ fun PlaylistScreen(
                                 Box(
                                     modifier =
                                         Modifier
-                                            .fillMaxWidth()
-                                            .height(64.dp),
+                                            .fillMaxWidth(),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     CenterLoadingBox(
-                                        modifier = Modifier.size(32.dp),
+                                        modifier = Modifier.size(80.dp),
                                     )
                                 }
                             }
@@ -755,7 +754,7 @@ fun PlaylistScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     CenterLoadingBox(
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(80.dp),
                     )
                 }
             }

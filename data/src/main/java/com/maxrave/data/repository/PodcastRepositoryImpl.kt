@@ -1,6 +1,7 @@
 package com.maxrave.data.repository
 
 import com.maxrave.data.db.LocalDataSource
+import com.maxrave.data.extension.getFullDataFromDB
 import com.maxrave.data.parser.parsePodcastContinueData
 import com.maxrave.data.parser.parsePodcastData
 import com.maxrave.data.parser.toListThumbnail
@@ -206,7 +207,11 @@ internal class PodcastRepositoryImpl(
 
     override fun getAllPodcastWithEpisodes(): Flow<List<PodcastWithEpisodes>> =
         flow {
-            emit(localDataSource.getAllPodcastWithEpisodes())
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getAllPodcastWithEpisodes(limit, offset)
+                }
+            )
         }.flowOn(Dispatchers.IO)
 
     override fun getPodcast(podcastId: String): Flow<PodcastsEntity?> =
@@ -233,12 +238,20 @@ internal class PodcastRepositoryImpl(
 
     override fun getPodcastEpisodes(podcastId: String): Flow<List<EpisodeEntity>> =
         flow {
-            emit(localDataSource.getPodcastEpisodes(podcastId))
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getPodcastEpisodes(podcastId, limit, offset)
+                }
+            )
         }.flowOn(Dispatchers.IO)
 
     override fun getFavoritePodcasts(): Flow<List<PodcastsEntity>> =
         flow {
-            emit(localDataSource.getFavoritePodcasts())
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getFavoritePodcasts(limit, offset)
+                }
+            )
         }.flowOn(Dispatchers.IO)
 
     override fun updatePodcastInLibraryNow(id: String) =

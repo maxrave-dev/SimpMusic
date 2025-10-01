@@ -125,7 +125,6 @@ fun ArtistScreen(
                 Box(Modifier.fillMaxSize()) {
                     CenterLoadingBox(
                         Modifier
-                            .size(48.dp)
                             .align(Alignment.Center),
                     )
                 }

@@ -3,6 +3,7 @@ package com.maxrave.data.repository
 import android.graphics.Bitmap
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.data.db.LocalDataSource
+import com.maxrave.data.extension.getFullDataFromDB
 import com.maxrave.data.mapping.toListTrack
 import com.maxrave.data.mapping.toSongItemForDownload
 import com.maxrave.data.mapping.toWatchEndpoint
@@ -59,7 +60,11 @@ internal class SongRepositoryImpl(
 
     override fun getPreparingSongs(): Flow<List<SongEntity>> =
         flow {
-            emit(localDataSource.getPreparingSongs())
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getPreparingSongs(limit, offset)
+                }
+            )
         }.flowOn(Dispatchers.IO)
 
     override fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =

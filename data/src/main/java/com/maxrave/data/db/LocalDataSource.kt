@@ -177,7 +177,13 @@ internal class LocalDataSource(
 
     suspend fun getPlaylist(playlistId: String) = databaseDao.getPlaylist(playlistId)
 
-    suspend fun getLikedPlaylists() = databaseDao.getLikedPlaylists()
+    suspend fun getLikedPlaylists(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getLikedPlaylists(
+        limit,
+        offset,
+    )
 
     suspend fun updatePlaylistInLibrary(
         inLibrary: LocalDateTime,
@@ -189,9 +195,21 @@ internal class LocalDataSource(
         playlistId: String,
     ) = databaseDao.updatePlaylistDownloadState(downloadState, playlistId)
 
-    suspend fun getAllLocalPlaylists() = databaseDao.getAllLocalPlaylists()
+    suspend fun getAllLocalPlaylists(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getAllLocalPlaylists(
+        limit,
+        offset,
+    )
 
-    suspend fun getAllDownloadingLocalPlaylists() = databaseDao.getAllDownloadingLocalPlaylists()
+    suspend fun getAllDownloadingLocalPlaylists(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getAllDownloadingLocalPlaylists(
+        limit,
+        offset,
+    )
 
     suspend fun getLocalPlaylist(id: Long) = databaseDao.getLocalPlaylist(id)
 
@@ -224,7 +242,13 @@ internal class LocalDataSource(
         id: Long,
     ) = databaseDao.updateLocalPlaylistDownloadState(downloadState, id)
 
-    suspend fun getDownloadedLocalPlaylists() = databaseDao.getDownloadedLocalPlaylists()
+    suspend fun getDownloadedLocalPlaylists(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getDownloadedLocalPlaylists(
+        limit,
+        offset,
+    )
 
     suspend fun updateLocalPlaylistYouTubePlaylistId(
         id: Long,
@@ -244,7 +268,13 @@ internal class LocalDataSource(
 
     suspend fun insertLyrics(lyrics: LyricsEntity) = databaseDao.insertLyrics(lyrics)
 
-    suspend fun getPreparingSongs() = databaseDao.getPreparingSongs()
+    suspend fun getPreparingSongs(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getPreparingSongs(
+        limit,
+        offset,
+    )
 
     suspend fun insertNewFormat(format: NewFormatEntity) = databaseDao.insertNewFormat(format)
 
@@ -275,7 +305,15 @@ internal class LocalDataSource(
 
     suspend fun unsyncLocalPlaylist(id: Long) = databaseDao.unsyncLocalPlaylist(id)
 
-    suspend fun getPlaylistPairSong(playlistId: Long) = databaseDao.getPlaylistPairSong(playlistId)
+    suspend fun getPlaylistPairSong(
+        playlistId: Long,
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getPlaylistPairSong(
+        playlistId,
+        limit,
+        offset,
+    )
 
     suspend fun getPlaylistPairSongByListPosition(
         playlistId: Long,
@@ -353,7 +391,13 @@ internal class LocalDataSource(
 
     suspend fun getFollowedArtistSingleAndAlbum(channelId: String) = databaseDao.getFollowedArtistSingleAndAlbum(channelId)
 
-    suspend fun getAllFollowedArtistSingleAndAlbums() = databaseDao.getAllFollowedArtistSingleAndAlbum()
+    suspend fun getAllFollowedArtistSingleAndAlbums(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getAllFollowedArtistSingleAndAlbum(
+        limit,
+        offset,
+    )
 
     suspend fun insertNotification(notificationEntity: NotificationEntity) = databaseDao.insertNotification(notificationEntity)
 
@@ -381,11 +425,23 @@ internal class LocalDataSource(
 
     suspend fun getAllPodcasts(limit: Int) = databaseDao.getAllPodcasts(limit)
 
-    suspend fun getAllPodcastWithEpisodes() = databaseDao.getAllPodcastWithEpisodes()
+    suspend fun getAllPodcastWithEpisodes(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getAllPodcastWithEpisodes(
+        limit,
+        offset,
+    )
 
     suspend fun getPodcast(podcastId: String) = databaseDao.getPodcast(podcastId)
 
-    suspend fun getFavoritePodcasts() = databaseDao.getFavoritePodcasts()
+    suspend fun getFavoritePodcasts(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getFavoritePodcasts(
+        limit,
+        offset,
+    )
 
     suspend fun getEpisode(videoId: String) = databaseDao.getEpisode(videoId)
 
@@ -408,7 +464,15 @@ internal class LocalDataSource(
         }
     }
 
-    suspend fun getPodcastEpisodes(podcastId: String) = databaseDao.getPodcastEpisodes(podcastId)
+    suspend fun getPodcastEpisodes(
+        podcastId: String,
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getPodcastEpisodes(
+        podcastId,
+        limit,
+        offset,
+    )
 
     suspend fun updatePodcastInLibraryNow(id: String) = databaseDao.updatePodcastInLibrary(id, LocalDateTime.now())
 }

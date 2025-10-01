@@ -1588,7 +1588,7 @@ fun SettingScreen(
                             CenterLoadingBox(
                                 Modifier
                                     .fillMaxWidth()
-                                    .height(54.dp),
+                                    .height(80.dp),
                             )
                         }
                     }

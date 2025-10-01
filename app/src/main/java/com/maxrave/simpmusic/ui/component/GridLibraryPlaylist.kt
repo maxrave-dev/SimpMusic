@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -61,6 +62,7 @@ inline fun <reified T> GridLibraryPlaylist(
     navController: NavController,
     contentPadding: PaddingValues,
     data: LocalResource<List<T>>,
+    @StringRes emptyText: Int,
     noinline onScrolling: (onTop: Boolean) -> Unit = { _ -> },
     noinline createNewPlaylist: (() -> Unit)? = null,
     noinline onReload: () -> Unit,
@@ -103,7 +105,7 @@ inline fun <reified T> GridLibraryPlaylist(
     ) {
         Crossfade(targetState = data) { data ->
             val list = (data as? LocalResource.Success)?.data ?: emptyList()
-            if (data is LocalResource.Success) {
+            if (data is LocalResource.Success && list.isNotEmpty() || createNewPlaylist != null) {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 125.dp),
                     contentPadding = contentPadding,
@@ -220,10 +222,19 @@ inline fun <reified T> GridLibraryPlaylist(
                         EndOfPage()
                     }
                 }
-            } else if (data !is LocalResource.Loading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            } else if (data is LocalResource.Loading) {
+                CenterLoadingBox(
+                    Modifier.fillMaxSize(),
+                )
+            } else {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
-                        text = stringResource(R.string.no_results_found),
+                        text = stringResource(emptyText),
                         style = typo.bodyMedium,
                         color = Color.White,
                     )

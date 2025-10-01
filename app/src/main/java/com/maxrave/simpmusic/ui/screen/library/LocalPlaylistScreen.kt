@@ -832,7 +832,7 @@ fun LocalPlaylistScreen(
                     item {
                         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                             Spacer(modifier = Modifier.height(15.dp))
-                            CenterLoadingBox(modifier = Modifier.size(32.dp))
+                            CenterLoadingBox(modifier = Modifier.size(80.dp))
                             Spacer(modifier = Modifier.height(15.dp))
                         }
                     }
