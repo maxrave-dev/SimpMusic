@@ -459,7 +459,9 @@ class MainActivity : AppCompatActivity() {
                                     }
                                 }
                                 Box(
-                                    Modifier.fillMaxSize().weight(1f),
+                                    Modifier
+                                        .fillMaxSize()
+                                        .weight(1f),
                                 ) {
                                     Box(
                                         Modifier
@@ -524,7 +526,11 @@ class MainActivity : AppCompatActivity() {
                                         enter = expandHorizontally() + fadeIn(),
                                         exit = fadeOut() + shrinkHorizontally(),
                                     ) {
-                                        Row(Modifier.fillMaxHeight().fillMaxWidth(0.35f)) {
+                                        Row(
+                                            Modifier
+                                                .fillMaxHeight()
+                                                .fillMaxWidth(0.35f),
+                                        ) {
                                             Spacer(Modifier.width(8.dp))
                                             Box(
                                                 Modifier

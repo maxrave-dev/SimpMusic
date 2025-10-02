@@ -1,6 +1,8 @@
 package com.maxrave.simpmusic
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.database.CursorWindow
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.Configuration
@@ -26,6 +28,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
+import java.lang.reflect.Field
 
 class SimpMusicApplication :
     Application(),
@@ -82,6 +85,12 @@ class SimpMusicApplication :
             .minTimeBetweenCrashesMs(2000) // default: 3000 //default: bug image
             .restartActivity(MainActivity::class.java) // default: null (your app's launch activity)
             .apply()
+
+        @SuppressLint("DiscouragedPrivateApi")
+        val field: Field = CursorWindow::class.java.getDeclaredField("sCursorWindowSize")
+        field.isAccessible = true
+        val expectSize = 100 * 1024 * 1024
+        field.set(null, expectSize)
     }
 
     override fun onTerminate() {
