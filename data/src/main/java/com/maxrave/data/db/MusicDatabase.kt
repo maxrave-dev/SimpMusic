@@ -30,7 +30,7 @@ import com.maxrave.domain.data.entities.TranslatedLyricsEntity
         SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class, FollowedArtistSingleAndAlbum::class,
         NotificationEntity::class, TranslatedLyricsEntity::class, PodcastsEntity::class, EpisodeEntity::class,
     ],
-    version = 18,
+    version = 19,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3), AutoMigration(
@@ -53,6 +53,9 @@ import com.maxrave.domain.data.entities.TranslatedLyricsEntity
         AutoMigration(17, 18),
         AutoMigration(16, 18),
         AutoMigration(15, 18),
+        AutoMigration(18, 19),
+        AutoMigration(17, 19),
+        AutoMigration(16, 19),
     ],
 )
 @TypeConverters(Converters::class)

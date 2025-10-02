@@ -35,8 +35,12 @@ interface DataStoreManager {
 
     val loggedIn: Flow<String>
     val cookie: Flow<String>
+    val pageId: Flow<String>
 
-    suspend fun setCookie(cookie: String)
+    suspend fun setCookie(
+        cookie: String,
+        pageId: String?,
+    )
 
     suspend fun setLoggedIn(logged: Boolean)
 

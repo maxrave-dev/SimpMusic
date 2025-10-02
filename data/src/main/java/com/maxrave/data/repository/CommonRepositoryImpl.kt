@@ -88,6 +88,12 @@ internal class CommonRepositoryImpl(
                         }
                     }
                 }
+            val pageIdJob =
+                launch {
+                    dataStoreManager.pageId.distinctUntilChanged().collectLatest { pageId ->
+                        youTube.pageId = pageId.ifEmpty { null }
+                    }
+                }
             val usingProxy =
                 launch {
                     combine(
@@ -161,6 +167,7 @@ internal class CommonRepositoryImpl(
 
             localeJob.join()
             ytCookieJob.join()
+            pageIdJob.join()
             usingProxy.join()
             dataSyncIdJob.join()
             visitorDataJob.join()

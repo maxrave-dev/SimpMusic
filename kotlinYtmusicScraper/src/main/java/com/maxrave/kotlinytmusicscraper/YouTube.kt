@@ -40,6 +40,7 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.getContinuation
 import com.maxrave.kotlinytmusicscraper.models.oddElements
 import com.maxrave.kotlinytmusicscraper.models.response.AccountMenuResponse
+import com.maxrave.kotlinytmusicscraper.models.response.AccountSwitcherEndpointResponse
 import com.maxrave.kotlinytmusicscraper.models.response.AddItemYouTubePlaylistResponse
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.CreatePlaylistResponse
@@ -53,6 +54,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
+import com.maxrave.kotlinytmusicscraper.models.response.toListAccountInfo
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.FdroidResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
@@ -201,6 +203,12 @@ class YouTube(
         get() = ytMusic.cookie
         set(value) {
             ytMusic.cookie = value
+        }
+
+    var pageId: String?
+        get() = ytMusic.pageId
+        set(value) {
+            ytMusic.pageId = value
         }
 
     fun updateYtdlp() {
@@ -1991,6 +1999,21 @@ class YouTube(
                 .openPopupAction.popup.multiPageMenuRenderer.header
                 ?.activeAccountHeaderRenderer
                 ?.toAccountInfo()
+        }
+
+    suspend fun getAccountListWithPageId(customCookie: String): Result<List<AccountInfo>> =
+        runCatching {
+            val res =
+                ytMusic
+                    .getAccountSwitcherEndpoint(customCookie)
+                    .bodyAsText()
+                    .removePrefix(
+                        ")\n" +
+                            "]\n" +
+                            "}'",
+                    )
+            val accountSwitcherEndpointResponse = poTokenJsonDeserializer.decodeFromString<AccountSwitcherEndpointResponse>(res)
+            accountSwitcherEndpointResponse.toListAccountInfo()
         }
 
     suspend fun pipeStream(

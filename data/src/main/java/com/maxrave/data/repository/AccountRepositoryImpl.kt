@@ -6,6 +6,7 @@ import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.data.model.account.AccountInfo
 import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -13,23 +14,25 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
+private const val TAG = "AccountRepositoryImpl"
+
 internal class AccountRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
 ) : AccountRepository {
     override fun getYouTubeCookie() = youTube.cookie
 
-    override fun getAccountInfo(cookie: String): Flow<AccountInfo?> =
-        flow<AccountInfo?> {
+    override fun getAccountInfo(cookie: String): Flow<List<AccountInfo>> =
+        flow {
             youTube.cookie = cookie
             delay(1000)
             youTube
-                .accountInfo(cookie)
-                .onSuccess { accountInfo ->
-                    emit(accountInfo?.toDomainAccountInfo())
+                .getAccountListWithPageId(cookie)
+                .onSuccess {
+                    emit(it.map { account -> account.toDomainAccountInfo() })
                 }.onFailure {
-                    it.printStackTrace()
-                    emit(null)
+                    Logger.e(TAG, "getAccountInfo: ${it.message}", it)
+                    emit(emptyList())
                 }
         }.flowOn(Dispatchers.IO)
 
