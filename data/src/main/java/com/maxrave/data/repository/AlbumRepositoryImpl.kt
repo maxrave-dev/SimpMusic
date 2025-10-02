@@ -40,7 +40,14 @@ internal class AlbumRepositoryImpl(
 
     override fun getLikedAlbums(): Flow<List<AlbumEntity>> =
         flow {
-            emit(localDataSource.getLikedAlbums())
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getLikedAlbums(
+                        limit,
+                        offset,
+                    )
+                },
+            )
         }.flowOn(Dispatchers.IO)
 
     override fun insertAlbum(albumEntity: AlbumEntity) =
@@ -82,9 +89,10 @@ internal class AlbumRepositoryImpl(
 
     override suspend fun getAllFollowedArtistSingleAndAlbums(): Flow<List<FollowedArtistSingleAndAlbum>?> =
         flow {
-            val list = getFullDataFromDB { limit, offset ->
-                localDataSource.getAllFollowedArtistSingleAndAlbums(limit, offset)
-            }
+            val list =
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getAllFollowedArtistSingleAndAlbums(limit, offset)
+                }
             emit(list)
         }.flowOn(Dispatchers.IO)
 

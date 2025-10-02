@@ -55,17 +55,31 @@ internal class LocalDataSource(
 
     suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>) = databaseDao.getSongByListVideoIdFull(primaryKeyList)
 
-    suspend fun getDownloadedSongs() = databaseDao.getDownloadedSongs()
-
-    fun getDownloadedSongsAsFlow(offset: Int) = databaseDao.getDownloadedSongsAsFlow(offset)
+    suspend fun getDownloadedSongs(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getDownloadedSongs(
+        limit,
+        offset,
+    )
 
     fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) = databaseDao.getDownloadedVideoIdByListVideoId(listVideoId)
 
-    suspend fun getDownloadingSongs() = databaseDao.getDownloadingSongs()
+    suspend fun getDownloadingSongs(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getDownloadingSongs(
+        limit,
+        offset,
+    )
 
-    fun getLikedSongs() = databaseDao.getLikedSongs()
-
-    suspend fun getLibrarySongs() = databaseDao.getLibrarySongs()
+    suspend fun getLikedSongs(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getLikedSongs(
+        limit,
+        offset,
+    )
 
     suspend fun getSong(videoId: String) = databaseDao.getSong(videoId)
 
@@ -130,7 +144,13 @@ internal class LocalDataSource(
 
     suspend fun getArtist(channelId: String) = databaseDao.getArtist(channelId)
 
-    fun getFollowedArtists() = databaseDao.getFollowedArtists()
+    suspend fun getFollowedArtists(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getFollowedArtists(
+        limit,
+        offset,
+    )
 
     suspend fun updateArtistInLibrary(
         inLibrary: LocalDateTime,
@@ -150,7 +170,13 @@ internal class LocalDataSource(
 
     fun getAlbumAsFlow(albumId: String) = databaseDao.getAlbumAsFlow(albumId)
 
-    suspend fun getLikedAlbums() = databaseDao.getLikedAlbums()
+    suspend fun getLikedAlbums(
+        limit: Int,
+        offset: Int,
+    ) = databaseDao.getLikedAlbums(
+        limit,
+        offset,
+    )
 
     suspend fun updateAlbumInLibrary(
         inLibrary: LocalDateTime,

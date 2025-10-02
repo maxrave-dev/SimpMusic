@@ -308,10 +308,8 @@ dependencies {
 aboutLibraries {
     collect.configPath = file("../config")
     export {
-        exportVariant = "fullRelease"
         prettyPrint = true
         excludeFields = listOf("generated")
-        outputPath = File(project.projectDir, "src/main/res/raw/aboutlibraries.json")
     }
 }
 tasks.withType<CompileArtProfileTask> {

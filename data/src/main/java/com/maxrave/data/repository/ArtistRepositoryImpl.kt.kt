@@ -1,6 +1,7 @@
 package com.maxrave.data.repository
 
 import com.maxrave.data.db.LocalDataSource
+import com.maxrave.data.extension.getFullDataFromDB
 import com.maxrave.data.parser.parseArtistData
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
@@ -53,7 +54,14 @@ internal class ArtistRepositoryImpl(
         Dispatchers.Main,
     ) { localDataSource.updateFollowed(followedStatus, channelId) }
 
-    override fun getFollowedArtists(): Flow<List<ArtistEntity>> = localDataSource.getFollowedArtists()
+    override fun getFollowedArtists(): Flow<List<ArtistEntity>> =
+        flow {
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getFollowedArtists(limit, offset)
+                },
+            )
+        }.flowOn(Dispatchers.IO)
 
     override suspend fun updateArtistInLibrary(
         inLibrary: LocalDateTime,

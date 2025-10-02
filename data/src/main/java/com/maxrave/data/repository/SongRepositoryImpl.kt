@@ -54,23 +54,44 @@ internal class SongRepositoryImpl(
             )
         }.flowOn(Dispatchers.IO)
 
-    override fun getDownloadedSongs(): Flow<List<SongEntity>?> = flow { emit(localDataSource.getDownloadedSongs()) }.flowOn(Dispatchers.IO)
+    override fun getDownloadedSongs(): Flow<List<SongEntity>?> =
+        flow {
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getDownloadedSongs(limit, offset)
+                },
+            )
+        }.flowOn(Dispatchers.IO)
 
-    override fun getDownloadingSongs(): Flow<List<SongEntity>?> = flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
+    override fun getDownloadingSongs(): Flow<List<SongEntity>?> =
+        flow {
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getDownloadingSongs(limit, offset)
+                },
+            )
+        }.flowOn(Dispatchers.IO)
 
     override fun getPreparingSongs(): Flow<List<SongEntity>> =
         flow {
             emit(
                 getFullDataFromDB { limit, offset ->
                     localDataSource.getPreparingSongs(limit, offset)
-                }
+                },
             )
         }.flowOn(Dispatchers.IO)
 
     override fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =
         localDataSource.getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId)
 
-    override fun getLikedSongs(): Flow<List<SongEntity>> = localDataSource.getLikedSongs()
+    override fun getLikedSongs(): Flow<List<SongEntity>> =
+        flow {
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getLikedSongs(limit, offset)
+                },
+            )
+        }.flowOn(Dispatchers.IO)
 
     override fun getCanvasSong(max: Int): Flow<List<SongEntity>> =
         flow {

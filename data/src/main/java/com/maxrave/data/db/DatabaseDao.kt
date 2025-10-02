@@ -85,33 +85,37 @@ internal interface DatabaseDao {
         val a = mutableListOf<PlaylistType>()
         var shouldContinue = true to 0
         while (shouldContinue.first) {
-            val fetched = getDownloadedAlbums(
-                limit = 100,
-                offset = shouldContinue.second,
-            )
+            val fetched =
+                getDownloadedAlbums(
+                    limit = 100,
+                    offset = shouldContinue.second,
+                )
             a.addAll(
                 fetched,
             )
-            shouldContinue = if (fetched.size < 100) {
-                false to 0
-            } else {
-                true to shouldContinue.second + 100
-            }
+            shouldContinue =
+                if (fetched.size < 100) {
+                    false to 0
+                } else {
+                    true to shouldContinue.second + 100
+                }
         }
         var shouldContinuePlaylist = true to 0
         while (shouldContinuePlaylist.first) {
-            val fetched = getDownloadedPlaylists(
-                limit = 100,
-                offset = shouldContinue.second,
-            )
+            val fetched =
+                getDownloadedPlaylists(
+                    limit = 100,
+                    offset = shouldContinue.second,
+                )
             a.addAll(
                 fetched,
             )
-            shouldContinuePlaylist = if (fetched.size < 100) {
-                false to 0
-            } else {
-                true to shouldContinuePlaylist.second + 100
-            }
+            shouldContinuePlaylist =
+                if (fetched.size < 100) {
+                    false to 0
+                } else {
+                    true to shouldContinuePlaylist.second + 100
+                }
         }
         val sortedList =
             a.sortedWith<PlaylistType>(
@@ -148,33 +152,37 @@ internal interface DatabaseDao {
         val a = mutableListOf<PlaylistType>()
         var shouldContinue = true to 0
         while (shouldContinue.first) {
-            val fetched = getDownloadingAlbums(
-                limit = 100,
-                offset = shouldContinue.second,
-            )
+            val fetched =
+                getDownloadingAlbums(
+                    limit = 100,
+                    offset = shouldContinue.second,
+                )
             a.addAll(
                 fetched,
             )
-            shouldContinue = if (fetched.size < 100) {
-                false to 0
-            } else {
-                true to shouldContinue.second + 100
-            }
+            shouldContinue =
+                if (fetched.size < 100) {
+                    false to 0
+                } else {
+                    true to shouldContinue.second + 100
+                }
         }
         var shouldContinuePlaylist = true to 0
         while (shouldContinuePlaylist.first) {
-            val fetched = getDownloadingPlaylists(
-                limit = 100,
-                offset = shouldContinue.second,
-            )
+            val fetched =
+                getDownloadingPlaylists(
+                    limit = 100,
+                    offset = shouldContinue.second,
+                )
             a.addAll(
                 fetched,
             )
-            shouldContinuePlaylist = if (fetched.size < 100) {
-                false to 0
-            } else {
-                true to shouldContinuePlaylist.second + 100
-            }
+            shouldContinuePlaylist =
+                if (fetched.size < 100) {
+                    false to 0
+                } else {
+                    true to shouldContinuePlaylist.second + 100
+                }
         }
         return a
     }
@@ -199,11 +207,11 @@ internal interface DatabaseDao {
     @Query("SELECT * FROM song ORDER BY inLibrary DESC LIMIT :limit OFFSET 0")
     suspend fun getAllSongs(limit: Int): List<SongEntity>
 
-    @Query("SELECT * FROM song WHERE liked = 1")
-    fun getLikedSongs(): Flow<List<SongEntity>>
-
-    @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL")
-    suspend fun getLibrarySongs(): List<SongEntity>
+    @Query("SELECT * FROM song WHERE liked = 1 ORDER BY favoriteAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getLikedSongs(
+        limit: Int,
+        offset: Int,
+    ): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE videoId = :videoId")
     suspend fun getSong(videoId: String): SongEntity?
@@ -267,14 +275,17 @@ internal interface DatabaseDao {
         videoId: String,
     )
 
-    @Query("SELECT * FROM song WHERE downloadState = 3")
-    suspend fun getDownloadedSongs(): List<SongEntity>
+    @Query("SELECT * FROM song WHERE downloadState = 3 LIMIT :limit OFFSET :offset")
+    suspend fun getDownloadedSongs(
+        limit: Int,
+        offset: Int,
+    ): List<SongEntity>
 
-    @Query("SELECT * FROM song WHERE downloadState = 3 LIMIT 1000 OFFSET :offset")
-    fun getDownloadedSongsAsFlow(offset: Int): Flow<List<SongEntity>>
-
-    @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
-    suspend fun getDownloadingSongs(): List<SongEntity>
+    @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2 LIMIT :limit OFFSET :offset")
+    suspend fun getDownloadingSongs(
+        limit: Int,
+        offset: Int,
+    ): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList) LIMIT 1000")
     suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>): List<SongEntity>
@@ -298,8 +309,11 @@ internal interface DatabaseDao {
     @Query("SELECT * FROM artist WHERE channelId = :channelId")
     suspend fun getArtist(channelId: String): ArtistEntity
 
-    @Query("SELECT * FROM artist WHERE followed = 1")
-    fun getFollowedArtists(): Flow<List<ArtistEntity>>
+    @Query("SELECT * FROM artist WHERE followed = 1 ORDER BY followedAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getFollowedArtists(
+        limit: Int,
+        offset: Int,
+    ): List<ArtistEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertArtist(artist: ArtistEntity)
@@ -333,8 +347,11 @@ internal interface DatabaseDao {
     @Query("SELECT * FROM album WHERE browseId = :browseId")
     fun getAlbumAsFlow(browseId: String): Flow<AlbumEntity?>
 
-    @Query("SELECT * FROM album WHERE liked = 1")
-    suspend fun getLikedAlbums(): List<AlbumEntity>
+    @Query("SELECT * FROM album WHERE liked = 1 ORDER BY favoriteAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getLikedAlbums(
+        limit: Int,
+        offset: Int,
+    ): List<AlbumEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAlbum(album: AlbumEntity): Long
