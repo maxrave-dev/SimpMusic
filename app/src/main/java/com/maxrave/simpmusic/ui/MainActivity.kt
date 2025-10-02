@@ -65,6 +65,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -90,6 +92,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
@@ -261,6 +264,11 @@ class MainActivity : AppCompatActivity() {
                 mutableStateOf(false)
             }
 
+            // Fullscreen
+            var isInFullscreen by rememberSaveable {
+                mutableStateOf(false)
+            }
+
             var isNavBarVisible by rememberSaveable {
                 mutableStateOf(true)
             }
@@ -362,6 +370,9 @@ class MainActivity : AppCompatActivity() {
                 if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
                     isShowNowPlaylistScreen = false
                 }
+                isInFullscreen = navBackStackEntry?.destination?.hierarchy?.any {
+                    it.hasRoute(FullscreenDestination::class)
+                } == true
             }
             val backdrop = rememberLayerBackdrop()
             var isScrolledToTop by rememberSaveable {
@@ -440,7 +451,7 @@ class MainActivity : AppCompatActivity() {
                             Row(
                                 Modifier.fillMaxSize(),
                             ) {
-                                if (isTablet) {
+                                if (isTablet && !isInFullscreen) {
                                     AppNavigationRail(
                                         navController = navController,
                                     ) { klass ->
@@ -454,7 +465,7 @@ class MainActivity : AppCompatActivity() {
                                         Modifier
                                             .fillMaxSize()
                                             .then(
-                                                if (isLiquidGlassEnabled == TRUE && isTablet) {
+                                                if (isLiquidGlassEnabled == TRUE && isTablet && !isInFullscreen) {
                                                     Modifier.layerBackdrop(backdrop)
                                                 } else {
                                                     Modifier
@@ -483,7 +494,7 @@ class MainActivity : AppCompatActivity() {
                                             Modifier
                                                 .padding(innerPadding)
                                                 .align(Alignment.BottomCenter),
-                                        visible = isShowMiniPlayer && isTablet,
+                                        visible = isShowMiniPlayer && isTablet && !isInFullscreen,
                                         enter = fadeIn() + slideInHorizontally(),
                                         exit = fadeOut(),
                                     ) {
@@ -507,7 +518,7 @@ class MainActivity : AppCompatActivity() {
                                         )
                                     }
                                 }
-                                if (isTablet && isTabletLandscape) {
+                                if (isTablet && isTabletLandscape && !isInFullscreen) {
                                     AnimatedVisibility(
                                         isShowNowPlaylistScreen,
                                         enter = expandHorizontally() + fadeIn(),

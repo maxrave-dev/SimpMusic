@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.player
 
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -60,6 +61,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -73,6 +75,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -108,15 +111,19 @@ fun FullscreenPlayer(
     showNavBar: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     var isFullScreen by remember { mutableStateOf(true) }
     val isInPipMode = rememberIsInPipMode()
+
+    val originalOrientation by rememberSaveable {
+        mutableIntStateOf(resources.configuration.orientation)
+    }
 
     DisposableEffect(true) {
         hideNavBar()
         isFullScreen = true
         sharedViewModel.isFullScreen = true
         val activity = context.findActivity()
-        val originalOrientation = activity.requestedOrientation
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         val window = context.findActivity().window
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -129,7 +136,13 @@ fun FullscreenPlayer(
                 systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
             // restore original orientation when view disappears
-            activity.requestedOrientation = originalOrientation
+            activity.requestedOrientation =
+                when (originalOrientation) {
+                    Configuration.ORIENTATION_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                }
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             sharedViewModel.isFullScreen = false
             isFullScreen = false
             showNavBar()
