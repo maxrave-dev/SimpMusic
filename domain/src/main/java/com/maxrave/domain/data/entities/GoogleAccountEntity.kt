@@ -9,6 +9,7 @@ data class GoogleAccountEntity(
     val email: String = "",
     val name: String = "",
     val thumbnailUrl: String = "",
+    val pageId: String? = null,
     val cache: String? = null,
     val isUsed: Boolean = false,
     val netscapeCookie: String? = null,

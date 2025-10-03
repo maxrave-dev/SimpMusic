@@ -93,6 +93,13 @@ class Ytmusic(
             Logger.e(TAG, "failed to initialize youtubedl-android", e)
             null
         }
+
+    val normalJson =
+        Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+            encodeDefaults = true
+        }
     private var httpClient = createClient()
 
     var cacheControlInterceptor: Interceptor? = null
@@ -128,6 +135,9 @@ class Ytmusic(
             field = value
             cookieMap = if (value == null) emptyMap() else parseCookieString(value)
         }
+
+    var pageId: String? = null
+
     private var cookieMap = emptyMap<String, String>()
 
     var proxy: Proxy? = null
@@ -161,11 +171,7 @@ class Ytmusic(
             install(ContentNegotiation) {
                 protobuf()
                 json(
-                    Json {
-                        ignoreUnknownKeys = true
-                        explicitNulls = false
-                        encodeDefaults = true
-                    },
+                    normalJson,
                 )
                 xml(
                     format =
@@ -207,6 +213,10 @@ class Ytmusic(
             append("X-Goog-Api-Format-Version", "1")
             append("X-YouTube-Client-Name", "${client.xClientName ?: 1}")
             append("X-YouTube-Client-Version", client.clientVersion)
+            pageId?.let {
+                append("X-Goog-Authuser", "0")
+                append("X-Goog-Pageid", it)
+            }
             append("x-origin", "https://music.youtube.com")
             if (client.referer != null && isUsingReferer) {
                 append("Referer", client.referer)
@@ -742,6 +752,11 @@ class Ytmusic(
         ytClient(client, setLogin = true, customCookie = customCookie)
         setBody(AccountMenuBody(client.toContext(locale, visitorData)))
     }
+
+    suspend fun getAccountSwitcherEndpoint(customCookie: String? = null) =
+        httpClient.get("https://music.youtube.com/getAccountSwitcherEndpoint") {
+            ytClient(WEB_REMIX, setLogin = true, customCookie = customCookie)
+        }
 
     suspend fun scrapeYouTube(videoId: String) =
         httpClient.get("https://www.youtube.com/watch?v=$videoId") {

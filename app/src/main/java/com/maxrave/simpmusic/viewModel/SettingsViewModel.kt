@@ -1072,13 +1072,6 @@ class SettingsViewModel(
         }
     }
 
-    fun clearCookie() {
-        viewModelScope.launch {
-            dataStoreManager.setCookie("")
-            dataStoreManager.setLoggedIn(false)
-        }
-    }
-
     fun getNormalizeVolume() {
         viewModelScope.launch {
             dataStoreManager.normalizeVolume.collect { normalizeVolume ->
@@ -1180,19 +1173,29 @@ class SettingsViewModel(
                                 dataStoreManager.cookie.first(),
                             ).collect {
                                 Logger.w("getAllGoogleAccount", "getAllGoogleAccount: $it")
-                                if (it != null) {
-                                    dataStoreManager.putString("AccountName", it.name)
+                                if (it.isNotEmpty()) {
+                                    dataStoreManager.putString("AccountName", it.first().name)
                                     dataStoreManager.putString(
                                         "AccountThumbUrl",
-                                        it.thumbnails.lastOrNull()?.url ?: "",
+                                        it
+                                            .first()
+                                            .thumbnails
+                                            .lastOrNull()
+                                            ?.url ?: "",
                                     )
                                     accountRepository
                                         .insertGoogleAccount(
                                             GoogleAccountEntity(
-                                                email = it.email,
-                                                name = it.name,
-                                                thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
+                                                email = it.first().email,
+                                                name = it.first().name,
+                                                thumbnailUrl =
+                                                    it
+                                                        .first()
+                                                        .thumbnails
+                                                        .lastOrNull()
+                                                        ?.url ?: "",
                                                 cache = accountRepository.getYouTubeCookie(),
+                                                pageId = it.first().pageId,
                                                 isUsed = true,
                                             ),
                                         ).singleOrNull()
@@ -1214,18 +1217,21 @@ class SettingsViewModel(
 
     suspend fun addAccount(cookie: String): Boolean {
         val currentCookie = dataStoreManager.cookie.first()
+        val currentPageId = dataStoreManager.pageId.first()
         val currentLoggedIn = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE
         try {
             runBlocking {
-                dataStoreManager.setCookie(cookie)
+                dataStoreManager.setCookie(cookie, "")
                 dataStoreManager.setLoggedIn(true)
             }
             return accountRepository
                 .getAccountInfo(
                     cookie,
                 ).lastOrNull()
-                ?.let { accountInfo ->
-                    Logger.d("getAllGoogleAccount", "addAccount: $accountInfo")
+                ?.takeIf {
+                    it.isNotEmpty()
+                }?.let { accountInfoList ->
+                    Logger.d("getAllGoogleAccount", "addAccount: $accountInfoList")
                     accountRepository.getGoogleAccounts().lastOrNull()?.forEach {
                         Logger.d("getAllGoogleAccount", "set used: $it start")
                         accountRepository
@@ -1235,38 +1241,49 @@ class SettingsViewModel(
                                 Logger.w("getAllGoogleAccount", "set used: $it")
                             }
                     }
-                    dataStoreManager.putString("AccountName", accountInfo.name)
+                    dataStoreManager.putString("AccountName", accountInfoList.first().name)
                     dataStoreManager.putString(
                         "AccountThumbUrl",
-                        accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                        accountInfoList
+                            .first()
+                            .thumbnails
+                            .lastOrNull()
+                            ?.url ?: "",
                     )
                     val cookieItem = commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL)
                     commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (application.filesDir / "ytdlp-cookie.txt").path).let {
                         Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                     }
-                    accountRepository
-                        .insertGoogleAccount(
-                            GoogleAccountEntity(
-                                email = accountInfo.email,
-                                name = accountInfo.name,
-                                thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                                cache = cookie,
-                                isUsed = true,
-                                netscapeCookie = cookieItem.toNetScapeString(),
-                            ),
-                        ).firstOrNull()
-                        ?.let {
-                            log("addAccount: $it", Log.WARN)
-                        }
+                    accountInfoList.forEachIndexed { index, account ->
+                        accountRepository
+                            .insertGoogleAccount(
+                                GoogleAccountEntity(
+                                    email = account.email,
+                                    name = account.name,
+                                    thumbnailUrl =
+                                        account
+                                            .thumbnails
+                                            .lastOrNull()
+                                            ?.url ?: "",
+                                    cache = cookie,
+                                    isUsed = index == 0,
+                                    netscapeCookie = cookieItem.toNetScapeString(),
+                                    pageId = account.pageId,
+                                ),
+                            ).firstOrNull()
+                            ?.let {
+                                log("addAccount: $it", Log.WARN)
+                            }
+                    }
                     dataStoreManager.setLoggedIn(true)
-                    dataStoreManager.setCookie(cookie)
+                    dataStoreManager.setCookie(cookie, accountInfoList.first().pageId)
                     getAllGoogleAccount()
                     getLoggedIn()
                     true
                 } ?: run {
                 Logger.w("getAllGoogleAccount", "addAccount: Account info is null")
                 runBlocking {
-                    dataStoreManager.setCookie(currentCookie)
+                    dataStoreManager.setCookie(currentCookie, currentPageId)
                     dataStoreManager.setLoggedIn(currentLoggedIn)
                 }
                 false
@@ -1274,7 +1291,7 @@ class SettingsViewModel(
         } catch (e: Exception) {
             Logger.e("getAllGoogleAccount", "addAccount: ${e.message}")
             runBlocking {
-                dataStoreManager.setCookie(currentCookie)
+                dataStoreManager.setCookie(currentCookie, currentPageId)
                 dataStoreManager.setLoggedIn(currentLoggedIn)
             }
             return false
@@ -1303,7 +1320,7 @@ class SettingsViewModel(
                 acc.netscapeCookie?.let { commonRepository.writeTextToFile(it, (application.filesDir / "ytdlp-cookie.txt").path) }.let {
                     Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                 }
-                dataStoreManager.setCookie(acc.cache ?: "")
+                dataStoreManager.setCookie(acc.cache ?: "", acc.pageId)
                 dataStoreManager.setLoggedIn(true)
                 delay(500)
                 getAllGoogleAccount()
@@ -1320,7 +1337,7 @@ class SettingsViewModel(
                 dataStoreManager.putString("AccountName", "")
                 dataStoreManager.putString("AccountThumbUrl", "")
                 dataStoreManager.setLoggedIn(false)
-                dataStoreManager.setCookie("")
+                dataStoreManager.setCookie("", null)
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
@@ -1336,7 +1353,7 @@ class SettingsViewModel(
             dataStoreManager.putString("AccountName", "")
             dataStoreManager.putString("AccountThumbUrl", "")
             dataStoreManager.setLoggedIn(false)
-            dataStoreManager.setCookie("")
+            dataStoreManager.setCookie("", null)
             delay(500)
             getAllGoogleAccount()
             getLoggedIn()

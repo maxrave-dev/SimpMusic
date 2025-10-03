@@ -138,10 +138,19 @@ internal class DataStoreManagerImpl(
             preferences[COOKIE] ?: ""
         }
 
-    override suspend fun setCookie(cookie: String) {
+    override val pageId: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[PAGE_ID] ?: ""
+        }
+
+    override suspend fun setCookie(
+        cookie: String,
+        pageId: String?,
+    ) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
                 settings[COOKIE] = cookie
+                settings[PAGE_ID] = pageId ?: ""
             }
         }
     }
@@ -1111,6 +1120,8 @@ internal class DataStoreManagerImpl(
     companion object Settings {
         val APP_VERSION = stringPreferencesKey("app_version")
         val COOKIE = stringPreferencesKey("cookie")
+
+        val PAGE_ID = stringPreferencesKey("page_id")
         val LOGGED_IN = stringPreferencesKey("logged_in")
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")

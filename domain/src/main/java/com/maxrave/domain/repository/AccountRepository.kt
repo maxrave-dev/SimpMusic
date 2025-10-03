@@ -5,7 +5,7 @@ import com.maxrave.domain.data.model.account.AccountInfo
 import kotlinx.coroutines.flow.Flow
 
 interface AccountRepository {
-    fun getAccountInfo(cookie: String): Flow<AccountInfo?>
+    fun getAccountInfo(cookie: String): Flow<List<AccountInfo>>
 
     fun getYouTubeCookie(): String?
 

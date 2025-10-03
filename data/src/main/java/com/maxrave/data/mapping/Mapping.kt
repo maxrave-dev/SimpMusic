@@ -485,5 +485,6 @@ internal fun AccountInfo.toDomainAccountInfo(): com.maxrave.domain.data.model.ac
     com.maxrave.domain.data.model.account.AccountInfo(
         name = this.name,
         email = this.email,
+        pageId = this.pageId,
         thumbnails = thumbnails.toListThumbnail(),
     )

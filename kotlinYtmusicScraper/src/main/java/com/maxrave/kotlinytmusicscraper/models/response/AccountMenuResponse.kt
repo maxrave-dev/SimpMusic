@@ -39,6 +39,7 @@ data class AccountMenuResponse(
                                 AccountInfo(
                                     accountName.runs!!.first().text,
                                     channelHandle.runs!!.first().text,
+                                    pageId = null,
                                     accountPhoto.thumbnails,
                                 )
                         }
