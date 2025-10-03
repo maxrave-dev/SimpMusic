@@ -2007,12 +2007,9 @@ class YouTube(
                 ytMusic
                     .getAccountSwitcherEndpoint(customCookie)
                     .bodyAsText()
-                    .removePrefix(
-                        ")\n" +
-                            "]\n" +
-                            "}'",
-                    )
-            val accountSwitcherEndpointResponse = poTokenJsonDeserializer.decodeFromString<AccountSwitcherEndpointResponse>(res)
+                    .removePrefix(")]}'\n")
+            val accountSwitcherEndpointResponse = ytMusic.normalJson.decodeFromString<AccountSwitcherEndpointResponse>(res)
+            Logger.d(TAG, "Account List Response: $accountSwitcherEndpointResponse")
             accountSwitcherEndpointResponse.toListAccountInfo()
         }
 

@@ -9,7 +9,7 @@ internal fun parseLibraryPlaylist(input: List<GridRenderer.Item>): List<Playlist
     if (input.isNotEmpty()) {
         for (i in input.indices) {
             input[i].musicTwoRowItemRenderer?.let {
-                if (it.navigationEndpoint?.browseEndpoint?.browseId != "VLSE" && it.navigationEndpoint?.browseEndpoint?.browseId != null) {
+                if (it.navigationEndpoint?.browseEndpoint?.browseId != null) {
                     list.add(
                         PlaylistsResult(
                             author =

@@ -13,6 +13,7 @@ data class AccountSwitcherEndpointResponse(
     @Serializable
     data class Data(
         val actions: List<Action?>?,
+        val contents: List<Action.GetMultiPageMenuAction.Menu.MultiPageMenuRenderer.Section>?,
         val responseContext: ResponseContext?,
         val selectText: SelectText?,
     ) {
@@ -78,12 +79,7 @@ data class AccountSwitcherEndpointResponse(
                                         @Serializable
                                         data class Title(
                                             val runs: List<Run?>?,
-                                        ) {
-                                            @Serializable
-                                            data class Run(
-                                                val text: String?,
-                                            )
-                                        }
+                                        )
                                     }
                                 }
                             }
@@ -136,12 +132,7 @@ data class AccountSwitcherEndpointResponse(
                                 @Serializable
                                 data class Title(
                                     val runs: List<Run?>?,
-                                ) {
-                                    @Serializable
-                                    data class Run(
-                                        val text: String?,
-                                    )
-                                }
+                                )
                             }
                         }
 
@@ -169,6 +160,7 @@ data class AccountSwitcherEndpointResponse(
                                         ) {
                                             @Serializable
                                             data class AccountItem(
+                                                val onBehalfOfParameter: String?,
                                                 val accountByline: AccountByline?,
                                                 val accountLogDirectiveInts: List<Int?>?,
                                                 val accountName: AccountName?,
@@ -183,12 +175,12 @@ data class AccountSwitcherEndpointResponse(
                                             ) {
                                                 @Serializable
                                                 data class AccountByline(
-                                                    val runs: List<Run?>?,
+                                                    val simpleText: String,
                                                 )
 
                                                 @Serializable
                                                 data class AccountName(
-                                                    val runs: List<Run?>?,
+                                                    val simpleText: String,
                                                 )
 
                                                 @Serializable
@@ -198,66 +190,18 @@ data class AccountSwitcherEndpointResponse(
 
                                                 @Serializable
                                                 data class ChannelHandle(
-                                                    val runs: List<Run?>?,
+                                                    val simpleText: String,
                                                 )
 
                                                 @Serializable
                                                 data class MobileBanner(
                                                     val thumbnails: List<Thumbnail?>?,
-                                                ) {
-                                                    @Serializable
-                                                    data class Thumbnail(
-                                                        val height: Int?,
-                                                        val url: String?,
-                                                        val width: Int?,
-                                                    )
-                                                }
+                                                )
 
                                                 @Serializable
                                                 data class ServiceEndpoint(
                                                     val selectActiveIdentityEndpoint: SelectActiveIdentityEndpoint?,
-                                                ) {
-                                                    @Serializable
-                                                    data class SelectActiveIdentityEndpoint(
-                                                        val supportedTokens: List<SupportedToken?>?,
-                                                    ) {
-                                                        @Serializable
-                                                        data class SupportedToken(
-                                                            val accountSigninToken: AccountSigninToken?,
-                                                            val accountStateToken: AccountStateToken?,
-                                                            val datasyncIdToken: DatasyncIdToken?,
-                                                            val offlineCacheKeyToken: OfflineCacheKeyToken?,
-                                                            val pageIdToken: PageIdToken?,
-                                                        ) {
-                                                            @Serializable
-                                                            data class AccountSigninToken(
-                                                                val signinUrl: String?,
-                                                            )
-
-                                                            @Serializable
-                                                            data class AccountStateToken(
-                                                                val hasChannel: Boolean?,
-                                                                val isMerged: Boolean?,
-                                                                val obfuscatedGaiaId: String?,
-                                                            )
-
-                                                            @Serializable
-                                                            data class DatasyncIdToken(
-                                                                val datasyncIdToken: String?,
-                                                            )
-
-                                                            @Serializable
-                                                            data class OfflineCacheKeyToken(
-                                                                val clientCacheKey: String?,
-                                                            )
-
-                                                            @Serializable
-                                                            data class PageIdToken(
-                                                                val pageId: String?,
-                                                            )
-                                                        }
-                                                    }
-                                                }
+                                                )
 
                                                 @Serializable
                                                 data class UnlimitedStatus(
@@ -266,15 +210,16 @@ data class AccountSwitcherEndpointResponse(
 
                                                 fun toAccountInfo(email: String): AccountInfo? {
                                                     return AccountInfo(
-                                                        name = accountName?.runs?.firstOrNull()?.text ?: return null,
+                                                        name = accountName?.simpleText ?: return null,
                                                         email = email,
                                                         pageId =
-                                                            serviceEndpoint
-                                                                ?.selectActiveIdentityEndpoint
-                                                                ?.supportedTokens
-                                                                ?.firstOrNull { it?.pageIdToken != null }
-                                                                ?.pageIdToken
-                                                                ?.pageId,
+                                                            onBehalfOfParameter
+                                                                ?: serviceEndpoint
+                                                                    ?.selectActiveIdentityEndpoint
+                                                                    ?.supportedTokens
+                                                                    ?.firstOrNull { it?.pageIdToken != null }
+                                                                    ?.pageIdToken
+                                                                    ?.pageId,
                                                         thumbnails = accountPhoto?.thumbnails?.filterNotNull() ?: emptyList(),
                                                     )
                                                 }
@@ -310,13 +255,7 @@ data class AccountSwitcherEndpointResponse(
                                         @Serializable
                                         data class Text(
                                             val runs: List<Run?>?,
-                                        ) {
-                                            @Serializable
-                                            data class Run(
-                                                val bold: Boolean?,
-                                                val text: String?,
-                                            )
-                                        }
+                                        )
                                     }
 
                                     @Serializable
@@ -327,22 +266,12 @@ data class AccountSwitcherEndpointResponse(
                                         @Serializable
                                         data class Email(
                                             val runs: List<Run?>?,
-                                        ) {
-                                            @Serializable
-                                            data class Run(
-                                                val text: String?,
-                                            )
-                                        }
+                                        )
 
                                         @Serializable
                                         data class Name(
                                             val runs: List<Run?>?,
-                                        ) {
-                                            @Serializable
-                                            data class Run(
-                                                val text: String?,
-                                            )
-                                        }
+                                        )
                                     }
                                 }
                             }
@@ -372,43 +301,71 @@ data class AccountSwitcherEndpointResponse(
         @Serializable
         data class SelectText(
             val runs: List<Run?>?,
-        ) {
-            @Serializable
-            data class Run(
-                val text: String?,
-            )
-        }
+        )
+    }
+}
+
+@Serializable
+data class SelectActiveIdentityEndpoint(
+    val supportedTokens: List<SupportedToken?>?,
+) {
+    @Serializable
+    data class SupportedToken(
+        val accountSigninToken: AccountSigninToken?,
+        val accountStateToken: AccountStateToken?,
+        val datasyncIdToken: DatasyncIdToken?,
+        val offlineCacheKeyToken: OfflineCacheKeyToken?,
+        val pageIdToken: PageIdToken?,
+    ) {
+        @Serializable
+        data class AccountSigninToken(
+            val signinUrl: String?,
+        )
+
+        @Serializable
+        data class AccountStateToken(
+            val hasChannel: Boolean?,
+            val isMerged: Boolean?,
+            val obfuscatedGaiaId: String?,
+        )
+
+        @Serializable
+        data class DatasyncIdToken(
+            val datasyncIdToken: String?,
+        )
+
+        @Serializable
+        data class OfflineCacheKeyToken(
+            val clientCacheKey: String?,
+        )
+
+        @Serializable
+        data class PageIdToken(
+            val pageId: String?,
+        )
     }
 }
 
 fun AccountSwitcherEndpointResponse.toListAccountInfo(): List<AccountInfo> {
     if (this.code == "SUCCESS" && this.data != null) {
         val list = mutableListOf<AccountInfo>()
-        this.data.actions
+        this.data.contents
             ?.firstOrNull()
-            ?.getMultiPageMenuAction
-            ?.menu
-            ?.multiPageMenuRenderer
-            ?.sections
-            ?.forEach { bigAccount ->
-                bigAccount?.accountSectionListRenderer?.contents?.forEach { content ->
-                    content?.accountItemSectionRenderer?.contents?.forEach { channel ->
-                        channel
-                            ?.accountItem
-                            ?.toAccountInfo(
-                                email =
-                                    bigAccount
-                                        .accountSectionListRenderer
-                                        .header
-                                        ?.googleAccountHeaderRenderer
-                                        ?.email
-                                        ?.runs
-                                        ?.firstOrNull()
-                                        ?.text ?: "",
-                            )?.let { accountInfo ->
-                                list.add(accountInfo)
-                            }
-                    }
+            ?.accountSectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.accountItemSectionRenderer
+            ?.contents
+            ?.forEach { content ->
+                content?.accountItem?.let { accountItem ->
+                    accountItem
+                        .toAccountInfo(
+                            email =
+                                accountItem.channelHandle
+                                    ?.simpleText ?: "",
+                        )?.let {
+                            list.add(it)
+                        }
                 }
             }
         return list

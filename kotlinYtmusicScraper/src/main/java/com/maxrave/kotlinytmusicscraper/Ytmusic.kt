@@ -93,6 +93,13 @@ class Ytmusic(
             Logger.e(TAG, "failed to initialize youtubedl-android", e)
             null
         }
+
+    val normalJson =
+        Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+            encodeDefaults = true
+        }
     private var httpClient = createClient()
 
     var cacheControlInterceptor: Interceptor? = null
@@ -164,11 +171,7 @@ class Ytmusic(
             install(ContentNegotiation) {
                 protobuf()
                 json(
-                    Json {
-                        ignoreUnknownKeys = true
-                        explicitNulls = false
-                        encodeDefaults = true
-                    },
+                    normalJson,
                 )
                 xml(
                     format =
@@ -211,6 +214,7 @@ class Ytmusic(
             append("X-YouTube-Client-Name", "${client.xClientName ?: 1}")
             append("X-YouTube-Client-Version", client.clientVersion)
             pageId?.let {
+                append("X-Goog-Authuser", "0")
                 append("X-Goog-Pageid", it)
             }
             append("x-origin", "https://music.youtube.com")

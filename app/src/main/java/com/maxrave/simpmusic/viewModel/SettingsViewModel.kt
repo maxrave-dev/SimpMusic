@@ -1254,25 +1254,27 @@ class SettingsViewModel(
                     commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (application.filesDir / "ytdlp-cookie.txt").path).let {
                         Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                     }
-                    accountRepository
-                        .insertGoogleAccount(
-                            GoogleAccountEntity(
-                                email = accountInfoList.first().email,
-                                name = accountInfoList.first().name,
-                                thumbnailUrl =
-                                    accountInfoList
-                                        .first()
-                                        .thumbnails
-                                        .lastOrNull()
-                                        ?.url ?: "",
-                                cache = cookie,
-                                isUsed = true,
-                                netscapeCookie = cookieItem.toNetScapeString(),
-                            ),
-                        ).firstOrNull()
-                        ?.let {
-                            log("addAccount: $it", Log.WARN)
-                        }
+                    accountInfoList.forEachIndexed { index, account ->
+                        accountRepository
+                            .insertGoogleAccount(
+                                GoogleAccountEntity(
+                                    email = account.email,
+                                    name = account.name,
+                                    thumbnailUrl =
+                                        account
+                                            .thumbnails
+                                            .lastOrNull()
+                                            ?.url ?: "",
+                                    cache = cookie,
+                                    isUsed = index == 0,
+                                    netscapeCookie = cookieItem.toNetScapeString(),
+                                    pageId = account.pageId,
+                                ),
+                            ).firstOrNull()
+                            ?.let {
+                                log("addAccount: $it", Log.WARN)
+                            }
+                    }
                     dataStoreManager.setLoggedIn(true)
                     dataStoreManager.setCookie(cookie, accountInfoList.first().pageId)
                     getAllGoogleAccount()
