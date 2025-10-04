@@ -55,6 +55,10 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val youTubePlaylist: StateFlow<LocalResource<List<PlaylistsResult>>> get() = _youTubePlaylist.asStateFlow()
 
+    private val _youTubeMixForYou: MutableStateFlow<LocalResource<List<PlaylistsResult>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val youTubeMixForYou: StateFlow<LocalResource<List<PlaylistsResult>>> get() = _youTubeMixForYou.asStateFlow()
+
     private val _favoritePlaylist: MutableStateFlow<LocalResource<List<PlaylistType>>> =
         MutableStateFlow(LocalResource.Loading())
     val favoritePlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _favoritePlaylist.asStateFlow()
@@ -97,6 +101,15 @@ class LibraryViewModel(
         viewModelScope.launch {
             playlistRepository.getLibraryPlaylist().collect { data ->
                 _youTubePlaylist.value = LocalResource.Success(data ?: emptyList())
+            }
+        }
+    }
+
+    fun getYouTubeMixedForYou() {
+        _youTubeMixForYou.value = LocalResource.Loading()
+        viewModelScope.launch {
+            playlistRepository.getMixedForYou().collect { data ->
+                _youTubeMixForYou.value = LocalResource.Success(data ?: emptyList())
             }
         }
     }

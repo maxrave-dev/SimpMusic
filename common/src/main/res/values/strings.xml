@@ -464,4 +464,6 @@
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Enable to play explicit content</string>
     <string name="explicit_content_blocked">Explicit content is skipped</string>
+    <string name="mix_for_you">Mix for you</string>
+    <string name="no_mixes_found">No mixes found</string>
 </resources>

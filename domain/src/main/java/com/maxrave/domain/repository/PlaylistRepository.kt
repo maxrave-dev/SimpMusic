@@ -55,4 +55,6 @@ interface PlaylistRepository {
     fun getPlaylistData(playlistId: String): Flow<Resource<Pair<PlaylistBrowse, String?>>>
 
     fun getLibraryPlaylist(): Flow<List<PlaylistsResult>?>
+
+    fun getMixedForYou(): Flow<List<PlaylistsResult>?>
 }

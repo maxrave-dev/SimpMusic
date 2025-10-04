@@ -55,11 +55,14 @@ internal class PlaylistRepositoryImpl(
             emit(localDataSource.getPlaylist(id))
         }.flowOn(Dispatchers.IO)
 
-    override fun getLikedPlaylists(): Flow<List<PlaylistEntity>> = flow { emit(
-        getFullDataFromDB { limit, offset ->
-            localDataSource.getLikedPlaylists(limit, offset)
-        }
-    ) }.flowOn(Dispatchers.IO)
+    override fun getLikedPlaylists(): Flow<List<PlaylistEntity>> =
+        flow {
+            emit(
+                getFullDataFromDB { limit, offset ->
+                    localDataSource.getLikedPlaylists(limit, offset)
+                },
+            )
+        }.flowOn(Dispatchers.IO)
 
     override suspend fun insertPlaylist(playlistEntity: PlaylistEntity) =
         withContext(Dispatchers.IO) { localDataSource.insertPlaylist(playlistEntity) }
@@ -608,6 +611,73 @@ internal class PlaylistRepositoryImpl(
                     Logger.e("Library", "Error: ${e.message}")
                     e.printStackTrace()
                     emit(null)
+                }
+        }.flowOn(Dispatchers.IO)
+
+    override fun getMixedForYou(): Flow<List<PlaylistsResult>?> =
+        flow {
+            youTube
+                .getMixedForYou()
+                .onSuccess { data ->
+                    val input =
+                        data.contents
+                            ?.singleColumnBrowseResultsRenderer
+                            ?.tabs
+                            ?.get(
+                                0,
+                            )?.tabRenderer
+                            ?.content
+                            ?.sectionListRenderer
+                            ?.contents
+                            ?.get(
+                                0,
+                            )?.gridRenderer
+                            ?.items
+                    val listItem = mutableListOf<PlaylistsResult>()
+                    if (input.isNullOrEmpty()) {
+                        Logger.w("Mixed For You", "No playlists found")
+                        emit(null)
+                        return@onSuccess
+                    }
+                    listItem.addAll(
+                        parseLibraryPlaylist(input),
+                    )
+                    var continuation =
+                        data.contents
+                            ?.singleColumnBrowseResultsRenderer
+                            ?.tabs
+                            ?.firstOrNull()
+                            ?.tabRenderer
+                            ?.content
+                            ?.sectionListRenderer
+                            ?.contents
+                            ?.firstOrNull()
+                            ?.gridRenderer
+                            ?.continuations
+                            ?.firstOrNull()
+                            ?.nextContinuationData
+                            ?.continuation
+                    while (continuation != null) {
+                        youTube
+                            .nextYouTubePlaylists(continuation)
+                            .onSuccess { nextData ->
+                                continuation = nextData.second
+                                Logger.w("Mixed For You", "continuation: $continuation")
+                                val nextInput = nextData.first
+                                listItem.addAll(
+                                    parseNextLibraryPlaylist(nextInput),
+                                )
+                            }.onFailure { exception ->
+                                exception.printStackTrace()
+                                Logger.e("Mixed For You", "Error: ${exception.message}")
+                                continuation = null
+                            }
+                    }
+                    if (listItem.isNotEmpty()) {
+                        emit(listItem)
+                    } else {
+                        emit(null)
+                    }
                 }
         }.flowOn(Dispatchers.IO)
 }

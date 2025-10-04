@@ -46,7 +46,6 @@ include(
     ":kotlinYtmusicScraper",
     ":spotify",
     ":aiService",
-    ":ffmpeg-kit",
     ":lyricsService",
     ":mediaserviceinterfaces",
     ":youtubeapi",
