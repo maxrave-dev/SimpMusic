@@ -1,5 +1,6 @@
 [versions]
 # App version
+ffmpeg-kit-audio="6.0.0"
 version-name="0.2.20"
 version-code="39"
 
@@ -77,6 +78,7 @@ compose-material-icons-core = { group = "androidx.compose.material", name = "mat
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 compose-ui-viewbinding = { group = "androidx.compose.ui", name = "ui-viewbinding" }
 constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayout-compose" }
+ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.ref = "ffmpeg-kit-audio" }
 ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle-viewmodel-compose" }

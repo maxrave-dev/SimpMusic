@@ -91,7 +91,7 @@ dependencies {
 
     implementation(project(mapOf("path" to ":youtubeapi")))
     implementation(project(mapOf("path" to ":sharedutils")))
-    api(project(":ffmpeg-kit"))
+    implementation(libs.ffmpeg.kit.audio)
     implementation(libs.newpipe.extractor)
 
     implementation(libs.ytdlp.android)
