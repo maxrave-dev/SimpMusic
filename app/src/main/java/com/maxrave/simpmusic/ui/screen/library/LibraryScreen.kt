@@ -85,6 +85,7 @@ fun LibraryScreen(
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
+    val youTubeMixForYou by viewModel.youTubeMixForYou.collectAsStateWithLifecycle()
     val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
     val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsStateWithLifecycle()
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
@@ -116,6 +117,11 @@ fun LibraryScreen(
             LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> {
                 if (youTubePlaylist.data.isNullOrEmpty()) {
                     viewModel.getYouTubePlaylist()
+                }
+            }
+            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
+                if (youTubeMixForYou.data.isNullOrEmpty()) {
+                    viewModel.getYouTubeMixedForYou()
                 }
             }
             LibraryChipType.YOUR_LIBRARY -> {
@@ -208,6 +214,17 @@ fun LibraryScreen(
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getYouTubePlaylist()
+                }
+            }
+            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
+                GridLibraryPlaylist(
+                    navController,
+                    innerPadding.copy(top = topAppBarHeight),
+                    youTubeMixForYou,
+                    emptyText = R.string.no_mixes_found,
+                    onScrolling = onScrolling,
+                ) {
+                    viewModel.getYouTubeMixedForYou()
                 }
             }
             LibraryChipType.LOCAL_PLAYLIST -> {
@@ -369,7 +386,7 @@ fun LibraryScreen(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             LibraryChipType.entries.forEach { type ->
-                if (type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST && !loggedIn) {
+                if ((type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST || type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) && !loggedIn) {
                     return@forEach
                 }
                 Chip(
@@ -379,6 +396,7 @@ fun LibraryScreen(
                         when (type) {
                             LibraryChipType.YOUR_LIBRARY -> stringResource(R.string.your_library)
                             LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> stringResource(R.string.your_youtube_playlists)
+                            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> stringResource(R.string.mix_for_you)
                             LibraryChipType.LOCAL_PLAYLIST -> stringResource(R.string.your_playlists)
                             LibraryChipType.FAVORITE_PLAYLIST -> stringResource(R.string.favorite_playlists)
                             LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(R.string.downloaded_playlists)

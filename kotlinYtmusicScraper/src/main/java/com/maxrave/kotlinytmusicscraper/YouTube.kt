@@ -2025,6 +2025,11 @@ class YouTube(
             ytMusic.browse(WEB_REMIX, "FEmusic_liked_playlists", setLogin = true).body<BrowseResponse>()
         }
 
+    suspend fun getMixedForYou() =
+        runCatching {
+            ytMusic.browse(WEB_REMIX, "FEmusic_mixed_for_you", setLogin = true).body<BrowseResponse>()
+        }
+
     @JvmInline
     value class SearchFilter(
         val value: String,
