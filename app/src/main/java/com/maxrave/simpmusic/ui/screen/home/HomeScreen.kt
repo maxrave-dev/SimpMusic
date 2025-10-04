@@ -17,6 +17,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -379,25 +380,14 @@ fun HomeScreen(
                     LazyColumn(
                         modifier =
                             Modifier
-                                .padding(horizontal = 15.dp)
-                                .padding(
-                                    top =
-                                        with(LocalDensity.current) {
-                                            topAppBarHeightPx.toDp()
-                                        },
-                                ),
+                                .padding(horizontal = 15.dp),
+                        contentPadding =
+                            PaddingValues(
+                                top = with(LocalDensity.current) { topAppBarHeightPx.toDp() },
+                            ),
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(28.dp),
                     ) {
-//                        item {
-//                            Spacer(
-//                                Modifier.height(
-//                                    with(LocalDensity.current) {
-//                                        (topAppBarHeightPx.toDp().value - 16f).coerceAtLeast(0f).dp
-//                                    },
-//                                ),
-//                            )
-//                        }
                         item {
                             Column {
                                 if (accountInfo != null && accountShow) {
