@@ -1,9 +1,14 @@
 package com.maxrave.simpmusic.ui.component
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -21,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,21 +35,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
-import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.RepeatOne
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.PauseCircle
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.RepeatOne
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.ModalBottomSheet
@@ -56,6 +60,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -68,6 +73,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
@@ -77,57 +86,51 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.streams.TimeLine
+import com.maxrave.domain.mediaservice.handler.RepeatState
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.TimeLine
 import com.maxrave.simpmusic.viewModel.UIEvent
-import com.moriatsushi.insetsx.systemBars
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+
+private const val TAG = "LyricsView"
 
 @Composable
 fun LyricsView(
     lyricsData: NowPlayingScreenData.LyricsData,
     timeLine: StateFlow<TimeLine>,
     onLineClick: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    showScrollShadows: Boolean = false,
+    backgroundColor: Color = Color(0xFF242424),
+    hasBlurBackground: Boolean = false,
 ) {
-    @Suppress("ktlint:standard:property-naming")
-    val TAG = "LyricsView"
-
-    rememberTextMeasurer()
-    val localDensity = LocalDensity.current
-
-    var columnHeightDp by remember {
-        mutableStateOf(0.dp)
-    }
-    var columnWidthDp by remember {
-        mutableStateOf(0.dp)
-    }
     var currentLineHeight by remember {
         mutableIntStateOf(0)
     }
@@ -136,6 +139,29 @@ fun LyricsView(
     var currentLineIndex by rememberSaveable {
         mutableIntStateOf(-1)
     }
+
+    val showTopShadow by remember {
+        derivedStateOf {
+            !hasBlurBackground && (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0)
+        }
+    }
+    val showBottomShadow by remember {
+        derivedStateOf {
+            if (hasBlurBackground) {
+                false
+            } else {
+                val layoutInfo = listState.layoutInfo
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
+                if (lastVisibleItem != null) {
+                    lastVisibleItem.index < layoutInfo.totalItemsCount - 1 ||
+                        lastVisibleItem.offset + lastVisibleItem.size > layoutInfo.viewportEndOffset
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
     LaunchedEffect(key1 = current) {
         val lines = lyricsData.lyrics.lines
         if (current.current > 0L) {
@@ -177,7 +203,7 @@ fun LyricsView(
             val boxStart = listState.layoutInfo.viewportStartOffset
             val viewPort = boxEnd - boxStart
             val offset = viewPort / 2 - currentLineHeight / 2
-            Log.w(TAG, "Offset: $offset")
+            Logger.w(TAG, "Offset: $offset")
             listState.animateScrollAndCentralizeItem(
                 index = currentLineIndex,
                 this,
@@ -185,14 +211,12 @@ fun LyricsView(
         }
     }
 
-    // Hàm tìm translated lyrics dựa vào thời gian gần nhất
     fun findClosestTranslatedLine(originalTimeMs: String): String? {
         val translatedLines = lyricsData.translatedLyrics?.lines ?: return null
         if (translatedLines.isEmpty()) return null
 
         val originalTime = originalTimeMs.toLongOrNull() ?: return null
 
-        // Tìm dòng translated có thời gian gần nhất với dòng original
         return translatedLines
             .minByOrNull {
                 abs((it.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
@@ -206,34 +230,79 @@ fun LyricsView(
             }?.words
     }
 
-    LazyColumn(
-        state = listState,
-        modifier =
-            Modifier
-                .onGloballyPositioned { coordinates ->
-                    columnHeightDp = with(localDensity) { coordinates.size.height.toDp() }
-                    columnWidthDp = with(localDensity) { coordinates.size.width.toDp() }
-                }.fillMaxSize(),
-    ) {
-        items(lyricsData.lyrics.lines?.size ?: 0) { index ->
-            val line = lyricsData.lyrics.lines?.getOrNull(index)
-            // Tìm translated lyrics phù hợp dựa vào thời gian
-            val translatedWords = line?.startTimeMs?.let { findClosestTranslatedLine(it) }
-            Log.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
+    Box(modifier = modifier) {
+        LazyColumn(
+            state = listState,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .drawWithContent {
+                        drawContent()
 
-            line?.words?.let {
-                LyricsLineItem(
-                    originalWords = it,
-                    translatedWords = translatedWords,
-                    isBold = index <= currentLineIndex,
-                    modifier =
-                        Modifier
-                            .clickable {
-                                onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
-                            }.onGloballyPositioned { c ->
-                                currentLineHeight = c.size.height
-                            },
-                )
+                        // Only show scroll shadows if enabled AND no blur background
+                        if (showScrollShadows && !hasBlurBackground) {
+                            // Top shadow
+                            if (showTopShadow) {
+                                drawRect(
+                                    brush =
+                                        Brush.verticalGradient(
+                                            colors =
+                                                listOf(
+                                                    backgroundColor,
+                                                    backgroundColor.copy(alpha = 0.8f),
+                                                    backgroundColor.copy(alpha = 0.4f),
+                                                    Color.Transparent,
+                                                ),
+                                            startY = 0f,
+                                            endY = 80.dp.toPx(),
+                                        ),
+                                    topLeft = Offset(0f, 0f),
+                                    size = Size(size.width, 80.dp.toPx()),
+                                )
+                            }
+
+                            // Bottom shadow
+                            if (showBottomShadow) {
+                                drawRect(
+                                    brush =
+                                        Brush.verticalGradient(
+                                            colors =
+                                                listOf(
+                                                    Color.Transparent,
+                                                    backgroundColor.copy(alpha = 0.4f),
+                                                    backgroundColor.copy(alpha = 0.8f),
+                                                    backgroundColor,
+                                                ),
+                                            startY = size.height - 80.dp.toPx(),
+                                            endY = size.height,
+                                        ),
+                                    topLeft = Offset(0f, size.height - 80.dp.toPx()),
+                                    size = Size(size.width, 80.dp.toPx()),
+                                )
+                            }
+                        }
+                    },
+        ) {
+            items(lyricsData.lyrics.lines?.size ?: 0) { index ->
+                val line = lyricsData.lyrics.lines?.getOrNull(index)
+                // Tìm translated lyrics phù hợp dựa vào thời gian
+                val translatedWords = line?.startTimeMs?.let { findClosestTranslatedLine(it) }
+                Log.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
+
+                line?.words?.let {
+                    LyricsLineItem(
+                        originalWords = it,
+                        translatedWords = translatedWords,
+                        isBold = index <= currentLineIndex,
+                        modifier =
+                            Modifier
+                                .clickable {
+                                    onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                }.onGloballyPositioned { c ->
+                                    currentLineHeight = c.size.height
+                                },
+                    )
+                }
             }
         }
     }
@@ -291,7 +360,6 @@ fun LyricsLineItem(
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
-@UnstableApi
 @Composable
 fun FullscreenLyricsSheet(
     sharedViewModel: SharedViewModel,
@@ -317,6 +385,20 @@ fun FullscreenLyricsSheet(
     var sliderValue by rememberSaveable {
         mutableFloatStateOf(0f)
     }
+
+    // Auto-hide controls state - Only hide control buttons, not title/progress
+    var showControlButtons by rememberSaveable {
+        mutableStateOf(true)
+    }
+
+    // Reset auto-hide timer when controls are shown
+    LaunchedEffect(key1 = showControlButtons) {
+        if (showControlButtons) {
+            delay(4000) // Hide after 4 seconds
+            showControlButtons = false
+        }
+    }
+
     LaunchedEffect(key1 = timelineState) {
         sliderValue =
             if (timelineState.total > 0L) {
@@ -349,7 +431,14 @@ fun FullscreenLyricsSheet(
         sheetState = sheetState,
         modifier =
             Modifier
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                ) {
+                    // Show controls on tap
+                    showControlButtons = true
+                },
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         shape = RectangleShape,
     ) {
@@ -391,6 +480,7 @@ fun FullscreenLyricsSheet(
                 Column(
                     modifier =
                         Modifier
+                            .fillMaxSize()
                             .then(
                                 if (shouldHaze) {
                                     Modifier.hazeEffect(
@@ -413,6 +503,7 @@ fun FullscreenLyricsSheet(
                                     },
                             ),
                 ) {
+                    // Top App Bar - Always visible
                     TopAppBar(
                         windowInsets = WindowInsets(0, 0, 0, 0),
                         colors =
@@ -472,404 +563,434 @@ fun FullscreenLyricsSheet(
                         },
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Crossfade(
-                        targetState = screenDataState.lyricsData != null,
+                    // Lyrics Content - Expands when controls are hidden
+                    Box(
                         modifier =
                             Modifier
                                 .weight(1f)
-                                .fillMaxHeight()
                                 .fillMaxWidth()
                                 .padding(horizontal = 50.dp),
                     ) {
-                        if (it) {
-                            screenDataState.lyricsData?.let { lyrics ->
-                                LyricsView(lyricsData = lyrics, timeLine = sharedViewModel.timeline) { f ->
-                                    sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
+                        Crossfade(
+                            targetState = screenDataState.lyricsData != null,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            if (it) {
+                                screenDataState.lyricsData?.let { lyrics ->
+                                    LyricsView(
+                                        lyricsData = lyrics,
+                                        timeLine = sharedViewModel.timeline,
+                                        onLineClick = { f ->
+                                            sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
+                                        },
+                                        modifier = Modifier.fillMaxSize(),
+                                        showScrollShadows = true,
+                                        backgroundColor = color,
+                                        hasBlurBackground = shouldHaze, // Pass blur background state
+                                    )
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.unavailable),
+                                        style = typo.bodyMedium,
+                                        color = Color.White,
+                                        textAlign = TextAlign.Center,
+                                    )
                                 }
                             }
-                        } else {
-                            Text(
-                                text = stringResource(id = R.string.unavailable),
-                                style = typo.bodyMedium,
-                                color = Color.White,
-                                modifier = Modifier.fillMaxSize(),
-                                textAlign = TextAlign.Center,
-                            )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Box {
-                        Column {
-                            // Real Slider
+                    // Progress Bar and Time - Always visible, positioned based on control buttons visibility
+                    Column {
+                        // Real Slider
+                        Box(
+                            Modifier
+                                .padding(
+                                    top = 15.dp,
+                                ).padding(horizontal = 40.dp),
+                        ) {
                             Box(
-                                Modifier
-                                    .padding(
-                                        top = 15.dp,
-                                    ).padding(horizontal = 40.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(24.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
-                                Box(
+                                Crossfade(timelineState.loading) {
+                                    if (it) {
+                                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                            LinearProgressIndicator(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height(4.dp)
+                                                        .padding(
+                                                            horizontal = 3.dp,
+                                                        ).clip(
+                                                            RoundedCornerShape(8.dp),
+                                                        ),
+                                                color = Color.Gray,
+                                                trackColor = Color.DarkGray,
+                                                strokeCap = StrokeCap.Round,
+                                            )
+                                        }
+                                    } else {
+                                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                            LinearProgressIndicator(
+                                                progress = { timelineState.bufferedPercent.toFloat() / 100 },
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height(4.dp)
+                                                        .padding(
+                                                            horizontal = 3.dp,
+                                                        ).clip(
+                                                            RoundedCornerShape(8.dp),
+                                                        ),
+                                                color = Color.Gray,
+                                                trackColor = Color.DarkGray,
+                                                strokeCap = StrokeCap.Round,
+                                                drawStopIndicator = {},
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                Slider(
+                                    value = sliderValue,
+                                    onValueChange = {
+                                        sharedViewModel.onUIEvent(
+                                            UIEvent.UpdateProgress(it),
+                                        )
+                                    },
+                                    valueRange = 0f..100f,
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
-                                            .height(24.dp),
-                                    contentAlignment = Alignment.Center,
+                                            .padding(top = 3.dp)
+                                            .align(
+                                                Alignment.TopCenter,
+                                            ),
+                                    track = { sliderState ->
+                                        SliderDefaults.Track(
+                                            modifier =
+                                                Modifier
+                                                    .height(5.dp),
+                                            enabled = true,
+                                            sliderState = sliderState,
+                                            colors =
+                                                SliderDefaults.colors().copy(
+                                                    thumbColor = Color.White,
+                                                    activeTrackColor = Color.White,
+                                                    inactiveTrackColor = Color.Transparent,
+                                                ),
+                                            thumbTrackGapSize = 0.dp,
+                                            drawTick = { _, _ -> },
+                                            drawStopIndicator = null,
+                                        )
+                                    },
+                                    thumb = {
+                                        SliderDefaults.Thumb(
+                                            modifier =
+                                                Modifier
+                                                    .height(18.dp)
+                                                    .width(8.dp)
+                                                    .padding(
+                                                        vertical = 4.dp,
+                                                    ),
+                                            thumbSize = DpSize(8.dp, 8.dp),
+                                            interactionSource =
+                                                remember {
+                                                    MutableInteractionSource()
+                                                },
+                                            colors =
+                                                SliderDefaults.colors().copy(
+                                                    thumbColor = Color.White,
+                                                    activeTrackColor = Color.White,
+                                                    inactiveTrackColor = Color.Transparent,
+                                                ),
+                                            enabled = true,
+                                        )
+                                    },
+                                )
+                            }
+                        }
+                        LazyColumn {
+                            item {
+                                // Time Layout
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 40.dp),
                                 ) {
-                                    Crossfade(timelineState.loading) {
-                                        if (it) {
-                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                                LinearProgressIndicator(
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(4.dp)
-                                                            .padding(
-                                                                horizontal = 3.dp,
-                                                            ).clip(
-                                                                RoundedCornerShape(8.dp),
-                                                            ),
-                                                    color = Color.Gray,
-                                                    trackColor = Color.DarkGray,
-                                                    strokeCap = StrokeCap.Round,
-                                                )
-                                            }
-                                        } else {
-                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                                LinearProgressIndicator(
-                                                    progress = { timelineState.bufferedPercent.toFloat() / 100 },
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(4.dp)
-                                                            .padding(
-                                                                horizontal = 3.dp,
-                                                            ).clip(
-                                                                RoundedCornerShape(8.dp),
-                                                            ),
-                                                    color = Color.Gray,
-                                                    trackColor = Color.DarkGray,
-                                                    strokeCap = StrokeCap.Round,
-                                                    drawStopIndicator = {},
-                                                )
-                                            }
-                                        }
-                                    }
+                                    Text(
+                                        text = formatDuration(timelineState.current, context),
+                                        style = typo.bodyMedium,
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Left,
+                                    )
+                                    Text(
+                                        text = formatDuration(timelineState.total, context),
+                                        style = typo.bodyMedium,
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Right,
+                                    )
                                 }
-                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                    Slider(
-                                        value = sliderValue,
-                                        onValueChange = {
-                                            sharedViewModel.onUIEvent(
-                                                UIEvent.UpdateProgress(it),
-                                            )
-                                        },
-                                        valueRange = 0f..100f,
+
+                                Spacer(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(5.dp),
+                                )
+                            }
+
+                            item {
+                                // Control Buttons - Animated visibility
+                                // Control Button Layout
+                                AnimatedVisibility(
+                                    visible = showControlButtons,
+                                    enter =
+                                        expandVertically(
+                                            tween(300),
+                                        ),
+                                    exit =
+                                        shrinkVertically(
+                                            tween(300),
+                                        ),
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .padding(top = 3.dp)
-                                                .align(
-                                                    Alignment.TopCenter,
-                                                ),
-                                        track = { sliderState ->
-                                            SliderDefaults.Track(
-                                                modifier =
-                                                    Modifier
-                                                        .height(5.dp),
-                                                enabled = true,
-                                                sliderState = sliderState,
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
-                                                        inactiveTrackColor = Color.Transparent,
-                                                    ),
-                                                thumbTrackGapSize = 0.dp,
-                                                drawTick = { _, _ -> },
-                                                drawStopIndicator = null,
-                                            )
-                                        },
-                                        thumb = {
-                                            SliderDefaults.Thumb(
-                                                modifier =
-                                                    Modifier
-                                                        .height(18.dp)
-                                                        .width(8.dp)
-                                                        .padding(
-                                                            vertical = 4.dp,
-                                                        ),
-                                                thumbSize = DpSize(8.dp, 8.dp),
-                                                interactionSource =
-                                                    remember {
-                                                        MutableInteractionSource()
+                                                .height(96.dp)
+                                                .padding(horizontal = 20.dp),
+                                    ) {
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .background(transparent)
+                                                    .size(42.dp)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ).clickable {
+                                                        sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                                     },
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
-                                                        inactiveTrackColor = Color.Transparent,
-                                                    ),
-                                                enabled = true,
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-                            // Time Layout
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 40.dp),
-                            ) {
-                                Text(
-                                    text = formatDuration(timelineState.current, context),
-                                    style = typo.bodyMedium,
-                                    modifier = Modifier.weight(1f),
-                                    textAlign = TextAlign.Left,
-                                )
-                                Text(
-                                    text = formatDuration(timelineState.total, context),
-                                    style = typo.bodyMedium,
-                                    modifier = Modifier.weight(1f),
-                                    textAlign = TextAlign.Right,
-                                )
-                            }
-
-                            Spacer(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(5.dp),
-                            )
-                            // Control Button Layout
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(96.dp)
-                                        .padding(horizontal = 40.dp),
-                            ) {
-                                FilledTonalIconButton(
-                                    colors =
-                                        IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent,
-                                        ),
-                                    modifier =
-                                        Modifier
-                                            .weight(1f) // Distribute equal weight
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape,
-                                            ),
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                                    },
-                                ) {
-                                    Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
-                                        if (isShuffle) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Shuffle,
-                                                tint = seed, // Accent color when shuffle is ON
-                                                contentDescription = "",
-                                                modifier = Modifier.size(32.dp),
-                                            )
-                                        } else {
-                                            Icon(
-                                                imageVector = Icons.Filled.Shuffle,
-                                                tint = Color.White, // White when shuffle is OFF
-                                                contentDescription = "",
-                                                modifier = Modifier.size(32.dp),
-                                            )
-                                        }
-                                    }
-                                }
-                                FilledTonalIconButton(
-                                    colors =
-                                        IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent,
-                                        ),
-                                    modifier =
-                                        Modifier
-                                            .weight(1f)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape,
-                                            ),
-                                    onClick = {
-                                        if (controllerState.isPreviousAvailable) {
-                                            sharedViewModel.onUIEvent(UIEvent.Previous)
-                                        }
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.SkipPrevious,
-                                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                                        contentDescription = "",
-                                        modifier = Modifier.size(52.dp),
-                                    )
-                                }
-                                FilledTonalIconButton(
-                                    colors =
-                                        IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent,
-                                        ),
-                                    modifier =
-                                        Modifier
-                                            .weight(1f)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape,
-                                            ),
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                    },
-                                ) {
-                                    Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
-                                        if (!isPlaying) {
-                                            Icon(
-                                                imageVector = Icons.Filled.PlayCircle,
-                                                tint = Color.White,
-                                                contentDescription = "",
-                                                modifier = Modifier.size(72.dp),
-                                            )
-                                        } else {
-                                            Icon(
-                                                imageVector = Icons.Filled.PauseCircle,
-                                                tint = Color.White,
-                                                contentDescription = "",
-                                                modifier = Modifier.size(72.dp),
-                                            )
-                                        }
-                                    }
-                                }
-                                FilledTonalIconButton(
-                                    colors =
-                                        IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent,
-                                        ),
-                                    modifier =
-                                        Modifier
-                                            .weight(1f)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape,
-                                            ),
-                                    onClick = {
-                                        if (controllerState.isNextAvailable) {
-                                            sharedViewModel.onUIEvent(UIEvent.Next)
-                                        }
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.SkipNext,
-                                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                                        contentDescription = "",
-                                        modifier = Modifier.size(52.dp),
-                                    )
-                                }
-                                FilledTonalIconButton(
-                                    colors =
-                                        IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent,
-                                        ),
-                                    modifier =
-                                        Modifier
-                                            .weight(1f)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape,
-                                            ),
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.Repeat)
-                                    },
-                                ) {
-                                    Crossfade(targetState = controllerState.repeatState) { rs ->
-                                        when (rs) {
-                                            is RepeatState.None -> {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Repeat,
-                                                    tint = Color.White,
-                                                    contentDescription = "",
-                                                    modifier = Modifier.size(32.dp),
-                                                )
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
+                                                if (!isShuffle) {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.Shuffle,
+                                                        tint = Color.White,
+                                                        contentDescription = "",
+                                                        modifier = Modifier.size(32.dp),
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.Shuffle,
+                                                        tint = seed,
+                                                        contentDescription = "",
+                                                        modifier = Modifier.size(32.dp),
+                                                    )
+                                                }
                                             }
-
-                                            RepeatState.All -> {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Repeat,
-                                                    tint = seed,
-                                                    contentDescription = "",
-                                                    modifier = Modifier.size(32.dp),
-                                                )
+                                        }
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .background(transparent)
+                                                    .size(52.dp)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ).clickable {
+                                                        if (controllerState.isPreviousAvailable) {
+                                                            sharedViewModel.onUIEvent(UIEvent.Previous)
+                                                        }
+                                                    },
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.SkipPrevious,
+                                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                                                contentDescription = "",
+                                                modifier = Modifier.size(42.dp),
+                                            )
+                                        }
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .background(transparent)
+                                                    .size(96.dp)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ).clickable {
+                                                        sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                    },
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
+                                                if (!isPlaying) {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.PlayCircle,
+                                                        tint = Color.White,
+                                                        contentDescription = "",
+                                                        modifier = Modifier.size(72.dp),
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.PauseCircle,
+                                                        tint = Color.White,
+                                                        contentDescription = "",
+                                                        modifier = Modifier.size(72.dp),
+                                                    )
+                                                }
                                             }
+                                        }
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .background(transparent)
+                                                    .size(52.dp)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ).clickable {
+                                                        if (controllerState.isNextAvailable) {
+                                                            sharedViewModel.onUIEvent(UIEvent.Next)
+                                                        }
+                                                    },
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.SkipNext,
+                                                tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                                                contentDescription = "",
+                                                modifier = Modifier.size(42.dp),
+                                            )
+                                        }
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .size(42.dp)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ).clickable {
+                                                        sharedViewModel.onUIEvent(UIEvent.Repeat)
+                                                    },
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Crossfade(targetState = controllerState.repeatState) { rs ->
+                                                when (rs) {
+                                                    is RepeatState.None -> {
+                                                        Icon(
+                                                            imageVector = Icons.Rounded.Repeat,
+                                                            tint = Color.White,
+                                                            contentDescription = "",
+                                                            modifier = Modifier.size(32.dp),
+                                                        )
+                                                    }
 
-                                            RepeatState.One -> {
-                                                Icon(
-                                                    imageVector = Icons.Filled.RepeatOne,
-                                                    tint = seed,
-                                                    contentDescription = "",
-                                                    modifier = Modifier.size(32.dp),
-                                                )
+                                                    RepeatState.All -> {
+                                                        Icon(
+                                                            imageVector = Icons.Rounded.Repeat,
+                                                            tint = seed,
+                                                            contentDescription = "",
+                                                            modifier = Modifier.size(32.dp),
+                                                        )
+                                                    }
+
+                                                    RepeatState.One -> {
+                                                        Icon(
+                                                            imageVector = Icons.Rounded.RepeatOne,
+                                                            tint = seed,
+                                                            contentDescription = "",
+                                                            modifier = Modifier.size(32.dp),
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            // List Bottom Buttons
-                            // 24.dp
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .height(32.dp)
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 40.dp),
-                            ) {
-                                IconButton(
-                                    modifier =
-                                        Modifier
-                                            .size(24.dp)
-                                            .aspectRatio(1f)
-                                            .align(Alignment.CenterStart)
-                                            .clip(
-                                                CircleShape,
-                                            ),
-                                    onClick = {
-                                        showInfoBottomSheet = true
-                                    },
+                                AnimatedVisibility(
+                                    visible = showControlButtons,
+                                    enter =
+                                        expandVertically(
+                                            tween(300),
+                                        ),
+                                    exit =
+                                        shrinkVertically(
+                                            tween(300),
+                                        ),
                                 ) {
-                                    Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
-                                }
-                                Row(
-                                    Modifier.align(Alignment.CenterEnd),
-                                ) {
-                                    Spacer(modifier = Modifier.size(8.dp))
-                                    IconButton(
+                                    // List Bottom Buttons
+                                    // 24.dp
+                                    Box(
                                         modifier =
                                             Modifier
-                                                .size(24.dp)
-                                                .aspectRatio(1f)
-                                                .clip(
-                                                    CircleShape,
-                                                ),
-                                        onClick = {
-                                            showQueueBottomSheet = true
-                                        },
+                                                .height(32.dp)
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 40.dp),
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
-                                            tint = Color.White,
-                                            contentDescription = "",
-                                        )
+                                        IconButton(
+                                            modifier =
+                                                Modifier
+                                                    .size(24.dp)
+                                                    .aspectRatio(1f)
+                                                    .align(Alignment.CenterStart)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ),
+                                            onClick = {
+                                                showInfoBottomSheet = true
+                                                showControlButtons = true // Reset timer on interaction
+                                            },
+                                        ) {
+                                            Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                                        }
+                                        Row(
+                                            Modifier.align(Alignment.CenterEnd),
+                                        ) {
+                                            Spacer(modifier = Modifier.size(8.dp))
+                                            IconButton(
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(
+                                                            CircleShape,
+                                                        ),
+                                                onClick = {
+                                                    showQueueBottomSheet = true
+                                                    showControlButtons = true // Reset timer on interaction
+                                                },
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
+                                                    tint = Color.White,
+                                                    contentDescription = "",
+                                                )
+                                            }
+                                        }
                                     }
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // When control buttons are hidden, add spacer to maintain proper spacing
+                    if (!showControlButtons) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
                 }
             }
         }

@@ -2,15 +2,16 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.extension.toArrayListTrack
-import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.ArtistEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.repository.ArtistRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.toArrayListTrack
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,9 +19,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-@UnstableApi
 class LibraryDynamicPlaylistViewModel(
     application: Application,
+    private val songRepository: SongRepository,
+    private val artistRepository: ArtistRepository,
 ) : BaseViewModel(application) {
     private val _listFavoriteSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
     val listFavoriteSong: StateFlow<List<SongEntity>> get() = _listFavoriteSong
@@ -43,23 +45,27 @@ class LibraryDynamicPlaylistViewModel(
 
     private fun getFavoriteSong() {
         viewModelScope.launch {
-            mainRepository.getLikedSongs().collectLatest { likedSong ->
-                _listFavoriteSong.value = likedSong.reversed()
+            songRepository.getLikedSongs().collectLatest { likedSong ->
+                _listFavoriteSong.value = likedSong.sortedByDescending {
+                    it.favoriteAt ?: it.inLibrary
+                }
             }
         }
     }
 
     private fun getFollowedArtist() {
         viewModelScope.launch {
-            mainRepository.getFollowedArtists().collectLatest { followedArtist ->
-                _listFollowedArtist.value = followedArtist.reversed()
+            artistRepository.getFollowedArtists().collectLatest { followedArtist ->
+                _listFollowedArtist.value = followedArtist.sortedByDescending {
+                    it.followedAt ?: it.inLibrary
+                }
             }
         }
     }
 
     private fun getMostPlayedSong() {
         viewModelScope.launch {
-            mainRepository.getMostPlayedSongs().collectLatest { mostPlayedSong ->
+            songRepository.getMostPlayedSongs().collectLatest { mostPlayedSong ->
                 _listMostPlayedSong.value = mostPlayedSong.sortedByDescending { it.totalPlayTime }
             }
         }
@@ -67,8 +73,10 @@ class LibraryDynamicPlaylistViewModel(
 
     private fun getDownloadedSong() {
         viewModelScope.launch {
-            mainRepository.getDownloadedSongs().collectLatest { downloadedSong ->
-                _listDownloadedSong.value = downloadedSong?.reversed() ?: emptyList()
+            songRepository.getDownloadedSongs().collectLatest { downloadedSong ->
+                _listDownloadedSong.value = (downloadedSong ?: emptyList()).sortedByDescending {
+                    it.downloadedAt ?: it.inLibrary
+                }
             }
         }
     }
@@ -86,7 +94,7 @@ class LibraryDynamicPlaylistViewModel(
             }
         if (playTrack == null) return
         setQueueData(
-            QueueData(
+            QueueData.Data(
                 listTracks = targetList.toArrayListTrack(),
                 firstPlayedTrack = playTrack.toTrack(),
                 playlistId = null,

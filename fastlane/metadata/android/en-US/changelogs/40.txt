@@ -1,0 +1,11 @@
+- Clean architecture
+- 16kb page size
+- New widget UI
+- New landscape layout (TV, tablet, phone landscape)
+- Liquid glass (BETA)
+- Improve update channel
+- Improve full screen lyrics UI
+- Fixed Endless queue
+- Fixed database crash
+- Explicit content optional
+- Multiple channels/brand account support

@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.home
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
@@ -18,6 +17,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,29 +70,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.kotlinytmusicscraper.config.Constants
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.explore.mood.Mood
-import com.maxrave.simpmusic.data.model.home.HomeItem
-import com.maxrave.simpmusic.data.model.home.chart.Chart
+import com.maxrave.common.CHART_SUPPORTED_COUNTRY
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.home.HomeItem
+import com.maxrave.domain.data.model.home.chart.Chart
+import com.maxrave.domain.data.model.mood.Mood
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.isScrollingUp
-import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
-import com.maxrave.simpmusic.ui.component.GetDataSyncIdBottomSheet
 import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
@@ -111,6 +111,16 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_COMMUTE
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_ENERGIZE
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_FEEL_GOOD
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_FOCUS
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_PARTY
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_RELAX
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_ROMANCE
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_SAD
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_SLEEP
+import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_WORKOUT
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -123,11 +133,26 @@ import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
+private val listOfHomeChip =
+    listOf(
+        R.string.all,
+        R.string.relax,
+        R.string.sleep,
+        R.string.energize,
+        R.string.sad,
+        R.string.romance,
+        R.string.feel_good,
+        R.string.workout,
+        R.string.party,
+        R.string.commute,
+        R.string.focus,
+    )
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @ExperimentalFoundationApi
-@UnstableApi
 @Composable
 fun HomeScreen(
+    onScrolling: (onTop: Boolean) -> Unit = {},
     viewModel: HomeViewModel =
         koinViewModel(),
     sharedViewModel: SharedViewModel =
@@ -137,6 +162,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
+    val isScrollingUp by scrollState.isScrollingUp()
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
     val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
     val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
@@ -166,12 +192,6 @@ fun HomeScreen(
         mutableStateOf(false)
     }
 
-    val dataSyncId by viewModel.dataSyncId.collectAsStateWithLifecycle()
-    val youTubeCookie by viewModel.youTubeCookie.collectAsStateWithLifecycle()
-    var shouldShowGetDataSyncIdBottomSheet by rememberSaveable {
-        mutableStateOf(false)
-    }
-
     var topAppBarHeightPx by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -181,26 +201,30 @@ fun HomeScreen(
             blurEnabled = true,
         )
 
-    LaunchedEffect(dataSyncId, youTubeCookie) {
-        Log.d("HomeScreen", "dataSyncId: $dataSyncId, youTubeCookie: $youTubeCookie")
-        if (dataSyncId.isEmpty() && youTubeCookie.isNotEmpty()) {
-            shouldShowGetDataSyncIdBottomSheet = true
-        }
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.firstVisibleItemIndex }
+            .collect {
+                if (it <= 1) {
+                    onScrolling.invoke(true)
+                } else {
+                    onScrolling.invoke(isScrollingUp)
+                }
+            }
     }
 
     val onRefresh: () -> Unit = {
         isRefreshing = true
         viewModel.getHomeItemList(params)
-        Log.w("HomeScreen", "onRefresh")
+        Logger.w("HomeScreen", "onRefresh")
     }
     LaunchedEffect(key1 = reloadDestination) {
         if (reloadDestination == HomeDestination::class) {
             if (scrollState.firstVisibleItemIndex > 1) {
-                Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
+                Logger.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
                 scrollState.animateScrollToItem(0)
                 sharedViewModel.reloadDestinationDone()
             } else {
-                Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
+                Logger.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
                 onRefresh.invoke()
             }
         }
@@ -218,7 +242,7 @@ fun HomeScreen(
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
     LaunchedEffect(openAppTime, shareLyricsPermissions) {
-        Log.w("HomeScreen", "openAppTime: $openAppTime, shareLyricsPermissions: $shareLyricsPermissions")
+        Logger.w("HomeScreen", "openAppTime: $openAppTime, shareLyricsPermissions: $shareLyricsPermissions")
         if (openAppTime >= 10 && openAppTime % 10 == 0 && openAppTime <= 50) {
             showReviewDialog = true
         } else if ((openAppTime == 1 || openAppTime % 15 == 0) && openAppTime <= 60 && !shareLyricsPermissions) {
@@ -229,14 +253,14 @@ fun HomeScreen(
         }
     }
 
-    if (shouldShowGetDataSyncIdBottomSheet) {
-        GetDataSyncIdBottomSheet(
-            cookie = youTubeCookie,
-            onDismissRequest = {
-                shouldShowGetDataSyncIdBottomSheet = false
-            },
-        )
-    }
+//    if (shouldShowGetDataSyncIdBottomSheet) {
+//        GetDataSyncIdBottomSheet(
+//            cookie = youTubeCookie,
+//            onDismissRequest = {
+//                shouldShowGetDataSyncIdBottomSheet = false
+//            },
+//        )
+//    }
 
     if (showReviewDialog) {
         ReviewDialog(
@@ -344,9 +368,9 @@ fun HomeScreen(
                                         topAppBarHeightPx.toDp()
                                     },
                             ),
-                    containerColor = PullToRefreshDefaults.containerColor,
+                    containerColor = PullToRefreshDefaults.indicatorContainerColor,
                     color = PullToRefreshDefaults.indicatorColor,
-                    threshold = PullToRefreshDefaults.PositionalThreshold,
+                    maxDistance = PullToRefreshDefaults.PositionalThreshold,
                 )
             },
         ) {
@@ -354,66 +378,63 @@ fun HomeScreen(
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
                     LazyColumn(
-                        modifier = Modifier.padding(horizontal = 15.dp),
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 15.dp),
+                        contentPadding =
+                            PaddingValues(
+                                top = with(LocalDensity.current) { topAppBarHeightPx.toDp() },
+                            ),
                         state = scrollState,
+                        verticalArrangement = Arrangement.spacedBy(28.dp),
                     ) {
                         item {
-                            Spacer(
-                                Modifier.height(
-                                    with(LocalDensity.current) {
-                                        topAppBarHeightPx.toDp()
-                                    },
-                                ),
-                            )
-                        }
-                        item {
-                            AnimatedVisibility(
-                                visible = accountInfo != null && accountShow,
-                            ) {
-                                AccountLayout(
-                                    accountName = accountInfo?.first ?: "",
-                                    url = accountInfo?.second ?: "",
-                                )
-                            }
-                        }
-                        item {
-                            AnimatedVisibility(
-                                visible =
-                                    homeData.find {
-                                        it.title ==
-                                            context.getString(
-                                                R.string.quick_picks,
-                                            )
-                                    } != null,
-                            ) {
-                                QuickPicks(
-                                    homeItem =
-                                        (
-                                            homeData.find {
-                                                it.title ==
-                                                    context.getString(
-                                                        R.string.quick_picks,
-                                                    )
-                                            } ?: return@AnimatedVisibility
-                                        ).let { content ->
-                                            content.copy(
-                                                contents =
-                                                    content.contents.mapNotNull { ct ->
-                                                        ct?.copy(
-                                                            artists =
-                                                                ct.artists?.let { art ->
-                                                                    if (art.size > 1) {
-                                                                        art.dropLast(1)
-                                                                    } else {
-                                                                        art
-                                                                    }
-                                                                },
+                            Column {
+                                if (accountInfo != null && accountShow) {
+                                    AccountLayout(
+                                        accountName = accountInfo?.first ?: "",
+                                        url = accountInfo?.second ?: "",
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                }
+                                AnimatedVisibility(
+                                    visible =
+                                        homeData.find {
+                                            it.title ==
+                                                context.getString(
+                                                    R.string.quick_picks,
+                                                )
+                                        } != null,
+                                ) {
+                                    QuickPicks(
+                                        homeItem =
+                                            (
+                                                homeData.find {
+                                                    it.title ==
+                                                        context.getString(
+                                                            R.string.quick_picks,
                                                         )
-                                                    },
-                                            )
-                                        },
-                                    viewModel = viewModel,
-                                )
+                                                } ?: return@AnimatedVisibility
+                                            ).let { content ->
+                                                content.copy(
+                                                    contents =
+                                                        content.contents.mapNotNull { ct ->
+                                                            ct?.copy(
+                                                                artists =
+                                                                    ct.artists?.let { art ->
+                                                                        if (art.size > 1) {
+                                                                            art.dropLast(1)
+                                                                        } else {
+                                                                            art
+                                                                        }
+                                                                    },
+                                                            )
+                                                        },
+                                                )
+                                            },
+                                        viewModel = viewModel,
+                                    )
+                                }
                             }
                         }
                         items(homeData, key = { it.hashCode() }) {
@@ -455,7 +476,7 @@ fun HomeScreen(
                                 ChartTitle()
                                 Spacer(modifier = Modifier.height(5.dp))
                                 Crossfade(targetState = regionChart) {
-                                    Log.w("HomeScreen", "regionChart: $it")
+                                    Logger.w("HomeScreen", "regionChart: $it")
                                     if (it != null) {
                                         DropdownButton(
                                             items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
@@ -529,14 +550,14 @@ fun HomeScreen(
                     },
         ) {
             AnimatedVisibility(
-                visible = scrollState.isScrollingUp(),
+                visible = isScrollingUp,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
                 HomeTopAppBar(navController)
             }
             AnimatedVisibility(
-                visible = !scrollState.isScrollingUp(),
+                visible = !isScrollingUp,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
@@ -555,23 +576,23 @@ fun HomeScreen(
                         .horizontalScroll(chipRowState)
                         .padding(vertical = 8.dp, horizontal = 15.dp)
                         .background(Color.Transparent),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Config.listOfHomeChip.forEach { id ->
+                listOfHomeChip.forEach { id ->
                     val isSelected =
                         when (params) {
-                            Constants.HOME_PARAMS_RELAX -> id == R.string.relax
-                            Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
-                            Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
-                            Constants.HOME_PARAMS_SAD -> id == R.string.sad
-                            Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
-                            Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
-                            Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
-                            Constants.HOME_PARAMS_PARTY -> id == R.string.party
-                            Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
-                            Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
+                            HOME_PARAMS_RELAX -> id == R.string.relax
+                            HOME_PARAMS_SLEEP -> id == R.string.sleep
+                            HOME_PARAMS_ENERGIZE -> id == R.string.energize
+                            HOME_PARAMS_SAD -> id == R.string.sad
+                            HOME_PARAMS_ROMANCE -> id == R.string.romance
+                            HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
+                            HOME_PARAMS_WORKOUT -> id == R.string.workout
+                            HOME_PARAMS_PARTY -> id == R.string.party
+                            HOME_PARAMS_COMMUTE -> id == R.string.commute
+                            HOME_PARAMS_FOCUS -> id == R.string.focus
                             else -> id == R.string.all
                         }
-                    Spacer(modifier = Modifier.width(4.dp))
                     Chip(
                         isAnimated = loading,
                         isSelected = isSelected,
@@ -579,19 +600,18 @@ fun HomeScreen(
                     ) {
                         when (id) {
                             R.string.all -> viewModel.setParams(null)
-                            R.string.relax -> viewModel.setParams(Constants.HOME_PARAMS_RELAX)
-                            R.string.sleep -> viewModel.setParams(Constants.HOME_PARAMS_SLEEP)
-                            R.string.energize -> viewModel.setParams(Constants.HOME_PARAMS_ENERGIZE)
-                            R.string.sad -> viewModel.setParams(Constants.HOME_PARAMS_SAD)
-                            R.string.romance -> viewModel.setParams(Constants.HOME_PARAMS_ROMANCE)
-                            R.string.feel_good -> viewModel.setParams(Constants.HOME_PARAMS_FEEL_GOOD)
-                            R.string.workout -> viewModel.setParams(Constants.HOME_PARAMS_WORKOUT)
-                            R.string.party -> viewModel.setParams(Constants.HOME_PARAMS_PARTY)
-                            R.string.commute -> viewModel.setParams(Constants.HOME_PARAMS_COMMUTE)
-                            R.string.focus -> viewModel.setParams(Constants.HOME_PARAMS_FOCUS)
+                            R.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
+                            R.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
+                            R.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
+                            R.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
+                            R.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
+                            R.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
+                            R.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
+                            R.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
+                            R.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
+                            R.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
                         }
                     }
-                    Spacer(modifier = Modifier.width(4.dp))
                 }
             }
         }
@@ -611,7 +631,7 @@ fun HomeTopAppBar(navController: NavController) {
         title = {
             Column {
                 Text(
-                    text = stringResource(id = R.string.app_name),
+                    text = stringResource(id = AppResString.app_name),
                     style = typo.titleMedium,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -705,7 +725,6 @@ fun AccountLayout(
     }
 }
 
-@UnstableApi
 @ExperimentalFoundationApi
 @Composable
 fun QuickPicks(
@@ -729,11 +748,12 @@ fun QuickPicks(
     ) {
         Text(
             text = stringResource(id = R.string.let_s_start_with_a_radio),
-            style = typo.bodyMedium,
+            style = typo.bodySmall,
         )
         Text(
             text = stringResource(id = R.string.quick_picks),
             style = typo.headlineMedium,
+            color = Color.White,
             maxLines = 1,
             modifier =
                 Modifier
@@ -742,7 +762,7 @@ fun QuickPicks(
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(4),
-            modifier = Modifier.height(280.dp),
+            modifier = Modifier.height(256.dp),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
@@ -752,7 +772,7 @@ fun QuickPicks(
                         onClick = {
                             val firstQueue: Track = it.toTrack()
                             viewModel.setQueueData(
-                                QueueData(
+                                QueueData.Data(
                                     listTracks = arrayListOf(firstQueue),
                                     firstPlayedTrack = firstQueue,
                                     playlistId = "RDAMVM${it.videoId}",
@@ -866,7 +886,6 @@ fun ChartTitle() {
     }
 }
 
-@UnstableApi
 @Composable
 fun ChartData(
     chart: Chart,

@@ -22,19 +22,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.db.entities.AlbumEntity
-import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.AlbumEntity
+import com.maxrave.domain.data.entities.ArtistEntity
+import com.maxrave.domain.data.entities.PlaylistEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -57,7 +56,6 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
-@UnstableApi
 @Composable
 fun RecentlySongsScreen(
     innerPadding: PaddingValues,
@@ -109,7 +107,7 @@ fun RecentlySongsScreen(
                             onClickListener = { videoId ->
                                 val firstQueue = item.toTrack()
                                 viewModel.setQueueData(
-                                    QueueData(
+                                    QueueData.Data(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM$videoId",

@@ -38,15 +38,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.db.entities.NotificationEntity
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.formatTimeAgo
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -55,13 +53,13 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-@UnstableApi
 @Composable
 fun NotificationScreen(
     navController: NavController,
-    viewModel: NotificationViewModel = viewModel(),
+    viewModel: NotificationViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
     val listNotification by viewModel.listNotification.collectAsStateWithLifecycle()

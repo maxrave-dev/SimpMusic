@@ -1,33 +1,26 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.Download
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.explore.mood.Mood
-import com.maxrave.simpmusic.data.model.home.HomeDataCombine
-import com.maxrave.simpmusic.data.model.home.HomeItem
-import com.maxrave.simpmusic.data.model.home.chart.Chart
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.common.SUPPORTED_LANGUAGE
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.home.HomeDataCombine
+import com.maxrave.domain.data.model.home.HomeItem
+import com.maxrave.domain.data.model.home.chart.Chart
+import com.maxrave.domain.data.model.mood.Mood
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.repository.HomeRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -36,11 +29,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.time.LocalDateTime
 
-@UnstableApi
 class HomeViewModel(
     private val application: Application,
+    private val dataStoreManager: DataStoreManager,
+    private val homeRepository: HomeRepository,
 ) : BaseViewModel(application) {
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
@@ -56,8 +49,8 @@ class HomeViewModel(
 
     private val _chart: MutableStateFlow<Chart?> = MutableStateFlow(null)
     val chart: StateFlow<Chart?> = _chart
-    private val _newRelease: MutableStateFlow<ArrayList<HomeItem>> = MutableStateFlow(arrayListOf())
-    val newRelease: StateFlow<ArrayList<HomeItem>> = _newRelease
+    private val _newRelease: MutableStateFlow<List<HomeItem>> = MutableStateFlow(arrayListOf())
+    val newRelease: StateFlow<List<HomeItem>> = _newRelease
     var regionCodeChart: MutableStateFlow<String?> = MutableStateFlow(null)
 
     val loading = MutableStateFlow<Boolean>(true)
@@ -78,10 +71,6 @@ class HomeViewModel(
     val dataSyncId =
         dataStoreManager
             .dataSyncId
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
-    val youTubeCookie =
-        dataStoreManager
-            .cookie
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
     init {
@@ -134,11 +123,17 @@ class HomeViewModel(
                 }
             val job5 =
                 launch {
-                    youTubeCookie.collectLatest {
-                        if (it.isNotEmpty()) {
-                            getHomeItemList(params.value)
+                    dataStoreManager
+                        .cookie
+                        .distinctUntilChanged()
+                        .collectLatest {
+                            if (it.isNotEmpty()) {
+                                Logger.w(tag, "Cookie changed, refreshing home")
+                                loading.value = true
+                                delay(1000) // To wait for the cookie to be saved properly
+                                getHomeItemList(params.value)
+                            }
                         }
-                    }
                 }
             job1.join()
             job2.join()
@@ -169,15 +164,15 @@ class HomeViewModel(
         homeJob =
             viewModelScope.launch {
                 combine(
-                    mainRepository.getHomeData(params),
-                    mainRepository.getMoodAndMomentsData(),
-                    mainRepository.getChartData(dataStoreManager.chartKey.first()),
-                    mainRepository.getNewRelease(),
+                    homeRepository.getHomeData(application, params),
+                    homeRepository.getMoodAndMomentsData(),
+                    homeRepository.getChartData(dataStoreManager.chartKey.first()),
+                    homeRepository.getNewRelease(application),
                 ) { home, exploreMood, exploreChart, newRelease ->
                     HomeDataCombine(home, exploreMood, exploreChart, newRelease)
                 }.collect { result ->
                     val home = result.home
-                    Log.d("home size", "${home.data?.size}")
+                    Logger.d("home size", "${home.data?.size}")
                     val exploreMoodItem = result.mood
                     val chart = result.chart
                     val newRelease = result.newRelease
@@ -218,7 +213,7 @@ class HomeViewModel(
                         }
                     }
                     regionCodeChart.value = dataStoreManager.chartKey.first()
-                    Log.d("HomeViewModel", "getHomeItemList: $result")
+                    Logger.d("HomeViewModel", "getHomeItemList: $result")
                     dataStoreManager.cookie.first().let {
                         if (it != "") {
                             _accountInfo.emit(
@@ -236,9 +231,9 @@ class HomeViewModel(
                         else -> null
                     }?.let {
                         showSnackBarErrorState.emit(it)
-                        Log.w("Error", "getHomeItemList: ${home.message}")
-                        Log.w("Error", "getHomeItemList: ${exploreMoodItem.message}")
-                        Log.w("Error", "getHomeItemList: ${chart.message}")
+                        Logger.w("Error", "getHomeItemList: ${home.message}")
+                        Logger.w("Error", "getHomeItemList: ${exploreMoodItem.message}")
+                        Logger.w("Error", "getHomeItemList: ${chart.message}")
                     }
                     loading.value = false
                 }
@@ -248,7 +243,7 @@ class HomeViewModel(
     fun exploreChart(region: String) {
         viewModelScope.launch {
             loadingChart.value = true
-            mainRepository
+            homeRepository
                 .getChartData(
                     region,
                 ).collect { values ->
@@ -268,148 +263,6 @@ class HomeViewModel(
         }
     }
 
-    fun updateLikeStatus(
-        videoId: String,
-        b: Boolean,
-    ) {
-        viewModelScope.launch {
-            if (b) {
-                mainRepository.updateLikeStatus(videoId, 1)
-            } else {
-                mainRepository.updateLikeStatus(videoId, 0)
-            }
-        }
-    }
-
-    fun getSongEntity(track: Track) {
-        viewModelScope.launch {
-            mainRepository.insertSong(track.toSongEntity()).first().let {
-                println("Insert song $it")
-            }
-            mainRepository.getSongById(track.videoId).collect { values ->
-                Log.w("HomeViewModel", "getSongEntity: $values")
-                _songEntity.value = values
-            }
-        }
-    }
-
-    private var _localPlaylist: MutableStateFlow<List<LocalPlaylistEntity>> =
-        MutableStateFlow(
-            listOf(),
-        )
-    val localPlaylist: StateFlow<List<LocalPlaylistEntity>> = _localPlaylist
-
-    fun getAllLocalPlaylist() {
-        viewModelScope.launch {
-            mainRepository.getAllLocalPlaylists().collect { values ->
-                _localPlaylist.emit(values)
-            }
-        }
-    }
-
-    fun updateDownloadState(
-        videoId: String,
-        state: Int,
-    ) {
-        viewModelScope.launch {
-            mainRepository.getSongById(videoId).collect { songEntity ->
-                _songEntity.value = songEntity
-            }
-            mainRepository.updateDownloadState(videoId, state)
-        }
-    }
-
-    private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
-    var downloadState: StateFlow<Download?> = _downloadState.asStateFlow()
-
-    @UnstableApi
-    fun getDownloadStateFromService(videoId: String) {
-    }
-
-    fun updateLocalPlaylistTracks(
-        list: List<String>,
-        id: Long,
-    ) {
-        viewModelScope.launch {
-            mainRepository.getSongsByListVideoId(list).collect { values ->
-                var count = 0
-                values.forEach { song ->
-                    if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
-                        count++
-                    }
-                }
-                mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast
-                    .makeText(
-                        getApplication(),
-                        application.getString(R.string.added_to_playlist),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                if (count == values.size) {
-                    mainRepository.updateLocalPlaylistDownloadState(
-                        DownloadState.STATE_DOWNLOADED,
-                        id,
-                    )
-                } else {
-                    mainRepository.updateLocalPlaylistDownloadState(
-                        DownloadState.STATE_NOT_DOWNLOADED,
-                        id,
-                    )
-                }
-            }
-        }
-    }
-
-    fun addToYouTubePlaylist(
-        localPlaylistId: Long,
-        youtubePlaylistId: String,
-        videoId: String,
-    ) {
-        viewModelScope.launch {
-            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
-                localPlaylistId,
-                LocalPlaylistEntity.YouTubeSyncState.Syncing,
-            )
-            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
-                if (response == "STATUS_SUCCEEDED") {
-                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
-                        localPlaylistId,
-                        LocalPlaylistEntity.YouTubeSyncState.Synced,
-                    )
-                    Toast
-                        .makeText(
-                            getApplication(),
-                            application.getString(R.string.added_to_youtube_playlist),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                } else {
-                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
-                        localPlaylistId,
-                        LocalPlaylistEntity.YouTubeSyncState.NotSynced,
-                    )
-                    Toast
-                        .makeText(
-                            getApplication(),
-                            application.getString(R.string.error),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                }
-            }
-        }
-    }
-
-    fun updateInLibrary(videoId: String) {
-        viewModelScope.launch {
-            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
-        }
-    }
-
-    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
-        viewModelScope.launch {
-            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
-        }
-    }
-
     fun setParams(params: String?) {
         _params.value = params
     }
@@ -417,5 +270,19 @@ class HomeViewModel(
     override fun onCleared() {
         super.onCleared()
         homeJob?.cancel()
+    }
+
+    companion object {
+        // Home params
+        const val HOME_PARAMS_RELAX = "ggM8SgQIBxADSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_SLEEP = "ggM8SgQIBxABSgQIBRADSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_ENERGIZE = "ggM8SgQIBxABSgQIBRABSgQICRADSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_SAD = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChADSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_ROMANCE = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRADSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_FEEL_GOOD = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBADSgQIBBABSgQIDhABSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_WORKOUT = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBADSgQIDhABSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_PARTY = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhADSgQIAxABSgQIBhAB"
+        const val HOME_PARAMS_COMMUTE = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxADSgQIBhAB"
+        const val HOME_PARAMS_FOCUS = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAD"
     }
 }

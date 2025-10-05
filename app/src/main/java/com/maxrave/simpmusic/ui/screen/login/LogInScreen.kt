@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.screen.login
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.CookieManager
-import android.webkit.JavascriptInterface
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -38,10 +37,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
+import com.maxrave.common.Config
+import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -58,7 +56,6 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @SuppressLint("SetJavaScriptEnabled")
-@UnstableApi
 @Composable
 fun LoginScreen(
     innerPadding: PaddingValues,
@@ -111,8 +108,6 @@ fun LoginScreen(
                                     view: WebView?,
                                     url: String?,
                                 ) {
-                                    loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
-                                    loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
                                     if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
                                         coroutineScope.launch {
                                             val success =
@@ -152,24 +147,7 @@ fun LoginScreen(
                             }
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
-                        addJavascriptInterface(
-                            object {
-                                @JavascriptInterface
-                                fun onRetrieveVisitorData(newVisitorData: String?) {
-                                    if (newVisitorData != null) {
-                                        viewModel.setVisitorData(newVisitorData)
-                                    }
-                                }
 
-                                @JavascriptInterface
-                                fun onRetrieveDataSyncId(newDataSyncId: String?) {
-                                    if (newDataSyncId != null) {
-                                        viewModel.setDataSyncId(newDataSyncId.substringBefore("||"))
-                                    }
-                                }
-                            },
-                            "Android",
-                        )
                         loadUrl(Config.LOG_IN_URL)
                     }
                 },

@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.navigation.graph
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -10,7 +9,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestina
 import com.maxrave.simpmusic.ui.screen.login.LoginScreen
 import com.maxrave.simpmusic.ui.screen.login.SpotifyLoginScreen
 
-@UnstableApi
 fun NavGraphBuilder.loginScreenGraph(
     innerPadding: PaddingValues,
     navController: NavController,

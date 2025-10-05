@@ -59,34 +59,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.kotlinytmusicscraper.models.AlbumItem
-import com.maxrave.kotlinytmusicscraper.models.ArtistItem
-import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
-import com.maxrave.kotlinytmusicscraper.models.SongItem
-import com.maxrave.kotlinytmusicscraper.models.VideoItem
-import com.maxrave.kotlinytmusicscraper.models.YTItem
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
-import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
-import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
-import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
-import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
-import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.extension.connectArtists
-import com.maxrave.simpmusic.extension.toAlbumsResult
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.model.searchResult.songs.SongsResult
+import com.maxrave.domain.data.model.searchResult.videos.VideosResult
+import com.maxrave.domain.data.type.SearchResultType
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.connectArtists
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -108,7 +100,6 @@ import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun SearchScreen(
     searchViewModel: SearchViewModel = koinInject(),
     sharedViewModel: SharedViewModel = koinInject(),
@@ -277,17 +268,17 @@ fun SearchScreen(
                         ),
                     ) {
                         items(searchScreenState.suggestYTItems) { item ->
-                            SuggestYTItemRow(
-                                ytItem = item,
-                                onItemClick = { ytItem ->
-                                    when (ytItem) {
-                                        is SongItem, is VideoItem -> {
-                                            val firstTrack: Track = (ytItem as? SongItem)?.toTrack() ?: (ytItem as VideoItem).toTrack()
+                            SuggestItemRow(
+                                searchResult = item,
+                                onItemClick = { item ->
+                                    when (item) {
+                                        is SongsResult, is VideosResult -> {
+                                            val firstTrack: Track = (item as? SongsResult)?.toTrack() ?: (item as VideosResult).toTrack()
                                             searchViewModel.setQueueData(
-                                                QueueData(
+                                                QueueData.Data(
                                                     listTracks = arrayListOf(firstTrack),
                                                     firstPlayedTrack = firstTrack,
-                                                    playlistId = "RDAMVM${ytItem.id}",
+                                                    playlistId = "RDAMVM${firstTrack.videoId}",
                                                     playlistName = "\"${searchText}\" ${context.getString(R.string.in_search)}",
                                                     playlistType = PlaylistType.RADIO,
                                                     continuation = null,
@@ -296,22 +287,22 @@ fun SearchScreen(
                                             searchViewModel.loadMediaItem(firstTrack, type = Config.SONG_CLICK)
                                         }
 
-                                        is ArtistItem -> {
+                                        is ArtistsResult -> {
                                             navController.navigate(
-                                                ArtistDestination(ytItem.id),
+                                                ArtistDestination(item.browseId),
                                             )
                                         }
 
-                                        is AlbumItem -> {
+                                        is AlbumsResult -> {
                                             navController.navigate(
-                                                AlbumDestination(ytItem.browseId),
+                                                AlbumDestination(item.browseId),
                                             )
                                         }
 
-                                        is PlaylistItem -> {
+                                        is PlaylistsResult -> {
                                             navController.navigate(
                                                 PlaylistDestination(
-                                                    ytItem.id,
+                                                    item.browseId,
                                                 ),
                                             )
                                         }
@@ -548,9 +539,9 @@ fun SearchScreen(
                                     state = pullToRefreshState,
                                     isRefreshing = uiState is SearchScreenUIState.Loading,
                                     modifier = Modifier.align(Alignment.TopCenter),
-                                    containerColor = PullToRefreshDefaults.containerColor,
+                                    containerColor = PullToRefreshDefaults.indicatorContainerColor,
                                     color = PullToRefreshDefaults.indicatorColor,
-                                    threshold = PullToRefreshDefaults.PositionalThreshold - 5.dp,
+                                    maxDistance = PullToRefreshDefaults.PositionalThreshold - 5.dp,
                                 )
                             },
                         ) {
@@ -600,7 +591,7 @@ fun SearchScreen(
                                                                         onClickListener = {
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
-                                                                                QueueData(
+                                                                                QueueData.Data(
                                                                                     listTracks = arrayListOf(firstTrack),
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",
@@ -630,70 +621,10 @@ fun SearchScreen(
                                                                         onClickListener = {
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
-                                                                                QueueData(
+                                                                                QueueData.Data(
                                                                                     listTracks = arrayListOf(firstTrack),
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",
-                                                                                    playlistName =
-                                                                                        "\"${searchText}\" ${context.getString(R.string.in_search)}",
-                                                                                    playlistType = PlaylistType.RADIO,
-                                                                                    continuation = null,
-                                                                                ),
-                                                                            )
-                                                                            searchViewModel.loadMediaItem(firstTrack, Config.VIDEO_CLICK)
-                                                                        },
-                                                                        onAddToQueue = {
-                                                                            sharedViewModel.addListToQueue(
-                                                                                arrayListOf(result.toTrack()),
-                                                                            )
-                                                                        },
-                                                                    )
-
-                                                                is SongItem ->
-                                                                    SongFullWidthItems(
-                                                                        track = result.toTrack(),
-                                                                        isPlaying = result.id == currentVideoId,
-                                                                        modifier = Modifier,
-                                                                        onMoreClickListener = {
-                                                                            onMoreClick(result.toTrack().toSongEntity())
-                                                                        },
-                                                                        onClickListener = {
-                                                                            val firstTrack: Track = result.toTrack()
-                                                                            searchViewModel.setQueueData(
-                                                                                QueueData(
-                                                                                    listTracks = arrayListOf(firstTrack),
-                                                                                    firstPlayedTrack = firstTrack,
-                                                                                    playlistId = "RDAMVM${result.id}",
-                                                                                    playlistName =
-                                                                                        "\"${searchText}\" ${context.getString(R.string.in_search)}",
-                                                                                    playlistType = PlaylistType.RADIO,
-                                                                                    continuation = null,
-                                                                                ),
-                                                                            )
-                                                                            searchViewModel.loadMediaItem(firstTrack, Config.SONG_CLICK)
-                                                                        },
-                                                                        onAddToQueue = {
-                                                                            sharedViewModel.addListToQueue(
-                                                                                arrayListOf(result.toTrack()),
-                                                                            )
-                                                                        },
-                                                                    )
-
-                                                                is VideoItem ->
-                                                                    SongFullWidthItems(
-                                                                        track = result.toTrack(),
-                                                                        isPlaying = result.id == currentVideoId,
-                                                                        modifier = Modifier,
-                                                                        onMoreClickListener = {
-                                                                            onMoreClick(result.toTrack().toSongEntity())
-                                                                        },
-                                                                        onClickListener = {
-                                                                            val firstTrack: Track = result.toTrack()
-                                                                            searchViewModel.setQueueData(
-                                                                                QueueData(
-                                                                                    listTracks = arrayListOf(firstTrack),
-                                                                                    firstPlayedTrack = firstTrack,
-                                                                                    playlistId = "RDAMVM${result.id}",
                                                                                     playlistName =
                                                                                         "\"${searchText}\" ${context.getString(R.string.in_search)}",
                                                                                     playlistType = PlaylistType.RADIO,
@@ -750,74 +681,6 @@ fun SearchScreen(
                                                                                     ),
                                                                                 )
                                                                             }
-                                                                        },
-                                                                    )
-
-                                                                is AlbumItem ->
-                                                                    PlaylistFullWidthItems(
-                                                                        data = result.toAlbumsResult(),
-                                                                        onClickListener = {
-                                                                            navController.navigate(
-                                                                                AlbumDestination(
-                                                                                    result.browseId,
-                                                                                ),
-                                                                            )
-                                                                        },
-                                                                    )
-
-                                                                is ArtistItem ->
-                                                                    ArtistFullWidthItems(
-                                                                        data =
-                                                                            ArtistsResult(
-                                                                                artist = result.title,
-                                                                                browseId = result.id,
-                                                                                category = "",
-                                                                                radioId = "",
-                                                                                resultType = "",
-                                                                                shuffleId = "",
-                                                                                thumbnails =
-                                                                                    listOf(
-                                                                                        Thumbnail(
-                                                                                            url = result.thumbnail,
-                                                                                            width = 720,
-                                                                                            height = 720,
-                                                                                        ),
-                                                                                    ),
-                                                                            ),
-                                                                        onClickListener = {
-                                                                            navController.navigate(
-                                                                                ArtistDestination(
-                                                                                    result.id,
-                                                                                ),
-                                                                            )
-                                                                        },
-                                                                    )
-
-                                                                is PlaylistItem ->
-                                                                    PlaylistFullWidthItems(
-                                                                        data =
-                                                                            PlaylistsResult(
-                                                                                author = result.author?.name ?: "YouTube Music",
-                                                                                browseId = result.id,
-                                                                                category = "",
-                                                                                itemCount = "",
-                                                                                resultType = "",
-                                                                                thumbnails =
-                                                                                    listOf(
-                                                                                        Thumbnail(
-                                                                                            url = result.thumbnail,
-                                                                                            width = 720,
-                                                                                            height = 720,
-                                                                                        ),
-                                                                                    ),
-                                                                                title = result.title,
-                                                                            ),
-                                                                        onClickListener = {
-                                                                            navController.navigate(
-                                                                                PlaylistDestination(
-                                                                                    result.id,
-                                                                                ),
-                                                                            )
                                                                         },
                                                                     )
                                                             }
@@ -893,33 +756,28 @@ fun SearchScreen(
 }
 
 @Composable
-fun SuggestYTItemRow(
-    ytItem: YTItem,
-    onItemClick: (YTItem) -> Unit,
+fun SuggestItemRow(
+    searchResult: SearchResultType,
+    onItemClick: (SearchResultType) -> Unit,
 ) {
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable { onItemClick(ytItem) }
+                .clickable { onItemClick(searchResult) }
                 .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val url =
-            when (ytItem) {
-                is SongItem ->
-                    ytItem.thumbnails
-                        ?.thumbnails
-                        ?.lastOrNull()
-                        ?.url
-                is AlbumItem -> ytItem.thumbnail
-                is ArtistItem -> ytItem.thumbnail
-                is PlaylistItem -> ytItem.thumbnail
-                is VideoItem ->
-                    ytItem.thumbnails
-                        ?.thumbnails
-                        ?.lastOrNull()
-                        ?.url
+            when (searchResult) {
+                is SongsResult ->
+                    searchResult.thumbnails?.lastOrNull()?.url
+                is AlbumsResult -> searchResult.thumbnails.lastOrNull()?.url
+                is ArtistsResult -> searchResult.thumbnails.lastOrNull()?.url
+                is PlaylistsResult -> searchResult.thumbnails.lastOrNull()?.url
+                is VideosResult ->
+                    searchResult.thumbnails?.lastOrNull()?.url
+                else -> null
             }
 
         Box(
@@ -945,7 +803,7 @@ fun SuggestYTItemRow(
                     Modifier
                         .size(40.dp)
                         .clip(
-                            if (ytItem is ArtistItem) {
+                            if (searchResult is ArtistsResult) {
                                 CircleShape
                             } else {
                                 RoundedCornerShape(4.dp)
@@ -958,13 +816,16 @@ fun SuggestYTItemRow(
 
         Column(modifier = Modifier.weight(1f)) {
             val title =
-                when (ytItem) {
-                    is SongItem -> ytItem.title
-                    is AlbumItem -> ytItem.title
-                    is ArtistItem -> ytItem.title
-                    is PlaylistItem -> ytItem.title
-                    is VideoItem -> ytItem.title
-                }
+                when (searchResult) {
+                    is SongsResult ->
+                        searchResult.title
+                    is AlbumsResult -> searchResult.title
+                    is ArtistsResult -> searchResult.artist
+                    is PlaylistsResult -> searchResult.title
+                    is VideosResult ->
+                        searchResult.title
+                    else -> null
+                } ?: "Unknown"
 
             Text(
                 text = title,
@@ -975,12 +836,13 @@ fun SuggestYTItemRow(
             Spacer(modifier = Modifier.height(2.dp))
 
             val subtitle =
-                when (ytItem) {
-                    is SongItem -> ytItem.artists.map { it.name }.connectArtists()
-                    is AlbumItem -> ytItem.artists?.mapNotNull { it.name }?.connectArtists()
-                    is PlaylistItem -> ytItem.author?.name ?: stringResource(R.string.playlist)
-                    is ArtistItem -> stringResource(R.string.artists)
-                    is VideoItem -> ytItem.artists.map { it.name }.connectArtists()
+                when (searchResult) {
+                    is SongsResult -> searchResult.artists?.map { it.name }?.connectArtists()
+                    is AlbumsResult -> searchResult.artists.map { it.name }.connectArtists()
+                    is PlaylistsResult -> searchResult.author.ifEmpty { "YouTube Music" }
+                    is ArtistsResult -> stringResource(R.string.artists)
+                    is VideosResult -> searchResult.artists?.map { it.name }?.connectArtists()
+                    else -> null
                 } ?: "Unknown"
 
             if (subtitle.isNotEmpty()) {

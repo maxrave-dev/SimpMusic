@@ -2,11 +2,11 @@ package com.maxrave.simpmusic.pagination
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.domain.repository.SongRepository
 import kotlinx.coroutines.delay
 
 class RecentPagingSource(
-    private val mainRepository: MainRepository,
+    private val songRepository: SongRepository,
 ) : PagingSource<Int, Any>() {
     override fun getRefreshKey(state: PagingState<Int, Any>): Int? =
         state.anchorPosition?.let { anchorPosition ->
@@ -18,7 +18,7 @@ class RecentPagingSource(
         val page = params.key ?: 0
 
         return try {
-            val entities = mainRepository.getRecentSong(params.loadSize, page * params.loadSize)
+            val entities = songRepository.getRecentSong(params.loadSize, page * params.loadSize)
             if (page != 0) delay(500)
             LoadResult.Page(
                 data = entities,

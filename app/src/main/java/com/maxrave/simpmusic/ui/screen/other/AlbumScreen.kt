@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -61,7 +60,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -73,12 +71,12 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -90,10 +88,12 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
@@ -101,7 +101,6 @@ import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun AlbumScreen(
     browseId: String,
     navController: NavController,
@@ -113,13 +112,20 @@ fun AlbumScreen(
 
     val playingVideoId by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
 
+    val queueData by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val playingPlaylistId by remember {
+        derivedStateOf {
+            queueData?.data?.playlistId
+        }
+    }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var chosenSong: Track? by remember { mutableStateOf(null) }
 
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.downloading_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
     )
 
     LaunchedEffect(browseId) {
@@ -183,7 +189,7 @@ fun AlbumScreen(
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
-                                            .aspectRatio(1f)
+                                            .height(260.dp)
                                             .clip(
                                                 RoundedCornerShape(8.dp),
                                             ).angledGradientBackground(uiState.colors, 25f),
@@ -304,12 +310,29 @@ fun AlbumScreen(
                                                     Modifier.fillMaxWidth(),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
-                                                RippleIconButton(
-                                                    resId = R.drawable.baseline_play_circle_24,
-                                                    fillMaxSize = true,
-                                                    modifier = Modifier.size(36.dp),
-                                                ) {
-                                                    viewModel.playTrack(uiState.listTrack.firstOrNull() ?: return@RippleIconButton)
+                                                Crossfade(
+                                                    playingVideoId.isNotEmpty() &&
+                                                        playingPlaylistId == browseId.replaceFirst("VL", ""),
+                                                ) { isThisPlaying ->
+                                                    if (isThisPlaying) {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_pause_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                        }
+                                                    } else {
+                                                        RippleIconButton(
+                                                            resId = R.drawable.baseline_play_circle_24,
+                                                            fillMaxSize = true,
+                                                            tint = seed,
+                                                            modifier = Modifier.size(48.dp),
+                                                        ) {
+                                                            viewModel.playTrack(uiState.listTrack.firstOrNull() ?: return@RippleIconButton)
+                                                        }
+                                                    }
                                                 }
                                                 Spacer(modifier = Modifier.size(5.dp))
                                                 Crossfade(targetState = uiState.downloadState) {

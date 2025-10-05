@@ -12,7 +12,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
+import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import java.time.LocalDateTime
@@ -28,7 +29,7 @@ fun EndOfPage(withoutCredit: Boolean = false) {
     ) {
         if (!withoutCredit) {
             Text(
-                "@${LocalDateTime.now().year} " + stringResource(R.string.app_name) + " " +
+                "@${LocalDateTime.now().year} " + stringResource(AppResString.app_name) + " " +
                     stringResource(
                         R.string.version_format,
                         VersionManager.getVersionName(),

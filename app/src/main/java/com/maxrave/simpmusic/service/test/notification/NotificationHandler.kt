@@ -7,27 +7,24 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.annotation.OptIn
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
-import androidx.media3.common.util.UnstableApi
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
-import com.maxrave.simpmusic.R
+import com.maxrave.common.R
 import com.maxrave.simpmusic.ui.MainActivity
 import kotlinx.coroutines.runBlocking
 
 object NotificationHandler {
     private const val CHANNEL_ID = "transactions_reminder_channel"
 
-    @OptIn(UnstableApi::class)
     fun createReminderNotification(
         context: Context,
         noti: NotificationModel,
@@ -51,8 +48,16 @@ object NotificationHandler {
                     ImageRequest
                         .Builder(context)
                         .data(
-                            noti.single.firstOrNull()?.thumbnail
-                                ?: noti.album.firstOrNull()?.thumbnail,
+                            noti.single
+                                .firstOrNull()
+                                ?.thumbnails
+                                ?.lastOrNull()
+                                ?.url
+                                ?: noti.album
+                                    .firstOrNull()
+                                    ?.thumbnails
+                                    ?.lastOrNull()
+                                    ?.url,
                         ).allowHardware(false) // Disable hardware bitmaps.
                         .build()
 

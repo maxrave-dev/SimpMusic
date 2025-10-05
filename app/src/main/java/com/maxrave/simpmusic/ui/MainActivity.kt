@@ -8,7 +8,6 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -16,59 +15,90 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.STATUS_DONE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import androidx.window.core.layout.WindowWidthSizeClass
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.maxrave.common.FIRST_TIME_MIGRATION
+import com.maxrave.common.R
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.common.STATUS_DONE
+import com.maxrave.common.SUPPORTED_LANGUAGE
+import com.maxrave.common.SUPPORTED_LOCATION
+import com.maxrave.domain.data.player.GenericMediaItem
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
-import com.maxrave.simpmusic.service.SimpleMediaService
+import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
+import com.maxrave.simpmusic.ui.component.AppNavigationRail
+import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
+import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -81,10 +111,10 @@ import pub.devrel.easypermissions.EasyPermissions
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@UnstableApi
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
+    val mediaPlayerHandler by inject<MediaPlayerHandler>()
 
     private var mBound = false
     private var shouldUnbind = false
@@ -94,14 +124,13 @@ class MainActivity : AppCompatActivity() {
                 name: ComponentName?,
                 service: IBinder?,
             ) {
-                if (service is SimpleMediaService.MusicBinder) {
-                    Log.w("MainActivity", "onServiceConnected: ")
-                    mBound = true
-                }
+                mediaPlayerHandler.setActivitySession(this@MainActivity, MainActivity::class.java, service)
+                Logger.w("MainActivity", "onServiceConnected: ")
+                mBound = true
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
-                Log.w("MainActivity", "onServiceDisconnected: ")
+                Logger.w("MainActivity", "onServiceDisconnected: ")
                 mBound = false
             }
         }
@@ -120,20 +149,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d("MainActivity", "onNewIntent: $intent")
+        Logger.d("MainActivity", "onNewIntent: $intent")
         viewModel.setIntent(intent)
     }
 
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray,
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-//    }
-
-    @UnstableApi
     @ExperimentalMaterial3Api
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,18 +167,18 @@ class MainActivity : AppCompatActivity() {
         } else {
             startMusicService()
         }
-        Log.d("MainActivity", "onCreate: ")
+        Logger.d("MainActivity", "onCreate: ")
         val data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
         if (data != null) {
             viewModel.setIntent(intent)
         }
-        Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
+        Logger.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
-            Log.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
+            Logger.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
             if (SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())) {
-                Log.d(
+                Logger.d(
                     "Contains",
                     "onCreate: ${
                         SUPPORTED_LANGUAGE.codes.contains(
@@ -178,7 +197,7 @@ class MainActivity : AppCompatActivity() {
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
-                Log.d("Locale Key", "getString: $it")
+                Logger.d("Locale Key", "getString: $it")
                 // Set this locale using the AndroidX library that will handle the storage itself
                 val localeList = LocaleListCompat.forLanguageTags(it)
                 AppCompatDelegate.setApplicationLocales(localeList)
@@ -191,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 SELECTED_LANGUAGE,
             )
         ) {
-            Log.d(
+            Logger.d(
                 "Locale Key",
                 "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}",
             )
@@ -224,6 +243,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.getLocation()
 
         setContent {
+            val windowSize = currentWindowAdaptiveInfo().windowSizeClass
+            val resources = LocalResources.current
             val navController = rememberNavController()
 
             val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
@@ -232,6 +253,7 @@ class MainActivity : AppCompatActivity() {
             val intent by viewModel.intent.collectAsStateWithLifecycle()
 
             val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+            val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
             // MiniPlayer visibility logic
             var isShowMiniPlayer by rememberSaveable {
                 mutableStateOf(true)
@@ -239,6 +261,11 @@ class MainActivity : AppCompatActivity() {
 
             // Now playing screen
             var isShowNowPlaylistScreen by rememberSaveable {
+                mutableStateOf(false)
+            }
+
+            // Fullscreen
+            var isInFullscreen by rememberSaveable {
                 mutableStateOf(false)
             }
 
@@ -251,17 +278,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             LaunchedEffect(nowPlayingData) {
-                if (nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == MediaItem.EMPTY) {
-                    isShowMiniPlayer = false
-                } else {
-                    isShowMiniPlayer = true
-                }
+                isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
             }
 
             LaunchedEffect(intent) {
                 val intent = intent ?: return@LaunchedEffect
                 val data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-                Log.d("MainActivity", "onCreate: $data")
+                Logger.d("MainActivity", "onCreate: $data")
                 if (data != null) {
                     if (data == "simpmusic://notification".toUri()) {
                         viewModel.setIntent(null)
@@ -269,7 +292,7 @@ class MainActivity : AppCompatActivity() {
                             NotificationDestination,
                         )
                     } else {
-                        Log.d("MainActivity", "onCreate: $data")
+                        Logger.d("MainActivity", "onCreate: $data")
                         when (val path = data.pathSegments.firstOrNull()) {
                             "playlist" ->
                                 data
@@ -343,69 +366,201 @@ class MainActivity : AppCompatActivity() {
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             LaunchedEffect(navBackStackEntry) {
-                Log.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
+                Logger.d("MainActivity", "Current destination: ${navBackStackEntry?.destination?.route}")
                 if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
                     isShowNowPlaylistScreen = false
                 }
+                isInFullscreen = navBackStackEntry?.destination?.hierarchy?.any {
+                    it.hasRoute(FullscreenDestination::class)
+                } == true
             }
-
+            val backdrop = rememberLayerBackdrop()
+            var isScrolledToTop by rememberSaveable {
+                mutableStateOf(false)
+            }
+            val isTablet = windowSize.windowWidthSizeClass != WindowWidthSizeClass.COMPACT
+            val isTabletLandscape = isTablet && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             AppTheme {
                 Scaffold(
                     bottomBar = {
-                        AnimatedVisibility(
-                            isNavBarVisible,
-                            enter = fadeIn() + slideInHorizontally(),
-                            exit = fadeOut(),
-                        ) {
-                            Column {
-                                AnimatedVisibility(
-                                    isShowMiniPlayer,
-                                    enter = fadeIn() + slideInHorizontally(),
-                                    exit = fadeOut(),
-                                ) {
-                                    MiniPlayer(
-                                        Modifier
-                                            .height(56.dp)
-                                            .fillMaxWidth()
-                                            .padding(
-                                                horizontal = 12.dp,
-                                            ).padding(
-                                                bottom = 4.dp,
-                                            ),
-                                        onClick = {
-                                            isShowNowPlaylistScreen = true
-                                        },
-                                        onClose = {
-                                            viewModel.stopPlayer()
-                                            viewModel.isServiceRunning = false
-                                        },
-                                    )
-                                }
-                                AppBottomNavigationBar(
-                                    navController = navController,
-                                    isTranslucentBackground = isTranslucentBottomBar == DataStoreManager.TRUE,
-                                ) { klass ->
-                                    viewModel.reloadDestination(klass)
+                        if (!isTablet) {
+                            AnimatedVisibility(
+                                isNavBarVisible,
+                                enter = fadeIn() + slideInHorizontally(),
+                                exit = fadeOut(),
+                            ) {
+                                Column {
+                                    AnimatedVisibility(
+                                        isShowMiniPlayer && isLiquidGlassEnabled == DataStoreManager.FALSE,
+                                        enter = fadeIn() + slideInHorizontally(),
+                                        exit = fadeOut(),
+                                    ) {
+                                        MiniPlayer(
+                                            Modifier
+                                                .height(56.dp)
+                                                .fillMaxWidth()
+                                                .padding(
+                                                    horizontal = 12.dp,
+                                                ).padding(
+                                                    bottom = 4.dp,
+                                                ),
+                                            backdrop = backdrop,
+                                            onClick = {
+                                                isShowNowPlaylistScreen = true
+                                            },
+                                            onClose = {
+                                                viewModel.stopPlayer()
+                                                viewModel.isServiceRunning = false
+                                            },
+                                        )
+                                    }
+                                    if (isLiquidGlassEnabled == TRUE) {
+                                        LiquidGlassAppBottomNavigationBar(
+                                            navController = navController,
+                                            backdrop = backdrop,
+                                            viewModel = viewModel,
+                                            onOpenNowPlaying = { isShowNowPlaylistScreen = true },
+                                            isScrolledToTop = isScrolledToTop,
+                                        ) { klass ->
+                                            viewModel.reloadDestination(klass)
+                                        }
+                                    } else {
+                                        AppBottomNavigationBar(
+                                            navController = navController,
+                                            isTranslucentBackground = isTranslucentBottomBar == TRUE,
+                                        ) { klass ->
+                                            viewModel.reloadDestination(klass)
+                                        }
+                                    }
                                 }
                             }
                         }
                     },
                     content = { innerPadding ->
-                        AppNavigationGraph(
-                            innerPadding = innerPadding,
-                            navController = navController,
-                            hideNavBar = {
-                                isNavBarVisible = false
-                            },
-                            showNavBar = {
-                                isNavBarVisible = true
-                            },
-                            showNowPlayingSheet = {
-                                isShowNowPlaylistScreen = true
-                            },
-                        )
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .then(
+                                    if (isLiquidGlassEnabled == TRUE && !isTablet) {
+                                        Modifier.layerBackdrop(backdrop)
+                                    } else {
+                                        Modifier
+                                    },
+                                ),
+                        ) {
+                            Row(
+                                Modifier.fillMaxSize(),
+                            ) {
+                                if (isTablet && !isInFullscreen) {
+                                    AppNavigationRail(
+                                        navController = navController,
+                                    ) { klass ->
+                                        viewModel.reloadDestination(klass)
+                                    }
+                                }
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .weight(1f),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .then(
+                                                if (isLiquidGlassEnabled == TRUE && isTablet && !isInFullscreen) {
+                                                    Modifier.layerBackdrop(backdrop)
+                                                } else {
+                                                    Modifier
+                                                },
+                                            ),
+                                    ) {
+                                        AppNavigationGraph(
+                                            innerPadding = innerPadding,
+                                            navController = navController,
+                                            hideNavBar = {
+                                                isNavBarVisible = false
+                                            },
+                                            showNavBar = {
+                                                isNavBarVisible = true
+                                            },
+                                            showNowPlayingSheet = {
+                                                isShowNowPlaylistScreen = true
+                                            },
+                                            onScrolling = {
+                                                isScrolledToTop = it
+                                            },
+                                        )
+                                    }
+                                    this@Row.AnimatedVisibility(
+                                        modifier =
+                                            Modifier
+                                                .padding(innerPadding)
+                                                .align(Alignment.BottomCenter),
+                                        visible = isShowMiniPlayer && isTablet && !isInFullscreen,
+                                        enter = fadeIn() + slideInHorizontally(),
+                                        exit = fadeOut(),
+                                    ) {
+                                        MiniPlayer(
+                                            Modifier
+                                                .height(56.dp)
+                                                .fillMaxWidth(0.8f)
+                                                .padding(
+                                                    horizontal = 12.dp,
+                                                ).padding(
+                                                    bottom = 4.dp,
+                                                ),
+                                            backdrop = backdrop,
+                                            onClick = {
+                                                isShowNowPlaylistScreen = true
+                                            },
+                                            onClose = {
+                                                viewModel.stopPlayer()
+                                                viewModel.isServiceRunning = false
+                                            },
+                                        )
+                                    }
+                                }
+                                if (isTablet && isTabletLandscape && !isInFullscreen) {
+                                    AnimatedVisibility(
+                                        isShowNowPlaylistScreen,
+                                        enter = expandHorizontally() + fadeIn(),
+                                        exit = fadeOut() + shrinkHorizontally(),
+                                    ) {
+                                        Row(
+                                            Modifier
+                                                .fillMaxHeight()
+                                                .fillMaxWidth(0.35f),
+                                        ) {
+                                            Spacer(Modifier.width(8.dp))
+                                            Box(
+                                                Modifier
+                                                    .padding(
+                                                        innerPadding.copy(
+                                                            start = 0.dp,
+                                                            top = 0.dp,
+                                                            bottom = 0.dp,
+                                                        ),
+                                                    ).clip(
+                                                        RoundedCornerShape(12.dp),
+                                                    ),
+                                            ) {
+                                                NowPlayingScreenContent(
+                                                    navController = navController,
+                                                    sharedViewModel = viewModel,
+                                                    isExpanded = true,
+                                                    dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                                    onSwipeEnabledChange = {},
+                                                ) {
+                                                    isShowNowPlaylistScreen = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
-                        if (isShowNowPlaylistScreen) {
+                        if (isShowNowPlaylistScreen && !isTabletLandscape) {
                             NowPlayingScreen(
                                 navController = navController,
                             ) {
@@ -414,7 +569,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         if (sleepTimerState.isDone) {
-                            Log.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
+                            Logger.w("MainActivity", "Sleep Timer Done: $sleepTimerState")
                             AlertDialog(
                                 properties =
                                     DialogProperties(
@@ -542,9 +697,14 @@ class MainActivity : AppCompatActivity() {
                                                     text = typo.bodySmall,
                                                     bullet = typo.bodySmall,
                                                     paragraph = typo.bodySmall,
-                                                    link =
-                                                        typo.bodySmall.copy(
-                                                            textDecoration = TextDecoration.Underline,
+                                                    textLink =
+                                                        TextLinkStyles(
+                                                            SpanStyle(
+                                                                fontSize = 11.sp,
+                                                                fontWeight = FontWeight.Normal,
+                                                                fontFamily = fontFamily,
+                                                                textDecoration = TextDecoration.Underline,
+                                                            ),
                                                         ),
                                                 ),
                                         )
@@ -560,7 +720,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         val shouldStopMusicService = viewModel.shouldStopMusicService()
-        Log.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
+        Logger.w("MainActivity", "onDestroy: Should stop service $shouldStopMusicService")
 
         // Always unbind service if it was bound to prevent MusicBinder leak
         if (shouldStopMusicService && shouldUnbind && isFinishing) {
@@ -568,7 +728,7 @@ class MainActivity : AppCompatActivity() {
         }
         unloadKoinModules(viewModelModule)
         super.onDestroy()
-        Log.d("MainActivity", "onDestroy: ")
+        Logger.d("MainActivity", "onDestroy: ")
     }
 
     override fun onRestart() {
@@ -577,12 +737,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startMusicService() {
-        val intent = Intent(this, SimpleMediaService::class.java)
-        startService(intent)
-        bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+        mediaPlayerHandler.startMediaService(this, serviceConnection)
         viewModel.isServiceRunning = true
         shouldUnbind = true
-        Log.d("Service", "Service started")
+        Logger.d("Service", "Service started")
     }
 
     private fun checkForUpdate() {

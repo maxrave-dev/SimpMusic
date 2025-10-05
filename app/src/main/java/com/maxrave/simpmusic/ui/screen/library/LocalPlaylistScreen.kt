@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -85,7 +83,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -100,13 +97,16 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.common.LOCAL_PLAYLIST_ID
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.utils.FilterState
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
@@ -117,11 +117,12 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -132,7 +133,6 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.time.format.DateTimeFormatter
 
-@UnstableApi
 @ExperimentalFoundationApi
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -148,7 +148,7 @@ fun LocalPlaylistScreen(
     val context = LocalContext.current
 
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.downloading_animation),
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
     )
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -196,6 +196,14 @@ fun LocalPlaylistScreen(
             it?.songEntity
         }.collectAsState(initial = null)
     val isPlaying by sharedViewModel.controllerState.map { it.isPlaying }.collectAsState(initial = false)
+
+    val queueData by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val playingPlaylistId by remember {
+        derivedStateOf {
+            queueData?.data?.playlistId
+        }
+    }
+
     val suggestedTracks by viewModel.uiState.map { it.suggestions?.songs ?: emptyList() }.collectAsState(initial = emptyList())
     val suggestionsLoading by viewModel.loading.collectAsStateWithLifecycle()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
@@ -224,7 +232,7 @@ fun LocalPlaylistScreen(
         snapshotFlow {
             trackPagingItems.loadState
         }.collectLatest {
-            Log.d("PlaylistScreen", "loadState: ${trackPagingItems.loadState}")
+            Logger.d("PlaylistScreen", "loadState: ${trackPagingItems.loadState}")
             viewModel.setLazyTrackPagingItems(trackPagingItems)
         }
     }
@@ -260,7 +268,7 @@ fun LocalPlaylistScreen(
 
     LaunchedEffect(key1 = id) {
         if (id != uiState.id) {
-            Log.w("PlaylistScreen", "new id: $id")
+            Logger.w("PlaylistScreen", "new id: $id")
             viewModel.setOffset(0)
             viewModel.removeListSuggestion()
             viewModel.updatePlaylistState(id, true)
@@ -333,7 +341,7 @@ fun LocalPlaylistScreen(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .aspectRatio(1f)
+                                .height(260.dp)
                                 .clip(
                                     RoundedCornerShape(8.dp),
                                 ).angledGradientBackground(uiState.colors, 25f),
@@ -446,12 +454,26 @@ fun LocalPlaylistScreen(
                                         Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    RippleIconButton(
-                                        resId = R.drawable.baseline_play_circle_24,
-                                        fillMaxSize = true,
-                                        modifier = Modifier.size(36.dp),
-                                    ) {
-                                        viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick)
+                                    Crossfade(isPlaying && playingPlaylistId == LOCAL_PLAYLIST_ID + uiState.id) { isThisPlaying ->
+                                        if (isThisPlaying) {
+                                            RippleIconButton(
+                                                resId = R.drawable.baseline_pause_circle_24,
+                                                fillMaxSize = true,
+                                                tint = seed,
+                                                modifier = Modifier.size(48.dp),
+                                            ) {
+                                                sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                            }
+                                        } else {
+                                            RippleIconButton(
+                                                resId = R.drawable.baseline_play_circle_24,
+                                                fillMaxSize = true,
+                                                tint = seed,
+                                                modifier = Modifier.size(48.dp),
+                                            ) {
+                                                viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick)
+                                            }
+                                        }
                                     }
                                     Spacer(modifier = Modifier.size(5.dp))
                                     Crossfade(targetState = downloadState) {
@@ -514,7 +536,7 @@ fun LocalPlaylistScreen(
                                                     resId = R.drawable.download_button,
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
-                                                    Log.w("PlaylistScreen", "downloadState: $downloadState")
+                                                    Logger.w("PlaylistScreen", "downloadState: $downloadState")
                                                     viewModel.downloadFullPlaylist()
                                                 }
                                             }
@@ -774,7 +796,7 @@ fun LocalPlaylistScreen(
                         songEntity = item,
                         onMoreClickListener = { onItemMoreClick(it) },
                         onClickListener = {
-                            Log.w("PlaylistScreen", "index: $index")
+                            Logger.w("PlaylistScreen", "index: $index")
                             onPlaylistItemClick(it)
                         },
                         onAddToQueue = {
@@ -790,7 +812,7 @@ fun LocalPlaylistScreen(
                         songEntity = item,
                         onMoreClickListener = { onItemMoreClick(it) },
                         onClickListener = {
-                            Log.w("PlaylistScreen", "index: $index")
+                            Logger.w("PlaylistScreen", "index: $index")
                             onPlaylistItemClick(it)
                         },
                         onAddToQueue = {
@@ -809,7 +831,7 @@ fun LocalPlaylistScreen(
                     item {
                         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                             Spacer(modifier = Modifier.height(15.dp))
-                            CenterLoadingBox(modifier = Modifier.size(32.dp))
+                            CenterLoadingBox(modifier = Modifier.size(80.dp))
                             Spacer(modifier = Modifier.height(15.dp))
                         }
                     }
@@ -833,7 +855,7 @@ fun LocalPlaylistScreen(
         )
     }
     if (playlistBottomSheetShow) {
-        Log.w("PlaylistScreen", "PlaylistBottomSheet")
+        Logger.w("PlaylistScreen", "PlaylistBottomSheet")
         LocalPlaylistBottomSheet(
             isBottomSheetVisible = playlistBottomSheetShow,
             onDismiss = { playlistBottomSheetShow = false },

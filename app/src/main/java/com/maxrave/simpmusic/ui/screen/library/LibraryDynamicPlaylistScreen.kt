@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
@@ -38,12 +37,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.common.R
+import com.maxrave.domain.data.entities.ArtistEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
@@ -63,7 +62,6 @@ import org.koin.compose.koinInject
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
-@UnstableApi
 @ExperimentalMaterial3Api
 fun LibraryDynamicPlaylistScreen(
     innerPadding: PaddingValues,
@@ -93,15 +91,15 @@ fun LibraryDynamicPlaylistScreen(
         )
 
     LaunchedEffect(query) {
-        Log.w("LibraryDynamicPlaylistScreen", "Check query: $query")
+        Logger.w("LibraryDynamicPlaylistScreen", "Check query: $query")
         tempFavorite = favorite.filter { it.title.contains(query, ignoreCase = true) }
-        Log.w("LibraryDynamicPlaylistScreen", "Check tempFavorite: $tempFavorite")
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempFavorite: $tempFavorite")
         tempFollowed = followed.filter { it.name.contains(query, ignoreCase = true) }
-        Log.w("LibraryDynamicPlaylistScreen", "Check tempFollowed: $tempFollowed")
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempFollowed: $tempFollowed")
         tempMostPlayed = mostPlayed.filter { it.title.contains(query, ignoreCase = true) }
-        Log.w("LibraryDynamicPlaylistScreen", "Check tempMostPlayed: $tempMostPlayed")
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempMostPlayed: $tempMostPlayed")
         tempDownloaded = downloaded.filter { it.title.contains(query, ignoreCase = true) }
-        Log.w("LibraryDynamicPlaylistScreen", "Check tempDownloaded: $tempDownloaded")
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempDownloaded: $tempDownloaded")
     }
 
     LazyColumn(

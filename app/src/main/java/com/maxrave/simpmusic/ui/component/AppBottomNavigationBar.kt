@@ -1,34 +1,40 @@
 package com.maxrave.simpmusic.ui.component
 
-import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.CommonResDrawable
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
@@ -138,45 +144,90 @@ fun AppBottomNavigationBar(
     }
 }
 
-sealed class BottomNavScreen(
-    val ordinal: Int,
-    val destination: Any,
-    @param:StringRes val title: Int,
-    val icon: @Composable () -> Unit,
+@Composable
+fun AppNavigationRail(
+    startDestination: Any = HomeDestination,
+    navController: NavController,
+    reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
-    data object Home : BottomNavScreen(
-        ordinal = 0,
-        destination = HomeDestination,
-        title = R.string.home,
-        icon = {
-            Icon(
-                Icons.Rounded.Home,
-                contentDescription = null,
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val bottomNavScreens =
+        listOf(
+            BottomNavScreen.Home,
+            BottomNavScreen.Search,
+            BottomNavScreen.Library,
+        )
+    var selectedIndex by rememberSaveable {
+        mutableIntStateOf(
+            when (startDestination) {
+                is HomeDestination -> BottomNavScreen.Home.ordinal
+                is SearchDestination -> BottomNavScreen.Search.ordinal
+                is LibraryDestination -> BottomNavScreen.Library.ordinal
+                else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
+            },
+        )
+    }
+    NavigationRail {
+        Spacer(Modifier.height(16.dp))
+        Box(Modifier.padding(horizontal = 16.dp)) {
+            Box(
+                Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color.DarkGray),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(CommonResDrawable.mono),
+                    contentDescription = null,
+                    modifier =
+                        Modifier
+                            .height(32.dp)
+                            .clip(CircleShape),
+                )
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        bottomNavScreens.forEachIndexed { index, screen ->
+            NavigationRailItem(
+                icon = screen.icon,
+                label = {
+                    Text(
+                        stringResource(screen.title),
+                        style =
+                            if (selectedIndex == screen.ordinal) {
+                                typo.bodySmall
+                            } else {
+                                typo.bodySmall.greyScale()
+                            },
+                    )
+                },
+                selected = selectedIndex == index,
+                onClick = {
+                    if (selectedIndex == screen.ordinal) {
+                        if (currentBackStackEntry?.destination?.hierarchy?.any {
+                                it.hasRoute(screen.destination::class)
+                            } == true
+                        ) {
+                            reloadDestinationIfNeeded(
+                                screen.destination::class,
+                            )
+                        } else {
+                            navController.navigate(screen.destination)
+                        }
+                    } else {
+                        selectedIndex = screen.ordinal
+                        navController.navigate(screen.destination) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                },
             )
-        },
-    )
-
-    data object Search : BottomNavScreen(
-        ordinal = 1,
-        destination = SearchDestination,
-        title = R.string.search,
-        icon = {
-            Icon(
-                Icons.Rounded.Search,
-                contentDescription = null,
-            )
-        },
-    )
-
-    data object Library : BottomNavScreen(
-        ordinal = 2,
-        destination = LibraryDestination,
-        title = R.string.library,
-        icon = {
-            Icon(
-                imageVector = Icons.Filled.LibraryMusic,
-                contentDescription = null,
-            )
-        },
-    )
+        }
+        Spacer(Modifier.height(32.dp))
+    }
 }

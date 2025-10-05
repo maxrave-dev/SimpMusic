@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.other
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -57,27 +57,24 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
-import com.google.android.material.snackbar.Snackbar
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -97,14 +94,12 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@UnstableApi
 fun PodcastScreen(
     viewModel: PodcastViewModel = koinViewModel(),
     podcastId: String,
     navController: NavController,
 ) {
     val context = LocalContext.current
-    val tag = "PodcastsScreen"
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
@@ -183,7 +178,7 @@ fun PodcastScreen(
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
-                                            .aspectRatio(1f)
+                                            .height(260.dp)
                                             .clip(RoundedCornerShape(8.dp))
                                             .angledGradientBackground(gradientColors, 25f),
                                 )
@@ -298,10 +293,11 @@ fun PodcastScreen(
                                                                     .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
                                                             contentPadding = PaddingValues(vertical = 1.dp),
                                                             onClick = {
-                                                                if (data.author.id?.isNotEmpty() == true) {
+                                                                val authorId = data.author.id
+                                                                if (authorId.isNullOrEmpty().not()) {
                                                                     navController.navigate(
                                                                         ArtistDestination(
-                                                                            data.author.id,
+                                                                            authorId,
                                                                         ),
                                                                     )
                                                                 }
@@ -487,19 +483,15 @@ fun PodcastScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     CenterLoadingBox(
-                        modifier = Modifier.size(32.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxSize(),
                     )
                 }
             }
 
             is PodcastUIState.Error -> {
-                Snackbar
-                    .make(
-                        context,
-                        LocalView.current,
-                        "Error: ${state.message}",
-                        Snackbar.LENGTH_SHORT,
-                    ).show()
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
                 navController.navigateUp()
             }
         }

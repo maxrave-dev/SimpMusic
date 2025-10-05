@@ -46,24 +46,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.home.Content
-import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.common.Config
+import com.maxrave.common.R
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.home.Content
+import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
+import com.maxrave.media3.ui.MediaPlayerView
+import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rgbFactor
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.CollapsingToolbarParallaxEffect
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -72,7 +74,6 @@ import com.maxrave.simpmusic.ui.component.HomeItemArtist
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeItemVideo
 import com.maxrave.simpmusic.ui.component.LimitedBorderAnimationView
-import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -89,7 +90,6 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
-@UnstableApi
 @ExperimentalMaterial3Api
 fun ArtistScreen(
     channelId: String,
@@ -97,8 +97,6 @@ fun ArtistScreen(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
-    @Suppress("ktlint:standard:property-naming")
-    val TAG = "ArtistScreen"
     val context = LocalContext.current
 
     val artistScreenState by viewModel.artistScreenState.collectAsStateWithLifecycle()
@@ -127,7 +125,6 @@ fun ArtistScreen(
                 Box(Modifier.fillMaxSize()) {
                     CenterLoadingBox(
                         Modifier
-                            .size(48.dp)
                             .align(Alignment.Center),
                     )
                 }
@@ -157,13 +154,13 @@ fun ArtistScreen(
                             Row {
                                 Text(
                                     text = state.data.subscribers ?: stringResource(R.string.unknown),
-                                    style = typo.bodySmall,
+                                    style = typo.bodyMedium,
                                     textAlign = TextAlign.Start,
                                     modifier = Modifier.weight(1f),
                                 )
                                 Text(
                                     text = state.data.playCount ?: stringResource(R.string.unknown),
-                                    style = typo.bodySmall,
+                                    style = typo.bodyMedium,
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.weight(1f),
                                 )
@@ -203,7 +200,7 @@ fun ArtistScreen(
                                                         .clickable {
                                                             val firstQueue: Track = canvas.second.toTrack()
                                                             viewModel.setQueueData(
-                                                                QueueData(
+                                                                QueueData.Data(
                                                                     listTracks = arrayListOf(firstQueue),
                                                                     firstPlayedTrack = firstQueue,
                                                                     playlistId = "RDAMVM${firstQueue.videoId}",
@@ -219,6 +216,9 @@ fun ArtistScreen(
                                                                 type = Config.SONG_CLICK,
                                                             )
                                                         },
+                                                context = context,
+                                                density = LocalDensity.current,
+                                                screenSize = getScreenSizeInfo(),
                                             )
                                         }
                                         Spacer(Modifier.width(12.dp))
@@ -339,7 +339,7 @@ fun ArtistScreen(
                                         onClickListener = {
                                             val firstQueue: Track = song
                                             viewModel.setQueueData(
-                                                QueueData(
+                                                QueueData.Data(
                                                     listTracks = arrayListOf(firstQueue),
                                                     firstPlayedTrack = firstQueue,
                                                     playlistId = "RDAMVM${song.videoId}",
@@ -513,10 +513,11 @@ fun ArtistScreen(
                                     )
                                     TextButton(
                                         onClick = {
-                                            if (state.data.video?.videoListParam != null) {
+                                            val videoListParam = state.data.video?.videoListParam
+                                            if (videoListParam != null) {
                                                 navController.navigate(
                                                     PlaylistDestination(
-                                                        state.data.video.videoListParam,
+                                                        videoListParam,
                                                     ),
                                                 )
                                             } else {
@@ -544,7 +545,7 @@ fun ArtistScreen(
                                             onClick = {
                                                 val firstQueue: Track = video
                                                 viewModel.setQueueData(
-                                                    QueueData(
+                                                    QueueData.Data(
                                                         listTracks = arrayListOf(firstQueue),
                                                         firstPlayedTrack = firstQueue,
                                                         playlistId = "RDAMVM${video.videoId}",

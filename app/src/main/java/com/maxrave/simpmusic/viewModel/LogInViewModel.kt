@@ -2,16 +2,16 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-@UnstableApi
 class LogInViewModel(
-    private val application: Application,
+    application: Application,
+    private val dataStoreManager: DataStoreManager,
 ) : BaseViewModel(application) {
     private val _spotifyStatus: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val spotifyStatus: StateFlow<Boolean> get() = _spotifyStatus

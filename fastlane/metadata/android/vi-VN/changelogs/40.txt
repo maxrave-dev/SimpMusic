@@ -1,0 +1,11 @@
+- Kiến trúc sạch
+- Kích thước trang 16kb
+- Giao diện tiện ích mới
+- Bố cục ngang mới (TV, máy tính bảng, điện thoại ngang)
+- Kính lỏng (BETA)
+- Cải thiện kênh cập nhật
+- Cải thiện giao diện lời bài hát toàn
+- Sửa hàng đợi vô tận
+- Sửa lỗi cơ sở dữ liệu
+- Nội dung rõ ràng tùy chọn
+- Hỗ trợ nhiều kênh/tài khoản thương hiệu
