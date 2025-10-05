@@ -144,6 +144,7 @@
     <string name="log_in_to_YouTube">ورود به یوتیوب</string>
     <string name="log_in_to_get_personally_data">ورود برای دریافت داده‌های شخصی</string>
     <string name="login_success">ورود موفق</string>
+    <string name="login_failed">ورود ناموفق</string>
     <string name="log_out">خروج از یوتیوب</string>
     <string name="logged_in">وارد شده</string>
     <string name="logged_out">خارج شده</string>

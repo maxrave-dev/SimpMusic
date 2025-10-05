@@ -193,7 +193,7 @@
     <string name="what_segments_will_be_skipped">Welche Segmente übersprungen werden</string>
     <string name="save">Speichern</string>
     <string name="saved">Gespeichert</string>
-    <string name="sponsor_block_intro">SponsorBlock ist ein community-basiertes System, um unerwünschte Teile von YouTube Videos zu überspringen.\nMehr darüber: https://sponsor.ajay.app\nSponsorBlock ist nur dann verfügbar, wenn du online bist</string>
+    <string name="sponsor_block_intro">SponsorBlock ist ein Community-Basiertes System, um unerwünschte Teile von YouTube Videos zu überspringen.\nMehr darüber: https://sponsor.ajay.app\nSponsorBlock ist nur dann verfügbar, wenn du online bist</string>
     <string name="skip_sponsor_part_of_video">Gesponserten Teil des Videos überspringen</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Ein unerwarteter Fehler ist aufgetreten. Entschuldigung für die Unannehmlichkeiten.</string>
     <string name="customactivityoncrash_error_activity_restart_app">App neu starten</string>
@@ -419,7 +419,7 @@
     <string name="ai_api_key">Dein KI API Key</string>
     <string name="invalid_api_key">Ungültiger API-Schlüssel</string>
     <string name="custom_ai_model_id">Benutzerdefinierte KI-Model-ID</string>
-    <string name="default_models">Standardmodelle sind \"gemini-2.0-flash\" und \"gpt-4o\"</string>
+    <string name="default_models">Standardmodelle sind \"gemini-2.0-flash-lite\" und \"gpt-4o\"</string>
     <string name="invalid">Ungültig</string>
     <string name="custom_model_id_messages">Bitte geben Sie die genaue Modell-ID Ihres KI-Providers ein.</string>
     <string name="favorite_podcasts">Lieblings-Podcasts</string>
@@ -443,8 +443,8 @@
     <string name="contributor_name">Name des Mitwirkenden</string>
     <string name="contributor_email">E-Mail des Mitwirkenden</string>
     <string name="anonymous">Anonym</string>
-    <string name="simpmusic_lyrics">SimpMusic Songtexte</string>
-    <string name="lyrics_provider_simpmusic">Songtexte von SimpMusic Songtexten bereitgestellt</string>
+    <string name="simpmusic_lyrics">SimpMusic-Lyrics</string>
+    <string name="lyrics_provider_simpmusic">Songtexte von SimpMusic-Lyrics bereitgestellt</string>
     <string name="backup_in_progress">Backup wird erstellt</string>
     <string name="restore_in_progress">Backup wird wiederhergestellt</string>
     <string name="backup_downloaded">Backup der heruntergeladenen Daten</string>
@@ -452,4 +452,5 @@
     <string name="no_playlist_found">Keine lokalen Playlisten gefunden, bitte erstellen Sie zuerst eine</string>
     <string name="list_all_cookies_of_this_page">Alle Cookies dieser Seite auflisten</string>
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
+    <string name="update_channel">Update-Kanal</string>
 </resources>

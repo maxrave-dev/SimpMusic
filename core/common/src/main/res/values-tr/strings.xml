@@ -419,6 +419,7 @@
     <string name="ai_api_key">Al API Anahtarınız</string>
     <string name="invalid_api_key">Geçersiz API anahtarı</string>
     <string name="custom_ai_model_id">Özel Al model kimliği</string>
+    <string name="default_models">Varsayılan modeller \"gemini-2.0-flash\" ve \"gpt-4o\"</string>
     <string name="invalid">Geçersiz</string>
     <string name="custom_model_id_messages">.</string>
     <string name="favorite_podcasts">Favori Podcast\'ler</string>
@@ -449,4 +450,7 @@
     <string name="backup_downloaded">İndirilen verileri yedekleyin</string>
     <string name="backup_downloaded_description">İndirilen tüm şarkıların verilerini yedekleyin</string>
     <string name="no_playlist_found">Yerel çalma listesi bulunamadı, lütfen önce bir tane oluşturun</string>
+    <string name="list_all_cookies_of_this_page">Bu sayfadaki tüm çerezleri listele</string>
+    <string name="copied_to_clipboard">Panoya kopyalandı</string>
+    <string name="update_channel">Kanalı güncelle</string>
 </resources>

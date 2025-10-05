@@ -197,6 +197,9 @@
     <string name="skip_sponsor_part_of_video">ข้ามส่วนผู้สนับสนุนของวิดีโอ</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">เกิดข้อผิดพลาดที่ไม่คาดคิด ขออภัยในความไม่สะดวก</string>
     <string name="customactivityoncrash_error_activity_restart_app">รีสตาร์ทแอป</string>
+    <string name="help_build_lyrics_database">มีส่วนร่วมในการสร้างฐานข้อมูลเนื้อเพลงกับ SimpMusic Lyrics</string>
+    <string name="help_build_lyrics_database_description">อัปโหลดเนื้อเพลงที่คุณบันทึกไว้ไปยังฐานข้อมูล SimpMusic Lyrics</string>
+    <string name="lyrics_database_description">เรากำลังสร้างฐานข้อมูลเนื้อเพลงของเราเองสำหรับ SimpMusic และไคลเอนต์ YouTube อื่น ๆ เพื่อใช้ในวัตถุประสงค์ที่ไม่ใช่เชิงพาณิชย์ โดยเปิดเป็นโอเพ่นซอร์สที่</string>
     <string name="customactivityoncrash_error_activity_close_app">ปิดแอป</string>
     <string name="customactivityoncrash_error_activity_error_details">รายละเอียดข้อผิดพลาด</string>
     <string name="customactivityoncrash_error_activity_error_details_title">รายละเอียดข้อผิดพลาด</string>
@@ -242,6 +245,7 @@
     <string name="backup_create_failed">การสร้างข้อมูลสำรองล้มเหลว</string>
     <string name="main_lyrics_provider">ผู้ให้บริการเนื้อเพลงหลัก</string>
     <string name="use_ai_translation">ใช้งานการแปลเนื้อเพลงโดยใช้ AI</string>
+    <string name="use_ai_translation_description">เปิดใช้งานฟีเจอร์แปลเนื้อเพลงด้วย AI</string>
     <string name="translation_language">แปลภาษา</string>
     <string name="follow_app_language">ทำตามภาษาของแอป</string>
     <string name="email">อีเมล</string>
@@ -414,6 +418,7 @@
     <string name="ai_api_key">คีย์ API สำหรับ AI ของคุณ</string>
     <string name="invalid_api_key">คีย์ API ไม่ถูกต้อง</string>
     <string name="custom_ai_model_id">รหัสโมเดล AI ที่ปรับแต่งเอง</string>
+    <string name="default_models">โมเดลเริ่มต้นคือ \"gemini-2.0-flash\" และ \"gpt-4o\"</string>
     <string name="invalid">ไม่ถูกต้อง</string>
     <string name="custom_model_id_messages">กรุณากรอกรหัสโมเดลที่ถูกต้องจากผู้ให้บริการ AI ของคุณ</string>
     <string name="favorite_podcasts">พอดแคสต์ที่ชื่นชอบ</string>
@@ -433,4 +438,18 @@
     <string name="set_crossfade_duration">ตั้งค่าระยะเวลาในการครอสเฟดเป็นวินาที (%1$ds)</string>
     <string name="youtube_subtitle_language">ภาษาการแปลคำบรรยายบน YouTube</string>
     <string name="youtube_subtitle_language_message">พิมพ์รหัสภาษาประเภท (เช่น: en) (2 ตัวอักษร) นี่คือภาษาที่ต้องการใช้แปลคำบรรยาย YouTube</string>
+    <string name="use_anonymous">มีส่วนร่วมโดยใช้ชื่อไม่ระบุตัวตน</string>
+    <string name="contributor_name">ชื่อผู้มีส่วนร่วม</string>
+    <string name="contributor_email">อีเมลผู้ร่วมสนับสนุน</string>
+    <string name="anonymous">ไม่ระบุชื่อ</string>
+    <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
+    <string name="lyrics_provider_simpmusic">เนื้อเพลงจัดทำโดย SimpMusic Lyrics</string>
+    <string name="backup_in_progress">กำลังสำรองข้อมูล</string>
+    <string name="restore_in_progress">การกู้คืนกำลังดำเนินการ</string>
+    <string name="backup_downloaded">สำรองข้อมูลที่ดาวน์โหลด</string>
+    <string name="backup_downloaded_description">สำรองข้อมูลเพลงที่ดาวน์โหลดทั้งหมด</string>
+    <string name="no_playlist_found">ไม่พบเพลย์ลิสต์ในเครื่อง กรุณาสร้างเพลย์ลิสต์ก่อน</string>
+    <string name="list_all_cookies_of_this_page">รายการคุกกี้ทั้งหมดของหน้านี้</string>
+    <string name="copied_to_clipboard">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
+    <string name="update_channel">ช่องทางอัพเดต</string>
 </resources>

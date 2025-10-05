@@ -419,6 +419,7 @@
     <string name="ai_api_key">Tu clave API de IA</string>
     <string name="invalid_api_key">Clave de API inválida</string>
     <string name="custom_ai_model_id">ID de modelo de IA personalizado</string>
+    <string name="default_models">Los modelos por defecto son \"gemini-2.0-flash\" y \"gpt-4o\"</string>
     <string name="invalid">Inválido</string>
     <string name="custom_model_id_messages">Por favor, introduce el ID del modelo exacto de tu proveedor de IA.</string>
     <string name="favorite_podcasts">Podcasts favoritos</string>
@@ -451,4 +452,5 @@
     <string name="no_playlist_found">No se encontraron listas de reproducción locales, crea una primero</string>
     <string name="list_all_cookies_of_this_page">Listar todas las cookies de esta página</string>
     <string name="copied_to_clipboard">Copiado al portapapeles</string>
+    <string name="update_channel">Actualizar canal</string>
 </resources>

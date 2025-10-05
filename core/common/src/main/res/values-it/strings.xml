@@ -109,7 +109,7 @@
     <string name="downloaded_cache">Cache dei Download</string>
     <string name="thumbnail_cache">Cache delle copertine</string>
     <string name="backup">Copia di sicurezza</string>
-    <string name="backup_your_data">Fai un backup dei tuoi dati</string>
+    <string name="backup_your_data">Crea una copia dei tuoi dati</string>
     <string name="save_all_your_playlist_data">Salva tutti i dati delle tue playlist</string>
     <string name="restore_your_data">Ripristina i tuoi dati</string>
     <string name="restore_your_saved_data">Ripristina i tuoi dati salvati</string>
@@ -242,7 +242,7 @@
     <string name="removed_from_YouTube_playlist">Rimosso dalla playlist di YouTube</string>
     <string name="update_playlist">Aggiorna la playlist da YouTube Music</string>
     <string name="backup_create_success">Copia di sicurezza creata con successo</string>
-    <string name="backup_create_failed">Creazione del backup non riuscita</string>
+    <string name="backup_create_failed">Creazione della copia non riuscita</string>
     <string name="main_lyrics_provider">Fornitore principale di testi</string>
     <string name="use_ai_translation">Usa Traduzione Testi AI</string>
     <string name="use_ai_translation_description">Abilita la traduzione dei testi utilizzando l\'IA</string>
@@ -260,7 +260,7 @@
     <string name="description_and_licenses">Descrizione e licenze</string>
     <string name="author">Autore</string>
     <string name="other_app">Altre app</string>
-    <string name="database">Banca dati dell\'app</string>
+    <string name="database">Database dell\'app</string>
     <string name="free_space">Spazio libero</string>
     <string name="suggest">Suggerimento</string>
     <string name="reload">Ricarica</string>
@@ -419,6 +419,7 @@
     <string name="ai_api_key">La Tua Chiave API AI</string>
     <string name="invalid_api_key">Chiave API non valida</string>
     <string name="custom_ai_model_id">ID modello AI personalizzato</string>
+    <string name="default_models">I modelli predefiniti sono \"gemini-2.0-flash\" e \"gpt-4o\"</string>
     <string name="invalid">Non valido</string>
     <string name="custom_model_id_messages">Inserisci l\'esatto modello ID dal tuo fornitore AI.</string>
     <string name="favorite_podcasts">Podcast Preferiti</string>
@@ -444,8 +445,12 @@
     <string name="anonymous">Anonimo</string>
     <string name="simpmusic_lyrics">Testi di SimpMusic</string>
     <string name="lyrics_provider_simpmusic">Testi forniti da SimpMusic Lyrics</string>
-    <string name="backup_in_progress">Backup in corso</string>
+    <string name="backup_in_progress">Creazione della copia in corso</string>
     <string name="restore_in_progress">Ripristino in corso</string>
-    <string name="backup_downloaded">Backup dei dati scaricati</string>
+    <string name="backup_downloaded">Copia dei dati scaricati</string>
+    <string name="backup_downloaded_description">Crea una copia di tutti i dati delle canzoni scaricate</string>
     <string name="no_playlist_found">Nessuna playlist locale trovata, per favore creane prima una</string>
+    <string name="list_all_cookies_of_this_page">Elenca tutti i cookie di questa pagina</string>
+    <string name="copied_to_clipboard">Copiato negli appunti</string>
+    <string name="update_channel">Aggiorna il canale</string>
 </resources>

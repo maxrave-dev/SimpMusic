@@ -452,4 +452,12 @@
     <string name="list_all_cookies_of_this_page">Danh sách cookie của trang này</string>
     <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
     <string name="update_channel">Kênh cập nhật</string>
+    <string name="enable_liquid_glass_effect">Bật liquid glass (BETA)</string>
+    <string name="enable_liquid_glass_effect_description">Bật thiết kế Liquid glass trong một số vị trí (Android 12+)</string>
+    <string name="your_library">Thư viện của bạn</string>
+    <string name="play_explicit_content">Phát bài hát chứa nội dung nhạy cảm</string>
+    <string name="play_explicit_content_description">Bật để phát cả những bài hát nhạy cảm</string>
+    <string name="explicit_content_blocked">Bài hát nhạy cảm đã bị bỏ qua</string>
+    <string name="mix_for_you">Mix cho bạn</string>
+    <string name="no_mixes_found">Không có bản mix nào</string>
 </resources>

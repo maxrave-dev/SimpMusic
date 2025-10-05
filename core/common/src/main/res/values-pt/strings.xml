@@ -169,7 +169,7 @@
     <string name="save_shuffle_and_repeat_mode">Salvar modo aleatório e de repetição</string>
     <string name="skip_silent">Pular Silencioso</string>
     <string name="skip_no_music_part">Pular parte da silenciosa da música</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo esgotado, verifique a conexão com a internet (%1$s)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo esgotado, verifique a ligação à Internet (%1$s)</string>
     <string name="save_last_played">Salvar Última Reprodução</string>
     <string name="save_last_played_track_and_queue">Salvar a última faixa e fila reproduzidas</string>
     <string name="update_available">Nova atualização disponível</string>
@@ -245,6 +245,7 @@
     <string name="backup_create_failed">Falha ao criar backup</string>
     <string name="main_lyrics_provider">Provedor principal de letras</string>
     <string name="use_ai_translation">Usar Tradução de Letras com IA</string>
+    <string name="use_ai_translation_description">Ativar tradução de letras usando IA</string>
     <string name="translation_language">Idioma de Tradução</string>
     <string name="follow_app_language">Siga o idioma do aplicativo</string>
     <string name="email">Email</string>
@@ -418,6 +419,7 @@
     <string name="ai_api_key">Sua Chave de API de IA</string>
     <string name="invalid_api_key">Chave de API inválida</string>
     <string name="custom_ai_model_id">ID de modelo de IA personalizado</string>
+    <string name="default_models">Os modelos padrão são \"gemini-2.0-flash\" e \"gpt-4o\"</string>
     <string name="invalid">Inválido</string>
     <string name="custom_model_id_messages">Insira o exato ID do seu provedor de IA, por favor.</string>
     <string name="favorite_podcasts">\"Podcasts\" Favoritos</string>
@@ -443,4 +445,12 @@
     <string name="anonymous">Anônimo</string>
     <string name="simpmusic_lyrics">SimpMusic Letras</string>
     <string name="lyrics_provider_simpmusic">Letras fornecidas por SimpMusic Letrad</string>
+    <string name="backup_in_progress">Recuperação Em Progresso</string>
+    <string name="restore_in_progress">Restauração Em Progresso</string>
+    <string name="backup_downloaded">Recuperação dos dados baixados</string>
+    <string name="backup_downloaded_description">Faça backup de todos os dados das músicas baixadas</string>
+    <string name="no_playlist_found">Não foram encontradas listas de reprodução locais, por favor crie uma primeiro</string>
+    <string name="list_all_cookies_of_this_page">Listar todos os cookies desta página</string>
+    <string name="copied_to_clipboard">Copiado para a área de transferência</string>
+    <string name="update_channel">Canal De Atualizações</string>
 </resources>

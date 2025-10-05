@@ -111,7 +111,7 @@
     <string name="backup">Sauvegarde</string>
     <string name="backup_your_data">Sauvegarder vos données</string>
     <string name="save_all_your_playlist_data">Sauvegarder toutes les données de votre playlist</string>
-    <string name="restore_your_data">Restaurer vos données</string>
+    <string name="restore_your_data">Restauration</string>
     <string name="restore_your_saved_data">Restaurer vos données sauvegardées</string>
     <string name="about_us">Qui sommes-nous ?</string>
     <string name="version">Version</string>
