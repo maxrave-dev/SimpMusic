@@ -258,7 +258,7 @@ fun BrowseResponse.getPlaylistShuffleEndpoint(): WatchEndpoint? {
             ?.navigationEndpoint
             ?.watchPlaylistEndpoint
     } else {
-        return return this.contents
+        return this.contents
             ?.twoColumnBrowseResultsRenderer
             ?.tabs
             ?.firstOrNull()
