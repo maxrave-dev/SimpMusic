@@ -19,10 +19,6 @@ val mediaHandlerModule =
                 streamRepository = get(),
                 localPlaylistRepository = get(),
                 coroutineScope = get(named(Config.SERVICE_SCOPE)),
-                updateWidget = {},
-                updatePlayStatusForWidget = { _, _ -> },
-                setNotificationLayout = { _, _, _ -> },
-                pushPlayerError = { _ -> },
             )
         }
     }

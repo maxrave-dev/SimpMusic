@@ -2,6 +2,7 @@ package com.maxrave.simpmusic
 
 import android.content.Context
 import android.util.Log
+import com.maxrave.domain.data.player.PlayerError
 import io.sentry.Sentry
 import io.sentry.android.core.SentryAndroid
 
@@ -18,8 +19,8 @@ fun configCrashlytics(applicationContext: Context) {
     }
 }
 
-fun pushPlayerError(error: Throwable) {
+fun pushPlayerError(error: PlayerError) {
     Sentry.withScope { scope ->
-        Sentry.captureException(error)
+        Sentry.captureMessage("Player Error: ${error.message}, code: ${error.errorCode}, code name: ${error.errorCodeName}")
     }
 }

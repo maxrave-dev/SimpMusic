@@ -85,6 +85,7 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.extension.copy
+import com.maxrave.simpmusic.pushPlayerError
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
@@ -738,6 +739,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startMusicService() {
         mediaPlayerHandler.startMediaService(this, serviceConnection)
+        mediaPlayerHandler.pushPlayerError = { it ->
+            pushPlayerError(it)
+        }
         viewModel.isServiceRunning = true
         shouldUnbind = true
         Logger.d("Service", "Service started")

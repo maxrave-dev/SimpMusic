@@ -30,6 +30,7 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.mediaService.SponsorSkipSegments
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
+import com.maxrave.domain.data.player.GenericCommandButton
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.domain.data.player.GenericMediaMetadata
 import com.maxrave.domain.data.player.GenericPlaybackParameters
@@ -104,14 +105,11 @@ internal class MediaServiceHandlerImpl(
     private val streamRepository: StreamRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val coroutineScope: CoroutineScope,
-    private val updateWidget: (GenericMediaItem?) -> Unit,
-    private val updatePlayStatusForWidget: (Context, Boolean) -> Unit,
-    private val setNotificationLayout: (liked: Boolean, isShuffle: Boolean, repeatState: RepeatState) -> Unit,
-    private val pushPlayerError: (s: PlayerError) -> Unit,
 ) : MediaPlayerHandler,
     MediaPlayerListener {
     override val player: MediaPlayerInterface = inputPlayer
-
+    override var onUpdateNotification: (List<GenericCommandButton>) -> Unit = {}
+    override var pushPlayerError: (PlayerError) -> Unit = {}
     private val _simpleMediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
     override val simpleMediaState: StateFlow<SimpleMediaState> = _simpleMediaState.asStateFlow()
 
@@ -255,6 +253,12 @@ internal class MediaServiceHandlerImpl(
         }
         mayBeRestoreQueue()
         coroutineScope.launch {
+            val controlStateJob =
+                launch {
+                    controlState.collectLatest {
+                        updateNotification()
+                    }
+                }
             val skipSegmentsJob =
                 launch {
                     simpleMediaState
@@ -325,6 +329,7 @@ internal class MediaServiceHandlerImpl(
                         Logger.w(TAG, "Playback current speed: ${player.playbackParameters.speed}, Pitch: ${player.playbackParameters.pitch}")
                     }
                 }
+            controlStateJob.join()
             skipSegmentsJob.join()
             playbackJob.join()
             playbackSpeedPitchJob.join()
@@ -347,7 +352,6 @@ internal class MediaServiceHandlerImpl(
                 track = track,
             )
         }
-        updateWidget(mediaItem)
         _format.value = null
         _skipSegments.value = null
         getDataOfNowPlayingTrackStateJob?.cancel()
@@ -611,10 +615,13 @@ internal class MediaServiceHandlerImpl(
                         ?.liked ?: false
                 Logger.w("Check liked", liked.toString())
                 _controlState.value = _controlState.value.copy(isLiked = liked)
-                setNotificationLayout.invoke(
-                    liked,
-                    controlState.value.isShuffle,
-                    controlState.value.repeatState,
+                onUpdateNotification.invoke(
+                    listOf(
+                        GenericCommandButton.Like(liked),
+                        GenericCommandButton.Repeat(repeatState = _controlState.value.repeatState),
+                        GenericCommandButton.Radio,
+                        GenericCommandButton.Shuffle(isShuffled = _controlState.value.isShuffle),
+                    ),
                 )
             }
     }
@@ -689,7 +696,6 @@ internal class MediaServiceHandlerImpl(
                     player.shuffleModeEnabled = true
                     _controlState.value = _controlState.value.copy(isShuffle = true)
                 }
-                updateNotification()
             }
 
             PlayerEvent.Repeat -> {
@@ -789,13 +795,11 @@ internal class MediaServiceHandlerImpl(
                     if (!(controlState.first().isLiked)) 1 else 0,
                 )
                 delay(200)
-                updateNotification()
             }
     }
 
     override fun like(liked: Boolean) {
         _controlState.value = _controlState.value.copy(isLiked = liked)
-        updateNotification()
     }
 
     override fun resetSongAndQueue() {
@@ -2000,10 +2004,6 @@ internal class MediaServiceHandlerImpl(
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         _controlState.value = _controlState.value.copy(isPlaying = isPlaying)
-        updatePlayStatusForWidget(
-            context,
-            isPlaying,
-        )
         if (isPlaying) {
             startProgressUpdate()
         } else {
@@ -2113,7 +2113,6 @@ internal class MediaServiceHandlerImpl(
             }
         }
         updateNextPreviousTrackAvailability()
-        updateNotification()
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {

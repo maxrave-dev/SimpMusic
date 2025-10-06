@@ -8,7 +8,9 @@ import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.mediaService.SponsorSkipSegments
+import com.maxrave.domain.data.player.GenericCommandButton
 import com.maxrave.domain.data.player.GenericMediaItem
+import com.maxrave.domain.data.player.PlayerError
 import com.maxrave.domain.mediaservice.player.MediaPlayerInterface
 import kotlinx.coroutines.flow.StateFlow
 
@@ -29,6 +31,10 @@ interface MediaPlayerHandler {
     val skipSegments: StateFlow<List<SponsorSkipSegments>?>
     val format: StateFlow<NewFormatEntity?>
     val currentSongIndex: StateFlow<Int>
+
+    // Listeners
+    var onUpdateNotification: (List<GenericCommandButton>) -> Unit
+    var pushPlayerError: (PlayerError) -> Unit
 
     // Playback control
     suspend fun onPlayerEvent(playerEvent: PlayerEvent)

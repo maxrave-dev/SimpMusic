@@ -1,12 +1,20 @@
 package com.maxrave.media3.extension
 
+import android.content.Context
+import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.CommandButton
+import androidx.media3.session.SessionCommand
+import com.maxrave.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.common.MERGING_DATA_TYPE
+import com.maxrave.common.R
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.player.GenericCommandButton
+import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 
@@ -107,3 +115,81 @@ fun MediaItem.isSong(): Boolean = this.mediaMetadata.description?.contains(MERGI
 
 @UnstableApi
 fun MediaItem.isVideo(): Boolean = this.mediaMetadata.description?.contains(MERGING_DATA_TYPE.VIDEO) == true
+
+fun GenericCommandButton.toCommandButton(context: Context): CommandButton =
+    when (this) {
+        is GenericCommandButton.Like -> {
+            val liked = this.isLiked
+            CommandButton
+                .Builder(
+                    if (liked) {
+                        CommandButton.ICON_HEART_FILLED
+                    } else {
+                        CommandButton.ICON_HEART_UNFILLED
+                    },
+                ).setDisplayName(
+                    if (liked) {
+                        context.getString(R.string.liked)
+                    } else {
+                        context.getString(
+                            R.string.like,
+                        )
+                    },
+                ).setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
+                .build()
+        }
+        GenericCommandButton.Radio -> {
+            CommandButton
+                .Builder(
+                    CommandButton.ICON_RADIO,
+                ).setDisplayName(context.getString(R.string.radio))
+                .setSessionCommand(
+                    SessionCommand(
+                        MEDIA_CUSTOM_COMMAND.RADIO,
+                        Bundle(),
+                    ),
+                ).build()
+        }
+        is GenericCommandButton.Repeat -> {
+            val repeatMode = this.repeatState
+            CommandButton
+                .Builder(
+                    when (repeatMode) {
+                        RepeatState.One -> CommandButton.ICON_REPEAT_ONE
+
+                        RepeatState.All -> CommandButton.ICON_REPEAT_ALL
+
+                        else -> CommandButton.ICON_REPEAT_OFF
+                    },
+                ).setDisplayName(
+                    when (repeatMode) {
+                        RepeatState.One -> context.getString(R.string.repeat_one)
+
+                        RepeatState.All -> context.getString(R.string.repeat_all)
+
+                        else -> context.getString(R.string.repeat_off)
+                    },
+                ).setSessionCommand(
+                    SessionCommand(
+                        MEDIA_CUSTOM_COMMAND.REPEAT,
+                        Bundle(),
+                    ),
+                ).build()
+        }
+        is GenericCommandButton.Shuffle -> {
+            CommandButton
+                .Builder(
+                    if (this.isShuffled) {
+                        CommandButton.ICON_SHUFFLE_ON
+                    } else {
+                        CommandButton.ICON_SHUFFLE_OFF
+                    },
+                ).setDisplayName(context.getString(R.string.shuffle))
+                .setSessionCommand(
+                    SessionCommand(
+                        MEDIA_CUSTOM_COMMAND.SHUFFLE,
+                        Bundle(),
+                    ),
+                ).build()
+        }
+    }

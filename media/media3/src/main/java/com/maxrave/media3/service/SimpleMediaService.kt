@@ -20,6 +20,7 @@ import com.maxrave.common.MEDIA_NOTIFICATION
 import com.maxrave.common.R
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
+import com.maxrave.media3.extension.toCommandButton
 import com.maxrave.media3.utils.CoilBitmapLoader
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinComponent
@@ -87,6 +88,14 @@ internal class SimpleMediaService :
                 player,
                 simpleMediaSessionCallback,
             )
+
+        simpleMediaServiceHandler.onUpdateNotification = { list ->
+            mediaSession?.setCustomLayout(
+                list.map {
+                    it.toCommandButton(this)
+                },
+            )
+        }
 
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
