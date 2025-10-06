@@ -4,4 +4,4 @@
 
 [submodule "core"]
     path = core
-    url = git@github.com:maxrave-dev/core.git
+    url = https://github.com/maxrave-dev/core
