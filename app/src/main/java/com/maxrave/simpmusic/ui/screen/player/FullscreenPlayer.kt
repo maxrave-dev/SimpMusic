@@ -86,7 +86,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config.MAIN_PLAYER
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration

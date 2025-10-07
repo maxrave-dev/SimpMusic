@@ -75,7 +75,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kyant.backdrop.Backdrop
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.drawBackdropCustomShape

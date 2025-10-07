@@ -78,7 +78,7 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.kyant.backdrop.Backdrop
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists

@@ -6,7 +6,6 @@ import android.app.Application
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADING
 import com.maxrave.domain.data.entities.PlaylistEntity
@@ -20,29 +19,16 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
-import com.maxrave.domain.utils.Resource
-import com.maxrave.domain.utils.collectLatestResource
-import com.maxrave.domain.utils.toListVideoId
-import com.maxrave.domain.utils.toPlaylistEntity
-import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.domain.utils.toTrack
+import com.maxrave.domain.utils.*
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.viewModel.PlaylistUIState.Error
-import com.maxrave.simpmusic.viewModel.PlaylistUIState.Loading
-import com.maxrave.simpmusic.viewModel.PlaylistUIState.Success
+import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.viewModel.PlaylistUIState.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 import java.time.LocalDateTime
@@ -174,7 +160,13 @@ class PlaylistViewModel(
         viewModelScope.launch {
             // Check radio
             if (id.matches(Regex("(RDAMVM|RDEM|RDAT).*"))) {
-                playlistRepository.getRadio(id).collect { res ->
+                playlistRepository
+                    .getRadio(
+                        id,
+                        radioString = getString(R.string.radio),
+                        defaultDescription = getString(R.string.auto_created_by_youtube_music),
+                        viewString = getString(R.string.view_count)
+                    ).collect { res ->
                     val data = res.data
                     when (res) {
                         is Resource.Success if (data != null) -> {
@@ -208,7 +200,8 @@ class PlaylistViewModel(
                 }
             } else {
                 // This is an online playlist
-                playlistRepository.getPlaylistData(id).collect { res ->
+                playlistRepository.getPlaylistData(id, getString(R.string.view_count))
+                    .collect { res ->
                     val data = res.data
                     when (res) {
                         is Resource.Success if (data != null) -> {
@@ -595,6 +588,8 @@ class PlaylistViewModel(
                 .syncYouTubePlaylistToLocalPlaylist(
                     data,
                     tracks,
+                    getString(R.string.synced),
+                    getString(R.string.error)
                 ).collectLatestResource(
                     onSuccess = {
                         makeToast(it)

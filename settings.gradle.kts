@@ -73,7 +73,6 @@ include(
     ":googleapi",
     ":sharedtests",
     ":sharedutils",
-    ":j2v8",
     ":media3",
     ":media3-ui",
 )
@@ -82,7 +81,6 @@ project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
 project(":googleapi").projectDir = File(mediaServiceCore, "googleapi")
 project(":sharedtests").projectDir = File(sharedDir, "sharedtests")
 project(":sharedutils").projectDir = File(sharedDir, "sharedutils")
-project(":j2v8").projectDir = File(sharedDir, "j2v8")
 
 // core modules
 project(":common").projectDir = File(coreDir, "common")

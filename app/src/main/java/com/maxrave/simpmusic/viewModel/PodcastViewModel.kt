@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.EpisodeEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
 import com.maxrave.domain.data.model.podcast.PodcastBrowse

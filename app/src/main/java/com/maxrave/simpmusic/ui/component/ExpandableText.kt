@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 
 @Composable
 fun ExpandableText(

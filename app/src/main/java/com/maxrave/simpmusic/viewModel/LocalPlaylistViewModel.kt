@@ -4,17 +4,12 @@ import android.app.Application
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
-import androidx.paging.LoadState
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
+import androidx.paging.*
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.filter
-import androidx.paging.insertFooterItem
 import com.maxrave.common.ASC
 import com.maxrave.common.Config
 import com.maxrave.common.DESC
 import com.maxrave.common.LOCAL_PLAYLIST_ID
-import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADING
@@ -29,28 +24,16 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
-import com.maxrave.domain.utils.FilterState
-import com.maxrave.domain.utils.collectLatestResource
-import com.maxrave.domain.utils.collectResource
-import com.maxrave.domain.utils.toArrayListTrack
-import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.domain.utils.toTrack
+import com.maxrave.domain.utils.*
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.pagination.PagingActions
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 import java.time.LocalDateTime
@@ -330,7 +313,9 @@ class LocalPlaylistViewModel(
         state: Int,
     ) {
         viewModelScope.launch {
-            localPlaylistRepository.updateDownloadState(id, state).collectLatestResource(
+            localPlaylistRepository.updateDownloadState(
+                id, state, getString(R.string.updated)
+            ).collectLatestResource(
                 onSuccess = { mess ->
                     Logger.d(tag, "updatePlaylistDownloadState: $mess")
                     _uiState.update {
@@ -392,7 +377,13 @@ class LocalPlaylistViewModel(
         viewModelScope.launch {
             showLoadingDialog(message = getString(R.string.updating))
             localPlaylistRepository
-                .updateTitleLocalPlaylist(id, title)
+                .updateTitleLocalPlaylist(
+                    id,
+                    title,
+                    getString(R.string.updated),
+                    getString(R.string.updated_to_youtube_playlist),
+                    getString(R.string.error)
+                )
                 .collectResource(
                     onSuccess = {
                         makeToast(it)
@@ -411,15 +402,16 @@ class LocalPlaylistViewModel(
         showLoadingDialog(message = getString(R.string.delete))
         viewModelScope.launch {
             _uiState.value = LocalPlaylistState.initial()
-            localPlaylistRepository.deleteLocalPlaylist(id).collectLatestResource(
-                onSuccess = {
-                    makeToast(it)
-                    hideLoadingDialog()
-                },
-                onError = {
-                    makeToast(it)
-                    hideLoadingDialog()
-                },
+            localPlaylistRepository.deleteLocalPlaylist(id, getString(R.string.delete))
+                .collectLatestResource(
+                    onSuccess = {
+                        makeToast(it)
+                        hideLoadingDialog()
+                    },
+                    onError = {
+                        makeToast(it)
+                        hideLoadingDialog()
+                    },
             )
         }
     }
@@ -430,16 +422,17 @@ class LocalPlaylistViewModel(
     ) {
         showLoadingDialog(message = getString(R.string.updating))
         viewModelScope.launch {
-            localPlaylistRepository.updateThumbnailLocalPlaylist(id, uri).collectResource(
-                onSuccess = {
-                    makeToast(it)
-                    updatePlaylistState(id)
-                    hideLoadingDialog()
-                },
-                onError = {
-                    makeToast(it)
-                    hideLoadingDialog()
-                },
+            localPlaylistRepository.updateThumbnailLocalPlaylist(id, uri, getString(R.string.updated))
+                .collectResource(
+                    onSuccess = {
+                        makeToast(it)
+                        updatePlaylistState(id)
+                        hideLoadingDialog()
+                    },
+                    onError = {
+                        makeToast(it)
+                        hideLoadingDialog()
+                    },
             )
         }
     }
@@ -449,7 +442,9 @@ class LocalPlaylistViewModel(
         song: SongEntity,
     ) {
         viewModelScope.launch {
-            localPlaylistRepository.removeTrackFromLocalPlaylist(id, song).collectLatestResource(
+            localPlaylistRepository
+                .removeTrackFromLocalPlaylist(id, song, getString(R.string.delete_song_from_playlist), getString(R.string.removed_from_YouTube_playlist), getString(R.string.can_t_delete_from_youtube_playlist))
+                .collectLatestResource(
                 onSuccess = {
                     makeToast(it)
                     onApplyActions(PagingActions.Remove(song))
@@ -513,7 +508,7 @@ class LocalPlaylistViewModel(
         showLoadingDialog(message = getString(R.string.syncing))
         viewModelScope.launch {
             localPlaylistRepository
-                .syncLocalPlaylistToYouTubePlaylist(id)
+                .syncLocalPlaylistToYouTubePlaylist(id, getString(R.string.synced), getString(R.string.error))
                 .collectLatestResource(
                     onSuccess = { ytId ->
                         _uiState.update {
@@ -572,7 +567,8 @@ class LocalPlaylistViewModel(
     ) {
         showLoadingDialog()
         viewModelScope.launch {
-            localPlaylistRepository.updateSyncState(id, syncState).collectLatestResource(
+            localPlaylistRepository.updateSyncState(id, syncState, getString(R.string.synced))
+                .collectLatestResource(
                 onSuccess = { mess ->
                     makeToast(mess)
                     _uiState.update {
@@ -588,7 +584,8 @@ class LocalPlaylistViewModel(
                 },
             )
             if (ytId != null) {
-                localPlaylistRepository.updateYouTubePlaylistId(id, ytId).collectLatestResource(
+                localPlaylistRepository.updateYouTubePlaylistId(id, ytId, getString(R.string.updated))
+                    .collectLatestResource(
                     onSuccess = { mess ->
                         Logger.d(tag, "updateLocalPlaylistSyncState: $mess")
                         _uiState.update {
@@ -606,7 +603,8 @@ class LocalPlaylistViewModel(
         makeToast(getString(R.string.unsyncing))
         showLoadingDialog(message = getString(R.string.unsyncing))
         viewModelScope.launch {
-            localPlaylistRepository.unsyncLocalPlaylist(id).collectLatestResource(
+            localPlaylistRepository.unsyncLocalPlaylist(id, getString(R.string.unsynced))
+                .collectLatestResource(
                 onSuccess = { mess ->
                     makeToast(mess)
                     _uiState.update {
@@ -655,7 +653,13 @@ class LocalPlaylistViewModel(
             }
             _uiState.value.id.let { id ->
                 localPlaylistRepository
-                    .addTrackToLocalPlaylist(id, track.toSongEntity())
+                    .addTrackToLocalPlaylist(
+                        id,
+                        track.toSongEntity(),
+                        getString(R.string.added_to_playlist),
+                        getString(R.string.added_to_youtube_playlist),
+                        getString(R.string.can_t_add_to_youtube_playlist)
+                    )
                     .collectLatestResource(
                         onSuccess = {
                             makeToast(it)

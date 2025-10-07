@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.adaptiveIconPainterResource
 import com.maxrave.simpmusic.ui.component.RippleIconButton

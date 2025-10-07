@@ -26,7 +26,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.typo
 

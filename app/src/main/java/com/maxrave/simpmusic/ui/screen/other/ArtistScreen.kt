@@ -55,7 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.searchResult.songs.Artist

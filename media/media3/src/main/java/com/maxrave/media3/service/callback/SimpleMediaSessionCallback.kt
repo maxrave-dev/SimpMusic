@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.maxrave.common.MEDIA_CUSTOM_COMMAND
-import com.maxrave.common.R
+import com.maxrave.media3.R
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
@@ -264,7 +264,9 @@ internal class SimpleMediaSessionCallback(
                             }
 
                     HOME -> {
-                        val temp = homeRepository.getHomeData(context).lastOrNull()?.data
+                        val temp = homeRepository.getHomeData(
+                            viewString = context.getString(R.string.view_count)
+                        ).lastOrNull()?.data
                         listHomeItem.clear()
                         listHomeItem.addAll(temp ?: emptyList())
                         temp?.map {
@@ -316,7 +318,9 @@ internal class SimpleMediaSessionCallback(
                                     val playlistId = parentId.split("/").getOrNull(3)
                                     if (playlistId != null) {
                                         val playlist =
-                                            playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                                            playlistRepository
+                                                .getFullPlaylistData(playlistId, context.getString(R.string.view_count))
+                                                .lastOrNull()
                                         if (playlist?.data?.tracks.isNullOrEmpty()) {
                                             emptyList()
                                         } else {

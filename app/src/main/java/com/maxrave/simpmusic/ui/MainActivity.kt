@@ -73,7 +73,6 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.maxrave.common.FIRST_TIME_MIGRATION
-import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
 import com.maxrave.common.SUPPORTED_LANGUAGE
@@ -82,7 +81,9 @@ import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.pushPlayerError
@@ -741,6 +742,16 @@ class MainActivity : AppCompatActivity() {
         mediaPlayerHandler.startMediaService(this, serviceConnection)
         mediaPlayerHandler.pushPlayerError = { it ->
             pushPlayerError(it)
+        }
+        mediaPlayerHandler.showToast = { type ->
+            Toast.makeText(
+                this@MainActivity,
+                when (type) {
+                    ToastType.ExplicitContent -> this@MainActivity.getString(R.string.explicit_content_blocked)
+                    is ToastType.PlayerError ->
+                        this.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error)
+                }, Toast.LENGTH_SHORT
+            ).show()
         }
         viewModel.isServiceRunning = true
         shouldUnbind = true

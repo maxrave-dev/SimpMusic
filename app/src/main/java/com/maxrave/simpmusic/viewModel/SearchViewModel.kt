@@ -3,7 +3,7 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.domain.data.entities.SearchHistory
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult

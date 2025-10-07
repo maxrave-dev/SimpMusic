@@ -18,7 +18,7 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.MainActivity
 import kotlinx.coroutines.runBlocking
 

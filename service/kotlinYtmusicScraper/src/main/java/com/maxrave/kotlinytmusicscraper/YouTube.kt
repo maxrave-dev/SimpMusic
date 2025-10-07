@@ -119,7 +119,6 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.FileOutputStream
 import kotlin.random.Random
 
@@ -147,12 +146,6 @@ class YouTube(
         )
     private val mAppService = AppService.instance()
     private val mVideoInfoService = VideoInfoService.instance()
-
-    var cachePath: File?
-        get() = ytMusic.cachePath
-        set(value) {
-            ytMusic.cachePath = value
-        }
 
     var cookiePath: Path?
         get() = ytMusic.cookiePath
@@ -264,7 +257,7 @@ class YouTube(
         }
     }
 
-    fun setUpInterceptors(context: Context) {
+    fun setUpInterceptors() {
         cacheControlInterceptor =
             object : Interceptor {
                 override fun intercept(chain: Interceptor.Chain): Response {

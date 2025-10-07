@@ -58,14 +58,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.PauseCircle
-import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material.icons.rounded.Repeat
-import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.Replay5
-import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -130,11 +123,10 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config.MAIN_PLAYER
-import com.maxrave.common.R
-import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
 import com.maxrave.media3.ui.MediaPlayerView
 import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -153,14 +145,13 @@ import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
+import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
-import com.maxrave.simpmusic.ui.theme.seed
-import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -239,7 +230,7 @@ fun NowPlayingScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun NowPlayingScreenContent(
     sharedViewModel: SharedViewModel = koinInject(),
@@ -479,7 +470,6 @@ fun NowPlayingScreenContent(
         FullscreenLyricsSheet(
             sharedViewModel = sharedViewModel,
             color = startColor.value,
-            navController = navController,
             shouldHaze = sharedViewModel.blurFullscreenLyrics(),
         ) {
             showFullscreenLyrics = false
@@ -1242,164 +1232,10 @@ fun NowPlayingScreenContent(
                                                 .height(5.dp),
                                     )
                                     // Control Button Layout
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceEvenly,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(96.dp)
-                                                .padding(horizontal = 20.dp),
+                                    PlayerControlLayout(
+                                        controllerState
                                     ) {
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(42.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).weight(1f)
-                                                    .clickable {
-                                                        sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
-                                                if (!isShuffle) {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.Shuffle,
-                                                        tint = Color.White,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(32.dp),
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.Shuffle,
-                                                        tint = seed,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(32.dp),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(52.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).weight(1f)
-                                                    .clickable {
-                                                        if (controllerState.isPreviousAvailable) {
-                                                            sharedViewModel.onUIEvent(UIEvent.Previous)
-                                                        }
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.SkipPrevious,
-                                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                                                contentDescription = "",
-                                                modifier = Modifier.size(42.dp),
-                                            )
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(96.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).weight(1f)
-                                                    .clickable {
-                                                        sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
-                                                if (!isPlaying) {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.PlayCircle,
-                                                        tint = Color.White,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(72.dp),
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.PauseCircle,
-                                                        tint = Color.White,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(72.dp),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(52.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).weight(1f)
-                                                    .clickable {
-                                                        if (controllerState.isNextAvailable) {
-                                                            sharedViewModel.onUIEvent(UIEvent.Next)
-                                                        }
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.SkipNext,
-                                                tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                                                contentDescription = "",
-                                                modifier = Modifier.size(42.dp),
-                                            )
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .size(42.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).weight(1f)
-                                                    .clickable {
-                                                        sharedViewModel.onUIEvent(UIEvent.Repeat)
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = controllerState.repeatState) { rs ->
-                                                when (rs) {
-                                                    is RepeatState.None -> {
-                                                        Icon(
-                                                            imageVector = Icons.Rounded.Repeat,
-                                                            tint = Color.White,
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(32.dp),
-                                                        )
-                                                    }
-
-                                                    RepeatState.All -> {
-                                                        Icon(
-                                                            imageVector = Icons.Rounded.Repeat,
-                                                            tint = seed,
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(32.dp),
-                                                        )
-                                                    }
-
-                                                    RepeatState.One -> {
-                                                        Icon(
-                                                            imageVector = Icons.Rounded.RepeatOne,
-                                                            tint = seed,
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(32.dp),
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        sharedViewModel.onUIEvent(it)
                                     }
                                     // List Bottom Buttons
                                     // 24.dp
@@ -1550,7 +1386,9 @@ fun NowPlayingScreenContent(
                             }
                         }
                         // Touch Area
-                        this@Column.AnimatedVisibility(visible = screenDataState.canvasData != null) {
+                        this@Column.AnimatedVisibility(
+                            visible = screenDataState.canvasData != null,
+                        ) {
                             Box(
                                 modifier =
                                     Modifier

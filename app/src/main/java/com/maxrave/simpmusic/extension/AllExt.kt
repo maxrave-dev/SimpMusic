@@ -11,16 +11,18 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.compose.runtime.Composable
-import com.maxrave.common.R
+import com.maxrave.common.SponsorBlockType
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
+import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -249,5 +251,27 @@ fun String.isTwoLetterCode(): Boolean {
     return regex.matches(this)
 }
 
+fun FilterState.displayNameRes(): Int {
+    return when (this) {
+        FilterState.NewerFirst -> R.string.newer_first
+        FilterState.OlderFirst -> R.string.older_first
+        FilterState.Title -> R.string.title
+    }
+}
+
 @Composable
 fun String?.ifNullOrEmpty(defaultValue: @Composable () -> String): String = if (isNullOrEmpty()) defaultValue() else this
+
+fun SponsorBlockType.toString(context: Context): String {
+    return when (this) {
+        SponsorBlockType.FILLER -> context.getString(R.string.filler)
+        SponsorBlockType.INTERACTION -> context.getString(R.string.interaction)
+        SponsorBlockType.INTRO -> context.getString(R.string.intro)
+        SponsorBlockType.MUSIC_OFF_TOPIC -> context.getString(R.string.music_off_topic)
+        SponsorBlockType.OUTRO -> context.getString(R.string.outro)
+        SponsorBlockType.POI_HIGHLIGHT -> context.getString(R.string.poi_highlight)
+        SponsorBlockType.PREVIEW -> context.getString(R.string.preview)
+        SponsorBlockType.SELF_PROMOTION -> context.getString(R.string.self_promotion)
+        SponsorBlockType.SPONSOR -> context.getString(R.string.sponsor)
+    }
+}

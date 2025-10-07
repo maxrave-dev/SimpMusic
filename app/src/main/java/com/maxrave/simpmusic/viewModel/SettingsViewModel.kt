@@ -19,7 +19,6 @@ import com.maxrave.common.DB_NAME
 import com.maxrave.common.DOWNLOAD_EXOPLAYER_FOLDER
 import com.maxrave.common.EXOPLAYER_DB_NAME
 import com.maxrave.common.QUALITY
-import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.SETTINGS_FILENAME
 import com.maxrave.common.VIDEO_QUALITY
@@ -34,6 +33,7 @@ import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.getSizeOfFile
@@ -1250,7 +1250,8 @@ class SettingsViewModel(
                             .lastOrNull()
                             ?.url ?: "",
                     )
-                    val cookieItem = commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL)
+                    val cookieItem =
+                        commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL, application.packageName)
                     commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (application.filesDir / "ytdlp-cookie.txt").path).let {
                         Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                     }

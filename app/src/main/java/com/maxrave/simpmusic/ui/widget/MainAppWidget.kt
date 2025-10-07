@@ -59,7 +59,7 @@ import coil3.request.placeholder
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getColorFromPalette

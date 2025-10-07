@@ -77,7 +77,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.common.Config
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
 import com.maxrave.domain.data.model.home.chart.Chart
@@ -110,6 +110,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_COMMUTE
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_ENERGIZE
@@ -817,6 +818,7 @@ fun MoodMomentAndGenre(
         Text(
             text = stringResource(id = R.string.moods_amp_moment),
             style = typo.headlineMedium,
+            color = white,
             maxLines = 1,
             modifier =
                 Modifier
@@ -843,6 +845,7 @@ fun MoodMomentAndGenre(
             text = stringResource(id = R.string.genre),
             style = typo.headlineMedium,
             maxLines = 1,
+            color = white,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -877,6 +880,7 @@ fun ChartTitle() {
         Text(
             text = stringResource(id = R.string.chart),
             style = typo.headlineMedium,
+            color = white,
             maxLines = 1,
             modifier =
                 Modifier
@@ -912,6 +916,7 @@ fun ChartData(
             Text(
                 text = item.title,
                 style = typo.headlineMedium,
+                color = white,
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -942,6 +947,7 @@ fun ChartData(
         Text(
             text = stringResource(id = R.string.top_artists),
             style = typo.headlineMedium,
+            color = white,
             maxLines = 1,
             modifier =
                 Modifier

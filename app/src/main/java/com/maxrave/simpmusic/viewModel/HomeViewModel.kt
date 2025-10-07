@@ -14,19 +14,11 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -164,10 +156,16 @@ class HomeViewModel(
         homeJob =
             viewModelScope.launch {
                 combine(
-                    homeRepository.getHomeData(application, params),
+                    homeRepository.getHomeData(
+                        params,
+                        getString(R.string.view_count),
+                    ),
                     homeRepository.getMoodAndMomentsData(),
                     homeRepository.getChartData(dataStoreManager.chartKey.first()),
-                    homeRepository.getNewRelease(application),
+                    homeRepository.getNewRelease(
+                        getString(R.string.new_release),
+                        getString(R.string.music_video)
+                    )
                 ) { home, exploreMood, exploreChart, newRelease ->
                     HomeDataCombine(home, exploreMood, exploreChart, newRelease)
                 }.collect { result ->

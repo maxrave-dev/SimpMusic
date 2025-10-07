@@ -3,7 +3,7 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.common.R
+import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track

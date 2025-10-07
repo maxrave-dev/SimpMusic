@@ -75,7 +75,6 @@ import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
-import java.io.File
 import java.net.Proxy
 import java.util.Locale
 import android.content.Context as AndroidContext
@@ -112,11 +111,6 @@ class Ytmusic(
         set(value) {
             field = value
             httpClient.close()
-            httpClient = createClient()
-        }
-    var cachePath: File? = null
-        set(value) {
-            field = value
             httpClient = createClient()
         }
 

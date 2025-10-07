@@ -6,29 +6,9 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -36,39 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.PauseCircle
-import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material.icons.rounded.Repeat
-import androidx.compose.material.icons.rounded.RepeatOne
-import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -91,20 +41,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.common.R
 import com.maxrave.domain.data.model.streams.TimeLine
-import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.ui.theme.seed
-import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -363,7 +309,6 @@ fun LyricsLineItem(
 @Composable
 fun FullscreenLyricsSheet(
     sharedViewModel: SharedViewModel,
-    navController: NavController,
     color: Color = Color(0xFF242424),
     shouldHaze: Boolean,
     onDismiss: () -> Unit,
@@ -765,159 +710,8 @@ fun FullscreenLyricsSheet(
                                             tween(300),
                                         ),
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceEvenly,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(96.dp)
-                                                .padding(horizontal = 20.dp),
-                                    ) {
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(42.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).clickable {
-                                                        sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
-                                                if (!isShuffle) {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.Shuffle,
-                                                        tint = Color.White,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(32.dp),
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.Shuffle,
-                                                        tint = seed,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(32.dp),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(52.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).clickable {
-                                                        if (controllerState.isPreviousAvailable) {
-                                                            sharedViewModel.onUIEvent(UIEvent.Previous)
-                                                        }
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.SkipPrevious,
-                                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                                                contentDescription = "",
-                                                modifier = Modifier.size(42.dp),
-                                            )
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(96.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).clickable {
-                                                        sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
-                                                if (!isPlaying) {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.PlayCircle,
-                                                        tint = Color.White,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(72.dp),
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.PauseCircle,
-                                                        tint = Color.White,
-                                                        contentDescription = "",
-                                                        modifier = Modifier.size(72.dp),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .background(transparent)
-                                                    .size(52.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).clickable {
-                                                        if (controllerState.isNextAvailable) {
-                                                            sharedViewModel.onUIEvent(UIEvent.Next)
-                                                        }
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.SkipNext,
-                                                tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                                                contentDescription = "",
-                                                modifier = Modifier.size(42.dp),
-                                            )
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .size(42.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ).clickable {
-                                                        sharedViewModel.onUIEvent(UIEvent.Repeat)
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = controllerState.repeatState) { rs ->
-                                                when (rs) {
-                                                    is RepeatState.None -> {
-                                                        Icon(
-                                                            imageVector = Icons.Rounded.Repeat,
-                                                            tint = Color.White,
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(32.dp),
-                                                        )
-                                                    }
-
-                                                    RepeatState.All -> {
-                                                        Icon(
-                                                            imageVector = Icons.Rounded.Repeat,
-                                                            tint = seed,
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(32.dp),
-                                                        )
-                                                    }
-
-                                                    RepeatState.One -> {
-                                                        Icon(
-                                                            imageVector = Icons.Rounded.RepeatOne,
-                                                            tint = seed,
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(32.dp),
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
+                                    PlayerControlLayout(controllerState) {
+                                        sharedViewModel.onUIEvent(it)
                                     }
                                 }
                                 AnimatedVisibility(

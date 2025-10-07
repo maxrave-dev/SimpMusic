@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="liked">Liked</string>
+    <string name="like">Like</string>
+    <string name="radio">Radio</string>
+    <string name="repeat_one">Repeat One</string>
+    <string name="repeat_all">Repeat All</string>
+    <string name="repeat_off">Repeat Off</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="notification_channel_name" translatable="false">SimpMusic Playback Notification</string>
+    <string name="home">Home</string>
+    <string name="available_online">Available online</string>
+    <string name="songs">Songs</string>
+    <string name="playlists">Playlists</string>
+    <string name="track">track(s)</string>
+    <string name="download">Download</string>
+    <string name="view_count">%1$s views</string>
+    <plurals name="n_song">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+</resources>

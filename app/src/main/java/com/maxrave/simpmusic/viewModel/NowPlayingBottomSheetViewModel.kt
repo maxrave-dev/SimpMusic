@@ -5,7 +5,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.common.R
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
@@ -25,14 +24,10 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
@@ -200,12 +195,18 @@ class NowPlayingBottomSheetViewModel(
                         return@launch
                     } else {
                         val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
-                        localPlaylistRepository.addTrackToLocalPlaylist(id = ev.playlistId, song = songEntity).collectLatestResource(
+                        localPlaylistRepository.addTrackToLocalPlaylist(
+                            id = ev.playlistId,
+                            song = songEntity,
+                            successMessage = getString(R.string.added_to_playlist),
+                            updatedYtMessage = getString(R.string.added_to_youtube_playlist),
+                            errorMessage = getString(R.string.error)
+                        ).collectLatestResource(
                             onSuccess = {
-                                makeToast(getString(R.string.added_to_playlist))
+                                makeToast(it ?: getString(R.string.added_to_playlist))
                             },
                             onError = {
-                                makeToast(getString(R.string.error))
+                                makeToast(it)
                             },
                         )
                     }
