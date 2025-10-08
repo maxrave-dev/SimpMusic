@@ -7,6 +7,7 @@ import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CommonRepository
@@ -18,9 +19,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.time.LocalDateTime
 
 class NotifyWork(
     context: Context,
@@ -120,7 +121,7 @@ class NotifyWork(
                             name = noti.name,
                             single = noti.single.toMap(),
                             album = noti.album.toMap(),
-                            time = LocalDateTime.now(),
+                            time = now(),
                         ),
                     )
                 }

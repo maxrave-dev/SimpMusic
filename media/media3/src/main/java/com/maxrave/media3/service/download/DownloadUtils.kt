@@ -19,6 +19,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.SongRepository
@@ -35,8 +36,8 @@ import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDateTime
 import okhttp3.OkHttpClient
-import java.time.LocalDateTime
 import java.util.concurrent.Executor
 
 @UnstableApi
@@ -77,7 +78,7 @@ internal class DownloadUtils(
                     val id = mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO)
                     streamRepository.getNewFormat(id).lastOrNull()?.let {
                         val videoUrl = it.videoUrl
-                        if (videoUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        if (videoUrl != null && it.expiredTime > now()) {
                             Logger.d("Stream", videoUrl)
                             Logger.w("Stream", "Video from format")
                             val is403Url = streamRepository.is403Url(videoUrl).firstOrNull() != false
@@ -99,7 +100,7 @@ internal class DownloadUtils(
                 } else {
                     streamRepository.getNewFormat(mediaId).lastOrNull()?.let {
                         val audioUrl = it.audioUrl
-                        if (audioUrl != null && it.expiredTime > LocalDateTime.now()) {
+                        if (audioUrl != null && it.expiredTime > now()) {
                             Logger.d("Stream", audioUrl)
                             Logger.w("Stream", "Audio from format")
                             val is403Url = streamRepository.is403Url(audioUrl).firstOrNull() != false

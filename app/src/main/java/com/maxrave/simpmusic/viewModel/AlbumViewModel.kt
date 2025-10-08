@@ -5,11 +5,11 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.artist.ResultAlbum
 import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
@@ -19,6 +19,7 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toAlbumEntity
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -29,8 +30,8 @@ import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.inject
-import java.time.LocalDateTime
 
 class AlbumViewModel(
     application: Application,
@@ -62,7 +63,7 @@ class AlbumViewModel(
                                             id = null,
                                             name = "",
                                         ),
-                                    year = data.year ?: LocalDateTime.now().year.toString(),
+                                    year = data.year ?: now().year.toString(),
                                     trackCount = data.trackCount,
                                     description = data.description,
                                     length = data.duration ?: "",
@@ -79,7 +80,7 @@ class AlbumViewModel(
                                         liked = localAlbum.liked,
                                     )
                                 }
-                                albumRepository.updateAlbumInLibrary(LocalDateTime.now(), browseId)
+                                albumRepository.updateAlbumInLibrary(now(), browseId)
                             } else {
                                 albumRepository.insertAlbum(data.toAlbumEntity(browseId)).singleOrNull().let {
                                     log("Insert Album $it")
@@ -119,7 +120,7 @@ class AlbumViewModel(
                                                 id = albumEntity.artistId?.firstOrNull(),
                                                 name = albumEntity.artistName?.firstOrNull() ?: "",
                                             ),
-                                        year = albumEntity.year ?: LocalDateTime.now().year.toString(),
+                                        year = albumEntity.year ?: now().year.toString(),
                                         trackCount = albumEntity.trackCount,
                                         description = albumEntity.description,
                                         length = albumEntity.duration ?: "",
@@ -285,7 +286,7 @@ data class AlbumUIState(
             id = null,
             name = "",
         ),
-    val year: String = LocalDateTime.now().year.toString(),
+    val year: String = now().year.toString(),
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
     val liked: Boolean = false,
     val trackCount: Int = 0,

@@ -83,6 +83,7 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.logger.Logger
+import com.maxrave.media3.di.setServiceActivitySession
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.extension.copy
@@ -126,7 +127,8 @@ class MainActivity : AppCompatActivity() {
                 name: ComponentName?,
                 service: IBinder?,
             ) {
-                mediaPlayerHandler.setActivitySession(this@MainActivity, MainActivity::class.java, service)
+//                mediaPlayerHandler.setActivitySession(this@MainActivity, MainActivity::class.java, service)
+                setServiceActivitySession(this@MainActivity, MainActivity::class.java, service)
                 Logger.w("MainActivity", "onServiceConnected: ")
                 mBound = true
             }
@@ -739,19 +741,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startMusicService() {
-        mediaPlayerHandler.startMediaService(this, serviceConnection)
+//        mediaPlayerHandler.startMediaService(this, serviceConnection)
+        com.maxrave.media3.di
+            .startService(this@MainActivity, serviceConnection)
         mediaPlayerHandler.pushPlayerError = { it ->
             pushPlayerError(it)
         }
         mediaPlayerHandler.showToast = { type ->
-            Toast.makeText(
-                this@MainActivity,
-                when (type) {
-                    ToastType.ExplicitContent -> this@MainActivity.getString(R.string.explicit_content_blocked)
-                    is ToastType.PlayerError ->
-                        this.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error)
-                }, Toast.LENGTH_SHORT
-            ).show()
+            Toast
+                .makeText(
+                    this@MainActivity,
+                    when (type) {
+                        ToastType.ExplicitContent -> this@MainActivity.getString(R.string.explicit_content_blocked)
+                        is ToastType.PlayerError ->
+                            this.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error)
+                    },
+                    Toast.LENGTH_SHORT,
+                ).show()
         }
         viewModel.isServiceRunning = true
         shouldUnbind = true

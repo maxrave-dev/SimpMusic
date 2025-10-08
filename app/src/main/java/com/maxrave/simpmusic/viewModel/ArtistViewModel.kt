@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
@@ -13,11 +12,13 @@ import com.maxrave.domain.data.model.browse.artist.Related
 import com.maxrave.domain.data.model.browse.artist.ResultPlaylist
 import com.maxrave.domain.data.model.browse.artist.Singles
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.toArtistScreenData
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Error
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Loading
@@ -29,7 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 class ArtistViewModel(
     private val application: Application,
@@ -93,7 +94,7 @@ class ArtistViewModel(
     fun insertArtist(artist: ArtistEntity) {
         viewModelScope.launch {
             artistRepository.insertArtist(artist)
-            artistRepository.updateArtistInLibrary(LocalDateTime.now(), artist.channelId)
+            artistRepository.updateArtistInLibrary(now(), artist.channelId)
             delay(100)
             artistRepository.getArtistById(artist.channelId).collect { artistEntity ->
                 artist.thumbnails?.let {

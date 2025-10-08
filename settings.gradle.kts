@@ -64,6 +64,7 @@ include(
     ":common",
     ":data",
     ":domain",
+    ":ktorExt",
     ":kotlinYtmusicScraper",
     ":spotify",
     ":aiService",
@@ -88,6 +89,7 @@ project(":data").projectDir = File(coreDir, "data")
 project(":domain").projectDir = File(coreDir, "domain")
 
 // service modules
+project(":ktorExt").projectDir = File(serviceDir, "ktorExt")
 project(":aiService").projectDir = File(serviceDir, "aiService")
 project(":lyricsService").projectDir = File(serviceDir, "lyricsService")
 project(":kotlinYtmusicScraper").projectDir = File(serviceDir, "kotlinYtmusicScraper")
@@ -96,3 +98,5 @@ project(":spotify").projectDir = File(serviceDir, "spotify")
 // media modules
 project(":media3").projectDir = File(mediaDir, "media3")
 project(":media3-ui").projectDir = File(mediaDir, "media3-ui")
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

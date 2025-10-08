@@ -65,6 +65,12 @@ glance = "1.1.1"
 liquid-glass = "1.0.0-alpha15"
 ytdlp = "0.18.0"
 ffmpeg-kit-audio="6.0.1"
+composeHotReload = "1.0.0-rc01"
+composeMultiplatform = "1.9.0"
+datetime = "0.7.1"
+sqlite = "2.6.1"
+runner = "1.7.0"
+core = "1.7.0"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -106,6 +112,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacy-support-v4" }
@@ -130,6 +137,7 @@ kmpalette-core = { module = "com.kmpalette:kmpalette-core", version.ref = "kmpal
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
@@ -164,6 +172,9 @@ ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", ver
 
 ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.ref = "ffmpeg-kit-audio" }
 
+# KMP
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
@@ -173,7 +184,10 @@ koin-android = { module = "io.insert-koin:koin-android"}
 #Sentry
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
+
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging-common" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }
@@ -187,3 +201,10 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
 room = { id = "androidx.room", version.ref = "room" }
 sentry-gradle = { id = "io.sentry.android.gradle", version.ref = "sentry-gradle" }
+
+# KMP
+android-lint = { id = "com.android.lint", version.ref = "android" }
+compose-hotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android" }

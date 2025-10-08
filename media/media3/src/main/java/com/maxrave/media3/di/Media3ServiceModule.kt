@@ -46,6 +46,7 @@ import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.common.Config.PLAYER_CACHE
 import com.maxrave.common.Config.SERVICE_SCOPE
 import com.maxrave.common.MERGING_DATA_TYPE
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
@@ -79,7 +80,6 @@ import org.koin.core.context.loadKoinModules
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.net.Proxy
-import java.time.LocalDateTime
 
 /**
  * Required repository first initialization
@@ -262,7 +262,7 @@ private fun provideResolvingDataSourceFactory(
                 val id = mediaId.removePrefix(MERGING_DATA_TYPE.VIDEO)
                 streamRepository.getNewFormat(id).lastOrNull()?.let {
                     val videoUrl = it.videoUrl
-                    if (videoUrl != null && it.expiredTime > LocalDateTime.now()) {
+                    if (videoUrl != null && it.expiredTime > now()) {
                         Logger.d("Stream", videoUrl)
                         Logger.w("Stream", "Video from format")
                         val is403Url = streamRepository.is403Url(videoUrl).firstOrNull() != false
@@ -287,7 +287,7 @@ private fun provideResolvingDataSourceFactory(
             } else {
                 streamRepository.getNewFormat(mediaId).lastOrNull()?.let {
                     val audioUrl = it.audioUrl
-                    if (audioUrl != null && it.expiredTime > LocalDateTime.now()) {
+                    if (audioUrl != null && it.expiredTime > now()) {
                         Logger.d("Stream", audioUrl)
                         Logger.w("Stream", "Audio from format")
                         val is403Url = streamRepository.is403Url(audioUrl).firstOrNull() != false

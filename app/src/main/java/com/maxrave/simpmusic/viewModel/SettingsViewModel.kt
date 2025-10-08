@@ -33,6 +33,7 @@ import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
+import com.maxrave.media3.di.stopService
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.div
@@ -1023,7 +1024,8 @@ class SettingsViewModel(
 
                     withContext(Dispatchers.Main) {
                         makeToast(getString(R.string.restore_success))
-                        mediaPlayerHandler.stopMediaService(application)
+//                        mediaPlayerHandler.stopMediaService(application)
+                        stopService(application)
                         getData()
                         val ctx = application.applicationContext
                         val pm: PackageManager = ctx.packageManager

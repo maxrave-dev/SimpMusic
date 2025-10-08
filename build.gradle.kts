@@ -13,6 +13,10 @@ plugins {
     alias(libs.plugins.aboutlibraries) apply false
     alias(libs.plugins.room) apply false
     alias(libs.plugins.sentry.gradle) apply false
+    alias(libs.plugins.android.lint) apply false
+    alias(libs.plugins.compose.multiplatform) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.android.kotlin.multiplatform.library) apply false
 }
 
 buildscript {

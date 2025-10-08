@@ -98,13 +98,13 @@ import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.LOCAL_PLAYLIST_ID
-import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -129,9 +129,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.char
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import java.time.format.DateTimeFormatter
 
 @ExperimentalFoundationApi
 @OptIn(
@@ -440,9 +443,19 @@ fun LocalPlaylistScreen(
                                             stringResource(
                                                 id = R.string.created_at,
                                                 uiState.inLibrary?.format(
-                                                    DateTimeFormatter.ofPattern(
-                                                        "kk:mm - dd MMM uuuu",
-                                                    ),
+                                                    LocalDateTime.Format {
+                                                        hour()
+                                                        char(':')
+                                                        minute()
+                                                        chars(" - ")
+                                                        day()
+                                                        char(' ')
+                                                        monthName(
+                                                            MonthNames.ENGLISH_FULL,
+                                                        )
+                                                        char(' ')
+                                                        year()
+                                                    },
                                                 ) ?: "",
                                             ),
                                         style = typo.bodyMedium,

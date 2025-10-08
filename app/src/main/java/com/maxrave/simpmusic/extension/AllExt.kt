@@ -13,19 +13,23 @@ import android.widget.TextView
 import androidx.compose.runtime.Composable
 import com.maxrave.common.SponsorBlockType
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.periodUntil
+import kotlinx.datetime.toInstant
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import kotlin.time.ExperimentalTime
 
 @Suppress("deprecation")
 fun Context.isMyServiceRunning(serviceClass: Class<out Service>) =
@@ -97,19 +101,27 @@ infix fun <E> Collection<E>.symmetricDifference(other: Collection<E>): Set<E> {
     return left union right
 }
 
+@OptIn(ExperimentalTime::class)
 fun LocalDateTime.formatTimeAgo(context: Context): String {
-    val now = LocalDateTime.now()
-    val hoursDiff = ChronoUnit.HOURS.between(this, now)
-    val daysDiff = ChronoUnit.DAYS.between(this, now)
-    val monthsDiff = ChronoUnit.MONTHS.between(this, now)
+    val now = now()
+    val duration =
+        this
+            .toInstant(TimeZone.currentSystemDefault())
+            .periodUntil(now.toInstant(TimeZone.currentSystemDefault()), TimeZone.currentSystemDefault())
+
+    val monthsDiff = duration.months + (duration.years * 12)
+    val daysDiff = duration.days
+
+    // For hours, we need to calculate manually since Period doesn't include hours
+    val thisInstant = this.toInstant(TimeZone.currentSystemDefault())
+    val nowInstant = now.toInstant(TimeZone.currentSystemDefault())
+    val hoursDiff = (nowInstant - thisInstant).inWholeHours
 
     return when {
         monthsDiff >= 1 -> context.getString(R.string.month_s_ago, monthsDiff)
-        daysDiff >= 30 -> context.getString(R.string.month_s_ago, daysDiff / 30)
-        hoursDiff >= 24 -> context.getString(R.string.day_s_ago, daysDiff)
-        hoursDiff > 1 -> context.getString(R.string.hour_s_ago, hoursDiff)
-        hoursDiff <= 1 -> context.getString(R.string.recently)
-        else -> context.getString(R.string.unknown)
+        daysDiff >= 1 -> context.getString(R.string.day_s_ago, daysDiff)
+        hoursDiff >= 2 -> context.getString(R.string.hour_s_ago, hoursDiff)
+        else -> context.getString(R.string.recently)
     }
 }
 
@@ -251,19 +263,18 @@ fun String.isTwoLetterCode(): Boolean {
     return regex.matches(this)
 }
 
-fun FilterState.displayNameRes(): Int {
-    return when (this) {
+fun FilterState.displayNameRes(): Int =
+    when (this) {
         FilterState.NewerFirst -> R.string.newer_first
         FilterState.OlderFirst -> R.string.older_first
         FilterState.Title -> R.string.title
     }
-}
 
 @Composable
 fun String?.ifNullOrEmpty(defaultValue: @Composable () -> String): String = if (isNullOrEmpty()) defaultValue() else this
 
-fun SponsorBlockType.toString(context: Context): String {
-    return when (this) {
+fun SponsorBlockType.toString(context: Context): String =
+    when (this) {
         SponsorBlockType.FILLER -> context.getString(R.string.filler)
         SponsorBlockType.INTERACTION -> context.getString(R.string.interaction)
         SponsorBlockType.INTRO -> context.getString(R.string.intro)
@@ -274,4 +285,3 @@ fun SponsorBlockType.toString(context: Context): String {
         SponsorBlockType.SELF_PROMOTION -> context.getString(R.string.self_promotion)
         SponsorBlockType.SPONSOR -> context.getString(R.string.sponsor)
     }
-}

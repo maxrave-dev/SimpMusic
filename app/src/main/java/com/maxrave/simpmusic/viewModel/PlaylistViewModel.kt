@@ -13,6 +13,7 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.playlist.Author
 import com.maxrave.domain.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.domain.data.model.browse.playlist.PlaylistState
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
@@ -30,8 +31,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.inject
-import java.time.LocalDateTime
 
 class PlaylistViewModel(
     private val application: Application,
@@ -165,77 +166,78 @@ class PlaylistViewModel(
                         id,
                         radioString = getString(R.string.radio),
                         defaultDescription = getString(R.string.auto_created_by_youtube_music),
-                        viewString = getString(R.string.view_count)
+                        viewString = getString(R.string.view_count),
                     ).collect { res ->
-                    val data = res.data
-                    when (res) {
-                        is Resource.Success if (data != null) -> {
-                            Logger.d(tag, "Radio data: $data")
-                            _uiState.value =
-                                Success(
-                                    data =
-                                        PlaylistState(
-                                            id = data.first.id,
-                                            title = data.first.title,
-                                            isRadio = true,
-                                            author = data.first.author,
-                                            thumbnail =
-                                                data.first.thumbnails
-                                                    .lastOrNull()
-                                                    ?.url,
-                                            description = data.first.description,
-                                            trackCount = data.first.trackCount,
-                                            year = data.first.year,
-                                        ),
-                                )
-                            _tracks.value = data.first.tracks
-                            _continuation.value = data.second
-                            if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
-                            playlistRepository.insertRadioPlaylist(data.first.toPlaylistEntity())
-                        }
-                        else -> {
-                            _uiState.value = Error(res.message ?: "Empty response")
+                        val data = res.data
+                        when (res) {
+                            is Resource.Success if (data != null) -> {
+                                Logger.d(tag, "Radio data: $data")
+                                _uiState.value =
+                                    Success(
+                                        data =
+                                            PlaylistState(
+                                                id = data.first.id,
+                                                title = data.first.title,
+                                                isRadio = true,
+                                                author = data.first.author,
+                                                thumbnail =
+                                                    data.first.thumbnails
+                                                        .lastOrNull()
+                                                        ?.url,
+                                                description = data.first.description,
+                                                trackCount = data.first.trackCount,
+                                                year = data.first.year,
+                                            ),
+                                    )
+                                _tracks.value = data.first.tracks
+                                _continuation.value = data.second
+                                if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
+                                playlistRepository.insertRadioPlaylist(data.first.toPlaylistEntity())
+                            }
+                            else -> {
+                                _uiState.value = Error(res.message ?: "Empty response")
+                            }
                         }
                     }
-                }
             } else {
                 // This is an online playlist
-                playlistRepository.getPlaylistData(id, getString(R.string.view_count))
+                playlistRepository
+                    .getPlaylistData(id, getString(R.string.view_count))
                     .collect { res ->
-                    val data = res.data
-                    when (res) {
-                        is Resource.Success if (data != null) -> {
-                            Logger.d(tag, "Playlist data: $data")
-                            log("Playlist endpoint: ${data.first.shuffleEndpoint}")
-                            _uiState.value =
-                                Success(
-                                    data =
-                                        PlaylistState(
-                                            id = data.first.id,
-                                            title = data.first.title,
-                                            isRadio = false,
-                                            author = data.first.author,
-                                            thumbnail =
-                                                data.first.thumbnails
-                                                    .lastOrNull()
-                                                    ?.url,
-                                            description = data.first.description,
-                                            trackCount = data.first.trackCount,
-                                            year = data.first.year,
-                                            shuffleEndpoint = data.first.shuffleEndpoint,
-                                            radioEndpoint = data.first.radioEndpoint,
-                                        ),
-                                )
-                            _tracks.value = data.first.tracks
-                            _continuation.value = data.second
-                            if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
-                            getPlaylistEntity(id = data.first.id, playlistBrowse = data.first)
-                        }
-                        else -> {
-                            getPlaylistEntity(id)
+                        val data = res.data
+                        when (res) {
+                            is Resource.Success if (data != null) -> {
+                                Logger.d(tag, "Playlist data: $data")
+                                log("Playlist endpoint: ${data.first.shuffleEndpoint}")
+                                _uiState.value =
+                                    Success(
+                                        data =
+                                            PlaylistState(
+                                                id = data.first.id,
+                                                title = data.first.title,
+                                                isRadio = false,
+                                                author = data.first.author,
+                                                thumbnail =
+                                                    data.first.thumbnails
+                                                        .lastOrNull()
+                                                        ?.url,
+                                                description = data.first.description,
+                                                trackCount = data.first.trackCount,
+                                                year = data.first.year,
+                                                shuffleEndpoint = data.first.shuffleEndpoint,
+                                                radioEndpoint = data.first.radioEndpoint,
+                                            ),
+                                    )
+                                _tracks.value = data.first.tracks
+                                _continuation.value = data.second
+                                if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
+                                getPlaylistEntity(id = data.first.id, playlistBrowse = data.first)
+                            }
+                            else -> {
+                                getPlaylistEntity(id)
+                            }
                         }
                     }
-                }
             }
         }
     }
@@ -304,14 +306,14 @@ class PlaylistViewModel(
                             _playlistEntity.value = playlist
                             playlistRepository.updatePlaylistInLibrary(
                                 playlistId = id,
-                                inLibrary = LocalDateTime.now(),
+                                inLibrary = now(),
                             )
                         }
                     } else {
                         _playlistEntity.value = playlistEntity
                         playlistRepository.updatePlaylistInLibrary(
                             playlistId = id,
-                            inLibrary = LocalDateTime.now(),
+                            inLibrary = now(),
                         )
                     }
                     playlistBrowse.tracks.forEach { tracks ->
@@ -329,7 +331,7 @@ class PlaylistViewModel(
                     _playlistEntity.value = playlistEntity
                     playlistRepository.updatePlaylistInLibrary(
                         playlistId = id,
-                        inLibrary = LocalDateTime.now(),
+                        inLibrary = now(),
                     )
                     _uiState.value =
                         Success(
@@ -346,7 +348,7 @@ class PlaylistViewModel(
                                     thumbnail = playlistEntity.thumbnails,
                                     description = playlistEntity.description,
                                     trackCount = playlistEntity.trackCount,
-                                    year = playlistEntity.year ?: LocalDateTime.now().year.toString(),
+                                    year = playlistEntity.year ?: now().year.toString(),
                                 ),
                         )
                     _tracksListState.value = ListState.LOADING
@@ -589,7 +591,7 @@ class PlaylistViewModel(
                     data,
                     tracks,
                     getString(R.string.synced),
-                    getString(R.string.error)
+                    getString(R.string.error),
                 ).collectLatestResource(
                     onSuccess = {
                         makeToast(it)

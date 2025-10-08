@@ -43,6 +43,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.*
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.utils.LocalResource
@@ -80,10 +81,10 @@ import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -1272,7 +1273,7 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.save_all_your_playlist_data),
                     onClick = {
                         val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                        backupLauncher.launch("${context.getString(AppResString.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
+                        backupLauncher.launch("${context.getString(AppResString.app_name)}_${now()}.backup")
                     },
                 )
                 SettingItem(
