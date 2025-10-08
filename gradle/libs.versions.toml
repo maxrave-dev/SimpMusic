@@ -3,7 +3,7 @@
 version-name="0.2.21"
 version-code="40"
 
-android = "8.11.1"
+android = "8.11.2"
 kotlin = "2.2.20"
 serialization = "2.2.20"
 ksp = "2.2.20-2.0.3"
@@ -71,6 +71,7 @@ datetime = "0.7.1"
 sqlite = "2.6.1"
 runner = "1.7.0"
 core = "1.7.0"
+okio = "3.16.0"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -174,6 +175,7 @@ ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.
 
 # KMP
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

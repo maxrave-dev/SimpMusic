@@ -8,7 +8,6 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(17)
     // Target declarations - add or remove as needed below. These define
     // which platforms this KMP module supports.
     // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
@@ -25,7 +24,7 @@ kotlin {
     // A step-by-step guide on how to include this library in an XCode
     // project can be found here:
     // https://developer.android.com/kotlin/multiplatform/migrate
-    val xcfName = "aiserviceKit"
+    val xcfName = "lyricsServiceKit"
 
     iosX64 {
         binaries.framework {
@@ -62,8 +61,9 @@ kotlin {
                 implementation(projects.common)
                 implementation(projects.ktorExt)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.encoding)
                 implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.kotlin.reflect)
             }
@@ -80,7 +80,6 @@ kotlin {
                 // Add Android-specific dependencies here. Note that this source set depends on
                 // commonMain by default and will correctly pull the Android artifacts of any KMP
                 // dependencies declared in commonMain.
-                implementation(libs.ktor.client.okhttp)
             }
         }
 
@@ -91,13 +90,11 @@ kotlin {
                 // part of KMP’s default source set hierarchy. Note that this source set depends
                 // on common by default and will correctly pull the iOS artifacts of any
                 // KMP dependencies declared in commonMain.
-                implementation(libs.ktor.client.darwin)
             }
         }
 
         jvmMain {
             dependencies {
-                implementation(libs.ktor.client.okhttp)
             }
         }
     }

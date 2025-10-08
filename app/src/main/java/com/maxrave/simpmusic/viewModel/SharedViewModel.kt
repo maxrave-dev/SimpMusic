@@ -41,6 +41,8 @@ import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.io.ByteArrayOutputStream
+import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.reflect.KClass
@@ -1493,10 +1495,20 @@ class SharedViewModel(
             ).path}/$fileName"
         viewModelScope.launch {
             nowPlayingState.value?.track?.let { track ->
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                val bytesArray = byteArrayOutputStream.toByteArray()
+                try {
+                    val fileOutputStream = FileOutputStream("$path.jpg")
+                    fileOutputStream.write(bytesArray)
+                    fileOutputStream.close()
+                    Logger.d(tag, "Thumbnail saved to $path.jpg")
+                } catch (e: java.lang.Exception) {
+                    throw RuntimeException(e)
+                }
                 songRepository
                     .downloadToFile(
                         track = track,
-                        bitmap = bitmap,
                         videoId = track.videoId,
                         path = path,
                         isVideo = nowPlayingScreenData.value.isVideo,

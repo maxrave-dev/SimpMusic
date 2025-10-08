@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
@@ -56,8 +58,8 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.stdlib)
                 // Add KMP dependencies here
-                implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.cio)
+                api(libs.ktor.client.core)
+                api(libs.ktor.client.cio)
                 implementation(libs.ktor.client.encoding)
             }
         }
@@ -96,4 +98,8 @@ kotlin {
             }
         }
     }
+}
+
+tasks.withType<CompileArtProfileTask> {
+    enabled = false
 }

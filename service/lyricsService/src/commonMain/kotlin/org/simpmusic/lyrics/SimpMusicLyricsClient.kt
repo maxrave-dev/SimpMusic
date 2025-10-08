@@ -1,5 +1,7 @@
 package org.simpmusic.lyrics
 
+import com.maxrave.ktorext.crypto.Hmac
+import com.maxrave.ktorext.crypto.HmacUri
 import com.maxrave.logger.Logger
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -13,10 +15,11 @@ import org.simpmusic.lyrics.parser.parseSyncedLyrics
 import org.simpmusic.lyrics.parser.parseUnsyncedLyrics
 import kotlin.math.abs
 
+private const val TAG = "SimpMusicLyricsClient"
 class SimpMusicLyricsClient {
-    @Suppress("ktlint:standard:property-naming")
-    private val TAG = "SimpMusicLyricsClient"
-    private val hmacService = HmacService()
+    private val algorithm = ""
+
+    private val hmacService = Hmac("HmacSHA256", "simpmusic-lyrics")
     private val lyricsService = SimpMusicLyrics()
 
     private var insertingLyrics: Pair<String?, Boolean> = (null to false)
@@ -51,7 +54,7 @@ class SimpMusicLyricsClient {
             insertingLyrics = lyricsBody.videoId to true
             val hmacTimestamp =
                 hmacService.getMacTimestampPair(
-                    HmacService.BASE_HMAC_URI,
+                    HmacUri.BASE_HMAC_URI,
                 )
             lyricsService.insertLyrics(lyricsBody, hmacTimestamp).bodyOrThrow<LyricsResponse>()
         }
@@ -67,7 +70,7 @@ class SimpMusicLyricsClient {
             insertingTranslatedLyrics = translatedLyricsBody.videoId to true
             val hmacTimestamp =
                 hmacService.getMacTimestampPair(
-                    HmacService.TRANSLATED_HMAC_URI,
+                    HmacUri.TRANSLATED_HMAC_URI,
                 )
             lyricsService.insertTranslatedLyrics(translatedLyricsBody, hmacTimestamp).bodyOrThrow<TranslatedLyricsResponse>()
         }
@@ -79,7 +82,7 @@ class SimpMusicLyricsClient {
         runCatching {
             val hmacTimestamp =
                 hmacService.getMacTimestampPair(
-                    HmacService.VOTE_HMAC_URI,
+                    HmacUri.VOTE_HMAC_URI,
                 )
             lyricsService.voteLyrics(lyricsId, upvote, hmacTimestamp).bodyOrThrow<LyricsResponse>()
         }
@@ -91,7 +94,7 @@ class SimpMusicLyricsClient {
         runCatching {
             val hmacTimestamp =
                 hmacService.getMacTimestampPair(
-                    HmacService.VOTE_TRANSLATED_HMAC_URI,
+                    HmacUri.VOTE_TRANSLATED_HMAC_URI,
                 )
             lyricsService.voteTranslatedLyrics(translatedLyricsId, upvote, hmacTimestamp).bodyOrThrow<TranslatedLyricsResponse>()
         }
