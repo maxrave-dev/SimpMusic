@@ -24,3 +24,4 @@ crowdin.yml
 # Sentry Config File
 sentry.properties
 /.claude/
+/composeApp/build/

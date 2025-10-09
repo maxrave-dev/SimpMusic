@@ -1,6 +1,6 @@
 
 import com.android.build.gradle.internal.tasks.CompileArtProfileTask
-import java.util.Properties
+import java.util.*
 
 val isFullBuild: Boolean by rootProject.extra
 plugins {
@@ -201,7 +201,6 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation(libs.compose.material3.lib)
-    implementation(libs.compose.material3.sizeclass)
     implementation(libs.compose.material3.adaptive)
     implementation(libs.compose.ui)
     implementation(libs.compose.material.ripple)
@@ -261,9 +260,6 @@ dependencies {
     implementation(libs.kmpalette.core)
     // Easy Permissions
     implementation(libs.easypermissions)
-
-    // Preference
-    implementation(libs.preference.ktx)
 
     // DataStore
     implementation(libs.datastore.preferences)

@@ -22,6 +22,10 @@ dependencyResolutionManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 // prepare for git submodules
 val mediaServiceCore =
     if (File(rootDir, "../MediaServiceCore").exists()) {
@@ -45,22 +49,23 @@ val coreDir =
     }
 
 val serviceDir =
-    if (File(rootDir, "../service").exists()) {
-        File(rootDir, "../service")
+    if (File(rootDir, "../core/service").exists()) {
+        File(rootDir, "../core/service")
     } else {
-        File(rootDir, "./service")
+        File(rootDir, "./core/service")
     }
 
 val mediaDir =
-    if (File(rootDir, "../media").exists()) {
-        File(rootDir, "../media")
+    if (File(rootDir, "../core/media").exists()) {
+        File(rootDir, "../core/media")
     } else {
-        File(rootDir, "./media")
+        File(rootDir, "./core/media")
     }
 
 rootProject.name = "SimpMusic"
 include(
     "app",
+    ":composeApp",
     ":common",
     ":data",
     ":domain",
@@ -74,6 +79,7 @@ include(
     ":googleapi",
     ":sharedtests",
     ":sharedutils",
+    ":media-jvm",
     ":media3",
     ":media3-ui",
 )
@@ -96,6 +102,7 @@ project(":kotlinYtmusicScraper").projectDir = File(serviceDir, "kotlinYtmusicScr
 project(":spotify").projectDir = File(serviceDir, "spotify")
 
 // media modules
+project(":media-jvm").projectDir = File(mediaDir, "media-jvm")
 project(":media3").projectDir = File(mediaDir, "media3")
 project(":media3-ui").projectDir = File(mediaDir, "media3-ui")
 
