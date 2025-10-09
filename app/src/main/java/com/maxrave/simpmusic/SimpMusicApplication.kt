@@ -18,7 +18,6 @@ import coil3.request.crossfade
 import coil3.util.DebugLogger
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.di.contextModule
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.theme.newDiskCache
@@ -61,7 +60,6 @@ class SimpMusicApplication :
         startKoin {
             androidLogger(level = Level.DEBUG)
             androidContext(this@SimpMusicApplication)
-            loadKoinModules(contextModule)
             loadAllModules()
             loadKoinModules(viewModelModule)
         }

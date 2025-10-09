@@ -50,6 +50,7 @@ import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.mediaservice.player.MediaPlayerInterface
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
@@ -182,7 +183,7 @@ private val mediaServiceModule =
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
         }
 
-        single<ExoPlayerAdapter> {
+        single<MediaPlayerInterface> {
             ExoPlayerAdapter(get(named(MAIN_PLAYER)))
         }
 
@@ -346,7 +347,15 @@ private fun provideMediaSourceFactory(
                 downloadCache,
                 playerCache,
                 context,
-                dataStoreManager.getJVMProxy(),
+                dataStoreManager.getJVMProxy()?.let {
+                    Proxy(
+                        when (it.type) {
+                            DataStoreManager.ProxyType.PROXY_TYPE_HTTP -> Proxy.Type.HTTP
+                            DataStoreManager.ProxyType.PROXY_TYPE_SOCKS -> Proxy.Type.SOCKS
+                        },
+                        java.net.InetSocketAddress(it.host, it.port),
+                    )
+                },
             ),
             downloadCache,
             playerCache,

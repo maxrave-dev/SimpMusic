@@ -114,6 +114,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "a
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+androidx-room-sqlite-wrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacy-support-v4" }

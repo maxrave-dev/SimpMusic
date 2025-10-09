@@ -211,3 +211,5 @@
 -keep class org.simpmusic.lyrics.parser.** { *; }
 -keep class org.simpmusic.lyrics.models.** { *; }
 -keep class com.simpmusic.lyrics.parser.** { *; }
+
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
