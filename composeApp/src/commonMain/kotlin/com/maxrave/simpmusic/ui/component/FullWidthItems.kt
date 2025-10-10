@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -24,7 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,21 +42,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
-import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.DownloadState
@@ -73,9 +67,27 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.simpmusic.ui.theme.typo
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.add_to_queue
+import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.baseline_add_24
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.download_for_offline_white
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.playlist
+import simpmusic.composeapp.generated.resources.podcasts
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.you
 import kotlin.math.roundToInt
 
 /**
@@ -100,9 +112,11 @@ fun SongFullWidthItems(
         .getSongAsFlow(songEntity?.videoId ?: track?.videoId ?: "")
         .mapNotNull { it?.downloadState }
         .collectAsState(initial = DownloadState.STATE_NOT_DOWNLOADED)
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.audio_playing_animation),
-    )
+    val composition by rememberLottieComposition {
+        LottieCompositionSpec.JsonString(
+            Res.readBytes("files/audio_playing_animation.json").decodeToString()
+        )
+    }
     val offsetX = remember { Animatable(initialValue = 0f) }
     var heightDp by remember { mutableStateOf(0.dp) }
 
@@ -125,8 +139,8 @@ fun SongFullWidthItems(
                 ) {
                     Icon(
                         tint = Color.White,
-                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                        contentDescription = stringResource(R.string.add_to_queue),
+                        imageVector = Icons.Rounded.QueueMusic,
+                        contentDescription = stringResource(Res.string.add_to_queue),
                     )
                 }
             }
@@ -182,20 +196,26 @@ fun SongFullWidthItems(
                 ) {
                     Crossfade(isPlaying) {
                         if (it) {
-                            LottieAnimation(composition, iterations = LottieConstants.IterateForever)
+                            Image(
+                                painter = rememberLottiePainter(
+                                    composition = composition,
+                                    iterations = Compottie.IterateForever
+                                ),
+                                contentDescription = "Lottie animation"
+                            )
                         } else if (index == null) {
                             val thumb = track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
                             AsyncImage(
                                 model =
                                     ImageRequest
-                                        .Builder(LocalContext.current)
+                                        .Builder(LocalPlatformContext.current)
                                         .data(thumb)
                                         .diskCachePolicy(CachePolicy.ENABLED)
                                         .diskCacheKey(thumb)
                                         .crossfade(true)
                                         .build(),
-                                placeholder = painterResource(R.drawable.holder),
-                                error = painterResource(R.drawable.holder),
+                                placeholder = painterResource(Res.drawable.holder),
+                                error = painterResource(Res.drawable.holder),
                                 contentDescription = null,
                                 contentScale = ContentScale.FillWidth,
                                 modifier =
@@ -243,7 +263,7 @@ fun SongFullWidthItems(
                         ) {
                             Row {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.download_for_offline_white),
+                                    painter = painterResource(Res.drawable.download_for_offline_white),
                                     tint = Color.White,
                                     contentDescription = "",
                                     modifier = Modifier.size(16.dp).padding(2.dp),
@@ -284,7 +304,7 @@ fun SongFullWidthItems(
                     }
                 }
                 if (onMoreClickListener != null) {
-                    RippleIconButton(resId = R.drawable.baseline_more_vert_24, fillMaxSize = false) {
+                    RippleIconButton(resId = Res.drawable.baseline_more_vert_24, fillMaxSize = false) {
                         val videoId = track?.videoId ?: songEntity?.videoId
                         videoId?.let { onMoreClickListener.invoke(it) }
                     }
@@ -301,9 +321,11 @@ fun SuggestItems(
     onClickListener: (() -> Unit)? = null,
     onAddClickListener: (() -> Unit)? = null,
 ) {
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.audio_playing_animation),
-    )
+    val composition by rememberLottieComposition {
+        LottieCompositionSpec.JsonString(
+            Res.readBytes("files/audio_playing_animation.json").decodeToString()
+        )
+    }
     Box(
         modifier =
             Modifier
@@ -321,20 +343,26 @@ fun SuggestItems(
             Box(modifier = Modifier.size(40.dp)) {
                 Crossfade(isPlaying) {
                     if (it) {
-                        LottieAnimation(composition, iterations = LottieConstants.IterateForever)
+                        Image(
+                            painter = rememberLottiePainter(
+                                composition = composition,
+                                iterations = Compottie.IterateForever
+                            ),
+                            contentDescription = "Lottie animation"
+                        )
                     } else {
                         val thumb = track.thumbnails?.lastOrNull()?.url
                         AsyncImage(
                             model =
                                 ImageRequest
-                                    .Builder(LocalContext.current)
+                                    .Builder(LocalPlatformContext.current)
                                     .data(thumb)
                                     .diskCachePolicy(CachePolicy.ENABLED)
                                     .diskCacheKey(thumb)
                                     .crossfade(true)
                                     .build(),
-                            placeholder = painterResource(R.drawable.holder),
-                            error = painterResource(R.drawable.holder),
+                            placeholder = painterResource(Res.drawable.holder),
+                            error = painterResource(Res.drawable.holder),
                             contentDescription = null,
                             contentScale = ContentScale.FillWidth,
                             modifier =
@@ -384,7 +412,7 @@ fun SuggestItems(
                 )
             }
             RippleIconButton(
-                resId = R.drawable.baseline_add_24,
+                resId = Res.drawable.baseline_add_24,
                 fillMaxSize = false,
                 onClick =
                     onAddClickListener ?: {
@@ -415,11 +443,11 @@ fun PlaylistFullWidthItems(
 
         firstSubtitle =
             when (data.playlistType()) {
-                PlaylistType.Type.YOUTUBE_PLAYLIST -> stringResource(id = R.string.playlist)
-                PlaylistType.Type.RADIO -> stringResource(id = R.string.radio)
-                PlaylistType.Type.LOCAL -> stringResource(id = R.string.playlist)
-                PlaylistType.Type.ALBUM -> stringResource(id = R.string.album)
-                PlaylistType.Type.PODCAST -> stringResource(id = R.string.podcasts)
+                PlaylistType.Type.YOUTUBE_PLAYLIST -> stringResource(Res.string.playlist)
+                PlaylistType.Type.RADIO -> stringResource(Res.string.radio)
+                PlaylistType.Type.LOCAL -> stringResource(Res.string.playlist)
+                PlaylistType.Type.ALBUM -> stringResource(Res.string.album)
+                PlaylistType.Type.PODCAST -> stringResource(Res.string.podcasts)
             }
         when (data) {
             is AlbumEntity -> {
@@ -436,7 +464,7 @@ fun PlaylistFullWidthItems(
             is LocalPlaylistEntity -> {
                 title = data.title
                 thumb = data.thumbnail ?: ""
-                secondSubtitle = stringResource(R.string.you)
+                secondSubtitle = stringResource(Res.string.you)
             }
             is PlaylistsResult -> {
                 title = data.title
@@ -467,14 +495,14 @@ fun PlaylistFullWidthItems(
                 AsyncImage(
                     model =
                         ImageRequest
-                            .Builder(LocalContext.current)
+                            .Builder(LocalPlatformContext.current)
                             .data(thumb)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(thumb)
                             .crossfade(true)
                             .build(),
-                    placeholder = painterResource(R.drawable.holder),
-                    error = painterResource(R.drawable.holder),
+                    placeholder = painterResource(Res.drawable.holder),
+                    error = painterResource(Res.drawable.holder),
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth,
                     modifier =
@@ -568,14 +596,14 @@ fun ArtistFullWidthItems(
                 AsyncImage(
                     model =
                         ImageRequest
-                            .Builder(LocalContext.current)
+                            .Builder(LocalPlatformContext.current)
                             .data(thumbnails)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(thumbnails)
                             .crossfade(true)
                             .build(),
-                    placeholder = painterResource(R.drawable.holder),
-                    error = painterResource(R.drawable.holder),
+                    placeholder = painterResource(Res.drawable.holder),
+                    error = painterResource(Res.drawable.holder),
                     contentDescription = null,
                     contentScale = ContentScale.FillHeight,
                     modifier =
@@ -606,7 +634,7 @@ fun ArtistFullWidthItems(
                 )
 
                 Text(
-                    text = stringResource(R.string.artists),
+                    text = stringResource(Res.string.artists),
                     style = typo.bodyMedium,
                     maxLines = 1,
                     color = Color(0xC4FFFFFF),

@@ -18,7 +18,9 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.toArtistScreenData
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Error
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Loading
@@ -33,10 +35,10 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 
 class ArtistViewModel(
-    private val application: Application,
+    
     private val artistRepository: ArtistRepository,
     private val songRepository: SongRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     // It is dynamic and can be changed by the user, so separate it from the ArtistScreenData
     private var _canvasUrl: MutableStateFlow<Pair<String, SongEntity>?> = MutableStateFlow(null)
     var canvasUrl: StateFlow<Pair<String, SongEntity>?> = _canvasUrl
@@ -128,7 +130,7 @@ class ArtistViewModel(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,
-                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(R.string.radio)}",
+                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(Res.string.radio)}",
                                 playlistType = PlaylistType.RADIO,
                                 continuation = data.second,
                             ),
@@ -158,7 +160,7 @@ class ArtistViewModel(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,
-                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(R.string.shuffle)}",
+                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(Res.string.shuffle)}",
                                 playlistType = PlaylistType.RADIO,
                                 continuation = data.second,
                             ),

@@ -19,7 +19,9 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toAlbumEntity
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -34,10 +36,10 @@ import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.inject
 
 class AlbumViewModel(
-    application: Application,
+    
     private val songRepository: SongRepository,
     private val albumRepository: AlbumRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
     private val _uiState: MutableStateFlow<AlbumUIState> = MutableStateFlow(AlbumUIState.initial())
     val uiState: StateFlow<AlbumUIState> = _uiState
@@ -99,7 +101,7 @@ class AlbumViewModel(
                             }
                             getAlbumFlow(browseId)
                         } else {
-                            makeToast(getString(R.string.error) + ": Null data")
+                            makeToast(getString(Res.string.error) + ": Null data")
                             _uiState.update {
                                 it.copy(
                                     loadState = LocalPlaylistState.PlaylistLoadState.Error,
@@ -135,7 +137,7 @@ class AlbumViewModel(
                                 }
                             } else {
                                 log("Error: ${res.message}", Log.ERROR)
-                                makeToast(getString(R.string.error) + ": ${res.message}")
+                                makeToast(getString(Res.string.error) + ": ${res.message}")
                                 _uiState.update {
                                     it.copy(
                                         loadState = LocalPlaylistState.PlaylistLoadState.Error,
@@ -211,7 +213,7 @@ class AlbumViewModel(
                 listTracks = uiState.value.listTrack.toCollection(ArrayList()),
                 firstPlayedTrack = track,
                 playlistId = uiState.value.browseId.replaceFirst("VL", ""),
-                playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
+                playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
                 playlistType = PlaylistType.PLAYLIST,
                 continuation = null,
             ),
@@ -222,7 +224,7 @@ class AlbumViewModel(
 
     fun shuffle() {
         if (uiState.value.listTrack.isEmpty()) {
-            makeToast(getString(R.string.playlist_is_empty))
+            makeToast(getString(Res.string.playlist_is_empty))
             return
         }
         val shuffleList = uiState.value.listTrack.shuffled()
@@ -232,7 +234,7 @@ class AlbumViewModel(
                 listTracks = shuffleList.toCollection(ArrayList()),
                 firstPlayedTrack = shuffleList[randomIndex],
                 playlistId = uiState.value.browseId.replaceFirst("VL", ""),
-                playlistName = "${getString(R.string.album)} \"${uiState.value.title}\"",
+                playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
                 playlistType = PlaylistType.PLAYLIST,
                 continuation = null,
             ),
@@ -254,13 +256,13 @@ class AlbumViewModel(
                     .singleOrNull() ?: emptyList()
             log("Full list song: $fullListSong")
             if (fullListSong.isEmpty()) {
-                makeToast(getString(R.string.playlist_is_empty))
+                makeToast(getString(Res.string.playlist_is_empty))
                 return@launch
             }
             val listJob = fullListSong.filter { it.downloadState != DownloadState.STATE_DOWNLOADED }
             log("List job: $listJob")
             if (listJob.isEmpty()) {
-                makeToast(getString(R.string.downloaded))
+                makeToast(getString(Res.string.downloaded))
                 return@launch
             }
             albumRepository.updateAlbumDownloadState(uiState.value.browseId, DownloadState.STATE_DOWNLOADING)

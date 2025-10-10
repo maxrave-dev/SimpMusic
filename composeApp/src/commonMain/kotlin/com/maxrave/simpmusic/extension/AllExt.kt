@@ -1,27 +1,37 @@
 package com.maxrave.simpmusic.extension
 
-import android.app.ActivityManager
-import android.app.ActivityManager.RunningAppProcessInfo
-import android.app.Service
-import android.content.Context
-import android.graphics.Color
-import android.graphics.Point
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.TextView
 import androidx.compose.runtime.Composable
 import com.maxrave.common.SponsorBlockType
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.R
+
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.periodUntil
 import kotlinx.datetime.toInstant
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.day_s_ago
+import simpmusic.composeapp.generated.resources.filler
+import simpmusic.composeapp.generated.resources.hour_s_ago
+import simpmusic.composeapp.generated.resources.interaction
+import simpmusic.composeapp.generated.resources.intro
+import simpmusic.composeapp.generated.resources.month_s_ago
+import simpmusic.composeapp.generated.resources.music_off_topic
+import simpmusic.composeapp.generated.resources.na_na
+import simpmusic.composeapp.generated.resources.newer_first
+import simpmusic.composeapp.generated.resources.older_first
+import simpmusic.composeapp.generated.resources.outro
+import simpmusic.composeapp.generated.resources.poi_highlight
+import simpmusic.composeapp.generated.resources.preview
+import simpmusic.composeapp.generated.resources.recently
+import simpmusic.composeapp.generated.resources.self_promotion
+import simpmusic.composeapp.generated.resources.sponsor
+import simpmusic.composeapp.generated.resources.title
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -31,16 +41,6 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlin.time.ExperimentalTime
 
-@Suppress("deprecation")
-fun Context.isMyServiceRunning(serviceClass: Class<out Service>) =
-    try {
-        (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
-            .getRunningServices(Int.MAX_VALUE)
-            .any { it.service.className == serviceClass.name }
-    } catch (e: Exception) {
-        false
-    }
-
 fun String?.removeDuplicateWords(): String {
     if (this == null) {
         return "null"
@@ -48,43 +48,6 @@ fun String?.removeDuplicateWords(): String {
         val regex = Regex("\\b(\\w+)\\b\\s*(?=.*\\b\\1\\b)")
         return this.replace(regex, "")
     }
-}
-
-fun setEnabledAll(
-    v: View,
-    enabled: Boolean,
-) {
-    v.isEnabled = enabled
-    v.isFocusable = enabled
-    if (v is ImageButton) {
-        if (enabled) v.setColorFilter(Color.WHITE) else v.setColorFilter(Color.GRAY)
-    }
-    if (v is TextView) {
-        v.isEnabled = enabled
-    }
-    if (v is ViewGroup) {
-        val vg = v
-        for (i in 0 until vg.childCount) setEnabledAll(vg.getChildAt(i), enabled)
-    }
-}
-
-fun getScreenSize(context: Context): Point {
-    val x: Int = context.resources.displayMetrics.widthPixels
-    val y: Int = context.resources.displayMetrics.heightPixels
-    return Point(x, y)
-}
-
-fun ArrayList<String>.removeConflicts(): ArrayList<String> {
-    val nonConflictingSet = HashSet<String>()
-    val nonConflictingList = ArrayList<String>()
-
-    for (item in this) {
-        if (nonConflictingSet.add(item)) {
-            nonConflictingList.add(item)
-        }
-    }
-
-    return nonConflictingList
 }
 
 fun <T> Iterable<T>.indexMap(): Map<T, Int> {
@@ -102,7 +65,7 @@ infix fun <E> Collection<E>.symmetricDifference(other: Collection<E>): Set<E> {
 }
 
 @OptIn(ExperimentalTime::class)
-fun LocalDateTime.formatTimeAgo(context: Context): String {
+suspend fun LocalDateTime.formatTimeAgo(): String {
     val now = now()
     val duration =
         this
@@ -118,18 +81,17 @@ fun LocalDateTime.formatTimeAgo(context: Context): String {
     val hoursDiff = (nowInstant - thisInstant).inWholeHours
 
     return when {
-        monthsDiff >= 1 -> context.getString(R.string.month_s_ago, monthsDiff)
-        daysDiff >= 1 -> context.getString(R.string.day_s_ago, daysDiff)
-        hoursDiff >= 2 -> context.getString(R.string.hour_s_ago, hoursDiff)
-        else -> context.getString(R.string.recently)
+        monthsDiff >= 1 -> getString(Res.string.month_s_ago, monthsDiff)
+        daysDiff >= 1 -> getString(Res.string.day_s_ago, daysDiff)
+        hoursDiff >= 2 -> getString(Res.string.hour_s_ago, hoursDiff)
+        else -> getString(Res.string.recently)
     }
 }
 
-fun formatDuration(
+suspend fun formatDuration(
     duration: Long,
-    context: Context,
 ): String {
-    if (duration < 0L) return context.getString(R.string.na_na)
+    if (duration < 0L) return getString(Res.string.na_na)
     val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
     val seconds: Long = (
         TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
@@ -222,12 +184,6 @@ fun ArtistBrowse.toArtistScreenData(): ArtistScreenData =
         featuredOn = this.featuredOn ?: emptyList(),
     )
 
-fun isAppInForeground(): Boolean {
-    val appProcessInfo = RunningAppProcessInfo()
-    ActivityManager.getMyMemoryState(appProcessInfo)
-    return appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-}
-
 fun isValidProxyHost(host: String): Boolean {
     // Regular expression to validate proxy host (without port)
     val proxyHostRegex =
@@ -263,25 +219,25 @@ fun String.isTwoLetterCode(): Boolean {
     return regex.matches(this)
 }
 
-fun FilterState.displayNameRes(): Int =
+fun FilterState.displayNameRes(): StringResource =
     when (this) {
-        FilterState.NewerFirst -> R.string.newer_first
-        FilterState.OlderFirst -> R.string.older_first
-        FilterState.Title -> R.string.title
+        FilterState.NewerFirst -> Res.string.newer_first
+        FilterState.OlderFirst -> Res.string.older_first
+        FilterState.Title -> Res.string.title
     }
 
 @Composable
 fun String?.ifNullOrEmpty(defaultValue: @Composable () -> String): String = if (isNullOrEmpty()) defaultValue() else this
 
-fun SponsorBlockType.toString(context: Context): String =
+suspend fun SponsorBlockType.toString(): String =
     when (this) {
-        SponsorBlockType.FILLER -> context.getString(R.string.filler)
-        SponsorBlockType.INTERACTION -> context.getString(R.string.interaction)
-        SponsorBlockType.INTRO -> context.getString(R.string.intro)
-        SponsorBlockType.MUSIC_OFF_TOPIC -> context.getString(R.string.music_off_topic)
-        SponsorBlockType.OUTRO -> context.getString(R.string.outro)
-        SponsorBlockType.POI_HIGHLIGHT -> context.getString(R.string.poi_highlight)
-        SponsorBlockType.PREVIEW -> context.getString(R.string.preview)
-        SponsorBlockType.SELF_PROMOTION -> context.getString(R.string.self_promotion)
-        SponsorBlockType.SPONSOR -> context.getString(R.string.sponsor)
+        SponsorBlockType.FILLER -> getString(Res.string.filler)
+        SponsorBlockType.INTERACTION -> getString(Res.string.interaction)
+        SponsorBlockType.INTRO -> getString(Res.string.intro)
+        SponsorBlockType.MUSIC_OFF_TOPIC -> getString(Res.string.music_off_topic)
+        SponsorBlockType.OUTRO -> getString(Res.string.outro)
+        SponsorBlockType.POI_HIGHLIGHT -> getString(Res.string.poi_highlight)
+        SponsorBlockType.PREVIEW -> getString(Res.string.preview)
+        SponsorBlockType.SELF_PROMOTION -> getString(Res.string.self_promotion)
+        SponsorBlockType.SPONSOR -> getString(Res.string.sponsor)
     }

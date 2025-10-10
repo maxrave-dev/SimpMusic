@@ -1,11 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
-import android.content.Intent
-import android.graphics.Bitmap
-import android.os.Environment
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
@@ -22,6 +16,7 @@ import com.maxrave.domain.data.entities.*
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.canvas.CanvasResult
 import com.maxrave.domain.data.model.download.DownloadProgress
+import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.model.update.UpdateData
@@ -34,8 +29,10 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.*
 import com.maxrave.domain.repository.*
 import com.maxrave.domain.utils.*
+import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.R
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -49,7 +46,6 @@ import kotlin.reflect.KClass
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SharedViewModel(
-    private val application: Application,
     private val dataStoreManager: DataStoreManager,
     private val streamRepository: StreamRepository,
     private val updateRepository: UpdateRepository,
@@ -59,7 +55,7 @@ class SharedViewModel(
     private val playlistRepository: PlaylistRepository,
     private val lyricsCanvasRepository: LyricsCanvasRepository,
     private val cacheRepository: CacheRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
@@ -70,9 +66,6 @@ class SharedViewModel(
 
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
-
-    private val context
-        get() = getApplication<Application>()
 
     var isServiceRunning: Boolean = false
 
@@ -91,8 +84,8 @@ class SharedViewModel(
 
     private var canvasJob: Job? = null
 
-//    private val _intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
-//    val intent: StateFlow<Intent?> = _intent
+    private val _intent: MutableStateFlow<GenericIntent?> = MutableStateFlow(null)
+    val intent: StateFlow<GenericIntent?> = _intent
 
     private var getFormatFlowJob: Job? = null
 
@@ -388,7 +381,7 @@ class SharedViewModel(
         checkAllDownloadingLocalPlaylists()
     }
 
-    fun setIntent(intent: Intent?) {
+    fun setIntent(intent: GenericIntent?) {
         _intent.value = intent
     }
 
@@ -433,7 +426,7 @@ class SharedViewModel(
                             data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
                         }
                         else -> {
-                            log("Get canvas error: ${response.message}", Log.WARN)
+                            log("Get canvas error: ${response.message}", LogLevel.WARN)
                             nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
                                 _nowPlayingScreenData.update {
                                     it.copy(
@@ -580,7 +573,7 @@ class SharedViewModel(
                                 listTracks = arrayListOf(track),
                                 firstPlayedTrack = track,
                                 playlistId = "RDAMVM$videoId",
-                                playlistName = context.getString(R.string.shared),
+                                playlistName = getString(Res.string.shared),
                                 playlistType = PlaylistType.RADIO,
                                 continuation = null,
                             ),
@@ -588,8 +581,8 @@ class SharedViewModel(
                         loadMediaItemFromTrack(track, SONG_CLICK)
                     }
                     else -> {
-                        log("Load shared media item error: ${response.message}", Log.WARN)
-                        makeToast("${context.getString(R.string.error)}: ${response.message}")
+                        log("Load shared media item error: ${response.message}", LogLevel.WARN)
+                        makeToast("${getString(Res.string.error)}: ${response.message}")
                     }
                 }
             }
@@ -713,7 +706,7 @@ class SharedViewModel(
         viewModelScope.launch {
             localPlaylistRepository.getAllDownloadingLocalPlaylists().collectLatest { playlists ->
                 playlists.forEach { playlist ->
-                    localPlaylistRepository.updateDownloadState(playlist.id, 0, successMessage = getString(R.string.updated)).lastOrNull()
+                    localPlaylistRepository.updateDownloadState(playlist.id, 0, successMessage = getString(Res.string.updated)).lastOrNull()
                 }
             }
         }
@@ -816,7 +809,7 @@ class SharedViewModel(
                             showedUpdateDialog = true
                         }
                         else -> {
-                            log("Check for update error: ${response.message}", Log.WARN)
+                            log("Check for update error: ${response.message}", LogLevel.WARN)
                         }
                     }
                     _isCheckingUpdate.value = false
@@ -830,7 +823,7 @@ class SharedViewModel(
                             showedUpdateDialog = true
                         }
                         else -> {
-                            log("Check for update error: ${response.message}", Log.WARN)
+                            log("Check for update error: ${response.message}", LogLevel.WARN)
                         }
                     }
                     _isCheckingUpdate.value = false
@@ -1037,7 +1030,7 @@ class SharedViewModel(
     ) {
         viewModelScope.launch {
             val videoId = song.videoId
-            log("Get Lyrics From Format for $videoId", Log.WARN)
+            log("Get Lyrics From Format for $videoId", LogLevel.WARN)
             val artistName = song.artistName
             val artist =
                 if (artistName?.firstOrNull() != null &&
@@ -1382,10 +1375,10 @@ class SharedViewModel(
         viewModelScope.launch {
             if (listTrack.size == 1 && dataStoreManager.endlessQueue.first() == TRUE) {
                 mediaPlayerHandler.playNext(listTrack.first())
-                makeToast(getString(R.string.play_next))
+                makeToast(getString(Res.string.play_next))
             } else {
                 mediaPlayerHandler.loadMoreCatalog(listTrack)
-                makeToast(getString(R.string.added_to_queue))
+                makeToast(getString(Res.string.added_to_queue))
             }
         }
     }
@@ -1401,20 +1394,10 @@ class SharedViewModel(
                             mediaPlayerHandler.nowPlaying.first()?.mediaId,
                         ).collect { response ->
                             if (response == 200) {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        context.getString(R.string.added_to_youtube_liked),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                makeToast(getString(Res.string.added_to_youtube_liked))
                                 getLikeStatus(videoId)
                             } else {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        context.getString(R.string.error),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                makeToast(getString(Res.string.error))
                             }
                         }
                 } else {
@@ -1423,20 +1406,10 @@ class SharedViewModel(
                             mediaPlayerHandler.nowPlaying.first()?.mediaId,
                         ).collect {
                             if (it == 200) {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        context.getString(R.string.removed_from_youtube_liked),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                makeToast(getString(Res.string.removed_from_youtube_liked))
                                 getLikeStatus(videoId)
                             } else {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        context.getString(R.string.error),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                makeToast(getString(Res.string.error))
                             }
                         }
                 }

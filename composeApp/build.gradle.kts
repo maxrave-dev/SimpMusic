@@ -3,7 +3,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.*
+import java.util.Properties
 
 val isFullBuild: Boolean by rootProject.extra
 plugins {
@@ -24,6 +24,7 @@ dependencies {
 //
 //    debugImplementation(compose.uiTooling)
 //    fullImplementation(libs.sentry.android)
+    debugImplementation(compose.uiTooling)
 }
 
 kotlin {
@@ -135,7 +136,7 @@ kotlin {
             implementation(libs.compottie.resources)
 
             // Paging 3
-            implementation(libs.paging.runtime.ktx)
+            implementation(libs.androidx.paging.common)
             implementation(libs.paging.compose)
 
 
@@ -153,6 +154,8 @@ kotlin {
             // Blur Haze
             implementation(libs.haze)
             implementation(libs.haze.material)
+
+            implementation(libs.cmptoast)
 
         }
         commonTest.dependencies {

@@ -3,7 +3,9 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.domain.data.entities.SearchHistory
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
@@ -57,14 +59,14 @@ enum class SearchType {
 
 fun SearchType.toStringRes(): Int =
     when (this) {
-        SearchType.ALL -> R.string.all
-        SearchType.SONGS -> R.string.songs
-        SearchType.VIDEOS -> R.string.videos
-        SearchType.ALBUMS -> R.string.albums
-        SearchType.ARTISTS -> R.string.artists
-        SearchType.PLAYLISTS -> R.string.playlists
-        SearchType.FEATURED_PLAYLISTS -> R.string.featured_playlists
-        SearchType.PODCASTS -> R.string.podcasts
+        SearchType.ALL -> Res.string.all
+        SearchType.SONGS -> Res.string.songs
+        SearchType.VIDEOS -> Res.string.videos
+        SearchType.ALBUMS -> Res.string.albums
+        SearchType.ARTISTS -> Res.string.artists
+        SearchType.PLAYLISTS -> Res.string.playlists
+        SearchType.FEATURED_PLAYLISTS -> Res.string.featured_playlists
+        SearchType.PODCASTS -> Res.string.podcasts
     }
 
 // UI state cho tìm kiếm
@@ -79,10 +81,10 @@ sealed class SearchScreenUIState {
 }
 
 class SearchViewModel(
-    application: Application,
+    
     private val dataStoreManager: DataStoreManager,
     private val searchRepository: SearchRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _searchScreenUIState = MutableStateFlow<SearchScreenUIState>(SearchScreenUIState.Empty)
     val searchScreenUIState: StateFlow<SearchScreenUIState> get() = _searchScreenUIState.asStateFlow()
 

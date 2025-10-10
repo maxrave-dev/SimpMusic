@@ -22,9 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.theme.typo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +56,7 @@ fun LoadingDialog(
                         ),
                     ) {
                         Text(
-                            context.getString(R.string.loading),
+                            context.getString(Res.string.loading),
                             style = typo.headlineMedium,
                         )
                         Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {

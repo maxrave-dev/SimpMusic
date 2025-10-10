@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -50,21 +51,19 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -72,6 +71,9 @@ import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import org.jetbrains.compose.resources.painterResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.holder_video
 
 private val paddingMedium = 16.dp
 
@@ -225,7 +227,7 @@ private fun Header(
         AsyncImage(
             model =
                 ImageRequest
-                    .Builder(LocalContext.current)
+                    .Builder(LocalPlatformContext.current)
                     .data(imageUrl)
                     .diskCachePolicy(CachePolicy.ENABLED)
                     .diskCacheKey(imageUrl)
@@ -238,8 +240,8 @@ private fun Header(
                         .asImageBitmap(),
                 )
             },
-            placeholder = painterResource(R.drawable.holder_video),
-            error = painterResource(R.drawable.holder_video),
+            placeholder = painterResource(Res.drawable.holder_video),
+            error = painterResource(Res.drawable.holder_video),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier =

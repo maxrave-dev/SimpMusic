@@ -60,8 +60,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -76,7 +76,9 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
@@ -107,7 +109,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
@@ -318,7 +320,7 @@ fun PlaylistScreen(
                                             .windowInsetsPadding(WindowInsets.statusBars),
                                 ) {
                                     RippleIconButton(
-                                        resId = R.drawable.baseline_arrow_back_ios_new_24,
+                                        resId = Res.drawable.baseline_arrow_back_ios_new_24,
                                     ) {
                                         navController.navigateUp()
                                     }
@@ -335,8 +337,8 @@ fun PlaylistScreen(
                                                 .diskCacheKey(data.thumbnail)
                                                 .crossfade(true)
                                                 .build(),
-                                        placeholder = painterResource(R.drawable.holder),
-                                        error = painterResource(R.drawable.holder),
+                                        placeholder = painterResource(Res.drawable.holder),
+                                        error = painterResource(Res.drawable.holder),
                                         contentDescription = null,
                                         contentScale = ContentScale.FillHeight,
                                         onSuccess = {
@@ -400,9 +402,9 @@ fun PlaylistScreen(
                                                 Spacer(modifier = Modifier.size(4.dp))
                                                 Text(
                                                     text = "${if (data.isRadio) {
-                                                        stringResource(R.string.radio)
+                                                        stringResource(Res.string.radio)
                                                     } else {
-                                                        stringResource(R.string.playlist)
+                                                        stringResource(Res.string.playlist)
                                                     }} • ${data.year}",
                                                     style = typo.bodyMedium,
                                                 )
@@ -415,7 +417,7 @@ fun PlaylistScreen(
                                                 Crossfade(isPlaying && playingPlaylistId == data.id) { isThisPlaying ->
                                                     if (isThisPlaying) {
                                                         RippleIconButton(
-                                                            resId = R.drawable.baseline_pause_circle_24,
+                                                            resId = Res.drawable.baseline_pause_circle_24,
                                                             fillMaxSize = true,
                                                             tint = seed,
                                                             modifier = Modifier.size(48.dp),
@@ -424,7 +426,7 @@ fun PlaylistScreen(
                                                         }
                                                     } else {
                                                         RippleIconButton(
-                                                            resId = R.drawable.baseline_play_circle_24,
+                                                            resId = Res.drawable.baseline_play_circle_24,
                                                             fillMaxSize = true,
                                                             tint = seed,
                                                             modifier = Modifier.size(48.dp),
@@ -454,13 +456,13 @@ fun PlaylistScreen(
                                                                                 Toast
                                                                                     .makeText(
                                                                                         context,
-                                                                                        context.getString(R.string.downloaded),
+                                                                                        context.getString(Res.string.downloaded),
                                                                                         Toast.LENGTH_SHORT,
                                                                                     ).show()
                                                                             },
                                                                 ) {
                                                                     Icon(
-                                                                        painter = painterResource(id = R.drawable.baseline_downloaded),
+                                                                        painter = painterResource(Res.drawable.baseline_downloaded),
                                                                         tint = Color(0xFF00A0CB),
                                                                         contentDescription = "",
                                                                         modifier =
@@ -482,7 +484,7 @@ fun PlaylistScreen(
                                                                                 Toast
                                                                                     .makeText(
                                                                                         context,
-                                                                                        context.getString(R.string.downloading),
+                                                                                        context.getString(Res.string.downloading),
                                                                                         Toast.LENGTH_SHORT,
                                                                                     ).show()
                                                                             },
@@ -498,7 +500,7 @@ fun PlaylistScreen(
                                                             else -> {
                                                                 RippleIconButton(
                                                                     fillMaxSize = true,
-                                                                    resId = R.drawable.download_button,
+                                                                    resId = Res.drawable.download_button,
                                                                     modifier = Modifier.size(36.dp),
                                                                 ) {
                                                                     Logger.w("PlaylistScreen", "downloadState: $downloadState")
@@ -513,7 +515,7 @@ fun PlaylistScreen(
                                                     RippleIconButton(
                                                         modifier =
                                                             Modifier.size(36.dp),
-                                                        resId = R.drawable.baseline_sensors_24,
+                                                        resId = Res.drawable.baseline_sensors_24,
                                                         fillMaxSize = true,
                                                     ) {
                                                         viewModel.onUIEvent(PlaylistUIEvent.StartRadio)
@@ -522,7 +524,7 @@ fun PlaylistScreen(
                                                     RippleIconButton(
                                                         modifier =
                                                             Modifier.size(36.dp),
-                                                        resId = R.drawable.baseline_shuffle_24,
+                                                        resId = Res.drawable.baseline_shuffle_24,
                                                         fillMaxSize = true,
                                                     ) {
                                                         viewModel.onUIEvent(PlaylistUIEvent.Shuffle)
@@ -532,7 +534,7 @@ fun PlaylistScreen(
                                                 RippleIconButton(
                                                     modifier =
                                                         Modifier.size(36.dp),
-                                                    resId = R.drawable.baseline_more_vert_24,
+                                                    resId = Res.drawable.baseline_more_vert_24,
                                                     fillMaxSize = true,
                                                 ) {
                                                     onPlaylistMoreClick()
@@ -550,7 +552,7 @@ fun PlaylistScreen(
                                                         if (!it.isNullOrEmpty()) {
                                                             it
                                                         } else {
-                                                            stringResource(R.string.no_description)
+                                                            stringResource(Res.string.no_description)
                                                         }
                                                     },
                                                 limitLine = 3,
@@ -562,10 +564,10 @@ fun PlaylistScreen(
                                             Text(
                                                 text =
                                                     if (data.isRadio) {
-                                                        stringResource(R.string.unlimited)
+                                                        stringResource(Res.string.unlimited)
                                                     } else {
                                                         stringResource(
-                                                            id = R.string.album_length,
+                                                            id = Res.string.album_length,
                                                             (data.trackCount).toString(),
                                                             "",
                                                         )
@@ -655,7 +657,7 @@ fun PlaylistScreen(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
-                                        text = stringResource(id = R.string.error),
+                                        text = stringResource(Res.string.error),
                                         style = typo.bodyMedium,
                                     )
                                 }
@@ -729,7 +731,7 @@ fun PlaylistScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    R.drawable.baseline_arrow_back_ios_new_24,
+                                    Res.drawable.baseline_arrow_back_ios_new_24,
                                     Modifier
                                         .size(32.dp),
                                     true,

@@ -27,7 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -37,7 +37,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
 
@@ -80,7 +82,7 @@ fun ShareSavedLyricsDialog(
                 )
             }) {
                 Text(
-                    stringResource(R.string.ok),
+                    stringResource(Res.string.ok),
                     style = typo.bodySmall,
                 )
             }
@@ -90,26 +92,26 @@ fun ShareSavedLyricsDialog(
                 onDismissRequest.invoke()
             }) {
                 Text(
-                    stringResource(id = R.string.later),
+                    stringResource(Res.string.later),
                     style = typo.bodySmall,
                 )
             }
         },
         title = {
             Text(
-                stringResource(R.string.help_build_lyrics_database),
+                stringResource(Res.string.help_build_lyrics_database),
                 style = typo.labelSmall,
             )
         },
         text = {
             Column {
                 Text(
-                    stringResource(R.string.help_build_lyrics_database_description),
+                    stringResource(Res.string.help_build_lyrics_database_description),
                     style = typo.bodySmall,
                 )
                 Text(
                     buildAnnotatedString {
-                        append(stringResource(R.string.lyrics_database_description))
+                        append(stringResource(Res.string.lyrics_database_description))
                         append(" ")
                         withLink(
                             LinkAnnotation.Url(
@@ -140,14 +142,14 @@ fun ShareSavedLyricsDialog(
                                 onValueChange = { contributorName = it },
                                 label = {
                                     Text(
-                                        stringResource(R.string.contributor_name),
+                                        stringResource(Res.string.contributor_name),
                                         style =
                                             typo.labelSmall.copy(
                                                 fontSize = 8.sp,
                                             ),
                                     )
                                 },
-                                placeholder = { Text(stringResource(R.string.contributor_name), style = typo.bodySmall) },
+                                placeholder = { Text(stringResource(Res.string.contributor_name), style = typo.bodySmall) },
                                 singleLine = true,
                             )
                             Spacer(Modifier.height(8.dp))
@@ -157,14 +159,14 @@ fun ShareSavedLyricsDialog(
                                 onValueChange = { contributorEmail = it },
                                 label = {
                                     Text(
-                                        stringResource(R.string.contributor_email),
+                                        stringResource(Res.string.contributor_email),
                                         style =
                                             typo.labelSmall.copy(
                                                 fontSize = 8.sp,
                                             ),
                                     )
                                 },
-                                placeholder = { Text(stringResource(R.string.contributor_email), style = typo.bodySmall) },
+                                placeholder = { Text(stringResource(Res.string.contributor_email), style = typo.bodySmall) },
                                 singleLine = true,
                                 isError = contributorEmail.isNotEmpty() && !contributorEmail.contains("@"),
                             )
@@ -187,7 +189,7 @@ fun ShareSavedLyricsDialog(
                     }
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        stringResource(R.string.use_anonymous),
+                        stringResource(Res.string.use_anonymous),
                         style = typo.bodySmall,
                     )
                 }

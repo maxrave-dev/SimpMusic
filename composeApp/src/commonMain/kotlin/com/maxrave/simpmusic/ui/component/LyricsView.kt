@@ -34,8 +34,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -47,7 +47,9 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
@@ -462,7 +464,7 @@ fun FullscreenLyricsSheet(
                                 verticalArrangement = Arrangement.Center,
                             ) {
                                 Text(
-                                    text = stringResource(id = R.string.now_playing_upper),
+                                    text = stringResource(Res.string.now_playing_upper),
                                     style = typo.bodyMedium,
                                     color = Color.White,
                                 )
@@ -491,7 +493,7 @@ fun FullscreenLyricsSheet(
                                 }
                             }) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
+                                    painter = painterResource(Res.drawable.baseline_keyboard_arrow_down_24),
                                     contentDescription = "",
                                     tint = Color.White,
                                 )
@@ -500,7 +502,7 @@ fun FullscreenLyricsSheet(
                         actions = {
                             IconButton(onClick = {}, modifier = Modifier.alpha(0f)) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.baseline_more_vert_24),
+                                    painter = painterResource(Res.drawable.baseline_more_vert_24),
                                     contentDescription = "",
                                     tint = Color.White,
                                 )
@@ -540,7 +542,7 @@ fun FullscreenLyricsSheet(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
-                                        text = stringResource(id = R.string.unavailable),
+                                        text = stringResource(Res.string.unavailable),
                                         style = typo.bodyMedium,
                                         color = Color.White,
                                         textAlign = TextAlign.Center,

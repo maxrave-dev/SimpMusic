@@ -17,7 +17,6 @@ import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -25,7 +24,6 @@ val viewModelModule =
     module {
         single {
             SharedViewModel(
-                androidApplication(),
                 get(),
                 get(),
                 get(),
@@ -39,14 +37,12 @@ val viewModelModule =
         }
         single {
             SearchViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
             )
         }
         viewModel {
             NowPlayingBottomSheetViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
                 get(),
@@ -54,7 +50,6 @@ val viewModelModule =
         }
         viewModel {
             LibraryViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
                 get(),
@@ -66,28 +61,24 @@ val viewModelModule =
         }
         viewModel {
             LibraryDynamicPlaylistViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
             )
         }
         viewModel {
             AlbumViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
             )
         }
         viewModel {
             HomeViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
             )
         }
         viewModel {
             SettingsViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
                 get(),
@@ -97,14 +88,12 @@ val viewModelModule =
         }
         viewModel {
             ArtistViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
             )
         }
         viewModel {
             PlaylistViewModel(
-                application = androidApplication(),
                 get(),
                 get(),
                 get(),
@@ -112,31 +101,26 @@ val viewModelModule =
         }
         viewModel {
             LogInViewModel(
-                application = androidApplication(),
                 get(),
             )
         }
         viewModel {
             PodcastViewModel(
-                application = androidApplication(),
                 get(),
             )
         }
         viewModel {
             MoreAlbumsViewModel(
-                application = androidApplication(),
                 get(),
             )
         }
         viewModel {
             RecentlySongsViewModel(
-                application = androidApplication(),
                 get(),
             )
         }
         viewModel {
             LocalPlaylistViewModel(
-                androidApplication(),
                 get(),
                 get(),
                 get(),
@@ -144,13 +128,11 @@ val viewModelModule =
         }
         viewModel {
             NotificationViewModel(
-                androidApplication(),
                 get(),
             )
         }
         viewModel {
             MoodViewModel(
-                androidApplication(),
                 get(),
                 get(),
             )

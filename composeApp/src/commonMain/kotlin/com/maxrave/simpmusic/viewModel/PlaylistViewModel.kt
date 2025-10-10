@@ -22,7 +22,9 @@ import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.*
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -35,11 +37,11 @@ import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.inject
 
 class PlaylistViewModel(
-    private val application: Application,
+    
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val playlistRepository: PlaylistRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     val downloadUtils: DownloadHandler by inject<DownloadHandler>()
     private var _uiState = MutableStateFlow<PlaylistUIState>(Loading)
     val uiState: StateFlow<PlaylistUIState> = _uiState
@@ -164,9 +166,9 @@ class PlaylistViewModel(
                 playlistRepository
                     .getRadio(
                         id,
-                        radioString = getString(R.string.radio),
-                        defaultDescription = getString(R.string.auto_created_by_youtube_music),
-                        viewString = getString(R.string.view_count),
+                        radioString = getString(Res.string.radio),
+                        defaultDescription = getString(Res.string.auto_created_by_youtube_music),
+                        viewString = getString(Res.string.view_count),
                     ).collect { res ->
                         val data = res.data
                         when (res) {
@@ -202,7 +204,7 @@ class PlaylistViewModel(
             } else {
                 // This is an online playlist
                 playlistRepository
-                    .getPlaylistData(id, getString(R.string.view_count))
+                    .getPlaylistData(id, getString(Res.string.view_count))
                     .collect { res ->
                         val data = res.data
                         when (res) {
@@ -420,7 +422,7 @@ class PlaylistViewModel(
                         playlistId = data.id,
                         playlistName = "${
                             getString(
-                                R.string.playlist,
+                                Res.string.playlist,
                             )
                         } \"${data.title}\"",
                         playlistType = PlaylistType.PLAYLIST,
@@ -437,7 +439,7 @@ class PlaylistViewModel(
                 val loadedList = tracks.value
                 if (loadedList.isEmpty()) {
                     makeToast(
-                        application.getString(R.string.playlist_is_empty),
+                        application.getString(Res.string.playlist_is_empty),
                     )
                     return
                 }
@@ -449,7 +451,7 @@ class PlaylistViewModel(
                         playlistId = data.id,
                         playlistName = "${
                             getString(
-                                R.string.playlist,
+                                Res.string.playlist,
                             )
                         } \"${data.title}\"",
                         playlistType = PlaylistType.PLAYLIST,
@@ -466,7 +468,7 @@ class PlaylistViewModel(
                 val shuffleEndpoint = data.shuffleEndpoint
                 if (shuffleEndpoint == null) {
                     makeToast(
-                        application.getString(R.string.shuffle_not_available),
+                        application.getString(Res.string.shuffle_not_available),
                     )
                     return
                 } else {
@@ -481,7 +483,7 @@ class PlaylistViewModel(
                                             listTracks = result.first.toCollection(arrayListOf<Track>()),
                                             firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
                                             playlistId = shuffleEndpoint.playlistId,
-                                            playlistName = "\"${data.title}\" ${getString(R.string.shuffle)}",
+                                            playlistName = "\"${data.title}\" ${getString(Res.string.shuffle)}",
                                             playlistType = PlaylistType.RADIO,
                                             continuation = result.second,
                                         ),
@@ -494,7 +496,7 @@ class PlaylistViewModel(
                                 }
                                 else -> {
                                     makeToast(
-                                        res.message ?: application.getString(R.string.error),
+                                        res.message ?: application.getString(Res.string.error),
                                     )
                                 }
                             }
@@ -506,7 +508,7 @@ class PlaylistViewModel(
                 val radioEndpoint = data.radioEndpoint
                 if (radioEndpoint == null) {
                     makeToast(
-                        application.getString(R.string.radio_not_available),
+                        application.getString(Res.string.radio_not_available),
                     )
                     return
                 } else {
@@ -521,7 +523,7 @@ class PlaylistViewModel(
                                             listTracks = result.first.toCollection(arrayListOf<Track>()),
                                             firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
                                             playlistId = radioEndpoint.playlistId,
-                                            playlistName = "\"${data.title}\" ${getString(R.string.radio)}",
+                                            playlistName = "\"${data.title}\" ${getString(Res.string.radio)}",
                                             playlistType = PlaylistType.RADIO,
                                             continuation = result.second,
                                         ),
@@ -534,7 +536,7 @@ class PlaylistViewModel(
                                 }
                                 else -> {
                                     makeToast(
-                                        res.message ?: application.getString(R.string.error),
+                                        res.message ?: application.getString(Res.string.error),
                                     )
                                 }
                             }
@@ -590,14 +592,14 @@ class PlaylistViewModel(
                 .syncYouTubePlaylistToLocalPlaylist(
                     data,
                     tracks,
-                    getString(R.string.synced),
-                    getString(R.string.error),
+                    getString(Res.string.synced),
+                    getString(Res.string.error),
                 ).collectLatestResource(
                     onSuccess = {
                         makeToast(it)
                     },
                     onLoading = {
-                        makeToast(application.getString(R.string.syncing))
+                        makeToast(application.getString(Res.string.syncing))
                     },
                     onError = {
                         makeToast(it)
@@ -609,7 +611,7 @@ class PlaylistViewModel(
     fun downloadFullPlaylist() {
         viewModelScope.launch {
             val id = playlistEntity.value?.id ?: return@launch
-            makeToast(application.getString(R.string.downloading))
+            makeToast(application.getString(Res.string.downloading))
             updatePlaylistDownloadState(id, STATE_DOWNLOADING)
             getFullTracks { tracks ->
                 tracks.forEach {

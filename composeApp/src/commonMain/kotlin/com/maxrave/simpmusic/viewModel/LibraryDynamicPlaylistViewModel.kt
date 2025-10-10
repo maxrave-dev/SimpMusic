@@ -3,7 +3,9 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.mediaservice.handler.PlaylistType
@@ -20,10 +22,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class LibraryDynamicPlaylistViewModel(
-    application: Application,
+    
     private val songRepository: SongRepository,
     private val artistRepository: ArtistRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _listFavoriteSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
     val listFavoriteSong: StateFlow<List<SongEntity>> get() = _listFavoriteSong
 
@@ -100,7 +102,7 @@ class LibraryDynamicPlaylistViewModel(
                 playlistId = null,
                 playlistName = "${
                     getString(
-                        R.string.playlist,
+                        Res.string.playlist,
                     )
                 } ${getString(type.name())}",
                 playlistType = PlaylistType.RADIO,

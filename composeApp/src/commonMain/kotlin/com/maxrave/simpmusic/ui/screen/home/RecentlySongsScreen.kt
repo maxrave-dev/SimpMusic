@@ -20,13 +20,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
@@ -52,7 +54,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.map
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
@@ -111,7 +113,7 @@ fun RecentlySongsScreen(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM$videoId",
-                                        playlistName = context.getString(R.string.recently_added),
+                                        playlistName = context.getString(Res.string.recently_added),
                                         playlistType = PlaylistType.RADIO,
                                         continuation = null,
                                     ),
@@ -190,7 +192,7 @@ fun RecentlySongsScreen(
                             val error =
                                 (loadState.refresh as? LoadState.Error)?.error?.message
                                     ?: (loadState.append as? LoadState.Error)?.error?.message
-                                    ?: context.getString(R.string.error)
+                                    ?: context.getString(Res.string.error)
                             LaunchedEffect(error) {
                                 Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                             }
@@ -214,14 +216,14 @@ fun RecentlySongsScreen(
                     },
             title = {
                 Text(
-                    text = stringResource(id = R.string.recently_added),
+                    text = stringResource(Res.string.recently_added),
                     style = typo.titleMedium,
                 )
             },
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        R.drawable.baseline_arrow_back_ios_new_24,
+                        Res.drawable.baseline_arrow_back_ios_new_24,
                         Modifier.size(32.dp),
                         true,
                     ) {

@@ -25,7 +25,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.NonLazyGrid
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
@@ -140,28 +142,28 @@ data class LibraryTilingState(
     companion object {
         val Favorite =
             LibraryTilingState(
-                title = R.string.favorite,
+                title = Res.string.favorite,
                 containerColor = Color(0xffff99ae),
                 icon = Icons.Default.Favorite,
                 iconColor = Color(0xffD10000),
             )
         val Followed =
             LibraryTilingState(
-                title = R.string.followed,
+                title = Res.string.followed,
                 containerColor = Color(0xffFFEB3B),
                 icon = Icons.Default.Insights,
                 iconColor = Color.Black,
             )
         val MostPlayed =
             LibraryTilingState(
-                title = R.string.most_played,
+                title = Res.string.most_played,
                 containerColor = Color(0xff00BCD4),
                 icon = Icons.AutoMirrored.Filled.TrendingUp,
                 iconColor = Color.Black,
             )
         val Downloaded =
             LibraryTilingState(
-                title = R.string.downloaded,
+                title = Res.string.downloaded,
                 containerColor = Color(0xff4CAF50),
                 icon = Icons.Default.Downloading,
                 iconColor = Color.Black,

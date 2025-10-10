@@ -1,15 +1,14 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,10 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.Transparent
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +43,7 @@ fun DropdownButton(
             OutlinedTextField(
                 modifier =
                     Modifier
-                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                         .widthIn(1.dp, Dp.Infinity),
                 textStyle = typo.bodyMedium,
                 readOnly = true,
@@ -76,17 +75,4 @@ fun DropdownButton(
             }
         }
     }
-}
-
-@Preview(
-    showSystemUi = true,
-    uiMode = Configuration.UI_MODE_NIGHT_NO,
-)
-@Composable
-fun DropdownButtonPreview() {
-    DropdownButton(
-        defaultSelected = "Item 1 SIMPMUSIC",
-        items = listOf("Item 1 SIMPMUSIC", "Item 2", "Item 3", "Item 4", "Item 5"),
-        onItemSelected = { /*TODO*/ },
-    )
 }

@@ -52,8 +52,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,7 +65,9 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
@@ -217,13 +219,13 @@ fun SearchScreen(
                     enabled = true,
                     placeholder = {
                         Text(
-                            text = stringResource(id = R.string.what_do_you_want_to_listen_to),
+                            text = stringResource(Res.string.what_do_you_want_to_listen_to),
                             style = typo.labelMedium,
                         )
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.baseline_search_24),
+                            painter = painterResource(Res.drawable.baseline_search_24),
                             contentDescription = "Search",
                         )
                     },
@@ -238,7 +240,7 @@ fun SearchScreen(
                             },
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.baseline_close_24),
+                                painter = painterResource(Res.drawable.baseline_close_24),
                                 contentDescription = "Clear search",
                             )
                         }
@@ -279,7 +281,7 @@ fun SearchScreen(
                                                     listTracks = arrayListOf(firstTrack),
                                                     firstPlayedTrack = firstTrack,
                                                     playlistId = "RDAMVM${firstTrack.videoId}",
-                                                    playlistName = "\"${searchText}\" ${context.getString(R.string.in_search)}",
+                                                    playlistName = "\"${searchText}\" ${context.getString(Res.string.in_search)}",
                                                     playlistType = PlaylistType.RADIO,
                                                     continuation = null,
                                                 ),
@@ -350,7 +352,7 @@ fun SearchScreen(
                                     },
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = R.drawable.baseline_arrow_outward_24),
+                                        painter = painterResource(Res.drawable.baseline_arrow_outward_24),
                                         contentDescription = "Search suggestion",
                                         modifier = Modifier.size(24.dp),
                                     )
@@ -392,7 +394,7 @@ fun SearchScreen(
                                                 onClick = { searchViewModel.deleteSearchHistory() },
                                             ) {
                                                 Text(
-                                                    text = stringResource(id = R.string.clear_search_history),
+                                                    text = stringResource(Res.string.clear_search_history),
                                                     color = MaterialTheme.colorScheme.onBackground,
                                                 )
                                             }
@@ -424,7 +426,7 @@ fun SearchScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = R.drawable.baseline_history_24),
+                                        painter = painterResource(Res.drawable.baseline_history_24),
                                         contentDescription = "Search history",
                                         modifier = Modifier.size(24.dp),
                                     )
@@ -441,7 +443,7 @@ fun SearchScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(id = R.drawable.baseline_arrow_outward_24),
+                                            painter = painterResource(Res.drawable.baseline_arrow_outward_24),
                                             contentDescription = "Search suggestion",
                                             modifier = Modifier.size(24.dp),
                                         )
@@ -469,7 +471,7 @@ fun SearchScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
-                                text = stringResource(id = R.string.everything_you_need),
+                                text = stringResource(Res.string.everything_you_need),
                                 style = typo.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
@@ -477,7 +479,7 @@ fun SearchScreen(
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = stringResource(id = R.string.search_for_songs_artists_albums_playlists_and_more),
+                                text = stringResource(Res.string.search_for_songs_artists_albums_playlists_and_more),
                                 style = typo.bodyMedium,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth(),
@@ -503,7 +505,7 @@ fun SearchScreen(
                                 Chip(
                                     isAnimated = uiState is SearchScreenUIState.Loading,
                                     isSelected = isSelected,
-                                    text = stringResource(id = id.toStringRes()),
+                                    text = stringResource(id.toStringRes()),
                                 ) {
                                     searchViewModel.setSearchType(id)
                                 }
@@ -596,7 +598,7 @@ fun SearchScreen(
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",
                                                                                     playlistName =
-                                                                                        "\"${searchText}\" ${context.getString(R.string.in_search)}",
+                                                                                        "\"${searchText}\" ${context.getString(Res.string.in_search)}",
                                                                                     playlistType = PlaylistType.RADIO,
                                                                                     continuation = null,
                                                                                 ),
@@ -626,7 +628,7 @@ fun SearchScreen(
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",
                                                                                     playlistName =
-                                                                                        "\"${searchText}\" ${context.getString(R.string.in_search)}",
+                                                                                        "\"${searchText}\" ${context.getString(Res.string.in_search)}",
                                                                                     playlistType = PlaylistType.RADIO,
                                                                                     continuation = null,
                                                                                 ),
@@ -694,7 +696,7 @@ fun SearchScreen(
                                                         contentAlignment = Alignment.Center,
                                                     ) {
                                                         Text(
-                                                            text = stringResource(id = R.string.no_results_found),
+                                                            text = stringResource(Res.string.no_results_found),
                                                             style = typo.titleMedium,
                                                             textAlign = TextAlign.Center,
                                                             modifier = Modifier.fillMaxWidth(),
@@ -713,7 +715,7 @@ fun SearchScreen(
                                                 horizontalAlignment = Alignment.CenterHorizontally,
                                             ) {
                                                 Text(
-                                                    text = stringResource(id = R.string.error_occurred),
+                                                    text = stringResource(Res.string.error_occurred),
                                                     style = typo.titleMedium,
                                                     fontWeight = FontWeight.Bold,
                                                     textAlign = TextAlign.Center,
@@ -725,7 +727,7 @@ fun SearchScreen(
                                                         searchViewModel.searchAll(searchText)
                                                     }
                                                 }) {
-                                                    Text(text = stringResource(id = R.string.retry))
+                                                    Text(text = stringResource(Res.string.retry))
                                                 }
                                             }
                                         }
@@ -738,7 +740,7 @@ fun SearchScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Text(
-                                                text = stringResource(id = R.string.no_results_found),
+                                                text = stringResource(Res.string.no_results_found),
                                                 style = typo.titleMedium,
                                                 textAlign = TextAlign.Center,
                                                 modifier = Modifier.fillMaxWidth(),
@@ -795,8 +797,8 @@ fun SuggestItemRow(
                         .diskCacheKey(url)
                         .crossfade(true)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -840,7 +842,7 @@ fun SuggestItemRow(
                     is SongsResult -> searchResult.artists?.map { it.name }?.connectArtists()
                     is AlbumsResult -> searchResult.artists.map { it.name }.connectArtists()
                     is PlaylistsResult -> searchResult.author.ifEmpty { "YouTube Music" }
-                    is ArtistsResult -> stringResource(R.string.artists)
+                    is ArtistsResult -> stringResource(Res.string.artists)
                     is VideosResult -> searchResult.artists?.map { it.name }?.connectArtists()
                     else -> null
                 } ?: "Unknown"

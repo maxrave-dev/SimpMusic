@@ -48,14 +48,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.searchResult.songs.Artist
@@ -86,7 +88,7 @@ import com.maxrave.simpmusic.viewModel.ArtistScreenState
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.flow.map
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
@@ -153,13 +155,13 @@ fun ArtistScreen(
                         ) {
                             Row {
                                 Text(
-                                    text = state.data.subscribers ?: stringResource(R.string.unknown),
+                                    text = state.data.subscribers ?: stringResource(Res.string.unknown),
                                     style = typo.bodyMedium,
                                     textAlign = TextAlign.Start,
                                     modifier = Modifier.weight(1f),
                                 )
                                 Text(
-                                    text = state.data.playCount ?: stringResource(R.string.unknown),
+                                    text = state.data.playCount ?: stringResource(Res.string.unknown),
                                     style = typo.bodyMedium,
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.weight(1f),
@@ -205,7 +207,7 @@ fun ArtistScreen(
                                                                     firstPlayedTrack = firstQueue,
                                                                     playlistId = "RDAMVM${firstQueue.videoId}",
                                                                     playlistName = "\"${(state.data.title ?: "")}\" ${context.getString(
-                                                                        R.string.popular,
+                                                                        Res.string.popular,
                                                                     )}",
                                                                     playlistType = PlaylistType.RADIO,
                                                                     continuation = null,
@@ -248,9 +250,9 @@ fun ArtistScreen(
                                                 ),
                                         ) {
                                             if (isFollowed) {
-                                                Text(text = stringResource(R.string.followed))
+                                                Text(text = stringResource(Res.string.followed))
                                             } else {
-                                                Text(text = stringResource(R.string.follow))
+                                                Text(text = stringResource(Res.string.follow))
                                             }
                                         }
                                     }
@@ -261,7 +263,7 @@ fun ArtistScreen(
                                         if (state.data.shuffleParam != null) {
                                             viewModel.onShuffleClick(state.data.shuffleParam)
                                         } else {
-                                            Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_LONG).show()
+                                            Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
                                         }
                                     },
                                 ) {
@@ -273,7 +275,7 @@ fun ArtistScreen(
                                         if (state.data.radioParam != null) {
                                             viewModel.onRadioClick(state.data.radioParam)
                                         } else {
-                                            Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_LONG).show()
+                                            Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
                                         }
                                     },
                                     colors =
@@ -289,7 +291,7 @@ fun ArtistScreen(
                                         Icon(Icons.Outlined.Sensors, "")
                                         if (canvasUrl == null) {
                                             Spacer(Modifier.width(6.dp))
-                                            Text(text = stringResource(R.string.start_radio))
+                                            Text(text = stringResource(Res.string.start_radio))
                                         }
                                     }
                                 }
@@ -304,7 +306,7 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(horizontal = 20.dp),
                                 ) {
                                     Text(
-                                        text = stringResource(R.string.popular),
+                                        text = stringResource(Res.string.popular),
                                         style = typo.labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -314,7 +316,7 @@ fun ArtistScreen(
                                             if (id != null) {
                                                 navController.navigate(PlaylistDestination(id))
                                             } else {
-                                                Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
                                             }
                                         },
                                         colors =
@@ -324,7 +326,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(R.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
                                     }
                                 }
                                 state.data.popularSongs.forEach { song ->
@@ -343,7 +345,7 @@ fun ArtistScreen(
                                                     listTracks = arrayListOf(firstQueue),
                                                     firstPlayedTrack = firstQueue,
                                                     playlistId = "RDAMVM${song.videoId}",
-                                                    playlistName = "\"${state.data.title ?: ""}\" ${context.getString(R.string.popular)}",
+                                                    playlistName = "\"${state.data.title ?: ""}\" ${context.getString(Res.string.popular)}",
                                                     playlistType = PlaylistType.RADIO,
                                                     continuation = null,
                                                 ),
@@ -375,7 +377,7 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(horizontal = 20.dp),
                                 ) {
                                     Text(
-                                        text = stringResource(R.string.singles),
+                                        text = stringResource(Res.string.singles),
                                         style = typo.labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -390,7 +392,7 @@ fun ArtistScreen(
                                                     ),
                                                 )
                                             } else {
-                                                Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
                                             }
                                         },
                                         colors =
@@ -400,7 +402,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(R.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
                                     }
                                 }
                                 LazyRow(
@@ -441,7 +443,7 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(horizontal = 20.dp),
                                 ) {
                                     Text(
-                                        text = stringResource(R.string.albums),
+                                        text = stringResource(Res.string.albums),
                                         style = typo.labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -456,7 +458,7 @@ fun ArtistScreen(
                                                     ),
                                                 )
                                             } else {
-                                                Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
                                             }
                                         },
                                         colors =
@@ -466,7 +468,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(R.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
                                     }
                                 }
                                 LazyRow(
@@ -507,7 +509,7 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(horizontal = 20.dp),
                                 ) {
                                     Text(
-                                        text = stringResource(R.string.videos),
+                                        text = stringResource(Res.string.videos),
                                         style = typo.labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -521,7 +523,7 @@ fun ArtistScreen(
                                                     ),
                                                 )
                                             } else {
-                                                Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
                                             }
                                         },
                                         colors =
@@ -531,7 +533,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(R.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
                                     }
                                 }
                                 LazyRow(
@@ -549,7 +551,7 @@ fun ArtistScreen(
                                                         listTracks = arrayListOf(firstQueue),
                                                         firstPlayedTrack = firstQueue,
                                                         playlistId = "RDAMVM${video.videoId}",
-                                                        playlistName = (state.data.title ?: "") + context.getString(R.string.videos),
+                                                        playlistName = (state.data.title ?: "") + context.getString(Res.string.videos),
                                                         playlistType = PlaylistType.RADIO,
                                                         continuation = null,
                                                     ),
@@ -593,7 +595,7 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(horizontal = 20.dp),
                                 ) {
                                     Text(
-                                        text = stringResource(R.string.featured_inArtist),
+                                        text = stringResource(Res.string.featured_inArtist),
                                         style = typo.labelMedium,
                                         modifier =
                                             Modifier
@@ -639,7 +641,7 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(horizontal = 20.dp),
                                 ) {
                                     Text(
-                                        text = stringResource(R.string.related_artists),
+                                        text = stringResource(Res.string.related_artists),
                                         style = typo.labelMedium,
                                         modifier =
                                             Modifier
@@ -697,7 +699,7 @@ fun ArtistScreen(
                             modifier = Modifier.padding(horizontal = 20.dp),
                         ) {
                             Text(
-                                text = stringResource(R.string.description),
+                                text = stringResource(Res.string.description),
                                 style = typo.labelMedium,
                                 modifier =
                                     Modifier
@@ -716,7 +718,7 @@ fun ArtistScreen(
                         ) {
                             DescriptionView(
                                 modifier = Modifier.padding(16.dp),
-                                text = state.data.description ?: stringResource(R.string.no_description),
+                                text = state.data.description ?: stringResource(Res.string.no_description),
                                 limitLine = 5,
                                 onTimeClicked = {},
                                 onURLClicked = { url ->
@@ -739,7 +741,7 @@ fun ArtistScreen(
                 }
             }
             is ArtistScreenState.Error -> {
-                Toast.makeText(LocalContext.current, state.message ?: stringResource(R.string.error), Toast.LENGTH_LONG).show()
+                Toast.makeText(LocalContext.current, state.message ?: stringResource(Res.string.error), Toast.LENGTH_LONG).show()
                 navController.navigateUp()
             }
         }

@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LogInViewModel(
-    application: Application,
+    
     private val dataStoreManager: DataStoreManager,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _spotifyStatus: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val spotifyStatus: StateFlow<Boolean> get() = _spotifyStatus
 

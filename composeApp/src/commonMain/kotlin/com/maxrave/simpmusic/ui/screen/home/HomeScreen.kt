@@ -66,8 +66,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -77,7 +77,9 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
 import com.maxrave.domain.data.model.home.chart.Chart
@@ -130,24 +132,24 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
 private val listOfHomeChip =
     listOf(
-        R.string.all,
-        R.string.relax,
-        R.string.sleep,
-        R.string.energize,
-        R.string.sad,
-        R.string.romance,
-        R.string.feel_good,
-        R.string.workout,
-        R.string.party,
-        R.string.commute,
-        R.string.focus,
+        Res.string.all,
+        Res.string.relax,
+        Res.string.sleep,
+        Res.string.energize,
+        Res.string.sad,
+        Res.string.romance,
+        Res.string.feel_good,
+        Res.string.workout,
+        Res.string.party,
+        Res.string.commute,
+        Res.string.focus,
     )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
@@ -303,11 +305,11 @@ fun HomeScreen(
         }
         AlertDialog(
             title = {
-                Text(stringResource(R.string.warning))
+                Text(stringResource(Res.string.warning))
             },
             text = {
                 Column {
-                    Text(text = stringResource(R.string.log_in_warning))
+                    Text(text = stringResource(Res.string.log_in_warning))
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -324,7 +326,7 @@ fun HomeScreen(
                             },
                         )
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text(stringResource(R.string.do_not_show_again))
+                        Text(stringResource(Res.string.do_not_show_again))
                     }
                 }
             },
@@ -333,14 +335,14 @@ fun HomeScreen(
                     viewModel.doneShowLogInAlert(doNotShowAgain)
                     navController.navigate(LoginDestination)
                 }) {
-                    Text(stringResource(R.string.go_to_log_in_page))
+                    Text(stringResource(Res.string.go_to_log_in_page))
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
                     viewModel.doneShowLogInAlert(doNotShowAgain)
                 }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             },
             onDismissRequest = {
@@ -404,7 +406,7 @@ fun HomeScreen(
                                         homeData.find {
                                             it.title ==
                                                 context.getString(
-                                                    R.string.quick_picks,
+                                                    Res.string.quick_picks,
                                                 )
                                         } != null,
                                 ) {
@@ -414,7 +416,7 @@ fun HomeScreen(
                                                 homeData.find {
                                                     it.title ==
                                                         context.getString(
-                                                            R.string.quick_picks,
+                                                            Res.string.quick_picks,
                                                         )
                                                 } ?: return@AnimatedVisibility
                                             ).let { content ->
@@ -440,7 +442,7 @@ fun HomeScreen(
                             }
                         }
                         items(homeData, key = { it.hashCode() }) {
-                            if (it.title != context.getString(R.string.quick_picks)) {
+                            if (it.title != context.getString(Res.string.quick_picks)) {
                                 HomeItem(
                                     navController = navController,
                                     data = it,
@@ -583,35 +585,35 @@ fun HomeScreen(
                 listOfHomeChip.forEach { id ->
                     val isSelected =
                         when (params) {
-                            HOME_PARAMS_RELAX -> id == R.string.relax
-                            HOME_PARAMS_SLEEP -> id == R.string.sleep
-                            HOME_PARAMS_ENERGIZE -> id == R.string.energize
-                            HOME_PARAMS_SAD -> id == R.string.sad
-                            HOME_PARAMS_ROMANCE -> id == R.string.romance
-                            HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
-                            HOME_PARAMS_WORKOUT -> id == R.string.workout
-                            HOME_PARAMS_PARTY -> id == R.string.party
-                            HOME_PARAMS_COMMUTE -> id == R.string.commute
-                            HOME_PARAMS_FOCUS -> id == R.string.focus
-                            else -> id == R.string.all
+                            HOME_PARAMS_RELAX -> id == Res.string.relax
+                            HOME_PARAMS_SLEEP -> id == Res.string.sleep
+                            HOME_PARAMS_ENERGIZE -> id == Res.string.energize
+                            HOME_PARAMS_SAD -> id == Res.string.sad
+                            HOME_PARAMS_ROMANCE -> id == Res.string.romance
+                            HOME_PARAMS_FEEL_GOOD -> id == Res.string.feel_good
+                            HOME_PARAMS_WORKOUT -> id == Res.string.workout
+                            HOME_PARAMS_PARTY -> id == Res.string.party
+                            HOME_PARAMS_COMMUTE -> id == Res.string.commute
+                            HOME_PARAMS_FOCUS -> id == Res.string.focus
+                            else -> id == Res.string.all
                         }
                     Chip(
                         isAnimated = loading,
                         isSelected = isSelected,
-                        text = stringResource(id = id),
+                        text = stringResource(id),
                     ) {
                         when (id) {
-                            R.string.all -> viewModel.setParams(null)
-                            R.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
-                            R.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
-                            R.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
-                            R.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
-                            R.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
-                            R.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
-                            R.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
-                            R.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
-                            R.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
-                            R.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
+                            Res.string.all -> viewModel.setParams(null)
+                            Res.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
+                            Res.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
+                            Res.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
+                            Res.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
+                            Res.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
+                            Res.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
+                            Res.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
+                            Res.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
+                            Res.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
+                            Res.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
                         }
                     }
                 }
@@ -633,7 +635,7 @@ fun HomeTopAppBar(navController: NavController) {
         title = {
             Column {
                 Text(
-                    text = stringResource(id = AppResString.app_name),
+                    text = stringResource(AppResString.app_name),
                     style = typo.titleMedium,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -642,19 +644,19 @@ fun HomeTopAppBar(navController: NavController) {
                     text =
                         when (hour) {
                             in 6..12 -> {
-                                stringResource(R.string.good_morning)
+                                stringResource(Res.string.good_morning)
                             }
 
                             in 13..17 -> {
-                                stringResource(R.string.good_afternoon)
+                                stringResource(Res.string.good_afternoon)
                             }
 
                             in 18..23 -> {
-                                stringResource(R.string.good_evening)
+                                stringResource(Res.string.good_evening)
                             }
 
                             else -> {
-                                stringResource(R.string.good_night)
+                                stringResource(Res.string.good_night)
                             }
                         },
                     style = typo.bodySmall,
@@ -662,13 +664,13 @@ fun HomeTopAppBar(navController: NavController) {
             }
         },
         actions = {
-            RippleIconButton(resId = R.drawable.outline_notifications_24) {
+            RippleIconButton(resId = Res.drawable.outline_notifications_24) {
                 navController.navigate(NotificationDestination)
             }
-            RippleIconButton(resId = R.drawable.baseline_history_24) {
+            RippleIconButton(resId = Res.drawable.baseline_history_24) {
                 navController.navigate(RecentlySongsDestination)
             }
-            RippleIconButton(resId = R.drawable.baseline_settings_24) {
+            RippleIconButton(resId = Res.drawable.baseline_settings_24) {
                 navController.navigate(SettingsDestination)
             }
         },
@@ -686,7 +688,7 @@ fun AccountLayout(
 ) {
     Column {
         Text(
-            text = stringResource(id = R.string.welcome_back),
+            text = stringResource(Res.string.welcome_back),
             style = typo.bodyMedium,
             color = Color.White,
             modifier = Modifier.padding(bottom = 3.dp),
@@ -704,8 +706,8 @@ fun AccountLayout(
                         .diskCacheKey(url)
                         .crossfade(true)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -749,11 +751,11 @@ fun QuickPicks(
             },
     ) {
         Text(
-            text = stringResource(id = R.string.let_s_start_with_a_radio),
+            text = stringResource(Res.string.let_s_start_with_a_radio),
             style = typo.bodySmall,
         )
         Text(
-            text = stringResource(id = R.string.quick_picks),
+            text = stringResource(Res.string.quick_picks),
             style = typo.headlineMedium,
             color = Color.White,
             maxLines = 1,
@@ -813,11 +815,11 @@ fun MoodMomentAndGenre(
             .padding(vertical = 8.dp),
     ) {
         Text(
-            text = stringResource(id = R.string.let_s_pick_a_playlist_for_you),
+            text = stringResource(Res.string.let_s_pick_a_playlist_for_you),
             style = typo.bodyMedium,
         )
         Text(
-            text = stringResource(id = R.string.moods_amp_moment),
+            text = stringResource(Res.string.moods_amp_moment),
             style = typo.headlineMedium,
             color = white,
             maxLines = 1,
@@ -843,7 +845,7 @@ fun MoodMomentAndGenre(
             }
         }
         Text(
-            text = stringResource(id = R.string.genre),
+            text = stringResource(Res.string.genre),
             style = typo.headlineMedium,
             maxLines = 1,
             color = white,
@@ -875,11 +877,11 @@ fun MoodMomentAndGenre(
 fun ChartTitle() {
     Column {
         Text(
-            text = stringResource(id = R.string.what_is_best_choice_today),
+            text = stringResource(Res.string.what_is_best_choice_today),
             style = typo.bodyMedium,
         )
         Text(
-            text = stringResource(id = R.string.chart),
+            text = stringResource(Res.string.chart),
             style = typo.headlineMedium,
             color = white,
             maxLines = 1,
@@ -946,7 +948,7 @@ fun ChartData(
             }
         }
         Text(
-            text = stringResource(id = R.string.top_artists),
+            text = stringResource(Res.string.top_artists),
             style = typo.headlineMedium,
             color = white,
             maxLines = 1,

@@ -1,6 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
-import androidx.annotation.StringRes
+
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -37,10 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
@@ -58,13 +57,18 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.create
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-inline fun <reified T> GridLibraryPlaylist(
+internal inline fun <reified T> GridLibraryPlaylist(
     navController: NavController,
     contentPadding: PaddingValues,
     data: LocalResource<List<T>>,
-    @StringRes emptyText: Int,
+    emptyText: StringResource,
     noinline onScrolling: (onTop: Boolean) -> Unit = { _ -> },
     noinline createNewPlaylist: (() -> Unit)? = null,
     noinline onReload: () -> Unit,
@@ -99,9 +103,9 @@ inline fun <reified T> GridLibraryPlaylist(
                         .padding(
                             top = contentPadding.calculateTopPadding(),
                         ),
-                containerColor = PullToRefreshDefaults.indicatorContainerColor,
+                containerColor = PullToRefreshDefaults.containerColor,
                 color = PullToRefreshDefaults.indicatorColor,
-                maxDistance = PullToRefreshDefaults.PositionalThreshold,
+                threshold = PullToRefreshDefaults.PositionalThreshold,
             )
         },
     ) {
@@ -150,7 +154,7 @@ inline fun <reified T> GridLibraryPlaylist(
                                         )
                                     }
                                     Text(
-                                        text = stringResource(R.string.create),
+                                        text = stringResource(Res.string.create),
                                         style = typo.titleSmall,
                                         color = Color.White,
                                         maxLines = 1,

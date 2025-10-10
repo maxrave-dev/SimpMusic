@@ -34,11 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.toTrack
@@ -57,7 +59,7 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
@@ -210,7 +212,7 @@ fun LibraryDynamicPlaylistScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        R.drawable.baseline_arrow_back_ios_new_24,
+                        Res.drawable.baseline_arrow_back_ios_new_24,
                         Modifier
                             .size(32.dp),
                         true,
@@ -222,7 +224,7 @@ fun LibraryDynamicPlaylistScreen(
             actions = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        if (showSearchBar) R.drawable.baseline_close_24 else R.drawable.baseline_search_24,
+                        if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,
                         Modifier
                             .size(32.dp),
                         true,
@@ -258,7 +260,7 @@ fun LibraryDynamicPlaylistScreen(
                             onExpandedChange = { showSearchBar = it },
                             placeholder = {
                                 Text(
-                                    stringResource(R.string.search),
+                                    stringResource(Res.string.search),
                                     style = typo.bodySmall,
                                 )
                             },
@@ -286,10 +288,10 @@ sealed class LibraryDynamicPlaylistType {
 
     @StringRes fun name(): Int =
         when (this) {
-            Favorite -> R.string.favorite
-            Followed -> R.string.followed
-            MostPlayed -> R.string.most_played
-            Downloaded -> R.string.downloaded
+            Favorite -> Res.string.favorite
+            Followed -> Res.string.followed
+            MostPlayed -> Res.string.most_played
+            Downloaded -> Res.string.downloaded
         }
 
     // For serialization and navigation

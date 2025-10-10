@@ -24,7 +24,9 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -32,11 +34,11 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 class NowPlayingBottomSheetViewModel(
-    private val application: Application,
+    
     private val dataStoreManager: DataStoreManager,
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val songRepository: SongRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject()
     private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> =
         MutableStateFlow(
@@ -168,7 +170,7 @@ class NowPlayingBottomSheetViewModel(
                                 title = songUIState.title,
                                 thumbnail = songUIState.thumbnails ?: "",
                             )
-                            makeToast(getString(R.string.downloading))
+                            makeToast(getString(Res.string.downloading))
                         }
                         DownloadState.STATE_PREPARING, DownloadState.STATE_DOWNLOADING -> {
                             downloadUtils.removeDownload(songUIState.videoId)
@@ -176,7 +178,7 @@ class NowPlayingBottomSheetViewModel(
                                 songUIState.videoId,
                                 DownloadState.STATE_NOT_DOWNLOADED,
                             )
-                            makeToast(getString(R.string.removed_download))
+                            makeToast(getString(Res.string.removed_download))
                         }
                         DownloadState.STATE_DOWNLOADED -> {
                             downloadUtils.removeDownload(songUIState.videoId)
@@ -184,7 +186,7 @@ class NowPlayingBottomSheetViewModel(
                                 songUIState.videoId,
                                 DownloadState.STATE_NOT_DOWNLOADED,
                             )
-                            makeToast(getString(R.string.removed_download))
+                            makeToast(getString(Res.string.removed_download))
                         }
                     }
                 }
@@ -198,12 +200,12 @@ class NowPlayingBottomSheetViewModel(
                         localPlaylistRepository.addTrackToLocalPlaylist(
                             id = ev.playlistId,
                             song = songEntity,
-                            successMessage = getString(R.string.added_to_playlist),
-                            updatedYtMessage = getString(R.string.added_to_youtube_playlist),
-                            errorMessage = getString(R.string.error)
+                            successMessage = getString(Res.string.added_to_playlist),
+                            updatedYtMessage = getString(Res.string.added_to_youtube_playlist),
+                            errorMessage = getString(Res.string.error)
                         ).collectLatestResource(
                             onSuccess = {
-                                makeToast(it ?: getString(R.string.added_to_playlist))
+                                makeToast(it ?: getString(Res.string.added_to_playlist))
                             },
                             onError = {
                                 makeToast(it)
@@ -214,12 +216,12 @@ class NowPlayingBottomSheetViewModel(
                 is NowPlayingBottomSheetUIEvent.PlayNext -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
                     mediaPlayerHandler.playNext(songEntity.toTrack())
-                    makeToast(getString(R.string.play_next))
+                    makeToast(getString(Res.string.play_next))
                 }
                 is NowPlayingBottomSheetUIEvent.AddToQueue -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
                     mediaPlayerHandler.loadMoreCatalog(arrayListOf(songEntity.toTrack()), isAddToQueue = true)
-                    makeToast(getString(R.string.added_to_queue))
+                    makeToast(getString(Res.string.added_to_queue))
                 }
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
                     if (listOf(SIMPMUSIC, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
@@ -231,7 +233,7 @@ class NowPlayingBottomSheetViewModel(
                 is NowPlayingBottomSheetUIEvent.SetSleepTimer -> {
                     if (ev.cancel) {
                         mediaPlayerHandler.sleepStop()
-                        makeToast(getString(R.string.sleep_timer_off_done))
+                        makeToast(getString(Res.string.sleep_timer_off_done))
                     } else if (ev.minutes > 0) {
                         mediaPlayerHandler.sleepStart(ev.minutes)
                     }
@@ -246,7 +248,7 @@ class NowPlayingBottomSheetViewModel(
                     val url = "https://music.youtube.com/watch?v=${songUIState.videoId}"
                     shareIntent.putExtra(Intent.EXTRA_TEXT, url)
                     val chooserIntent =
-                        Intent.createChooser(shareIntent, getString(R.string.share_url)).apply {
+                        Intent.createChooser(shareIntent, getString(Res.string.share_url)).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }
                     application.startActivity(chooserIntent)
@@ -280,7 +282,7 @@ class NowPlayingBottomSheetViewModel(
                                     )
                                 }
                                 else -> {
-                                    makeToast(res.message ?: getString(R.string.error))
+                                    makeToast(res.message ?: getString(Res.string.error))
                                 }
                             }
                         }

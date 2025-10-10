@@ -13,7 +13,9 @@ import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.*
 import com.maxrave.domain.utils.LocalResource
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,7 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 
 class LibraryViewModel(
-    application: Application,
+    
     private val dataStoreManager: DataStoreManager,
     private val songRepository: SongRepository,
     private val commonRepository: CommonRepository,
@@ -32,7 +34,7 @@ class LibraryViewModel(
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val albumRepository: AlbumRepository,
     private val podcastRepository: PodcastRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _recentlyAdded: MutableStateFlow<LocalResource<List<RecentlyType>>> =
         MutableStateFlow(LocalResource.Loading())
     val recentlyAdded: StateFlow<LocalResource<List<RecentlyType>>> get() = _recentlyAdded.asStateFlow()
@@ -187,7 +189,7 @@ class LibraryViewModel(
             val localPlaylistEntity = LocalPlaylistEntity(title = title)
             localPlaylistRepository.insertLocalPlaylist(
                 localPlaylistEntity,
-                getString(R.string.added_local_playlist)
+                getString(Res.string.added_local_playlist)
             ).lastOrNull()?.let {
                 log("Created playlist with id: $it")
             }

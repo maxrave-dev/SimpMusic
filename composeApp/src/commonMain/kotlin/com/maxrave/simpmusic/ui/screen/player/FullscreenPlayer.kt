@@ -76,7 +76,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -86,7 +86,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config.MAIN_PLAYER
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
@@ -288,7 +290,7 @@ fun FullscreenPlayer(
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    stringResource(R.string.five_seconds),
+                                    stringResource(Res.string.five_seconds),
                                     color = Color.White,
                                     style = typo.bodyMedium,
                                 )
@@ -334,7 +336,7 @@ fun FullscreenPlayer(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
-                                    stringResource(R.string.five_seconds),
+                                    stringResource(Res.string.five_seconds),
                                     color = Color.White,
                                     style = typo.bodyMedium,
                                 )
@@ -401,7 +403,7 @@ fun FullscreenPlayer(
                             navigationIcon = {
                                 Box(Modifier.padding(horizontal = 5.dp)) {
                                     RippleIconButton(
-                                        R.drawable.baseline_arrow_back_ios_new_24,
+                                        Res.drawable.baseline_arrow_back_ios_new_24,
                                         Modifier
                                             .size(32.dp),
                                         true,
@@ -412,7 +414,7 @@ fun FullscreenPlayer(
                             },
                             actions = {
                                 RippleIconButton(
-                                    R.drawable.baseline_more_vert_24,
+                                    Res.drawable.baseline_more_vert_24,
                                 ) {
                                     showBottom = true
                                 }

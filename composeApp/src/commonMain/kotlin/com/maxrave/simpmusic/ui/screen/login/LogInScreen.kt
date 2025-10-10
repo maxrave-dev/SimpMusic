@@ -34,12 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -52,7 +54,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @SuppressLint("SetJavaScriptEnabled")
@@ -129,7 +131,7 @@ fun LoginScreen(
                                                 Toast
                                                     .makeText(
                                                         context,
-                                                        R.string.login_success,
+                                                        Res.string.login_success,
                                                         Toast.LENGTH_SHORT,
                                                     ).show()
                                                 navController.navigateUp()
@@ -137,7 +139,7 @@ fun LoginScreen(
                                                 Toast
                                                     .makeText(
                                                         context,
-                                                        R.string.login_failed,
+                                                        Res.string.login_failed,
                                                         Toast.LENGTH_SHORT,
                                                     ).show()
                                             }
@@ -165,14 +167,14 @@ fun LoginScreen(
                     },
             title = {
                 Text(
-                    text = stringResource(id = R.string.log_in),
+                    text = stringResource(Res.string.log_in),
                     style = typo.titleMedium,
                 )
             },
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        R.drawable.baseline_arrow_back_ios_new_24,
+                        Res.drawable.baseline_arrow_back_ios_new_24,
                         Modifier.size(32.dp),
                         true,
                     ) {
@@ -211,7 +213,7 @@ fun LoginScreen(
                         Toast
                             .makeText(
                                 context,
-                                R.string.login_success,
+                                Res.string.login_success,
                                 Toast.LENGTH_SHORT,
                             ).show()
                         navController.navigateUp()
@@ -219,7 +221,7 @@ fun LoginScreen(
                         Toast
                             .makeText(
                                 context,
-                                R.string.login_failed,
+                                Res.string.login_failed,
                                 Toast.LENGTH_SHORT,
                             ).show()
                     }

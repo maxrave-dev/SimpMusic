@@ -57,8 +57,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,7 +69,9 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
@@ -90,7 +92,7 @@ import com.maxrave.simpmusic.viewModel.PodcastUIState
 import com.maxrave.simpmusic.viewModel.PodcastViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -211,7 +213,7 @@ fun PodcastScreen(
                                             .windowInsetsPadding(WindowInsets.statusBars),
                                 ) {
                                     RippleIconButton(
-                                        resId = R.drawable.baseline_arrow_back_ios_new_24,
+                                        resId = Res.drawable.baseline_arrow_back_ios_new_24,
                                     ) {
                                         navController.navigateUp()
                                     }
@@ -228,8 +230,8 @@ fun PodcastScreen(
                                                 .diskCacheKey(data.thumbnail.lastOrNull()?.url)
                                                 .crossfade(true)
                                                 .build(),
-                                        placeholder = painterResource(R.drawable.holder),
-                                        error = painterResource(R.drawable.holder),
+                                        placeholder = painterResource(Res.drawable.holder),
+                                        error = painterResource(Res.drawable.holder),
                                         contentDescription = null,
                                         contentScale = ContentScale.FillHeight,
                                         onSuccess = {
@@ -272,8 +274,8 @@ fun PodcastScreen(
                                                                 .diskCacheKey(data.authorThumbnail)
                                                                 .crossfade(true)
                                                                 .build(),
-                                                        placeholder = painterResource(R.drawable.holder),
-                                                        error = painterResource(R.drawable.holder),
+                                                        placeholder = painterResource(Res.drawable.holder),
+                                                        error = painterResource(Res.drawable.holder),
                                                         contentDescription = null,
                                                         modifier =
                                                             Modifier
@@ -313,7 +315,7 @@ fun PodcastScreen(
                                                 }
                                                 Spacer(modifier = Modifier.size(8.dp))
                                                 Text(
-                                                    text = stringResource(R.string.podcasts),
+                                                    text = stringResource(Res.string.podcasts),
                                                     style = typo.bodyMedium,
                                                 )
                                             }
@@ -323,7 +325,7 @@ fun PodcastScreen(
                                             ) {
                                                 // Play button
                                                 RippleIconButton(
-                                                    resId = R.drawable.baseline_play_circle_24,
+                                                    resId = Res.drawable.baseline_play_circle_24,
                                                     fillMaxSize = true,
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
@@ -349,7 +351,7 @@ fun PodcastScreen(
                                                 // Shuffle
                                                 RippleIconButton(
                                                     modifier = Modifier.size(36.dp),
-                                                    resId = R.drawable.baseline_shuffle_24,
+                                                    resId = Res.drawable.baseline_shuffle_24,
                                                     fillMaxSize = true,
                                                 ) {
                                                     viewModel.onUIEvent(PodcastUIEvent.Shuffle(id))
@@ -360,7 +362,7 @@ fun PodcastScreen(
                                                 // More options
                                                 RippleIconButton(
                                                     modifier = Modifier.size(36.dp),
-                                                    resId = R.drawable.baseline_share_24,
+                                                    resId = Res.drawable.baseline_share_24,
                                                     fillMaxSize = true,
                                                 ) {
                                                     viewModel.onUIEvent(PodcastUIEvent.Share(id))
@@ -371,7 +373,7 @@ fun PodcastScreen(
                                             val uriHandler = LocalUriHandler.current
                                             DescriptionView(
                                                 modifier = Modifier.padding(top = 8.dp),
-                                                text = data.description ?: stringResource(R.string.no_description),
+                                                text = data.description ?: stringResource(Res.string.no_description),
                                                 limitLine = 3,
                                                 onTimeClicked = {},
                                                 onURLClicked = { url ->
@@ -382,7 +384,7 @@ fun PodcastScreen(
                                             Text(
                                                 text =
                                                     stringResource(
-                                                        id = R.string.album_length,
+                                                        id = Res.string.album_length,
                                                         data.listEpisode.size.toString(),
                                                         "",
                                                     ),
@@ -451,7 +453,7 @@ fun PodcastScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    R.drawable.baseline_arrow_back_ios_new_24,
+                                    Res.drawable.baseline_arrow_back_ios_new_24,
                                     Modifier.size(32.dp),
                                     true,
                                 ) {

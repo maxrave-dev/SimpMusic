@@ -18,13 +18,18 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.maxrave.simpmusic.MainActivity
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.type.StringRes
+import com.maxrave.simpmusic.type.DrawableRes
+import simpmusic.composeapp.generated.resources.*
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
 
 object NotificationHandler {
     private const val CHANNEL_ID = "transactions_reminder_channel"
 
-    fun createReminderNotification(
+    suspend fun createReminderNotification(
         context: Context,
         noti: NotificationModel,
     ) {
@@ -75,9 +80,9 @@ object NotificationHandler {
                 .setContentTitle(noti.name)
                 .setContentText(
                     if (noti.single.isNotEmpty()) {
-                        "${context.getString(R.string.new_singles)}: ${noti.single.joinToString { it.title }}"
+                        "${getString(StringRes.new_singles)}: ${noti.single.joinToString { it.title }}"
                     } else {
-                        "${context.getString(R.string.new_albums)}: ${noti.album.joinToString { it.title }}"
+                        "${getString(StringRes.new_albums)}: ${noti.album.joinToString { it.title }}"
                     },
                 ).setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setLargeIcon(bitmap)

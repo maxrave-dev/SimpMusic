@@ -58,6 +58,7 @@ sentry-gradle = "5.12.0"
 newpipe = "0.24.8"
 webkit = "1.14.0"
 napier = "2.7.1"
+kermit = "2.0.8"
 paging-common = "3.3.6"
 glance = "1.1.1"
 liquid-glass = "1.0.0-alpha16"
@@ -75,6 +76,8 @@ material3-multiplatform = "1.9.0-beta06"
 adaptive = "1.2.0-alpha07"
 material-multiplatform = "1.5.12"
 compottie = "2.0.1"
+cmptoast = "1.0.8"
+uri = "0.0.21"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -130,7 +133,6 @@ easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref 
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
-paging-runtime-ktx = { group = "androidx.paging", name = "paging-common", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
 customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }
 aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries-core", version.ref = "aboutlibraries" }
@@ -167,6 +169,7 @@ logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
 newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
 #leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 napier-logging = { module = "io.github.aakira:napier", version.ref = "napier" }
+kermit-logging = { module = "co.touchlab:kermit", version.ref = "kermit" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
@@ -180,6 +183,7 @@ ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.
 # KMP
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+uri = { module = "com.eygraber:uri-kmp", version.ref = "uri" }
 
 #CMP
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
@@ -190,6 +194,7 @@ compottie-lite = { module = "io.github.alexzhirkevich:compottie-lite", version.r
 compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref = "compottie" }
 compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
 compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
+cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
 
 #JVM
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }

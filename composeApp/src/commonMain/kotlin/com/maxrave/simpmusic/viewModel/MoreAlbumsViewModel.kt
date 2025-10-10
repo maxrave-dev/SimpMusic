@@ -2,7 +2,9 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -11,9 +13,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MoreAlbumsViewModel(
-    application: Application,
+    
     private val albumRepository: AlbumRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _uiState = MutableStateFlow<MoreAlbumsUIState>(MoreAlbumsUIState.Loading)
     val uiState: StateFlow<MoreAlbumsUIState> get() = _uiState
 
@@ -30,7 +32,7 @@ class MoreAlbumsViewModel(
                 } else {
                     _uiState.value =
                         MoreAlbumsUIState.Error(
-                            message = getString(R.string.error),
+                            message = getString(Res.string.error),
                         )
                 }
             }
@@ -50,7 +52,7 @@ class MoreAlbumsViewModel(
                 } else {
                     _uiState.value =
                         MoreAlbumsUIState.Error(
-                            message = getString(R.string.error),
+                            message = getString(Res.string.error),
                         )
                 }
             }

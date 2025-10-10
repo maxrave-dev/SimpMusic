@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -44,19 +43,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
@@ -89,7 +85,24 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
-import org.koin.androidx.compose.koinViewModel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.available_online
+import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.holder_video
+import simpmusic.composeapp.generated.resources.playlist
+import simpmusic.composeapp.generated.resources.podcasts
+import simpmusic.composeapp.generated.resources.songs
+import simpmusic.composeapp.generated.resources.subscribers
+import simpmusic.composeapp.generated.resources.videos
+import simpmusic.composeapp.generated.resources.you
+import simpmusic.composeapp.generated.resources.your_youtube_playlists
 
 @Composable
 fun HomeItem(
@@ -138,15 +151,15 @@ fun HomeItem(
                 AsyncImage(
                     model =
                         ImageRequest
-                            .Builder(LocalContext.current)
+                            .Builder(LocalPlatformContext.current)
                             .data(data.thumbnail?.lastOrNull()?.url)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(data.thumbnail?.lastOrNull()?.url)
                             .crossfade(550)
                             .build(),
                     contentDescription = "",
-                    placeholder = painterResource(R.drawable.holder),
-                    error = painterResource(R.drawable.holder),
+                    placeholder = painterResource(Res.drawable.holder),
+                    error = painterResource(Res.drawable.holder),
                     modifier =
                         Modifier
                             .size(36.dp)
@@ -313,14 +326,14 @@ fun HomeItemContentPlaylist(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumb)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -373,21 +386,19 @@ fun HomeItemContentPlaylist(
                                                 .toListName()
                                                 .connectArtists()
                                         } else {
-                                            stringResource(id = R.string.album)
+                                            stringResource(Res.string.album)
                                         }
                                     )
                                 } else {
-                                    stringResource(
-                                        id = R.string.playlist,
-                                    )
+                                    stringResource( Res.string.playlist)
                                 }
 
                         is com.maxrave.domain.data.model.mood.genre.Content -> data.title.subtitle
                         is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.subtitle
-                        is LocalPlaylistEntity -> stringResource(R.string.you)
+                        is LocalPlaylistEntity -> stringResource(Res.string.you)
                         is PlaylistsResult -> data.author
-                        is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(id = R.string.album)
-                        is PlaylistEntity -> data.author ?: stringResource(id = R.string.playlist)
+                        is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(Res.string.album)
+                        is PlaylistEntity -> data.author ?: stringResource(Res.string.playlist)
                         is ResultSingle -> data.year
                         is ResultAlbum -> data.year
                         is ResultPlaylist -> data.author
@@ -410,18 +421,18 @@ fun HomeItemContentPlaylist(
                 val subtitle =
                     if (data is LocalPlaylistEntity) {
                         if (data.downloadState != DownloadState.STATE_DOWNLOADED) {
-                            stringResource(R.string.available_online)
+                            stringResource(Res.string.available_online)
                         } else {
-                            stringResource(R.string.downloaded)
+                            stringResource(Res.string.downloaded)
                         }
                     } else if (data is PlaylistEntity) {
-                        stringResource(R.string.playlist)
+                        stringResource(Res.string.playlist)
                     } else if (data is AlbumEntity) {
-                        stringResource(R.string.album)
+                        stringResource(Res.string.album)
                     } else if (data is PodcastsEntity) {
-                        stringResource(R.string.podcasts)
+                        stringResource(Res.string.podcasts)
                     } else {
-                        stringResource(R.string.your_youtube_playlists)
+                        stringResource(Res.string.your_youtube_playlists)
                     }
                 Text(
                     text = subtitle,
@@ -467,14 +478,14 @@ fun QuickPicksItem(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(data.thumbnails.lastOrNull()?.url)
                         .crossfade(550)
                         .diskCacheKey(data.thumbnails.lastOrNull()?.url)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                contentDescription = stringResource(R.string.description),
+                placeholder = painterResource(Res.drawable.holder),
+                contentDescription = stringResource(Res.string.description),
                 contentScale = ContentScale.Crop,
                 modifier =
                     Modifier
@@ -577,14 +588,14 @@ fun HomeItemSong(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumb)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -636,7 +647,7 @@ fun HomeItemSong(
                 )
             }
             Text(
-                text = data.album?.name ?: stringResource(id = R.string.songs),
+                text = data.album?.name ?: stringResource(Res.string.songs),
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier =
@@ -680,14 +691,14 @@ fun HomeItemVideo(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumb)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(R.drawable.holder_video),
-                error = painterResource(R.drawable.holder_video),
+                placeholder = painterResource(Res.drawable.holder_video),
+                error = painterResource(Res.drawable.holder_video),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -729,7 +740,7 @@ fun HomeItemVideo(
                         .padding(vertical = 2.dp),
             )
             Text(
-                text = data.views ?: stringResource(id = R.string.videos),
+                text = data.views ?: stringResource(Res.string.videos),
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier =
@@ -769,14 +780,14 @@ fun HomeItemArtist(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumb)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -804,7 +815,7 @@ fun HomeItemArtist(
                         ).focusable(),
             )
             Text(
-                text = data.description.ifNullOrEmpty { stringResource(id = R.string.artists) },
+                text = data.description.ifNullOrEmpty { stringResource(Res.string.artists) },
                 style = typo.bodySmall,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
@@ -898,14 +909,14 @@ fun ItemVideoChart(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumb)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(R.drawable.holder_video),
-                error = painterResource(R.drawable.holder_video),
+                placeholder = painterResource(Res.drawable.holder_video),
+                error = painterResource(Res.drawable.holder_video),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -985,7 +996,6 @@ fun ItemVideoChart(
 fun ItemArtistChart(
     onClick: () -> Unit,
     data: ItemArtist,
-    context: Context,
     widthDp: Dp,
 ) {
     Box(
@@ -1019,14 +1029,14 @@ fun ItemArtistChart(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumb)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -1057,13 +1067,13 @@ fun ItemArtistChart(
                 Text(
                     text =
                         if (data.subscribers.contains(
-                                context.getString(R.string.subscribers).replace("%1\$s ", ""),
+                                stringResource(Res.string.subscribers).replace("%1\$s ", ""),
                             )
                         ) {
                             data.subscribers
                         } else {
                             stringResource(
-                                id = R.string.subscribers,
+                                Res.string.subscribers,
                                 data.subscribers,
                             )
                         },
@@ -1130,14 +1140,14 @@ fun ItemTrackChart(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumb)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =

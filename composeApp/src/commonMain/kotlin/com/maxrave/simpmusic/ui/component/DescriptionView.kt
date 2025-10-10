@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.clickable
@@ -19,16 +20,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.maxrave.simpmusic.R
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.less
+import simpmusic.composeapp.generated.resources.more
 
 @Composable
 fun DescriptionView(
@@ -139,7 +142,7 @@ fun DescriptionView(
         Spacer(modifier = Modifier.height(8.dp))
         androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton) {
             Text(
-                text = if (expanded) stringResource(id = R.string.less) else stringResource(id = R.string.more),
+                text = if (expanded) stringResource(Res.string.less) else stringResource(Res.string.more),
                 color = Color.LightGray,
                 modifier =
                     Modifier.clickable {

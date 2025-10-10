@@ -10,9 +10,9 @@ import com.maxrave.simpmusic.pagination.RecentPagingSource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 
 class RecentlySongsViewModel(
-    application: Application,
+    
     private val songRepository: SongRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     val recentlySongs =
         Pager(
             PagingConfig(

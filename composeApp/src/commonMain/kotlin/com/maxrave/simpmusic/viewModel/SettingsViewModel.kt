@@ -34,7 +34,9 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.media3.di.stopService
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.getSizeOfFile
@@ -64,13 +66,13 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 class SettingsViewModel(
-    private val application: Application,
+    
     private val dataStoreManager: DataStoreManager,
     private val commonRepository: CommonRepository,
     private val songRepository: SongRepository,
     private val accountRepository: AccountRepository,
     private val cacheRepository: CacheRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
 
@@ -768,7 +770,7 @@ class SettingsViewModel(
     fun clearPlayerCache() {
         viewModelScope.launch {
             cacheRepository.clearCache(Config.PLAYER_CACHE)
-            makeToast(getString(R.string.clear_player_cache))
+            makeToast(getString(Res.string.clear_player_cache))
             getPlayerCacheSize()
         }
     }
@@ -790,7 +792,7 @@ class SettingsViewModel(
                     songRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
-            makeToast(getString(R.string.clear_downloaded_cache))
+            makeToast(getString(Res.string.clear_downloaded_cache))
             getDownloadedCacheSize()
             downloadUtils.removeAllDownloads()
         }
@@ -799,7 +801,7 @@ class SettingsViewModel(
     fun clearCanvasCache() {
         viewModelScope.launch {
             cacheRepository.clearCache(Config.CANVAS_CACHE)
-            makeToast(getString(R.string.clear_canvas_cache))
+            makeToast(getString(Res.string.clear_canvas_cache))
             getCanvasCache()
         }
     }
@@ -902,7 +904,7 @@ class SettingsViewModel(
     fun backup(uri: Uri) {
         viewModelScope.launch {
             runCatching {
-                makeToast(getString(R.string.backup_in_progress))
+                makeToast(getString(Res.string.backup_in_progress))
                 withContext(Dispatchers.IO) {
                     application.applicationContext.contentResolver.openOutputStream(uri)?.use {
                         it.buffered().zipOutputStream().use { outputStream ->
@@ -939,12 +941,12 @@ class SettingsViewModel(
                 }
             }.onSuccess {
                 withContext(Dispatchers.Main) {
-                    makeToast(getString(R.string.backup_create_success))
+                    makeToast(getString(Res.string.backup_create_success))
                 }
             }.onFailure {
                 withContext(Dispatchers.Main) {
                     it.printStackTrace()
-                    makeToast(getString(R.string.backup_create_failed))
+                    makeToast(getString(Res.string.backup_create_failed))
                 }
             }
         }
@@ -952,7 +954,7 @@ class SettingsViewModel(
 
     fun restore(uri: Uri) {
         viewModelScope.launch {
-            makeToast(getString(R.string.restore_in_progress))
+            makeToast(getString(Res.string.restore_in_progress))
             withContext(Dispatchers.IO) {
                 runCatching {
                     application.applicationContext.contentResolver.openInputStream(uri)?.use {
@@ -1023,7 +1025,7 @@ class SettingsViewModel(
                     debugFolderContents(downloadFolder)
 
                     withContext(Dispatchers.Main) {
-                        makeToast(getString(R.string.restore_success))
+                        makeToast(getString(Res.string.restore_success))
 //                        mediaPlayerHandler.stopMediaService(application)
                         stopService(application)
                         getData()
@@ -1037,7 +1039,7 @@ class SettingsViewModel(
                 }.onFailure {
                     withContext(Dispatchers.Main) {
                         it.printStackTrace()
-                        makeToast(getString(R.string.restore_failed))
+                        makeToast(getString(Res.string.restore_failed))
                     }
                 }
             }
@@ -1370,7 +1372,7 @@ class SettingsViewModel(
             Toast
                 .makeText(
                     getApplication(),
-                    application.getString(R.string.clear_thumbnail_cache),
+                    application.getString(Res.string.clear_thumbnail_cache),
                     Toast.LENGTH_SHORT,
                 ).show()
             getThumbCacheSize()

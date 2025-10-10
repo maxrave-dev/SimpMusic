@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -8,13 +7,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.maxrave.simpmusic.R
+
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
+import simpmusic.composeapp.generated.resources.baseline_pause_24
+import simpmusic.composeapp.generated.resources.baseline_play_arrow_24
 
 @Composable
 fun RippleIconButton(
-    @DrawableRes resId: Int,
+    resId: DrawableResource,
     modifier: Modifier = Modifier,
     fillMaxSize: Boolean = false,
     tint: Color = Color.White,
@@ -25,7 +27,7 @@ fun RippleIconButton(
         modifier = modifier,
     ) {
         Icon(
-            painterResource(id = resId),
+            painterResource(resId),
             null,
             tint = tint,
             modifier = if (fillMaxSize) Modifier.fillMaxSize().padding(4.dp) else Modifier,
@@ -41,9 +43,9 @@ fun PlayPauseButton(
 ) {
     RippleIconButton(
         if (!isPlaying) {
-            R.drawable.baseline_play_arrow_24
+            Res.drawable.baseline_play_arrow_24
         } else {
-            R.drawable.baseline_pause_24
+            Res.drawable.baseline_pause_24
         },
         modifier = modifier,
         onClick = onClick,

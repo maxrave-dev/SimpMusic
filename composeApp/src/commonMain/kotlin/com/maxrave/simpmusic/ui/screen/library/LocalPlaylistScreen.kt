@@ -79,8 +79,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -104,7 +104,9 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -133,7 +135,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.char
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
 
 @ExperimentalFoundationApi
@@ -156,7 +158,7 @@ fun LocalPlaylistScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val aiPainter = painterResource(id = R.drawable.baseline_tips_and_updates_24)
+    val aiPainter = painterResource(Res.drawable.baseline_tips_and_updates_24)
     val limit = 1.5f
     val transition = rememberInfiniteTransition(label = "shimmer")
     val progressAnimated by transition.animateFloat(
@@ -380,7 +382,7 @@ fun LocalPlaylistScreen(
                                 .windowInsetsPadding(WindowInsets.statusBars),
                     ) {
                         RippleIconButton(
-                            resId = R.drawable.baseline_arrow_back_ios_new_24,
+                            resId = Res.drawable.baseline_arrow_back_ios_new_24,
                         ) {
                             navController.navigateUp()
                         }
@@ -397,8 +399,8 @@ fun LocalPlaylistScreen(
                                     .diskCacheKey(uiState.thumbnail)
                                     .crossfade(true)
                                     .build(),
-                            placeholder = painterResource(R.drawable.holder),
-                            error = painterResource(R.drawable.holder),
+                            placeholder = painterResource(Res.drawable.holder),
+                            error = painterResource(Res.drawable.holder),
                             contentDescription = null,
                             contentScale = ContentScale.FillHeight,
                             onSuccess = {
@@ -433,7 +435,7 @@ fun LocalPlaylistScreen(
                                     modifier = Modifier.padding(vertical = 8.dp),
                                 ) {
                                     Text(
-                                        text = stringResource(id = R.string.your_playlist),
+                                        text = stringResource(Res.string.your_playlist),
                                         style = typo.titleSmall,
                                         color = Color.White,
                                     )
@@ -441,7 +443,7 @@ fun LocalPlaylistScreen(
                                     Text(
                                         text =
                                             stringResource(
-                                                id = R.string.created_at,
+                                                id = Res.string.created_at,
                                                 uiState.inLibrary?.format(
                                                     LocalDateTime.Format {
                                                         hour()
@@ -470,7 +472,7 @@ fun LocalPlaylistScreen(
                                     Crossfade(isPlaying && playingPlaylistId == LOCAL_PLAYLIST_ID + uiState.id) { isThisPlaying ->
                                         if (isThisPlaying) {
                                             RippleIconButton(
-                                                resId = R.drawable.baseline_pause_circle_24,
+                                                resId = Res.drawable.baseline_pause_circle_24,
                                                 fillMaxSize = true,
                                                 tint = seed,
                                                 modifier = Modifier.size(48.dp),
@@ -479,7 +481,7 @@ fun LocalPlaylistScreen(
                                             }
                                         } else {
                                             RippleIconButton(
-                                                resId = R.drawable.baseline_play_circle_24,
+                                                resId = Res.drawable.baseline_play_circle_24,
                                                 fillMaxSize = true,
                                                 tint = seed,
                                                 modifier = Modifier.size(48.dp),
@@ -502,13 +504,13 @@ fun LocalPlaylistScreen(
                                                                 Toast
                                                                     .makeText(
                                                                         context,
-                                                                        context.getString(R.string.downloaded),
+                                                                        context.getString(Res.string.downloaded),
                                                                         Toast.LENGTH_SHORT,
                                                                     ).show()
                                                             },
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(id = R.drawable.baseline_downloaded),
+                                                        painter = painterResource(Res.drawable.baseline_downloaded),
                                                         tint = Color(0xFF00A0CB),
                                                         contentDescription = "",
                                                         modifier =
@@ -530,7 +532,7 @@ fun LocalPlaylistScreen(
                                                                 Toast
                                                                     .makeText(
                                                                         context,
-                                                                        context.getString(R.string.downloading),
+                                                                        context.getString(Res.string.downloading),
                                                                         Toast.LENGTH_SHORT,
                                                                     ).show()
                                                             },
@@ -546,7 +548,7 @@ fun LocalPlaylistScreen(
                                             else -> {
                                                 RippleIconButton(
                                                     fillMaxSize = true,
-                                                    resId = R.drawable.download_button,
+                                                    resId = Res.drawable.download_button,
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
                                                     Logger.w("PlaylistScreen", "downloadState: $downloadState")
@@ -609,7 +611,7 @@ fun LocalPlaylistScreen(
                                     RippleIconButton(
                                         modifier =
                                             Modifier.size(36.dp),
-                                        resId = R.drawable.baseline_shuffle_24,
+                                        resId = Res.drawable.baseline_shuffle_24,
                                         fillMaxSize = true,
                                     ) {
                                         viewModel.onUIEvent(LocalPlaylistUIEvent.ShuffleClick)
@@ -618,7 +620,7 @@ fun LocalPlaylistScreen(
                                     RippleIconButton(
                                         modifier =
                                             Modifier.size(36.dp),
-                                        resId = R.drawable.baseline_more_vert_24,
+                                        resId = Res.drawable.baseline_more_vert_24,
                                         fillMaxSize = true,
                                     ) {
                                         onPlaylistMoreClick()
@@ -627,7 +629,7 @@ fun LocalPlaylistScreen(
                                 // Hide in local playlist
                                 //                                ExpandableText(
                                 //                                    modifier = Modifier.padding(vertical = 8.dp),
-                                //                                    text = stringResource(id = R.string.demo_description),
+                                //                                    text = stringResource(Res.string.demo_description),
                                 //                                    fontSize = typo.bodyLarge.fontSize,
                                 //                                    showMoreStyle = SpanStyle(Color.Gray),
                                 //                                    showLessStyle = SpanStyle(Color.Gray),
@@ -638,7 +640,7 @@ fun LocalPlaylistScreen(
                                 Text(
                                     text =
                                         stringResource(
-                                            id = R.string.album_length,
+                                            id = Res.string.album_length,
                                             (uiState.trackCount).toString(),
                                             "",
                                         ),
@@ -654,7 +656,7 @@ fun LocalPlaylistScreen(
                                         Text(
                                             text =
                                                 stringResource(
-                                                    id = R.string.suggest,
+                                                    id = Res.string.suggest,
                                                 ),
                                             color = Color.White,
                                             modifier = Modifier.padding(vertical = 8.dp),
@@ -742,7 +744,7 @@ fun LocalPlaylistScreen(
                                                     },
                                         ) {
                                             Text(
-                                                text = stringResource(id = R.string.reload),
+                                                text = stringResource(Res.string.reload),
                                                 color = Color.White,
                                                 modifier =
                                                     Modifier.align(
@@ -777,13 +779,13 @@ fun LocalPlaylistScreen(
                                         Spacer(modifier = Modifier.size(4.dp))
                                         Text(
                                             text =
-                                                stringResource(id = R.string.sort_by) + ": " +
+                                                stringResource(Res.string.sort_by) + ": " +
                                                     stringResource(
                                                         id =
                                                             when (uiState.filterState) {
-                                                                FilterState.Title -> R.string.title
-                                                                FilterState.NewerFirst -> R.string.newer_first
-                                                                FilterState.OlderFirst -> R.string.older_first
+                                                                FilterState.Title -> Res.string.title
+                                                                FilterState.NewerFirst -> Res.string.newer_first
+                                                                FilterState.OlderFirst -> Res.string.older_first
                                                             },
                                                     ),
                                             style = typo.bodySmall,
@@ -903,44 +905,44 @@ fun LocalPlaylistScreen(
     }
     if (showSyncAlertDialog) {
         AlertDialog(
-            title = { Text(text = stringResource(id = R.string.warning)) },
-            text = { Text(text = stringResource(id = R.string.sync_playlist_warning)) },
+            title = { Text(text = stringResource(Res.string.warning)) },
+            text = { Text(text = stringResource(Res.string.sync_playlist_warning)) },
             onDismissRequest = { showSyncAlertDialog = false },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.syncPlaylistWithYouTubePlaylist(uiState.id)
                     showSyncAlertDialog = false
                 }) {
-                    Text(text = stringResource(id = R.string.yes))
+                    Text(text = stringResource(Res.string.yes))
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showSyncAlertDialog = false
                 }) {
-                    Text(text = stringResource(id = R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
             },
         )
     }
     if (showUnsyncAlertDialog) {
         AlertDialog(
-            title = { Text(text = stringResource(id = R.string.warning)) },
-            text = { Text(text = stringResource(id = R.string.unsync_playlist_warning)) },
+            title = { Text(text = stringResource(Res.string.warning)) },
+            text = { Text(text = stringResource(Res.string.unsync_playlist_warning)) },
             onDismissRequest = { showUnsyncAlertDialog = false },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.unsyncPlaylistWithYouTubePlaylist(uiState.id)
                     showUnsyncAlertDialog = false
                 }) {
-                    Text(text = stringResource(id = R.string.yes))
+                    Text(text = stringResource(Res.string.yes))
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showUnsyncAlertDialog = false
                 }) {
-                    Text(text = stringResource(id = R.string.cancel))
+                    Text(text = stringResource(Res.string.cancel))
                 }
             },
         )
@@ -970,7 +972,7 @@ fun LocalPlaylistScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        R.drawable.baseline_arrow_back_ios_new_24,
+                        Res.drawable.baseline_arrow_back_ios_new_24,
                         Modifier
                             .size(32.dp),
                         true,

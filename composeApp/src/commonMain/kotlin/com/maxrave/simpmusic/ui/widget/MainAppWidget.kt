@@ -59,7 +59,9 @@ import coil3.request.placeholder
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getColorFromPalette
@@ -167,8 +169,8 @@ class MainAppWidget :
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(thumbUrl + "BIGGER")
                             .crossfade(true)
-                            .placeholder(R.drawable.holder)
-                            .error(R.drawable.holder)
+                            .placeholder(Res.drawable.holder)
+                            .error(Res.drawable.holder)
                             .allowHardware(false)
                             .build()
                     val result = ImageLoader(context).execute(request)
@@ -269,7 +271,7 @@ class MainAppWidget :
                                         GlanceModifier
                                             .background(transparent)
                                             .size(32.dp),
-                                    imageProvider = ImageProvider(R.drawable.baseline_shuffle_24),
+                                    imageProvider = ImageProvider(Res.drawable.baseline_shuffle_24),
                                     contentDescription = "Shuffle",
                                     contentColor = if (controllerState.isShuffle) ColorProvider(seed) else ColorProvider(white),
                                     backgroundColor = ColorProvider(transparent),
@@ -282,7 +284,7 @@ class MainAppWidget :
                                     modifier =
                                         GlanceModifier
                                             .size(32.dp),
-                                    imageProvider = ImageProvider(R.drawable.baseline_skip_previous_24),
+                                    imageProvider = ImageProvider(Res.drawable.baseline_skip_previous_24),
                                     contentDescription = "Previous",
                                     contentColor = ColorProvider(if (controllerState.isPreviousAvailable) white else Color.Gray),
                                     backgroundColor = ColorProvider(transparent),
@@ -298,9 +300,9 @@ class MainAppWidget :
                                             .size(48.dp),
                                     imageProvider =
                                         if (controllerState.isPlaying) {
-                                            ImageProvider(R.drawable.baseline_pause_circle_24)
+                                            ImageProvider(Res.drawable.baseline_pause_circle_24)
                                         } else {
-                                            ImageProvider(R.drawable.baseline_play_circle_24)
+                                            ImageProvider(Res.drawable.baseline_play_circle_24)
                                         },
                                     contentDescription = if (controllerState.isPlaying) "Pause" else "Play",
                                     contentColor = ColorProvider(white),
@@ -314,7 +316,7 @@ class MainAppWidget :
                                     modifier =
                                         GlanceModifier
                                             .size(32.dp),
-                                    imageProvider = ImageProvider(R.drawable.baseline_skip_next_24),
+                                    imageProvider = ImageProvider(Res.drawable.baseline_skip_next_24),
                                     contentDescription = "Next",
                                     contentColor = ColorProvider(if (controllerState.isNextAvailable) white else Color.Gray),
                                     backgroundColor = ColorProvider(transparent),
@@ -330,9 +332,9 @@ class MainAppWidget :
                                             .size(32.dp),
                                     imageProvider =
                                         when (controllerState.repeatState) {
-                                            RepeatState.None -> ImageProvider(R.drawable.baseline_repeat_24)
-                                            RepeatState.All -> ImageProvider(R.drawable.baseline_repeat_24_enable)
-                                            RepeatState.One -> ImageProvider(R.drawable.baseline_repeat_one_24)
+                                            RepeatState.None -> ImageProvider(Res.drawable.baseline_repeat_24)
+                                            RepeatState.All -> ImageProvider(Res.drawable.baseline_repeat_24_enable)
+                                            RepeatState.One -> ImageProvider(Res.drawable.baseline_repeat_one_24)
                                         },
                                     contentDescription = "REPEAT",
                                     contentColor =
@@ -355,7 +357,7 @@ class MainAppWidget :
                                     .padding(end = 16.dp),
                         ) {
                             Image(
-                                provider = ImageProvider(R.drawable.mono),
+                                provider = ImageProvider(Res.drawable.mono),
                                 contentDescription = "Logo",
                                 modifier =
                                     GlanceModifier

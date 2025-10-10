@@ -33,8 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -42,7 +42,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
@@ -65,7 +65,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
 import com.maxrave.domain.mediaservice.handler.PlaylistType as DomainPlaylistType
 
@@ -83,16 +83,16 @@ fun LibraryItem(
     var songEntity by remember { mutableStateOf<SongEntity?>(null) }
     val title =
         when (state.type) {
-            is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
-            is LibraryItemType.CanvasSong -> stringResource(R.string.most_played)
+            is LibraryItemType.RecentlyAdded -> stringResource(Res.string.recently_added)
+            is LibraryItemType.CanvasSong -> stringResource(Res.string.most_played)
             else -> return
         }
     val noPlaylistTitle =
         when (state.type) {
-            LibraryItemType.DownloadedPlaylist -> stringResource(R.string.no_playlists_downloaded)
-            LibraryItemType.FavoritePlaylist -> stringResource(R.string.no_favorite_playlists)
-            is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
-            is LibraryItemType.CanvasSong -> stringResource(R.string.most_played)
+            LibraryItemType.DownloadedPlaylist -> stringResource(Res.string.no_playlists_downloaded)
+            LibraryItemType.FavoritePlaylist -> stringResource(Res.string.no_favorite_playlists)
+            is LibraryItemType.RecentlyAdded -> stringResource(Res.string.recently_added)
+            is LibraryItemType.CanvasSong -> stringResource(Res.string.most_played)
             else -> return
         }
     Box {
@@ -237,7 +237,7 @@ fun LibraryItem(
                                                     listTracks = arrayListOf(firstQueue),
                                                     firstPlayedTrack = firstQueue,
                                                     playlistId = "RDAMVM${firstQueue.videoId}",
-                                                    playlistName = "\"${song.title}\" ${context.getString(R.string.radio)}",
+                                                    playlistName = "\"${song.title}\" ${context.getString(Res.string.radio)}",
                                                     playlistType = DomainPlaylistType.RADIO,
                                                     continuation = null,
                                                 ),
@@ -257,8 +257,8 @@ fun LibraryItem(
                                                 .diskCacheKey(item.canvasThumbUrl)
                                                 .crossfade(true)
                                                 .build(),
-                                        placeholder = painterResource(R.drawable.holder),
-                                        error = painterResource(R.drawable.holder),
+                                        placeholder = painterResource(Res.drawable.holder),
+                                        error = painterResource(Res.drawable.holder),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier =

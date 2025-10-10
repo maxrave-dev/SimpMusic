@@ -33,8 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,7 +43,9 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.formatTimeAgo
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -53,7 +55,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,12 +69,12 @@ fun NotificationScreen(
         TopAppBar(
             title = {
                 Text(
-                    text = stringResource(id = R.string.notification),
+                    text = stringResource(Res.string.notification),
                     style = typo.titleMedium,
                 )
             },
             navigationIcon = {
-                RippleIconButton(resId = R.drawable.baseline_arrow_back_ios_new_24) {
+                RippleIconButton(resId = Res.drawable.baseline_arrow_back_ios_new_24) {
                     navController.navigateUp()
                 }
             },
@@ -102,7 +104,7 @@ fun NotificationScreen(
                     Modifier.fillMaxSize(),
                 ) {
                     Text(
-                        text = stringResource(id = R.string.no_notification),
+                        text = stringResource(Res.string.no_notification),
                         style = typo.titleMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.Center),
@@ -145,8 +147,8 @@ fun NotificationItem(
                             .diskCacheKey(thumb)
                             .crossfade(true)
                             .build(),
-                    placeholder = painterResource(R.drawable.holder),
-                    error = painterResource(R.drawable.holder),
+                    placeholder = painterResource(Res.drawable.holder),
+                    error = painterResource(Res.drawable.holder),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier =
@@ -159,7 +161,7 @@ fun NotificationItem(
                 )
                 Spacer(modifier = Modifier.padding(5.dp))
                 Column {
-                    Text(text = stringResource(id = R.string.new_release), style = typo.titleSmall)
+                    Text(text = stringResource(Res.string.new_release), style = typo.titleSmall)
                     Spacer(modifier = Modifier.padding(3.dp))
                     Text(text = notification.name, style = typo.headlineMedium)
                 }
@@ -230,8 +232,8 @@ fun ItemAlbumNotification(
                         .diskCacheKey(thumbnail)
                         .crossfade(true)
                         .build(),
-                placeholder = painterResource(R.drawable.holder),
-                error = painterResource(R.drawable.holder),
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -258,7 +260,7 @@ fun ItemAlbumNotification(
                         ).focusable(),
             )
             Text(
-                text = if (isAlbum) stringResource(id = R.string.album) else stringResource(id = R.string.singles),
+                text = if (isAlbum) stringResource(Res.string.album) else stringResource(Res.string.singles),
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier =

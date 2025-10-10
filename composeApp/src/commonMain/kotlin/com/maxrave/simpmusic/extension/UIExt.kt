@@ -1,14 +1,6 @@
 package com.maxrave.simpmusic.extension
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import android.graphics.Point
-import android.graphics.drawable.AdaptiveIconDrawable
-import android.os.Build
-import androidx.activity.ComponentActivity
-import androidx.annotation.ColorInt
-import androidx.annotation.DrawableRes
+
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -26,12 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SheetValue.Hidden
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -39,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -51,41 +37,21 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.layer.GraphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.lerp
-import androidx.core.app.PictureInPictureModeChangedInfo
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.drawable.toBitmap
-import androidx.core.util.Consumer
 import com.kmpalette.palette.graphics.Palette
-import com.kyant.backdrop.Backdrop
-import com.kyant.backdrop.drawBackdrop
-import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.colorControls
-import com.kyant.backdrop.effects.refraction
 import com.maxrave.domain.data.model.ui.ScreenSizeInfo
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
@@ -99,7 +65,6 @@ import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -318,59 +283,8 @@ enum class GradientAngle {
     CW315,
 }
 
-fun Context.getActivityOrNull(): Activity? {
-    var context = this
-    while (context is ContextWrapper) {
-        if (context is Activity) return context
-        context = context.baseContext
-    }
-
-    return null
-}
-
 @Composable
-@Suppress("DEPRECATION")
-fun getScreenSizeInfo(): ScreenSizeInfo {
-    val context = LocalContext.current
-    val activity = context.getActivityOrNull()
-    val configuration = LocalConfiguration.current
-    val localDensity = LocalDensity.current
-
-    return remember(configuration) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = activity?.windowManager?.currentWindowMetrics
-            Logger.w("getScreenSizeInfo", "WindowMetrics: ${windowMetrics?.bounds?.height()}")
-            ScreenSizeInfo(
-                hDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
-                wDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
-                hPX = windowMetrics?.bounds?.height() ?: 0,
-                wPX = windowMetrics?.bounds?.width() ?: 0,
-            )
-        } else {
-            val point = Point()
-            activity?.windowManager?.defaultDisplay?.getRealSize(point)
-            Logger.w("getScreenSizeInfo", "WindowMetrics: ${point.y}")
-            ScreenSizeInfo(
-                hDP =
-                    with(localDensity) {
-                        point.y
-                            .toDp()
-                            .value
-                            .toInt()
-                    },
-                wDP =
-                    with(localDensity) {
-                        point.x
-                            .toDp()
-                            .value
-                            .toInt()
-                    },
-                hPX = point.y,
-                wPX = point.x,
-            )
-        }
-    }
-}
+expect fun getScreenSizeInfo(): ScreenSizeInfo
 
 @Composable
 fun NonLazyGrid(
@@ -426,15 +340,7 @@ fun LazyListState.animateScrollAndCentralizeItem(
 }
 
 @Composable
-fun KeepScreenOn() {
-    val currentView = LocalView.current
-    DisposableEffect(Unit) {
-        currentView.keepScreenOn = true
-        onDispose {
-            currentView.keepScreenOn = false
-        }
-    }
-}
+expect fun KeepScreenOn()
 
 @Composable
 fun LazyListState.isScrollingUp(): State<Boolean> {
@@ -498,16 +404,6 @@ fun LazyGridState.isScrollingUp(): State<Boolean> {
     }
 }
 
-@Suppress("DEPRECATION")
-fun setStatusBarsColor(
-    @ColorInt color: Int,
-    activity: Activity,
-) {
-    if (Build.VERSION.SDK_INT < 35) {
-        activity.window.statusBarColor = color
-    }
-}
-
 fun Palette?.getColorFromPalette(): Color {
     val p = this ?: return md_theme_dark_background
     val defaultColor = 0x000000
@@ -534,16 +430,9 @@ fun Palette?.getColorFromPalette(): Color {
             }
         }
     }
-    return Color(ColorUtils.setAlphaComponent(startColor, 255))
-}
-
-fun Context.findActivity(): ComponentActivity {
-    var context = this
-    while (context is ContextWrapper) {
-        if (context is ComponentActivity) return context
-        context = context.baseContext
-    }
-    throw IllegalStateException("Picture in picture should be called in the context of an Activity")
+    return Color(startColor).copy(
+        alpha = 0.8f
+    )
 }
 
 fun Modifier.isElementVisible(onVisibilityChanged: (Boolean) -> Unit) =
@@ -572,36 +461,7 @@ fun TextStyle.greyScale(): TextStyle =
     )
 
 @Composable
-fun adaptiveIconPainterResource(
-    @DrawableRes id: Int,
-): Painter? {
-    val res = LocalResources.current
-    val theme = LocalContext.current.theme
-
-    val adaptiveIcon = ResourcesCompat.getDrawable(res, id, theme) as? AdaptiveIconDrawable
-    if (adaptiveIcon != null) {
-        return BitmapPainter(adaptiveIcon.toBitmap().asImageBitmap())
-    } else {
-        return null
-    }
-}
-
-@Composable
-fun rememberIsInPipMode(): Boolean {
-    val activity = LocalContext.current.findActivity()
-    var pipMode by remember { mutableStateOf(activity.isInPictureInPictureMode) }
-    DisposableEffect(activity) {
-        val observer =
-            Consumer<PictureInPictureModeChangedInfo> { info ->
-                pipMode = info.isInPictureInPictureMode
-            }
-        activity.addOnPictureInPictureModeChangedListener(
-            observer,
-        )
-        onDispose { activity.removeOnPictureInPictureModeChangedListener(observer) }
-    }
-    return pipMode
-}
+expect fun rememberIsInPipMode(): Boolean
 
 @Composable
 fun animateAlignmentAsState(targetAlignment: Alignment): State<Alignment> {
@@ -610,47 +470,6 @@ fun animateAlignmentAsState(targetAlignment: Alignment): State<Alignment> {
     val vertical by animateFloatAsState(biased.verticalBias)
     return remember { derivedStateOf { BiasAlignment(horizontal, vertical) } }
 }
-
-fun Modifier.drawBackdropCustomShape(
-    backdrop: Backdrop,
-    layer: GraphicsLayer,
-    luminanceAnimation: Float,
-    shape: Shape,
-): Modifier =
-    this.drawBackdrop(
-        backdrop = backdrop,
-        effects = {
-            val l = (luminanceAnimation * 2f - 1f).let { sign(it) * it * it }
-            colorControls(
-                brightness =
-                    if (l > 0f) {
-                        lerp(0.1f, 0.5f, l)
-                    } else {
-                        lerp(0.1f, -0.2f, -l)
-                    },
-                contrast =
-                    if (l > 0f) {
-                        lerp(1f, 0f, l)
-                    } else {
-                        1f
-                    },
-                saturation = 1.5f,
-            )
-            blur(
-                if (l > 0f) {
-                    lerp(8f.dp.toPx(), 16f.dp.toPx(), l)
-                } else {
-                    lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)
-                },
-            )
-            refraction(24f.dp.toPx(), size.minDimension / 2f, true)
-        },
-        onDrawBackdrop = { drawBackdrop ->
-            drawBackdrop()
-            layer.record { drawBackdrop() }
-        },
-        shape = { shape },
-    )
 
 @Composable
 fun PaddingValues.copy(
@@ -668,36 +487,13 @@ fun PaddingValues.copy(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun rememberNoBouncyBottomSheetState(
-    skipPartiallyExpanded: Boolean = false,
-    confirmValueChange: (SheetValue) -> Boolean = { true },
-    initialValue: SheetValue = Hidden,
-    skipHiddenState: Boolean = false,
-): SheetState {
-    val positionalThresholdToPx = 0f
-    val velocityThresholdToPx = 0f
-    return rememberSaveable(
-        skipPartiallyExpanded,
-        confirmValueChange,
-        skipHiddenState,
-        saver =
-            SheetState.Saver(
-                skipPartiallyExpanded = skipPartiallyExpanded,
-                positionalThreshold = { positionalThresholdToPx },
-                velocityThreshold = { velocityThresholdToPx },
-                confirmValueChange = confirmValueChange,
-                skipHiddenState = skipHiddenState,
-            ),
-    ) {
-        SheetState(
-            skipPartiallyExpanded,
-            { positionalThresholdToPx },
-            { velocityThresholdToPx },
-            initialValue,
-            confirmValueChange,
-            skipHiddenState,
-        )
-    }
+fun ImageBitmap.toResizedBitmap(width: Int, height: Int): ImageBitmap {
+    val resized = ImageBitmap(width, height)
+    val canvas = Canvas(resized)
+    canvas.drawImageRect(
+        image = this,
+        dstSize = IntSize(width, height),
+        paint = Paint()
+    )
+    return resized
 }

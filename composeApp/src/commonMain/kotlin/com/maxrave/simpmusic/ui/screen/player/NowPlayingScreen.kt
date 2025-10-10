@@ -108,8 +108,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -126,7 +126,9 @@ import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.logger.Logger
 import com.maxrave.media3.ui.MediaPlayerView
 import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -677,7 +679,7 @@ fun NowPlayingScreenContent(
                             verticalArrangement = Arrangement.Center,
                         ) {
                             Text(
-                                text = stringResource(id = R.string.now_playing_upper),
+                                text = stringResource(Res.string.now_playing_upper),
                                 style = typo.bodyMedium,
                                 color = Color.White,
                             )
@@ -714,7 +716,7 @@ fun NowPlayingScreenContent(
                             showSheet = true
                         }) {
                             Icon(
-                                painter = painterResource(id = R.drawable.baseline_more_vert_24),
+                                painter = painterResource(Res.drawable.baseline_more_vert_24),
                                 contentDescription = "",
                                 tint = Color.White,
                             )
@@ -795,7 +797,7 @@ fun NowPlayingScreenContent(
                                             )
                                         },
                                         contentScale = ContentScale.Crop,
-                                        placeholder = painterResource(id = R.drawable.holder),
+                                        placeholder = painterResource(Res.drawable.holder),
                                         modifier =
                                             Modifier
                                                 .align(Alignment.Center)
@@ -885,7 +887,7 @@ fun NowPlayingScreenContent(
                                                             )
                                                         }, Modifier.align(Alignment.TopEnd)) {
                                                             Icon(
-                                                                painter = painterResource(id = R.drawable.baseline_fullscreen_24),
+                                                                painter = painterResource(Res.drawable.baseline_fullscreen_24),
                                                                 contentDescription = "",
                                                                 tint = Color.White,
                                                             )
@@ -998,8 +1000,8 @@ fun NowPlayingScreenContent(
                                                         .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
                                                         .crossfade(true)
                                                         .build(),
-                                                placeholder = painterResource(R.drawable.holder),
-                                                error = painterResource(R.drawable.holder),
+                                                placeholder = painterResource(Res.drawable.holder),
+                                                error = painterResource(Res.drawable.holder),
                                                 contentDescription = null,
                                                 contentScale = ContentScale.FillWidth,
                                                 modifier =
@@ -1363,8 +1365,8 @@ fun NowPlayingScreenContent(
                                                         .diskCacheKey(thumb)
                                                         .crossfade(550)
                                                         .build(),
-                                                placeholder = painterResource(R.drawable.holder),
-                                                error = painterResource(R.drawable.holder),
+                                                placeholder = painterResource(Res.drawable.holder),
+                                                error = painterResource(Res.drawable.holder),
                                                 contentDescription = null,
                                                 contentScale = ContentScale.Crop,
                                                 modifier =
@@ -1429,7 +1431,7 @@ fun NowPlayingScreenContent(
                                     Spacer(modifier = Modifier.height(5.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
-                                            text = stringResource(id = R.string.lyrics),
+                                            text = stringResource(Res.string.lyrics),
                                             style = typo.labelMedium,
                                             color = Color.White,
                                             modifier = Modifier.weight(1f),
@@ -1445,7 +1447,7 @@ fun NowPlayingScreenContent(
                                                         .height(20.dp)
                                                         .width(40.dp),
                                             ) {
-                                                Text(text = stringResource(id = R.string.show))
+                                                Text(text = stringResource(Res.string.show))
                                             }
                                         }
                                     }
@@ -1472,8 +1474,8 @@ fun NowPlayingScreenContent(
                                         Text(
                                             text =
                                                 when (screenDataState.lyricsData?.lyrics?.syncType) {
-                                                    "LINE_SYNCED" -> stringResource(id = R.string.line_synced)
-                                                    else -> stringResource(id = R.string.unsynced)
+                                                    "LINE_SYNCED" -> stringResource(Res.string.line_synced)
+                                                    else -> stringResource(Res.string.unsynced)
                                                 },
                                             style = typo.bodySmall,
                                             textAlign = TextAlign.End,
@@ -1485,11 +1487,11 @@ fun NowPlayingScreenContent(
                                         Text(
                                             text =
                                                 when (screenDataState.lyricsData?.lyricsProvider) {
-                                                    LyricsProvider.SIMPMUSIC -> stringResource(id = R.string.lyrics_provider_simpmusic)
-                                                    LyricsProvider.LRCLIB -> stringResource(id = R.string.lyrics_provider_lrc)
-                                                    LyricsProvider.YOUTUBE -> stringResource(id = R.string.lyrics_provider_youtube)
-                                                    LyricsProvider.SPOTIFY -> stringResource(id = R.string.spotify_lyrics_provider)
-                                                    LyricsProvider.OFFLINE -> stringResource(id = R.string.offline_mode)
+                                                    LyricsProvider.SIMPMUSIC -> stringResource(Res.string.lyrics_provider_simpmusic)
+                                                    LyricsProvider.LRCLIB -> stringResource(Res.string.lyrics_provider_lrc)
+                                                    LyricsProvider.YOUTUBE -> stringResource(Res.string.lyrics_provider_youtube)
+                                                    LyricsProvider.SPOTIFY -> stringResource(Res.string.spotify_lyrics_provider)
+                                                    LyricsProvider.OFFLINE -> stringResource(Res.string.offline_mode)
                                                     else -> {
                                                         ""
                                                     }
@@ -1543,8 +1545,8 @@ fun NowPlayingScreenContent(
                                                 .diskCacheKey(thumb)
                                                 .crossfade(550)
                                                 .build(),
-                                        placeholder = painterResource(R.drawable.holder_video),
-                                        error = painterResource(R.drawable.holder_video),
+                                        placeholder = painterResource(Res.drawable.holder_video),
+                                        error = painterResource(Res.drawable.holder_video),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier =
@@ -1564,7 +1566,7 @@ fun NowPlayingScreenContent(
                                         Column(Modifier.align(Alignment.TopStart)) {
                                             Spacer(modifier = Modifier.height(5.dp))
                                             Text(
-                                                text = stringResource(id = R.string.artists),
+                                                text = stringResource(Res.string.artists),
                                                 style = typo.labelMedium,
                                                 color = Color.White,
                                             )
@@ -1604,7 +1606,7 @@ fun NowPlayingScreenContent(
                                 ) {
                                     Spacer(modifier = Modifier.height(5.dp))
                                     Text(
-                                        text = stringResource(id = R.string.published_at, screenDataState.songInfoData?.uploadDate ?: ""),
+                                        text = stringResource(Res.string.published_at, screenDataState.songInfoData?.uploadDate ?: ""),
                                         style = typo.labelSmall,
                                         color = Color.White,
                                     )
@@ -1612,7 +1614,7 @@ fun NowPlayingScreenContent(
                                     Text(
                                         text =
                                             stringResource(
-                                                id = R.string.view_count,
+                                                id = Res.string.view_count,
                                                 "%,d".format(screenDataState.songInfoData?.viewCount),
                                             ),
                                         style = typo.labelMedium,
@@ -1622,7 +1624,7 @@ fun NowPlayingScreenContent(
                                     Text(
                                         text =
                                             stringResource(
-                                                id = R.string.like_and_dislike,
+                                                id = Res.string.like_and_dislike,
                                                 screenDataState.songInfoData?.like ?: 0,
                                                 screenDataState.songInfoData?.dislike ?: 0,
                                             ),
@@ -1630,7 +1632,7 @@ fun NowPlayingScreenContent(
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Text(
-                                        text = stringResource(id = R.string.description),
+                                        text = stringResource(Res.string.description),
                                         style = typo.labelSmall,
                                         color = Color.White,
                                     )

@@ -26,7 +26,9 @@ import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.*
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.pagination.PagingActions
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -39,11 +41,11 @@ import org.koin.core.component.inject
 import kotlinx.datetime.LocalDateTime
 
 class LocalPlaylistViewModel(
-    private val application: Application,
+    
     private val dataStoreManager: DataStoreManager,
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
 
     private var _offset: MutableStateFlow<Int> = MutableStateFlow(0)
@@ -298,7 +300,7 @@ class LocalPlaylistViewModel(
                         Toast
                             .makeText(
                                 application,
-                                application.getString(R.string.error),
+                                application.getString(Res.string.error),
                                 Toast.LENGTH_SHORT,
                             ).show()
                         loading.value = false
@@ -314,7 +316,7 @@ class LocalPlaylistViewModel(
     ) {
         viewModelScope.launch {
             localPlaylistRepository.updateDownloadState(
-                id, state, getString(R.string.updated)
+                id, state, getString(Res.string.updated)
             ).collectLatestResource(
                 onSuccess = { mess ->
                     Logger.d(tag, "updatePlaylistDownloadState: $mess")
@@ -375,14 +377,14 @@ class LocalPlaylistViewModel(
         id: Long,
     ) {
         viewModelScope.launch {
-            showLoadingDialog(message = getString(R.string.updating))
+            showLoadingDialog(message = getString(Res.string.updating))
             localPlaylistRepository
                 .updateTitleLocalPlaylist(
                     id,
                     title,
-                    getString(R.string.updated),
-                    getString(R.string.updated_to_youtube_playlist),
-                    getString(R.string.error)
+                    getString(Res.string.updated),
+                    getString(Res.string.updated_to_youtube_playlist),
+                    getString(Res.string.error)
                 )
                 .collectResource(
                     onSuccess = {
@@ -399,10 +401,10 @@ class LocalPlaylistViewModel(
     }
 
     fun deletePlaylist(id: Long) {
-        showLoadingDialog(message = getString(R.string.delete))
+        showLoadingDialog(message = getString(Res.string.delete))
         viewModelScope.launch {
             _uiState.value = LocalPlaylistState.initial()
-            localPlaylistRepository.deleteLocalPlaylist(id, getString(R.string.delete))
+            localPlaylistRepository.deleteLocalPlaylist(id, getString(Res.string.delete))
                 .collectLatestResource(
                     onSuccess = {
                         makeToast(it)
@@ -420,9 +422,9 @@ class LocalPlaylistViewModel(
         uri: String,
         id: Long,
     ) {
-        showLoadingDialog(message = getString(R.string.updating))
+        showLoadingDialog(message = getString(Res.string.updating))
         viewModelScope.launch {
-            localPlaylistRepository.updateThumbnailLocalPlaylist(id, uri, getString(R.string.updated))
+            localPlaylistRepository.updateThumbnailLocalPlaylist(id, uri, getString(Res.string.updated))
                 .collectResource(
                     onSuccess = {
                         makeToast(it)
@@ -443,7 +445,7 @@ class LocalPlaylistViewModel(
     ) {
         viewModelScope.launch {
             localPlaylistRepository
-                .removeTrackFromLocalPlaylist(id, song, getString(R.string.delete_song_from_playlist), getString(R.string.removed_from_YouTube_playlist), getString(R.string.can_t_delete_from_youtube_playlist))
+                .removeTrackFromLocalPlaylist(id, song, getString(Res.string.delete_song_from_playlist), getString(Res.string.removed_from_YouTube_playlist), getString(Res.string.can_t_delete_from_youtube_playlist))
                 .collectLatestResource(
                 onSuccess = {
                     makeToast(it)
@@ -504,11 +506,11 @@ class LocalPlaylistViewModel(
     }
 
     fun syncPlaylistWithYouTubePlaylist(id: Long) {
-        makeToast(getString(R.string.syncing))
-        showLoadingDialog(message = getString(R.string.syncing))
+        makeToast(getString(Res.string.syncing))
+        showLoadingDialog(message = getString(Res.string.syncing))
         viewModelScope.launch {
             localPlaylistRepository
-                .syncLocalPlaylistToYouTubePlaylist(id, getString(R.string.synced), getString(R.string.error))
+                .syncLocalPlaylistToYouTubePlaylist(id, getString(Res.string.synced), getString(Res.string.error))
                 .collectLatestResource(
                     onSuccess = { ytId ->
                         _uiState.update {
@@ -517,7 +519,7 @@ class LocalPlaylistViewModel(
                                 ytPlaylistId = ytId,
                             )
                         }
-                        makeToast(getString(R.string.synced))
+                        makeToast(getString(Res.string.synced))
                         hideLoadingDialog()
                     },
                     onError = {
@@ -542,7 +544,7 @@ class LocalPlaylistViewModel(
 //                                Toast
 //                                    .makeText(
 //                                        application,
-//                                        application.getString(R.string.synced),
+//                                        application.getString(Res.string.synced),
 //                                        Toast.LENGTH_SHORT,
 //                                    ).show()
 //                            }
@@ -552,7 +554,7 @@ class LocalPlaylistViewModel(
 //                    Toast
 //                        .makeText(
 //                            application,
-//                            application.getString(R.string.error),
+//                            application.getString(Res.string.error),
 //                            Toast.LENGTH_SHORT,
 //                        ).show()
 //                }
@@ -567,7 +569,7 @@ class LocalPlaylistViewModel(
     ) {
         showLoadingDialog()
         viewModelScope.launch {
-            localPlaylistRepository.updateSyncState(id, syncState, getString(R.string.synced))
+            localPlaylistRepository.updateSyncState(id, syncState, getString(Res.string.synced))
                 .collectLatestResource(
                 onSuccess = { mess ->
                     makeToast(mess)
@@ -584,7 +586,7 @@ class LocalPlaylistViewModel(
                 },
             )
             if (ytId != null) {
-                localPlaylistRepository.updateYouTubePlaylistId(id, ytId, getString(R.string.updated))
+                localPlaylistRepository.updateYouTubePlaylistId(id, ytId, getString(Res.string.updated))
                     .collectLatestResource(
                     onSuccess = { mess ->
                         Logger.d(tag, "updateLocalPlaylistSyncState: $mess")
@@ -600,10 +602,10 @@ class LocalPlaylistViewModel(
     }
 
     fun unsyncPlaylistWithYouTubePlaylist(id: Long) {
-        makeToast(getString(R.string.unsyncing))
-        showLoadingDialog(message = getString(R.string.unsyncing))
+        makeToast(getString(Res.string.unsyncing))
+        showLoadingDialog(message = getString(Res.string.unsyncing))
         viewModelScope.launch {
-            localPlaylistRepository.unsyncLocalPlaylist(id, getString(R.string.unsynced))
+            localPlaylistRepository.unsyncLocalPlaylist(id, getString(Res.string.unsynced))
                 .collectLatestResource(
                 onSuccess = { mess ->
                     makeToast(mess)
@@ -624,12 +626,12 @@ class LocalPlaylistViewModel(
     }
 
     fun updateListTrackSynced(id: Long) {
-        makeToast(getString(R.string.syncing))
-        showLoadingDialog(message = getString(R.string.syncing))
+        makeToast(getString(Res.string.syncing))
+        showLoadingDialog(message = getString(Res.string.syncing))
         viewModelScope.launch {
             localPlaylistRepository.updateListTrackSynced(id).collectLatest { done ->
                 if (done) {
-                    makeToast(application.getString(R.string.updated))
+                    makeToast(application.getString(Res.string.updated))
                     updatePlaylistState(id, refresh = true)
                 }
                 hideLoadingDialog()
@@ -656,9 +658,9 @@ class LocalPlaylistViewModel(
                     .addTrackToLocalPlaylist(
                         id,
                         track.toSongEntity(),
-                        getString(R.string.added_to_playlist),
-                        getString(R.string.added_to_youtube_playlist),
-                        getString(R.string.can_t_add_to_youtube_playlist)
+                        getString(Res.string.added_to_playlist),
+                        getString(Res.string.added_to_youtube_playlist),
+                        getString(Res.string.can_t_add_to_youtube_playlist)
                     )
                     .collectLatestResource(
                         onSuccess = {
@@ -702,7 +704,7 @@ class LocalPlaylistViewModel(
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
                         playlistName = "${
                             getString(
-                                R.string.playlist,
+                                Res.string.playlist,
                             )
                         } \"${uiState.value.title}\"",
                         playlistType = PlaylistType.LOCAL_PLAYLIST,
@@ -736,10 +738,10 @@ class LocalPlaylistViewModel(
                         playlistId = "RDAMVM${clickedSong.videoId}",
                         playlistName = "${
                             getString(
-                                R.string.playlist,
+                                Res.string.playlist,
                             )
                         } \"${uiState.value.title}\" ${
-                            getString(R.string.suggest)
+                            getString(Res.string.suggest)
                         }",
                         playlistType = PlaylistType.RADIO,
                         continuation = null,
@@ -756,7 +758,7 @@ class LocalPlaylistViewModel(
                 val loadedList =
                     lazyTrackPagingItems.value?.itemSnapshotList?.toList().let {
                         if (it.isNullOrEmpty()) {
-                            makeToast(getString(R.string.playlist_is_empty))
+                            makeToast(getString(Res.string.playlist_is_empty))
                             return
                         } else {
                             it.filterNotNull().toArrayListTrack()
@@ -770,7 +772,7 @@ class LocalPlaylistViewModel(
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
                         playlistName = "${
                             getString(
-                                R.string.playlist,
+                                Res.string.playlist,
                             )
                         } \"${uiState.value.title}\"",
                         playlistType = PlaylistType.LOCAL_PLAYLIST,
@@ -799,7 +801,7 @@ class LocalPlaylistViewModel(
                     log("ShuffleClick: uiState id ${uiState.value.id}")
                     log("ShuffleClick: $listVideoId")
                     if (listVideoId.isEmpty()) {
-                        makeToast(getString(R.string.playlist_is_empty))
+                        makeToast(getString(Res.string.playlist_is_empty))
                         return@launch
                     }
                     val random = listVideoId.random()
@@ -812,7 +814,7 @@ class LocalPlaylistViewModel(
                             playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
                             playlistName = "${
                                 getString(
-                                    R.string.playlist,
+                                    Res.string.playlist,
                                 )
                             } \"${uiState.value.title}\"",
                             playlistType = PlaylistType.LOCAL_PLAYLIST,
@@ -876,21 +878,21 @@ class LocalPlaylistViewModel(
             } else if (fullTracks.isNotEmpty() && fullTracks.all { it.downloadState == STATE_DOWNLOADED }) {
                 updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
             } else {
-                makeToast(getString(R.string.playlist_is_empty))
+                makeToast(getString(Res.string.playlist_is_empty))
             }
         }
     }
 
     fun addAllToQueue() {
         viewModelScope.launch {
-            showLoadingDialog(getString(R.string.add_to_queue))
+            showLoadingDialog(getString(Res.string.add_to_queue))
             val fullTracks = localPlaylistRepository.getFullPlaylistTracks(id = uiState.value.id)
             if (fullTracks.isNotEmpty()) {
                 mediaPlayerHandler.loadMoreCatalog(fullTracks.toArrayListTrack(), true)
-                makeToast(getString(R.string.added_to_queue))
+                makeToast(getString(Res.string.added_to_queue))
                 hideLoadingDialog()
             } else {
-                makeToast(getString(R.string.playlist_is_empty))
+                makeToast(getString(Res.string.playlist_is_empty))
                 hideLoadingDialog()
             }
         }

@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class NotificationViewModel(
-    application: Application,
+    
     commonRepository: CommonRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private var _listNotification: MutableStateFlow<List<NotificationEntity>?> =
         MutableStateFlow(null)
     val listNotification: StateFlow<List<NotificationEntity>?> = _listNotification

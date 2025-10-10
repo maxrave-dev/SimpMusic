@@ -1,16 +1,10 @@
 package com.maxrave.simpmusic.ui.theme
 
-import android.content.res.Configuration
-import android.os.Build
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Button
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.tooling.preview.Preview
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.disk.DiskCache
@@ -58,12 +52,6 @@ fun AppTheme(
         @Composable()
         () -> Unit,
 ) {
-//    val colors = if (supportsDynamic()) {
-//        val context = LocalContext.current
-//        if (inDarkMode) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-//    } else {
-//        DarkColors
-//    }
     val contentWithImageLoader: @Composable () -> Unit = {
         setSingletonImageLoaderFactory { context ->
             ImageLoader
@@ -90,7 +78,6 @@ fun AppTheme(
     )
 }
 
-fun supportsDynamic(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) true else false
 
 fun newDiskCache(): DiskCache =
     DiskCache
@@ -98,21 +85,3 @@ fun newDiskCache(): DiskCache =
         .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
         .maxSizeBytes(512L * 1024 * 1024)
         .build()
-
-@Composable
-@Preview(
-    showBackground = true,
-    showSystemUi = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    name = "Light Mode",
-)
-fun AppThemePreview() {
-    AppTheme {
-        Column {
-            Text(text = "Hello, World!", style = typo.titleSmall)
-            Button(onClick = { /*TODO*/ }) {
-                Text(text = "Click me!")
-            }
-        }
-    }
-}

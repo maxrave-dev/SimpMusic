@@ -1,25 +1,27 @@
 package com.maxrave.simpmusic.viewModel.base
 
-import android.app.Application
-import android.util.Log
-import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maxrave.simpmusic.R
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
+
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import multiplatform.network.cmptoast.ToastDuration
+import multiplatform.network.cmptoast.ToastGravity
+import multiplatform.network.cmptoast.showToast
+import org.jetbrains.compose.resources.StringResource
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.loading
 
-abstract class BaseViewModel(
-    private val application: Application,
-) : AndroidViewModel(application),
+abstract class BaseViewModel : ViewModel(),
     KoinComponent {
     protected val mediaPlayerHandler: MediaPlayerHandler by inject<MediaPlayerHandler>()
     private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
@@ -40,14 +42,13 @@ abstract class BaseViewModel(
      */
     protected fun log(
         message: String,
-        logType: Int = Log.WARN,
+        logType: LogLevel = LogLevel.WARN,
     ) {
         when (logType) {
-            Log.DEBUG -> Logger.d(tag, message)
-            Log.INFO -> Logger.i(tag, message)
-            Log.WARN -> Logger.w(tag, message)
-            Log.ERROR -> Logger.e(tag, message)
-            else -> Logger.d(tag, message)
+            LogLevel.DEBUG -> Logger.d(tag, message)
+            LogLevel.INFO -> Logger.i(tag, message)
+            LogLevel.WARN -> Logger.w(tag, message)
+            LogLevel.ERROR -> Logger.e(tag, message)
         }
     }
 
@@ -57,29 +58,34 @@ abstract class BaseViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.cancel()
-        log("ViewModel cleared", Log.WARN)
+        log("ViewModel cleared", LogLevel.WARN)
     }
 
     init {
         getNowPlayingVideoId()
     }
 
-    protected fun makeToast(message: String?) {
-        Toast.makeText(application, message ?: "NO MESSAGE", Toast.LENGTH_SHORT).show()
+    fun makeToast(message: String?) {
+        Res.string.loading
+        showToast(
+            message = message ?: "NO MESSAGE",
+            duration = ToastDuration.Short,
+            gravity = ToastGravity.Bottom
+        )
     }
 
-    protected fun getString(resId: Int): String = application.getString(resId)
+    protected fun getString(resId: StringResource): String = getString(resId)
 
     // Loading dialog
-    private val _showLoadingDialog: MutableStateFlow<Pair<Boolean, String>> = MutableStateFlow(false to getString(R.string.loading))
+    private val _showLoadingDialog: MutableStateFlow<Pair<Boolean, String>> = MutableStateFlow(false to getString(Res.string.loading))
     val showLoadingDialog: StateFlow<Pair<Boolean, String>> get() = _showLoadingDialog
 
     fun showLoadingDialog(message: String? = null) {
-        _showLoadingDialog.value = true to (message ?: getString(R.string.loading))
+        _showLoadingDialog.value = true to (message ?: getString(Res.string.loading))
     }
 
     fun hideLoadingDialog() {
-        _showLoadingDialog.value = false to getString(R.string.loading)
+        _showLoadingDialog.value = false to getString(Res.string.loading)
     }
 
     private fun getNowPlayingVideoId() {

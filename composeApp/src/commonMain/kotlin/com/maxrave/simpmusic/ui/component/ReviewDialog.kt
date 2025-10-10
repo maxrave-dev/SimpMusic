@@ -7,8 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -17,7 +17,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.window.DialogProperties
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 
@@ -43,7 +45,7 @@ fun ReviewDialog(
                 uriHandler.openUri("https://github.com/maxrave-dev/SimpMusic")
             }) {
                 Text(
-                    stringResource(R.string.give_a_star),
+                    stringResource(Res.string.give_a_star),
                     style = typo.bodySmall,
                 )
             }
@@ -53,24 +55,24 @@ fun ReviewDialog(
                 onDismissRequest.invoke()
             }) {
                 Text(
-                    stringResource(id = R.string.later),
+                    stringResource(Res.string.later),
                     style = typo.bodySmall,
                 )
             }
         },
         icon = {
-            Icon(painterResource(R.drawable.mono), "App Icon")
+            Icon(painterResource(Res.drawable.mono), "App Icon")
         },
         title = {
             Text(
-                stringResource(R.string.enjoying_simpmusic),
+                stringResource(Res.string.enjoying_simpmusic),
                 style = typo.labelSmall,
             )
         },
         text = {
             Text(
                 buildAnnotatedString {
-                    append(stringResource(R.string.if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on))
+                    append(stringResource(Res.string.if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on))
                     withLink(
                         LinkAnnotation.Url(
                             "https://www.producthunt.com/products/simpmusic",
@@ -84,7 +86,7 @@ fun ReviewDialog(
                         append(" ProductHunt")
                     }
                     append("\n")
-                    append(stringResource(R.string.if_you_love_my_work_consider))
+                    append(stringResource(Res.string.if_you_love_my_work_consider))
                     withLink(
                         LinkAnnotation.Url(
                             "https://buymeacoffee.com/maxrave",
@@ -95,7 +97,7 @@ fun ReviewDialog(
                             uriHandler.openUri("https://buymeacoffee.com/maxrave")
                         },
                     ) {
-                        append(stringResource(R.string.buying_me_a_coffee))
+                        append(stringResource(Res.string.buying_me_a_coffee))
                     }
                 },
                 textAlign = TextAlign.Center,

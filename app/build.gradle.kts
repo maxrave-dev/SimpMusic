@@ -269,7 +269,7 @@ dependencies {
     implementation(libs.lottie.compose)
 
     // Paging 3
-    implementation(libs.paging.runtime.ktx)
+    implementation(libs.androidx.paging.common)
     implementation(libs.paging.compose)
 
     // Custom Activity On Crash

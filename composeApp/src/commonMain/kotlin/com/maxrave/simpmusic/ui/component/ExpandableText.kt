@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -22,7 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
-import com.maxrave.simpmusic.R
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.less
+import simpmusic.composeapp.generated.resources.more
 
 @Composable
 fun ExpandableText(
@@ -32,9 +35,9 @@ fun ExpandableText(
     fontStyle: FontStyle? = null,
     text: String,
     collapsedMaxLine: Int = 3,
-    showMoreText: String = "... " + stringResource(id = R.string.more),
+    showMoreText: String = "... " + stringResource(Res.string.more),
     showMoreStyle: SpanStyle = SpanStyle(fontWeight = FontWeight.W500),
-    showLessText: String = " " + stringResource(id = R.string.less),
+    showLessText: String = " " + stringResource(Res.string.less),
     showLessStyle: SpanStyle = showMoreStyle,
     textAlign: TextAlign? = null,
     fontSize: TextUnit,

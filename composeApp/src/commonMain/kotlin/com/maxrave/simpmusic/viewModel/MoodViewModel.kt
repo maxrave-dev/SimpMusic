@@ -18,10 +18,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class MoodViewModel(
-    application: Application,
+    
     dataStoreManager: DataStoreManager,
     private val homeRepository: HomeRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _moodsMomentObject: MutableStateFlow<MoodsMomentObject?> = MutableStateFlow(null)
     var moodsMomentObject: StateFlow<MoodsMomentObject?> = _moodsMomentObject
     var loading = MutableStateFlow<Boolean>(false)

@@ -43,12 +43,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.LibraryChipType
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.copy
@@ -69,7 +71,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -210,7 +212,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     youTubePlaylist,
-                    emptyText = R.string.no_YouTube_playlists,
+                    emptyText = Res.string.no_YouTube_playlists,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getYouTubePlaylist()
@@ -221,7 +223,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     youTubeMixForYou,
-                    emptyText = R.string.no_mixes_found,
+                    emptyText = Res.string.no_mixes_found,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getYouTubeMixedForYou()
@@ -233,7 +235,7 @@ fun LibraryScreen(
                     innerPadding.copy(top = topAppBarHeight),
                     yourLocalPlaylist,
                     onScrolling = onScrolling,
-                    emptyText = R.string.no_playlists_added,
+                    emptyText = Res.string.no_playlists_added,
                     createNewPlaylist = {
                         showAddSheet = true
                     },
@@ -246,7 +248,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     favoritePlaylist,
-                    emptyText = R.string.no_favorite_playlists,
+                    emptyText = Res.string.no_favorite_playlists,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getPlaylistFavorite()
@@ -257,7 +259,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     downloadedPlaylist,
-                    emptyText = R.string.no_playlists_downloaded,
+                    emptyText = Res.string.no_playlists_downloaded,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getDownloadedPlaylist()
@@ -268,7 +270,7 @@ fun LibraryScreen(
                     navController,
                     innerPadding.copy(top = topAppBarHeight),
                     favoritePodcasts,
-                    emptyText = R.string.no_favorite_podcasts,
+                    emptyText = Res.string.no_favorite_podcasts,
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getFavoritePodcasts()
@@ -326,7 +328,7 @@ fun LibraryScreen(
                         value = newTitle,
                         onValueChange = { s -> newTitle = s },
                         label = {
-                            Text(text = stringResource(id = R.string.playlist_name))
+                            Text(text = stringResource(Res.string.playlist_name))
                         },
                         modifier =
                             Modifier
@@ -337,7 +339,7 @@ fun LibraryScreen(
                     TextButton(
                         onClick = {
                             if (newTitle.isBlank()) {
-                                Toast.makeText(context, context.getString(R.string.playlist_name_cannot_be_empty), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(Res.string.playlist_name_cannot_be_empty), Toast.LENGTH_SHORT).show()
                             } else {
                                 viewModel.createPlaylist(newTitle)
                                 hideEditTitleBottomSheet()
@@ -348,7 +350,7 @@ fun LibraryScreen(
                                 .fillMaxWidth()
                                 .align(Alignment.CenterHorizontally),
                     ) {
-                        Text(text = stringResource(id = R.string.create))
+                        Text(text = stringResource(Res.string.create))
                     }
                 }
             }
@@ -366,7 +368,7 @@ fun LibraryScreen(
         TopAppBar(
             title = {
                 Text(
-                    text = stringResource(R.string.library),
+                    text = stringResource(Res.string.library),
                     style = typo.titleMedium,
                     color = Color.White,
                 )
@@ -394,13 +396,13 @@ fun LibraryScreen(
                     isSelected = type == currentFilter,
                     text =
                         when (type) {
-                            LibraryChipType.YOUR_LIBRARY -> stringResource(R.string.your_library)
-                            LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> stringResource(R.string.your_youtube_playlists)
-                            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> stringResource(R.string.mix_for_you)
-                            LibraryChipType.LOCAL_PLAYLIST -> stringResource(R.string.your_playlists)
-                            LibraryChipType.FAVORITE_PLAYLIST -> stringResource(R.string.favorite_playlists)
-                            LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(R.string.downloaded_playlists)
-                            LibraryChipType.FAVORITE_PODCAST -> stringResource(R.string.favorite_podcasts)
+                            LibraryChipType.YOUR_LIBRARY -> stringResource(Res.string.your_library)
+                            LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> stringResource(Res.string.your_youtube_playlists)
+                            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> stringResource(Res.string.mix_for_you)
+                            LibraryChipType.LOCAL_PLAYLIST -> stringResource(Res.string.your_playlists)
+                            LibraryChipType.FAVORITE_PLAYLIST -> stringResource(Res.string.favorite_playlists)
+                            LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
+                            LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
                         },
                 ) {
                     currentFilter = type

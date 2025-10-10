@@ -5,7 +5,9 @@ import android.content.Intent
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.EpisodeEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
 import com.maxrave.domain.data.model.podcast.PodcastBrowse
@@ -64,9 +66,9 @@ sealed class PodcastUIEvent {
 }
 
 class PodcastViewModel(
-    application: Application,
+    
     private val podcastRepository: PodcastRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _uiState = MutableStateFlow<PodcastUIState>(PodcastUIState.Loading)
     val uiState: StateFlow<PodcastUIState> = _uiState.asStateFlow()
 
@@ -347,7 +349,7 @@ class PodcastViewModel(
                 val url = "https://youtube.com/playlist?list=${event.podcastId}"
                 shareIntent.putExtra(Intent.EXTRA_TEXT, url)
                 val chooserIntent =
-                    Intent.createChooser(shareIntent, getString(R.string.share_url)).apply {
+                    Intent.createChooser(shareIntent, getString(Res.string.share_url)).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                 application.startActivity(chooserIntent)

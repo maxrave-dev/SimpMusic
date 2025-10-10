@@ -14,7 +14,9 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -23,10 +25,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class HomeViewModel(
-    private val application: Application,
+    
     private val dataStoreManager: DataStoreManager,
     private val homeRepository: HomeRepository,
-) : BaseViewModel(application) {
+) : BaseViewModel() {
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
     val homeItemList: StateFlow<List<HomeItem>> = _homeItemList
@@ -158,13 +160,13 @@ class HomeViewModel(
                 combine(
                     homeRepository.getHomeData(
                         params,
-                        getString(R.string.view_count),
+                        getString(Res.string.view_count),
                     ),
                     homeRepository.getMoodAndMomentsData(),
                     homeRepository.getChartData(dataStoreManager.chartKey.first()),
                     homeRepository.getNewRelease(
-                        getString(R.string.new_release),
-                        getString(R.string.music_video)
+                        getString(Res.string.new_release),
+                        getString(Res.string.music_video)
                     )
                 ) { home, exploreMood, exploreChart, newRelease ->
                     HomeDataCombine(home, exploreMood, exploreChart, newRelease)

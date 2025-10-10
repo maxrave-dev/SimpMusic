@@ -15,16 +15,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import org.jetbrains.compose.resources.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.maxrave.simpmusic.R
+
+
+import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.MoodAndGenresContentItem
 import com.maxrave.simpmusic.ui.component.NormalAppBar
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.MoodViewModel
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MoodScreen(
@@ -52,7 +54,7 @@ fun MoodScreen(
             leftIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
-                        painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
+                        painterResource(Res.drawable.baseline_arrow_back_ios_new_24),
                         contentDescription = "Back",
                     )
                 }
