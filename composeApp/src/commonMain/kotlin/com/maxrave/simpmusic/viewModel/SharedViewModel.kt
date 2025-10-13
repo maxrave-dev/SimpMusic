@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
-import androidx.work.*
 import com.maxrave.common.Config.ALBUM_CLICK
 import com.maxrave.common.Config.DOWNLOAD_CACHE
 import com.maxrave.common.Config.PLAYLIST_CLICK
@@ -12,7 +11,15 @@ import com.maxrave.common.Config.SONG_CLICK
 import com.maxrave.common.Config.VIDEO_CLICK
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
-import com.maxrave.domain.data.entities.*
+import com.maxrave.domain.data.entities.AlbumEntity
+import com.maxrave.domain.data.entities.DownloadState
+import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.LyricsEntity
+import com.maxrave.domain.data.entities.NewFormatEntity
+import com.maxrave.domain.data.entities.PlaylistEntity
+import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.entities.SongInfoEntity
+import com.maxrave.domain.data.entities.TranslatedLyricsEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.canvas.CanvasResult
 import com.maxrave.domain.data.model.download.DownloadProgress
@@ -26,21 +33,72 @@ import com.maxrave.domain.extension.toGenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
-import com.maxrave.domain.mediaservice.handler.*
-import com.maxrave.domain.repository.*
-import com.maxrave.domain.utils.*
+import com.maxrave.domain.mediaservice.handler.ControlState
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
+import com.maxrave.domain.mediaservice.handler.NowPlayingTrackState
+import com.maxrave.domain.mediaservice.handler.PlayerEvent
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.mediaservice.handler.RepeatState
+import com.maxrave.domain.mediaservice.handler.SimpleMediaState
+import com.maxrave.domain.mediaservice.handler.SleepTimerState
+import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.domain.repository.CacheRepository
+import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.repository.LyricsCanvasRepository
+import com.maxrave.domain.repository.PlaylistRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.StreamRepository
+import com.maxrave.domain.repository.UpdateRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.toListName
+import com.maxrave.domain.utils.toLyrics
+import com.maxrave.domain.utils.toLyricsEntity
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
-
-import simpmusic.composeapp.generated.resources.*
-import com.maxrave.simpmusic.service.test.notification.NotifyWork
+import com.maxrave.simpmusic.expect.getDownloadFolderPath
+import com.maxrave.simpmusic.expect.startWorker
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.EncodedImageFormat
+import org.jetbrains.skia.Image
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.added_to_queue
+import simpmusic.composeapp.generated.resources.added_to_youtube_liked
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.play_next
+import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
+import simpmusic.composeapp.generated.resources.shared
+import simpmusic.composeapp.generated.resources.updated
 import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.reflect.KClass
 
@@ -1436,22 +1494,7 @@ class SharedViewModel(
 
     fun runWorker() {
         Logger.w("Check Worker", "Worker")
-        val request =
-            PeriodicWorkRequestBuilder<NotifyWork>(
-                12L,
-                TimeUnit.HOURS,
-            ).addTag("Worker Test")
-                .setConstraints(
-                    Constraints
-                        .Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build(),
-                ).build()
-        WorkManager.getInstance(application).enqueueUniquePeriodicWork(
-            "Artist Worker",
-            ExistingPeriodicWorkPolicy.KEEP,
-            request,
-        )
+        startWorker()
     }
 
     private var _downloadFileProgress = MutableStateFlow<DownloadProgress>(DownloadProgress.INIT)
@@ -1463,14 +1506,14 @@ class SharedViewModel(
                 .replace(Regex("""[|\\?*<":>]"""), "")
                 .replace(" ", "_")
         val path =
-            "${Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS,
-            ).path}/$fileName"
+            "${getDownloadFolderPath()}/$fileName"
         viewModelScope.launch {
             nowPlayingState.value?.track?.let { track ->
                 val byteArrayOutputStream = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-                val bytesArray = byteArrayOutputStream.toByteArray()
+                val image = Image.makeFromBitmap(bitmap)
+                val bytesArray =
+                    image.encodeToData(EncodedImageFormat.JPEG, 100)?.bytes
+                        ?: byteArrayOutputStream.toByteArray()
                 try {
                     val fileOutputStream = FileOutputStream("$path.jpg")
                     fileOutputStream.write(bytesArray)

@@ -175,12 +175,12 @@ fun HomeItem(
                 AnimatedVisibility(visible = (data.subtitle != null && data.subtitle != "")) {
                     Text(
                         text = data.subtitle ?: "",
-                        style = typo.bodySmall,
+                        style = typo().bodySmall,
                     )
                 }
                 Text(
                     text = data.title,
-                    style = typo.headlineMedium,
+                    style = typo().headlineMedium,
                     color = Color.White,
                     maxLines = 1,
                     modifier = Modifier.fillMaxWidth(),
@@ -361,7 +361,7 @@ fun HomeItemContentPlaylist(
                         is AlbumsResult -> data.title
                         else -> ""
                     },
-                style = typo.titleSmall,
+                style = typo().titleSmall,
                 color = Color.White,
                 maxLines = 1,
                 modifier =
@@ -390,7 +390,7 @@ fun HomeItemContentPlaylist(
                                         }
                                     )
                                 } else {
-                                    stringResource( Res.string.playlist)
+                                    stringResource(Res.string.playlist)
                                 }
 
                         is com.maxrave.domain.data.model.mood.genre.Content -> data.title.subtitle
@@ -406,7 +406,7 @@ fun HomeItemContentPlaylist(
                         is AlbumsResult -> data.year
                         else -> ""
                     },
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -436,7 +436,7 @@ fun HomeItemContentPlaylist(
                     }
                 Text(
                     text = subtitle,
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                     maxLines = 1,
                     modifier =
                         Modifier
@@ -504,7 +504,7 @@ fun QuickPicksItem(
             ) {
                 Text(
                     text = data.title,
-                    style = typo.titleSmall,
+                    style = typo().titleSmall,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -534,7 +534,7 @@ fun QuickPicksItem(
                     item {
                         Text(
                             text = data.artists.toListName().connectArtists(),
-                            style = typo.bodySmall,
+                            style = typo().bodySmall,
                             maxLines = 1,
                             modifier =
                                 Modifier
@@ -608,7 +608,7 @@ fun HomeItemSong(
             )
             Text(
                 text = data.title,
-                style = typo.titleSmall,
+                style = typo().titleSmall,
                 color = Color.White,
                 maxLines = 1,
                 modifier =
@@ -633,7 +633,7 @@ fun HomeItemSong(
                 }
                 Text(
                     text = data.artists.toListName().connectArtists(),
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                     maxLines = 1,
                     modifier =
                         Modifier
@@ -648,7 +648,7 @@ fun HomeItemSong(
             }
             Text(
                 text = data.album?.name ?: stringResource(Res.string.songs),
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -712,7 +712,7 @@ fun HomeItemVideo(
             )
             Text(
                 text = data.title,
-                style = typo.titleSmall,
+                style = typo().titleSmall,
                 color = Color.White,
                 maxLines = 1,
                 modifier =
@@ -727,7 +727,7 @@ fun HomeItemVideo(
             )
             Text(
                 text = data.artists.toListName().connectArtists(),
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -741,7 +741,7 @@ fun HomeItemVideo(
             )
             Text(
                 text = data.views ?: stringResource(Res.string.videos),
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 maxLines = 1,
                 modifier =
                     Modifier
@@ -800,7 +800,7 @@ fun HomeItemArtist(
             )
             Text(
                 text = data.title,
-                style = typo.titleSmall,
+                style = typo().titleSmall,
                 color = Color.White,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
@@ -816,7 +816,7 @@ fun HomeItemArtist(
             )
             Text(
                 text = data.description.ifNullOrEmpty { stringResource(Res.string.artists) },
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
                 modifier =
@@ -830,7 +830,7 @@ fun HomeItemArtist(
             )
             Text(
                 text = "",
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
                 modifier =
@@ -873,7 +873,7 @@ fun MoodMomentAndGenreHomeItem(
             )
             Text(
                 text = title,
-                style = typo.titleSmall,
+                style = typo().titleSmall,
                 textAlign = TextAlign.Center,
                 color = Color.White,
                 modifier =
@@ -931,7 +931,7 @@ fun ItemVideoChart(
             Row {
                 Text(
                     text = position.toString(),
-                    style = typo.titleLarge,
+                    style = typo().titleLarge,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     modifier =
@@ -947,7 +947,7 @@ fun ItemVideoChart(
                 Column(Modifier.padding(start = 10.dp)) {
                     Text(
                         text = data.title,
-                        style = typo.titleMedium,
+                        style = typo().titleMedium,
                         maxLines = 1,
                         color = Color.White,
                         modifier =
@@ -962,7 +962,7 @@ fun ItemVideoChart(
                     )
                     Text(
                         text = data.artists.toListName().connectArtists(),
-                        style = typo.bodyMedium,
+                        style = typo().bodyMedium,
                         modifier =
                             Modifier
                                 .width(210.dp)
@@ -975,7 +975,7 @@ fun ItemVideoChart(
                     )
                     Text(
                         text = data.views,
-                        style = typo.bodySmall,
+                        style = typo().bodySmall,
                         modifier =
                             Modifier
                                 .width(210.dp)
@@ -1015,7 +1015,7 @@ fun ItemArtistChart(
         ) {
             Text(
                 text = data.rank,
-                style = typo.titleLarge,
+                style = typo().titleLarge,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 modifier =
@@ -1055,7 +1055,7 @@ fun ItemArtistChart(
             ) {
                 Text(
                     text = data.title,
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                     modifier =
                         Modifier
                             .wrapContentHeight(align = Alignment.CenterVertically)
@@ -1077,7 +1077,7 @@ fun ItemArtistChart(
                                 data.subscribers,
                             )
                         },
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                     modifier =
                         Modifier
                             .wrapContentHeight(align = Alignment.CenterVertically)
@@ -1119,7 +1119,7 @@ fun ItemTrackChart(
                     Row {
                         Text(
                             text = position.toString(),
-                            style = typo.titleLarge,
+                            style = typo().titleLarge,
                             textAlign = TextAlign.Center,
                             modifier =
                                 Modifier
@@ -1167,7 +1167,7 @@ fun ItemTrackChart(
             ) {
                 Text(
                     text = data.title,
-                    style = typo.titleSmall,
+                    style = typo().titleSmall,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -1185,7 +1185,7 @@ fun ItemTrackChart(
 
                 Text(
                     text = data.artists.toListName().connectArtists(),
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                     maxLines = 1,
                     modifier =
                         Modifier
@@ -1216,7 +1216,7 @@ fun MoodAndGenresContentItem(
                     is Item -> (data).header
                     else -> ""
                 },
-            style = typo.titleMedium,
+            style = typo().titleMedium,
             color = Color.White,
             modifier =
                 Modifier

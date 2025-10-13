@@ -50,10 +50,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,13 +58,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
@@ -81,6 +76,7 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -98,7 +94,24 @@ import com.maxrave.simpmusic.viewModel.SearchType
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.toStringRes
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.baseline_arrow_outward_24
+import simpmusic.composeapp.generated.resources.baseline_close_24
+import simpmusic.composeapp.generated.resources.baseline_history_24
+import simpmusic.composeapp.generated.resources.baseline_search_24
+import simpmusic.composeapp.generated.resources.clear_search_history
+import simpmusic.composeapp.generated.resources.error_occurred
+import simpmusic.composeapp.generated.resources.everything_you_need
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.in_search
+import simpmusic.composeapp.generated.resources.no_results_found
+import simpmusic.composeapp.generated.resources.retry
+import simpmusic.composeapp.generated.resources.search_for_songs_artists_albums_playlists_and_more
+import simpmusic.composeapp.generated.resources.what_do_you_want_to_listen_to
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,7 +120,6 @@ fun SearchScreen(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
-    val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val searchScreenState by searchViewModel.searchScreenState.collectAsStateWithLifecycle()
     val uiState by searchViewModel.searchScreenUIState.collectAsStateWithLifecycle()
@@ -220,7 +232,7 @@ fun SearchScreen(
                     placeholder = {
                         Text(
                             text = stringResource(Res.string.what_do_you_want_to_listen_to),
-                            style = typo.labelMedium,
+                            style = typo().labelMedium,
                         )
                     },
                     leadingIcon = {
@@ -281,7 +293,7 @@ fun SearchScreen(
                                                     listTracks = arrayListOf(firstTrack),
                                                     firstPlayedTrack = firstTrack,
                                                     playlistId = "RDAMVM${firstTrack.videoId}",
-                                                    playlistName = "\"${searchText}\" ${context.getString(Res.string.in_search)}",
+                                                    playlistName = "\"${searchText}\" ${getStringBlocking(Res.string.in_search)}",
                                                     playlistType = PlaylistType.RADIO,
                                                     continuation = null,
                                                 ),
@@ -342,7 +354,7 @@ fun SearchScreen(
                             ) {
                                 Text(
                                     text = suggestion,
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
                                 IconButton(
@@ -433,7 +445,7 @@ fun SearchScreen(
                                     Spacer(modifier = Modifier.padding(horizontal = 12.dp))
                                     Text(
                                         text = historyItem,
-                                        style = typo.bodyMedium,
+                                        style = typo().bodyMedium,
                                     )
                                     Spacer(modifier = Modifier.weight(1f))
                                     IconButton(
@@ -472,7 +484,7 @@ fun SearchScreen(
                         ) {
                             Text(
                                 text = stringResource(Res.string.everything_you_need),
-                                style = typo.titleMedium,
+                                style = typo().titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth(),
@@ -480,7 +492,7 @@ fun SearchScreen(
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
                                 text = stringResource(Res.string.search_for_songs_artists_albums_playlists_and_more),
-                                style = typo.bodyMedium,
+                                style = typo().bodyMedium,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -598,7 +610,11 @@ fun SearchScreen(
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",
                                                                                     playlistName =
-                                                                                        "\"${searchText}\" ${context.getString(Res.string.in_search)}",
+                                                                                        "\"${searchText}\" ${
+                                                                                            getStringBlocking(
+                                                                                                Res.string.in_search,
+                                                                                            )
+                                                                                        }",
                                                                                     playlistType = PlaylistType.RADIO,
                                                                                     continuation = null,
                                                                                 ),
@@ -628,7 +644,11 @@ fun SearchScreen(
                                                                                     firstPlayedTrack = firstTrack,
                                                                                     playlistId = "RDAMVM${result.videoId}",
                                                                                     playlistName =
-                                                                                        "\"${searchText}\" ${context.getString(Res.string.in_search)}",
+                                                                                        "\"${searchText}\" ${
+                                                                                            getStringBlocking(
+                                                                                                Res.string.in_search,
+                                                                                            )
+                                                                                        }",
                                                                                     playlistType = PlaylistType.RADIO,
                                                                                     continuation = null,
                                                                                 ),
@@ -697,7 +717,7 @@ fun SearchScreen(
                                                     ) {
                                                         Text(
                                                             text = stringResource(Res.string.no_results_found),
-                                                            style = typo.titleMedium,
+                                                            style = typo().titleMedium,
                                                             textAlign = TextAlign.Center,
                                                             modifier = Modifier.fillMaxWidth(),
                                                         )
@@ -716,7 +736,7 @@ fun SearchScreen(
                                             ) {
                                                 Text(
                                                     text = stringResource(Res.string.error_occurred),
-                                                    style = typo.titleMedium,
+                                                    style = typo().titleMedium,
                                                     fontWeight = FontWeight.Bold,
                                                     textAlign = TextAlign.Center,
                                                     modifier = Modifier.fillMaxWidth(),
@@ -741,7 +761,7 @@ fun SearchScreen(
                                         ) {
                                             Text(
                                                 text = stringResource(Res.string.no_results_found),
-                                                style = typo.titleMedium,
+                                                style = typo().titleMedium,
                                                 textAlign = TextAlign.Center,
                                                 modifier = Modifier.fillMaxWidth(),
                                             )
@@ -774,11 +794,13 @@ fun SuggestItemRow(
             when (searchResult) {
                 is SongsResult ->
                     searchResult.thumbnails?.lastOrNull()?.url
+
                 is AlbumsResult -> searchResult.thumbnails.lastOrNull()?.url
                 is ArtistsResult -> searchResult.thumbnails.lastOrNull()?.url
                 is PlaylistsResult -> searchResult.thumbnails.lastOrNull()?.url
                 is VideosResult ->
                     searchResult.thumbnails?.lastOrNull()?.url
+
                 else -> null
             }
 
@@ -791,7 +813,7 @@ fun SuggestItemRow(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(url)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(url)
@@ -821,17 +843,19 @@ fun SuggestItemRow(
                 when (searchResult) {
                     is SongsResult ->
                         searchResult.title
+
                     is AlbumsResult -> searchResult.title
                     is ArtistsResult -> searchResult.artist
                     is PlaylistsResult -> searchResult.title
                     is VideosResult ->
                         searchResult.title
+
                     else -> null
                 } ?: "Unknown"
 
             Text(
                 text = title,
-                style = typo.labelSmall,
+                style = typo().labelSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -850,7 +874,7 @@ fun SuggestItemRow(
             if (subtitle.isNotEmpty()) {
                 Text(
                     text = subtitle,
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

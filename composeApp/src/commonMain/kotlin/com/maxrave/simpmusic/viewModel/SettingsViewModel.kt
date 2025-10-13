@@ -1,26 +1,13 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
-import android.app.usage.StorageStatsManager
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.os.storage.StorageManager
-import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
 import coil3.annotation.ExperimentalCoilApi
-import coil3.imageLoader
+import com.eygraber.uri.Uri
 import com.maxrave.common.Config
-import com.maxrave.common.DB_NAME
-import com.maxrave.common.DOWNLOAD_EXOPLAYER_FOLDER
-import com.maxrave.common.EXOPLAYER_DB_NAME
 import com.maxrave.common.QUALITY
 import com.maxrave.common.SELECTED_LANGUAGE
-import com.maxrave.common.SETTINGS_FILENAME
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
@@ -32,16 +19,8 @@ import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
+import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
-import com.maxrave.media3.di.stopService
-
-
-import simpmusic.composeapp.generated.resources.*
-import com.maxrave.simpmusic.extension.bytesToMB
-import com.maxrave.simpmusic.extension.div
-import com.maxrave.simpmusic.extension.getSizeOfFile
-import com.maxrave.simpmusic.extension.zipInputStream
-import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -53,20 +32,22 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.backup_create_failed
+import simpmusic.composeapp.generated.resources.backup_create_success
+import simpmusic.composeapp.generated.resources.backup_in_progress
+import simpmusic.composeapp.generated.resources.clear_canvas_cache
+import simpmusic.composeapp.generated.resources.clear_downloaded_cache
+import simpmusic.composeapp.generated.resources.clear_player_cache
+import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
+import simpmusic.composeapp.generated.resources.restore_failed
+import simpmusic.composeapp.generated.resources.restore_in_progress
 
 class SettingsViewModel(
-    
     private val dataStoreManager: DataStoreManager,
     private val commonRepository: CommonRepository,
     private val songRepository: SongRepository,
@@ -212,7 +193,6 @@ class SettingsViewModel(
         getHomeLimit()
         getPlayVideoInsteadOfAudio()
         getVideoQuality()
-        getThumbCacheSize()
         getSpotifyLogIn()
         getSpotifyLyrics()
         getSpotifyCanvas()
@@ -235,7 +215,11 @@ class SettingsViewModel(
         getEnableLiquidGlass()
         getExplicitContentEnabled()
         viewModelScope.launch {
-            calculateDataFraction()
+            calculateDataFraction(
+                cacheRepository,
+            )?.let {
+                _fraction.value = it
+            }
         }
     }
 
@@ -506,60 +490,6 @@ class SettingsViewModel(
         }
     }
 
-    private suspend fun calculateDataFraction() {
-        withContext(Dispatchers.Default) {
-            val playerCache = cacheRepository.getCacheSize(Config.PLAYER_CACHE)
-            val downloadCache = cacheRepository.getCacheSize(Config.DOWNLOAD_CACHE)
-            val canvasCache = cacheRepository.getCacheSize(Config.CANVAS_CACHE)
-            val mStorageStatsManager =
-                application.getSystemService(StorageStatsManager::class.java)
-            if (mStorageStatsManager != null) {
-                val totalByte =
-                    mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT).bytesToMB()
-                val freeSpace =
-                    mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT).bytesToMB()
-                val usedSpace = totalByte - freeSpace
-                val simpMusicSize = getSizeOfFile(application.filesDir).bytesToMB()
-                val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
-                val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
-                val databaseSize =
-                    simpMusicSize - playerCache.bytesToMB() - downloadCache.bytesToMB() - canvasCache.bytesToMB()
-                if (totalByte ==
-                    freeSpace + otherApp + simpMusicSize + thumbSize
-                ) {
-                    withContext(Dispatchers.Main) {
-                        _fraction.update {
-                            it.copy(
-                                otherApp = otherApp.toFloat().div(totalByte.toFloat()),
-                                downloadCache =
-                                    downloadCache
-                                        .bytesToMB()
-                                        .toFloat()
-                                        .div(totalByte.toFloat()),
-                                playerCache =
-                                    playerCache
-                                        .bytesToMB()
-                                        .toFloat()
-                                        .div(totalByte.toFloat()),
-                                canvasCache =
-                                    canvasCache
-                                        .bytesToMB()
-                                        .toFloat()
-                                        .div(totalByte.toFloat()),
-                                thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
-                                freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
-                                appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
-                            )
-                        }
-                        log("calculateDataFraction: $totalByte, $freeSpace, $usedSpace, $simpMusicSize, $otherApp, $databaseSize", Log.WARN)
-                        log("calculateDataFraction: ${_fraction.value}", Log.WARN)
-                        log("calculateDataFraction: ${_fraction.value.combine()}", Log.WARN)
-                    }
-                }
-            }
-        }
-    }
-
     fun getTranslucentBottomBar() {
         viewModelScope.launch {
             dataStoreManager.translucentBottomBar.collect { translucentBottomBar ->
@@ -575,9 +505,9 @@ class SettingsViewModel(
         }
     }
 
-    fun getThumbCacheSize() {
+    fun getThumbCacheSize(context: PlatformContext) {
         viewModelScope.launch {
-            val diskCache = application.imageLoader.diskCache
+            val diskCache = SingletonImageLoader.get(context).diskCache
             _thumbCacheSize.emit(diskCache?.size)
         }
     }
@@ -710,14 +640,14 @@ class SettingsViewModel(
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
             dataStoreManager.getSponsorBlockCategories().let {
-                log("getSponsorBlockCategories: $it", Log.WARN)
+                log("getSponsorBlockCategories: $it", LogLevel.WARN)
                 _sponsorBlockCategories.emit(it)
             }
         }
     }
 
     fun setSponsorBlockCategories(list: ArrayList<String>) {
-        log("setSponsorBlockCategories: $list", Log.WARN)
+        log("setSponsorBlockCategories: $list", LogLevel.WARN)
         viewModelScope.launch {
             runBlocking(Dispatchers.IO) {
                 dataStoreManager.setSponsorBlockCategories(list)
@@ -806,138 +736,12 @@ class SettingsViewModel(
         }
     }
 
-    private fun backupFolder(
-        folder: File,
-        baseName: String,
-        zipOutputStream: ZipOutputStream,
-    ) {
-        if (!folder.exists() || !folder.isDirectory) return
-
-        Logger.d("BackupRestore", "Backing up folder: ${folder.absolutePath} as $baseName")
-        folder.listFiles()?.forEach { file ->
-            if (file.isFile) {
-                val entryName = "$baseName/${file.name}"
-                Logger.d("BackupRestore", "Backing up file: $entryName")
-                zipOutputStream.putNextEntry(ZipEntry(entryName))
-                file.inputStream().buffered().use { inputStream ->
-                    inputStream.copyTo(zipOutputStream)
-                }
-                zipOutputStream.closeEntry()
-            } else if (file.isDirectory) {
-                Logger.d("BackupRestore", "Entering subdirectory: ${file.name}")
-                backupFolder(file, "$baseName/${file.name}", zipOutputStream)
-            }
-        }
-    }
-
-    private fun debugFolderContents(
-        folder: File,
-        level: Int = 0,
-    ) {
-        if (!folder.exists()) {
-            Logger.d("BackupRestore", "${"  ".repeat(level)}Folder does not exist: ${folder.absolutePath}")
-            return
-        }
-
-        Logger.d("BackupRestore", "${"  ".repeat(level)}Folder: ${folder.name} (${folder.absolutePath})")
-        folder.listFiles()?.forEach { file ->
-            if (file.isFile) {
-                Logger.d("BackupRestore", "${"  ".repeat(level + 1)}File: ${file.name} (${file.length()} bytes)")
-            } else if (file.isDirectory) {
-                debugFolderContents(file, level + 1)
-            }
-        }
-    }
-
-    private fun clearFolder(folder: File) {
-        if (folder.exists() && folder.isDirectory) {
-            Logger.d("BackupRestore", "Clearing folder: ${folder.absolutePath}")
-            folder.listFiles()?.forEach { file ->
-                if (file.isFile) {
-                    Logger.d("BackupRestore", "Deleting file: ${file.name}")
-                    file.delete()
-                } else if (file.isDirectory) {
-                    clearFolder(file) // Recursive
-                    Logger.d("BackupRestore", "Deleting directory: ${file.name}")
-                    file.delete() // Delete empty directory
-                }
-            }
-        }
-    }
-
-    private fun restoreFolder(
-        entryName: String,
-        zipInputStream: ZipInputStream,
-        baseFolderName: String,
-    ) {
-        Logger.d("BackupRestore", "Restoring entry: $entryName")
-
-        // Extract relative path from entry name
-        val relativePath = entryName.removePrefix("$baseFolderName/")
-        val targetFile = application.filesDir / baseFolderName / relativePath
-
-        Logger.d("BackupRestore", "Target file path: ${targetFile.absolutePath}")
-        Logger.d("BackupRestore", "Relative path: $relativePath")
-
-        // Create parent directories if they don't exist
-        val parentCreated = targetFile.parentFile?.mkdirs()
-        Logger.d("BackupRestore", "Parent dir created: $parentCreated, parent exists: ${targetFile.parentFile?.exists()}")
-
-        try {
-            // Restore the file content
-            targetFile.outputStream().use { outputStream ->
-                val bytesWritten = zipInputStream.copyTo(outputStream)
-                Logger.d("BackupRestore", "Restored file: ${targetFile.name}, bytes: $bytesWritten")
-
-                // Verify file was created
-                if (targetFile.exists()) {
-                    Logger.d("BackupRestore", "File exists after restore: ${targetFile.name}, size: ${targetFile.length()}")
-                } else {
-                    Logger.e("BackupRestore", "File NOT created: ${targetFile.name}")
-                }
-            }
-        } catch (e: Exception) {
-            Logger.e("BackupRestore", "Error restoring file: ${targetFile.name}")
-        }
-    }
-
     fun backup(uri: Uri) {
         viewModelScope.launch {
             runCatching {
                 makeToast(getString(Res.string.backup_in_progress))
                 withContext(Dispatchers.IO) {
-                    application.applicationContext.contentResolver.openOutputStream(uri)?.use {
-                        it.buffered().zipOutputStream().use { outputStream ->
-                            (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb")
-                                .inputStream()
-                                .buffered()
-                                .use { inputStream ->
-                                    outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
-                                    inputStream.copyTo(outputStream)
-                                }
-                            runBlocking(Dispatchers.IO) {
-                                commonRepository.databaseDaoCheckpoint()
-                            }
-                            FileInputStream(databasePath).use { inputStream ->
-                                outputStream.putNextEntry(ZipEntry(DB_NAME))
-                                inputStream.copyTo(outputStream)
-                            }
-                            if (backupDownloaded.value) {
-                                (application.getDatabasePath(EXOPLAYER_DB_NAME))
-                                    .inputStream()
-                                    .buffered()
-                                    .use { inputStream ->
-                                        outputStream.putNextEntry(ZipEntry(EXOPLAYER_DB_NAME))
-                                        inputStream.copyTo(outputStream)
-                                    }
-                                // Backup download folder
-                                val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
-                                Logger.d("BackupRestore", "=== BACKUP: Download folder contents BEFORE backup ===")
-                                debugFolderContents(downloadFolder)
-                                backupFolder(downloadFolder, DOWNLOAD_EXOPLAYER_FOLDER, outputStream)
-                            }
-                        }
-                    }
+                    backupNative(commonRepository, uri, backupDownloaded.value)
                 }
             }.onSuccess {
                 withContext(Dispatchers.Main) {
@@ -957,84 +761,8 @@ class SettingsViewModel(
             makeToast(getString(Res.string.restore_in_progress))
             withContext(Dispatchers.IO) {
                 runCatching {
-                    application.applicationContext.contentResolver.openInputStream(uri)?.use {
-                        it.zipInputStream().use { inputStream ->
-                            var entry =
-                                try {
-                                    inputStream.nextEntry
-                                } catch (e: Exception) {
-                                    null
-                                }
-
-                            var downloadFolderCleared = false
-
-                            while (entry != null) {
-                                Logger.d("BackupRestore", "Processing entry: ${entry.name}")
-                                when {
-                                    entry.name == "$SETTINGS_FILENAME.preferences_pb" -> {
-                                        (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb")
-                                            .outputStream()
-                                            .use { outputStream ->
-                                                inputStream.copyTo(outputStream)
-                                            }
-                                    }
-
-                                    entry.name == DB_NAME -> {
-                                        runBlocking(Dispatchers.IO) {
-                                            commonRepository.databaseDaoCheckpoint()
-                                            commonRepository.closeDatabase()
-                                        }
-                                        FileOutputStream(databasePath).use { outputStream ->
-                                            inputStream.copyTo(outputStream)
-                                        }
-                                    }
-
-                                    entry.name == EXOPLAYER_DB_NAME -> {
-                                        FileOutputStream(application.getDatabasePath(EXOPLAYER_DB_NAME)).use { outputStream ->
-                                            inputStream.copyTo(outputStream)
-                                        }
-                                    }
-
-                                    entry.name.startsWith("$DOWNLOAD_EXOPLAYER_FOLDER/") -> {
-                                        Logger.d("BackupRestore", "Found download entry: ${entry.name}")
-                                        // Clear download folder on first encounter
-                                        if (!downloadFolderCleared) {
-                                            val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
-                                            Logger.d("BackupRestore", "=== RESTORE: Download folder contents BEFORE clearing ===")
-                                            debugFolderContents(downloadFolder)
-                                            Logger.d("BackupRestore", "Clearing download folder: ${downloadFolder.absolutePath}")
-                                            clearFolder(downloadFolder)
-                                            Logger.d("BackupRestore", "=== RESTORE: Download folder contents AFTER clearing ===")
-                                            debugFolderContents(downloadFolder)
-                                            downloadFolderCleared = true
-                                        }
-                                        restoreFolder(entry.name, inputStream, "download")
-                                    }
-
-                                    else -> {
-                                        Logger.d("BackupRestore", "Unhandled entry: ${entry.name}")
-                                    }
-                                }
-                                entry = inputStream.nextEntry
-                            }
-                        }
-                    }
-                    // Final debug check
-                    val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
-                    Logger.d("BackupRestore", "=== RESTORE: Download folder contents AFTER RESTORE ===")
-                    debugFolderContents(downloadFolder)
-
-                    withContext(Dispatchers.Main) {
-                        makeToast(getString(Res.string.restore_success))
-//                        mediaPlayerHandler.stopMediaService(application)
-                        stopService(application)
+                    restoreNative(commonRepository, uri) {
                         getData()
-                        val ctx = application.applicationContext
-                        val pm: PackageManager = ctx.packageManager
-                        val intent = pm.getLaunchIntentForPackage(ctx.packageName)
-                        val mainIntent = Intent.makeRestartActivityTask(intent?.component)
-                        ctx.startActivity(mainIntent)
-                        Runtime.getRuntime().exit(0)
                     }
                 }.onFailure {
                     withContext(Dispatchers.Main) {
@@ -1059,20 +787,7 @@ class SettingsViewModel(
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
             Logger.w("SettingsViewModel", "changeLanguage: $code")
             getLanguage()
-            val localeList =
-                LocaleListCompat.forLanguageTags(
-                    if (code == "id-ID") {
-                        if (Build.VERSION.SDK_INT >= 35) {
-                            "id-ID"
-                        } else {
-                            "in-ID"
-                        }
-                    } else {
-                        code
-                    },
-                )
-            Logger.d("Language", localeList.toString())
-            AppCompatDelegate.setApplicationLocales(localeList)
+            changeLanguageNative(code)
         }
     }
 
@@ -1255,8 +970,8 @@ class SettingsViewModel(
                             ?.url ?: "",
                     )
                     val cookieItem =
-                        commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL, application.packageName)
-                    commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (application.filesDir / "ytdlp-cookie.txt").path).let {
+                        commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL, getPackageName())
+                    commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (getFileDir() + "/ytdlp-cookie.txt")).let {
                         Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                     }
                     accountInfoList.forEachIndexed { index, account ->
@@ -1277,7 +992,7 @@ class SettingsViewModel(
                                 ),
                             ).firstOrNull()
                             ?.let {
-                                log("addAccount: $it", Log.WARN)
+                                log("addAccount: $it", LogLevel.WARN)
                             }
                     }
                     dataStoreManager.setLoggedIn(true)
@@ -1322,7 +1037,7 @@ class SettingsViewModel(
                     ?.let {
                         Logger.w("getAllGoogleAccount", "set used: $it")
                     }
-                acc.netscapeCookie?.let { commonRepository.writeTextToFile(it, (application.filesDir / "ytdlp-cookie.txt").path) }.let {
+                acc.netscapeCookie?.let { commonRepository.writeTextToFile(it, (getFileDir() + "/ytdlp-cookie.txt")) }.let {
                     Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                 }
                 dataStoreManager.setCookie(acc.cache ?: "", acc.pageId)
@@ -1366,16 +1081,11 @@ class SettingsViewModel(
     }
 
     @ExperimentalCoilApi
-    fun clearThumbnailCache() {
+    fun clearThumbnailCache(platformContext: PlatformContext) {
         viewModelScope.launch {
-            application.imageLoader.diskCache?.clear()
-            Toast
-                .makeText(
-                    getApplication(),
-                    application.getString(Res.string.clear_thumbnail_cache),
-                    Toast.LENGTH_SHORT,
-                ).show()
-            getThumbCacheSize()
+            SingletonImageLoader.get(platformContext).diskCache?.clear()
+            makeToast(getString(Res.string.clear_thumbnail_cache))
+            getThumbCacheSize(platformContext)
         }
     }
 
@@ -1586,3 +1296,23 @@ data class SettingBasicAlertState(
     val confirm: Pair<String, () -> Unit>,
     val dismiss: String,
 )
+
+expect suspend fun calculateDataFraction(cacheRepository: CacheRepository): SettingsStorageSectionFraction?
+
+expect suspend fun restoreNative(
+    commonRepository: CommonRepository,
+    uri: Uri,
+    getData: () -> Unit = {},
+)
+
+expect suspend fun backupNative(
+    commonRepository: CommonRepository,
+    uri: Uri,
+    backupDownloaded: Boolean,
+)
+
+expect fun getPackageName(): String
+
+expect fun getFileDir(): String
+
+expect fun changeLanguageNative(code: String)

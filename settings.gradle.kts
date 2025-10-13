@@ -7,6 +7,7 @@ pluginManagement {
         maven {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
         }
+        maven("https://jogamp.org/deployment/maven")
     }
 }
 dependencyResolutionManagement {
@@ -19,6 +20,7 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
         }
+        maven("https://jogamp.org/deployment/maven")
     }
 }
 
@@ -65,7 +67,7 @@ val mediaDir =
 rootProject.name = "SimpMusic"
 include(
 //    "app",
-    ":composeApp",
+    "composeApp",
     ":common",
     ":data",
     ":domain",

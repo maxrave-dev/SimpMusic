@@ -7,8 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalUriHandler
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -17,11 +15,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.window.DialogProperties
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.*
 
 @Composable
 @ExperimentalMaterial3Api
@@ -46,7 +44,7 @@ fun ReviewDialog(
             }) {
                 Text(
                     stringResource(Res.string.give_a_star),
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                 )
             }
         },
@@ -56,7 +54,7 @@ fun ReviewDialog(
             }) {
                 Text(
                     stringResource(Res.string.later),
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                 )
             }
         },
@@ -66,7 +64,7 @@ fun ReviewDialog(
         title = {
             Text(
                 stringResource(Res.string.enjoying_simpmusic),
-                style = typo.labelSmall,
+                style = typo().labelSmall,
             )
         },
         text = {
@@ -101,7 +99,7 @@ fun ReviewDialog(
                     }
                 },
                 textAlign = TextAlign.Center,
-                style = typo.bodySmall,
+                style = typo().bodySmall,
             )
         },
     )

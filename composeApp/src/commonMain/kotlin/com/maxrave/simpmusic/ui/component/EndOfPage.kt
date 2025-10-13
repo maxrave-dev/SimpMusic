@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,7 +35,7 @@ fun EndOfPage(withoutCredit: Boolean = false) {
                         Res.string.version_format,
                         VersionManager.getVersionName(),
                     ) + "\nmaxrave-dev",
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier

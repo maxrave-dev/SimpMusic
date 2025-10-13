@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,13 +20,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.loading
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +32,6 @@ fun LoadingDialog(
     loading: Boolean,
     message: String,
 ) {
-    val context = LocalContext.current
     if (loading) {
         Box(modifier = Modifier.fillMaxSize()) {
             BasicAlertDialog(
@@ -56,8 +52,8 @@ fun LoadingDialog(
                         ),
                     ) {
                         Text(
-                            context.getString(Res.string.loading),
-                            style = typo.headlineMedium,
+                            stringResource(Res.string.loading),
+                            style = typo().headlineMedium,
                         )
                         Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator()
@@ -69,13 +65,4 @@ fun LoadingDialog(
             }
         }
     }
-}
-
-@Preview(
-    showSystemUi = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
-)
-@Composable
-fun LoadingDialogPreview() {
-    LoadingDialog(loading = true, message = "Loading")
 }

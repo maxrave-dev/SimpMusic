@@ -1,12 +1,12 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -58,33 +58,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants.IterateForever
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -104,13 +96,37 @@ import com.maxrave.simpmusic.viewModel.PlaylistUIState
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album_length
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.baseline_downloaded
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
+import simpmusic.composeapp.generated.resources.baseline_play_circle_24
+import simpmusic.composeapp.generated.resources.baseline_sensors_24
+import simpmusic.composeapp.generated.resources.baseline_shuffle_24
+import simpmusic.composeapp.generated.resources.download_button
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.no_description
+import simpmusic.composeapp.generated.resources.playlist
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.unlimited
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -121,13 +137,13 @@ fun PlaylistScreen(
     isYourYouTubePlaylist: Boolean,
     navController: NavController,
 ) {
-    val context = LocalContext.current
     val tag = "PlaylistScreen"
 
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
-    )
-
+    val composition by rememberLottieComposition {
+        LottieCompositionSpec.JsonString(
+            Res.readBytes("files/downloading_animation.json").decodeToString(),
+        )
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val continuation by viewModel.continuation.collectAsStateWithLifecycle()
     val listColors by viewModel.listColors.collectAsStateWithLifecycle()
@@ -331,7 +347,7 @@ fun PlaylistScreen(
                                     AsyncImage(
                                         model =
                                             ImageRequest
-                                                .Builder(LocalContext.current)
+                                                .Builder(LocalPlatformContext.current)
                                                 .data(data.thumbnail)
                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                 .diskCacheKey(data.thumbnail)
@@ -366,7 +382,7 @@ fun PlaylistScreen(
                                             Spacer(modifier = Modifier.size(25.dp))
                                             Text(
                                                 text = data.title,
-                                                style = typo.titleLarge,
+                                                style = typo().titleLarge,
                                                 color = Color.White,
                                                 maxLines = 2,
                                             )
@@ -394,19 +410,21 @@ fun PlaylistScreen(
                                                     ) {
                                                         Text(
                                                             text = data.author.name,
-                                                            style = typo.labelSmall,
+                                                            style = typo().labelSmall,
                                                             color = Color.White,
                                                         )
                                                     }
                                                 }
                                                 Spacer(modifier = Modifier.size(4.dp))
                                                 Text(
-                                                    text = "${if (data.isRadio) {
-                                                        stringResource(Res.string.radio)
-                                                    } else {
-                                                        stringResource(Res.string.playlist)
-                                                    }} • ${data.year}",
-                                                    style = typo.bodyMedium,
+                                                    text = "${
+                                                        if (data.isRadio) {
+                                                            stringResource(Res.string.radio)
+                                                        } else {
+                                                            stringResource(Res.string.playlist)
+                                                        }
+                                                    } • ${data.year}",
+                                                    style = typo().bodyMedium,
                                                 )
                                             }
                                             Row(
@@ -453,12 +471,7 @@ fun PlaylistScreen(
                                                                             .clip(
                                                                                 CircleShape,
                                                                             ).clickable {
-                                                                                Toast
-                                                                                    .makeText(
-                                                                                        context,
-                                                                                        context.getString(Res.string.downloaded),
-                                                                                        Toast.LENGTH_SHORT,
-                                                                                    ).show()
+                                                                                viewModel.makeToast(getStringBlocking(Res.string.downloaded))
                                                                             },
                                                                 ) {
                                                                     Icon(
@@ -481,17 +494,16 @@ fun PlaylistScreen(
                                                                             .clip(
                                                                                 CircleShape,
                                                                             ).clickable {
-                                                                                Toast
-                                                                                    .makeText(
-                                                                                        context,
-                                                                                        context.getString(Res.string.downloading),
-                                                                                        Toast.LENGTH_SHORT,
-                                                                                    ).show()
+                                                                                viewModel.makeToast(getStringBlocking(Res.string.downloading))
                                                                             },
                                                                 ) {
-                                                                    LottieAnimation(
-                                                                        composition,
-                                                                        iterations = IterateForever,
+                                                                    Image(
+                                                                        painter =
+                                                                            rememberLottiePainter(
+                                                                                composition = composition,
+                                                                                iterations = Compottie.IterateForever,
+                                                                            ),
+                                                                        contentDescription = "Lottie animation",
                                                                         modifier = Modifier.fillMaxSize(),
                                                                     )
                                                                 }
@@ -567,13 +579,13 @@ fun PlaylistScreen(
                                                         stringResource(Res.string.unlimited)
                                                     } else {
                                                         stringResource(
-                                                            id = Res.string.album_length,
+                                                            Res.string.album_length,
                                                             (data.trackCount).toString(),
                                                             "",
                                                         )
                                                     },
                                                 color = Color.White,
-                                                style = typo.bodyMedium,
+                                                style = typo().bodyMedium,
                                                 modifier = Modifier.padding(vertical = 8.dp),
                                             )
                                         }
@@ -630,6 +642,7 @@ fun PlaylistScreen(
                                 EndOfPage()
                             }
                         }
+
                         ListState.LOADING, ListState.PAGINATING -> {
                             item {
                                 Box(
@@ -647,6 +660,7 @@ fun PlaylistScreen(
                                 EndOfPage()
                             }
                         }
+
                         ListState.ERROR -> {
                             item {
                                 Box(
@@ -658,7 +672,7 @@ fun PlaylistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.error),
-                                        style = typo.bodyMedium,
+                                        style = typo().bodyMedium,
                                     )
                                 }
                             }
@@ -666,6 +680,7 @@ fun PlaylistScreen(
                                 EndOfPage()
                             }
                         }
+
                         ListState.PAGINATION_EXHAUST -> {
                             item {
                                 EndOfPage()
@@ -715,7 +730,7 @@ fun PlaylistScreen(
                         title = {
                             Text(
                                 text = data.title,
-                                style = typo.titleMedium,
+                                style = typo().titleMedium,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -761,7 +776,7 @@ fun PlaylistScreen(
             }
 
             is PlaylistUIState.Error -> {
-                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                viewModel.makeToast("Error: ${state.message}")
                 navController.navigateUp()
             }
         }

@@ -2,7 +2,6 @@
 
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
@@ -20,24 +19,46 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
-import com.maxrave.domain.utils.*
+import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.collectLatestResource
+import com.maxrave.domain.utils.toListVideoId
+import com.maxrave.domain.utils.toPlaylistEntity
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-
-
-import simpmusic.composeapp.generated.resources.*
-import com.maxrave.simpmusic.viewModel.PlaylistUIState.*
+import com.maxrave.simpmusic.viewModel.PlaylistUIState.Error
+import com.maxrave.simpmusic.viewModel.PlaylistUIState.Loading
+import com.maxrave.simpmusic.viewModel.PlaylistUIState.Success
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.inject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.auto_created_by_youtube_music
+import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.playlist
+import simpmusic.composeapp.generated.resources.playlist_is_empty
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.radio_not_available
+import simpmusic.composeapp.generated.resources.shuffle
+import simpmusic.composeapp.generated.resources.shuffle_not_available
+import simpmusic.composeapp.generated.resources.synced
+import simpmusic.composeapp.generated.resources.syncing
+import simpmusic.composeapp.generated.resources.view_count
 
 class PlaylistViewModel(
-    
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val playlistRepository: PlaylistRepository,
@@ -196,6 +217,7 @@ class PlaylistViewModel(
                                 if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
                                 playlistRepository.insertRadioPlaylist(data.first.toPlaylistEntity())
                             }
+
                             else -> {
                                 _uiState.value = Error(res.message ?: "Empty response")
                             }
@@ -235,6 +257,7 @@ class PlaylistViewModel(
                                 if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
                                 getPlaylistEntity(id = data.first.id, playlistBrowse = data.first)
                             }
+
                             else -> {
                                 getPlaylistEntity(id)
                             }
@@ -435,11 +458,12 @@ class PlaylistViewModel(
                     index,
                 )
             }
+
             PlaylistUIEvent.PlayAll -> {
                 val loadedList = tracks.value
                 if (loadedList.isEmpty()) {
                     makeToast(
-                        application.getString(Res.string.playlist_is_empty),
+                        getString(Res.string.playlist_is_empty),
                     )
                     return
                 }
@@ -464,11 +488,12 @@ class PlaylistViewModel(
                     0,
                 )
             }
+
             PlaylistUIEvent.Shuffle -> {
                 val shuffleEndpoint = data.shuffleEndpoint
                 if (shuffleEndpoint == null) {
                     makeToast(
-                        application.getString(Res.string.shuffle_not_available),
+                        getString(Res.string.shuffle_not_available),
                     )
                     return
                 } else {
@@ -494,9 +519,10 @@ class PlaylistViewModel(
                                         0,
                                     )
                                 }
+
                                 else -> {
                                     makeToast(
-                                        res.message ?: application.getString(Res.string.error),
+                                        res.message ?: getString(Res.string.error),
                                     )
                                 }
                             }
@@ -504,11 +530,12 @@ class PlaylistViewModel(
                     }
                 }
             }
+
             PlaylistUIEvent.StartRadio -> {
                 val radioEndpoint = data.radioEndpoint
                 if (radioEndpoint == null) {
                     makeToast(
-                        application.getString(Res.string.radio_not_available),
+                        getString(Res.string.radio_not_available),
                     )
                     return
                 } else {
@@ -534,9 +561,10 @@ class PlaylistViewModel(
                                         0,
                                     )
                                 }
+
                                 else -> {
                                     makeToast(
-                                        res.message ?: application.getString(Res.string.error),
+                                        res.message ?: getString(Res.string.error),
                                     )
                                 }
                             }
@@ -548,6 +576,7 @@ class PlaylistViewModel(
             PlaylistUIEvent.Download -> {
                 downloadFullPlaylist()
             }
+
             PlaylistUIEvent.Favorite -> {
                 updatePlaylistLiked(!liked.value, data.id)
             }
@@ -599,7 +628,7 @@ class PlaylistViewModel(
                         makeToast(it)
                     },
                     onLoading = {
-                        makeToast(application.getString(Res.string.syncing))
+                        makeToast(getString(Res.string.syncing))
                     },
                     onError = {
                         makeToast(it)
@@ -611,7 +640,7 @@ class PlaylistViewModel(
     fun downloadFullPlaylist() {
         viewModelScope.launch {
             val id = playlistEntity.value?.id ?: return@launch
-            makeToast(application.getString(Res.string.downloading))
+            makeToast(getString(Res.string.downloading))
             updatePlaylistDownloadState(id, STATE_DOWNLOADING)
             getFullTracks { tracks ->
                 tracks.forEach {

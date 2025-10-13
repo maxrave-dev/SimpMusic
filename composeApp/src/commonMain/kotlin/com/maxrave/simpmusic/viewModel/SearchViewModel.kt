@@ -1,11 +1,6 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
-import android.util.Log
 import androidx.lifecycle.viewModelScope
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.domain.data.entities.SearchHistory
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
@@ -18,6 +13,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.SearchRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toQueryList
+import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.delay
@@ -29,6 +25,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.StringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.albums
+import simpmusic.composeapp.generated.resources.all
+import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.featured_playlists
+import simpmusic.composeapp.generated.resources.playlists
+import simpmusic.composeapp.generated.resources.podcasts
+import simpmusic.composeapp.generated.resources.songs
+import simpmusic.composeapp.generated.resources.videos
 
 // State cho tìm kiếm
 data class SearchScreenState(
@@ -57,7 +63,7 @@ enum class SearchType {
     PODCASTS,
 }
 
-fun SearchType.toStringRes(): Int =
+fun SearchType.toStringRes(): StringResource =
     when (this) {
         SearchType.ALL -> Res.string.all
         SearchType.SONGS -> Res.string.songs
@@ -81,7 +87,6 @@ sealed class SearchScreenUIState {
 }
 
 class SearchViewModel(
-    
     private val dataStoreManager: DataStoreManager,
     private val searchRepository: SearchRepository,
 ) : BaseViewModel() {
@@ -146,6 +151,7 @@ class SearchViewModel(
                         }
                         _searchScreenUIState.value = SearchScreenUIState.Success
                     }
+
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
@@ -295,9 +301,10 @@ class SearchViewModel(
                             }
                         }
                     }
+
                     is Resource.Error -> {
                         // Không cần xử lý lỗi đặc biệt cho gợi ý
-                        log("Error fetching suggest queries: ${values.message}", Log.ERROR)
+                        log("Error fetching suggest queries: ${values.message}", LogLevel.ERROR)
                     }
                 }
             }
@@ -320,6 +327,7 @@ class SearchViewModel(
                         }
                         _searchScreenUIState.value = SearchScreenUIState.Success
                     }
+
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
@@ -344,6 +352,7 @@ class SearchViewModel(
                         }
                         _searchScreenUIState.value = SearchScreenUIState.Success
                     }
+
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
@@ -368,6 +377,7 @@ class SearchViewModel(
                         }
                         _searchScreenUIState.value = SearchScreenUIState.Success
                     }
+
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
@@ -392,6 +402,7 @@ class SearchViewModel(
                         }
                         _searchScreenUIState.value = SearchScreenUIState.Success
                     }
+
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
@@ -416,6 +427,7 @@ class SearchViewModel(
                         }
                         _searchScreenUIState.value = SearchScreenUIState.Success
                     }
+
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }
@@ -440,6 +452,7 @@ class SearchViewModel(
                         }
                         _searchScreenUIState.value = SearchScreenUIState.Success
                     }
+
                     is Resource.Error -> {
                         _searchScreenUIState.value = SearchScreenUIState.Error
                     }

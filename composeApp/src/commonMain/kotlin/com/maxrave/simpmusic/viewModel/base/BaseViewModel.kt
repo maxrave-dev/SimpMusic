@@ -6,12 +6,12 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
-
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastDuration
 import multiplatform.network.cmptoast.ToastGravity
 import multiplatform.network.cmptoast.showToast
@@ -21,7 +21,8 @@ import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.loading
 
-abstract class BaseViewModel : ViewModel(),
+abstract class BaseViewModel :
+    ViewModel(),
     KoinComponent {
     protected val mediaPlayerHandler: MediaPlayerHandler by inject<MediaPlayerHandler>()
     private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
@@ -70,11 +71,15 @@ abstract class BaseViewModel : ViewModel(),
         showToast(
             message = message ?: "NO MESSAGE",
             duration = ToastDuration.Short,
-            gravity = ToastGravity.Bottom
+            gravity = ToastGravity.Bottom,
         )
     }
 
-    protected fun getString(resId: StringResource): String = getString(resId)
+    protected fun getString(resId: StringResource): String =
+        runBlocking {
+            org.jetbrains.compose.resources
+                .getString(resId)
+        }
 
     // Loading dialog
     private val _showLoadingDialog: MutableStateFlow<Pair<Boolean, String>> = MutableStateFlow(false to getString(Res.string.loading))

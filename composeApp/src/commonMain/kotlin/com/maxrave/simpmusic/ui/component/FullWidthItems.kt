@@ -114,7 +114,7 @@ fun SongFullWidthItems(
         .collectAsState(initial = DownloadState.STATE_NOT_DOWNLOADED)
     val composition by rememberLottieComposition {
         LottieCompositionSpec.JsonString(
-            Res.readBytes("files/audio_playing_animation.json").decodeToString()
+            Res.readBytes("files/audio_playing_animation.json").decodeToString(),
         )
     }
     val offsetX = remember { Animatable(initialValue = 0f) }
@@ -197,11 +197,12 @@ fun SongFullWidthItems(
                     Crossfade(isPlaying) {
                         if (it) {
                             Image(
-                                painter = rememberLottiePainter(
-                                    composition = composition,
-                                    iterations = Compottie.IterateForever
-                                ),
-                                contentDescription = "Lottie animation"
+                                painter =
+                                    rememberLottiePainter(
+                                        composition = composition,
+                                        iterations = Compottie.IterateForever,
+                                    ),
+                                contentDescription = "Lottie animation",
                             )
                         } else if (index == null) {
                             val thumb = track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
@@ -226,7 +227,7 @@ fun SongFullWidthItems(
                             Text(
                                 text = (index + 1).toString(),
                                 color = Color.White,
-                                style = typo.titleMedium,
+                                style = typo().titleMedium,
                                 modifier = Modifier.align(Alignment.Center),
                             )
                         }
@@ -240,7 +241,7 @@ fun SongFullWidthItems(
                 ) {
                     Text(
                         text = track?.title ?: songEntity?.title ?: "",
-                        style = typo.labelMedium,
+                        style = typo().labelMedium,
                         maxLines = 1,
                         color = Color.White,
                         modifier =
@@ -289,7 +290,7 @@ fun SongFullWidthItems(
                                     track?.artists?.toListName()?.connectArtists()
                                         ?: songEntity?.artistName?.connectArtists()
                                 ) ?: "",
-                            style = typo.bodyMedium,
+                            style = typo().bodyMedium,
                             maxLines = 1,
                             color = Color(0xC4FFFFFF),
                             modifier =
@@ -323,7 +324,7 @@ fun SuggestItems(
 ) {
     val composition by rememberLottieComposition {
         LottieCompositionSpec.JsonString(
-            Res.readBytes("files/audio_playing_animation.json").decodeToString()
+            Res.readBytes("files/audio_playing_animation.json").decodeToString(),
         )
     }
     Box(
@@ -344,11 +345,12 @@ fun SuggestItems(
                 Crossfade(isPlaying) {
                     if (it) {
                         Image(
-                            painter = rememberLottiePainter(
-                                composition = composition,
-                                iterations = Compottie.IterateForever
-                            ),
-                            contentDescription = "Lottie animation"
+                            painter =
+                                rememberLottiePainter(
+                                    composition = composition,
+                                    iterations = Compottie.IterateForever,
+                                ),
+                            contentDescription = "Lottie animation",
                         )
                     } else {
                         val thumb = track.thumbnails?.lastOrNull()?.url
@@ -381,7 +383,7 @@ fun SuggestItems(
             ) {
                 Text(
                     text = track.title,
-                    style = typo.titleSmall,
+                    style = typo().titleSmall,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -398,7 +400,7 @@ fun SuggestItems(
                         (
                             track.artists?.toListName()?.connectArtists()
                         ) ?: "",
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                     maxLines = 1,
                     color = Color(0xC4FFFFFF),
                     modifier =
@@ -456,27 +458,32 @@ fun PlaylistFullWidthItems(
                 secondSubtitle = data.artistName?.connectArtists() ?: ""
                 thirdRowSubtitle = data.year
             }
+
             is PlaylistEntity -> {
                 title = data.title
                 thumb = data.thumbnails
                 secondSubtitle = data.author ?: ""
             }
+
             is LocalPlaylistEntity -> {
                 title = data.title
                 thumb = data.thumbnail ?: ""
                 secondSubtitle = stringResource(Res.string.you)
             }
+
             is PlaylistsResult -> {
                 title = data.title
                 thumb = data.thumbnails.lastOrNull()?.url ?: ""
                 secondSubtitle = data.author
             }
+
             is AlbumsResult -> {
                 title = data.title
                 thumb = data.thumbnails.lastOrNull()?.url ?: ""
                 secondSubtitle = data.artists.toListName().connectArtists()
                 thirdRowSubtitle = data.year
             }
+
             is PodcastsEntity -> {
                 title = data.title
                 thumb = data.thumbnail ?: ""
@@ -518,7 +525,7 @@ fun PlaylistFullWidthItems(
             ) {
                 Text(
                     text = title,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -533,7 +540,7 @@ fun PlaylistFullWidthItems(
 
                 Text(
                     text = "$firstSubtitle ${if (secondSubtitle.isNotEmpty()) " • $secondSubtitle" else ""}",
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     color = Color(0xC4FFFFFF),
                     modifier =
@@ -549,7 +556,7 @@ fun PlaylistFullWidthItems(
                 if (thirdRowSubtitle != null) {
                     Text(
                         text = thirdRowSubtitle,
-                        style = typo.bodyMedium,
+                        style = typo().bodyMedium,
                         maxLines = 1,
                         color = Color(0xC4FFFFFF),
                         modifier =
@@ -620,7 +627,7 @@ fun ArtistFullWidthItems(
             ) {
                 Text(
                     text = name,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -635,7 +642,7 @@ fun ArtistFullWidthItems(
 
                 Text(
                     text = stringResource(Res.string.artists),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     color = Color(0xC4FFFFFF),
                     modifier =

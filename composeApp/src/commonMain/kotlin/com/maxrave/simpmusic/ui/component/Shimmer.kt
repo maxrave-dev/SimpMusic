@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,10 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.extension.shimmer
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun HomeItemShimmer() {
@@ -42,16 +41,6 @@ fun HomeItemShimmer() {
             }
         }
     }
-}
-
-@Preview(
-    showSystemUi = true,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-)
-@Composable
-fun PreviewShimmer() {
-    HomeShimmer()
 }
 
 @Composable

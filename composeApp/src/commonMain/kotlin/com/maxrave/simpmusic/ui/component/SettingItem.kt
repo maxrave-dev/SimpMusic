@@ -70,7 +70,7 @@ fun SettingItem(
                 Text(
                     text = title,
                     style =
-                        typo.labelMedium.let {
+                        typo().labelMedium.let {
                             if (!isEnable) it.greyScale() else it
                         },
                     color = white,
@@ -80,11 +80,11 @@ fun SettingItem(
                     text = subtitle,
                     style =
                         if (smallSubtitle) {
-                            typo.bodySmall.let {
+                            typo().bodySmall.let {
                                 if (!isEnable) it.greyScale() else it
                             }
                         } else {
-                            typo.bodyMedium.let {
+                            typo().bodyMedium.let {
                                 if (!isEnable) it.greyScale() else it
                             }
                         },

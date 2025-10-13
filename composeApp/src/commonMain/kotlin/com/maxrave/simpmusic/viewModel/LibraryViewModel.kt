@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.AlbumEntity
@@ -11,22 +10,31 @@ import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.manager.DataStoreManager
-import com.maxrave.domain.repository.*
+import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.domain.repository.CommonRepository
+import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.repository.PlaylistRepository
+import com.maxrave.domain.repository.PodcastRepository
+import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.added_local_playlist
 
 class LibraryViewModel(
-    
     private val dataStoreManager: DataStoreManager,
     private val songRepository: SongRepository,
     private val commonRepository: CommonRepository,
@@ -187,12 +195,14 @@ class LibraryViewModel(
     fun createPlaylist(title: String) {
         viewModelScope.launch {
             val localPlaylistEntity = LocalPlaylistEntity(title = title)
-            localPlaylistRepository.insertLocalPlaylist(
-                localPlaylistEntity,
-                getString(Res.string.added_local_playlist)
-            ).lastOrNull()?.let {
-                log("Created playlist with id: $it")
-            }
+            localPlaylistRepository
+                .insertLocalPlaylist(
+                    localPlaylistEntity,
+                    getString(Res.string.added_local_playlist),
+                ).lastOrNull()
+                ?.let {
+                    log("Created playlist with id: $it")
+                }
             getLocalPlaylist()
         }
     }

@@ -8,19 +8,9 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import cat.ereza.customactivityoncrash.config.CaocConfig
-import coil3.ImageLoader
-import coil3.PlatformContext
-import coil3.SingletonImageLoader
-import coil3.network.okhttp.OkHttpNetworkFetcherFactory
-import coil3.request.CachePolicy
-import coil3.request.allowHardware
-import coil3.request.crossfade
-import coil3.util.DebugLogger
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
-import com.maxrave.simpmusic.ui.theme.newDiskCache
-import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
@@ -31,27 +21,7 @@ import java.lang.reflect.Field
 
 class SimpMusicApplication :
     Application(),
-    KoinComponent,
-    SingletonImageLoader.Factory {
-    override fun newImageLoader(context: PlatformContext): ImageLoader =
-        ImageLoader
-            .Builder(context)
-            .components {
-                add(
-                    OkHttpNetworkFetcherFactory(
-                        callFactory = {
-                            OkHttpClient()
-                        },
-                    ),
-                )
-            }.logger(DebugLogger())
-            .allowHardware(false)
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .networkCachePolicy(CachePolicy.ENABLED)
-            .diskCache(newDiskCache())
-            .crossfade(true)
-            .build()
-
+    KoinComponent {
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)

@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.extension
 
-
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -59,6 +58,9 @@ import com.maxrave.simpmusic.ui.theme.shimmerBackground
 import com.maxrave.simpmusic.ui.theme.shimmerLine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -227,36 +229,43 @@ fun GradientOffset(angle: GradientAngle): GradientOffset =
                 start = Offset.Zero,
                 end = Offset.Infinite,
             )
+
         GradientAngle.CW90 ->
             GradientOffset(
                 start = Offset.Zero,
                 end = Offset(0f, Float.POSITIVE_INFINITY),
             )
+
         GradientAngle.CW135 ->
             GradientOffset(
                 start = Offset(Float.POSITIVE_INFINITY, 0f),
                 end = Offset(0f, Float.POSITIVE_INFINITY),
             )
+
         GradientAngle.CW180 ->
             GradientOffset(
                 start = Offset(Float.POSITIVE_INFINITY, 0f),
                 end = Offset.Zero,
             )
+
         GradientAngle.CW225 ->
             GradientOffset(
                 start = Offset.Infinite,
                 end = Offset.Zero,
             )
+
         GradientAngle.CW270 ->
             GradientOffset(
                 start = Offset(0f, Float.POSITIVE_INFINITY),
                 end = Offset.Zero,
             )
+
         GradientAngle.CW315 ->
             GradientOffset(
                 start = Offset(0f, Float.POSITIVE_INFINITY),
                 end = Offset(Float.POSITIVE_INFINITY, 0f),
             )
+
         else ->
             GradientOffset(
                 start = Offset.Zero,
@@ -431,7 +440,7 @@ fun Palette?.getColorFromPalette(): Color {
         }
     }
     return Color(startColor).copy(
-        alpha = 0.8f
+        alpha = 0.8f,
     )
 }
 
@@ -487,13 +496,21 @@ fun PaddingValues.copy(
     )
 }
 
-fun ImageBitmap.toResizedBitmap(width: Int, height: Int): ImageBitmap {
+fun ImageBitmap.toResizedBitmap(
+    width: Int,
+    height: Int,
+): ImageBitmap {
     val resized = ImageBitmap(width, height)
     val canvas = Canvas(resized)
     canvas.drawImageRect(
         image = this,
         dstSize = IntSize(width, height),
-        paint = Paint()
+        paint = Paint(),
     )
     return resized
 }
+
+fun getStringBlocking(res: StringResource): String =
+    runBlocking {
+        getString(res)
+    }

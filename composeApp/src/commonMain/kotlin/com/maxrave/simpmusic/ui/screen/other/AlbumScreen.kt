@@ -1,12 +1,12 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -54,26 +54,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants.IterateForever
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
@@ -96,10 +87,33 @@ import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.album_length
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.baseline_downloaded
+import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
+import simpmusic.composeapp.generated.resources.baseline_play_circle_24
+import simpmusic.composeapp.generated.resources.baseline_shuffle_24
+import simpmusic.composeapp.generated.resources.download_button
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.no_description
+import simpmusic.composeapp.generated.resources.other_version
+import simpmusic.composeapp.generated.resources.year_and_category
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +123,6 @@ fun AlbumScreen(
     viewModel: AlbumViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
-    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
     val playingVideoId by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
@@ -126,9 +139,11 @@ fun AlbumScreen(
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var chosenSong: Track? by remember { mutableStateOf(null) }
 
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
-    )
+    val composition by rememberLottieComposition {
+        LottieCompositionSpec.JsonString(
+            Res.readBytes("files/downloading_animation.json").decodeToString(),
+        )
+    }
 
     LaunchedEffect(browseId) {
         viewModel.updateBrowseId(browseId)
@@ -237,7 +252,7 @@ fun AlbumScreen(
                                     AsyncImage(
                                         model =
                                             ImageRequest
-                                                .Builder(LocalContext.current)
+                                                .Builder(LocalPlatformContext.current)
                                                 .data(uiState.thumbnail)
                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                 .diskCacheKey(uiState.thumbnail)
@@ -272,7 +287,7 @@ fun AlbumScreen(
                                             Spacer(modifier = Modifier.size(25.dp))
                                             Text(
                                                 text = uiState.title,
-                                                style = typo.titleLarge,
+                                                style = typo().titleLarge,
                                                 color = Color.White,
                                                 maxLines = 2,
                                             )
@@ -282,7 +297,7 @@ fun AlbumScreen(
                                                 // Author clickable
                                                 Text(
                                                     text = uiState.artist.name,
-                                                    style = typo.titleSmall,
+                                                    style = typo().titleSmall,
                                                     color = Color.White,
                                                     modifier =
                                                         Modifier.clickable {
@@ -299,11 +314,11 @@ fun AlbumScreen(
                                                 Text(
                                                     text =
                                                         stringResource(
-                                                            id = Res.string.year_and_category,
+                                                            Res.string.year_and_category,
                                                             uiState.year,
                                                             stringResource(Res.string.album),
                                                         ),
-                                                    style = typo.bodyMedium,
+                                                    style = typo().bodyMedium,
                                                     color = Color(0xC4FFFFFF),
                                                 )
                                             }
@@ -347,12 +362,11 @@ fun AlbumScreen(
                                                                         .clip(
                                                                             CircleShape,
                                                                         ).clickable {
-                                                                            Toast
-                                                                                .makeText(
-                                                                                    context,
-                                                                                    context.getString(Res.string.downloaded),
-                                                                                    Toast.LENGTH_SHORT,
-                                                                                ).show()
+                                                                            viewModel.makeToast(
+                                                                                runBlocking {
+                                                                                    getString(Res.string.downloaded)
+                                                                                },
+                                                                            )
                                                                         },
                                                             ) {
                                                                 Icon(
@@ -375,17 +389,20 @@ fun AlbumScreen(
                                                                         .clip(
                                                                             CircleShape,
                                                                         ).clickable {
-                                                                            Toast
-                                                                                .makeText(
-                                                                                    context,
-                                                                                    context.getString(Res.string.downloading),
-                                                                                    Toast.LENGTH_SHORT,
-                                                                                ).show()
+                                                                            viewModel.makeToast(
+                                                                                runBlocking {
+                                                                                    getString(Res.string.downloading)
+                                                                                },
+                                                                            )
                                                                         },
                                                             ) {
-                                                                LottieAnimation(
-                                                                    composition,
-                                                                    iterations = IterateForever,
+                                                                Image(
+                                                                    painter =
+                                                                        rememberLottiePainter(
+                                                                            composition = composition,
+                                                                            iterations = Compottie.IterateForever,
+                                                                        ),
+                                                                    contentDescription = "Lottie animation",
                                                                     modifier = Modifier.fillMaxSize(),
                                                                 )
                                                             }
@@ -439,12 +456,12 @@ fun AlbumScreen(
                                             Text(
                                                 text =
                                                     stringResource(
-                                                        id = Res.string.album_length,
+                                                        Res.string.album_length,
                                                         (uiState.trackCount).toString(),
                                                         uiState.length,
                                                     ),
                                                 color = Color.White,
-                                                style = typo.bodyMedium,
+                                                style = typo().bodyMedium,
                                                 modifier = Modifier.padding(vertical = 8.dp),
                                             )
                                         }
@@ -485,7 +502,7 @@ fun AlbumScreen(
                                 Spacer(Modifier.height(10.dp))
                                 Text(
                                     text = stringResource(Res.string.other_version),
-                                    style = typo.labelMedium,
+                                    style = typo().labelMedium,
                                     modifier =
                                         Modifier.padding(
                                             horizontal = 24.dp,
@@ -526,7 +543,7 @@ fun AlbumScreen(
                         title = {
                             Text(
                                 text = uiState.title,
-                                style = typo.titleMedium,
+                                style = typo().titleMedium,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -573,6 +590,7 @@ fun AlbumScreen(
             LocalPlaylistState.PlaylistLoadState.Error -> {
                 navController.navigateUp()
             }
+
             LocalPlaylistState.PlaylistLoadState.Loading -> {
                 CenterLoadingBox(
                     modifier = Modifier.fillMaxSize(),

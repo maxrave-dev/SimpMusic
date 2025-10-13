@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LANGUAGE
@@ -14,18 +13,27 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.music_video
+import simpmusic.composeapp.generated.resources.new_release
+import simpmusic.composeapp.generated.resources.view_count
 
 class HomeViewModel(
-    
     private val dataStoreManager: DataStoreManager,
     private val homeRepository: HomeRepository,
 ) : BaseViewModel() {
@@ -166,8 +174,8 @@ class HomeViewModel(
                     homeRepository.getChartData(dataStoreManager.chartKey.first()),
                     homeRepository.getNewRelease(
                         getString(Res.string.new_release),
-                        getString(Res.string.music_video)
-                    )
+                        getString(Res.string.music_video),
+                    ),
                 ) { home, exploreMood, exploreChart, newRelease ->
                     HomeDataCombine(home, exploreMood, exploreChart, newRelease)
                 }.collect { result ->

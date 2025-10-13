@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.ArtistEntity
@@ -18,9 +17,6 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.toArtistScreenData
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Error
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Loading
@@ -32,10 +28,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.shuffle
 
 class ArtistViewModel(
-    
     private val artistRepository: ArtistRepository,
     private val songRepository: SongRepository,
 ) : BaseViewModel() {
@@ -82,6 +79,7 @@ class ArtistViewModel(
                             }
                         }
                     }
+
                     is Resource.Error ->
                         _artistScreenState.value = Error(browse.message ?: "Error")
 
@@ -130,7 +128,7 @@ class ArtistViewModel(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,
-                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(Res.string.radio)}",
+                                playlistName = "\"${artistScreenState.value.data.title}\" ${getString(Res.string.radio)}",
                                 playlistType = PlaylistType.RADIO,
                                 continuation = data.second,
                             ),
@@ -141,6 +139,7 @@ class ArtistViewModel(
                             0,
                         )
                     }
+
                     else -> {
                         makeToast(res.message)
                     }
@@ -160,7 +159,7 @@ class ArtistViewModel(
                                 listTracks = data.first,
                                 firstPlayedTrack = data.first.first(),
                                 playlistId = endpoint.playlistId,
-                                playlistName = "\"${artistScreenState.value.data.title}\" ${application.getString(Res.string.shuffle)}",
+                                playlistName = "\"${artistScreenState.value.data.title}\" ${getString(Res.string.shuffle)}",
                                 playlistType = PlaylistType.RADIO,
                                 continuation = data.second,
                             ),
@@ -171,6 +170,7 @@ class ArtistViewModel(
                             0,
                         )
                     }
+
                     else -> {
                         makeToast(res.message)
                     }

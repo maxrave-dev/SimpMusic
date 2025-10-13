@@ -21,18 +21,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.painterResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.holder
 
 @Composable
 fun PodcastEpisodeFullWidthItem(
@@ -57,7 +57,7 @@ fun PodcastEpisodeFullWidthItem(
                 AsyncImage(
                     model =
                         ImageRequest
-                            .Builder(LocalContext.current)
+                            .Builder(LocalPlatformContext.current)
                             .data(episode.thumbnail.lastOrNull()?.url)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(episode.thumbnail.lastOrNull()?.url)
@@ -78,7 +78,7 @@ fun PodcastEpisodeFullWidthItem(
             ) {
                 Text(
                     text = episode.title,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -93,7 +93,7 @@ fun PodcastEpisodeFullWidthItem(
 
                 Text(
                     text = "${episode.createdDay ?: ""}${if (!episode.durationString.isNullOrEmpty()) " • ${episode.durationString}" else ""}",
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     color = Color(0xC4FFFFFF),
                     modifier =
@@ -110,7 +110,7 @@ fun PodcastEpisodeFullWidthItem(
                 if (description != null) {
                     Text(
                         text = description,
-                        style = typo.bodyMedium,
+                        style = typo().bodyMedium,
                         maxLines = 1,
                         color = Color(0xC4FFFFFF),
                         modifier =

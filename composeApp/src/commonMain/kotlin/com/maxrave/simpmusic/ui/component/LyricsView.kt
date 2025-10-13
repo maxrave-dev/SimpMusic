@@ -1,24 +1,65 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.QueueMusic
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -32,24 +73,19 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.logger.Logger
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
@@ -65,6 +101,13 @@ import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.baseline_keyboard_arrow_down_24
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.now_playing_upper
+import simpmusic.composeapp.generated.resources.unavailable
 import kotlin.math.abs
 
 private const val TAG = "LyricsView"
@@ -235,7 +278,7 @@ fun LyricsView(
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
                 // Tìm translated lyrics phù hợp dựa vào thời gian
                 val translatedWords = line?.startTimeMs?.let { findClosestTranslatedLine(it) }
-                Log.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
+                Logger.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
 
                 line?.words?.let {
                     LyricsLineItem(
@@ -269,9 +312,9 @@ fun LyricsLineItem(
                 modifier = modifier,
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = originalWords, style = typo.headlineMedium, color = Color.White)
+                Text(text = originalWords, style = typo().headlineMedium, color = Color.White)
                 if (translatedWords != null) {
-                    Text(text = translatedWords, style = typo.bodyMedium, color = Color.Yellow)
+                    Text(text = translatedWords, style = typo().bodyMedium, color = Color.Yellow)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
             }
@@ -284,7 +327,7 @@ fun LyricsLineItem(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = originalWords,
-                style = typo.bodyLarge,
+                style = typo().bodyLarge,
                 color =
                     Color.LightGray.copy(
                         alpha = 0.8f,
@@ -293,7 +336,7 @@ fun LyricsLineItem(
             if (translatedWords != null) {
                 Text(
                     text = translatedWords,
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     color =
                         Color(0xFF97971A).copy(
                             alpha = 0.8f,
@@ -315,8 +358,6 @@ fun FullscreenLyricsSheet(
     shouldHaze: Boolean,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
-
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -404,7 +445,7 @@ fun FullscreenLyricsSheet(
                     AsyncImage(
                         model =
                             ImageRequest
-                                .Builder(LocalContext.current)
+                                .Builder(LocalPlatformContext.current)
                                 .data(screenDataState.thumbnailURL)
                                 .crossfade(300)
                                 .diskCachePolicy(CachePolicy.ENABLED)
@@ -465,12 +506,12 @@ fun FullscreenLyricsSheet(
                             ) {
                                 Text(
                                     text = stringResource(Res.string.now_playing_upper),
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                     color = Color.White,
                                 )
                                 Text(
                                     text = screenDataState.nowPlayingTitle,
-                                    style = typo.labelMedium,
+                                    style = typo().labelMedium,
                                     color = Color.White,
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
@@ -543,7 +584,7 @@ fun FullscreenLyricsSheet(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.unavailable),
-                                        style = typo.bodyMedium,
+                                        style = typo().bodyMedium,
                                         color = Color.White,
                                         textAlign = TextAlign.Center,
                                     )
@@ -677,14 +718,14 @@ fun FullscreenLyricsSheet(
                                         .padding(horizontal = 40.dp),
                                 ) {
                                     Text(
-                                        text = formatDuration(timelineState.current, context),
-                                        style = typo.bodyMedium,
+                                        text = formatDuration(timelineState.current),
+                                        style = typo().bodyMedium,
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Left,
                                     )
                                     Text(
-                                        text = formatDuration(timelineState.total, context),
-                                        style = typo.bodyMedium,
+                                        text = formatDuration(timelineState.total),
+                                        style = typo().bodyMedium,
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Right,
                                     )
@@ -770,7 +811,7 @@ fun FullscreenLyricsSheet(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
+                                                    imageVector = Icons.Outlined.QueueMusic,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                 )

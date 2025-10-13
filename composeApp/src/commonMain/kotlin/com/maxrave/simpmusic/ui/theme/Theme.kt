@@ -8,9 +8,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.disk.DiskCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
 import coil3.util.DebugLogger
+import okhttp3.OkHttpClient
 import okio.FileSystem
 
 val DarkColors =
@@ -56,11 +58,24 @@ fun AppTheme(
         setSingletonImageLoaderFactory { context ->
             ImageLoader
                 .Builder(context)
-                .logger(DebugLogger())
+                .components {
+                    add(
+                        OkHttpNetworkFetcherFactory(
+                            callFactory = {
+                                OkHttpClient()
+                            },
+                        ),
+                    )
+                }.logger(DebugLogger())
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .networkCachePolicy(CachePolicy.ENABLED)
-                .diskCache(newDiskCache())
-                .crossfade(true)
+                .diskCache(
+                    DiskCache
+                        .Builder()
+                        .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+                        .maxSizeBytes(512L * 1024 * 1024)
+                        .build(),
+                ).crossfade(true)
                 .build()
         }
         content()
@@ -74,14 +89,6 @@ fun AppTheme(
                 contentWithImageLoader,
             )
         },
-        typography = typo,
+        typography = typo(),
     )
 }
-
-
-fun newDiskCache(): DiskCache =
-    DiskCache
-        .Builder()
-        .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-        .maxSizeBytes(512L * 1024 * 1024)
-        .build()

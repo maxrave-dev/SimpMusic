@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.home
 
-import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -32,20 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.formatTimeAgo
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -55,7 +49,17 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.new_release
+import simpmusic.composeapp.generated.resources.no_notification
+import simpmusic.composeapp.generated.resources.notification
+import simpmusic.composeapp.generated.resources.singles
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,14 +67,13 @@ fun NotificationScreen(
     navController: NavController,
     viewModel: NotificationViewModel = koinViewModel(),
 ) {
-    val context = LocalContext.current
     val listNotification by viewModel.listNotification.collectAsStateWithLifecycle()
     Column {
         TopAppBar(
             title = {
                 Text(
                     text = stringResource(Res.string.notification),
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                 )
             },
             navigationIcon = {
@@ -91,7 +94,6 @@ fun NotificationScreen(
                     items(it) { notification ->
                         NotificationItem(
                             notification = notification,
-                            context = context,
                             navController,
                         )
                     }
@@ -105,7 +107,7 @@ fun NotificationScreen(
                 ) {
                     Text(
                         text = stringResource(Res.string.no_notification),
-                        style = typo.titleMedium,
+                        style = typo().titleMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.Center),
                     )
@@ -118,7 +120,6 @@ fun NotificationScreen(
 @Composable
 fun NotificationItem(
     notification: NotificationEntity,
-    context: Context,
     navController: NavController,
 ) {
     Box(
@@ -141,7 +142,7 @@ fun NotificationItem(
                 AsyncImage(
                     model =
                         ImageRequest
-                            .Builder(LocalContext.current)
+                            .Builder(LocalPlatformContext.current)
                             .data(thumb)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(thumb)
@@ -161,9 +162,9 @@ fun NotificationItem(
                 )
                 Spacer(modifier = Modifier.padding(5.dp))
                 Column {
-                    Text(text = stringResource(Res.string.new_release), style = typo.titleSmall)
+                    Text(text = stringResource(Res.string.new_release), style = typo().titleSmall)
                     Spacer(modifier = Modifier.padding(3.dp))
-                    Text(text = notification.name, style = typo.headlineMedium)
+                    Text(text = notification.name, style = typo().headlineMedium)
                 }
             }
             LazyRow(
@@ -191,8 +192,8 @@ fun NotificationItem(
             Spacer(modifier = Modifier.height(10.dp))
         }
         Text(
-            text = notification.time.formatTimeAgo(context),
-            style = typo.titleSmall,
+            text = notification.time.formatTimeAgo(),
+            style = typo().titleSmall,
             modifier =
                 Modifier
                     .align(Alignment.TopEnd)
@@ -226,7 +227,7 @@ fun ItemAlbumNotification(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(thumbnail)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(thumbnail)
@@ -246,7 +247,7 @@ fun ItemAlbumNotification(
             )
             Text(
                 text = title,
-                style = typo.titleSmall,
+                style = typo().titleSmall,
                 color = Color.White,
                 maxLines = 1,
                 modifier =
@@ -261,7 +262,7 @@ fun ItemAlbumNotification(
             )
             Text(
                 text = if (isAlbum) stringResource(Res.string.album) else stringResource(Res.string.singles),
-                style = typo.bodySmall,
+                style = typo().bodySmall,
                 maxLines = 1,
                 modifier =
                     Modifier

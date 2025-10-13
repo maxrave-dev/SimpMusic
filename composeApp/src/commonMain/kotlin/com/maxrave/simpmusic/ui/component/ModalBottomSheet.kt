@@ -1,58 +1,109 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.app.Activity
-import android.content.ClipData
-import android.content.Context
-import android.content.Intent
-import android.os.Build
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.*
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.text.*
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -69,9 +120,9 @@ import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
-
-
-import simpmusic.composeapp.generated.resources.*
+import com.maxrave.simpmusic.expect.copyToClipboard
+import com.maxrave.simpmusic.expect.shareUrl
+import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -88,8 +139,119 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.runBlocking
+import multiplatform.network.cmptoast.ToastGravity
+import multiplatform.network.cmptoast.showToast
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.add_to_a_playlist
+import simpmusic.composeapp.generated.resources.add_to_queue
+import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.baseline_access_alarm_24
+import simpmusic.composeapp.generated.resources.baseline_add_photo_alternate_24
+import simpmusic.composeapp.generated.resources.baseline_album_24
+import simpmusic.composeapp.generated.resources.baseline_delete_24
+import simpmusic.composeapp.generated.resources.baseline_downloaded
+import simpmusic.composeapp.generated.resources.baseline_downloading_white
+import simpmusic.composeapp.generated.resources.baseline_edit_24
+import simpmusic.composeapp.generated.resources.baseline_favorite_24
+import simpmusic.composeapp.generated.resources.baseline_favorite_border_24
+import simpmusic.composeapp.generated.resources.baseline_keyboard_arrow_down_24
+import simpmusic.composeapp.generated.resources.baseline_keyboard_double_arrow_down_24
+import simpmusic.composeapp.generated.resources.baseline_keyboard_double_arrow_up_24
+import simpmusic.composeapp.generated.resources.baseline_lyrics_24
+import simpmusic.composeapp.generated.resources.baseline_people_alt_24
+import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
+import simpmusic.composeapp.generated.resources.baseline_queue_music_24
+import simpmusic.composeapp.generated.resources.baseline_sensors_24
+import simpmusic.composeapp.generated.resources.baseline_share_24
+import simpmusic.composeapp.generated.resources.baseline_sync_24
+import simpmusic.composeapp.generated.resources.baseline_sync_disabled_24
+import simpmusic.composeapp.generated.resources.baseline_update_24
+import simpmusic.composeapp.generated.resources.bitrate
+import simpmusic.composeapp.generated.resources.can_not_be_empty
+import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.codec
+import simpmusic.composeapp.generated.resources.copied_to_clipboard
+import simpmusic.composeapp.generated.resources.delete
+import simpmusic.composeapp.generated.resources.delete_playlist
+import simpmusic.composeapp.generated.resources.delete_song_from_playlist
+import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.done
+import simpmusic.composeapp.generated.resources.download
+import simpmusic.composeapp.generated.resources.download_speed
+import simpmusic.composeapp.generated.resources.download_this_song_video_file_to_your_device
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.downloading_audio
+import simpmusic.composeapp.generated.resources.downloading_video
+import simpmusic.composeapp.generated.resources.edit_thumbnail
+import simpmusic.composeapp.generated.resources.edit_title
+import simpmusic.composeapp.generated.resources.endless_queue
+import simpmusic.composeapp.generated.resources.error_occurred
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.itag
+import simpmusic.composeapp.generated.resources.like
+import simpmusic.composeapp.generated.resources.like_and_dislike
+import simpmusic.composeapp.generated.resources.liked
+import simpmusic.composeapp.generated.resources.list_all_cookies_of_this_page
+import simpmusic.composeapp.generated.resources.lrclib
+import simpmusic.composeapp.generated.resources.main_lyrics_provider
+import simpmusic.composeapp.generated.resources.merging_audio_and_video
+import simpmusic.composeapp.generated.resources.mime_type
+import simpmusic.composeapp.generated.resources.move_down
+import simpmusic.composeapp.generated.resources.move_up
+import simpmusic.composeapp.generated.resources.no_album
+import simpmusic.composeapp.generated.resources.no_description
+import simpmusic.composeapp.generated.resources.no_playlist_found
+import simpmusic.composeapp.generated.resources.now_playing
+import simpmusic.composeapp.generated.resources.now_playing_upper
+import simpmusic.composeapp.generated.resources.ok
+import simpmusic.composeapp.generated.resources.outline_download_for_offline_24
+import simpmusic.composeapp.generated.resources.pitch
+import simpmusic.composeapp.generated.resources.play_circle
+import simpmusic.composeapp.generated.resources.play_next
+import simpmusic.composeapp.generated.resources.playback_speed
+import simpmusic.composeapp.generated.resources.playback_speed_pitch
+import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
+import simpmusic.composeapp.generated.resources.plays
+import simpmusic.composeapp.generated.resources.processing
+import simpmusic.composeapp.generated.resources.queue
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.round_speed_24
+import simpmusic.composeapp.generated.resources.save
+import simpmusic.composeapp.generated.resources.save_to_local_playlist
+import simpmusic.composeapp.generated.resources.saved_to_local_playlist
+import simpmusic.composeapp.generated.resources.set
+import simpmusic.composeapp.generated.resources.share
+import simpmusic.composeapp.generated.resources.share_url
+import simpmusic.composeapp.generated.resources.simpmusic_lyrics
+import simpmusic.composeapp.generated.resources.sleep_minutes
+import simpmusic.composeapp.generated.resources.sleep_timer
+import simpmusic.composeapp.generated.resources.sleep_timer_off
+import simpmusic.composeapp.generated.resources.sleep_timer_set_error
+import simpmusic.composeapp.generated.resources.sleep_timer_warning
+import simpmusic.composeapp.generated.resources.sort_by
+import simpmusic.composeapp.generated.resources.start_radio
+import simpmusic.composeapp.generated.resources.sync
+import simpmusic.composeapp.generated.resources.sync_first
+import simpmusic.composeapp.generated.resources.synced
+import simpmusic.composeapp.generated.resources.title
+import simpmusic.composeapp.generated.resources.to_download_folder
+import simpmusic.composeapp.generated.resources.unknown
+import simpmusic.composeapp.generated.resources.update_playlist
+import simpmusic.composeapp.generated.resources.warning
+import simpmusic.composeapp.generated.resources.yes
+import simpmusic.composeapp.generated.resources.your_sp_dc_param_of_spotify_cookie
+import simpmusic.composeapp.generated.resources.your_youtube_cookie
+import simpmusic.composeapp.generated.resources.youtube_transcript
+import simpmusic.composeapp.generated.resources.youtube_url
 
 @ExperimentalMaterial3Api
 @Composable
@@ -144,7 +306,7 @@ fun InfoPlayerBottomSheet(
                     ) {
                         Text(
                             stringResource(Res.string.downloading),
-                            style = typo.headlineMedium,
+                            style = typo().headlineMedium,
                         )
                         Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                             if (!downloadProgress.isDone && !downloadProgress.isError) {
@@ -156,27 +318,27 @@ fun InfoPlayerBottomSheet(
                                     Text(
                                         text = stringResource(Res.string.merging_audio_and_video),
                                         modifier = Modifier.padding(vertical = 5.dp),
-                                        style = typo.bodyMedium,
+                                        style = typo().bodyMedium,
                                     )
                                 } else if (it.isError) {
                                     Column {
                                         Text(
                                             text = stringResource(Res.string.error_occurred),
                                             modifier = Modifier.padding(vertical = 5.dp),
-                                            style = typo.bodyMedium,
+                                            style = typo().bodyMedium,
                                         )
                                         Text(
                                             text = downloadProgress.errorMessage,
                                             modifier = Modifier.padding(bottom = 5.dp),
                                             maxLines = 2,
-                                            style = typo.bodyMedium,
+                                            style = typo().bodyMedium,
                                         )
                                     }
                                 } else if (it.isDone) {
                                     Text(
                                         text = stringResource(Res.string.downloaded) + stringResource(Res.string.to_download_folder),
                                         modifier = Modifier.padding(vertical = 5.dp),
-                                        style = typo.bodyMedium,
+                                        style = typo().bodyMedium,
                                     )
                                 } else {
                                     Column {
@@ -188,7 +350,7 @@ fun InfoPlayerBottomSheet(
                                                         (downloadProgress.audioDownloadProgress * 100).toString() + "%",
                                                     ),
                                                 modifier = Modifier.padding(vertical = 5.dp),
-                                                style = typo.bodyMedium,
+                                                style = typo().bodyMedium,
                                             )
                                         }
                                         if (it.videoDownloadProgress != 0f) {
@@ -199,7 +361,7 @@ fun InfoPlayerBottomSheet(
                                                         (downloadProgress.videoDownloadProgress * 100).toString() + "%",
                                                     ),
                                                 modifier = Modifier.padding(vertical = 5.dp),
-                                                style = typo.bodyMedium,
+                                                style = typo().bodyMedium,
                                             )
                                         }
                                         if (downloadProgress.downloadSpeed != 0) {
@@ -210,7 +372,7 @@ fun InfoPlayerBottomSheet(
                                                         downloadProgress.downloadSpeed.toString() + " kb/s",
                                                     ),
                                                 modifier = Modifier.padding(vertical = 5.dp),
-                                                style = typo.bodyMedium,
+                                                style = typo().bodyMedium,
                                             )
                                         }
                                     }
@@ -266,7 +428,6 @@ fun InfoPlayerBottomSheet(
                 modifier =
                     Modifier
                         .verticalScroll(scrollState)
-                        .nestedScroll(rememberNestedScrollInteropConnection())
                         .padding(
                             top =
                                 with(localDensity) {
@@ -288,12 +449,12 @@ fun InfoPlayerBottomSheet(
                         ) {
                             Text(
                                 text = stringResource(Res.string.now_playing_upper),
-                                style = typo.bodyMedium,
+                                style = typo().bodyMedium,
                                 color = Color.White,
                             )
                             Text(
                                 text = screenDataState.nowPlayingTitle,
-                                style = typo.labelMedium,
+                                style = typo().labelMedium,
                                 color = Color.White,
                                 textAlign = TextAlign.Center,
                                 maxLines = 1,
@@ -337,9 +498,9 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
-                    )
+                )
                 Text(
                     text = screenDataState.nowPlayingTitle,
                     modifier =
@@ -352,7 +513,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -363,7 +524,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -377,7 +538,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -388,7 +549,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -402,7 +563,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -413,7 +574,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -427,7 +588,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -438,7 +599,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -452,7 +613,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -463,7 +624,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -477,7 +638,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -488,7 +649,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -502,7 +663,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -513,7 +674,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -527,7 +688,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
@@ -538,7 +699,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -557,7 +718,7 @@ fun InfoPlayerBottomSheet(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     textAlign = TextAlign.Center,
                 )
                 Text(
@@ -567,7 +728,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -577,7 +738,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.CenterVertically)
                             .padding(horizontal = 10.dp),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     textAlign = TextAlign.Center,
                 )
                 Text(
@@ -587,7 +748,7 @@ fun InfoPlayerBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                     textAlign = TextAlign.Center,
-                    style = typo.labelMedium,
+                    style = typo().labelMedium,
                     color = white,
                 )
                 Text(
@@ -610,14 +771,14 @@ fun InfoPlayerBottomSheet(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable(),
-                    style = typo.bodyMedium,
+                    style = typo().bodyMedium,
                     textAlign = TextAlign.Center,
                 )
                 OutlinedButton(
                     enabled = screenDataState.bitmap != null,
                     onClick = {
                         sharedViewModel.downloadFile(
-                            bitmap = screenDataState.bitmap?.asAndroidBitmap() ?: return@OutlinedButton,
+                            bitmap = screenDataState.bitmap?.asSkiaBitmap() ?: return@OutlinedButton,
                         )
                     },
                     modifier =
@@ -651,7 +812,6 @@ fun QueueBottomSheet(
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
         )
-    val nestedScrollInterop = rememberNestedScrollInteropConnection()
     val lazyListState = rememberLazyListState()
     val dragDropState =
         rememberDragDropState(lazyListState) { from, to ->
@@ -770,12 +930,12 @@ fun QueueBottomSheet(
                         ) {
                             Text(
                                 text = stringResource(Res.string.now_playing_upper),
-                                style = typo.bodyMedium,
+                                style = typo().bodyMedium,
                                 color = Color.White,
                             )
                             Text(
                                 text = screenDataState.playlistName,
-                                style = typo.labelMedium,
+                                style = typo().labelMedium,
                                 color = Color.White,
                                 textAlign = TextAlign.Center,
                                 maxLines = 1,
@@ -814,7 +974,7 @@ fun QueueBottomSheet(
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = stringResource(Res.string.now_playing),
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                     modifier = Modifier.padding(horizontal = 20.dp),
                 )
                 SongFullWidthItems(
@@ -829,7 +989,7 @@ fun QueueBottomSheet(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(Res.string.queue),
-                        style = typo.titleMedium,
+                        style = typo().titleMedium,
                         modifier =
                             Modifier
                                 .padding(horizontal = 20.dp)
@@ -838,7 +998,7 @@ fun QueueBottomSheet(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = stringResource(Res.string.endless_queue),
-                            style = typo.bodySmall,
+                            style = typo().bodySmall,
                             modifier = Modifier.padding(horizontal = 8.dp),
                         )
                         Switch(
@@ -858,7 +1018,6 @@ fun QueueBottomSheet(
                     state = lazyListState,
                     modifier =
                         Modifier
-                            .nestedScroll(nestedScrollInterop)
                             .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
                                     onDrag = { change, offset ->
@@ -1080,7 +1239,7 @@ fun QueueItemBottomSheet(
                                         Image(
                                             painter =
                                                 painterResource(
-                                                    id = Res.drawable.baseline_keyboard_double_arrow_up_24,
+                                                    Res.drawable.baseline_keyboard_double_arrow_up_24,
                                                 ),
                                             contentDescription = "Move up",
                                         )
@@ -1090,7 +1249,7 @@ fun QueueItemBottomSheet(
                                         Image(
                                             painter =
                                                 painterResource(
-                                                    id = Res.drawable.baseline_keyboard_double_arrow_down_24,
+                                                    Res.drawable.baseline_keyboard_double_arrow_down_24,
                                                 ),
                                             contentDescription = "Move down",
                                         )
@@ -1100,7 +1259,7 @@ fun QueueItemBottomSheet(
                                         Image(
                                             painter =
                                                 painterResource(
-                                                    id = Res.drawable.baseline_delete_24,
+                                                    Res.drawable.baseline_delete_24,
                                                 ),
                                             contentDescription = "Delete",
                                         )
@@ -1116,7 +1275,7 @@ fun QueueItemBottomSheet(
                                                 QueueItemAction.DELETE -> Res.string.delete
                                             },
                                         ),
-                                    style = typo.labelSmall,
+                                    style = typo().labelSmall,
                                 )
                             }
                         }
@@ -1145,8 +1304,6 @@ fun NowPlayingBottomSheet(
     onLibraryDelete: (() -> Unit)? = null,
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
 ) {
-    val context = LocalContext.current
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -1249,19 +1406,19 @@ fun NowPlayingBottomSheet(
                         ),
                     )
                 }) {
-                    Text(text = stringResource(Res.string.yes), style = typo.labelSmall)
+                    Text(text = stringResource(Res.string.yes), style = typo().labelSmall)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { sleepTimerWarning = false }) {
-                    Text(text = stringResource(Res.string.cancel), style = typo.labelSmall)
+                    Text(text = stringResource(Res.string.cancel), style = typo().labelSmall)
                 }
             },
             title = {
-                Text(text = stringResource(Res.string.warning), style = typo.labelSmall)
+                Text(text = stringResource(Res.string.warning), style = typo().labelSmall)
             },
             text = {
-                Text(text = stringResource(Res.string.sleep_timer_warning), style = typo.bodyMedium)
+                Text(text = stringResource(Res.string.sleep_timer_warning), style = typo().bodyMedium)
             },
         )
     }
@@ -1284,7 +1441,7 @@ fun NowPlayingBottomSheet(
             title = {
                 Text(
                     text = stringResource(Res.string.main_lyrics_provider),
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                 )
             },
             text = {
@@ -1306,7 +1463,7 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(Res.string.simpmusic_lyrics), style = typo.labelSmall)
+                        Text(text = stringResource(Res.string.simpmusic_lyrics), style = typo().labelSmall)
                     }
                     Row(
                         modifier =
@@ -1325,7 +1482,7 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(Res.string.lrclib), style = typo.labelSmall)
+                        Text(text = stringResource(Res.string.lrclib), style = typo().labelSmall)
                     }
                     Row(
                         modifier =
@@ -1344,7 +1501,7 @@ fun NowPlayingBottomSheet(
                             },
                         )
                         Spacer(modifier = Modifier.size(10.dp))
-                        Text(text = stringResource(Res.string.youtube_transcript), style = typo.labelSmall)
+                        Text(text = stringResource(Res.string.youtube_transcript), style = typo().labelSmall)
                     }
                 }
             },
@@ -1364,20 +1521,18 @@ fun NowPlayingBottomSheet(
                         mainLyricsProvider = false
                     },
                 ) {
-                    Text(text = stringResource(Res.string.yes), style = typo.labelSmall)
+                    Text(text = stringResource(Res.string.yes), style = typo().labelSmall)
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
                     mainLyricsProvider = false
                 }) {
-                    Text(text = stringResource(Res.string.cancel), style = typo.labelSmall)
+                    Text(text = stringResource(Res.string.cancel), style = typo().labelSmall)
                 }
             },
         )
     }
-
-    val nestedScrollInterop = rememberNestedScrollInteropConnection()
 
     if (isBottomSheetVisible) {
         ModalBottomSheet(
@@ -1393,8 +1548,7 @@ fun NowPlayingBottomSheet(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight()
-                        .nestedScroll(nestedScrollInterop),
+                        .wrapContentHeight(),
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
             ) {
@@ -1427,7 +1581,7 @@ fun NowPlayingBottomSheet(
                         AsyncImage(
                             model =
                                 ImageRequest
-                                    .Builder(LocalContext.current)
+                                    .Builder(LocalPlatformContext.current)
                                     .data(thumb)
                                     .diskCachePolicy(CachePolicy.ENABLED)
                                     .diskCacheKey(thumb)
@@ -1450,7 +1604,7 @@ fun NowPlayingBottomSheet(
                         ) {
                             Text(
                                 text = uiState.songUIState.title,
-                                style = typo.labelMedium,
+                                style = typo().labelMedium,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -1464,7 +1618,7 @@ fun NowPlayingBottomSheet(
                                     uiState.songUIState.listArtists
                                         .toListName()
                                         .connectArtists(),
-                                style = typo.bodyMedium,
+                                style = typo().bodyMedium,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -1597,7 +1751,7 @@ fun NowPlayingBottomSheet(
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.StartRadio(
                                 videoId = uiState.songUIState.videoId,
-                                name = "\"${uiState.songUIState.title}\" ${context.getString(Res.string.radio)}",
+                                name = "\"${uiState.songUIState.title}\" ${runBlocking { getString(Res.string.radio) }}",
                             ),
                         )
                         hideModalBottomSheet()
@@ -1664,7 +1818,7 @@ fun NowPlayingBottomSheet(
 @Composable
 fun ActionButton(
     icon: Painter,
-    @StringRes text: Int?,
+    text: StringResource?,
     textString: String? = null,
     textColor: Color? = null,
     iconColor: Color = Color.White,
@@ -1702,7 +1856,7 @@ fun ActionButton(
 
             Text(
                 text = if (text != null) stringResource(text) else textString ?: "",
-                style = typo.labelSmall,
+                style = typo().labelSmall,
                 color = if (enable) textColor ?: Color.Unspecified else Color.Gray,
                 modifier =
                     Modifier
@@ -1747,7 +1901,7 @@ fun CheckBoxActionButton(
                     } else {
                         stringResource(Res.string.like)
                     },
-                style = typo.labelSmall,
+                style = typo().labelSmall,
                 modifier =
                     Modifier
                         .padding(start = 10.dp)
@@ -1846,7 +2000,7 @@ fun PlaybackSpeedPitchBottomSheet(
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = stringResource(Res.string.playback_speed) + " ${playbackSpeed}x",
-                    style = typo.labelSmall,
+                    style = typo().labelSmall,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Slider(
@@ -1863,7 +2017,7 @@ fun PlaybackSpeedPitchBottomSheet(
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     text = stringResource(Res.string.pitch) + " $pitch",
-                    style = typo.labelSmall,
+                    style = typo().labelSmall,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Slider(
@@ -1942,7 +2096,7 @@ fun AddToPlaylistModalBottomSheet(
                     if (listLocalPlaylist.isEmpty()) {
                         Text(
                             text = stringResource(Res.string.no_playlist_found),
-                            style = typo.labelSmall,
+                            style = typo().labelSmall,
                             modifier = Modifier.padding(20.dp),
                             color = Color.Gray,
                         )
@@ -1981,7 +2135,7 @@ fun AddToPlaylistModalBottomSheet(
                                                 Image(
                                                     painter =
                                                         painterResource(
-                                                            id = Res.drawable.baseline_playlist_add_24,
+                                                            Res.drawable.baseline_playlist_add_24,
                                                         ),
                                                     contentDescription = "",
                                                 )
@@ -1990,7 +2144,7 @@ fun AddToPlaylistModalBottomSheet(
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
                                             text = playlist.title,
-                                            style = typo.labelSmall,
+                                            style = typo().labelSmall,
                                             color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
                                         )
                                     }
@@ -2011,7 +2165,6 @@ fun SleepTimerBottomSheet(
     onDismiss: () -> Unit,
     onSetTimer: (minutes: Int) -> Unit,
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(
@@ -2053,7 +2206,7 @@ fun SleepTimerBottomSheet(
                     shape = RoundedCornerShape(50),
                 ) {}
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(text = stringResource(Res.string.sleep_minutes), style = typo.labelSmall)
+                Text(text = stringResource(Res.string.sleep_minutes), style = typo().labelSmall)
                 Spacer(modifier = Modifier.height(5.dp))
                 OutlinedTextField(
                     value = minutes.toString(),
@@ -2061,7 +2214,7 @@ fun SleepTimerBottomSheet(
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp),
-                    onValueChange = { if (it.isDigitsOnly() && it.isNotEmpty() && it.isNotBlank()) minutes = it.toInt() },
+                    onValueChange = { value -> if (value.all { it.isDigit() } && value.isNotEmpty() && value.isNotBlank()) minutes = value.toInt() },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 )
                 Spacer(modifier = Modifier.height(5.dp))
@@ -2074,7 +2227,7 @@ fun SleepTimerBottomSheet(
                                 onDismiss()
                             }
                         } else {
-                            Toast.makeText(context, context.getString(Res.string.sleep_timer_set_error), Toast.LENGTH_SHORT).show()
+                            showToast(runBlocking { getString(Res.string.sleep_timer_set_error) }, ToastGravity.Bottom)
                         }
                     },
                     modifier =
@@ -2082,7 +2235,7 @@ fun SleepTimerBottomSheet(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp),
                 ) {
-                    Text(text = stringResource(Res.string.set), style = typo.labelSmall)
+                    Text(text = stringResource(Res.string.set), style = typo().labelSmall)
                 }
                 Spacer(modifier = Modifier.height(5.dp))
                 EndOfModalBottomSheet()
@@ -2174,14 +2327,14 @@ fun ArtistModalBottomSheet(
                                     Image(
                                         painter =
                                             painterResource(
-                                                id = Res.drawable.baseline_people_alt_24,
+                                                Res.drawable.baseline_people_alt_24,
                                             ),
                                         contentDescription = "",
                                     )
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(
                                         text = artist.name,
-                                        style = typo.labelSmall,
+                                        style = typo().labelSmall,
                                     )
                                 }
                             }
@@ -2219,7 +2372,6 @@ fun PlaylistBottomSheet(
                 onDismiss()
             }
         }
-    val context = LocalContext.current
 
     LaunchedEffect(true) {
         localPlaylistRepository.getAllLocalPlaylists().collect {
@@ -2286,22 +2438,18 @@ fun PlaylistBottomSheet(
                         hideModalBottomSheet()
                     }
                 }
+                val shareTitle = stringResource(Res.string.share)
                 ActionButton(
                     icon = painterResource(Res.drawable.baseline_share_24),
                     text = Res.string.share,
                 ) {
-                    val shareIntent = Intent(Intent.ACTION_SEND)
-                    shareIntent.type = "text/plain"
                     val url = "https://music.youtube.com/playlist?list=${
                         playlistId.replaceFirst(
                             "VL",
                             "",
                         )
                     }"
-                    shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                    val chooserIntent =
-                        Intent.createChooser(shareIntent, context.getString(Res.string.share_url))
-                    context.startActivity(chooserIntent)
+                    shareUrl(shareTitle, url)
                 }
                 EndOfModalBottomSheet()
             }
@@ -2336,31 +2484,10 @@ fun LocalPlaylistBottomSheet(
                 onDismiss()
             }
         }
-    val context = LocalContext.current
     val resultLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.StartActivityForResult(),
-        ) { activityResult ->
-            if (activityResult.resultCode == Activity.RESULT_OK) {
-                Logger.d("ID", Build.ID.toString())
-                val intentRef = activityResult.data
-                val data = intentRef?.data
-                if (data != null) {
-                    val contentResolver = context.contentResolver
-
-                    val takeFlags: Int =
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    // Check for the freshest data.
-                    context.grantUriPermission(
-                        context.packageName,
-                        data,
-                        takeFlags,
-                    )
-                    contentResolver?.takePersistableUriPermission(data, takeFlags)
-                    val uri = data.toString()
-                    onEditThumbnail(uri)
-                }
+        photoPickerResult {
+            it?.let {
+                onEditThumbnail(it)
             }
         }
     if (showEditTitle) {
@@ -2421,10 +2548,11 @@ fun LocalPlaylistBottomSheet(
                                 .padding(horizontal = 8.dp),
                     )
                     Spacer(modifier = Modifier.height(5.dp))
+                    val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
                     TextButton(
                         onClick = {
                             if (newTitle.isBlank()) {
-                                Toast.makeText(context, context.getString(Res.string.playlist_name_cannot_be_empty), Toast.LENGTH_SHORT).show()
+                                showToast(playlistNameError, ToastGravity.Bottom)
                             } else {
                                 onEditTitle(newTitle)
                                 hideEditTitleBottomSheet()
@@ -2481,11 +2609,7 @@ fun LocalPlaylistBottomSheet(
                         showEditTitle = true
                     }
                     ActionButton(icon = painterResource(Res.drawable.baseline_add_photo_alternate_24), text = Res.string.edit_thumbnail) {
-                        val intent = Intent()
-                        intent.type = "image/*"
-                        intent.action = Intent.ACTION_OPEN_DOCUMENT
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        resultLauncher.launch(intent)
+                        resultLauncher.launch()
                     }
                     ActionButton(icon = painterResource(Res.drawable.baseline_queue_music_24), text = Res.string.add_to_queue) {
                         onAddToQueue()
@@ -2517,23 +2641,19 @@ fun LocalPlaylistBottomSheet(
                         onDelete()
                         hideModalBottomSheet()
                     }
+                    val shareTitle = stringResource(Res.string.share_url)
                     ActionButton(
                         icon = painterResource(Res.drawable.baseline_share_24),
                         text = if (ytPlaylistId != null) Res.string.share else Res.string.sync_first,
                         enable = (ytPlaylistId != null),
                     ) {
-                        val shareIntent = Intent(Intent.ACTION_SEND)
-                        shareIntent.type = "text/plain"
                         val url = "https://music.youtube.com/playlist?list=${
                             ytPlaylistId?.replaceFirst(
                                 "VL",
                                 "",
                             )
                         }"
-                        shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                        val chooserIntent =
-                            Intent.createChooser(shareIntent, context.getString(Res.string.share_url))
-                        context.startActivity(chooserIntent)
+                        shareUrl(shareTitle, url)
                     }
                     EndOfModalBottomSheet()
                 }
@@ -2595,7 +2715,7 @@ fun SortPlaylistBottomSheet(
                 ) {}
                 Text(
                     stringResource(Res.string.sort_by),
-                    style = typo.labelSmall,
+                    style = typo().labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier =
                         Modifier
@@ -2618,7 +2738,7 @@ fun SortPlaylistBottomSheet(
                         ) {
                             Text(
                                 text = stringResource(filterOption.displayNameRes()),
-                                style = typo.labelMedium,
+                                style = typo().labelMedium,
                                 fontWeight = FontWeight.Medium,
                                 color = if (isSelected) seed else Color.White,
                             )
@@ -2649,7 +2769,6 @@ fun DevLogInBottomSheet(
     type: DevLogInType,
     onDone: (String) -> Unit,
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(
@@ -2691,7 +2810,7 @@ fun DevLogInBottomSheet(
                     shape = RoundedCornerShape(50),
                 ) {}
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(text = type.getTitle(context), style = typo.labelSmall)
+                Text(text = runBlocking { type.getTitle() }, style = typo().labelSmall)
                 Spacer(modifier = Modifier.height(5.dp))
                 OutlinedTextField(
                     value = value,
@@ -2706,16 +2825,11 @@ fun DevLogInBottomSheet(
                 TextButton(
                     onClick = {
                         if (value.isNotEmpty() && value.isNotBlank()) {
-                            Toast
-                                .makeText(
-                                    context,
-                                    context.getString(Res.string.processing),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                            showToast(runBlocking { getString(Res.string.processing) }, ToastGravity.Bottom)
                             onDismiss()
                             onDone(value)
                         } else {
-                            Toast.makeText(context, context.getString(Res.string.can_not_be_empty), Toast.LENGTH_SHORT).show()
+                            showToast(runBlocking { getString(Res.string.can_not_be_empty) }, ToastGravity.Bottom)
                         }
                     },
                     modifier =
@@ -2723,7 +2837,7 @@ fun DevLogInBottomSheet(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp),
                 ) {
-                    Text(text = stringResource(Res.string.set), style = typo.labelSmall)
+                    Text(text = stringResource(Res.string.set), style = typo().labelSmall)
                 }
                 Spacer(modifier = Modifier.height(5.dp))
                 EndOfModalBottomSheet()
@@ -2740,7 +2854,6 @@ fun DevCookieLogInBottomSheet(
     cookies: List<Pair<String, String?>>,
 ) {
     val clipboardManager = LocalClipboard.current
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(
@@ -2780,7 +2893,7 @@ fun DevCookieLogInBottomSheet(
                     shape = RoundedCornerShape(50),
                 ) {}
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(text = stringResource(Res.string.list_all_cookies_of_this_page), style = typo.labelSmall)
+                Text(text = stringResource(Res.string.list_all_cookies_of_this_page), style = typo().labelSmall)
                 cookies.forEach { cookie ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -2789,7 +2902,7 @@ fun DevCookieLogInBottomSheet(
                     ) {
                         Text(
                             text = cookie.first,
-                            style = typo.bodyMedium,
+                            style = typo().bodyMedium,
                             modifier = Modifier.weight(1f),
                         )
                         SelectionContainer(
@@ -2797,19 +2910,14 @@ fun DevCookieLogInBottomSheet(
                         ) {
                             Text(
                                 text = cookie.second ?: "",
-                                style = typo.bodyMedium,
+                                style = typo().bodyMedium,
                             )
                         }
+                        val copied = stringResource(Res.string.copied_to_clipboard)
                         IconButton(
                             onClick = {
-                                coroutineScope.launch {
-                                    clipboardManager.setClipEntry(
-                                        ClipEntry(
-                                            clipData = ClipData.newPlainText(cookie.first, cookie.second ?: ""),
-                                        ),
-                                    )
-                                    Toast.makeText(context, context.getString(Res.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
-                                }
+                                copyToClipboard(cookie.first, cookie.second ?: "")
+                                showToast(copied, ToastGravity.Bottom)
                             },
                         ) {
                             Icon(
@@ -2847,9 +2955,9 @@ sealed class DevLogInType {
 
     data object YouTube : DevLogInType()
 
-    fun getTitle(context: Context): String =
+    suspend fun getTitle(): String =
         when (this) {
-            is Spotify -> context.getString(Res.string.your_sp_dc_param_of_spotify_cookie)
-            is YouTube -> context.getString(Res.string.your_youtube_cookie)
+            is Spotify -> getString(Res.string.your_sp_dc_param_of_spotify_cookie)
+            is YouTube -> getString(Res.string.your_youtube_cookie)
         }
 }

@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_pause_24
 import simpmusic.composeapp.generated.resources.baseline_play_arrow_24
 

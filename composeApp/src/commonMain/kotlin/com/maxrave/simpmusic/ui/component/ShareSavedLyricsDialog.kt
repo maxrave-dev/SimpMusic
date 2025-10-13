@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -37,11 +36,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.*
 
 @Composable
 @ExperimentalMaterial3Api
@@ -83,7 +81,7 @@ fun ShareSavedLyricsDialog(
             }) {
                 Text(
                     stringResource(Res.string.ok),
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                 )
             }
         },
@@ -93,21 +91,21 @@ fun ShareSavedLyricsDialog(
             }) {
                 Text(
                     stringResource(Res.string.later),
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                 )
             }
         },
         title = {
             Text(
                 stringResource(Res.string.help_build_lyrics_database),
-                style = typo.labelSmall,
+                style = typo().labelSmall,
             )
         },
         text = {
             Column {
                 Text(
                     stringResource(Res.string.help_build_lyrics_database_description),
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                 )
                 Text(
                     buildAnnotatedString {
@@ -122,7 +120,7 @@ fun ShareSavedLyricsDialog(
                             append("https://github.com/maxrave-dev/lyrics")
                         }
                     },
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                 )
                 Spacer(Modifier.height(8.dp))
                 AnimatedVisibility(
@@ -138,35 +136,35 @@ fun ShareSavedLyricsDialog(
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                             OutlinedTextField(
                                 value = contributorName,
-                                textStyle = typo.bodySmall,
+                                textStyle = typo().bodySmall,
                                 onValueChange = { contributorName = it },
                                 label = {
                                     Text(
                                         stringResource(Res.string.contributor_name),
                                         style =
-                                            typo.labelSmall.copy(
+                                            typo().labelSmall.copy(
                                                 fontSize = 8.sp,
                                             ),
                                     )
                                 },
-                                placeholder = { Text(stringResource(Res.string.contributor_name), style = typo.bodySmall) },
+                                placeholder = { Text(stringResource(Res.string.contributor_name), style = typo().bodySmall) },
                                 singleLine = true,
                             )
                             Spacer(Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = contributorEmail,
-                                textStyle = typo.bodySmall,
+                                textStyle = typo().bodySmall,
                                 onValueChange = { contributorEmail = it },
                                 label = {
                                     Text(
                                         stringResource(Res.string.contributor_email),
                                         style =
-                                            typo.labelSmall.copy(
+                                            typo().labelSmall.copy(
                                                 fontSize = 8.sp,
                                             ),
                                     )
                                 },
-                                placeholder = { Text(stringResource(Res.string.contributor_email), style = typo.bodySmall) },
+                                placeholder = { Text(stringResource(Res.string.contributor_email), style = typo().bodySmall) },
                                 singleLine = true,
                                 isError = contributorEmail.isNotEmpty() && !contributorEmail.contains("@"),
                             )
@@ -190,7 +188,7 @@ fun ShareSavedLyricsDialog(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         stringResource(Res.string.use_anonymous),
-                        style = typo.bodySmall,
+                        style = typo().bodySmall,
                     )
                 }
             }

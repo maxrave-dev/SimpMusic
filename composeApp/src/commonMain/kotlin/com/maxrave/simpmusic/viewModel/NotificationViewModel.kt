@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.domain.repository.CommonRepository
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class NotificationViewModel(
-    
     commonRepository: CommonRepository,
 ) : BaseViewModel() {
     private var _listNotification: MutableStateFlow<List<NotificationEntity>?> =

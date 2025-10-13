@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -103,9 +102,9 @@ internal inline fun <reified T> GridLibraryPlaylist(
                         .padding(
                             top = contentPadding.calculateTopPadding(),
                         ),
-                containerColor = PullToRefreshDefaults.containerColor,
+                containerColor = PullToRefreshDefaults.indicatorContainerColor,
                 color = PullToRefreshDefaults.indicatorColor,
-                threshold = PullToRefreshDefaults.PositionalThreshold,
+                maxDistance = PullToRefreshDefaults.PositionalThreshold,
             )
         },
     ) {
@@ -155,7 +154,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                     }
                                     Text(
                                         text = stringResource(Res.string.create),
-                                        style = typo.titleSmall,
+                                        style = typo().titleSmall,
                                         color = Color.White,
                                         maxLines = 1,
                                         modifier =
@@ -243,7 +242,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                 ) {
                     Text(
                         text = stringResource(emptyText),
-                        style = typo.bodyMedium,
+                        style = typo().bodyMedium,
                         color = Color.White,
                     )
                 }

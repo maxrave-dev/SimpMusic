@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.clickable
@@ -137,7 +136,7 @@ fun DescriptionView(
                     },
             maxLines = maxLineAnimated,
             onTextLayout = { layoutResult = it },
-            style = typo.bodyMedium,
+            style = typo().bodyMedium,
         )
         Spacer(modifier = Modifier.height(8.dp))
         androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton) {
@@ -148,7 +147,7 @@ fun DescriptionView(
                     Modifier.clickable {
                         expanded = !expanded
                     },
-                style = typo.labelSmall,
+                style = typo().labelSmall,
             )
         }
     }

@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -55,23 +54,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
@@ -92,7 +86,18 @@ import com.maxrave.simpmusic.viewModel.PodcastUIState
 import com.maxrave.simpmusic.viewModel.PodcastViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album_length
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.baseline_play_circle_24
+import simpmusic.composeapp.generated.resources.baseline_share_24
+import simpmusic.composeapp.generated.resources.baseline_shuffle_24
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.no_description
+import simpmusic.composeapp.generated.resources.podcasts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,8 +106,6 @@ fun PodcastScreen(
     podcastId: String,
     navController: NavController,
 ) {
-    val context = LocalContext.current
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
 
@@ -224,7 +227,7 @@ fun PodcastScreen(
                                     AsyncImage(
                                         model =
                                             ImageRequest
-                                                .Builder(LocalContext.current)
+                                                .Builder(LocalPlatformContext.current)
                                                 .data(data.thumbnail.lastOrNull()?.url)
                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                 .diskCacheKey(data.thumbnail.lastOrNull()?.url)
@@ -257,7 +260,7 @@ fun PodcastScreen(
                                             Spacer(modifier = Modifier.size(25.dp))
                                             Text(
                                                 text = data.title,
-                                                style = typo.titleLarge,
+                                                style = typo().titleLarge,
                                                 color = Color.White,
                                                 maxLines = 2,
                                             )
@@ -268,7 +271,7 @@ fun PodcastScreen(
                                                     AsyncImage(
                                                         model =
                                                             ImageRequest
-                                                                .Builder(LocalContext.current)
+                                                                .Builder(LocalPlatformContext.current)
                                                                 .data(data.authorThumbnail)
                                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                                 .diskCacheKey(data.authorThumbnail)
@@ -307,7 +310,7 @@ fun PodcastScreen(
                                                         ) {
                                                             Text(
                                                                 text = data.author.name,
-                                                                style = typo.labelSmall,
+                                                                style = typo().labelSmall,
                                                                 color = Color.White,
                                                             )
                                                         }
@@ -316,7 +319,7 @@ fun PodcastScreen(
                                                 Spacer(modifier = Modifier.size(8.dp))
                                                 Text(
                                                     text = stringResource(Res.string.podcasts),
-                                                    style = typo.bodyMedium,
+                                                    style = typo().bodyMedium,
                                                 )
                                             }
                                             Row(
@@ -384,12 +387,12 @@ fun PodcastScreen(
                                             Text(
                                                 text =
                                                     stringResource(
-                                                        id = Res.string.album_length,
+                                                        Res.string.album_length,
                                                         data.listEpisode.size.toString(),
                                                         "",
                                                     ),
                                                 color = Color.White,
-                                                style = typo.bodyMedium,
+                                                style = typo().bodyMedium,
                                                 modifier = Modifier.padding(vertical = 8.dp),
                                             )
                                         }
@@ -438,7 +441,7 @@ fun PodcastScreen(
                         title = {
                             Text(
                                 text = data.title,
-                                style = typo.titleMedium,
+                                style = typo().titleMedium,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -493,7 +496,7 @@ fun PodcastScreen(
             }
 
             is PodcastUIState.Error -> {
-                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                viewModel.makeToast("Error: ${state.message}")
                 navController.navigateUp()
             }
         }

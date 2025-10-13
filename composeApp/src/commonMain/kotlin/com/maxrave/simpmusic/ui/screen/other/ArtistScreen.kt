@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -45,19 +44,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.searchResult.songs.Artist
@@ -65,8 +58,8 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.media3.ui.MediaPlayerView
-import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.expect.ui.MediaPlayerView
+import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.CollapsingToolbarParallaxEffect
@@ -88,8 +81,26 @@ import com.maxrave.simpmusic.viewModel.ArtistScreenState
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.flow.map
-import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.albums
+import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.featured_inArtist
+import simpmusic.composeapp.generated.resources.follow
+import simpmusic.composeapp.generated.resources.followed
+import simpmusic.composeapp.generated.resources.more
+import simpmusic.composeapp.generated.resources.no_description
+import simpmusic.composeapp.generated.resources.popular
+import simpmusic.composeapp.generated.resources.related_artists
+import simpmusic.composeapp.generated.resources.singles
+import simpmusic.composeapp.generated.resources.start_radio
+import simpmusic.composeapp.generated.resources.unknown
+import simpmusic.composeapp.generated.resources.videos
 
 @Composable
 @ExperimentalMaterial3Api
@@ -99,8 +110,6 @@ fun ArtistScreen(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
-    val context = LocalContext.current
-
     val artistScreenState by viewModel.artistScreenState.collectAsStateWithLifecycle()
     val isFollowed by viewModel.followed.collectAsStateWithLifecycle()
     val canvasUrl by viewModel.canvasUrl.collectAsStateWithLifecycle()
@@ -131,6 +140,7 @@ fun ArtistScreen(
                     )
                 }
             }
+
             is ArtistScreenState.Success -> {
                 CollapsingToolbarParallaxEffect(
                     modifier = Modifier.fillMaxSize(),
@@ -156,13 +166,13 @@ fun ArtistScreen(
                             Row {
                                 Text(
                                     text = state.data.subscribers ?: stringResource(Res.string.unknown),
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                     textAlign = TextAlign.Start,
                                     modifier = Modifier.weight(1f),
                                 )
                                 Text(
                                     text = state.data.playCount ?: stringResource(Res.string.unknown),
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.weight(1f),
                                 )
@@ -206,9 +216,11 @@ fun ArtistScreen(
                                                                     listTracks = arrayListOf(firstQueue),
                                                                     firstPlayedTrack = firstQueue,
                                                                     playlistId = "RDAMVM${firstQueue.videoId}",
-                                                                    playlistName = "\"${(state.data.title ?: "")}\" ${context.getString(
-                                                                        Res.string.popular,
-                                                                    )}",
+                                                                    playlistName = "\"${(state.data.title ?: "")}\" ${
+                                                                        getStringBlocking(
+                                                                            Res.string.popular,
+                                                                        )
+                                                                    }",
                                                                     playlistType = PlaylistType.RADIO,
                                                                     continuation = null,
                                                                 ),
@@ -218,9 +230,6 @@ fun ArtistScreen(
                                                                 type = Config.SONG_CLICK,
                                                             )
                                                         },
-                                                context = context,
-                                                density = LocalDensity.current,
-                                                screenSize = getScreenSizeInfo(),
                                             )
                                         }
                                         Spacer(Modifier.width(12.dp))
@@ -263,7 +272,7 @@ fun ArtistScreen(
                                         if (state.data.shuffleParam != null) {
                                             viewModel.onShuffleClick(state.data.shuffleParam)
                                         } else {
-                                            Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
+                                            viewModel.makeToast(runBlocking { getString(Res.string.error) })
                                         }
                                     },
                                 ) {
@@ -275,7 +284,7 @@ fun ArtistScreen(
                                         if (state.data.radioParam != null) {
                                             viewModel.onRadioClick(state.data.radioParam)
                                         } else {
-                                            Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
+                                            viewModel.makeToast(runBlocking { getString(Res.string.error) })
                                         }
                                     },
                                     colors =
@@ -307,7 +316,7 @@ fun ArtistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.popular),
-                                        style = typo.labelMedium,
+                                        style = typo().labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -316,7 +325,7 @@ fun ArtistScreen(
                                             if (id != null) {
                                                 navController.navigate(PlaylistDestination(id))
                                             } else {
-                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
+                                                viewModel.makeToast(runBlocking { getString(Res.string.error) })
                                             }
                                         },
                                         colors =
@@ -326,7 +335,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo().bodySmall)
                                     }
                                 }
                                 state.data.popularSongs.forEach { song ->
@@ -345,7 +354,7 @@ fun ArtistScreen(
                                                     listTracks = arrayListOf(firstQueue),
                                                     firstPlayedTrack = firstQueue,
                                                     playlistId = "RDAMVM${song.videoId}",
-                                                    playlistName = "\"${state.data.title ?: ""}\" ${context.getString(Res.string.popular)}",
+                                                    playlistName = "\"${state.data.title ?: ""}\" ${getStringBlocking(Res.string.popular)}",
                                                     playlistType = PlaylistType.RADIO,
                                                     continuation = null,
                                                 ),
@@ -378,7 +387,7 @@ fun ArtistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.singles),
-                                        style = typo.labelMedium,
+                                        style = typo().labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -392,7 +401,7 @@ fun ArtistScreen(
                                                     ),
                                                 )
                                             } else {
-                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
+                                                viewModel.makeToast(getStringBlocking(Res.string.error))
                                             }
                                         },
                                         colors =
@@ -402,7 +411,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo().bodySmall)
                                     }
                                 }
                                 LazyRow(
@@ -444,7 +453,7 @@ fun ArtistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.albums),
-                                        style = typo.labelMedium,
+                                        style = typo().labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -458,7 +467,7 @@ fun ArtistScreen(
                                                     ),
                                                 )
                                             } else {
-                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
+                                                viewModel.makeToast(getStringBlocking(Res.string.error))
                                             }
                                         },
                                         colors =
@@ -468,7 +477,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo().bodySmall)
                                     }
                                 }
                                 LazyRow(
@@ -510,7 +519,7 @@ fun ArtistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.videos),
-                                        style = typo.labelMedium,
+                                        style = typo().labelMedium,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -523,7 +532,7 @@ fun ArtistScreen(
                                                     ),
                                                 )
                                             } else {
-                                                Toast.makeText(context, context.getString(Res.string.error), Toast.LENGTH_LONG).show()
+                                                viewModel.makeToast(getStringBlocking(Res.string.error))
                                             }
                                         },
                                         colors =
@@ -533,7 +542,7 @@ fun ArtistScreen(
                                                     contentColor = Color.White,
                                                 ),
                                     ) {
-                                        Text(stringResource(Res.string.more), style = typo.bodySmall)
+                                        Text(stringResource(Res.string.more), style = typo().bodySmall)
                                     }
                                 }
                                 LazyRow(
@@ -551,7 +560,7 @@ fun ArtistScreen(
                                                         listTracks = arrayListOf(firstQueue),
                                                         firstPlayedTrack = firstQueue,
                                                         playlistId = "RDAMVM${video.videoId}",
-                                                        playlistName = (state.data.title ?: "") + context.getString(Res.string.videos),
+                                                        playlistName = (state.data.title ?: "") + getStringBlocking(Res.string.videos),
                                                         playlistType = PlaylistType.RADIO,
                                                         continuation = null,
                                                     ),
@@ -596,7 +605,7 @@ fun ArtistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.featured_inArtist),
-                                        style = typo.labelMedium,
+                                        style = typo().labelMedium,
                                         modifier =
                                             Modifier
                                                 .weight(1f)
@@ -642,7 +651,7 @@ fun ArtistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.related_artists),
-                                        style = typo.labelMedium,
+                                        style = typo().labelMedium,
                                         modifier =
                                             Modifier
                                                 .weight(1f)
@@ -700,7 +709,7 @@ fun ArtistScreen(
                         ) {
                             Text(
                                 text = stringResource(Res.string.description),
-                                style = typo.labelMedium,
+                                style = typo().labelMedium,
                                 modifier =
                                     Modifier
                                         .weight(1f)
@@ -740,8 +749,9 @@ fun ArtistScreen(
                     }
                 }
             }
+
             is ArtistScreenState.Error -> {
-                Toast.makeText(LocalContext.current, state.message ?: stringResource(Res.string.error), Toast.LENGTH_LONG).show()
+                viewModel.makeToast(state.message ?: stringResource(Res.string.error))
                 navController.navigateUp()
             }
         }

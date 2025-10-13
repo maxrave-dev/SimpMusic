@@ -45,7 +45,7 @@ fun DropdownButton(
                     Modifier
                         .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                         .widthIn(1.dp, Dp.Infinity),
-                textStyle = typo.bodyMedium,
+                textStyle = typo().bodyMedium,
                 readOnly = true,
                 value = selected,
                 onValueChange = {},
@@ -63,7 +63,7 @@ fun DropdownButton(
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 items.forEachIndexed { index, s ->
                     DropdownMenuItem(
-                        text = { Text(s, style = typo.bodyMedium) },
+                        text = { Text(s, style = typo().bodyMedium) },
                         onClick = {
                             selected = s
                             expanded = false

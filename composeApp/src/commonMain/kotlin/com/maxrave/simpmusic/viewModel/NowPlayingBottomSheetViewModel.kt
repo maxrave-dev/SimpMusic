@@ -1,8 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
-import android.content.Intent
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.DownloadState
@@ -24,17 +21,30 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.toTrack
-
-
-import simpmusic.composeapp.generated.resources.*
+import com.maxrave.logger.LogLevel
+import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.added_to_playlist
+import simpmusic.composeapp.generated.resources.added_to_queue
+import simpmusic.composeapp.generated.resources.added_to_youtube_playlist
+import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.play_next
+import simpmusic.composeapp.generated.resources.removed_download
+import simpmusic.composeapp.generated.resources.share_url
+import simpmusic.composeapp.generated.resources.sleep_timer_off_done
 
 class NowPlayingBottomSheetViewModel(
-    
     private val dataStoreManager: DataStoreManager,
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val songRepository: SongRepository,
@@ -77,14 +87,17 @@ class NowPlayingBottomSheetViewModel(
                             SIMPMUSIC -> {
                                 _uiState.update { it.copy(mainLyricsProvider = SIMPMUSIC) }
                             }
+
                             YOUTUBE -> {
                                 _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
                             }
+
                             LRCLIB -> {
                                 _uiState.update { it.copy(mainLyricsProvider = LRCLIB) }
                             }
+
                             else -> {
-                                log("Unknown lyrics provider", Log.ERROR)
+                                log("Unknown lyrics provider", LogLevel.ERROR)
                             }
                         }
                     }
@@ -118,7 +131,7 @@ class NowPlayingBottomSheetViewModel(
         getSongAsFlow =
             viewModelScope.launch {
                 songRepository.getSongAsFlow(videoId).collectLatest { song ->
-                    log("getSongEntityFlow: $song", Log.WARN)
+                    log("getSongEntityFlow: $song", LogLevel.WARN)
                     if (song != null) {
                         _uiState.update {
                             it.copy(
@@ -152,12 +165,14 @@ class NowPlayingBottomSheetViewModel(
             when (ev) {
                 is NowPlayingBottomSheetUIEvent.DeleteFromPlaylist -> {
                 }
+
                 is NowPlayingBottomSheetUIEvent.ToggleLike -> {
                     songRepository.updateLikeStatus(
                         songUIState.videoId,
                         if (songUIState.liked) 0 else 1,
                     )
                 }
+
                 is NowPlayingBottomSheetUIEvent.Download -> {
                     when (songUIState.downloadState) {
                         DownloadState.STATE_NOT_DOWNLOADED -> {
@@ -172,6 +187,7 @@ class NowPlayingBottomSheetViewModel(
                             )
                             makeToast(getString(Res.string.downloading))
                         }
+
                         DownloadState.STATE_PREPARING, DownloadState.STATE_DOWNLOADING -> {
                             downloadUtils.removeDownload(songUIState.videoId)
                             songRepository.updateDownloadState(
@@ -180,6 +196,7 @@ class NowPlayingBottomSheetViewModel(
                             )
                             makeToast(getString(Res.string.removed_download))
                         }
+
                         DownloadState.STATE_DOWNLOADED -> {
                             downloadUtils.removeDownload(songUIState.videoId)
                             songRepository.updateDownloadState(
@@ -190,6 +207,7 @@ class NowPlayingBottomSheetViewModel(
                         }
                     }
                 }
+
                 is NowPlayingBottomSheetUIEvent.AddToPlaylist -> {
                     val targetPlaylist = uiState.value.listLocalPlaylist.find { it.id == ev.playlistId } ?: return@launch
                     val newList = (targetPlaylist.tracks ?: emptyList<String>()).toMutableList()
@@ -197,32 +215,36 @@ class NowPlayingBottomSheetViewModel(
                         return@launch
                     } else {
                         val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
-                        localPlaylistRepository.addTrackToLocalPlaylist(
-                            id = ev.playlistId,
-                            song = songEntity,
-                            successMessage = getString(Res.string.added_to_playlist),
-                            updatedYtMessage = getString(Res.string.added_to_youtube_playlist),
-                            errorMessage = getString(Res.string.error)
-                        ).collectLatestResource(
-                            onSuccess = {
-                                makeToast(it ?: getString(Res.string.added_to_playlist))
-                            },
-                            onError = {
-                                makeToast(it)
-                            },
-                        )
+                        localPlaylistRepository
+                            .addTrackToLocalPlaylist(
+                                id = ev.playlistId,
+                                song = songEntity,
+                                successMessage = getString(Res.string.added_to_playlist),
+                                updatedYtMessage = getString(Res.string.added_to_youtube_playlist),
+                                errorMessage = getString(Res.string.error),
+                            ).collectLatestResource(
+                                onSuccess = {
+                                    makeToast(it ?: getString(Res.string.added_to_playlist))
+                                },
+                                onError = {
+                                    makeToast(it)
+                                },
+                            )
                     }
                 }
+
                 is NowPlayingBottomSheetUIEvent.PlayNext -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
                     mediaPlayerHandler.playNext(songEntity.toTrack())
                     makeToast(getString(Res.string.play_next))
                 }
+
                 is NowPlayingBottomSheetUIEvent.AddToQueue -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
                     mediaPlayerHandler.loadMoreCatalog(arrayListOf(songEntity.toTrack()), isAddToQueue = true)
                     makeToast(getString(Res.string.added_to_queue))
                 }
+
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
                     if (listOf(SIMPMUSIC, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
                         dataStoreManager.setLyricsProvider(ev.lyricsProvider)
@@ -230,6 +252,7 @@ class NowPlayingBottomSheetViewModel(
                         return@launch
                     }
                 }
+
                 is NowPlayingBottomSheetUIEvent.SetSleepTimer -> {
                     if (ev.cancel) {
                         mediaPlayerHandler.sleepStop()
@@ -238,20 +261,18 @@ class NowPlayingBottomSheetViewModel(
                         mediaPlayerHandler.sleepStart(ev.minutes)
                     }
                 }
+
                 is NowPlayingBottomSheetUIEvent.ChangePlaybackSpeedPitch -> {
                     dataStoreManager.setPlaybackSpeed(ev.speed)
                     dataStoreManager.setPitch(ev.pitch)
                 }
+
                 is NowPlayingBottomSheetUIEvent.Share -> {
-                    val shareIntent = Intent(Intent.ACTION_SEND)
-                    shareIntent.type = "text/plain"
                     val url = "https://music.youtube.com/watch?v=${songUIState.videoId}"
-                    shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                    val chooserIntent =
-                        Intent.createChooser(shareIntent, getString(Res.string.share_url)).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                    application.startActivity(chooserIntent)
+                    shareUrl(
+                        title = getString(Res.string.share_url),
+                        url,
+                    )
                 }
 
                 is NowPlayingBottomSheetUIEvent.StartRadio -> {
@@ -281,6 +302,7 @@ class NowPlayingBottomSheetViewModel(
                                         0,
                                     )
                                 }
+
                                 else -> {
                                     makeToast(res.message ?: getString(Res.string.error))
                                 }

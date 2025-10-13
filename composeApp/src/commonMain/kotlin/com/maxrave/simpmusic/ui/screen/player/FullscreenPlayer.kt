@@ -1,8 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.player
 
-import android.content.pm.ActivityInfo
-import android.content.res.Configuration
-import android.view.WindowManager
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
@@ -57,11 +54,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -74,23 +69,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config.MAIN_PLAYER
-
-
-import simpmusic.composeapp.generated.resources.*
-import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
-import com.maxrave.simpmusic.extension.findActivity
+import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
@@ -101,7 +86,12 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.five_seconds
 import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,57 +102,21 @@ fun FullscreenPlayer(
     hideNavBar: () -> Unit = {},
     showNavBar: () -> Unit = {},
 ) {
-    val context = LocalContext.current
-    val resources = LocalResources.current
     var isFullScreen by remember { mutableStateOf(true) }
     val isInPipMode = rememberIsInPipMode()
 
-    val originalOrientation by rememberSaveable {
-        mutableIntStateOf(resources.configuration.orientation)
-    }
-
-    DisposableEffect(true) {
-        hideNavBar()
-        isFullScreen = true
-        sharedViewModel.isFullScreen = true
-        val activity = context.findActivity()
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        val window = context.findActivity().window
-        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-
-        onDispose {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-            insetsController.apply {
-                show(WindowInsetsCompat.Type.systemBars())
-                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-            // restore original orientation when view disappears
-            activity.requestedOrientation =
-                when (originalOrientation) {
-                    Configuration.ORIENTATION_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                    Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                }
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+    FullScreenRotationImmersive(
+        onLaunch = {
+            hideNavBar()
+            isFullScreen = true
+            sharedViewModel.isFullScreen = true
+        },
+        onDispose = {
             sharedViewModel.isFullScreen = false
             isFullScreen = false
             showNavBar()
-        }
-    }
-
-    LaunchedEffect(true) {
-        val activity = context.findActivity()
-        val window = activity.window
-
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-        insetsController.apply {
-            hide(WindowInsetsCompat.Type.systemBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-    }
+        },
+    )
 
     val nowPlayingState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -237,11 +191,9 @@ fun FullscreenPlayer(
             timelineState = timelineState,
             lyricsData = nowPlayingState.lyricsData?.lyrics,
             translatedLyricsData = nowPlayingState.lyricsData?.translatedLyrics,
-            context = context,
-            activity = context.findActivity(),
             isInPipMode = isInPipMode,
-            mainTextStyle = typo.bodyLarge,
-            translatedTextStyle = typo.bodyMedium,
+            mainTextStyle = typo().bodyLarge,
+            translatedTextStyle = typo().bodyMedium,
         )
         if (!isInPipMode) {
             Row(Modifier.fillMaxSize()) {
@@ -292,7 +244,7 @@ fun FullscreenPlayer(
                                 Text(
                                     stringResource(Res.string.five_seconds),
                                     color = Color.White,
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                 )
                             }
                         }
@@ -338,7 +290,7 @@ fun FullscreenPlayer(
                                 Text(
                                     stringResource(Res.string.five_seconds),
                                     color = Color.White,
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Icon(
@@ -388,7 +340,7 @@ fun FullscreenPlayer(
                             title = {
                                 Text(
                                     text = nowPlayingState.nowPlayingTitle,
-                                    style = typo.titleMedium,
+                                    style = typo().titleMedium,
                                     maxLines = 1,
                                     modifier =
                                         Modifier
@@ -710,13 +662,13 @@ fun FullscreenPlayer(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
-                                        text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong(), context),
-                                        style = typo.labelSmall,
+                                        text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
+                                        style = typo().labelSmall,
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
-                                        text = " / ${formatDuration(timelineState.total, context)}",
-                                        style = typo.bodySmall,
+                                        text = " / ${formatDuration(timelineState.total)}",
+                                        style = typo().bodySmall,
                                     )
                                 }
                                 Row(
@@ -808,3 +760,9 @@ fun FullscreenPlayer(
         }
     }
 }
+
+@Composable
+expect fun FullScreenRotationImmersive(
+    onLaunch: () -> Unit = {},
+    onDispose: () -> Unit = {},
+)

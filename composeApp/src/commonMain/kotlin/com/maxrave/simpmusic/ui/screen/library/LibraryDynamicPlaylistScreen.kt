@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,13 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.toTrack
@@ -59,8 +54,19 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
-import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.baseline_close_24
+import simpmusic.composeapp.generated.resources.baseline_search_24
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.favorite
+import simpmusic.composeapp.generated.resources.followed
+import simpmusic.composeapp.generated.resources.most_played
+import simpmusic.composeapp.generated.resources.search
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -146,18 +152,21 @@ fun LibraryDynamicPlaylistScreen(
                         } else {
                             downloaded
                         }
+
                     LibraryDynamicPlaylistType.Favorite ->
                         if (query.isNotEmpty() && showSearchBar) {
                             tempFavorite
                         } else {
                             favorite
                         }
+
                     LibraryDynamicPlaylistType.MostPlayed ->
                         if (query.isNotEmpty() && showSearchBar) {
                             tempMostPlayed
                         } else {
                             mostPlayed
                         }
+
                     else -> emptyList()
                 },
                 key = { it.hashCode() },
@@ -206,7 +215,7 @@ fun LibraryDynamicPlaylistScreen(
                         stringResource(
                             type.name(),
                         ),
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                 )
             },
             navigationIcon = {
@@ -251,7 +260,7 @@ fun LibraryDynamicPlaylistScreen(
                         .height(45.dp)
                         .padding(horizontal = 12.dp),
                 inputField = {
-                    CompositionLocalProvider(LocalTextStyle provides typo.bodySmall) {
+                    CompositionLocalProvider(LocalTextStyle provides typo().bodySmall) {
                         SearchBarDefaults.InputField(
                             query = query,
                             onQueryChange = { query = it },
@@ -261,7 +270,7 @@ fun LibraryDynamicPlaylistScreen(
                             placeholder = {
                                 Text(
                                     stringResource(Res.string.search),
-                                    style = typo.bodySmall,
+                                    style = typo().bodySmall,
                                 )
                             },
                             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
@@ -286,7 +295,7 @@ sealed class LibraryDynamicPlaylistType {
 
     data object Downloaded : LibraryDynamicPlaylistType()
 
-    @StringRes fun name(): Int =
+    fun name(): StringResource =
         when (this) {
             Favorite -> Res.string.favorite
             Followed -> Res.string.followed

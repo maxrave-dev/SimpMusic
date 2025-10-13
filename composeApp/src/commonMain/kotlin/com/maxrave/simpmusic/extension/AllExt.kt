@@ -6,14 +6,13 @@ import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
-
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.periodUntil
 import kotlinx.datetime.toInstant
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.day_s_ago
 import simpmusic.composeapp.generated.resources.filler
@@ -65,7 +64,8 @@ infix fun <E> Collection<E>.symmetricDifference(other: Collection<E>): Set<E> {
 }
 
 @OptIn(ExperimentalTime::class)
-suspend fun LocalDateTime.formatTimeAgo(): String {
+@Composable
+fun LocalDateTime.formatTimeAgo(): String {
     val now = now()
     val duration =
         this
@@ -81,17 +81,16 @@ suspend fun LocalDateTime.formatTimeAgo(): String {
     val hoursDiff = (nowInstant - thisInstant).inWholeHours
 
     return when {
-        monthsDiff >= 1 -> getString(Res.string.month_s_ago, monthsDiff)
-        daysDiff >= 1 -> getString(Res.string.day_s_ago, daysDiff)
-        hoursDiff >= 2 -> getString(Res.string.hour_s_ago, hoursDiff)
-        else -> getString(Res.string.recently)
+        monthsDiff >= 1 -> stringResource(Res.string.month_s_ago, monthsDiff)
+        daysDiff >= 1 -> stringResource(Res.string.day_s_ago, daysDiff)
+        hoursDiff >= 2 -> stringResource(Res.string.hour_s_ago, hoursDiff)
+        else -> stringResource(Res.string.recently)
     }
 }
 
-suspend fun formatDuration(
-    duration: Long,
-): String {
-    if (duration < 0L) return getString(Res.string.na_na)
+@Composable
+fun formatDuration(duration: Long): String {
+    if (duration < 0L) return stringResource(Res.string.na_na)
     val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
     val seconds: Long = (
         TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
@@ -136,8 +135,6 @@ fun parseTimestampToMilliseconds(timestamp: String): Double {
         }
     return totalSeconds * 1000
 }
-
-operator fun File.div(child: String): File = File(this, child)
 
 fun InputStream.zipInputStream(): ZipInputStream = ZipInputStream(this)
 
@@ -229,15 +226,16 @@ fun FilterState.displayNameRes(): StringResource =
 @Composable
 fun String?.ifNullOrEmpty(defaultValue: @Composable () -> String): String = if (isNullOrEmpty()) defaultValue() else this
 
-suspend fun SponsorBlockType.toString(): String =
+@Composable
+fun SponsorBlockType.displayString(): String =
     when (this) {
-        SponsorBlockType.FILLER -> getString(Res.string.filler)
-        SponsorBlockType.INTERACTION -> getString(Res.string.interaction)
-        SponsorBlockType.INTRO -> getString(Res.string.intro)
-        SponsorBlockType.MUSIC_OFF_TOPIC -> getString(Res.string.music_off_topic)
-        SponsorBlockType.OUTRO -> getString(Res.string.outro)
-        SponsorBlockType.POI_HIGHLIGHT -> getString(Res.string.poi_highlight)
-        SponsorBlockType.PREVIEW -> getString(Res.string.preview)
-        SponsorBlockType.SELF_PROMOTION -> getString(Res.string.self_promotion)
-        SponsorBlockType.SPONSOR -> getString(Res.string.sponsor)
+        SponsorBlockType.FILLER -> stringResource(Res.string.filler)
+        SponsorBlockType.INTERACTION -> stringResource(Res.string.interaction)
+        SponsorBlockType.INTRO -> stringResource(Res.string.intro)
+        SponsorBlockType.MUSIC_OFF_TOPIC -> stringResource(Res.string.music_off_topic)
+        SponsorBlockType.OUTRO -> stringResource(Res.string.outro)
+        SponsorBlockType.POI_HIGHLIGHT -> stringResource(Res.string.poi_highlight)
+        SponsorBlockType.PREVIEW -> stringResource(Res.string.preview)
+        SponsorBlockType.SELF_PROMOTION -> stringResource(Res.string.self_promotion)
+        SponsorBlockType.SPONSOR -> stringResource(Res.string.sponsor)
     }

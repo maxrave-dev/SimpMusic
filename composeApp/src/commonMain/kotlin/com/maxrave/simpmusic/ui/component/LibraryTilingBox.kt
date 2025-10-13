@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -9,10 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -22,16 +21,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.NonLazyGrid
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.favorite
+import simpmusic.composeapp.generated.resources.followed
+import simpmusic.composeapp.generated.resources.most_played
 
 @Composable
 fun LibraryTilingBox(navController: NavController) {
@@ -64,6 +66,7 @@ fun LibraryTilingBox(navController: NavController) {
                                 ),
                             )
                         }
+
                         LibraryTilingState.Followed -> {
                             navController.navigate(
                                 LibraryDynamicPlaylistDestination(
@@ -71,6 +74,7 @@ fun LibraryTilingBox(navController: NavController) {
                                 ),
                             )
                         }
+
                         LibraryTilingState.MostPlayed -> {
                             navController.navigate(
                                 LibraryDynamicPlaylistDestination(
@@ -78,6 +82,7 @@ fun LibraryTilingBox(navController: NavController) {
                                 ),
                             )
                         }
+
                         LibraryTilingState.Downloaded -> {
                             navController.navigate(
                                 LibraryDynamicPlaylistDestination(
@@ -97,8 +102,7 @@ fun LibraryTilingItem(
     state: LibraryTilingState,
     onClick: () -> Unit = {},
 ) {
-    val context = LocalContext.current
-    val title = context.getString(state.title)
+    val title = stringResource(state.title)
     ElevatedCard(
         modifier =
             Modifier.fillMaxWidth().clickable {
@@ -126,7 +130,7 @@ fun LibraryTilingItem(
             )
             Text(
                 title,
-                style = typo.titleSmall,
+                style = typo().titleSmall,
                 color = Color.Black,
             )
         }
@@ -134,7 +138,7 @@ fun LibraryTilingItem(
 }
 
 data class LibraryTilingState(
-    @param:StringRes val title: Int,
+    val title: StringResource,
     val containerColor: Color,
     val icon: ImageVector,
     val iconColor: Color,
@@ -158,7 +162,7 @@ data class LibraryTilingState(
             LibraryTilingState(
                 title = Res.string.most_played,
                 containerColor = Color(0xff00BCD4),
-                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                icon = Icons.Filled.TrendingUp,
                 iconColor = Color.Black,
             )
         val Downloaded =

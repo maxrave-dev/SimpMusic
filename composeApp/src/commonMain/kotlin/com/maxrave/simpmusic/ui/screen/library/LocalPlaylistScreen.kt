@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -15,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -38,7 +38,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.sharp.Sort
+import androidx.compose.material.icons.sharp.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,13 +74,10 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -88,14 +85,11 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants.IterateForever
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.LOCAL_PLAYLIST_ID
 import com.maxrave.domain.data.entities.DownloadState
@@ -104,9 +98,6 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -125,18 +116,52 @@ import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.char
-import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album_length
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.baseline_downloaded
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
+import simpmusic.composeapp.generated.resources.baseline_play_circle_24
+import simpmusic.composeapp.generated.resources.baseline_shuffle_24
+import simpmusic.composeapp.generated.resources.baseline_tips_and_updates_24
+import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.created_at
+import simpmusic.composeapp.generated.resources.download_button
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.newer_first
+import simpmusic.composeapp.generated.resources.older_first
+import simpmusic.composeapp.generated.resources.reload
+import simpmusic.composeapp.generated.resources.sort_by
+import simpmusic.composeapp.generated.resources.suggest
+import simpmusic.composeapp.generated.resources.sync_playlist_warning
+import simpmusic.composeapp.generated.resources.title
+import simpmusic.composeapp.generated.resources.unsync_playlist_warning
+import simpmusic.composeapp.generated.resources.warning
+import simpmusic.composeapp.generated.resources.yes
+import simpmusic.composeapp.generated.resources.your_playlist
 
 @ExperimentalFoundationApi
 @OptIn(
@@ -150,11 +175,11 @@ fun LocalPlaylistScreen(
     viewModel: LocalPlaylistViewModel = koinViewModel(),
     navController: NavController,
 ) {
-    val context = LocalContext.current
-
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.downloading_animation),
-    )
+    val composition by rememberLottieComposition {
+        LottieCompositionSpec.JsonString(
+            Res.readBytes("files/downloading_animation.json").decodeToString(),
+        )
+    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -393,7 +418,7 @@ fun LocalPlaylistScreen(
                         AsyncImage(
                             model =
                                 ImageRequest
-                                    .Builder(LocalContext.current)
+                                    .Builder(LocalPlatformContext.current)
                                     .data(uiState.thumbnail)
                                     .diskCachePolicy(CachePolicy.ENABLED)
                                     .diskCacheKey(uiState.thumbnail)
@@ -428,7 +453,7 @@ fun LocalPlaylistScreen(
                                 Spacer(modifier = Modifier.size(25.dp))
                                 Text(
                                     text = uiState.title,
-                                    style = typo.titleLarge,
+                                    style = typo().titleLarge,
                                     color = Color.White,
                                 )
                                 Column(
@@ -436,14 +461,14 @@ fun LocalPlaylistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.your_playlist),
-                                        style = typo.titleSmall,
+                                        style = typo().titleSmall,
                                         color = Color.White,
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text =
                                             stringResource(
-                                                id = Res.string.created_at,
+                                                Res.string.created_at,
                                                 uiState.inLibrary?.format(
                                                     LocalDateTime.Format {
                                                         hour()
@@ -460,7 +485,7 @@ fun LocalPlaylistScreen(
                                                     },
                                                 ) ?: "",
                                             ),
-                                        style = typo.bodyMedium,
+                                        style = typo().bodyMedium,
                                         color = Color(0xC4FFFFFF),
                                     )
                                 }
@@ -501,12 +526,7 @@ fun LocalPlaylistScreen(
                                                             .clip(
                                                                 CircleShape,
                                                             ).clickable {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(Res.string.downloaded),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    ).show()
+                                                                viewModel.makeToast(runBlocking { getString(Res.string.downloaded) })
                                                             },
                                                 ) {
                                                     Icon(
@@ -529,17 +549,16 @@ fun LocalPlaylistScreen(
                                                             .clip(
                                                                 CircleShape,
                                                             ).clickable {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(Res.string.downloading),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    ).show()
+                                                                viewModel.makeToast(runBlocking { getString(Res.string.downloading) })
                                                             },
                                                 ) {
-                                                    LottieAnimation(
-                                                        composition,
-                                                        iterations = IterateForever,
+                                                    Image(
+                                                        painter =
+                                                            rememberLottiePainter(
+                                                                composition = composition,
+                                                                iterations = Compottie.IterateForever,
+                                                            ),
+                                                        contentDescription = "Lottie animation",
                                                         modifier = Modifier.fillMaxSize(),
                                                     )
                                                 }
@@ -630,7 +649,7 @@ fun LocalPlaylistScreen(
                                 //                                ExpandableText(
                                 //                                    modifier = Modifier.padding(vertical = 8.dp),
                                 //                                    text = stringResource(Res.string.demo_description),
-                                //                                    fontSize = typo.bodyLarge.fontSize,
+                                //                                    fontSize = typo().bodyLarge.fontSize,
                                 //                                    showMoreStyle = SpanStyle(Color.Gray),
                                 //                                    showLessStyle = SpanStyle(Color.Gray),
                                 //                                    style = TextStyle(
@@ -640,12 +659,12 @@ fun LocalPlaylistScreen(
                                 Text(
                                     text =
                                         stringResource(
-                                            id = Res.string.album_length,
+                                            Res.string.album_length,
                                             (uiState.trackCount).toString(),
                                             "",
                                         ),
                                     color = Color.White,
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                     modifier = Modifier.padding(vertical = 8.dp),
                                 )
                                 AnimatedVisibility(visible = shouldShowSuggestions) {
@@ -656,7 +675,7 @@ fun LocalPlaylistScreen(
                                         Text(
                                             text =
                                                 stringResource(
-                                                    id = Res.string.suggest,
+                                                    Res.string.suggest,
                                                 ),
                                             color = Color.White,
                                             modifier = Modifier.padding(vertical = 8.dp),
@@ -703,9 +722,7 @@ fun LocalPlaylistScreen(
 
                                                         drawContent()
 
-                                                        with(drawContext.canvas.nativeCanvas) {
-                                                            val checkPoint = saveLayer(null, null)
-
+                                                        drawIntoCanvas {
                                                             // Destination
                                                             drawRoundRect(
                                                                 cornerRadius = CornerRadius(x = 60f, y = 60f),
@@ -739,7 +756,7 @@ fun LocalPlaylistScreen(
                                                                 )
                                                             }
 
-                                                            restoreToCount(checkPoint)
+                                                            it.restore()
                                                         }
                                                     },
                                         ) {
@@ -771,7 +788,7 @@ fun LocalPlaylistScreen(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
-                                            imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                            imageVector = Icons.Sharp.Sort,
                                             contentDescription = "Sort playlist",
                                             tint = Color.White,
                                             modifier = Modifier.size(24.dp),
@@ -781,14 +798,13 @@ fun LocalPlaylistScreen(
                                             text =
                                                 stringResource(Res.string.sort_by) + ": " +
                                                     stringResource(
-                                                        id =
-                                                            when (uiState.filterState) {
-                                                                FilterState.Title -> Res.string.title
-                                                                FilterState.NewerFirst -> Res.string.newer_first
-                                                                FilterState.OlderFirst -> Res.string.older_first
-                                                            },
+                                                        when (uiState.filterState) {
+                                                            FilterState.Title -> Res.string.title
+                                                            FilterState.NewerFirst -> Res.string.newer_first
+                                                            FilterState.OlderFirst -> Res.string.older_first
+                                                        },
                                                     ),
-                                            style = typo.bodySmall,
+                                            style = typo().bodySmall,
                                             color = Color.Gray,
                                         )
                                     }
@@ -966,7 +982,7 @@ fun LocalPlaylistScreen(
             title = {
                 Text(
                     text = uiState.title,
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                 )
             },
             navigationIcon = {

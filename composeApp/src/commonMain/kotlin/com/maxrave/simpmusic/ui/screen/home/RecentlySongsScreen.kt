@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.home
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -19,16 +18,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.maxrave.common.Config
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
@@ -54,8 +48,13 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.map
-import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.recently_added
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -65,7 +64,6 @@ fun RecentlySongsScreen(
     viewModel: RecentlySongsViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
-    val context = LocalContext.current
     val hazeState = rememberHazeState()
 
     val recentlyItems = viewModel.recentlySongs.collectAsLazyPagingItems()
@@ -103,6 +101,7 @@ fun RecentlySongsScreen(
                 val item = recentlyItems[index]
                 when (item) {
                     is SongEntity -> {
+                        val recentlyAddedString = stringResource(Res.string.recently_added)
                         SongFullWidthItems(
                             songEntity = item,
                             isPlaying = playingTrack?.videoId == item.videoId && isPlaying,
@@ -113,7 +112,7 @@ fun RecentlySongsScreen(
                                         listTracks = arrayListOf(firstQueue),
                                         firstPlayedTrack = firstQueue,
                                         playlistId = "RDAMVM$videoId",
-                                        playlistName = context.getString(Res.string.recently_added),
+                                        playlistName = recentlyAddedString,
                                         playlistType = PlaylistType.RADIO,
                                         continuation = null,
                                     ),
@@ -132,6 +131,7 @@ fun RecentlySongsScreen(
                             modifier = Modifier.animateItem(),
                         )
                     }
+
                     is AlbumEntity -> {
                         PlaylistFullWidthItems(
                             data = item,
@@ -145,6 +145,7 @@ fun RecentlySongsScreen(
                             modifier = Modifier.animateItem(),
                         )
                     }
+
                     is PlaylistEntity -> {
                         PlaylistFullWidthItems(
                             data = item,
@@ -158,6 +159,7 @@ fun RecentlySongsScreen(
                             modifier = Modifier.animateItem(),
                         )
                     }
+
                     is ArtistEntity -> {
                         ArtistFullWidthItems(
                             data = item,
@@ -187,14 +189,15 @@ fun RecentlySongsScreen(
                             )
                         }
                     }
+
                     loadState.refresh is LoadState.Error || loadState.append is LoadState.Error -> {
                         item {
                             val error =
                                 (loadState.refresh as? LoadState.Error)?.error?.message
                                     ?: (loadState.append as? LoadState.Error)?.error?.message
-                                    ?: context.getString(Res.string.error)
+                                    ?: stringResource(Res.string.error)
                             LaunchedEffect(error) {
-                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                                viewModel.makeToast(error)
                             }
                         }
                     }
@@ -217,7 +220,7 @@ fun RecentlySongsScreen(
             title = {
                 Text(
                     text = stringResource(Res.string.recently_added),
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                 )
             },
             navigationIcon = {

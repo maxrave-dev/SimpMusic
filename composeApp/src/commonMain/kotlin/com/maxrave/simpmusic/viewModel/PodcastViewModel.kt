@@ -1,13 +1,7 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
-import android.content.Intent
-import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.EpisodeEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
 import com.maxrave.domain.data.model.podcast.PodcastBrowse
@@ -17,6 +11,7 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +21,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.share_url
 
 // UI state cho podcast
 sealed class PodcastUIState {
@@ -66,7 +63,6 @@ sealed class PodcastUIEvent {
 }
 
 class PodcastViewModel(
-    
     private val podcastRepository: PodcastRepository,
 ) : BaseViewModel() {
     private val _uiState = MutableStateFlow<PodcastUIState>(PodcastUIState.Loading)
@@ -114,6 +110,7 @@ class PodcastViewModel(
                                 }
                             }
                         }
+
                         is Resource.Error -> {
                             // Nếu đã có dữ liệu trong database, sử dụng dữ liệu đó
                             if (_podcastEntity.value != null) {
@@ -344,15 +341,11 @@ class PodcastViewModel(
             }
 
             is PodcastUIEvent.Share -> {
-                val shareIntent = Intent(Intent.ACTION_SEND)
-                shareIntent.type = "text/plain"
                 val url = "https://youtube.com/playlist?list=${event.podcastId}"
-                shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                val chooserIntent =
-                    Intent.createChooser(shareIntent, getString(Res.string.share_url)).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                application.startActivity(chooserIntent)
+                shareUrl(
+                    title = getString(Res.string.share_url),
+                    url = url,
+                )
             }
         }
     }

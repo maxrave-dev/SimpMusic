@@ -1,5 +1,7 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -14,6 +16,7 @@ plugins {
     alias(libs.plugins.compose.hotReload)
     alias(libs.plugins.aboutlibraries.multiplatform)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.build.config)
 }
 
 dependencies {
@@ -28,12 +31,17 @@ dependencies {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xwhen-guards")
+        freeCompilerArgs.add("-Xcontext-parameters")
+        freeCompilerArgs.add("-Xmulti-dollar-interpolation")
+    }
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
-    
+
 //    listOf(
 //        iosArm64(),
 //        iosSimulatorArm64()
@@ -43,9 +51,9 @@ kotlin {
 //            isStatic = true
 //        }
 //    }
-    
+
     jvm()
-    
+
     sourceSets {
         dependencies {
             val composeBom = project.dependencies.platform(libs.compose.bom)
@@ -58,6 +66,7 @@ kotlin {
             implementation(libs.koin.androidx.compose)
 
             implementation(compose.preview)
+            implementation(libs.compose.material3)
             implementation(libs.activity.compose)
             implementation(libs.constraintlayout.compose)
 
@@ -101,7 +110,6 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
             // Compose
-            implementation(libs.compose.material3.lib)
             implementation(libs.compose.material3.adaptive)
             implementation(libs.compose.ui)
             implementation(libs.compose.material.ripple)
@@ -139,7 +147,6 @@ kotlin {
             implementation(libs.androidx.paging.common)
             implementation(libs.paging.compose)
 
-
             implementation(libs.aboutlibraries)
             implementation(libs.aboutlibraries.compose.m3)
 
@@ -157,6 +164,7 @@ kotlin {
 
             implementation(libs.cmptoast)
 
+            api(libs.webview)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -323,6 +331,38 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.maxrave.simpmusic"
             packageVersion = "1.0.0"
+        }
+
+        buildTypes.release.proguard {
+            configurationFiles.from("compose-desktop.pro")
+        }
+    }
+}
+
+buildkonfig {
+    packageName = "com.maxrave.simpmusic"
+    defaultConfigs {
+        val versionName =
+            libs.versions.version.name
+                .get()
+        val versionCode =
+            libs.versions.version.code
+                .get()
+                .toInt()
+        buildConfigField(STRING, "versionName", versionName)
+        buildConfigField(INT, "versionCode", "$versionCode")
+    }
+}
+
+afterEvaluate {
+    tasks.withType<JavaExec> {
+        jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
+        jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
+
+        if (System.getProperty("os.name").contains("Mac")) {
+            jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
+            jvmArgs("--add-opens", "java.desktop/sun.lwawt=ALL-UNNAMED")
+            jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
         }
     }
 }

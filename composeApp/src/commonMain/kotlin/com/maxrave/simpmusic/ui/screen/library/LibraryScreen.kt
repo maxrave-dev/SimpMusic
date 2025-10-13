@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.library
 
-import android.widget.Toast
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -41,16 +40,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.LibraryChipType
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.copy
@@ -71,7 +65,28 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.create
+import simpmusic.composeapp.generated.resources.downloaded_playlists
+import simpmusic.composeapp.generated.resources.favorite_playlists
+import simpmusic.composeapp.generated.resources.favorite_podcasts
+import simpmusic.composeapp.generated.resources.library
+import simpmusic.composeapp.generated.resources.mix_for_you
+import simpmusic.composeapp.generated.resources.no_YouTube_playlists
+import simpmusic.composeapp.generated.resources.no_favorite_playlists
+import simpmusic.composeapp.generated.resources.no_favorite_podcasts
+import simpmusic.composeapp.generated.resources.no_mixes_found
+import simpmusic.composeapp.generated.resources.no_playlists_added
+import simpmusic.composeapp.generated.resources.no_playlists_downloaded
+import simpmusic.composeapp.generated.resources.playlist_name
+import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
+import simpmusic.composeapp.generated.resources.your_library
+import simpmusic.composeapp.generated.resources.your_playlists
+import simpmusic.composeapp.generated.resources.your_youtube_playlists
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -82,7 +97,6 @@ fun LibraryScreen(
     onScrolling: (onTop: Boolean) -> Unit = {},
 ) {
     val density = LocalDensity.current
-    val context = LocalContext.current
 
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
@@ -121,24 +135,30 @@ fun LibraryScreen(
                     viewModel.getYouTubePlaylist()
                 }
             }
+
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
                 if (youTubeMixForYou.data.isNullOrEmpty()) {
                     viewModel.getYouTubeMixedForYou()
                 }
             }
+
             LibraryChipType.YOUR_LIBRARY -> {
                 viewModel.getCanvasSong()
                 viewModel.getRecentlyAdded()
             }
+
             LibraryChipType.LOCAL_PLAYLIST -> {
                 viewModel.getLocalPlaylist()
             }
+
             LibraryChipType.FAVORITE_PLAYLIST -> {
                 viewModel.getPlaylistFavorite()
             }
+
             LibraryChipType.DOWNLOADED_PLAYLIST -> {
                 viewModel.getDownloadedPlaylist()
             }
+
             LibraryChipType.FAVORITE_PODCAST -> {
                 viewModel.getFavoritePodcasts()
             }
@@ -207,6 +227,7 @@ fun LibraryScreen(
                     }
                 }
             }
+
             LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> {
                 GridLibraryPlaylist(
                     navController,
@@ -218,6 +239,7 @@ fun LibraryScreen(
                     viewModel.getYouTubePlaylist()
                 }
             }
+
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
                 GridLibraryPlaylist(
                     navController,
@@ -229,6 +251,7 @@ fun LibraryScreen(
                     viewModel.getYouTubeMixedForYou()
                 }
             }
+
             LibraryChipType.LOCAL_PLAYLIST -> {
                 GridLibraryPlaylist(
                     navController,
@@ -243,6 +266,7 @@ fun LibraryScreen(
                     viewModel.getLocalPlaylist()
                 }
             }
+
             LibraryChipType.FAVORITE_PLAYLIST -> {
                 GridLibraryPlaylist(
                     navController,
@@ -254,6 +278,7 @@ fun LibraryScreen(
                     viewModel.getPlaylistFavorite()
                 }
             }
+
             LibraryChipType.DOWNLOADED_PLAYLIST -> {
                 GridLibraryPlaylist(
                     navController,
@@ -265,6 +290,7 @@ fun LibraryScreen(
                     viewModel.getDownloadedPlaylist()
                 }
             }
+
             LibraryChipType.FAVORITE_PODCAST -> {
                 GridLibraryPlaylist(
                     navController,
@@ -339,7 +365,7 @@ fun LibraryScreen(
                     TextButton(
                         onClick = {
                             if (newTitle.isBlank()) {
-                                Toast.makeText(context, context.getString(Res.string.playlist_name_cannot_be_empty), Toast.LENGTH_SHORT).show()
+                                viewModel.makeToast(runBlocking { getString(Res.string.playlist_name_cannot_be_empty) })
                             } else {
                                 viewModel.createPlaylist(newTitle)
                                 hideEditTitleBottomSheet()
@@ -369,7 +395,7 @@ fun LibraryScreen(
             title = {
                 Text(
                     text = stringResource(Res.string.library),
-                    style = typo.titleMedium,
+                    style = typo().titleMedium,
                     color = Color.White,
                 )
             },

@@ -199,7 +199,7 @@ fun App(
                                 viewModel.makeToast(
                                     getString(
                                         Res.string.this_link_is_not_supported,
-                                    )
+                                    ),
                                 )
                             }
                         }
@@ -447,20 +447,20 @@ fun App(
                             }) {
                                 Text(
                                     stringResource(Res.string.yes),
-                                    style = typo.bodySmall,
+                                    style = typo().bodySmall,
                                 )
                             }
                         },
                         text = {
                             Text(
                                 stringResource(Res.string.sleep_timer_off),
-                                style = typo.labelSmall,
+                                style = typo().labelSmall,
                             )
                         },
                         title = {
                             Text(
                                 stringResource(Res.string.good_night),
-                                style = typo.bodySmall,
+                                style = typo().bodySmall,
                             )
                         },
                     )
@@ -488,7 +488,7 @@ fun App(
                             ) {
                                 Text(
                                     stringResource(Res.string.download),
-                                    style = typo.bodySmall,
+                                    style = typo().bodySmall,
                                 )
                             }
                         },
@@ -501,38 +501,41 @@ fun App(
                             ) {
                                 Text(
                                     stringResource(Res.string.cancel),
-                                    style = typo.bodySmall,
+                                    style = typo().bodySmall,
                                 )
                             }
                         },
                         title = {
                             Text(
                                 stringResource(Res.string.update_available),
-                                style = typo.labelSmall,
+                                style = typo().labelSmall,
                             )
                         },
                         text = {
-                            val formatted = response.releaseTime?.let { input ->
-                                try {
-                                    val instant = kotlin.time.Instant.parse(input)
-                                    val dateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-                                    dateTime.format(LocalDateTime.Format {
-                                        day()
-                                        char(' ')
-                                        monthName(MonthNames.ENGLISH_ABBREVIATED)
-                                        char(' ')
-                                        year()
-                                        char(' ')
-                                        hour()
-                                        char(':')
-                                        minute()
-                                        char(':')
-                                        second()
-                                    })
-                                } catch (e: Exception) {
-                                    stringResource(Res.string.unknown)
-                                }
-                            } ?: stringResource(Res.string.unknown)
+                            val formatted =
+                                response.releaseTime?.let { input ->
+                                    try {
+                                        val instant = kotlin.time.Instant.parse(input)
+                                        val dateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+                                        dateTime.format(
+                                            LocalDateTime.Format {
+                                                day()
+                                                char(' ')
+                                                monthName(MonthNames.ENGLISH_ABBREVIATED)
+                                                char(' ')
+                                                year()
+                                                char(' ')
+                                                hour()
+                                                char(':')
+                                                minute()
+                                                char(':')
+                                                second()
+                                            },
+                                        )
+                                    } catch (e: Exception) {
+                                        stringResource(Res.string.unknown)
+                                    }
+                                } ?: stringResource(Res.string.unknown)
 
                             val updateMessage =
                                 runBlocking {
@@ -553,7 +556,7 @@ fun App(
                             ) {
                                 Text(
                                     text = updateMessage,
-                                    style = typo.bodySmall,
+                                    style = typo().bodySmall,
                                     modifier =
                                         Modifier.padding(
                                             vertical = 8.dp,
@@ -563,18 +566,18 @@ fun App(
                                     response.body,
                                     typography =
                                         markdownTypography(
-                                            h1 = typo.labelLarge,
-                                            h2 = typo.labelMedium,
-                                            h3 = typo.labelSmall,
-                                            text = typo.bodySmall,
-                                            bullet = typo.bodySmall,
-                                            paragraph = typo.bodySmall,
+                                            h1 = typo().labelLarge,
+                                            h2 = typo().labelMedium,
+                                            h3 = typo().labelSmall,
+                                            text = typo().bodySmall,
+                                            bullet = typo().bodySmall,
+                                            paragraph = typo().bodySmall,
                                             textLink =
                                                 TextLinkStyles(
                                                     SpanStyle(
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.Normal,
-                                                        fontFamily = fontFamily,
+                                                        fontFamily = fontFamily(),
                                                         textDecoration = TextDecoration.Underline,
                                                     ),
                                                 ),

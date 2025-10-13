@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LogInViewModel(
-    
     private val dataStoreManager: DataStoreManager,
 ) : BaseViewModel() {
     private val _spotifyStatus: MutableStateFlow<Boolean> = MutableStateFlow(false)

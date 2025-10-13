@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.other
 
-import android.widget.Toast
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -28,13 +27,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -51,6 +46,8 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -72,6 +69,7 @@ fun MoreAlbumsScreen(
                     MoreAlbumsDestination.ALBUM_TYPE -> {
                         viewModel.getAlbumMore(id)
                     }
+
                     MoreAlbumsDestination.SINGLE_TYPE -> {
                         viewModel.getSingleMore(id)
                     }
@@ -131,7 +129,7 @@ fun MoreAlbumsScreen(
                     title = {
                         Text(
                             text = state.title,
-                            style = typo.titleMedium,
+                            style = typo().titleMedium,
                             maxLines = 1,
                             modifier =
                                 Modifier
@@ -166,9 +164,11 @@ fun MoreAlbumsScreen(
                         ),
                 )
             }
+
             is MoreAlbumsUIState.Error -> {
-                Toast.makeText(LocalContext.current, state.message, Toast.LENGTH_SHORT).show()
+                viewModel.makeToast(state.message)
             }
+
             MoreAlbumsUIState.Loading -> {
                 CenterLoadingBox(
                     modifier =

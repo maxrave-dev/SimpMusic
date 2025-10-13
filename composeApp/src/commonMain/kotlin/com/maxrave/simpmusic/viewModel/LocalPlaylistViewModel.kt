@@ -1,11 +1,13 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
-import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
-import androidx.paging.*
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.filter
+import androidx.paging.insertFooterItem
 import com.maxrave.common.ASC
 import com.maxrave.common.Config
 import com.maxrave.common.DESC
@@ -24,24 +26,54 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
-import com.maxrave.domain.utils.*
+import com.maxrave.domain.utils.FilterState
+import com.maxrave.domain.utils.collectLatestResource
+import com.maxrave.domain.utils.collectResource
+import com.maxrave.domain.utils.toArrayListTrack
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.pagination.PagingActions
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.component.inject
 import kotlinx.datetime.LocalDateTime
+import org.koin.core.component.inject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.add_to_queue
+import simpmusic.composeapp.generated.resources.added_to_playlist
+import simpmusic.composeapp.generated.resources.added_to_queue
+import simpmusic.composeapp.generated.resources.added_to_youtube_playlist
+import simpmusic.composeapp.generated.resources.can_t_add_to_youtube_playlist
+import simpmusic.composeapp.generated.resources.can_t_delete_from_youtube_playlist
+import simpmusic.composeapp.generated.resources.delete
+import simpmusic.composeapp.generated.resources.delete_song_from_playlist
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.playlist
+import simpmusic.composeapp.generated.resources.playlist_is_empty
+import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
+import simpmusic.composeapp.generated.resources.suggest
+import simpmusic.composeapp.generated.resources.synced
+import simpmusic.composeapp.generated.resources.syncing
+import simpmusic.composeapp.generated.resources.unsynced
+import simpmusic.composeapp.generated.resources.unsyncing
+import simpmusic.composeapp.generated.resources.updated
+import simpmusic.composeapp.generated.resources.updated_to_youtube_playlist
+import simpmusic.composeapp.generated.resources.updating
 
 class LocalPlaylistViewModel(
-    
     private val dataStoreManager: DataStoreManager,
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
@@ -297,12 +329,7 @@ class LocalPlaylistViewModel(
                     },
                     onError = {
                         _uiState.update { it.copy(suggestions = null) }
-                        Toast
-                            .makeText(
-                                application,
-                                application.getString(Res.string.error),
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                        makeToast(getString(Res.string.error))
                         loading.value = false
                     },
                 )
@@ -315,18 +342,21 @@ class LocalPlaylistViewModel(
         state: Int,
     ) {
         viewModelScope.launch {
-            localPlaylistRepository.updateDownloadState(
-                id, state, getString(Res.string.updated)
-            ).collectLatestResource(
-                onSuccess = { mess ->
-                    Logger.d(tag, "updatePlaylistDownloadState: $mess")
-                    _uiState.update {
-                        it.copy(
-                            downloadState = state,
-                        )
-                    }
-                },
-            )
+            localPlaylistRepository
+                .updateDownloadState(
+                    id,
+                    state,
+                    getString(Res.string.updated),
+                ).collectLatestResource(
+                    onSuccess = { mess ->
+                        Logger.d(tag, "updatePlaylistDownloadState: $mess")
+                        _uiState.update {
+                            it.copy(
+                                downloadState = state,
+                            )
+                        }
+                    },
+                )
         }
     }
 
@@ -384,9 +414,8 @@ class LocalPlaylistViewModel(
                     title,
                     getString(Res.string.updated),
                     getString(Res.string.updated_to_youtube_playlist),
-                    getString(Res.string.error)
-                )
-                .collectResource(
+                    getString(Res.string.error),
+                ).collectResource(
                     onSuccess = {
                         makeToast(it)
                         updatePlaylistState(id)
@@ -404,7 +433,8 @@ class LocalPlaylistViewModel(
         showLoadingDialog(message = getString(Res.string.delete))
         viewModelScope.launch {
             _uiState.value = LocalPlaylistState.initial()
-            localPlaylistRepository.deleteLocalPlaylist(id, getString(Res.string.delete))
+            localPlaylistRepository
+                .deleteLocalPlaylist(id, getString(Res.string.delete))
                 .collectLatestResource(
                     onSuccess = {
                         makeToast(it)
@@ -414,7 +444,7 @@ class LocalPlaylistViewModel(
                         makeToast(it)
                         hideLoadingDialog()
                     },
-            )
+                )
         }
     }
 
@@ -424,7 +454,8 @@ class LocalPlaylistViewModel(
     ) {
         showLoadingDialog(message = getString(Res.string.updating))
         viewModelScope.launch {
-            localPlaylistRepository.updateThumbnailLocalPlaylist(id, uri, getString(Res.string.updated))
+            localPlaylistRepository
+                .updateThumbnailLocalPlaylist(id, uri, getString(Res.string.updated))
                 .collectResource(
                     onSuccess = {
                         makeToast(it)
@@ -435,7 +466,7 @@ class LocalPlaylistViewModel(
                         makeToast(it)
                         hideLoadingDialog()
                     },
-            )
+                )
         }
     }
 
@@ -445,17 +476,22 @@ class LocalPlaylistViewModel(
     ) {
         viewModelScope.launch {
             localPlaylistRepository
-                .removeTrackFromLocalPlaylist(id, song, getString(Res.string.delete_song_from_playlist), getString(Res.string.removed_from_YouTube_playlist), getString(Res.string.can_t_delete_from_youtube_playlist))
-                .collectLatestResource(
-                onSuccess = {
-                    makeToast(it)
-                    onApplyActions(PagingActions.Remove(song))
-                    updatePlaylistState(id)
-                },
-                onError = {
-                    makeToast(it)
-                },
-            )
+                .removeTrackFromLocalPlaylist(
+                    id,
+                    song,
+                    getString(Res.string.delete_song_from_playlist),
+                    getString(Res.string.removed_from_YouTube_playlist),
+                    getString(Res.string.can_t_delete_from_youtube_playlist),
+                ).collectLatestResource(
+                    onSuccess = {
+                        makeToast(it)
+                        onApplyActions(PagingActions.Remove(song))
+                        updatePlaylistState(id)
+                    },
+                    onError = {
+                        makeToast(it)
+                    },
+                )
         }
     }
 
@@ -569,34 +605,36 @@ class LocalPlaylistViewModel(
     ) {
         showLoadingDialog()
         viewModelScope.launch {
-            localPlaylistRepository.updateSyncState(id, syncState, getString(Res.string.synced))
+            localPlaylistRepository
+                .updateSyncState(id, syncState, getString(Res.string.synced))
                 .collectLatestResource(
-                onSuccess = { mess ->
-                    makeToast(mess)
-                    _uiState.update {
-                        it.copy(
-                            syncState = syncState,
-                        )
-                    }
-                    hideLoadingDialog()
-                },
-                onError = {
-                    makeToast(it)
-                    hideLoadingDialog()
-                },
-            )
-            if (ytId != null) {
-                localPlaylistRepository.updateYouTubePlaylistId(id, ytId, getString(Res.string.updated))
-                    .collectLatestResource(
                     onSuccess = { mess ->
-                        Logger.d(tag, "updateLocalPlaylistSyncState: $mess")
+                        makeToast(mess)
                         _uiState.update {
                             it.copy(
-                                ytPlaylistId = ytId,
+                                syncState = syncState,
                             )
                         }
+                        hideLoadingDialog()
+                    },
+                    onError = {
+                        makeToast(it)
+                        hideLoadingDialog()
                     },
                 )
+            if (ytId != null) {
+                localPlaylistRepository
+                    .updateYouTubePlaylistId(id, ytId, getString(Res.string.updated))
+                    .collectLatestResource(
+                        onSuccess = { mess ->
+                            Logger.d(tag, "updateLocalPlaylistSyncState: $mess")
+                            _uiState.update {
+                                it.copy(
+                                    ytPlaylistId = ytId,
+                                )
+                            }
+                        },
+                    )
             }
         }
     }
@@ -605,23 +643,24 @@ class LocalPlaylistViewModel(
         makeToast(getString(Res.string.unsyncing))
         showLoadingDialog(message = getString(Res.string.unsyncing))
         viewModelScope.launch {
-            localPlaylistRepository.unsyncLocalPlaylist(id, getString(Res.string.unsynced))
+            localPlaylistRepository
+                .unsyncLocalPlaylist(id, getString(Res.string.unsynced))
                 .collectLatestResource(
-                onSuccess = { mess ->
-                    makeToast(mess)
-                    _uiState.update {
-                        it.copy(
-                            syncState = LocalPlaylistEntity.YouTubeSyncState.NotSynced,
-                            ytPlaylistId = null,
-                        )
-                    }
-                    hideLoadingDialog()
-                },
-                onError = {
-                    makeToast(it)
-                    hideLoadingDialog()
-                },
-            )
+                    onSuccess = { mess ->
+                        makeToast(mess)
+                        _uiState.update {
+                            it.copy(
+                                syncState = LocalPlaylistEntity.YouTubeSyncState.NotSynced,
+                                ytPlaylistId = null,
+                            )
+                        }
+                        hideLoadingDialog()
+                    },
+                    onError = {
+                        makeToast(it)
+                        hideLoadingDialog()
+                    },
+                )
         }
     }
 
@@ -631,7 +670,7 @@ class LocalPlaylistViewModel(
         viewModelScope.launch {
             localPlaylistRepository.updateListTrackSynced(id).collectLatest { done ->
                 if (done) {
-                    makeToast(application.getString(Res.string.updated))
+                    makeToast(getString(Res.string.updated))
                     updatePlaylistState(id, refresh = true)
                 }
                 hideLoadingDialog()
@@ -660,9 +699,8 @@ class LocalPlaylistViewModel(
                         track.toSongEntity(),
                         getString(Res.string.added_to_playlist),
                         getString(Res.string.added_to_youtube_playlist),
-                        getString(Res.string.can_t_add_to_youtube_playlist)
-                    )
-                    .collectLatestResource(
+                        getString(Res.string.can_t_add_to_youtube_playlist),
+                    ).collectLatestResource(
                         onSuccess = {
                             makeToast(it)
                             // Add to UI

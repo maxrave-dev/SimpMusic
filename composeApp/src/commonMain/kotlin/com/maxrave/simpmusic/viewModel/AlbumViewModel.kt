@@ -1,7 +1,5 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
-import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
@@ -19,9 +17,7 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toAlbumEntity
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toSongEntity
-
-
-import simpmusic.composeapp.generated.resources.*
+import com.maxrave.logger.LogLevel
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -32,11 +28,14 @@ import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.inject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.playlist_is_empty
 
 class AlbumViewModel(
-    
     private val songRepository: SongRepository,
     private val albumRepository: AlbumRepository,
 ) : BaseViewModel() {
@@ -109,6 +108,7 @@ class AlbumViewModel(
                             }
                         }
                     }
+
                     is Resource.Error -> {
                         albumRepository.getAlbum(browseId).singleOrNull().let { albumEntity ->
                             if (albumEntity != null) {
@@ -136,7 +136,7 @@ class AlbumViewModel(
                                     )
                                 }
                             } else {
-                                log("Error: ${res.message}", Log.ERROR)
+                                log("Error: ${res.message}", LogLevel.ERROR)
                                 makeToast(getString(Res.string.error) + ": ${res.message}")
                                 _uiState.update {
                                     it.copy(

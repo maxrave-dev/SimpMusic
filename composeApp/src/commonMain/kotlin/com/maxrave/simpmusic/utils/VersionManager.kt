@@ -1,32 +1,27 @@
 package com.maxrave.simpmusic.utils
 
-import android.content.Context
+import com.maxrave.simpmusic.BuildKonfig
 
 object VersionManager {
-
     private var versionName: String? = null
 
-    fun initialize(context: Context) {
+    fun initialize() {
         if (versionName == null) {
-            versionName = try {
-                val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                packageInfo.versionName
-            } catch (_: Exception) {
-                String()
-            }
+            versionName =
+                try {
+                    BuildKonfig.versionName
+                } catch (_: Exception) {
+                    String()
+                }
         }
     }
 
+    fun getVersionName(): String = removeDevSuffix(versionName ?: String())
 
-    fun getVersionName(): String {
-        return removeDevSuffix(versionName ?: String())
-    }
-
-    private fun removeDevSuffix(versionName: String): String {
-        return if (versionName.endsWith("-dev")) {
+    private fun removeDevSuffix(versionName: String): String =
+        if (versionName.endsWith("-dev")) {
             versionName.replace("-dev", "")
         } else {
             versionName
         }
-    }
 }

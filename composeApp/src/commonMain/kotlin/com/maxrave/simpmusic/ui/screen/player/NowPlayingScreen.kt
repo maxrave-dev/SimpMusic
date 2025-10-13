@@ -52,12 +52,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -105,11 +105,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -117,6 +114,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -124,15 +122,11 @@ import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.logger.Logger
-import com.maxrave.media3.ui.MediaPlayerView
-import com.maxrave.media3.ui.MediaPlayerViewWithSubtitle
-
-
-import simpmusic.composeapp.generated.resources.*
+import com.maxrave.simpmusic.expect.ui.MediaPlayerView
+import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
-import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -168,7 +162,29 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.holder_video
+import simpmusic.composeapp.generated.resources.like_and_dislike
+import simpmusic.composeapp.generated.resources.line_synced
+import simpmusic.composeapp.generated.resources.lyrics
+import simpmusic.composeapp.generated.resources.lyrics_provider_lrc
+import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
+import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
+import simpmusic.composeapp.generated.resources.now_playing_upper
+import simpmusic.composeapp.generated.resources.offline_mode
+import simpmusic.composeapp.generated.resources.published_at
+import simpmusic.composeapp.generated.resources.show
+import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
+import simpmusic.composeapp.generated.resources.unsynced
+import simpmusic.composeapp.generated.resources.view_count
 import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
@@ -244,7 +260,6 @@ fun NowPlayingScreenContent(
 ) {
     val screenInfo = getScreenSizeInfo()
 
-    val context = LocalContext.current
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
 
@@ -507,7 +522,7 @@ fun NowPlayingScreenContent(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(screenDataState.thumbnailURL)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
@@ -602,16 +617,13 @@ fun NowPlayingScreenContent(
                                             .fillMaxHeight()
                                             .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
                                             .align(Alignment.Center),
-                                    context = context,
-                                    density = localDensity,
-                                    screenSize = getScreenSizeInfo(),
                                 )
                             }
                         } else if (isVideo == false) {
                             AsyncImage(
                                 model =
                                     ImageRequest
-                                        .Builder(LocalContext.current)
+                                        .Builder(LocalPlatformContext.current)
                                         .data(screenDataState.canvasData?.url)
                                         .diskCachePolicy(CachePolicy.ENABLED)
                                         .diskCacheKey(screenDataState.canvasData?.url)
@@ -680,12 +692,12 @@ fun NowPlayingScreenContent(
                         ) {
                             Text(
                                 text = stringResource(Res.string.now_playing_upper),
-                                style = typo.bodyMedium,
+                                style = typo().bodyMedium,
                                 color = Color.White,
                             )
                             Text(
                                 text = screenDataState.playlistName,
-                                style = typo.labelMedium,
+                                style = typo().labelMedium,
                                 color = Color.White,
                                 textAlign = TextAlign.Center,
                                 maxLines = 1,
@@ -782,7 +794,7 @@ fun NowPlayingScreenContent(
                                     AsyncImage(
                                         model =
                                             ImageRequest
-                                                .Builder(LocalContext.current)
+                                                .Builder(LocalPlatformContext.current)
                                                 .data(screenDataState.thumbnailURL)
                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                 .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
@@ -841,11 +853,9 @@ fun NowPlayingScreenContent(
                                                 timelineState = timelineState,
                                                 lyricsData = screenDataState.lyricsData?.lyrics,
                                                 translatedLyricsData = screenDataState.lyricsData?.translatedLyrics,
-                                                context = context,
-                                                activity = context.findActivity(),
                                                 isInPipMode = isInPipMode,
-                                                mainTextStyle = typo.bodyLarge,
-                                                translatedTextStyle = typo.bodyMedium,
+                                                mainTextStyle = typo().bodyLarge,
+                                                translatedTextStyle = typo().bodyMedium,
                                             )
                                         }
                                         Box(
@@ -994,7 +1004,7 @@ fun NowPlayingScreenContent(
                                             AsyncImage(
                                                 model =
                                                     ImageRequest
-                                                        .Builder(LocalContext.current)
+                                                        .Builder(LocalPlatformContext.current)
                                                         .data(screenDataState.thumbnailURL)
                                                         .diskCachePolicy(CachePolicy.ENABLED)
                                                         .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
@@ -1018,7 +1028,7 @@ fun NowPlayingScreenContent(
                                         Column(Modifier.weight(1f)) {
                                             Text(
                                                 text = screenDataState.nowPlayingTitle,
-                                                style = typo.headlineMedium,
+                                                style = typo().headlineMedium,
                                                 maxLines = 1,
                                                 color = Color.White,
                                                 modifier =
@@ -1049,7 +1059,7 @@ fun NowPlayingScreenContent(
                                                 item(screenDataState.artistName) {
                                                     Text(
                                                         text = screenDataState.artistName,
-                                                        style = typo.bodyMedium,
+                                                        style = typo().bodyMedium,
                                                         maxLines = 1,
                                                         modifier =
                                                             Modifier
@@ -1214,14 +1224,14 @@ fun NowPlayingScreenContent(
                                             .padding(horizontal = 20.dp),
                                     ) {
                                         Text(
-                                            text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong(), context),
-                                            style = typo.bodyMedium,
+                                            text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
+                                            style = typo().bodyMedium,
                                             modifier = Modifier.weight(1f),
                                             textAlign = TextAlign.Left,
                                         )
                                         Text(
-                                            text = formatDuration(timelineState.total, context),
-                                            style = typo.bodyMedium,
+                                            text = formatDuration(timelineState.total),
+                                            style = typo().bodyMedium,
                                             modifier = Modifier.weight(1f),
                                             textAlign = TextAlign.Right,
                                         )
@@ -1235,7 +1245,7 @@ fun NowPlayingScreenContent(
                                     )
                                     // Control Button Layout
                                     PlayerControlLayout(
-                                        controllerState
+                                        controllerState,
                                     ) {
                                         sharedViewModel.onUIEvent(it)
                                     }
@@ -1315,7 +1325,7 @@ fun NowPlayingScreenContent(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
+                                                    imageVector = Icons.Rounded.QueueMusic,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                 )
@@ -1359,7 +1369,7 @@ fun NowPlayingScreenContent(
                                             AsyncImage(
                                                 model =
                                                     ImageRequest
-                                                        .Builder(LocalContext.current)
+                                                        .Builder(LocalPlatformContext.current)
                                                         .data(thumb)
                                                         .diskCachePolicy(CachePolicy.ENABLED)
                                                         .diskCacheKey(thumb)
@@ -1379,7 +1389,7 @@ fun NowPlayingScreenContent(
                                             Spacer(modifier = Modifier.size(12.dp))
                                             Text(
                                                 text = screenDataState.songInfoData?.author ?: "",
-                                                style = typo.labelMedium,
+                                                style = typo().labelMedium,
                                                 color = Color.White,
                                             )
                                         }
@@ -1432,7 +1442,7 @@ fun NowPlayingScreenContent(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
                                             text = stringResource(Res.string.lyrics),
-                                            style = typo.labelMedium,
+                                            style = typo().labelMedium,
                                             color = Color.White,
                                             modifier = Modifier.weight(1f),
                                         )
@@ -1477,7 +1487,7 @@ fun NowPlayingScreenContent(
                                                     "LINE_SYNCED" -> stringResource(Res.string.line_synced)
                                                     else -> stringResource(Res.string.unsynced)
                                                 },
-                                            style = typo.bodySmall,
+                                            style = typo().bodySmall,
                                             textAlign = TextAlign.End,
                                             modifier =
                                                 Modifier
@@ -1496,7 +1506,7 @@ fun NowPlayingScreenContent(
                                                         ""
                                                     }
                                                 },
-                                            style = typo.bodySmall,
+                                            style = typo().bodySmall,
                                             textAlign = TextAlign.End,
                                             modifier =
                                                 Modifier
@@ -1539,7 +1549,7 @@ fun NowPlayingScreenContent(
                                     AsyncImage(
                                         model =
                                             ImageRequest
-                                                .Builder(LocalContext.current)
+                                                .Builder(LocalPlatformContext.current)
                                                 .data(thumb)
                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                 .diskCacheKey(thumb)
@@ -1567,20 +1577,20 @@ fun NowPlayingScreenContent(
                                             Spacer(modifier = Modifier.height(5.dp))
                                             Text(
                                                 text = stringResource(Res.string.artists),
-                                                style = typo.labelMedium,
+                                                style = typo().labelMedium,
                                                 color = Color.White,
                                             )
                                         }
                                         Column(Modifier.align(Alignment.BottomStart)) {
                                             Text(
                                                 text = screenDataState.songInfoData?.author ?: "",
-                                                style = typo.labelMedium,
+                                                style = typo().labelMedium,
                                                 color = Color.White,
                                             )
                                             Spacer(modifier = Modifier.height(5.dp))
                                             Text(
                                                 text = screenDataState.songInfoData?.subscribers ?: "",
-                                                style = typo.bodySmall,
+                                                style = typo().bodySmall,
                                                 textAlign = TextAlign.End,
                                             )
                                             Spacer(modifier = Modifier.height(5.dp))
@@ -1607,33 +1617,33 @@ fun NowPlayingScreenContent(
                                     Spacer(modifier = Modifier.height(5.dp))
                                     Text(
                                         text = stringResource(Res.string.published_at, screenDataState.songInfoData?.uploadDate ?: ""),
-                                        style = typo.labelSmall,
+                                        style = typo().labelSmall,
                                         color = Color.White,
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Text(
                                         text =
                                             stringResource(
-                                                id = Res.string.view_count,
+                                                Res.string.view_count,
                                                 "%,d".format(screenDataState.songInfoData?.viewCount),
                                             ),
-                                        style = typo.labelMedium,
+                                        style = typo().labelMedium,
                                         color = Color.White,
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Text(
                                         text =
                                             stringResource(
-                                                id = Res.string.like_and_dislike,
+                                                Res.string.like_and_dislike,
                                                 screenDataState.songInfoData?.like ?: 0,
                                                 screenDataState.songInfoData?.dislike ?: 0,
                                             ),
-                                        style = typo.bodyMedium,
+                                        style = typo().bodyMedium,
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Text(
                                         text = stringResource(Res.string.description),
-                                        style = typo.labelSmall,
+                                        style = typo().labelSmall,
                                         color = Color.White,
                                     )
                                     Spacer(modifier = Modifier.height(10.dp))
@@ -1717,7 +1727,7 @@ fun NowPlayingScreenContent(
                             ) {
                                 Text(
                                     text = screenDataState.nowPlayingTitle,
-                                    style = typo.bodyMedium,
+                                    style = typo().bodyMedium,
                                     color = Color.White,
                                     maxLines = 1,
                                     modifier =
@@ -1747,7 +1757,7 @@ fun NowPlayingScreenContent(
                                     ) {
                                         Text(
                                             text = screenDataState.artistName,
-                                            style = typo.bodySmall,
+                                            style = typo().bodySmall,
                                             maxLines = 1,
                                             modifier =
                                                 Modifier

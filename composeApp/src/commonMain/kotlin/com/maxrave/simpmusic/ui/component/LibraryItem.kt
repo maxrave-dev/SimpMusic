@@ -32,17 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
@@ -65,8 +62,19 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.most_played
+import simpmusic.composeapp.generated.resources.no_favorite_playlists
+import simpmusic.composeapp.generated.resources.no_playlists_downloaded
+import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.recently_added
 import com.maxrave.domain.mediaservice.handler.PlaylistType as DomainPlaylistType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,8 +85,6 @@ fun LibraryItem(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
-    val context = LocalContext.current
-
     var showBottomSheet by remember { mutableStateOf(false) }
     var songEntity by remember { mutableStateOf<SongEntity?>(null) }
     val title =
@@ -116,7 +122,7 @@ fun LibraryItem(
             ) {
                 Text(
                     text = title,
-                    style = typo.headlineMedium,
+                    style = typo().headlineMedium,
                     color = Color.White,
                     maxLines = 1,
                     modifier =
@@ -170,6 +176,7 @@ fun LibraryItem(
                                             },
                                         )
                                     }
+
                                     RecentlyType.Type.ARTIST -> {
                                         ArtistFullWidthItems(
                                             data = item as? ArtistEntity ?: return@forEach,
@@ -182,6 +189,7 @@ fun LibraryItem(
                                             },
                                         )
                                     }
+
                                     else -> {
                                         if (item is PlaylistType) {
                                             PlaylistFullWidthItems(
@@ -195,6 +203,7 @@ fun LibraryItem(
                                                                 ),
                                                             )
                                                         }
+
                                                         is PlaylistEntity -> {
                                                             navController.navigate(
                                                                 PlaylistDestination(
@@ -202,6 +211,7 @@ fun LibraryItem(
                                                                 ),
                                                             )
                                                         }
+
                                                         is PodcastsEntity -> {
                                                             navController.navigate(
                                                                 PodcastDestination(
@@ -237,7 +247,7 @@ fun LibraryItem(
                                                     listTracks = arrayListOf(firstQueue),
                                                     firstPlayedTrack = firstQueue,
                                                     playlistId = "RDAMVM${firstQueue.videoId}",
-                                                    playlistName = "\"${song.title}\" ${context.getString(Res.string.radio)}",
+                                                    playlistName = "\"${song.title}\" ${runBlocking { getString(Res.string.radio) }}",
                                                     playlistType = DomainPlaylistType.RADIO,
                                                     continuation = null,
                                                 ),
@@ -251,7 +261,7 @@ fun LibraryItem(
                                     AsyncImage(
                                         model =
                                             ImageRequest
-                                                .Builder(LocalContext.current)
+                                                .Builder(LocalPlatformContext.current)
                                                 .data(item.canvasThumbUrl)
                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                 .diskCacheKey(item.canvasThumbUrl)
@@ -276,7 +286,7 @@ fun LibraryItem(
                                     ) {
                                         Text(
                                             text = song.title,
-                                            style = typo.labelSmall,
+                                            style = typo().labelSmall,
                                             color = Color.White,
                                             maxLines = 1,
                                             modifier =
@@ -301,7 +311,7 @@ fun LibraryItem(
                                             }
                                             Text(
                                                 text = (song.artistName?.connectArtists() ?: ""),
-                                                style = typo.bodySmall,
+                                                style = typo().bodySmall,
                                                 maxLines = 1,
                                                 modifier =
                                                     Modifier
@@ -334,6 +344,7 @@ fun LibraryItem(
                                                             ),
                                                         )
                                                     }
+
                                                     is PlaylistsResult -> {
                                                         navController.navigate(
                                                             PlaylistDestination(
@@ -342,6 +353,7 @@ fun LibraryItem(
                                                             ),
                                                         )
                                                     }
+
                                                     is AlbumEntity -> {
                                                         navController.navigate(
                                                             AlbumDestination(
@@ -349,6 +361,7 @@ fun LibraryItem(
                                                             ),
                                                         )
                                                     }
+
                                                     is PlaylistEntity -> {
                                                         navController.navigate(
                                                             PlaylistDestination(
@@ -356,6 +369,7 @@ fun LibraryItem(
                                                             ),
                                                         )
                                                     }
+
                                                     is PodcastsEntity -> {
                                                         navController.navigate(
                                                             PodcastDestination(
@@ -379,7 +393,7 @@ fun LibraryItem(
                                         .height(130.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(noPlaylistTitle, style = typo.bodyMedium)
+                                Text(noPlaylistTitle, style = typo().bodyMedium)
                             }
                         }
                     }

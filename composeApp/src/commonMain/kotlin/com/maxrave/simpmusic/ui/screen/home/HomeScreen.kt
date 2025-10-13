@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen.home
 
-import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
@@ -64,31 +63,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.common.Config
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
 import com.maxrave.domain.data.model.home.chart.Chart
 import com.maxrave.domain.data.model.mood.Mood
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.AppResString
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
@@ -131,11 +125,45 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
 import org.koin.compose.koinInject
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import org.koin.compose.viewmodel.koinViewModel
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.all
+import simpmusic.composeapp.generated.resources.app_name
+import simpmusic.composeapp.generated.resources.baseline_history_24
+import simpmusic.composeapp.generated.resources.baseline_settings_24
+import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.chart
+import simpmusic.composeapp.generated.resources.commute
+import simpmusic.composeapp.generated.resources.do_not_show_again
+import simpmusic.composeapp.generated.resources.energize
+import simpmusic.composeapp.generated.resources.feel_good
+import simpmusic.composeapp.generated.resources.focus
+import simpmusic.composeapp.generated.resources.genre
+import simpmusic.composeapp.generated.resources.go_to_log_in_page
+import simpmusic.composeapp.generated.resources.good_afternoon
+import simpmusic.composeapp.generated.resources.good_evening
+import simpmusic.composeapp.generated.resources.good_morning
+import simpmusic.composeapp.generated.resources.good_night
+import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
+import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
+import simpmusic.composeapp.generated.resources.log_in_warning
+import simpmusic.composeapp.generated.resources.moods_amp_moment
+import simpmusic.composeapp.generated.resources.outline_notifications_24
+import simpmusic.composeapp.generated.resources.party
+import simpmusic.composeapp.generated.resources.quick_picks
+import simpmusic.composeapp.generated.resources.relax
+import simpmusic.composeapp.generated.resources.romance
+import simpmusic.composeapp.generated.resources.sad
+import simpmusic.composeapp.generated.resources.sleep
+import simpmusic.composeapp.generated.resources.top_artists
+import simpmusic.composeapp.generated.resources.warning
+import simpmusic.composeapp.generated.resources.welcome_back
+import simpmusic.composeapp.generated.resources.what_is_best_choice_today
+import simpmusic.composeapp.generated.resources.workout
 
 private val listOfHomeChip =
     listOf(
@@ -163,7 +191,6 @@ fun HomeScreen(
         koinInject(),
     navController: NavController,
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
     val isScrollingUp by scrollState.isScrollingUp()
@@ -405,7 +432,7 @@ fun HomeScreen(
                                     visible =
                                         homeData.find {
                                             it.title ==
-                                                context.getString(
+                                                stringResource(
                                                     Res.string.quick_picks,
                                                 )
                                         } != null,
@@ -415,7 +442,7 @@ fun HomeScreen(
                                             (
                                                 homeData.find {
                                                     it.title ==
-                                                        context.getString(
+                                                        stringResource(
                                                             Res.string.quick_picks,
                                                         )
                                                 } ?: return@AnimatedVisibility
@@ -442,7 +469,7 @@ fun HomeScreen(
                             }
                         }
                         items(homeData, key = { it.hashCode() }) {
-                            if (it.title != context.getString(Res.string.quick_picks)) {
+                            if (it.title != stringResource(Res.string.quick_picks)) {
                                 HomeItem(
                                     navController = navController,
                                     data = it,
@@ -509,9 +536,7 @@ fun HomeScreen(
                                         chart?.let {
                                             ChartData(
                                                 chart = it,
-                                                viewModel = viewModel,
                                                 navController = navController,
-                                                context = context,
                                             )
                                         }
                                     } else {
@@ -627,16 +652,15 @@ fun HomeScreen(
 fun HomeTopAppBar(navController: NavController) {
     val hour =
         remember {
-            val date = Calendar.getInstance().time
-            val formatter = SimpleDateFormat("HH")
-            formatter.format(date).toInt()
+            val date = now().time
+            date.hour
         }
     TopAppBar(
         title = {
             Column {
                 Text(
-                    text = stringResource(AppResString.app_name),
-                    style = typo.titleMedium,
+                    text = stringResource(Res.string.app_name),
+                    style = typo().titleMedium,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 4.dp),
                 )
@@ -659,7 +683,7 @@ fun HomeTopAppBar(navController: NavController) {
                                 stringResource(Res.string.good_night)
                             }
                         },
-                    style = typo.bodySmall,
+                    style = typo().bodySmall,
                 )
             }
         },
@@ -689,7 +713,7 @@ fun AccountLayout(
     Column {
         Text(
             text = stringResource(Res.string.welcome_back),
-            style = typo.bodyMedium,
+            style = typo().bodyMedium,
             color = Color.White,
             modifier = Modifier.padding(bottom = 3.dp),
         )
@@ -700,7 +724,7 @@ fun AccountLayout(
             AsyncImage(
                 model =
                     ImageRequest
-                        .Builder(LocalContext.current)
+                        .Builder(LocalPlatformContext.current)
                         .data(url)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .diskCacheKey(url)
@@ -719,7 +743,7 @@ fun AccountLayout(
             )
             Text(
                 text = accountName,
-                style = typo.headlineMedium,
+                style = typo().headlineMedium,
                 color = Color.White,
                 modifier =
                     Modifier
@@ -752,11 +776,11 @@ fun QuickPicks(
     ) {
         Text(
             text = stringResource(Res.string.let_s_start_with_a_radio),
-            style = typo.bodySmall,
+            style = typo().bodySmall,
         )
         Text(
             text = stringResource(Res.string.quick_picks),
-            style = typo.headlineMedium,
+            style = typo().headlineMedium,
             color = Color.White,
             maxLines = 1,
             modifier =
@@ -816,11 +840,11 @@ fun MoodMomentAndGenre(
     ) {
         Text(
             text = stringResource(Res.string.let_s_pick_a_playlist_for_you),
-            style = typo.bodyMedium,
+            style = typo().bodyMedium,
         )
         Text(
             text = stringResource(Res.string.moods_amp_moment),
-            style = typo.headlineMedium,
+            style = typo().headlineMedium,
             color = white,
             maxLines = 1,
             modifier =
@@ -846,7 +870,7 @@ fun MoodMomentAndGenre(
         }
         Text(
             text = stringResource(Res.string.genre),
-            style = typo.headlineMedium,
+            style = typo().headlineMedium,
             maxLines = 1,
             color = white,
             modifier =
@@ -878,11 +902,11 @@ fun ChartTitle() {
     Column {
         Text(
             text = stringResource(Res.string.what_is_best_choice_today),
-            style = typo.bodyMedium,
+            style = typo().bodyMedium,
         )
         Text(
             text = stringResource(Res.string.chart),
-            style = typo.headlineMedium,
+            style = typo().headlineMedium,
             color = white,
             maxLines = 1,
             modifier =
@@ -896,9 +920,7 @@ fun ChartTitle() {
 @Composable
 fun ChartData(
     chart: Chart,
-    viewModel: HomeViewModel,
     navController: NavController,
-    context: Context,
 ) {
     var gridWidthDp by remember {
         mutableStateOf(0.dp)
@@ -918,7 +940,7 @@ fun ChartData(
         chart.listChartItem.forEach { item ->
             Text(
                 text = item.title,
-                style = typo.headlineMedium,
+                style = typo().headlineMedium,
                 color = white,
                 maxLines = 1,
                 modifier =
@@ -949,7 +971,7 @@ fun ChartData(
         }
         Text(
             text = stringResource(Res.string.top_artists),
-            style = typo.headlineMedium,
+            style = typo().headlineMedium,
             color = white,
             maxLines = 1,
             modifier =
@@ -968,13 +990,17 @@ fun ChartData(
                 item.title + item.browseId + index
             }) {
                 val data = chart.artists.itemArtists[it]
-                ItemArtistChart(onClick = {
-                    navController.navigate(
-                        ArtistDestination(
-                            channelId = data.browseId,
-                        ),
-                    )
-                }, data = data, context = context, widthDp = gridWidthDp)
+                ItemArtistChart(
+                    onClick = {
+                        navController.navigate(
+                            ArtistDestination(
+                                channelId = data.browseId,
+                            ),
+                        )
+                    },
+                    data = data,
+                    widthDp = gridWidthDp,
+                )
             }
         }
     }

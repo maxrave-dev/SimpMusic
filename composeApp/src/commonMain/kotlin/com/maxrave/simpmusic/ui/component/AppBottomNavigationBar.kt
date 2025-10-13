@@ -15,19 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.*
 import kotlin.reflect.KClass
 
 @Composable
@@ -115,9 +115,9 @@ fun AppBottomNavigationBar(
                             stringResource(screen.title),
                             style =
                                 if (selectedIndex == screen.ordinal) {
-                                    typo.bodySmall
+                                    typo().bodySmall
                                 } else {
-                                    typo.bodySmall.greyScale()
+                                    typo().bodySmall.greyScale()
                                 },
                         )
                     },
@@ -184,9 +184,9 @@ fun AppNavigationRail(
                         stringResource(screen.title),
                         style =
                             if (selectedIndex == screen.ordinal) {
-                                typo.bodySmall
+                                typo().bodySmall
                             } else {
-                                typo.bodySmall.greyScale()
+                                typo().bodySmall.greyScale()
                             },
                     )
                 },

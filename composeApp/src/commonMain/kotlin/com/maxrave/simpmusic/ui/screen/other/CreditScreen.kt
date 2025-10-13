@@ -36,8 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.expect.openUrl
-
-
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
@@ -84,21 +82,21 @@ fun CreditScreen(
         // App name
         Text(
             text = stringResource(Res.string.app_name),
-            style = typo.titleLarge,
+            style = typo().titleLarge,
             fontSize = 22.sp,
         )
 
         // Version
         Text(
             text = stringResource(Res.string.version_format, VersionManager.getVersionName()),
-            style = typo.bodySmall,
+            style = typo().bodySmall,
             fontSize = 13.sp,
         )
 
         // Developer
         Text(
             text = stringResource(Res.string.maxrave_dev),
-            style = typo.bodyMedium,
+            style = typo().bodyMedium,
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -106,7 +104,7 @@ fun CreditScreen(
         // App description
         Text(
             text = stringResource(Res.string.credit_app),
-            style = typo.bodyMedium,
+            style = typo().bodyMedium,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -179,7 +177,7 @@ fun CreditScreen(
         // Copyright text
         Text(
             text = stringResource(Res.string.copyright),
-            style = typo.bodySmall,
+            style = typo().bodySmall,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -199,7 +197,7 @@ fun CreditScreen(
         title = {
             Text(
                 text = stringResource(Res.string.app_name),
-                style = typo.titleMedium,
+                style = typo().titleMedium,
                 maxLines = 1,
                 modifier =
                     Modifier

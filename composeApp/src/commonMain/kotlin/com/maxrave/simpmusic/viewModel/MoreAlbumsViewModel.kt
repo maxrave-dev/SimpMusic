@@ -1,19 +1,16 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.error
 
 class MoreAlbumsViewModel(
-    
     private val albumRepository: AlbumRepository,
 ) : BaseViewModel() {
     private val _uiState = MutableStateFlow<MoreAlbumsUIState>(MoreAlbumsUIState.Loading)

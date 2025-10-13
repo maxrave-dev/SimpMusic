@@ -1,11 +1,7 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
-
-
-import simpmusic.composeapp.generated.resources.*
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.mediaservice.handler.PlaylistType
@@ -20,9 +16,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.playlist
 
 class LibraryDynamicPlaylistViewModel(
-    
     private val songRepository: SongRepository,
     private val artistRepository: ArtistRepository,
 ) : BaseViewModel() {
@@ -48,9 +45,10 @@ class LibraryDynamicPlaylistViewModel(
     private fun getFavoriteSong() {
         viewModelScope.launch {
             songRepository.getLikedSongs().collectLatest { likedSong ->
-                _listFavoriteSong.value = likedSong.sortedByDescending {
-                    it.favoriteAt ?: it.inLibrary
-                }
+                _listFavoriteSong.value =
+                    likedSong.sortedByDescending {
+                        it.favoriteAt ?: it.inLibrary
+                    }
             }
         }
     }
@@ -58,9 +56,10 @@ class LibraryDynamicPlaylistViewModel(
     private fun getFollowedArtist() {
         viewModelScope.launch {
             artistRepository.getFollowedArtists().collectLatest { followedArtist ->
-                _listFollowedArtist.value = followedArtist.sortedByDescending {
-                    it.followedAt ?: it.inLibrary
-                }
+                _listFollowedArtist.value =
+                    followedArtist.sortedByDescending {
+                        it.followedAt ?: it.inLibrary
+                    }
             }
         }
     }
@@ -76,9 +75,10 @@ class LibraryDynamicPlaylistViewModel(
     private fun getDownloadedSong() {
         viewModelScope.launch {
             songRepository.getDownloadedSongs().collectLatest { downloadedSong ->
-                _listDownloadedSong.value = (downloadedSong ?: emptyList()).sortedByDescending {
-                    it.downloadedAt ?: it.inLibrary
-                }
+                _listDownloadedSong.value =
+                    (downloadedSong ?: emptyList()).sortedByDescending {
+                        it.downloadedAt ?: it.inLibrary
+                    }
             }
         }
     }

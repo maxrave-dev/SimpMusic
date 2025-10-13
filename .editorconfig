@@ -9,6 +9,8 @@ insert_final_newline = false
 max_line_length = 150
 tab_width = 4
 ktlint_function_naming_ignore_when_annotated_with = Composable
+ktlint_standard_no-wildcard-imports = disabled
+
 [*.md]
 generated_code = true
 ij_formatter_enabled = false

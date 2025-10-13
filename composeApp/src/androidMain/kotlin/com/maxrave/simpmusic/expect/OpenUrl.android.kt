@@ -14,3 +14,16 @@ actual fun openUrl(url: String) {
         )
     context.startActivity(browserIntent)
 }
+
+actual fun shareUrl(
+    title: String,
+    url: String,
+) {
+    val context: Context = getKoin().get()
+    val shareIntent = Intent(Intent.ACTION_SEND)
+    shareIntent.type = "text/plain"
+    shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+    val chooserIntent =
+        Intent.createChooser(shareIntent, title)
+    context.startActivity(chooserIntent)
+}
