@@ -17,6 +17,7 @@ plugins {
     alias(libs.plugins.aboutlibraries.multiplatform)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.build.config)
+    id("com.google.osdetector") version "1.7.3"
 }
 
 dependencies {
@@ -163,15 +164,28 @@ kotlin {
             implementation(libs.haze.material)
 
             implementation(libs.cmptoast)
-
-            api(libs.webview)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
+            val fxSuffix =
+                when (osdetector.classifier) {
+                    "linux-x86_64" -> "linux"
+                    "linux-aarch_64" -> "linux-aarch64"
+                    "windows-x86_64" -> "win"
+                    "osx-x86_64" -> "mac"
+                    "osx-aarch_64" -> "mac-aarch64"
+                    else -> throw IllegalStateException("Unknown OS: ${osdetector.classifier}")
+                }
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation("org.openjfx:javafx-base:19:$fxSuffix")
+            implementation("org.openjfx:javafx-graphics:19:$fxSuffix")
+            implementation("org.openjfx:javafx-controls:19:$fxSuffix")
+            implementation("org.openjfx:javafx-media:19:$fxSuffix")
+            implementation("org.openjfx:javafx-web:19:$fxSuffix")
+            implementation("org.openjfx:javafx-swing:19:$fxSuffix")
         }
     }
 }

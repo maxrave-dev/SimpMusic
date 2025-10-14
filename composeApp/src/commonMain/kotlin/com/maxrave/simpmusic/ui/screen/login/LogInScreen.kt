@@ -1,12 +1,10 @@
 package com.maxrave.simpmusic.ui.screen.login
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -14,17 +12,14 @@ import androidx.compose.material.icons.filled.LogoDev
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -36,20 +31,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maxrave.common.Config
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.expect.ui.PlatformWebView
+import com.maxrave.simpmusic.expect.ui.createWebViewCookieManager
+import com.maxrave.simpmusic.expect.ui.rememberWebViewState
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
-import com.multiplatform.webview.cookie.WebViewCookieManager
-import com.multiplatform.webview.web.LoadingState
-import com.multiplatform.webview.web.WebContent
-import com.multiplatform.webview.web.WebView
-import com.multiplatform.webview.web.WebViewState
-import com.multiplatform.webview.web.rememberWebViewNavigator
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -80,45 +70,27 @@ fun LoginScreen(
     var devLoginSheet by rememberSaveable {
         mutableStateOf(false)
     }
-    val state: WebViewState = remember {
-        val content: WebContent = WebContent.Url(
-            url = Config.LOG_IN_URL,
-        )
-        WebViewState(content).also { state ->
-            state.webSettings.apply {
-                isJavaScriptEnabled = true
 
-                androidWebSettings.apply {
-                    isAlgorithmicDarkeningAllowed = true
-                    useWideViewPort = true
-                    domStorageEnabled = true
-                }
+    val state = rememberWebViewState()
 
-                desktopWebSettings.also {
-                    it.transparent = true
-                    it.disablePopupWindows = false
-                }
-            }
-
-            state.content = content
-        }
-    }
-    val navigator = rememberWebViewNavigator()
-    val loadingProgress by remember {
-        derivedStateOf {
-            val loadingState = state.loadingState
-            when (loadingState) {
-                is LoadingState.Loading -> loadingState.progress
-                is LoadingState.Finished -> 1f
-                else -> 0f
-            }
+    LaunchedEffect(state) {
+        snapshotFlow { state.value }.collect {
+            Logger.d(
+                "LogInScreen",
+                "WebViewState: ${
+                    when (it) {
+                        is com.maxrave.simpmusic.expect.ui.WebViewState.Finished -> "Finished"
+                        is com.maxrave.simpmusic.expect.ui.WebViewState.Loading -> "Loading ${it.progress}%"
+                    }
+                }",
+            )
         }
     }
 
     // Hide bottom navigation when entering this screen
     LaunchedEffect(Unit) {
         hideBottomNavigation()
-        WebViewCookieManager().removeAllCookies()
+        createWebViewCookieManager().removeAllCookies()
     }
 
     // Show bottom navigation when leaving this screen
@@ -128,139 +100,105 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(state) {
-        snapshotFlow { state.loadingState }.collect { loadingState ->
-            if (loadingState is LoadingState.Finished) {
-                if (state.lastLoadedUrl == Config.YOUTUBE_MUSIC_MAIN_URL) {
-                    coroutineScope.launch {
-                        val success =
-                            WebViewCookieManager()
-                                .getCookies(
-                                    Config.YOUTUBE_MUSIC_MAIN_URL,
-                                ).let {
-                                    settingsViewModel.addAccount(
-                                        it.joinToString("; ") {
-                                            "${it.name}=${it.value}"
-                                        },
-                                    )
-                                }
-
-                        WebViewCookieManager().removeAllCookies()
-                        if (success) {
-                            viewModel.makeToast(
-                                getString(Res.string.login_success),
-                            )
-                            navController.navigateUp()
-                        } else {
-                            viewModel.makeToast(
-                                getString(Res.string.login_failed),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
         Column {
             Spacer(
                 Modifier
                     .size(
-                        innerPadding.calculateTopPadding() + 64.dp + 4.dp,
+                        innerPadding.calculateTopPadding() + 64.dp,
                     ),
             )
-            if ((!devLoginSheet && getPlatform() == Platform.Desktop) || getPlatform() != Platform.Desktop) {
-                WebView(
-                    state = state,
-                    navigator = navigator,
-                    modifier = Modifier.fillMaxSize(),
-                )
+            // WebView for YouTube Music login
+            PlatformWebView(
+                state,
+                Config.LOG_IN_URL,
+            ) { url ->
+                Logger.d("LogInScreen", "Current URL: $url")
+                if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
+                    coroutineScope.launch {
+                        val success =
+                            createWebViewCookieManager()
+                                .getCookie(url)
+                                .takeIf {
+                                    it.isNotEmpty()
+                                }?.let {
+                                    settingsViewModel.addAccount(it)
+                                } ?: false
+
+                        createWebViewCookieManager().removeAllCookies()
+
+                        if (success) {
+                            viewModel.makeToast(getString(Res.string.login_success))
+                            navController.navigateUp()
+                        } else {
+                            viewModel.makeToast(getString(Res.string.login_failed))
+                        }
+                    }
+                }
             }
         }
 
-        Column(
+        // Top App Bar with haze effect
+        TopAppBar(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
                     .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin()) {
                         blurEnabled = true
                     },
-        ) {
-            // Top App Bar with haze effect
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.log_in),
-                        style = typo().titleMedium,
-                    )
-                },
-                navigationIcon = {
-                    Box(Modifier.padding(horizontal = 5.dp)) {
-                        RippleIconButton(
-                            Res.drawable.baseline_arrow_back_ios_new_24,
-                            Modifier.size(32.dp),
-                            true,
-                        ) {
-                            navController.navigateUp()
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            devLoginSheet = true
-                        },
+            title = {
+                Text(
+                    text = stringResource(Res.string.log_in),
+                    style = typo().titleMedium,
+                )
+            },
+            navigationIcon = {
+                Box(Modifier.padding(horizontal = 5.dp)) {
+                    RippleIconButton(
+                        Res.drawable.baseline_arrow_back_ios_new_24,
+                        Modifier.size(32.dp),
+                        true,
                     ) {
-                        Icon(
-                            Icons.Default.LogoDev,
-                            "Developer Mode",
-                        )
+                        navController.navigateUp()
                     }
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                    ),
-            )
-            Crossfade(targetState = loadingProgress) { progress ->
-                Logger.d("LogInScreen", "Loading: $progress")
-                if (progress == 0f) {
-                    LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                } else if (progress in 0f..0.99f) {
-                    LinearProgressIndicator(
-                        progress = {
-                            progress
-                        },
-                        modifier = Modifier.fillMaxWidth(),
+                }
+            },
+            actions = {
+                IconButton(
+                    onClick = {
+                        devLoginSheet = true
+                    },
+                ) {
+                    Icon(
+                        Icons.Default.LogoDev,
+                        "Developer Mode",
                     )
                 }
-            }
-        }
-        if (devLoginSheet) {
-            DevLogInBottomSheet(
-                onDismiss = {
-                    devLoginSheet = false
-                },
-                onDone = { cookie ->
-                    coroutineScope.launch {
-                        val success = settingsViewModel.addAccount(cookie)
-                        if (success) {
-                            viewModel.makeToast(
-                                getString(Res.string.login_success),
-                            )
-                            navController.navigateUp()
-                        } else {
-                            viewModel.makeToast(
-                                getString(Res.string.login_failed),
-                            )
-                        }
+            },
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                ),
+        )
+    }
+
+    if (devLoginSheet) {
+        DevLogInBottomSheet(
+            onDismiss = {
+                devLoginSheet = false
+            },
+            onDone = { cookie ->
+                coroutineScope.launch {
+                    val success = settingsViewModel.addAccount(cookie)
+                    if (success) {
+                        viewModel.makeToast(getString(Res.string.login_success))
+                        navController.navigateUp()
+                    } else {
+                        viewModel.makeToast(getString(Res.string.login_failed))
                     }
-                },
-                type = DevLogInType.YouTube,
-            )
-        }
+                }
+            },
+            type = DevLogInType.YouTube,
+        )
     }
 }
