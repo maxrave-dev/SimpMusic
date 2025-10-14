@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.login
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,8 +21,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -32,6 +35,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maxrave.common.Config
+import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -40,9 +46,10 @@ import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.multiplatform.webview.cookie.WebViewCookieManager
 import com.multiplatform.webview.web.LoadingState
+import com.multiplatform.webview.web.WebContent
 import com.multiplatform.webview.web.WebView
+import com.multiplatform.webview.web.WebViewState
 import com.multiplatform.webview.web.rememberWebViewNavigator
-import com.multiplatform.webview.web.rememberWebViewState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -73,19 +80,45 @@ fun LoginScreen(
     var devLoginSheet by rememberSaveable {
         mutableStateOf(false)
     }
-    val state = rememberWebViewState(Config.LOG_IN_URL)
+    val state: WebViewState = remember {
+        val content: WebContent = WebContent.Url(
+            url = Config.LOG_IN_URL,
+        )
+        WebViewState(content).also { state ->
+            state.webSettings.apply {
+                isJavaScriptEnabled = true
+
+                androidWebSettings.apply {
+                    isAlgorithmicDarkeningAllowed = true
+                    useWideViewPort = true
+                    domStorageEnabled = true
+                }
+
+                desktopWebSettings.also {
+                    it.transparent = true
+                    it.disablePopupWindows = false
+                }
+            }
+
+            state.content = content
+        }
+    }
     val navigator = rememberWebViewNavigator()
+    val loadingProgress by remember {
+        derivedStateOf {
+            val loadingState = state.loadingState
+            when (loadingState) {
+                is LoadingState.Loading -> loadingState.progress
+                is LoadingState.Finished -> 1f
+                else -> 0f
+            }
+        }
+    }
 
     // Hide bottom navigation when entering this screen
     LaunchedEffect(Unit) {
         hideBottomNavigation()
         WebViewCookieManager().removeAllCookies()
-        state.webSettings.apply {
-            isJavaScriptEnabled = true
-            androidWebSettings.apply {
-                domStorageEnabled = true
-            }
-        }
     }
 
     // Show bottom navigation when leaving this screen
@@ -134,14 +167,16 @@ fun LoginScreen(
             Spacer(
                 Modifier
                     .size(
-                        innerPadding.calculateTopPadding() + 64.dp,
+                        innerPadding.calculateTopPadding() + 64.dp + 4.dp,
                     ),
             )
-            WebView(
-                state = state,
-                navigator = navigator,
-                modifier = Modifier.fillMaxSize(),
-            )
+            if ((!devLoginSheet && getPlatform() == Platform.Desktop) || getPlatform() != Platform.Desktop) {
+                WebView(
+                    state = state,
+                    navigator = navigator,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
 
         Column(
@@ -188,38 +223,44 @@ fun LoginScreen(
                         containerColor = Color.Transparent,
                     ),
             )
-            if (state.loadingState is LoadingState.Loading) {
-                LinearProgressIndicator(
-                    progress = {
-                        (state.loadingState as LoadingState.Loading).progress
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            Crossfade(targetState = loadingProgress) { progress ->
+                Logger.d("LogInScreen", "Loading: $progress")
+                if (progress == 0f) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else if (progress in 0f..0.99f) {
+                    LinearProgressIndicator(
+                        progress = {
+                            progress
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
-    }
-
-    if (devLoginSheet) {
-        DevLogInBottomSheet(
-            onDismiss = {
-                devLoginSheet = false
-            },
-            onDone = { cookie ->
-                coroutineScope.launch {
-                    val success = settingsViewModel.addAccount(cookie)
-                    if (success) {
-                        viewModel.makeToast(
-                            getString(Res.string.login_success),
-                        )
-                        navController.navigateUp()
-                    } else {
-                        viewModel.makeToast(
-                            getString(Res.string.login_failed),
-                        )
+        if (devLoginSheet) {
+            DevLogInBottomSheet(
+                onDismiss = {
+                    devLoginSheet = false
+                },
+                onDone = { cookie ->
+                    coroutineScope.launch {
+                        val success = settingsViewModel.addAccount(cookie)
+                        if (success) {
+                            viewModel.makeToast(
+                                getString(Res.string.login_success),
+                            )
+                            navController.navigateUp()
+                        } else {
+                            viewModel.makeToast(
+                                getString(Res.string.login_failed),
+                            )
+                        }
                     }
-                }
-            },
-            type = DevLogInType.YouTube,
-        )
+                },
+                type = DevLogInType.YouTube,
+            )
+        }
     }
 }

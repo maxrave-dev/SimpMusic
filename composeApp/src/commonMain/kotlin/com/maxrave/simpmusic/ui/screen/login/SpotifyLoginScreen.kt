@@ -1,10 +1,12 @@
 package com.maxrave.simpmusic.ui.screen.login
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -14,14 +16,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -32,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.ui.component.DevCookieLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
@@ -42,9 +48,10 @@ import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.multiplatform.webview.cookie.WebViewCookieManager
 import com.multiplatform.webview.web.LoadingState
+import com.multiplatform.webview.web.WebContent
 import com.multiplatform.webview.web.WebView
+import com.multiplatform.webview.web.WebViewState
 import com.multiplatform.webview.web.rememberWebViewNavigator
-import com.multiplatform.webview.web.rememberWebViewState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -81,17 +88,49 @@ fun SpotifyLoginScreen(
         mutableStateOf(false)
     }
 
-    val state = rememberWebViewState(Config.SPOTIFY_LOG_IN_URL)
+    val state: WebViewState = remember {
+        val content: WebContent = WebContent.Url(
+            url = Config.SPOTIFY_LOG_IN_URL,
+            additionalHttpHeaders = mapOf(
+                "Cookie" to "SOCS=CAESNQgREitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjQwNDE2LjAxX3AyGgJlbiACGgYIgNGWsQY"
+            )
+        )
+        WebViewState(content).also { state ->
+            state.webSettings.apply {
+                isJavaScriptEnabled = true
+
+                androidWebSettings.apply {
+                    isAlgorithmicDarkeningAllowed = true
+                    useWideViewPort = true
+                }
+            }
+
+            state.content = content
+        }
+    }
     val navigator = rememberWebViewNavigator()
+    val loadingProgress by remember {
+        derivedStateOf {
+            val loadingState = state.loadingState
+            when (loadingState) {
+                is LoadingState.Loading -> loadingState.progress
+                is LoadingState.Finished -> 1f
+                else -> 0f
+            }
+        }
+    }
 
     // Hide bottom navigation when entering this screen
     LaunchedEffect(Unit) {
         hideBottomNavigation()
         WebViewCookieManager().removeAllCookies()
         state.webSettings.apply {
-            isJavaScriptEnabled = true
             androidWebSettings.apply {
+                isJavaScriptEnabled = true
                 domStorageEnabled = true
+            }
+            desktopWebSettings.apply {
+                customUserAgentString = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
             }
         }
     }
@@ -157,48 +196,67 @@ fun SpotifyLoginScreen(
             )
         }
 
-        // Top App Bar with haze effect
-        TopAppBar(
+        Column(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
                     .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin()) {
                         blurEnabled = true
                     },
-            title = {
-                Text(
-                    text = stringResource(Res.string.log_in_to_spotify),
-                    style = typo().titleMedium,
-                )
-            },
-            navigationIcon = {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    RippleIconButton(
-                        Res.drawable.baseline_arrow_back_ios_new_24,
-                        Modifier.size(32.dp),
-                        true,
-                    ) {
-                        navController.navigateUp()
+        ) {
+            // Top App Bar with haze effect
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.log_in_to_spotify),
+                        style = typo().titleMedium,
+                    )
+                },
+                navigationIcon = {
+                    Box(Modifier.padding(horizontal = 5.dp)) {
+                        RippleIconButton(
+                            Res.drawable.baseline_arrow_back_ios_new_24,
+                            Modifier.size(32.dp),
+                            true,
+                        ) {
+                            navController.navigateUp()
+                        }
                     }
-                }
-            },
-            actions = {
-                IconButton(
-                    onClick = {
-                        devLoginSheet = true
-                    },
-                ) {
-                    Icon(
-                        Icons.Default.LogoDev,
-                        "Developer Mode",
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            devLoginSheet = true
+                        },
+                    ) {
+                        Icon(
+                            Icons.Default.LogoDev,
+                            "Developer Mode",
+                        )
+                    }
+                },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                    ),
+            )
+            Crossfade(targetState = loadingProgress) { progress ->
+                Logger.d("LogInScreen", "Loading: $progress")
+                if (progress == 0f) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else if (progress in 0f..0.99f) {
+                    LinearProgressIndicator(
+                        progress = {
+                            progress
+                        },
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
-            },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
-        )
+            }
+        }
+
 
         FloatingActionButton(
             onClick = {
