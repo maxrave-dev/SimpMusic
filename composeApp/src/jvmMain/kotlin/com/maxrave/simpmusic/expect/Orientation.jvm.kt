@@ -1,5 +1,3 @@
 package com.maxrave.simpmusic.expect
 
-actual fun currentOrientation(): Orientation {
-    return Orientation.UNSPECIFIED
-}
+actual fun currentOrientation(): Orientation = Orientation.LANDSCAPE

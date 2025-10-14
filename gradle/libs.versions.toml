@@ -71,7 +71,8 @@ sqlite = "2.6.1"
 runner = "1.7.0"
 core = "1.7.0"
 okio = "3.16.1"
-vlcj = "4.11.0"
+gst1JavaCore="1.4.0"
+gst1JavaFx="0.9.0"
 material3-multiplatform = "1.9.0-beta06"
 adaptive = "1.2.0-alpha07"
 material-multiplatform = "1.5.12"
@@ -200,7 +201,8 @@ cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
 webview = { module = "io.github.kevinnzou:compose-webview-multiplatform", version.ref = "webview" }
 
 #JVM
-vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
+gst1-java-core = { module = "org.freedesktop.gstreamer:gst1-java-core", version.ref = "gst1JavaCore" }
+gst1-java-fx = { module = "org.freedesktop.gstreamer:gst1-java-fx", version.ref = "gst1JavaFx" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
