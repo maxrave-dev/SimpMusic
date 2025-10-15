@@ -80,7 +80,8 @@ compottie = "2.0.1"
 cmptoast = "1.0.71"
 uri = "0.0.21"
 buildkonfig = "0.17.1"
-webview = "0.8.0"
+jna="5.18.1"
+jnaPlatform="5.18.1"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -198,11 +199,12 @@ compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref
 compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
 compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
 cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
-webview = { module = "com.mohamedrejeb.calf:calf-webview", version.ref = "webview" }
 
 #JVM
 gst1-java-core = { module = "org.freedesktop.gstreamer:gst1-java-core", version.ref = "gst1JavaCore" }
 gst1-java-fx = { module = "org.freedesktop.gstreamer:gst1-java-fx", version.ref = "gst1JavaFx" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jnaPlatform" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

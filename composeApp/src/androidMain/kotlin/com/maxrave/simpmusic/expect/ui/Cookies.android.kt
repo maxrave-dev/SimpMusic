@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -24,33 +25,37 @@ actual fun createWebViewCookieManager(): WebViewCookieManager =
 actual fun PlatformWebView(
     state: MutableState<WebViewState>,
     initUrl: String,
+    aboveContent: @Composable () -> Unit,
     onPageFinished: (String) -> Unit,
 ) {
-    AndroidView(
-        factory = { ctx ->
-            WebView(ctx).apply {
-                layoutParams =
-                    ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    )
-                webViewClient =
-                    object : WebViewClient() {
-                        override fun onPageFinished(
-                            view: WebView?,
-                            url: String?,
-                        ) {
-                            url?.let {
-                                onPageFinished(it)
+    Box {
+        AndroidView(
+            factory = { ctx ->
+                WebView(ctx).apply {
+                    layoutParams =
+                        ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    webViewClient =
+                        object : WebViewClient() {
+                            override fun onPageFinished(
+                                view: WebView?,
+                                url: String?,
+                            ) {
+                                url?.let {
+                                    onPageFinished(it)
+                                }
                             }
                         }
-                    }
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
 
-                loadUrl(initUrl)
-            }
-        },
-        modifier = Modifier.fillMaxSize(),
-    )
+                    loadUrl(initUrl)
+                }
+            },
+            modifier = Modifier.fillMaxSize(),
+        )
+        aboveContent()
+    }
 }

@@ -11,7 +11,6 @@ import coil3.disk.DiskCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
-import coil3.util.DebugLogger
 import okhttp3.OkHttpClient
 import okio.FileSystem
 
@@ -66,7 +65,7 @@ fun AppTheme(
                             },
                         ),
                     )
-                }.logger(DebugLogger())
+                }
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .networkCachePolicy(CachePolicy.ENABLED)
                 .diskCache(

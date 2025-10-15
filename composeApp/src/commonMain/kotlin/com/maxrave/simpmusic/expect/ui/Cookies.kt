@@ -31,5 +31,6 @@ fun rememberWebViewState(): MutableState<WebViewState> =
 expect fun PlatformWebView(
     state: MutableState<WebViewState> = rememberWebViewState(),
     initUrl: String,
+    aboveContent: @Composable () -> Unit = {},
     onPageFinished: (String) -> Unit,
 )

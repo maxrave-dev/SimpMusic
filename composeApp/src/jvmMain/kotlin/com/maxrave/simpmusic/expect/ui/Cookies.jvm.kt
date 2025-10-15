@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import javafx.application.Platform
@@ -19,6 +20,7 @@ import javafx.scene.web.WebView
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.net.URI
+import javax.swing.JPanel
 
 actual fun createWebViewCookieManager(): WebViewCookieManager =
     object : WebViewCookieManager {
@@ -35,10 +37,12 @@ actual fun createWebViewCookieManager(): WebViewCookieManager =
         }
     }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun PlatformWebView(
     state: MutableState<WebViewState>,
     initUrl: String,
+    aboveContent: @Composable () -> Unit,
     onPageFinished: (String) -> Unit,
 ) {
     val jfxPanel = remember { JFXPanel() }
@@ -84,11 +88,13 @@ actual fun PlatformWebView(
 
         SwingPanel(
             factory = {
-                jfxPanel
+                JPanel().apply {
+                    add(jfxPanel)
+                }
             },
             update = {
             },
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
         )
     }
 }

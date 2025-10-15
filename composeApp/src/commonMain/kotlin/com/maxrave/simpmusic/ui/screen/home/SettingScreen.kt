@@ -99,6 +99,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.filePickerResult
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.openEqResult
@@ -106,6 +107,7 @@ import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
 import com.maxrave.simpmusic.extension.isValidProxyHost
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -464,6 +466,7 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
                     smallSubtitle = true,
                     switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
+                    isEnable = getPlatform() == Platform.Android
                 )
             }
         }

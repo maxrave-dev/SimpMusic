@@ -112,6 +112,27 @@ fun LoginScreen(
             PlatformWebView(
                 state,
                 Config.LOG_IN_URL,
+                aboveContent = {
+                    if (devLoginSheet) {
+                        DevLogInBottomSheet(
+                            onDismiss = {
+                                devLoginSheet = false
+                            },
+                            onDone = { cookie ->
+                                coroutineScope.launch {
+                                    val success = settingsViewModel.addAccount(cookie)
+                                    if (success) {
+                                        viewModel.makeToast(getString(Res.string.login_success))
+                                        navController.navigateUp()
+                                    } else {
+                                        viewModel.makeToast(getString(Res.string.login_failed))
+                                    }
+                                }
+                            },
+                            type = DevLogInType.YouTube,
+                        )
+                    }
+                }
             ) { url ->
                 Logger.d("LogInScreen", "Current URL: $url")
                 if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
@@ -179,26 +200,6 @@ fun LoginScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                 ),
-        )
-    }
-
-    if (devLoginSheet) {
-        DevLogInBottomSheet(
-            onDismiss = {
-                devLoginSheet = false
-            },
-            onDone = { cookie ->
-                coroutineScope.launch {
-                    val success = settingsViewModel.addAccount(cookie)
-                    if (success) {
-                        viewModel.makeToast(getString(Res.string.login_success))
-                        navController.navigateUp()
-                    } else {
-                        viewModel.makeToast(getString(Res.string.login_failed))
-                    }
-                }
-            },
-            type = DevLogInType.YouTube,
         )
     }
 }
