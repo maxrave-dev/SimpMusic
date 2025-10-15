@@ -113,6 +113,52 @@ fun SpotifyLoginScreen(
             PlatformWebView(
                 state,
                 Config.SPOTIFY_LOG_IN_URL,
+                aboveContent = {
+                    FloatingActionButton(
+                        onClick = {
+                            showCookiesBottomSheet = true
+                        },
+                        containerColor = Color(0xFF40D96A),
+                        modifier =
+                            Modifier
+                                .align(
+                                    Alignment.BottomStart,
+                                ).padding(innerPadding)
+                                .padding(
+                                    25.dp,
+                                ),
+                    ) {
+                        Icon(
+                            Icons.Default.Cookie,
+                            "Cookies",
+                        )
+                    }
+                    if (devLoginSheet) {
+                        DevLogInBottomSheet(
+                            onDismiss = {
+                                devLoginSheet = false
+                            },
+                            onDone = { spdc ->
+                                devLoginSheet = false
+                                val spdcText = "sp_dc=$spdc"
+                                viewModel.saveSpotifySpdc(spdcText)
+                                viewModel.makeToast(getStringBlocking(Res.string.login_success))
+                                navController.navigateUp()
+                            },
+                            type = DevLogInType.Spotify,
+                        )
+                    }
+
+                    if (showCookiesBottomSheet) {
+                        DevCookieLogInBottomSheet(
+                            onDismiss = {
+                                showCookiesBottomSheet = false
+                            },
+                            type = DevLogInType.Spotify,
+                            cookies = fullSpotifyCookies,
+                        )
+                    }
+                },
             ) { url ->
                 createWebViewCookieManager()
                     .getCookie(url)
@@ -180,51 +226,6 @@ fun SpotifyLoginScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                 ),
-        )
-
-        FloatingActionButton(
-            onClick = {
-                showCookiesBottomSheet = true
-            },
-            containerColor = Color(0xFF40D96A),
-            modifier =
-                Modifier
-                    .align(
-                        Alignment.BottomStart,
-                    ).padding(innerPadding)
-                    .padding(
-                        25.dp,
-                    ),
-        ) {
-            Icon(
-                Icons.Default.Cookie,
-                "Cookies",
-            )
-        }
-    }
-    if (devLoginSheet) {
-        DevLogInBottomSheet(
-            onDismiss = {
-                devLoginSheet = false
-            },
-            onDone = { spdc ->
-                devLoginSheet = false
-                val spdcText = "sp_dc=$spdc"
-                viewModel.saveSpotifySpdc(spdcText)
-                viewModel.makeToast(getStringBlocking(Res.string.login_success))
-                navController.navigateUp()
-            },
-            type = DevLogInType.Spotify,
-        )
-    }
-
-    if (showCookiesBottomSheet) {
-        DevCookieLogInBottomSheet(
-            onDismiss = {
-                showCookiesBottomSheet = false
-            },
-            type = DevLogInType.Spotify,
-            cookies = fullSpotifyCookies,
         )
     }
 }

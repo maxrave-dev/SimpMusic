@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.expect.ui
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,6 @@ fun rememberWebViewState(): MutableState<WebViewState> =
 expect fun PlatformWebView(
     state: MutableState<WebViewState> = rememberWebViewState(),
     initUrl: String,
-    aboveContent: @Composable () -> Unit = {},
+    aboveContent: @Composable (BoxScope.() -> Unit) = {},
     onPageFinished: (String) -> Unit,
 )

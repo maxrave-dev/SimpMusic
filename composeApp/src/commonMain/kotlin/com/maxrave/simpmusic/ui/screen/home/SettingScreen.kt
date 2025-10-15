@@ -100,7 +100,6 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.expect.ui.filePickerResult
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.bytesToMB
@@ -131,6 +130,10 @@ import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
+import com.mohamedrejeb.calf.io.getPath
+import com.mohamedrejeb.calf.picker.FilePickerFileType
+import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
+import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -307,6 +310,7 @@ fun SettingScreen(
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val platformContext = LocalPlatformContext.current
+    val pl = com.mohamedrejeb.calf.core.LocalPlatformContext.current
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
 
@@ -333,9 +337,13 @@ fun SettingScreen(
         }
 
     val restoreLauncher =
-        filePickerResult("application/octet-stream") { uri ->
-            uri?.let {
-                viewModel.restore(it.toKmpUri())
+        rememberFilePickerLauncher(
+            type =
+                FilePickerFileType.All,
+            selectionMode = FilePickerSelectionMode.Single,
+        ) { file ->
+            file.firstOrNull()?.getPath(pl)?.toKmpUri()?.let {
+                viewModel.restore(it)
             }
         }
 
@@ -466,7 +474,7 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
                     smallSubtitle = true,
                     switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
-                    isEnable = getPlatform() == Platform.Android
+                    isEnable = getPlatform() == Platform.Android,
                 )
             }
         }

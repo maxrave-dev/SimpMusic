@@ -5,6 +5,7 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -25,7 +26,7 @@ actual fun createWebViewCookieManager(): WebViewCookieManager =
 actual fun PlatformWebView(
     state: MutableState<WebViewState>,
     initUrl: String,
-    aboveContent: @Composable () -> Unit,
+    aboveContent: @Composable (BoxScope.() -> Unit),
     onPageFinished: (String) -> Unit,
 ) {
     Box {

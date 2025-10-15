@@ -18,6 +18,9 @@ import simpmusic.composeapp.generated.resources.app_icon
 @OptIn(ExperimentalMaterial3Api::class)
 fun main() =
     application {
+        System.setProperty("compose.swing.render.on.graphics", "true")
+        System.setProperty("compose.interop.blending", "true")
+        System.setProperty("compose.layers.type", "COMPONENT")
         startKoin {
             loadAllModules()
             loadKoinModules(viewModelModule)
