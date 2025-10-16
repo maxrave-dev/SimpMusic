@@ -130,6 +130,7 @@ import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
+import com.mohamedrejeb.calf.core.ExperimentalCalfApi
 import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
@@ -301,7 +302,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class, ExperimentalHazeMaterialsApi::class, FormatStringsInDatetimeFormats::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class, ExperimentalHazeMaterialsApi::class, FormatStringsInDatetimeFormats::class,
+    ExperimentalCalfApi::class
+)
 @Composable
 fun SettingScreen(
     innerPadding: PaddingValues,
@@ -313,6 +316,7 @@ fun SettingScreen(
     val pl = com.mohamedrejeb.calf.core.LocalPlatformContext.current
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
 
     var width by rememberSaveable { mutableIntStateOf(0) }
 
@@ -322,6 +326,7 @@ fun SettingScreen(
             byUnicodePattern("yyyyMMddHHmmss")
         }
     val appName = stringResource(Res.string.app_name)
+
     val backupLauncher =
         fileSaverResult(
             "${appName}_${
@@ -776,7 +781,9 @@ fun SettingScreen(
                     title = stringResource(Res.string.open_system_equalizer),
                     subtitle = stringResource(Res.string.use_your_system_equalizer),
                     onClick = {
-                        resultLauncher.launch()
+                        coroutineScope.launch {
+                            resultLauncher.launch()
+                        }
                     },
                 )
             }
@@ -1539,14 +1546,18 @@ fun SettingScreen(
                     title = stringResource(Res.string.backup),
                     subtitle = stringResource(Res.string.save_all_your_playlist_data),
                     onClick = {
-                        backupLauncher.launch()
+                        coroutineScope.launch {
+                            backupLauncher.launch()
+                        }
                     },
                 )
                 SettingItem(
                     title = stringResource(Res.string.restore_your_data),
                     subtitle = stringResource(Res.string.restore_your_saved_data),
                     onClick = {
-                        restoreLauncher.launch()
+                        coroutineScope.launch {
+                            restoreLauncher.launch()
+                        }
                     },
                 )
             }

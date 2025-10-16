@@ -7,7 +7,9 @@ import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.extension.zipOutputStream
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import multiplatform.network.cmptoast.ToastGravity
@@ -19,7 +21,10 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.Locale
+import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
+import kotlin.system.exitProcess
 
 actual suspend fun calculateDataFraction(cacheRepository: CacheRepository): SettingsStorageSectionFraction? = null
 
@@ -41,7 +46,7 @@ actual suspend fun restoreNative(
             Logger.d("BackupRestore", "Processing entry: ${entry.name}")
             when {
                 entry.name == "$SETTINGS_FILENAME.preferences_pb" -> {
-                    File(getHomeFolderPath(listOf(".simpmusic")), SETTINGS_FILENAME)
+                    File(getHomeFolderPath(listOf(".simpmusic")), "$SETTINGS_FILENAME.preferences_pb")
                         .outputStream()
                         .use { outputStream ->
                             inputStream.copyTo(outputStream)
@@ -62,6 +67,9 @@ actual suspend fun restoreNative(
         }
         withContext(Dispatchers.Main) {
             showToast(getString(Res.string.restore_success), ToastGravity.Bottom)
+            showToast("App will restart to apply changes", ToastGravity.Bottom)
+            delay(2000)
+            exitProcess(0)
         }
     }
 }
@@ -71,7 +79,27 @@ actual suspend fun backupNative(
     uri: Uri,
     backupDownloaded: Boolean,
 ) {
-    showToast("Not supported in JVM")
+    ZipOutputStream(
+        FileOutputStream(File(uri.toString()))
+    ).use {
+        it.buffered().zipOutputStream().use { outputStream ->
+            File(getHomeFolderPath(listOf(".simpmusic")), "$SETTINGS_FILENAME.preferences_pb")
+                .inputStream()
+                .buffered()
+                .use { inputStream ->
+                    outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
+                    inputStream.copyTo(outputStream)
+                }
+            runBlocking(Dispatchers.IO) {
+                commonRepository.databaseDaoCheckpoint()
+            }
+            FileInputStream(commonRepository.getDatabasePath()).use { inputStream ->
+                outputStream.putNextEntry(ZipEntry(DB_NAME))
+                inputStream.copyTo(outputStream)
+            }
+        }
+
+    }
 }
 
 actual fun getPackageName(): String = ""

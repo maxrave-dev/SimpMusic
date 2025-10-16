@@ -1,6 +1,8 @@
 package com.maxrave.simpmusic.expect.ui
 
 import androidx.compose.runtime.Composable
+import com.maxrave.data.io.getHomeFolderPath
+import java.io.File
 
 @Composable
 actual fun filePickerResult(
@@ -21,6 +23,6 @@ actual fun fileSaverResult(
 ): FilePickerLauncher =
     object : FilePickerLauncher {
         override fun launch() {
-            onResultUri(null)
+            onResultUri(File(getHomeFolderPath(emptyList()), fileName).absolutePath)
         }
     }
