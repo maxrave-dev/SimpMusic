@@ -82,6 +82,7 @@ include(
     ":sharedtests",
     ":sharedutils",
     ":media-jvm",
+    ":media-jvm-ui",
     ":media3",
     ":media3-ui",
 )
@@ -105,6 +106,7 @@ project(":spotify").projectDir = File(serviceDir, "spotify")
 
 // media modules
 project(":media-jvm").projectDir = File(mediaDir, "media-jvm")
+project(":media-jvm-ui").projectDir = File(mediaDir, "media-jvm-ui")
 project(":media3").projectDir = File(mediaDir, "media3")
 project(":media3-ui").projectDir = File(mediaDir, "media3-ui")
 

@@ -71,8 +71,9 @@ sqlite = "2.6.1"
 runner = "1.7.0"
 core = "1.7.0"
 okio = "3.16.1"
-gst1JavaCore="1.4.0"
-gst1JavaFx="0.9.0"
+gst1JavaCore = "1.4.0"
+gst1JavaFx = "0.9.0"
+gst1JavaSwing = "0.9.0"
 material3-multiplatform = "1.9.0-beta06"
 adaptive = "1.2.0-alpha07"
 material-multiplatform = "1.5.12"
@@ -205,6 +206,7 @@ file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref =
 #JVM
 gst1-java-core = { module = "org.freedesktop.gstreamer:gst1-java-core", version.ref = "gst1JavaCore" }
 gst1-java-fx = { module = "org.freedesktop.gstreamer:gst1-java-fx", version.ref = "gst1JavaFx" }
+gst1-java-swing = { module = "org.freedesktop.gstreamer:gst1-java-swing", version.ref = "gst1JavaSwing" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jnaPlatform" }
 

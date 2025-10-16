@@ -5,12 +5,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.data.model.streams.TimeLine
+import com.maxrave.media_jvm_ui.ui.MediaPlayerViewWithUrl
 
 @Composable
 actual fun MediaPlayerView(
     url: String,
     modifier: Modifier,
 ) {
+    MediaPlayerViewWithUrl(
+        url = url,
+        modifier = modifier,
+    )
 }
 
 @Composable

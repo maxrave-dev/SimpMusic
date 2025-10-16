@@ -187,6 +187,8 @@ kotlin {
             implementation("org.openjfx:javafx-media:19:$fxSuffix")
             implementation("org.openjfx:javafx-web:19:$fxSuffix")
             implementation("org.openjfx:javafx-swing:19:$fxSuffix")
+
+            implementation(projects.mediaJvmUi)
         }
     }
 }
@@ -366,6 +368,14 @@ buildkonfig {
                 .toInt()
         buildConfigField(STRING, "versionName", versionName)
         buildConfigField(INT, "versionCode", "$versionCode")
+    }
+}
+
+aboutLibraries {
+    collect.configPath = file("../config")
+    export {
+        prettyPrint = true
+        excludeFields = listOf("generated")
     }
 }
 
