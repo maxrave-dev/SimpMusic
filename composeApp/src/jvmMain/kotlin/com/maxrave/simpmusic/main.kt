@@ -31,7 +31,14 @@ fun main() =
             loadAllModules()
             loadKoinModules(viewModelModule)
         }
-        val language = runBlocking { getKoin().get<DataStoreManager>().language.first().substring(0..1) }
+        val language =
+            runBlocking {
+                getKoin()
+                    .get<DataStoreManager>()
+                    .language
+                    .first()
+                    .substring(0..1)
+            }
         changeLanguageNative(language)
         var windowState =
             rememberWindowState(

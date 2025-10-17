@@ -346,12 +346,30 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.maxrave.simpmusic"
-            packageVersion = "1.0.0"
+            modules("jdk.unsupported")
+            packageName = "SimpMusic"
+            macOS {
+                packageVersion = "2025.10.17"
+                iconFile.set(project.file("icon/circle_app_icon.icns"))
+            }
+            windows {
+                packageVersion =
+                    libs.versions.version.name
+                        .get()
+                iconFile.set(project.file("icon/circle_app_icon.ico"))
+            }
+            linux {
+                packageVersion =
+                    libs.versions.version.name
+                        .get()
+                iconFile.set(project.file("icon/circle_app_icon.png"))
+            }
         }
 
         buildTypes.release.proguard {
-            configurationFiles.from("compose-desktop.pro")
+            optimize.set(true)
+            obfuscate.set(false)
+            configurationFiles.from("proguard-rules.pro")
         }
     }
 }
