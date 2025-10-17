@@ -27,7 +27,7 @@ fun main() =
         }
         var windowState =
             rememberWindowState(
-                size = DpSize(1280.dp, 720.dp),
+                size = DpSize(1280.dp, 1000.dp),
             )
         Window(
             onCloseRequest = ::exitApplication,

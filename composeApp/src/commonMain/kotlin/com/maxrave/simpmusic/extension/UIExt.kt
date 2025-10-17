@@ -439,9 +439,7 @@ fun Palette?.getColorFromPalette(): Color {
             }
         }
     }
-    return Color(startColor).copy(
-        alpha = 0.8f,
-    )
+    return Color(startColor)
 }
 
 fun Modifier.isElementVisible(onVisibilityChanged: (Boolean) -> Unit) =
