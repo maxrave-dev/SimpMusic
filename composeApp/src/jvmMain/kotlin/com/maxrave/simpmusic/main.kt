@@ -7,13 +7,19 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.maxrave.data.di.loader.loadAllModules
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.viewModel.changeLanguageNative
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastHost
 import org.jetbrains.compose.resources.painterResource
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
+import org.koin.mp.KoinPlatform.getKoin
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.app_icon
+import simpmusic.composeapp.generated.resources.circle_app_icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun main() =
@@ -25,14 +31,17 @@ fun main() =
             loadAllModules()
             loadKoinModules(viewModelModule)
         }
+        val language = runBlocking { getKoin().get<DataStoreManager>().language.first().substring(0..1) }
+        changeLanguageNative(language)
         var windowState =
             rememberWindowState(
                 size = DpSize(1280.dp, 1000.dp),
             )
+        VersionManager.initialize()
         Window(
             onCloseRequest = ::exitApplication,
             title = "SimpMusic",
-            icon = painterResource(Res.drawable.app_icon),
+            icon = painterResource(Res.drawable.circle_app_icon),
             undecorated = false,
             state = windowState,
         ) {

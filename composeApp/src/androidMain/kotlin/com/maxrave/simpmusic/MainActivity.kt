@@ -25,7 +25,11 @@ import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import com.eygraber.uri.toKmpUriOrNull
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.maxrave.common.*
+import com.maxrave.common.FIRST_TIME_MIGRATION
+import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.common.STATUS_DONE
+import com.maxrave.common.SUPPORTED_LANGUAGE
+import com.maxrave.common.SUPPORTED_LOCATION
 import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
@@ -33,7 +37,6 @@ import com.maxrave.logger.Logger
 import com.maxrave.media3.di.setServiceActivitySession
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
-import com.maxrave.simpmusic.type.StringRes
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.runBlocking
@@ -42,10 +45,11 @@ import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import pub.devrel.easypermissions.EasyPermissions
+import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
 import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
-import java.util.*
+import java.util.Locale
 
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
@@ -103,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         // Recreate view model to fix the issue of view model not getting data from the service
         unloadKoinModules(viewModelModule)
         loadKoinModules(viewModelModule)
-        VersionManager.initialize(applicationContext)
+        VersionManager.initialize()
         checkForUpdate()
         if (viewModel.recreateActivity.value || viewModel.isServiceRunning) {
             viewModel.activityRecreateDone()
@@ -183,7 +187,7 @@ class MainActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 EasyPermissions.requestPermissions(
                     this,
-                    runBlocking { getString(StringRes.this_app_needs_to_access_your_notification) },
+                    runBlocking { getString(Res.string.this_app_needs_to_access_your_notification) },
                     1,
                     Manifest.permission.POST_NOTIFICATIONS,
                 )
@@ -238,9 +242,9 @@ class MainActivity : AppCompatActivity() {
                 .makeText(
                     this@MainActivity,
                     when (type) {
-                        ToastType.ExplicitContent -> runBlocking { getString(StringRes.explicit_content_blocked) }
+                        ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
                         is ToastType.PlayerError ->
-                            runBlocking { getString(StringRes.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
+                            runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
                     },
                     Toast.LENGTH_SHORT,
                 ).show()

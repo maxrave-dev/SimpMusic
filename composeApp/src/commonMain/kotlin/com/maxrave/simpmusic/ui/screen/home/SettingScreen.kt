@@ -474,13 +474,15 @@ fun SettingScreen(
                     smallSubtitle = true,
                     switch = (blurPlayerBackground to { viewModel.setBlurPlayerBackground(it) }),
                 )
-                SettingItem(
-                    title = stringResource(Res.string.enable_liquid_glass_effect),
-                    subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
-                    smallSubtitle = true,
-                    switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
-                    isEnable = getPlatform() == Platform.Android,
-                )
+                if (getPlatform() == Platform.Android) {
+                    SettingItem(
+                        title = stringResource(Res.string.enable_liquid_glass_effect),
+                        subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
+                        smallSubtitle = true,
+                        switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
+                        isEnable = getPlatform() == Platform.Android,
+                    )
+                }
             }
         }
         item(key = "content") {
@@ -759,33 +761,35 @@ fun SettingScreen(
                 }
             }
         }
-        item(key = "audio") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.audio),
-                    style = typo().labelMedium,
-                    color = white,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.normalize_volume),
-                    subtitle = stringResource(Res.string.balance_media_loudness),
-                    switch = (normalizeVolume to { viewModel.setNormalizeVolume(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.skip_silent),
-                    subtitle = stringResource(Res.string.skip_no_music_part),
-                    switch = (skipSilent to { viewModel.setSkipSilent(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.open_system_equalizer),
-                    subtitle = stringResource(Res.string.use_your_system_equalizer),
-                    onClick = {
-                        coroutineScope.launch {
-                            resultLauncher.launch()
-                        }
-                    },
-                )
+        if (getPlatform() == Platform.Android) {
+            item(key = "audio") {
+                Column {
+                    Text(
+                        text = stringResource(Res.string.audio),
+                        style = typo().labelMedium,
+                        color = white,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.normalize_volume),
+                        subtitle = stringResource(Res.string.balance_media_loudness),
+                        switch = (normalizeVolume to { viewModel.setNormalizeVolume(it) }),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.skip_silent),
+                        subtitle = stringResource(Res.string.skip_no_music_part),
+                        switch = (skipSilent to { viewModel.setSkipSilent(it) }),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.open_system_equalizer),
+                        subtitle = stringResource(Res.string.use_your_system_equalizer),
+                        onClick = {
+                            coroutineScope.launch {
+                                resultLauncher.launch()
+                            }
+                        },
+                    )
+                }
             }
         }
         item(key = "playback") {

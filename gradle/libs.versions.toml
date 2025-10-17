@@ -84,6 +84,7 @@ buildkonfig = "0.17.1"
 jna="5.18.1"
 jnaPlatform="5.18.1"
 calf = "0.8.0"
+mediasessionJvm="0.1.1"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -209,6 +210,7 @@ gst1-java-fx = { module = "org.freedesktop.gstreamer:gst1-java-fx", version.ref 
 gst1-java-swing = { module = "org.freedesktop.gstreamer:gst1-java-swing", version.ref = "gst1JavaSwing" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jnaPlatform" }
+mediasession-jvm = { module = "dev.toastbits:mediasession-jvm", version.ref = "mediasessionJvm" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
