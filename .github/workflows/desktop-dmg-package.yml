@@ -5,13 +5,13 @@ on:
   push:
     branches:
       - 'kmp'
-  paths-ignore:
-    - 'README.md'
-    - 'fastlane/**'
-    - 'assets/**'
-    - '.github/**/*.md'
-    - '.github/FUNDING.yml'
-    - '.github/ISSUE_TEMPLATE/**'
+    paths-ignore:
+      - 'README.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/**/*.md'
+      - '.github/FUNDING.yml'
+      - '.github/ISSUE_TEMPLATE/**'
 
 permissions:
   contents: write
