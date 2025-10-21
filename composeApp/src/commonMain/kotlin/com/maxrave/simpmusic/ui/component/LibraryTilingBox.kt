@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -162,7 +162,7 @@ data class LibraryTilingState(
             LibraryTilingState(
                 title = Res.string.most_played,
                 containerColor = Color(0xff00BCD4),
-                icon = Icons.Filled.TrendingUp,
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
                 iconColor = Color.Black,
             )
         val Downloaded =

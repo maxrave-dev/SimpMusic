@@ -25,7 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.QueueMusic
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -139,7 +139,7 @@ fun SongFullWidthItems(
                 ) {
                     Icon(
                         tint = Color.White,
-                        imageVector = Icons.Rounded.QueueMusic,
+                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
                         contentDescription = stringResource(Res.string.add_to_queue),
                     )
                 }

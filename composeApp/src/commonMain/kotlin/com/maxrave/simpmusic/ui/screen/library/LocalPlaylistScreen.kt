@@ -38,7 +38,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.sharp.Sort
+import androidx.compose.material.icons.automirrored.sharp.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -788,7 +788,7 @@ fun LocalPlaylistScreen(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
-                                            imageVector = Icons.Sharp.Sort,
+                                            imageVector = Icons.AutoMirrored.Sharp.Sort,
                                             contentDescription = "Sort playlist",
                                             tint = Color.White,
                                             modifier = Modifier.size(24.dp),

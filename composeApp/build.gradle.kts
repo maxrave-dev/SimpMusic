@@ -36,6 +36,7 @@ kotlin {
         freeCompilerArgs.add("-Xwhen-guards")
         freeCompilerArgs.add("-Xcontext-parameters")
         freeCompilerArgs.add("-Xmulti-dollar-interpolation")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
     androidTarget {
         compilerOptions {
@@ -67,7 +68,6 @@ kotlin {
             implementation(libs.koin.androidx.compose)
 
             implementation(compose.preview)
-            implementation(libs.compose.material3)
             implementation(libs.activity.compose)
             implementation(libs.constraintlayout.compose)
 
@@ -112,7 +112,6 @@ kotlin {
 
             // Compose
             implementation(libs.compose.material3.adaptive)
-            implementation(libs.compose.ui)
             implementation(libs.compose.material.ripple)
             implementation(libs.compose.material.icons.core)
             implementation(libs.compose.material.icons.extended)
@@ -337,6 +336,9 @@ android {
                 "META-INF/notice",
                 "META-INF/*.kotlin_module",
             )
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
     }
 }
 

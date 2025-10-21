@@ -1,43 +1,33 @@
 package com.maxrave.simpmusic.expect.ui
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.kyant.backdrop.backdrops.LayerBackdrop
-import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.colorControls
-import com.kyant.backdrop.effects.refraction
-import java.lang.ref.WeakReference
+import com.kyant.backdrop.effects.lens
 import kotlin.math.sign
+import com.kyant.backdrop.backdrops.layerBackdrop as nativeBackdrop
 
-actual class PlatformBackdrop {
-    private var value: WeakReference<LayerBackdrop?>? = null
+actual typealias PlatformBackdrop = LayerBackdrop
 
-    fun set(layerBackdrop: LayerBackdrop) {
-        value = WeakReference(layerBackdrop)
-    }
+@Composable
+actual fun rememberBackdrop(): PlatformBackdrop = rememberLayerBackdrop()
 
-    internal fun get(): LayerBackdrop? {
-        return value?.get()
-    }
-}
-
-
-actual fun Modifier.layerBackdrop(backdrop: PlatformBackdrop?): Modifier = backdrop?.get()?.let {
-    this.layerBackdrop(it)
-} ?: this
+actual fun Modifier.layerBackdrop(backdrop: PlatformBackdrop): Modifier = this.nativeBackdrop(backdrop)
 
 actual fun Modifier.drawBackdropCustomShape(
-    backdrop: PlatformBackdrop?,
+    backdrop: PlatformBackdrop,
     layer: GraphicsLayer,
     luminanceAnimation: Float,
     shape: Shape
 ): Modifier {
-    val backdrop = backdrop?.get() ?: return this
     return this.drawBackdrop(
         backdrop = backdrop,
         effects = {
@@ -64,7 +54,7 @@ actual fun Modifier.drawBackdropCustomShape(
                     lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)
                 },
             )
-            refraction(24f.dp.toPx(), size.minDimension / 2f, true)
+            lens(24f.dp.toPx(), size.minDimension / 2f, true)
         },
         onDrawBackdrop = { drawBackdrop ->
             drawBackdrop()

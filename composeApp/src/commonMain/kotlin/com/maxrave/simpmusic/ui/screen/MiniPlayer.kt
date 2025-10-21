@@ -59,7 +59,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
@@ -71,7 +70,6 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.manager.DataStoreManager
@@ -79,6 +77,7 @@ import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.drawBackdropCustomShape
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.toResizedBitmap
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
@@ -107,7 +106,7 @@ private const val TAG = "MiniPlayer"
 @Composable
 fun MiniPlayer(
     modifier: Modifier,
-    backdrop: PlatformBackdrop?,
+    backdrop: PlatformBackdrop,
     sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
@@ -365,9 +364,8 @@ fun MiniPlayer(
                             contentScale = ContentScale.FillWidth,
                             onSuccess = {
                                 bitmap =
-                                    it.result.image
-                                        .toBitmap()
-                                        .asComposeImageBitmap()
+                                        it.result.image.toImageBitmap()
+
                             },
                             modifier =
                                 Modifier

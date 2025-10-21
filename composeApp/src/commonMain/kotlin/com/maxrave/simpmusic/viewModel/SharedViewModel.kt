@@ -60,6 +60,7 @@ import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
 import com.maxrave.simpmusic.expect.startWorker
+import com.maxrave.simpmusic.expect.ui.toByteArray
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -86,9 +87,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.EncodedImageFormat
-import org.jetbrains.skia.Image
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
@@ -97,7 +95,6 @@ import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
 import simpmusic.composeapp.generated.resources.updated
-import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.reflect.KClass
@@ -1500,7 +1497,7 @@ class SharedViewModel(
     private var _downloadFileProgress = MutableStateFlow<DownloadProgress>(DownloadProgress.INIT)
     val downloadFileProgress: StateFlow<DownloadProgress> get() = _downloadFileProgress
 
-    fun downloadFile(bitmap: Bitmap) {
+    fun downloadFile(bitmap: ImageBitmap) {
         val fileName =
             "${nowPlayingScreenData.value.nowPlayingTitle} - ${nowPlayingScreenData.value.artistName}"
                 .replace(Regex("""[|\\?*<":>]"""), "")
@@ -1509,11 +1506,7 @@ class SharedViewModel(
             "${getDownloadFolderPath()}/$fileName"
         viewModelScope.launch {
             nowPlayingState.value?.track?.let { track ->
-                val byteArrayOutputStream = ByteArrayOutputStream()
-                val image = Image.makeFromBitmap(bitmap)
-                val bytesArray =
-                    image.encodeToData(EncodedImageFormat.JPEG, 100)?.bytes
-                        ?: byteArrayOutputStream.toByteArray()
+                val bytesArray = bitmap.toByteArray()
                 try {
                     val fileOutputStream = FileOutputStream("$path.jpg")
                     fileOutputStream.write(bytesArray)

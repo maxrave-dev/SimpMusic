@@ -32,8 +32,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.QueueMusic
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -811,7 +811,7 @@ fun FullscreenLyricsSheet(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Outlined.QueueMusic,
+                                                    imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                 )

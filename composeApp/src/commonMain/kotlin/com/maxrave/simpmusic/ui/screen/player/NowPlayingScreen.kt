@@ -52,12 +52,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -1325,7 +1325,7 @@ fun NowPlayingScreenContent(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Rounded.QueueMusic,
+                                                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                 )

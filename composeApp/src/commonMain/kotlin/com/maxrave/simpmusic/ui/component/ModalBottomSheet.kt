@@ -84,7 +84,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -778,7 +777,7 @@ fun InfoPlayerBottomSheet(
                     enabled = screenDataState.bitmap != null,
                     onClick = {
                         sharedViewModel.downloadFile(
-                            bitmap = screenDataState.bitmap?.asSkiaBitmap() ?: return@OutlinedButton,
+                            bitmap = screenDataState.bitmap ?: return@OutlinedButton,
                         )
                     },
                     modifier =

@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.ui.theme.typo
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +42,7 @@ fun DropdownButton(
             OutlinedTextField(
                 modifier =
                     Modifier
-                        .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         .widthIn(1.dp, Dp.Infinity),
                 textStyle = typo().bodyMedium,
                 readOnly = true,

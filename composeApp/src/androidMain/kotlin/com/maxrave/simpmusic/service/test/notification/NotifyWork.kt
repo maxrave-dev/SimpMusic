@@ -125,7 +125,7 @@ class NotifyWork(
                     )
                 }
             }
-            Result.Companion.success()
+            Result.success()
         }
 }
 

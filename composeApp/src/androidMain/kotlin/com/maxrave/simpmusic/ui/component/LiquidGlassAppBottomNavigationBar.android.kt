@@ -7,7 +7,20 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -16,9 +29,25 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -44,13 +73,18 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
-import com.maxrave.simpmusic.extension.drawBackdropCustomShape
+import com.maxrave.simpmusic.expect.ui.drawBackdropCustomShape
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
-import com.maxrave.simpmusic.ui.theme.*
+import com.maxrave.simpmusic.ui.theme.bottomBarSeedDark
+import com.maxrave.simpmusic.ui.theme.customDarkGray
+import com.maxrave.simpmusic.ui.theme.customGray
+import com.maxrave.simpmusic.ui.theme.transparent
+import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -75,8 +109,6 @@ actual fun LiquidGlassAppBottomNavigationBar(
     onOpenNowPlaying: () -> Unit,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit
 ) {
-    val nativeBackdrop = backdrop.get() ?: return
-
     val density = LocalDensity.current
     val layer = rememberGraphicsLayer()
     val luminanceAnimation = remember { Animatable(0f) }
@@ -227,7 +259,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 modifier =
                     Modifier
                         .drawBackdropCustomShape(
-                            nativeBackdrop,
+                            backdrop,
                             layer,
                             luminanceAnimation.value,
                             CircleShape,
@@ -332,11 +364,11 @@ actual fun LiquidGlassAppBottomNavigationBar(
                                         stringResource(screen.title),
                                         style =
                                             if (selectedIndex == screen.ordinal) {
-                                                typo.bodySmall.copy(
+                                                typo().bodySmall.copy(
                                                     fontWeight = FontWeight.Bold,
                                                 )
                                             } else {
-                                                typo.bodySmall.greyScale()
+                                                typo().bodySmall.greyScale()
                                             },
                                         color =
                                             if (selectedIndex == screen.ordinal) {
@@ -430,7 +462,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 FloatingActionButton(
                     modifier =
                         Modifier.drawBackdropCustomShape(
-                            nativeBackdrop,
+                            backdrop,
                             layer,
                             luminanceAnimation.value,
                             CircleShape,

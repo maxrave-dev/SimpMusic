@@ -16,15 +16,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import com.eygraber.uri.toKmpUriOrNull
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.maxrave.common.FIRST_TIME_MIGRATION
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
@@ -36,7 +32,6 @@ import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.logger.Logger
 import com.maxrave.media3.di.setServiceActivitySession
 import com.maxrave.simpmusic.di.viewModelModule
-import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.runBlocking
@@ -196,19 +191,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.getLocation()
 
         setContent {
-            val backdrop = rememberLayerBackdrop()
-            val platformBackdrop by remember {
-                derivedStateOf {
-                    val pl = PlatformBackdrop()
-                    pl.set(backdrop)
-                    pl
-                }
-            }
-
-            App(
-                platformBackdrop,
-                viewModel
-            )
+            App(viewModel)
         }
     }
 

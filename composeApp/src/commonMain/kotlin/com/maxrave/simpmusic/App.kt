@@ -22,7 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -59,8 +59,8 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.Orientation
 import com.maxrave.simpmusic.expect.currentOrientation
 import com.maxrave.simpmusic.expect.openUrl
-import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
@@ -107,7 +107,6 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class, ExperimentalFoundationApi::class)
 @Composable
 fun App(
-    backdrop: PlatformBackdrop? = null,
     viewModel: SharedViewModel = koinInject(),
 ) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
@@ -242,6 +241,8 @@ fun App(
     val isTablet = windowSize.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val isTabletLandscape = isTablet && currentOrientation() == Orientation.LANDSCAPE
 
+    val backdrop = rememberBackdrop()
+
     AppTheme {
         Scaffold(
             bottomBar = {
@@ -276,7 +277,7 @@ fun App(
                                     },
                                 )
                             }
-                            if (isLiquidGlassEnabled == TRUE && backdrop != null) {
+                            if (isLiquidGlassEnabled == TRUE) {
                                 LiquidGlassAppBottomNavigationBar(
                                     navController = navController,
                                     backdrop = backdrop,
@@ -410,7 +411,7 @@ fun App(
                                             navController = navController,
                                             sharedViewModel = viewModel,
                                             isExpanded = true,
-                                            dismissIcon = Icons.Rounded.ArrowForwardIos,
+                                            dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                                             onSwipeEnabledChange = {},
                                         ) {
                                             isShowNowPlaylistScreen = false
