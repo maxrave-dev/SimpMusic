@@ -11,6 +11,7 @@ import cat.ereza.customactivityoncrash.config.CaocConfig
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
+import multiplatform.network.cmptoast.AppContext
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
@@ -60,6 +61,10 @@ class SimpMusicApplication :
         field.isAccessible = true
         val expectSize = 100 * 1024 * 1024
         field.set(null, expectSize)
+
+        AppContext.apply {
+            set(applicationContext)
+        }
     }
 
     override fun onTerminate() {
