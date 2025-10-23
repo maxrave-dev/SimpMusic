@@ -49,6 +49,9 @@ jobs:
           echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
 
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
       - name: Build release APK
         run: ./gradlew composeApp:assembleRelease
 

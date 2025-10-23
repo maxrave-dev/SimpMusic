@@ -138,7 +138,7 @@ fun SpotifyLoginScreen(
                             onDismiss = {
                                 devLoginSheet = false
                             },
-                            onDone = { spdc ->
+                            onDone = { spdc, _ ->
                                 devLoginSheet = false
                                 val spdcText = "sp_dc=$spdc"
                                 viewModel.saveSpotifySpdc(spdcText)

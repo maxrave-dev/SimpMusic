@@ -118,9 +118,9 @@ fun LoginScreen(
                             onDismiss = {
                                 devLoginSheet = false
                             },
-                            onDone = { cookie ->
+                            onDone = { cookie, netscapeCookie ->
                                 coroutineScope.launch {
-                                    val success = settingsViewModel.addAccount(cookie)
+                                    val success = settingsViewModel.addAccount(cookie, netscapeCookie)
                                     if (success) {
                                         viewModel.makeToast(getString(Res.string.login_success))
                                         navController.navigateUp()

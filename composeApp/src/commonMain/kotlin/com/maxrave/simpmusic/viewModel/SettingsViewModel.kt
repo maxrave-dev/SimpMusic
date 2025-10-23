@@ -943,7 +943,10 @@ class SettingsViewModel(
         }
     }
 
-    suspend fun addAccount(cookie: String): Boolean {
+    suspend fun addAccount(
+        cookie: String,
+        netscapeCookie: String? = null,
+    ): Boolean {
         val currentCookie = dataStoreManager.cookie.first()
         val currentPageId = dataStoreManager.pageId.first()
         val currentLoggedIn = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE
@@ -978,9 +981,10 @@ class SettingsViewModel(
                             .lastOrNull()
                             ?.url ?: "",
                     )
-                    val cookieItem =
+                    val cookieItem = netscapeCookie ?:
                         commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL, getPackageName())
-                    commonRepository.writeTextToFile(cookieItem.toNetScapeString(), (getFileDir() + "/ytdlp-cookie.txt")).let {
+                            .toNetScapeString()
+                    commonRepository.writeTextToFile(cookieItem, (getFileDir() + "/ytdlp-cookie.txt")).let {
                         Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                     }
                     accountInfoList.forEachIndexed { index, account ->
@@ -996,7 +1000,7 @@ class SettingsViewModel(
                                             ?.url ?: "",
                                     cache = cookie,
                                     isUsed = index == 0,
-                                    netscapeCookie = cookieItem.toNetScapeString(),
+                                    netscapeCookie = cookieItem,
                                     pageId = account.pageId,
                                 ),
                             ).firstOrNull()

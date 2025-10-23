@@ -19,7 +19,7 @@ permissions:
 jobs:
   build-desktop-deb:
     name: Build desktop DEB package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         shell: bash
@@ -34,6 +34,9 @@ jobs:
           java-version: 21
           distribution: "zulu"
           cache: 'gradle'
+
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
 
       - name: Build desktop DEB package
         run: ./gradlew packageDeb

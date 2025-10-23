@@ -35,6 +35,9 @@ jobs:
           distribution: "zulu"
           cache: 'gradle'
 
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
       - name: Build desktop MSI package
         run: ./gradlew packageMsi
 

@@ -2765,7 +2765,7 @@ fun SortPlaylistBottomSheet(
 fun DevLogInBottomSheet(
     onDismiss: () -> Unit,
     type: DevLogInType,
-    onDone: (String) -> Unit,
+    onDone: (String, String) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -2774,6 +2774,7 @@ fun DevLogInBottomSheet(
         )
 
     var value by rememberSaveable { mutableStateOf("") }
+    var secondValue by rememberSaveable { mutableStateOf("") }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2820,12 +2821,26 @@ fun DevLogInBottomSheet(
                     maxLines = 1,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
+                if (type == DevLogInType.YouTube) {
+                    Text(text = "Netscape cookie", style = typo().labelSmall)
+                    Spacer(modifier = Modifier.height(5.dp))
+                    OutlinedTextField(
+                        value = secondValue,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                        onValueChange = { secondValue = it },
+                        maxLines = 1,
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                }
                 TextButton(
                     onClick = {
-                        if (value.isNotEmpty() && value.isNotBlank()) {
+                        if (value.isNotEmpty() && value.isNotBlank() && (type != DevLogInType.YouTube || (secondValue.isNotEmpty() && secondValue.isNotBlank()))) {
                             showToast(runBlocking { getString(Res.string.processing) }, ToastGravity.Bottom)
                             onDismiss()
-                            onDone(value)
+                            onDone(value, secondValue)
                         } else {
                             showToast(runBlocking { getString(Res.string.can_not_be_empty) }, ToastGravity.Bottom)
                         }

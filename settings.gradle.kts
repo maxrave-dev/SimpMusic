@@ -21,6 +21,10 @@ dependencyResolutionManagement {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
         }
         maven("https://jogamp.org/deployment/maven")
+        maven {
+            url = uri("https://github.com/NotJustAnna/webview_java/raw/maven")
+            content { includeGroup("net.notjustanna.webview") }
+        }
     }
 }
 

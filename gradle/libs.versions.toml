@@ -68,8 +68,6 @@ composeHotReload = "1.0.0-rc02"
 composeMultiplatform = "1.10.0-alpha02"
 datetime = "0.7.1"
 sqlite = "2.6.1"
-runner = "1.7.0"
-core = "1.7.0"
 okio = "3.16.2"
 gst1JavaCore = "1.4.0"
 gst1JavaFx = "0.9.0"
@@ -87,6 +85,7 @@ jnaPlatform="5.18.1"
 calf = "0.8.0"
 mediasessionJvm="0.1.1"
 material = "1.13.0"
+osdetector = "1.7.3"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -228,8 +227,6 @@ sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-an
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging-common" }
-androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
-androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
@@ -253,3 +250,6 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 build-config = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
+
+# JVM
+osdetector = { id = "com.google.osdetector", version.ref = "osdetector" }

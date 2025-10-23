@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.build.config) apply false
+    alias(libs.plugins.osdetector) apply false
 }
 
 tasks.register<Delete>("Clean") {
