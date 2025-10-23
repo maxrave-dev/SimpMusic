@@ -21,13 +21,14 @@ object VersionManager {
     fun getVersionName(): String = removeDevSuffix(versionName ?: String())
 
     private fun removeDevSuffix(versionName: String): String {
-        val ver = if (versionName.endsWith("-dev")) {
-            versionName.replace("-dev", "")
-        } else {
-            versionName
-        }
+        val ver =
+            if (versionName.endsWith("-dev")) {
+                versionName.replace("-dev", "")
+            } else {
+                versionName
+            }
         if (getPlatform() == Platform.Desktop) {
-            return "$ver-alpha01-171025-(${getPlatform().osName()})"
+            return "$ver-alpha02-(${getPlatform().osName()})"
         } else {
             return ver
         }

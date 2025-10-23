@@ -31,6 +31,7 @@ import kotlinx.coroutines.runBlocking
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.music_video
 import simpmusic.composeapp.generated.resources.new_release
+import simpmusic.composeapp.generated.resources.song
 import simpmusic.composeapp.generated.resources.view_count
 
 class HomeViewModel(
@@ -169,6 +170,7 @@ class HomeViewModel(
                     homeRepository.getHomeData(
                         params,
                         getString(Res.string.view_count),
+                        getString(Res.string.song),
                     ),
                     homeRepository.getMoodAndMomentsData(),
                     homeRepository.getChartData(dataStoreManager.chartKey.first()),

@@ -70,7 +70,6 @@ val mediaDir =
 
 rootProject.name = "SimpMusic"
 include(
-//    "app",
     "composeApp",
     ":common",
     ":data",
@@ -90,7 +89,7 @@ include(
     ":media3",
     ":media3-ui",
     ":crashlytics",
-    ":crashlytics-empty"
+    ":crashlytics-empty",
 )
 project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
 project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
