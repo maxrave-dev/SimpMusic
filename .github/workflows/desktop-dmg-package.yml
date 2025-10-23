@@ -1,0 +1,48 @@
+name: Build desktop DMG package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'kmp'
+    paths-ignore:
+      - 'README.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/**/*.md'
+      - '.github/FUNDING.yml'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop-dmg:
+    name: Build desktop DMG package
+    runs-on: macos-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "zulu"
+          cache: 'gradle'
+
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
+      - name: Build desktop DMG package
+        run: ./gradlew packageDmg
+
+      - name: Upload DMG package
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-dmg-package
+          path: composeApp/build/compose/binaries/main/dmg/*.dmg

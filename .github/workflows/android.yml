@@ -36,6 +36,11 @@ jobs:
           distribution: "temurin"
           cache: 'gradle'
 
+      - name: Update build product flavor
+        run: |
+          echo "" >> ./gradle.properties
+          echo "isFullBuild=false" >> ./gradle.properties
+
       - name: Update Sentry Secrets
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
@@ -44,8 +49,11 @@ jobs:
           echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
 
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
       - name: Build release APK
-        run: ./gradlew app:assembleFossRelease
+        run: ./gradlew composeApp:assembleRelease
 
       - name: Check build-tools version
         shell: bash
@@ -57,7 +65,7 @@ jobs:
       - uses: kevin-david/zipalign-sign-android-release@v2
         id: sign_app
         with:
-          releaseDirectory: app/build/outputs/apk/foss/release
+          releaseDirectory: composeApp/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -70,4 +78,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: app/build/outputs/apk/foss/release/*-signed.apk
+          path: composeApp/build/outputs/apk/release/*-signed.apk

@@ -1,0 +1,48 @@
+name: Build desktop MSI package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'kmp'
+    paths-ignore:
+      - 'README.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/**/*.md'
+      - '.github/FUNDING.yml'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop-msi:
+    name: Build desktop MSI package
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "zulu"
+          cache: 'gradle'
+
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
+      - name: Build desktop MSI package
+        run: ./gradlew packageMsi
+
+      - name: Upload MSI package
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-msi-package
+          path: composeApp/build/compose/binaries/main/msi/*.msi

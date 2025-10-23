@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="home"
+        android:enabled="true"
+        android:icon="@drawable/round_home_24"
+        android:shortcutShortLabel="@string/home">
+        <intent
+            android:targetClass="com.maxrave.simpmusic.MainActivity"
+            android:targetPackage="com.maxrave.simpmusic"
+            android:action="com.maxrave.simpmusic.action.HOME" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@drawable/round_search_24"
+        android:shortcutShortLabel="@string/search">
+        <intent
+            android:targetClass="com.maxrave.simpmusic.MainActivity"
+            android:targetPackage="com.maxrave.simpmusic"
+            android:action="com.maxrave.simpmusic.action.SEARCH" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="library"
+        android:enabled="true"
+        android:icon="@drawable/round_library_music_24"
+        android:shortcutShortLabel="@string/library">
+        <intent
+            android:targetClass="com.maxrave.simpmusic.MainActivity"
+            android:targetPackage="com.maxrave.simpmusic"
+            android:action="com.maxrave.simpmusic.action.LIBRARY" />
+    </shortcut>
+</shortcuts>
