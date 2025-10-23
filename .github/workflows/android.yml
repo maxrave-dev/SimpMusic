@@ -38,6 +38,7 @@ jobs:
 
       - name: Update build product flavor
         run: |
+          echo "" >> ./gradle.properties
           echo "isFullBuild=false" >> ./gradle.properties
 
       - name: Update Sentry Secrets
