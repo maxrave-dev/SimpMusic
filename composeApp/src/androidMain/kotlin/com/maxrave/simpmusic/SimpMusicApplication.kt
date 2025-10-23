@@ -18,6 +18,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
+import org.simpmusic.crashlytics.configCrashlytics
 import java.lang.reflect.Field
 
 class SimpMusicApplication :
@@ -26,7 +27,7 @@ class SimpMusicApplication :
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-//        configCrashlytics(this)
+        configCrashlytics(this, BuildKonfig.sentryDsn)
         startKoin {
             androidLogger(level = Level.DEBUG)
             androidContext(this@SimpMusicApplication)

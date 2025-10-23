@@ -21,16 +21,6 @@ plugins {
     alias(libs.plugins.build.config) apply false
 }
 
-buildscript {
-    val isFullBuild by extra {
-        gradle.startParameter.taskNames.any { task ->
-            println("Checking task: $task")
-            task.contains("full", ignoreCase = true)
-        }
-    }
-    println("Is full build: $isFullBuild")
-}
-
 tasks.register<Delete>("Clean") {
     delete(rootProject.layout.buildDirectory)
 }

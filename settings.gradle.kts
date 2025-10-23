@@ -85,6 +85,8 @@ include(
     ":media-jvm-ui",
     ":media3",
     ":media3-ui",
+    ":crashlytics",
+    ":crashlytics-empty"
 )
 project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
 project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")

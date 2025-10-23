@@ -7,10 +7,17 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
-val isFullBuild: Boolean by rootProject.extra
+val isFullBuild: Boolean =
+    try {
+        extra["isFullBuild"] == "true"
+    } catch (e: Exception) {
+        false
+    }
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.application)
+    alias(libs.plugins.sentry.gradle)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
 //    alias(libs.plugins.compose.hotReload)
@@ -22,12 +29,7 @@ plugins {
 
 dependencies {
     coreLibraryDesugaring(libs.desugaring)
-//
-//    val fullImplementation = "fullImplementation"
-//    val debugImplementation = "debugImplementation"
-//
-//    debugImplementation(compose.uiTooling)
-//    fullImplementation(libs.sentry.android)
+    val debugImplementation = "debugImplementation"
     debugImplementation(compose.uiTooling)
 }
 
@@ -99,6 +101,12 @@ kotlin {
 
             implementation(projects.media3)
             implementation(projects.media3Ui)
+
+            if (isFullBuild) {
+                implementation(projects.crashlytics)
+            } else {
+                implementation(projects.crashlyticsEmpty)
+            }
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -251,37 +259,11 @@ android {
             abiFilters.add("armeabi-v7a")
             abiFilters.add("arm64-v8a")
         }
-
-        if (isFullBuild) {
-            try {
-                println("Full build detected, enabling Sentry DSN")
-                val properties = Properties()
-                properties.load(rootProject.file("local.properties").inputStream())
-                buildConfigField(
-                    "String",
-                    "SENTRY_DSN",
-                    "\"${properties.getProperty("SENTRY_DSN") ?: ""}\"",
-                )
-            } catch (e: Exception) {
-                println("Failed to load SENTRY_DSN from local.properties: ${e.message}")
-            }
-        }
     }
 
     bundle {
         language {
             enableSplit = false
-        }
-    }
-
-    flavorDimensions += "app"
-
-    productFlavors {
-        create("foss") {
-            dimension = "app"
-        }
-        create("full") {
-            dimension = "app"
         }
     }
 
@@ -388,15 +370,62 @@ buildkonfig {
                 .toInt()
         buildConfigField(STRING, "versionName", versionName)
         buildConfigField(INT, "versionCode", "$versionCode")
+
+        if (isFullBuild) {
+            try {
+                println("Full build detected, enabling Sentry DSN")
+                val properties = Properties()
+                properties.load(rootProject.file("local.properties").inputStream())
+                buildConfigField(
+                    STRING,
+                    "sentryDsn",
+                    properties.getProperty("SENTRY_DSN") ?: "",
+                )
+            } catch (e: Exception) {
+                println("Failed to load SENTRY_DSN from local.properties: ${e.message}")
+                buildConfigField(STRING, "sentryDsn", "")
+            }
+        } else {
+            buildConfigField(STRING, "sentryDsn", "")
+        }
     }
 }
 
 aboutLibraries {
     collect.configPath = file("../config")
     export {
+        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
         prettyPrint = true
         excludeFields = listOf("generated")
     }
+    library {
+        // Enable the duplication mode, allows to merge, or link dependencies which relate
+        duplicationMode = com.mikepenz.aboutlibraries.plugin.DuplicateMode.MERGE
+        // Configure the duplication rule, to match "duplicates" with
+        duplicationRule = com.mikepenz.aboutlibraries.plugin.DuplicateRule.SIMPLE
+    }
+}
+
+sentry {
+    org.set("simpmusic")
+    projectName.set("android")
+    ignoredFlavors.set(setOf("foss"))
+    ignoredBuildTypes.set(setOf("debug"))
+    autoInstallation.enabled = false
+    val token =
+        try {
+            println("Full build detected, enabling Sentry Auth Token")
+            val properties = Properties()
+            properties.load(rootProject.file("local.properties").inputStream())
+            properties.getProperty("SENTRY_AUTH_TOKEN")
+        } catch (e: Exception) {
+            println("Failed to load SENTRY_AUTH_TOKEN from local.properties: ${e.message}")
+            null
+        }
+    authToken.set(token ?: "")
+    includeProguardMapping.set(true)
+    autoUploadProguardMapping.set(true)
+    telemetry.set(false)
 }
 
 afterEvaluate {

@@ -1074,8 +1074,7 @@ fun QueueBottomSheet(
                                     isPlaying = track.videoId == songEntity?.videoId,
                                     modifier =
                                         Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 10.dp),
+                                            .fillMaxWidth(),
                                     onClickListener = { videoId ->
                                         if (videoId == track.videoId) {
                                             musicServiceHandler.playMediaItemInMediaSource(index)

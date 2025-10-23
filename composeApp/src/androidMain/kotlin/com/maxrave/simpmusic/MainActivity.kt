@@ -39,6 +39,7 @@ import org.jetbrains.compose.resources.getString
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
+import org.simpmusic.crashlytics.pushPlayerError
 import pub.devrel.easypermissions.EasyPermissions
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
@@ -218,7 +219,7 @@ class MainActivity : AppCompatActivity() {
         com.maxrave.media3.di
             .startService(this@MainActivity, serviceConnection)
         mediaPlayerHandler.pushPlayerError = { it ->
-//            pushPlayerError(it)
+            pushPlayerError(it)
         }
         mediaPlayerHandler.showToast = { type ->
             Toast

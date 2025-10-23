@@ -93,7 +93,7 @@
     <string name="let_s_start_with_a_radio">בואו נתחיל עם רדיו</string>
     <string name="let_s_pick_a_playlist_for_you">בוא נבחר עבורך רשימת השמעה</string>
     <string name="moods_amp_moment"><![CDATA[מצבי רוח ורגע]]></string>
-    <string name="genre">ז\'אנר</string>
+    <string name="genre">ז'אנר</string>
     <string name="what_is_best_choice_today">מהי הבחירה הטובה ביותר היום</string>
     <string name="chart">תרשים</string>
     <string name="global">גלובלי</string>
@@ -306,14 +306,14 @@ SimpMusic תמיד בחינם וללא פרסומות\n\nבונה מ ❤️מ-Tu
     <string name="canvas_info">הצג את ספוטיפיי קנבס ב-SimpMusic</string>
     <string name="spotify_lyrics_provider">מילים מסופקות על ידי ספוטיפיי</string>
     <string name="offline_mode">מצב לא מקוון</string>
-    <string name="added_to_youtube_liked">נוסף ליוטיוב \'אהבתי\'</string>
-    <string name="removed_from_youtube_liked">הוסר מיוטיוב \'אהבתי\'</string>
+    <string name="added_to_youtube_liked">נוסף ליוטיוב 'אהבתי'</string>
+    <string name="removed_from_youtube_liked">הוסר מיוטיוב 'אהבתי'</string>
     <string name="home_limit">אחזר מגבלת נתונים מהבית</string>
     <string name="no_album">אין אלבום</string>
-    <string name="app_widget_description">ווידג\'ט לנגן</string>
+    <string name="app_widget_description">ווידג'ט לנגן</string>
     <string name="guide_miniplayer_content">החלק כדי להציג את לחצן דילוג וסגירה</string>
     <string name="guide_suggest_content">הצג שירים מוצעים מאת AI בהתבסס על רשימת ההשמעה שלך</string>
-    <string name="guide_liked_title">הוסף לרשימת השמעה \'אהבתי\' של יוטיוב</string>
+    <string name="guide_liked_title">הוסף לרשימת השמעה 'אהבתי' של יוטיוב</string>
     <string name="log_out_from_spotify">התנתק מספוטיפיי</string>
     <string name="delete">מחק</string>
     <string name="top_videos">סרטונים מובילים</string>

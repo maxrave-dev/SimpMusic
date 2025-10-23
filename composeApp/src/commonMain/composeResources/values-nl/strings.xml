@@ -193,7 +193,7 @@
     <string name="welcome_back">Welkom terug,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload je luistergeschiedenis naar de YouTube-muziekserver, het zal de aanbeveling van YT Music systeem verbeteren. Het werkt alleen als je ingelogd bent</string>
     <string name="send_back_listening_data_to_google">Stuur luistergegevens terug naar Google</string>
-    <string name="videos_inArtist">Video\'s</string>
+    <string name="videos_inArtist">Video's</string>
     <string name="your_youtube_playlists">Je YouTube-afspeellijsten</string>
     <string name="no_YouTube_playlists">Geen YouTube-afspeellijsten</string>
     <string name="track">nummer(s)</string>
