@@ -172,6 +172,7 @@ class SharedViewModel(
                 isNextAvailable = false,
                 isPreviousAvailable = false,
                 isCrossfading = false,
+                volume = 1f
             ),
         )
     val controllerState: StateFlow<ControlState> = _controllerState
@@ -356,6 +357,7 @@ class SharedViewModel(
                             }
 
                             is SimpleMediaState.Progress -> {
+                                Logger.w(tag, "Progress: ${mediaState.progress}")
                                 if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
                                     if (_timeline.value.total > 0L) {
                                         _timeline.update {
@@ -743,6 +745,10 @@ class SharedViewModel(
                 UIEvent.ToggleLike -> {
                     Logger.w(tag, "ToggleLike")
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.ToggleLike)
+                }
+                is UIEvent.UpdateVolume -> {
+                   val newVolume = uiEvent.newVolume
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.UpdateVolume(newVolume))
                 }
             }
         }
@@ -1579,6 +1585,10 @@ sealed class UIEvent {
 
     data class UpdateProgress(
         val newProgress: Float,
+    ) : UIEvent()
+
+    data class UpdateVolume(
+        val newVolume: Float,
     ) : UIEvent()
 
     data object ToggleLike : UIEvent()

@@ -161,23 +161,27 @@ fun ArtistScreen(
                                                 md_theme_dark_background,
                                             ),
                                     ),
-                                ).padding(vertical = 16.dp, horizontal = 20.dp),
+                                ).padding(horizontal = 20.dp)
+                                .padding(top = 16.dp)
+                                .padding(bottom = 8.dp),
                         ) {
                             Row {
                                 Text(
                                     text = state.data.subscribers ?: stringResource(Res.string.unknown),
-                                    style = typo().bodyMedium,
+                                    style = typo().bodySmall,
+                                    color = Color.White,
                                     textAlign = TextAlign.Start,
                                     modifier = Modifier.weight(1f),
                                 )
                                 Text(
                                     text = state.data.playCount ?: stringResource(Res.string.unknown),
-                                    style = typo().bodyMedium,
+                                    style = typo().bodySmall,
+                                    color = Color.White,
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.weight(1f),
                                 )
                             }
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(8.dp))
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -256,12 +260,13 @@ fun ArtistScreen(
                                             colors =
                                                 ButtonDefaults.outlinedButtonColors().copy(
                                                     contentColor = Color.White,
+                                                    containerColor = Color.Transparent,
                                                 ),
                                         ) {
                                             if (isFollowed) {
-                                                Text(text = stringResource(Res.string.followed))
+                                                Text(text = stringResource(Res.string.followed), color = Color.White)
                                             } else {
-                                                Text(text = stringResource(Res.string.follow))
+                                                Text(text = stringResource(Res.string.follow), color = Color.White)
                                             }
                                         }
                                     }
@@ -317,6 +322,7 @@ fun ArtistScreen(
                                     Text(
                                         text = stringResource(Res.string.popular),
                                         style = typo().labelMedium,
+                                        color = Color.White,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -388,6 +394,7 @@ fun ArtistScreen(
                                     Text(
                                         text = stringResource(Res.string.singles),
                                         style = typo().labelMedium,
+                                        color = Color.White,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -454,6 +461,7 @@ fun ArtistScreen(
                                     Text(
                                         text = stringResource(Res.string.albums),
                                         style = typo().labelMedium,
+                                        color = Color.White,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -520,6 +528,7 @@ fun ArtistScreen(
                                     Text(
                                         text = stringResource(Res.string.videos),
                                         style = typo().labelMedium,
+                                        color = Color.White,
                                         modifier = Modifier.weight(1f),
                                     )
                                     TextButton(
@@ -606,6 +615,7 @@ fun ArtistScreen(
                                     Text(
                                         text = stringResource(Res.string.featured_inArtist),
                                         style = typo().labelMedium,
+                                        color = Color.White,
                                         modifier =
                                             Modifier
                                                 .weight(1f)
@@ -652,6 +662,7 @@ fun ArtistScreen(
                                     Text(
                                         text = stringResource(Res.string.related_artists),
                                         style = typo().labelMedium,
+                                        color = Color.White,
                                         modifier =
                                             Modifier
                                                 .weight(1f)
@@ -710,6 +721,7 @@ fun ArtistScreen(
                             Text(
                                 text = stringResource(Res.string.description),
                                 style = typo().labelMedium,
+                                color = Color.White,
                                 modifier =
                                     Modifier
                                         .weight(1f)

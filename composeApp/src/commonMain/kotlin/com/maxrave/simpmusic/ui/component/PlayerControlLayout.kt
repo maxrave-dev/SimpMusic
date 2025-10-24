@@ -36,22 +36,27 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 @Composable
 fun PlayerControlLayout(
     controllerState: ControlState,
+    isSmallSize: Boolean = false,
     onUIEvent: (UIEvent) -> Unit,
 ) {
+    val height = if (isSmallSize) 48.dp else 96.dp
+    val smallIcon = if (isSmallSize) 20.dp to 28.dp else 32.dp to 42.dp
+    val mediumIcon = if (isSmallSize) 28.dp to 38.dp else 42.dp to 52.dp
+    val bigIcon = if (isSmallSize) 38.dp to 48.dp else 72.dp to 96.dp
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(96.dp)
+                .height(height)
                 .padding(horizontal = 20.dp),
     ) {
         Box(
             modifier =
                 Modifier
                     .background(transparent)
-                    .size(42.dp)
+                    .size(smallIcon.second)
                     .aspectRatio(1f)
                     .clip(
                         CircleShape,
@@ -67,14 +72,14 @@ fun PlayerControlLayout(
                         imageVector = Icons.Rounded.Shuffle,
                         tint = Color.White,
                         contentDescription = "",
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(smallIcon.first),
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Rounded.Shuffle,
                         tint = seed,
                         contentDescription = "",
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(smallIcon.first),
                     )
                 }
             }
@@ -83,7 +88,7 @@ fun PlayerControlLayout(
             modifier =
                 Modifier
                     .background(transparent)
-                    .size(52.dp)
+                    .size(mediumIcon.second)
                     .aspectRatio(1f)
                     .clip(
                         CircleShape,
@@ -99,14 +104,14 @@ fun PlayerControlLayout(
                 imageVector = Icons.Rounded.SkipPrevious,
                 tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                 contentDescription = "",
-                modifier = Modifier.size(42.dp),
+                modifier = Modifier.size(mediumIcon.first),
             )
         }
         Box(
             modifier =
                 Modifier
                     .background(transparent)
-                    .size(96.dp)
+                    .size(bigIcon.second)
                     .aspectRatio(1f)
                     .clip(
                         CircleShape,
@@ -122,14 +127,14 @@ fun PlayerControlLayout(
                         imageVector = Icons.Rounded.PlayCircle,
                         tint = Color.White,
                         contentDescription = "",
-                        modifier = Modifier.size(72.dp),
+                        modifier = Modifier.size(bigIcon.first),
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Rounded.PauseCircle,
                         tint = Color.White,
                         contentDescription = "",
-                        modifier = Modifier.size(72.dp),
+                        modifier = Modifier.size(bigIcon.first),
                     )
                 }
             }
@@ -138,7 +143,7 @@ fun PlayerControlLayout(
             modifier =
                 Modifier
                     .background(transparent)
-                    .size(52.dp)
+                    .size(mediumIcon.second)
                     .aspectRatio(1f)
                     .clip(
                         CircleShape,
@@ -154,13 +159,13 @@ fun PlayerControlLayout(
                 imageVector = Icons.Rounded.SkipNext,
                 tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                 contentDescription = "",
-                modifier = Modifier.size(42.dp),
+                modifier = Modifier.size(mediumIcon.first),
             )
         }
         Box(
             modifier =
                 Modifier
-                    .size(42.dp)
+                    .size(smallIcon.second)
                     .aspectRatio(1f)
                     .clip(
                         CircleShape,
@@ -177,7 +182,7 @@ fun PlayerControlLayout(
                             imageVector = Icons.Rounded.Repeat,
                             tint = Color.White,
                             contentDescription = "",
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(smallIcon.first),
                         )
                     }
 
@@ -186,7 +191,7 @@ fun PlayerControlLayout(
                             imageVector = Icons.Rounded.Repeat,
                             tint = seed,
                             contentDescription = "",
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(smallIcon.first),
                         )
                     }
 
@@ -195,7 +200,7 @@ fun PlayerControlLayout(
                             imageVector = Icons.Rounded.RepeatOne,
                             tint = seed,
                             contentDescription = "",
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(smallIcon.first),
                         )
                     }
                 }

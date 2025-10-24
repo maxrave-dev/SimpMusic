@@ -63,8 +63,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -73,9 +71,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -590,8 +586,8 @@ fun LocalPlaylistScreen(
                                                     }.clickable {
                                                         shouldShowSuggestions = !shouldShowSuggestions
                                                     }.drawWithCache {
-                                                        val width = size.width - 10
-                                                        val height = size.height - 10
+                                                        val width = size.width
+                                                        val height = size.height
 
                                                         val offsetDraw = width * progressAnimated
                                                         val gradientColors =
@@ -613,9 +609,14 @@ fun LocalPlaylistScreen(
                                                         onDrawBehind {
                                                             // Destination
                                                             with(aiPainter) {
-                                                                draw(
-                                                                    size = Size(width, width),
-                                                                )
+                                                                translate(
+                                                                    left = (size.width - width/1.5f) / 2,
+                                                                    top = (size.height - width/1.5f) / 2,
+                                                                ) {
+                                                                    draw(
+                                                                        size = Size(width/1.5f, width/1.5f)
+                                                                    )
+                                                                }
                                                             }
 
                                                             // Source
@@ -672,14 +673,34 @@ fun LocalPlaylistScreen(
                                         modifier = Modifier.animateContentSize(),
                                     ) {
                                         Spacer(modifier = Modifier.size(8.dp))
-                                        Text(
-                                            text =
-                                                stringResource(
-                                                    Res.string.suggest,
-                                                ),
-                                            color = Color.White,
-                                            modifier = Modifier.padding(vertical = 8.dp),
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Text(
+                                                text =
+                                                    stringResource(
+                                                        Res.string.suggest,
+                                                    ),
+                                                color = Color.White,
+                                                modifier = Modifier.padding(vertical = 8.dp)
+                                                    .weight(1f),
+                                            )
+                                            TextButton(
+                                                onClick = { viewModel.reloadSuggestion() },
+                                                modifier =
+                                                    Modifier
+                                                        .padding(horizontal = 8.dp)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(Res.string.reload),
+                                                    color = Color.White,
+                                                    modifier =
+                                                        Modifier.align(
+                                                            Alignment.CenterVertically,
+                                                        ),
+                                                )
+                                            }
+                                        }
                                         Spacer(modifier = Modifier.size(8.dp))
                                         Crossfade(targetState = suggestionsLoading) {
                                             if (it) {
@@ -708,66 +729,6 @@ fun LocalPlaylistScreen(
                                                     }
                                                 }
                                             }
-                                        }
-                                        Spacer(modifier = Modifier.size(8.dp))
-                                        TextButton(
-                                            onClick = { viewModel.reloadSuggestion() },
-                                            modifier =
-                                                Modifier
-                                                    .padding(horizontal = 8.dp)
-                                                    .drawWithContent {
-                                                        val strokeWidthPx = 2.dp.toPx()
-                                                        val width = size.width
-                                                        val height = size.height
-
-                                                        drawContent()
-
-                                                        drawIntoCanvas {
-                                                            // Destination
-                                                            drawRoundRect(
-                                                                cornerRadius = CornerRadius(x = 60f, y = 60f),
-                                                                color = Color.Gray,
-                                                                topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
-                                                                size = Size(width - strokeWidthPx, height - strokeWidthPx),
-                                                                style = Stroke(strokeWidthPx),
-                                                            )
-                                                            val gradientColors =
-                                                                listOf(
-                                                                    Color(0xFF4C82EF),
-                                                                    Color(0xFFD96570),
-                                                                )
-                                                            val brush =
-                                                                Brush.linearGradient(
-                                                                    colors = gradientColors,
-                                                                    start = Offset(2f, 0f),
-                                                                    end =
-                                                                        Offset(
-                                                                            2 + width,
-                                                                            height,
-                                                                        ),
-                                                                )
-
-                                                            // Source
-                                                            rotate(degrees = angle) {
-                                                                drawCircle(
-                                                                    brush = brush,
-                                                                    radius = size.width,
-                                                                    blendMode = BlendMode.SrcIn,
-                                                                )
-                                                            }
-
-                                                            it.restore()
-                                                        }
-                                                    },
-                                        ) {
-                                            Text(
-                                                text = stringResource(Res.string.reload),
-                                                color = Color.White,
-                                                modifier =
-                                                    Modifier.align(
-                                                        Alignment.CenterVertically,
-                                                    ),
-                                            )
                                         }
                                         Spacer(modifier = Modifier.size(12.dp))
                                         HorizontalDivider(

@@ -10,6 +10,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.Icon
@@ -185,7 +187,7 @@ fun SongFullWidthItems(
         ) {
             Row(
                 Modifier
-                    .padding(vertical = 10.dp, horizontal = 15.dp)
+                    .padding(vertical = 6.dp, horizontal = 15.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -221,7 +223,8 @@ fun SongFullWidthItems(
                                 contentScale = ContentScale.FillWidth,
                                 modifier =
                                     Modifier
-                                        .fillMaxSize(),
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(4.dp)),
                             )
                         } else {
                             Text(
@@ -236,12 +239,13 @@ fun SongFullWidthItems(
                 Column(
                     Modifier
                         .weight(1f)
-                        .padding(start = 20.dp, end = 10.dp)
+                        .padding(start = 12.dp, end = 10.dp)
                         .align(Alignment.CenterVertically),
+                    verticalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Text(
                         text = track?.title ?: songEntity?.title ?: "",
-                        style = typo().labelMedium,
+                        style = typo().titleSmall,
                         maxLines = 1,
                         color = Color.White,
                         modifier =
@@ -290,7 +294,7 @@ fun SongFullWidthItems(
                                     track?.artists?.toListName()?.connectArtists()
                                         ?: songEntity?.artistName?.connectArtists()
                                 ) ?: "",
-                            style = typo().bodyMedium,
+                            style = typo().bodySmall,
                             maxLines = 1,
                             color = Color(0xC4FFFFFF),
                             modifier =
@@ -338,8 +342,9 @@ fun SuggestItems(
     ) {
         Row(
             Modifier
-                .padding(vertical = 10.dp)
+                .padding(vertical = 6.dp)
                 .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.size(40.dp)) {
                 Crossfade(isPlaying) {
@@ -370,7 +375,8 @@ fun SuggestItems(
                             modifier =
                                 Modifier
                                     .wrapContentHeight()
-                                    .fillMaxWidth(),
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(4.dp)),
                         )
                     }
                 }
@@ -378,7 +384,7 @@ fun SuggestItems(
             Column(
                 Modifier
                     .weight(1f)
-                    .padding(start = 20.dp, end = 10.dp)
+                    .padding(start = 12.dp, end = 10.dp)
                     .align(Alignment.CenterVertically),
             ) {
                 Text(
@@ -514,18 +520,19 @@ fun PlaylistFullWidthItems(
                     contentScale = ContentScale.FillWidth,
                     modifier =
                         Modifier
-                            .fillMaxSize(),
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(4.dp)),
                 )
             }
             Column(
                 Modifier
                     .weight(1f)
-                    .padding(start = 20.dp, end = 10.dp)
+                    .padding(start = 12.dp, end = 10.dp)
                     .align(Alignment.CenterVertically),
             ) {
                 Text(
                     text = title,
-                    style = typo().labelMedium,
+                    style = typo().titleSmall,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -540,7 +547,7 @@ fun PlaylistFullWidthItems(
 
                 Text(
                     text = "$firstSubtitle ${if (secondSubtitle.isNotEmpty()) " • $secondSubtitle" else ""}",
-                    style = typo().bodyMedium,
+                    style = typo().bodySmall,
                     maxLines = 1,
                     color = Color(0xC4FFFFFF),
                     modifier =
@@ -556,7 +563,7 @@ fun PlaylistFullWidthItems(
                 if (thirdRowSubtitle != null) {
                     Text(
                         text = thirdRowSubtitle,
-                        style = typo().bodyMedium,
+                        style = typo().bodySmall,
                         maxLines = 1,
                         color = Color(0xC4FFFFFF),
                         modifier =
@@ -622,12 +629,12 @@ fun ArtistFullWidthItems(
             Column(
                 Modifier
                     .weight(1f)
-                    .padding(start = 20.dp, end = 10.dp)
+                    .padding(start = 12.dp, end = 10.dp)
                     .align(Alignment.CenterVertically),
             ) {
                 Text(
                     text = name,
-                    style = typo().labelMedium,
+                    style = typo().titleSmall,
                     maxLines = 1,
                     color = Color.White,
                     modifier =
@@ -642,7 +649,7 @@ fun ArtistFullWidthItems(
 
                 Text(
                     text = stringResource(Res.string.artists),
-                    style = typo().bodyMedium,
+                    style = typo().bodySmall,
                     maxLines = 1,
                     color = Color(0xC4FFFFFF),
                     modifier =

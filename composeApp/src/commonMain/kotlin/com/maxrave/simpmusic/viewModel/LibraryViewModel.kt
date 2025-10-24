@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.viewModel
 
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
+import com.maxrave.common.LibraryChipType
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
@@ -43,6 +44,8 @@ class LibraryViewModel(
     private val albumRepository: AlbumRepository,
     private val podcastRepository: PodcastRepository,
 ) : BaseViewModel() {
+    private val _currentScreen: MutableStateFlow<LibraryChipType> = MutableStateFlow(LibraryChipType.YOUR_LIBRARY)
+    val currentScreen: StateFlow<LibraryChipType> get() = _currentScreen.asStateFlow()
     private val _recentlyAdded: MutableStateFlow<LocalResource<List<RecentlyType>>> =
         MutableStateFlow(LocalResource.Loading())
     val recentlyAdded: StateFlow<LocalResource<List<RecentlyType>>> get() = _recentlyAdded.asStateFlow()
@@ -77,6 +80,23 @@ class LibraryViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
+
+    init {
+        viewModelScope.launch {
+             dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
+                 LibraryChipType.fromStringValue(chipType)?.let {
+                    _currentScreen.value = it
+                }
+            }
+        }
+    }
+
+    fun setCurrentScreen(chipType: LibraryChipType) {
+        _currentScreen.value = chipType
+        viewModelScope.launch {
+            dataStoreManager.putString("library_current_screen", chipType.toStringValue())
+        }
+    }
 
     fun getRecentlyAdded() {
         viewModelScope.launch {

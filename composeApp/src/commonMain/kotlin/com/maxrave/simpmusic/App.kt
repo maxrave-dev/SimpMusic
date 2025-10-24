@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
@@ -81,6 +83,10 @@ import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -141,6 +147,11 @@ fun App(
     var shouldShowUpdateDialog by rememberSaveable {
         mutableStateOf(false)
     }
+
+    val hazeState =
+        rememberHazeState(
+            blurEnabled = true,
+        )
 
     LaunchedEffect(nowPlayingData) {
         isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
@@ -335,7 +346,7 @@ fun App(
                                         } else {
                                             Modifier
                                         },
-                                    ),
+                                    ).hazeSource(hazeState),
                             ) {
                                 AppNavigationGraph(
                                     innerPadding = innerPadding,
@@ -364,14 +375,23 @@ fun App(
                                 exit = fadeOut(),
                             ) {
                                 MiniPlayer(
-                                    Modifier
-                                        .height(56.dp)
-                                        .fillMaxWidth(0.8f)
-                                        .padding(
-                                            horizontal = 12.dp,
-                                        ).padding(
-                                            bottom = 4.dp,
-                                        ),
+                                    if (getPlatform() == Platform.Android) {
+                                        Modifier
+                                            .height(56.dp)
+                                            .fillMaxWidth(0.8f)
+                                            .padding(
+                                                horizontal = 12.dp,
+                                            ).padding(
+                                                bottom = 4.dp,
+                                            )
+                                    } else {
+                                        Modifier.fillMaxWidth()
+                                            .height(84.dp)
+                                            .background(Color.Transparent)
+                                            .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                                                blurEnabled = true
+                                            }
+                                    },
                                     backdrop = backdrop,
                                     onClick = {
                                         isShowNowPlaylistScreen = true

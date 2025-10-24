@@ -33,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -124,9 +123,7 @@ fun LibraryScreen(
     }
 
     val chipRowState = rememberScrollState()
-    var currentFilter by rememberSaveable {
-        mutableStateOf(LibraryChipType.YOUR_LIBRARY)
-    }
+    val currentFilter by viewModel.currentScreen.collectAsStateWithLifecycle()
 
     LaunchedEffect(currentFilter) {
         when (currentFilter) {
@@ -431,7 +428,7 @@ fun LibraryScreen(
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
                         },
                 ) {
-                    currentFilter = type
+                    viewModel.setCurrentScreen(type)
                 }
             }
         }

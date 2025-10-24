@@ -42,7 +42,7 @@ fun main() =
         changeLanguageNative(language)
         var windowState =
             rememberWindowState(
-                size = DpSize(1280.dp, 1000.dp),
+                size = DpSize(1280.dp, 720.dp),
             )
         VersionManager.initialize()
         Window(

@@ -30,14 +30,14 @@ fun typo(): Typography {
             titleSmall =
                 TextStyle(
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontFamily = fontFamily,
                     color = Color.White,
                 ),
             titleMedium =
                 TextStyle(
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontFamily = fontFamily,
                     color = Color.White,
                 ),
@@ -100,7 +100,7 @@ fun typo(): Typography {
             labelSmall =
                 TextStyle(
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontFamily = fontFamily,
                     color = Color(0xFFA8A8A8),
                 ),

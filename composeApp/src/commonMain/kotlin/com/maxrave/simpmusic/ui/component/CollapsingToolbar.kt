@@ -53,6 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
@@ -75,7 +76,7 @@ import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.holder_video
 
-private val paddingMedium = 16.dp
+private val paddingMedium = 0.dp
 
 private val titlePaddingStart = 20.dp
 private val titlePaddingEnd = 72.dp
@@ -258,10 +259,10 @@ private fun Header(
                                 listOf(
                                     Color.Transparent,
                                     Color.Black.copy(
-                                        alpha = 0.4f,
+                                        alpha = 0.8f,
                                     ),
                                 ),
-                            startY = 3 * headerHeightPx / 4, // Gradient applied to wrap the title only
+                            startY = headerHeightPx * 3 / 4, // Gradient applied to wrap the title only
                         ),
                 ),
         )
@@ -379,6 +380,8 @@ private fun Title(
         fontSize = 48.sp,
         fontWeight = FontWeight.Bold,
         color = Color.White,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier =
             modifier
                 .graphicsLayer {
