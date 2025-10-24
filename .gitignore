@@ -14,3 +14,13 @@
 .cxx
 local.properties
 /app/release/
+crowdin.yml
+# Kotlin 2.0
+.kotlin/
+.idea
+/simpmusic.jks
+/ffmpeg-kit/build/
+
+# Sentry Config File
+sentry.properties
+/.claude/

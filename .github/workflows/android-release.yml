@@ -1,0 +1,100 @@
+name: Build APK for Release (Full & FOSS)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'jetpack_compose'
+    paths-ignore:
+      - 'README.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/**/*.md'
+      - '.github/FUNDING.yml'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-full-release:
+    name: Build full release version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: "temurin"
+          cache: 'gradle'
+
+      - name: Update Sentry Secrets
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
+
+      - name: Update environment variables
+        env:
+          BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
+        run:
+          echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
+
+      - name: Build full release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./build_and_sign_apk.sh --full --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-full-release
+          path: app/build/outputs/apk/full/release/*.apk
+
+  build-foss-release:
+    name: Build foss release version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: "temurin"
+          cache: 'gradle'
+
+      - name: Update environment variables
+        env:
+          BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
+        run:
+          echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
+
+      - name: Build foss release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./build_and_sign_apk.sh --foss --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-foss-release
+          path: app/build/outputs/apk/foss/release/*.apk

@@ -1,0 +1,9 @@
+- "New release" in home page
+- Multiple YouTube Accounts Support
+- Bigger thumbnails in home page
+- Click suggest query to search
+- Drag and drop to reorder songs in queue
+- "Play next" feature
+- Fixed "Conflict songs in queue when getting related songs"
+- Fixed "LIKE" button
+- Fixed all known bugs in Local Playlists

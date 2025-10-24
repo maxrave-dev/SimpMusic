@@ -1,0 +1,10 @@
+- New description in now playing screen
+- Support click timestamp to jump to that time
+- Added Spotify Lyrics and Spotify Canvas
+- Added "Add to YouTube Liked" feature
+- Bypass restricted songs
+- Load song faster
+- Keep screen on when lyrics showing
+- Online browsing for Android Auto
+- Add home screen widget
+- Fixed some bugs. Full changelog: https://github.com/maxrave-dev/SimpMusic/compare/v0.1.8...v0.2.0

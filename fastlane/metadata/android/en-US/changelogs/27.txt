@@ -1,0 +1,11 @@
+- Prevent screen off when watching video on full screen mode
+- Explicit lyrics badge
+- Replace number with thumbnail in Queue
+- Endless queue
+- Turn on/off checking for updates automatically
+- Blur fullscreen lyrics and/or now playing screen's background
+- Playback speed & pitch
+- Search in Library screen
+- Improve Android Auto support
+- Update translations
+- Bug fixes and performance improvements

@@ -1,0 +1,7 @@
+- Sửa lỗi "Không có kết nối internet" tạm thời
+- Sửa lỗi đăng nhập
+- Hỗ trợ chế độ Picture-in-Picture (beta)
+- Cải thiện giao diện và hiệu suất
+- Cải thiện tải video
+- Hỗ trợ Proxy
+- Thêm ngôn ngữ mới: Hindi, Thái, Hà Lan

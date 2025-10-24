@@ -1,0 +1,7 @@
+- New full-screen lyrics layout
+- Background playing without opening app
+- Home page filters
+- Option to change background of bottom navigation bar
+- Improve UI in some screens
+- Fix some bugs caused by changing API of YouTube
+- Fix local playlist bugs

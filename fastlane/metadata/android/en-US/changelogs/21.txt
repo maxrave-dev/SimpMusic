@@ -1,0 +1,3 @@
+- Fix update bugs
+- Fix local playlist bugs
+- Add warning for non-login users

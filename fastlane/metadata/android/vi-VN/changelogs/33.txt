@@ -1,0 +1,8 @@
+- Cập nhật logic từ SmartTube
+- Xây dựng cục bộ FFmpeg-kit
+- Thêm bộ lọc danh sách phát cục bộ mới
+- Sửa lỗi phản hồi trống trong màn hình danh sách phát
+- Cải thiện tốc độ tải video
+- Sửa lỗi Musixmatch
+- Thêm radio và phát ngẫu nhiên vào Android Auto
+- Thêm ngôn ngữ Bugarian

@@ -1,0 +1,189 @@
+[versions]
+# App version
+version-name="0.2.21"
+version-code="40"
+
+android = "8.11.1"
+kotlin = "2.2.20"
+serialization = "2.2.20"
+ksp = "2.2.20-2.0.3"
+compose-bom = "2025.09.01"
+material3-expressive = "1.5.0-alpha04"
+constraintlayout-compose = "1.1.1"
+activity-compose = "1.11.0"
+lifecycle-viewmodel-compose = "2.9.4"
+lifecycle-runtime-ktx = "2.9.4"
+core-ktx = "1.17.0"
+appcompat = "1.7.1"
+work = "2.10.5"
+startup-runtime = "1.2.0"
+lifecycle-livedata-ktx = "2.9.4"
+lifecycle-viewmodel-ktx = "2.9.4"
+ui-tooling = "1.9.2"
+media3 = "1.8.0"
+okhttp3 = "5.1.0"
+junit = "4.13.2"
+androidx-junit = "1.3.0"
+espresso-core = "3.7.0"
+room = "2.8.1"
+legacy-support-v4 = "1.0.0"
+coroutines-android = "1.10.2"
+coroutines-guava = "1.10.2"
+navigation = "2.9.5"
+gson = "2.13.2"
+coil3 = "3.3.0"
+kmpalette = "3.1.0"
+easypermissions = "3.0.0"
+preference-ktx = "1.2.1"
+datastore-preferences = "1.1.7"
+lottie = "6.6.9"
+paging = "3.3.6"
+customactivityoncrash = "2.4.0"
+aboutlibraries = "13.0.0-rc01"
+balloon = "1.6.13"
+ktor = "3.3.0"
+brotli = "0.1.2"
+ksoup = "0.6.0"
+desugaring = "2.1.5"
+koin-bom = "4.1.1"
+md = "0.37.0"
+ui-text-android = "1.9.2"
+haze = "1.6.10"
+smart-exception = "0.2.1"
+onetimepassword = "2.4.1"
+common = "1.19.0"
+json = "1.9.0"
+gemini-kotlin = "4.0.2"
+slf4j = "1.7.36"
+sentry-android = "8.22.0"
+sentry-gradle = "5.12.0"
+newpipe = "0.24.8"
+webkit = "1.14.0"
+napier = "2.7.1"
+paging-common = "3.3.6"
+glance = "1.1.1"
+liquid-glass = "1.0.0-alpha15"
+ytdlp = "0.18.0"
+ffmpeg-kit-audio="6.0.1"
+
+[libraries]
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-material3-lib = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-expressive" }
+compose-material3-sizeclass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
+compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-material-ripple = { group = "androidx.compose.material", name = "material-ripple" }
+compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+compose-ui-viewbinding = { group = "androidx.compose.ui", name = "ui-viewbinding" }
+constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayout-compose" }
+ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
+lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle-viewmodel-compose" }
+lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
+startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "startup-runtime" }
+lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle-livedata-ktx" }
+lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel-ktx" }
+ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "ui-tooling" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+media3-compose = { group = "androidx.media3", name = "media3-ui-compose", version.ref = "media3" }
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "media3" }
+media3-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "media3" }
+media3-exoplayer-rtsp = { group = "androidx.media3", name = "media3-exoplayer-rtsp", version.ref = "media3" }
+media3-exoplayer-smoothstreaming = { group = "androidx.media3", name = "media3-exoplayer-smoothstreaming", version.ref = "media3" }
+media3-exoplayer-workmanager = { group = "androidx.media3", name = "media3-exoplayer-workmanager", version.ref = "media3" }
+media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
+smart-exception = { module = "com.arthenica:smart-exception-java", version.ref = "smart-exception" }
+okhttp3-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacy-support-v4" }
+coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines-android" }
+coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "coroutines-guava" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref = "easypermissions" }
+preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preference-ktx" }
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
+lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
+customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }
+aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
+aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
+balloon = { group = "com.github.skydoves", name = "balloon", version.ref = "balloon" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil3" }
+kmpalette-core = { module = "com.kmpalette:kmpalette-core", version.ref = "kmpalette" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-xml = { group = "io.ktor", name = "ktor-serialization-kotlinx-xml", version.ref = "ktor" }
+ktor-serialization-kotlinx-protobuf = { group = "io.ktor", name = "ktor-serialization-kotlinx-protobuf", version.ref = "ktor" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "json" }
+brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test"}
+ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup" }
+ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
+markdown = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "md" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-material = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
+androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "ui-text-android" }
+kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword", version.ref = "onetimepassword" }
+common = { module = "commons-codec:commons-codec", version.ref = "common" }
+gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
+logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
+newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
+#leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+napier-logging = { module = "io.github.aakira:napier", version.ref = "napier" }
+glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
+glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
+
+liquid-glass = { module = "com.github.Kyant0:AndroidLiquidGlass", version.ref = "liquid-glass" }
+
+ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp" }
+
+ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.ref = "ffmpeg-kit-audio" }
+
+#Koin
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
+koin-android = { module = "io.insert-koin:koin-android"}
+
+#Sentry
+sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
+androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging-common" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "android" }
+android-library = { id = "com.android.library", version.ref = "android" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
+room = { id = "androidx.room", version.ref = "room" }
+sentry-gradle = { id = "io.sentry.android.gradle", version.ref = "sentry-gradle" }

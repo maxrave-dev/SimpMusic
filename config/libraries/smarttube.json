@@ -1,0 +1,25 @@
+{
+    "uniqueId": "com.yuliskov.smarttubetv",
+    "funding": [
+
+    ],
+    "developers": [
+        {
+            "name": "Yuriy L"
+        }
+    ],
+    "artifactVersion": "",
+    "description": "SmartTube is a free and open-source advanced media player for Android TVs and TV boxes. It allows you to play content from various public sources.",
+    "scm": {
+        "connection": "scm:git:https://github.com/yuliskov/SmartTube.git",
+        "url": "https://github.com/yuliskov/SmartTube.git"
+    },
+    "name": "SmartTube",
+    "website": "www.patreon.com/smarttube",
+    "licenses": [
+        "GNU"
+    ],
+    "organization": {
+        "name": "Yuriy L"
+    }
+}

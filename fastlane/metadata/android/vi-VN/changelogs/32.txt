@@ -1,0 +1,2 @@
+- Sưa lỗi trong phiên bản phát hành
+- Sửa lỗi crash khi phát lại danh sách nhạc không giới hạn trong danh sách nhạc cục bộ

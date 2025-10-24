@@ -1,0 +1,17 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = false
+max_line_length = 150
+tab_width = 4
+ktlint_function_naming_ignore_when_annotated_with = Composable
+[*.md]
+generated_code = true
+ij_formatter_enabled = false
+[*.yml]
+tab_width = 2
+indent_size = 2

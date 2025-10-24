@@ -1,0 +1,11 @@
+- Fixed More albums and singles not working inside Artist page
+- Fixed Spotify
+- Fixed Android Auto problems
+- Fixed video being stretched to 16:9
+- Fixed "Killed service" error
+- PIP support in Fullscreen
+- Subtitle inside every video
+- Option to backup downloaded songs
+- Removed Musixmatch - replaced by SimpMusic Lyrics
+- Removed Crossfade
+- New Charts UI

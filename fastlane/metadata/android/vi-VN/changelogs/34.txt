@@ -1,0 +1,3 @@
+- Tối ưu hóa việc tải lời bài hát
+- MỚI: Dịch lời bài hát bằng AI (phiên bản beta)
+- Sửa một số lỗi và tối ưu giao diện người dùng

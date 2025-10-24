@@ -1,0 +1,10 @@
+- Thêm phần mô tả trong màn hình đang phát
+- Hỗ trợ click vào thời gian để nhảy đến thời gian đó
+- Thêm lời bài hát và Canvas từ Spotify
+- Thêm tính năng "Thêm vào YouTube Liked"
+- Bỏ qua những bài hát bị hạn chế
+- Tải bài hát nhanh hơn
+- Giữ màn hình sáng khi hiển thị lời bài hát
+- Duyệt trực tuyến trên Android Auto
+- Thêm tiện ích màn hình chính
+- Sửa một số lỗi. Thay đổi đầy đủ: https://github.com/maxrave-dev/SimpMusic/compare/v0.1.8...v0.2.0

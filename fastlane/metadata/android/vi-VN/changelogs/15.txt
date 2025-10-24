@@ -1,0 +1,9 @@
+- Thêm "Mới phát hành" trên trang chủ
+- Hỗ trợ chuyển đổi giữa nhiều tài khoản YouTube
+- Tăng kích thước ảnh thumbnail trên trang chủ
+- Click vào gợi ý để tìm kiếm
+- Kéo thả để sắp xếp lại bài hát trong hàng đợi
+- Chức năng "Phát tiếp theo"
+- Sửa lỗi "Trùng lặp bài hát trong hàng đợi khi lấy bài hát liên quan"
+- Sửa lỗi nút "LIKE"
+- Sửa tất cả các lỗi đã biết trong danh sách phát cục bộ
