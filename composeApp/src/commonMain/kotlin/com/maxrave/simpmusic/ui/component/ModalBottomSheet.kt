@@ -2723,7 +2723,7 @@ fun SortPlaylistBottomSheet(
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                 ) {
-                    items(filterOptions, key = { filterOption -> filterOption.displayNameRes() }) { filterOption ->
+                    items(filterOptions, key = { filterOption -> filterOption.hashCode() }) { filterOption ->
                         val isSelected = filterOption == selectedState
                         Row(
                             Modifier
@@ -2837,7 +2837,9 @@ fun DevLogInBottomSheet(
                 }
                 TextButton(
                     onClick = {
-                        if (value.isNotEmpty() && value.isNotBlank() && (type != DevLogInType.YouTube || (secondValue.isNotEmpty() && secondValue.isNotBlank()))) {
+                        if (value.isNotEmpty() && value.isNotBlank() &&
+                            (type != DevLogInType.YouTube || (secondValue.isNotEmpty() && secondValue.isNotBlank()))
+                        ) {
                             showToast(runBlocking { getString(Res.string.processing) }, ToastGravity.Bottom)
                             onDismiss()
                             onDone(value, secondValue)
