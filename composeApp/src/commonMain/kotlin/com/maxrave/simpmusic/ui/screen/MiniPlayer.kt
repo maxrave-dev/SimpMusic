@@ -843,7 +843,7 @@ fun MiniPlayer(
                                             SliderDefaults.colors().copy(
                                                 thumbColor = Color.White,
                                                 activeTrackColor = Color.White,
-                                                inactiveTrackColor = Color.Transparent,
+                                                inactiveTrackColor = Color.Gray,
                                             ),
                                         thumbTrackGapSize = 0.dp,
                                         drawTick = { _, _ -> },

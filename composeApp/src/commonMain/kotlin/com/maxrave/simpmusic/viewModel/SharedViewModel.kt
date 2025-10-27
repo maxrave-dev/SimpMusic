@@ -357,7 +357,6 @@ class SharedViewModel(
                             }
 
                             is SimpleMediaState.Progress -> {
-                                Logger.w(tag, "Progress: ${mediaState.progress}")
                                 if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
                                     if (_timeline.value.total > 0L) {
                                         _timeline.update {
@@ -747,7 +746,8 @@ class SharedViewModel(
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.ToggleLike)
                 }
                 is UIEvent.UpdateVolume -> {
-                   val newVolume = uiEvent.newVolume
+                    val newVolume = uiEvent.newVolume
+                    dataStoreManager.setPlayerVolume(newVolume)
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.UpdateVolume(newVolume))
                 }
             }

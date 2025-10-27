@@ -22,6 +22,7 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.checkYtdlp
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +49,7 @@ import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
+
 
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -692,8 +694,18 @@ class SettingsViewModel(
     fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
             log("changeQuality: $qualityItem")
-            dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
-            getQuality()
+            if (getPlatform() == Platform.Android) {
+                dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
+                getQuality()
+            } else if (getPlatform() == Platform.Desktop) {
+                val installed = checkYtdlp()
+                if (installed) {
+                    dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
+                    getQuality()
+                } else {
+                    makeToast("Your device does not have yt-dlp installed. Please install it to use the best quality.")
+                }
+            }
         }
     }
 
