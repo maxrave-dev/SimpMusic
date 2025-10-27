@@ -302,8 +302,12 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class, ExperimentalHazeMaterialsApi::class, FormatStringsInDatetimeFormats::class,
-    ExperimentalCalfApi::class
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalCoilApi::class,
+    ExperimentalHazeMaterialsApi::class,
+    FormatStringsInDatetimeFormats::class,
+    ExperimentalCalfApi::class,
 )
 @Composable
 fun SettingScreen(
@@ -1223,313 +1227,315 @@ fun SettingScreen(
                 )
             }
         }
-        item(key = "storage") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.storage),
-                    style = typo().labelMedium,
-                    color = white,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.player_cache),
-                    subtitle = "${playerCache.bytesToMB()} MB",
-                    onClick = {
-                        viewModel.setBasicAlertData(
-                            SettingBasicAlertState(
-                                title = runBlocking { getString(Res.string.clear_player_cache) },
-                                message = null,
-                                confirm =
-                                    runBlocking { getString(Res.string.clear) } to {
-                                        viewModel.clearPlayerCache()
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.downloaded_cache),
-                    subtitle = "${downloadedCache.bytesToMB()} MB",
-                    onClick = {
-                        viewModel.setBasicAlertData(
-                            SettingBasicAlertState(
-                                title = runBlocking { getString(Res.string.clear_downloaded_cache) },
-                                message = null,
-                                confirm =
-                                    runBlocking { getString(Res.string.clear) } to {
-                                        viewModel.clearDownloadedCache()
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.thumbnail_cache),
-                    subtitle = "${thumbnailCache.bytesToMB()} MB",
-                    onClick = {
-                        viewModel.setBasicAlertData(
-                            SettingBasicAlertState(
-                                title = runBlocking { getString(Res.string.clear_thumbnail_cache) },
-                                message = null,
-                                confirm =
-                                    runBlocking { getString(Res.string.clear) } to {
-                                        viewModel.clearThumbnailCache(platformContext)
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.spotify_canvas_cache),
-                    subtitle = "${canvasCache.bytesToMB()} MB",
-                    onClick = {
-                        viewModel.setBasicAlertData(
-                            SettingBasicAlertState(
-                                title = runBlocking { getString(Res.string.clear_canvas_cache) },
-                                message = null,
-                                confirm =
-                                    runBlocking { getString(Res.string.clear) } to {
-                                        viewModel.clearCanvasCache()
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                SettingItem(
-                    title = stringResource(Res.string.limit_player_cache),
-                    subtitle = LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache).toString(),
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.limit_player_cache) },
-                                selectOne =
-                                    SettingAlertState.SelectData(
-                                        listSelect =
-                                            LIMIT_CACHE_SIZE.items.map { item ->
-                                                (item == LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache)) to item.toString()
-                                            },
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        viewModel.setPlayerCacheLimit(
-                                            LIMIT_CACHE_SIZE.getDataFromItem(state.selectOne?.getSelected()),
-                                        )
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
-                Box(
-                    Modifier.padding(
-                        horizontal = 24.dp,
-                        vertical = 16.dp,
-                    ),
-                ) {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(0.dp),
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .onGloballyPositioned { layoutCoordinates ->
-                                    with(localDensity) {
-                                        width =
-                                            layoutCoordinates.size.width
-                                                .toDp()
-                                                .value
-                                                .toInt()
-                                    }
-                                },
-                    ) {
-                        item {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .width(
-                                            (fraction.otherApp * width).dp,
-                                        ).background(
-                                            md_theme_dark_primary,
-                                        ).fillMaxHeight(),
+        if (getPlatform() == Platform.Android) {
+            item(key = "storage") {
+                Column {
+                    Text(
+                        text = stringResource(Res.string.storage),
+                        style = typo().labelMedium,
+                        color = white,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.player_cache),
+                        subtitle = "${playerCache.bytesToMB()} MB",
+                        onClick = {
+                            viewModel.setBasicAlertData(
+                                SettingBasicAlertState(
+                                    title = runBlocking { getString(Res.string.clear_player_cache) },
+                                    message = null,
+                                    confirm =
+                                        runBlocking { getString(Res.string.clear) } to {
+                                            viewModel.clearPlayerCache()
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
                             )
-                        }
-                        item {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .width(
-                                            (fraction.downloadCache * width).dp,
-                                        ).background(
-                                            Color(0xD540FF17),
-                                        ).fillMaxHeight(),
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.downloaded_cache),
+                        subtitle = "${downloadedCache.bytesToMB()} MB",
+                        onClick = {
+                            viewModel.setBasicAlertData(
+                                SettingBasicAlertState(
+                                    title = runBlocking { getString(Res.string.clear_downloaded_cache) },
+                                    message = null,
+                                    confirm =
+                                        runBlocking { getString(Res.string.clear) } to {
+                                            viewModel.clearDownloadedCache()
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
                             )
-                        }
-                        item {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .width(
-                                            (fraction.playerCache * width).dp,
-                                        ).background(
-                                            Color(0xD5FFFF00),
-                                        ).fillMaxHeight(),
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.thumbnail_cache),
+                        subtitle = "${thumbnailCache.bytesToMB()} MB",
+                        onClick = {
+                            viewModel.setBasicAlertData(
+                                SettingBasicAlertState(
+                                    title = runBlocking { getString(Res.string.clear_thumbnail_cache) },
+                                    message = null,
+                                    confirm =
+                                        runBlocking { getString(Res.string.clear) } to {
+                                            viewModel.clearThumbnailCache(platformContext)
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
                             )
-                        }
-                        item {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .width(
-                                            (fraction.canvasCache * width).dp,
-                                        ).background(
-                                            Color.Cyan,
-                                        ).fillMaxHeight(),
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.spotify_canvas_cache),
+                        subtitle = "${canvasCache.bytesToMB()} MB",
+                        onClick = {
+                            viewModel.setBasicAlertData(
+                                SettingBasicAlertState(
+                                    title = runBlocking { getString(Res.string.clear_canvas_cache) },
+                                    message = null,
+                                    confirm =
+                                        runBlocking { getString(Res.string.clear) } to {
+                                            viewModel.clearCanvasCache()
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
                             )
-                        }
-                        item {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .width(
-                                            (fraction.thumbCache * width).dp,
-                                        ).background(
-                                            Color.Magenta,
-                                        ).fillMaxHeight(),
-                            )
-                        }
-                        item {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .width(
-                                            (fraction.appDatabase * width).dp,
-                                        ).background(
-                                            Color.White,
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.limit_player_cache),
+                        subtitle = LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache).toString(),
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.limit_player_cache) },
+                                    selectOne =
+                                        SettingAlertState.SelectData(
+                                            listSelect =
+                                                LIMIT_CACHE_SIZE.items.map { item ->
+                                                    (item == LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache)) to item.toString()
+                                                },
                                         ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.change) } to { state ->
+                                            viewModel.setPlayerCacheLimit(
+                                                LIMIT_CACHE_SIZE.getDataFromItem(state.selectOne?.getSelected()),
+                                            )
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
                             )
-                        }
-                        item {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .width(
-                                            (fraction.freeSpace * width).dp,
-                                        ).background(
-                                            Color.DarkGray,
-                                        ).fillMaxHeight(),
-                            )
+                        },
+                    )
+                    Box(
+                        Modifier.padding(
+                            horizontal = 24.dp,
+                            vertical = 16.dp,
+                        ),
+                    ) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .onGloballyPositioned { layoutCoordinates ->
+                                        with(localDensity) {
+                                            width =
+                                                layoutCoordinates.size.width
+                                                    .toDp()
+                                                    .value
+                                                    .toInt()
+                                        }
+                                    },
+                        ) {
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .width(
+                                                (fraction.otherApp * width).dp,
+                                            ).background(
+                                                md_theme_dark_primary,
+                                            ).fillMaxHeight(),
+                                )
+                            }
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .width(
+                                                (fraction.downloadCache * width).dp,
+                                            ).background(
+                                                Color(0xD540FF17),
+                                            ).fillMaxHeight(),
+                                )
+                            }
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .width(
+                                                (fraction.playerCache * width).dp,
+                                            ).background(
+                                                Color(0xD5FFFF00),
+                                            ).fillMaxHeight(),
+                                )
+                            }
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .width(
+                                                (fraction.canvasCache * width).dp,
+                                            ).background(
+                                                Color.Cyan,
+                                            ).fillMaxHeight(),
+                                )
+                            }
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .width(
+                                                (fraction.thumbCache * width).dp,
+                                            ).background(
+                                                Color.Magenta,
+                                            ).fillMaxHeight(),
+                                )
+                            }
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .width(
+                                                (fraction.appDatabase * width).dp,
+                                            ).background(
+                                                Color.White,
+                                            ),
+                                )
+                            }
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .width(
+                                                (fraction.freeSpace * width).dp,
+                                            ).background(
+                                                Color.DarkGray,
+                                            ).fillMaxHeight(),
+                                )
+                            }
                         }
                     }
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                md_theme_dark_primary,
-                            ),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = stringResource(Res.string.other_app), style = typo().bodySmall)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Color.Green,
-                            ),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = stringResource(Res.string.downloaded_cache), style = typo().bodySmall)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Color.Yellow,
-                            ),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = stringResource(Res.string.player_cache), style = typo().bodySmall)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Color.Cyan,
-                            ),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = stringResource(Res.string.spotify_canvas_cache), style = typo().bodySmall)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Color.Magenta,
-                            ),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = stringResource(Res.string.thumbnail_cache), style = typo().bodySmall)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Color.White,
-                            ),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = stringResource(Res.string.database), style = typo().bodySmall)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Color.LightGray,
-                            ),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = stringResource(Res.string.free_space), style = typo().bodySmall)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    md_theme_dark_primary,
+                                ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(Res.string.other_app), style = typo().bodySmall)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Color.Green,
+                                ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(Res.string.downloaded_cache), style = typo().bodySmall)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Color.Yellow,
+                                ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(Res.string.player_cache), style = typo().bodySmall)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Color.Cyan,
+                                ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(Res.string.spotify_canvas_cache), style = typo().bodySmall)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Color.Magenta,
+                                ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(Res.string.thumbnail_cache), style = typo().bodySmall)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Color.White,
+                                ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(Res.string.database), style = typo().bodySmall)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Color.LightGray,
+                                ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(Res.string.free_space), style = typo().bodySmall)
+                    }
                 }
             }
         }

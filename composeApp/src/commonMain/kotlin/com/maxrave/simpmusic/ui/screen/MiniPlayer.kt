@@ -342,8 +342,8 @@ fun MiniPlayer(
                                             onDragStart = {
                                             },
                                             onHorizontalDrag = {
-                                                    change: PointerInputChange,
-                                                    dragAmount: Float,
+                                                change: PointerInputChange,
+                                                dragAmount: Float,
                                                 ->
                                                 coroutineScope.launch {
                                                     change.consume()
@@ -390,7 +390,6 @@ fun MiniPlayer(
                                 onSuccess = {
                                     bitmap =
                                         it.result.image.toImageBitmap()
-
                                 },
                                 modifier =
                                     Modifier
@@ -414,9 +413,9 @@ fun MiniPlayer(
                                             slideInHorizontally { width ->
                                                 width
                                             } + fadeIn()
-                                            ).togetherWith(
-                                                slideOutHorizontally { width -> +width } + fadeOut(),
-                                            )
+                                        ).togetherWith(
+                                            slideOutHorizontally { width -> +width } + fadeOut(),
+                                        )
                                     } else {
                                         // If the target number is smaller, it slides down and fades in
                                         // while the initial number slides down and fades out.
@@ -424,9 +423,9 @@ fun MiniPlayer(
                                             slideInHorizontally { width ->
                                                 +width
                                             } + fadeIn()
-                                            ).togetherWith(
-                                                slideOutHorizontally { width -> width } + fadeOut(),
-                                            )
+                                        ).togetherWith(
+                                            slideOutHorizontally { width -> width } + fadeOut(),
+                                        )
                                     }.using(
                                         // Disable clipping since the faded slide-in/out should
                                         // be displayed out of bounds.
@@ -556,19 +555,20 @@ fun MiniPlayer(
             modifier.then(
                 Modifier.clickable {
                     onClick()
-                }
+                },
             ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Row(
-                Modifier.fillMaxSize()
+                Modifier
+                    .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Part 1
                 Box(modifier = Modifier.weight(1f).padding(vertical = 16.dp)) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         AsyncImage(
                             model =
@@ -584,7 +584,6 @@ fun MiniPlayer(
                             onSuccess = {
                                 bitmap =
                                     it.result.image.toImageBitmap()
-
                             },
                             modifier =
                                 Modifier
@@ -648,7 +647,7 @@ fun MiniPlayer(
                         ) {
                             PlayerControlLayout(
                                 controllerState,
-                                isSmallSize = true
+                                isSmallSize = true,
                             ) {
                                 sharedViewModel.onUIEvent(it)
                             }
@@ -657,19 +656,21 @@ fun MiniPlayer(
                             Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight(),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
                                 text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
                                 style = typo().bodyMedium,
                                 textAlign = TextAlign.Left,
-                                modifier = Modifier.width(40.dp)
+                                modifier = Modifier.width(50.dp),
                             )
                             // Real Slider
                             Box(
-                                modifier = Modifier.weight(1f)
-                                    .padding(horizontal = 8.dp),
-                                contentAlignment = Alignment.Center
+                                modifier =
+                                    Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 8.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Box(
                                     modifier =
@@ -790,7 +791,7 @@ fun MiniPlayer(
                                 text = formatDuration(timelineState.total),
                                 style = typo().bodyMedium,
                                 textAlign = TextAlign.Right,
-                                modifier = Modifier.width(40.dp)
+                                modifier = Modifier.width(50.dp),
                             )
                         }
                     }
