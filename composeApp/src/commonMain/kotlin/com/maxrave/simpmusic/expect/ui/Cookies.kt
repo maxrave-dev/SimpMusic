@@ -35,3 +35,10 @@ expect fun PlatformWebView(
     aboveContent: @Composable (BoxScope.() -> Unit) = {},
     onPageFinished: (String) -> Unit,
 )
+
+@Composable
+expect fun DiscordWebView(
+    state: MutableState<WebViewState> = rememberWebViewState(),
+    aboveContent: @Composable (BoxScope.() -> Unit) = {},
+    onLoginDone: (token: String) -> Unit
+)

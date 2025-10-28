@@ -16,6 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import com.maxrave.simpmusic.expect.openUrl
 import com.maxrave.simpmusic.ui.theme.typo
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.desktop_webview_description
+import simpmusic.composeapp.generated.resources.open_blog_post
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.net.URI
@@ -51,8 +55,7 @@ actual fun PlatformWebView(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Because of the limitations of Compose Multiplatform, I can not implement WebView on desktop.\n" +
-                    "Read this to learn more how to log in in desktop:\n",
+                stringResource(Res.string.desktop_webview_description),
                 style = typo().labelMedium,
                 color = Color.White,
                 textAlign = TextAlign.Center
@@ -63,7 +66,43 @@ actual fun PlatformWebView(
                 },
             ) {
                 Text(
-                    "Open blog post",
+                    stringResource(Res.string.open_blog_post),
+                    style = typo().labelMedium,
+                    color = Color.DarkGray,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        aboveContent()
+    }
+}
+
+@Composable
+actual fun DiscordWebView(
+    state: MutableState<WebViewState>,
+    aboveContent: @Composable (BoxScope.() -> Unit),
+    onLoginDone: (String) -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                stringResource(Res.string.desktop_webview_description),
+                style = typo().labelMedium,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+            Button(
+                onClick = {
+                    openUrl("https://www.simpmusic.org/blogs/en/how-to-log-in-to-Discord-on-desktop-app")
+                },
+            ) {
+                Text(
+                    stringResource(Res.string.open_blog_post),
                     style = typo().labelMedium,
                     color = Color.DarkGray,
                     textAlign = TextAlign.Center

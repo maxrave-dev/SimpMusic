@@ -58,4 +58,10 @@ class LogInViewModel(
             _fullYouTubeCookies.value = cookies
         }
     }
+
+    fun saveDiscordToken(token: String) {
+        viewModelScope.launch {
+            dataStoreManager.setDiscordToken(token)
+        }
+    }
 }

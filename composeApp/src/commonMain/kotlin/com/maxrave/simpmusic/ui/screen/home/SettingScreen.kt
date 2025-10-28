@@ -113,6 +113,7 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.DarkColors
@@ -199,11 +200,13 @@ import simpmusic.composeapp.generated.resources.custom_model_id_messages
 import simpmusic.composeapp.generated.resources.database
 import simpmusic.composeapp.generated.resources.default_models
 import simpmusic.composeapp.generated.resources.description_and_licenses
+import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
 import simpmusic.composeapp.generated.resources.downloaded_cache
 import simpmusic.composeapp.generated.resources.enable_canvas
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
+import simpmusic.composeapp.generated.resources.enable_rich_presence
 import simpmusic.composeapp.generated.resources.enable_sponsor_block
 import simpmusic.composeapp.generated.resources.enable_spotify_lyrics
 import simpmusic.composeapp.generated.resources.free_space
@@ -213,6 +216,7 @@ import simpmusic.composeapp.generated.resources.help_build_lyrics_database
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
 import simpmusic.composeapp.generated.resources.home_limit
 import simpmusic.composeapp.generated.resources.http
+import simpmusic.composeapp.generated.resources.intro_login_to_discord
 import simpmusic.composeapp.generated.resources.intro_login_to_spotify
 import simpmusic.composeapp.generated.resources.invalid
 import simpmusic.composeapp.generated.resources.invalid_api_key
@@ -224,6 +228,7 @@ import simpmusic.composeapp.generated.resources.kill_service_on_exit_description
 import simpmusic.composeapp.generated.resources.language
 import simpmusic.composeapp.generated.resources.last_checked_at
 import simpmusic.composeapp.generated.resources.limit_player_cache
+import simpmusic.composeapp.generated.resources.log_in_to_discord
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
 import simpmusic.composeapp.generated.resources.log_out
 import simpmusic.composeapp.generated.resources.log_out_warning
@@ -254,6 +259,7 @@ import simpmusic.composeapp.generated.resources.proxy_type
 import simpmusic.composeapp.generated.resources.quality
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
+import simpmusic.composeapp.generated.resources.rich_presence_info
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_all_your_playlist_data
 import simpmusic.composeapp.generated.resources.save_last_played
@@ -404,6 +410,8 @@ fun SettingScreen(
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
     val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
+    val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
+    val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
@@ -1145,6 +1153,43 @@ fun SettingScreen(
                     onDisable = {
                         if (spotifyCanvas) {
                             viewModel.setSpotifyCanvas(false)
+                        }
+                    },
+                )
+            }
+        }
+        item(key = "discord") {
+            Column {
+                Text(
+                    text = stringResource(Res.string.discord_integration),
+                    style = typo().labelMedium,
+                    color = white,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.log_in_to_discord),
+                    subtitle =
+                        if (discordLoggedIn) {
+                            stringResource(Res.string.logged_in)
+                        } else {
+                            stringResource(Res.string.intro_login_to_discord)
+                        },
+                    onClick = {
+                        if (discordLoggedIn) {
+                            viewModel.logOutDiscord()
+                        } else {
+                            navController.navigate(DiscordLoginDestination)
+                        }
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.enable_rich_presence),
+                    subtitle = stringResource(Res.string.rich_presence_info),
+                    switch = (richPresenceEnabled to { viewModel.setDiscordRichPresenceEnabled(it) }),
+                    isEnable = discordLoggedIn,
+                    onDisable = {
+                        if (discordLoggedIn) {
+                            viewModel.setDiscordRichPresenceEnabled(false)
                         }
                     },
                 )

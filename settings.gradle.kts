@@ -90,6 +90,7 @@ include(
     ":media3-ui",
     ":crashlytics",
     ":crashlytics-empty",
+    ":kizzy"
 )
 project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
 project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
@@ -108,6 +109,7 @@ project(":aiService").projectDir = File(serviceDir, "aiService")
 project(":lyricsService").projectDir = File(serviceDir, "lyricsService")
 project(":kotlinYtmusicScraper").projectDir = File(serviceDir, "kotlinYtmusicScraper")
 project(":spotify").projectDir = File(serviceDir, "spotify")
+project(":kizzy").projectDir = File(serviceDir, "kizzy")
 
 // media modules
 project(":media-jvm").projectDir = File(mediaDir, "media-jvm")

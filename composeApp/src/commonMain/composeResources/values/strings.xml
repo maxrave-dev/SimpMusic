@@ -431,6 +431,7 @@
     <string name="no_favorite_podcasts">No favorite podcasts</string>
     <string name="your_sp_dc_param_of_spotify_cookie">Your sp_dc param of Spotify cookie</string>
     <string name="your_youtube_cookie">Your YouTube Cookie</string>
+    <string name="your_discord_token">Your Discord token</string>
     <string name="can_not_be_empty">Can not be empty</string>
     <string name="processing">Processing</string>
     <string name="website">Website</string>
@@ -466,4 +467,11 @@
     <string name="explicit_content_blocked">Explicit content is skipped</string>
     <string name="mix_for_you">Mix for you</string>
     <string name="no_mixes_found">No mixes found</string>
+    <string name="desktop_webview_description">Because of the limitations of Compose Multiplatform, I can not implement WebView on desktop.\nRead this to learn more how to log in in desktop:\n</string>
+    <string name="open_blog_post">Open blog post</string>
+    <string name="discord_integration">Discord integration</string>
+    <string name="log_in_to_discord">Log in to Discord</string>
+    <string name="intro_login_to_discord">Log in to enable Discord Rich Presence</string>
+    <string name="enable_rich_presence">Enable rich presence</string>
+    <string name="rich_presence_info">Show media session info on your Discord profile</string>
 </resources>

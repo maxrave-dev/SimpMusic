@@ -150,6 +150,12 @@ class SettingsViewModel(
     private val _explicitContentEnabled = MutableStateFlow(false)
     val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
 
+    private val _discordLoggedIn = MutableStateFlow(false)
+    val discordLoggedIn: StateFlow<Boolean> = _discordLoggedIn
+
+    private val _richPresenceEnabled = MutableStateFlow(false)
+    val richPresenceEnabled: StateFlow<Boolean> = _richPresenceEnabled
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -225,12 +231,46 @@ class SettingsViewModel(
         getUpdateChannel()
         getEnableLiquidGlass()
         getExplicitContentEnabled()
+        getDiscordLoggedIn()
+        getDiscordRichPresenceEnabled()
         viewModelScope.launch {
             calculateDataFraction(
                 cacheRepository,
             )?.let {
                 _fraction.value = it
             }
+        }
+    }
+
+    private fun getDiscordLoggedIn() {
+        viewModelScope.launch {
+            dataStoreManager.discordToken.collect { loggedIn ->
+                _discordLoggedIn.value = loggedIn.isNotEmpty()
+            }
+        }
+    }
+
+    fun logOutDiscord() {
+        viewModelScope.launch {
+            dataStoreManager.setDiscordToken("")
+            delay(100)
+            getDiscordLoggedIn()
+        }
+    }
+
+    private fun getDiscordRichPresenceEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.richPresenceEnabled.collect { enabled ->
+                _richPresenceEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setDiscordRichPresenceEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setRichPresenceEnabled(enabled)
+            delay(100)
+            getDiscordRichPresenceEnabled()
         }
     }
 
