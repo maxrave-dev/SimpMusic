@@ -4,8 +4,8 @@ version-name="0.2.21"
 version-code="40"
 
 android = "8.11.2"
-kotlin = "2.2.20"
-serialization = "2.2.20"
+kotlin = "2.2.21"
+serialization = "2.2.21"
 ksp = "2.2.20-2.0.3"
 compose-bom = "2025.10.01"
 material3-expressive = "1.5.0-alpha07"
@@ -65,7 +65,7 @@ liquid-glass = "1.0.0-beta03"
 ytdlp = "0.18.0"
 ffmpeg-kit-audio="6.0.1"
 composeHotReload = "1.0.0-rc02"
-composeMultiplatform = "1.10.0-alpha02"
+composeMultiplatform = "1.10.0-alpha03"
 datetime = "0.7.1"
 sqlite = "2.6.1"
 okio = "3.16.2"
@@ -73,7 +73,7 @@ gst1JavaCore = "1.4.0"
 gst1JavaFx = "0.9.0"
 gst1JavaSwing = "0.9.0"
 material3-multiplatform = "1.9.0"
-adaptive = "1.2.0-alpha07"
+adaptive = "1.2.0-beta01"
 material-multiplatform = "1.9.1"
 material-icons-multiplatform = "1.7.3"
 compottie = "2.0.2"
@@ -83,7 +83,6 @@ buildkonfig = "0.17.1"
 jna="5.18.1"
 jnaPlatform="5.18.1"
 calf = "0.8.0"
-mediasessionJvm="0.1.1"
 material = "1.13.0"
 osdetector = "1.7.3"
 
@@ -211,7 +210,6 @@ gst1-java-fx = { module = "org.freedesktop.gstreamer:gst1-java-fx", version.ref 
 gst1-java-swing = { module = "org.freedesktop.gstreamer:gst1-java-swing", version.ref = "gst1JavaSwing" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jnaPlatform" }
-mediasession-jvm = { module = "dev.toastbits:mediasession-jvm", version.ref = "mediasessionJvm" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
