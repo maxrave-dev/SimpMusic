@@ -77,6 +77,7 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
@@ -641,7 +642,7 @@ fun MiniPlayer(
                 }
                 // Part 2
                 Box(modifier = Modifier.weight(1f)) {
-                    Column(Modifier.width(320.dp).padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(Modifier.width(380.dp).padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
                             contentAlignment = Alignment.Center,
                         ) {
@@ -662,6 +663,8 @@ fun MiniPlayer(
                                 text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
                                 style = typo().bodyMedium,
                                 textAlign = TextAlign.Left,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.width(50.dp),
                             )
                             // Real Slider
@@ -791,6 +794,8 @@ fun MiniPlayer(
                                 text = formatDuration(timelineState.total),
                                 style = typo().bodyMedium,
                                 textAlign = TextAlign.Right,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.width(50.dp),
                             )
                         }

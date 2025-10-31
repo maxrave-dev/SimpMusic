@@ -8,7 +8,6 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -222,16 +221,13 @@ class MainActivity : AppCompatActivity() {
             pushPlayerError(it)
         }
         mediaPlayerHandler.showToast = { type ->
-            Toast
-                .makeText(
-                    this@MainActivity,
-                    when (type) {
-                        ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
-                        is ToastType.PlayerError ->
-                            runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
-                    },
-                    Toast.LENGTH_SHORT,
-                ).show()
+            viewModel.makeToast(
+                when (type) {
+                    ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
+                    is ToastType.PlayerError ->
+                        runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
+                }
+            )
         }
         viewModel.isServiceRunning = true
         shouldUnbind = true
