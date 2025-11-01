@@ -116,6 +116,9 @@ class SearchViewModel(
                         _searchHistory.value = list
                         log("Search history updated: $list")
                     }
+                } else {
+                    _searchHistory.value = emptyList()
+                    log("Search history is empty")
                 }
             }
         }
