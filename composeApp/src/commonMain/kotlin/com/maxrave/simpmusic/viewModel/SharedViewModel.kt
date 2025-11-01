@@ -172,7 +172,7 @@ class SharedViewModel(
                 isNextAvailable = false,
                 isPreviousAvailable = false,
                 isCrossfading = false,
-                volume = 1f
+                volume = 1f,
             ),
         )
     val controllerState: StateFlow<ControlState> = _controllerState
@@ -345,6 +345,7 @@ class SharedViewModel(
                             SimpleMediaState.Initial -> {
                                 _timeline.update { it.copy(loading = true) }
                             }
+
                             SimpleMediaState.Ended -> {
                                 _timeline.update {
                                     it.copy(
@@ -481,6 +482,7 @@ class SharedViewModel(
                             // Save canvas thumb url
                             data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
                         }
+
                         else -> {
                             log("Get canvas error: ${response.message}", LogLevel.WARN)
                             nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
@@ -636,6 +638,7 @@ class SharedViewModel(
                         )
                         loadMediaItemFromTrack(track, SONG_CLICK)
                     }
+
                     else -> {
                         log("Load shared media item error: ${response.message}", LogLevel.WARN)
                         makeToast("${getString(Res.string.error)}: ${response.message}")
@@ -745,6 +748,7 @@ class SharedViewModel(
                     Logger.w(tag, "ToggleLike")
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.ToggleLike)
                 }
+
                 is UIEvent.UpdateVolume -> {
                     val newVolume = uiEvent.newVolume
                     dataStoreManager.setPlayerVolume(newVolume)
@@ -781,9 +785,11 @@ class SharedViewModel(
                         is AlbumEntity -> {
                             albumRepository.updateAlbumDownloadState(data.browseId, 0)
                         }
+
                         is PlaylistEntity -> {
                             playlistRepository.updatePlaylistDownloadState(data.id, 0)
                         }
+
                         else -> {
                             // Skip
                         }
@@ -869,6 +875,7 @@ class SharedViewModel(
                             _updateResponse.value = data
                             showedUpdateDialog = true
                         }
+
                         else -> {
                             log("Check for update error: ${response.message}", LogLevel.WARN)
                         }
@@ -883,6 +890,7 @@ class SharedViewModel(
                             _updateResponse.value = data
                             showedUpdateDialog = true
                         }
+
                         else -> {
                             log("Check for update error: ${response.message}", LogLevel.WARN)
                         }
@@ -977,6 +985,7 @@ class SharedViewModel(
                                             is Resource.Error -> {
                                                 Logger.w(tag, "Vote SimpMusic Translated Lyrics Error ${it.message}")
                                             }
+
                                             is Resource.Success -> {
                                                 Logger.d(tag, "Vote SimpMusic Translated Lyrics Success")
                                             }
@@ -1013,7 +1022,7 @@ class SharedViewModel(
                         it.copy(
                             lyricsData =
                                 it.lyricsData?.copy(
-                                    translatedLyrics = lyrics,
+                                    translatedLyrics = lyrics to lyricsProvider,
                                 ),
                         )
                     }
@@ -1030,6 +1039,7 @@ class SharedViewModel(
                                         is Resource.Error -> {
                                             log("Insert SimpMusic Translated Lyrics Error ${it.message}")
                                         }
+
                                         is Resource.Success -> {
                                             log("Insert SimpMusic Translated Lyrics Success")
                                         }
@@ -1038,6 +1048,7 @@ class SharedViewModel(
                         }
                     }
                 }
+
                 false -> {
                     _nowPlayingScreenData.update {
                         it.copy(
@@ -1072,6 +1083,7 @@ class SharedViewModel(
                                         is Resource.Error -> {
                                             Logger.w(tag, "Insert SimpMusic Lyrics Error ${it.message}")
                                         }
+
                                         is Resource.Success -> {
                                             Logger.d(tag, "Insert SimpMusic Lyrics Success")
                                         }
@@ -1266,6 +1278,7 @@ class SharedViewModel(
                                 data,
                             )
                         }
+
                         else -> {
                             getSavedLyrics(
                                 song.toTrack().copy(
@@ -1313,6 +1326,7 @@ class SharedViewModel(
         videoId: String,
         lyrics: Lyrics,
     ) {
+        Logger.d(tag, "Get AI Translation Lyrics for $videoId")
         if (dataStoreManager.useAITranslation.first() == TRUE &&
             dataStoreManager.aiApiKey.first().isNotEmpty() &&
             dataStoreManager.enableTranslateLyric.first() == FALSE
@@ -1622,7 +1636,7 @@ data class NowPlayingScreenData(
 
     data class LyricsData(
         val lyrics: Lyrics,
-        val translatedLyrics: Lyrics? = null,
+        val translatedLyrics: Pair<Lyrics, LyricsProvider>? = null,
         val lyricsProvider: LyricsProvider,
     )
 

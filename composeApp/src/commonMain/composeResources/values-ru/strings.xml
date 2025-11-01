@@ -383,7 +383,7 @@
     <string name="auto_check_for_update_description">Проверьте наличие обновлений при открытии приложения</string>
     <string name="blur_fullscreen_lyrics">Эффект размытия экрана текста песен</string>
     <string name="blur_fullscreen_lyrics_description">Размытие фона в полноэкранном просмотре текстов песен</string>
-    <string name="playback_speed_pitch"></string>
+    <string name="playback_speed_pitch">Скорость и высота воспроизведения</string>
     <string name="playback_speed">Скорость воспроизведения</string>
     <string name="pitch">Тон</string>
     <string name="blur_player_background">Размыть фон плеера</string>

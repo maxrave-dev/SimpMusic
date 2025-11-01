@@ -203,7 +203,7 @@ fun LyricsView(
     }
 
     fun findClosestTranslatedLine(originalTimeMs: String): String? {
-        val translatedLines = lyricsData.translatedLyrics?.lines ?: return null
+        val translatedLines = lyricsData.translatedLyrics?.first?.lines ?: return null
         if (translatedLines.isEmpty()) return null
 
         val originalTime = originalTimeMs.toLongOrNull() ?: return null
@@ -277,7 +277,16 @@ fun LyricsView(
             items(lyricsData.lyrics.lines?.size ?: 0) { index ->
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
                 // Tìm translated lyrics phù hợp dựa vào thời gian
-                val translatedWords = line?.startTimeMs?.let { findClosestTranslatedLine(it) }
+                val translatedWords =
+                    if (lyricsData.lyrics.syncType == "LINE_SYNCED") {
+                        line?.startTimeMs?.let { findClosestTranslatedLine(it) }
+                    } else {
+                        lyricsData.translatedLyrics
+                            ?.first
+                            ?.lines
+                            ?.getOrNull(index)
+                            ?.words
+                    }
                 Logger.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
 
                 line?.words?.let {

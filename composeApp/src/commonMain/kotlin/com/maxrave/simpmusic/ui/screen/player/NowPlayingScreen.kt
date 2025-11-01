@@ -135,6 +135,7 @@ import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
@@ -854,7 +855,7 @@ fun NowPlayingScreenContent(
                                                 shouldScaleDownSubtitle = true,
                                                 timelineState = timelineState,
                                                 lyricsData = screenDataState.lyricsData?.lyrics,
-                                                translatedLyricsData = screenDataState.lyricsData?.translatedLyrics,
+                                                translatedLyricsData = screenDataState.lyricsData?.translatedLyrics?.first,
                                                 isInPipMode = isInPipMode,
                                                 mainTextStyle = typo().bodyLarge,
                                                 translatedTextStyle = typo().bodyMedium,
@@ -1450,8 +1451,12 @@ fun NowPlayingScreenContent(
                                             text = stringResource(Res.string.lyrics),
                                             style = typo().labelMedium,
                                             color = Color.White,
-                                            modifier = Modifier.weight(1f),
                                         )
+                                        if (screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.AI) {
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            AIBadge()
+                                        }
+                                        Spacer(modifier = Modifier.weight(1f))
                                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                             TextButton(
                                                 onClick = {
@@ -1461,7 +1466,7 @@ fun NowPlayingScreenContent(
                                                 modifier =
                                                     Modifier
                                                         .height(20.dp)
-                                                        .width(40.dp),
+                                                        .wrapContentWidth(),
                                             ) {
                                                 Text(text = stringResource(Res.string.show))
                                             }

@@ -190,7 +190,7 @@ fun FullscreenPlayer(
             shouldShowSubtitle = shouldShowSubtitle,
             timelineState = timelineState,
             lyricsData = nowPlayingState.lyricsData?.lyrics,
-            translatedLyricsData = nowPlayingState.lyricsData?.translatedLyrics,
+            translatedLyricsData = nowPlayingState.lyricsData?.translatedLyrics?.first,
             isInPipMode = isInPipMode,
             mainTextStyle = typo().bodyLarge,
             translatedTextStyle = typo().bodyMedium,

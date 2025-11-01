@@ -53,15 +53,15 @@ common = "1.19.0"
 json = "1.9.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.22.0"
-sentry-gradle = "5.12.0"
+sentry-android = "8.25.0"
+sentry-gradle = "5.12.1"
 newpipe = "0.24.8"
 webkit = "1.14.0"
 napier = "2.7.1"
 kermit = "2.0.8"
 paging-common = "3.3.6"
 glance = "1.1.1"
-liquid-glass = "1.0.0-beta03"
+liquid-glass = "1.0.0-rc02"
 ytdlp = "0.18.0"
 ffmpeg-kit-audio="6.0.1"
 composeHotReload = "1.0.0-rc02"
@@ -73,8 +73,8 @@ gst1JavaCore = "1.4.0"
 gst1JavaFx = "0.9.0"
 gst1JavaSwing = "0.9.0"
 material3-multiplatform = "1.9.0"
-adaptive = "1.2.0-beta01"
-material-multiplatform = "1.9.1"
+adaptive = "1.2.0"
+material-multiplatform = "1.9.2"
 material-icons-multiplatform = "1.7.3"
 compottie = "2.0.2"
 cmptoast = "1.0.71"
@@ -181,7 +181,7 @@ glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 
-liquid-glass = { module = "com.github.Kyant0:AndroidLiquidGlass", version.ref = "liquid-glass" }
+liquid-glass = { module = "io.github.kyant0:backdrop", version.ref = "liquid-glass" }
 
 ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp" }
 
