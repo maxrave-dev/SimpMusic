@@ -41,6 +41,13 @@ class HomeViewModel(
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
     val homeItemList: StateFlow<List<HomeItem>> = _homeItemList
+
+    private var _homeListState = MutableStateFlow<ListState>(ListState.IDLE)
+    val homeListState: StateFlow<ListState> = _homeListState
+
+    private var _continuation = MutableStateFlow<String?>(null)
+    val continuation: StateFlow<String?> = _continuation
+
     private val _exploreMoodItem: MutableStateFlow<Mood?> = MutableStateFlow(null)
     val exploreMoodItem: StateFlow<Mood?> = _exploreMoodItem
     private val _accountInfo: MutableStateFlow<Pair<String?, String?>?> = MutableStateFlow(null)
@@ -157,6 +164,7 @@ class HomeViewModel(
 
     fun getHomeItemList(params: String? = null) {
         loading.value = true
+        _homeListState.value = ListState.LOADING
         language =
             runBlocking {
                 dataStoreManager.getString(SELECTED_LANGUAGE).first()
@@ -182,19 +190,25 @@ class HomeViewModel(
                     HomeDataCombine(home, exploreMood, exploreChart, newRelease)
                 }.collect { result ->
                     val home = result.home
-                    Logger.d("home size", "${home.data?.size}")
+                    Logger.d("home size", "${home.data?.second?.size}")
                     val exploreMoodItem = result.mood
                     val chart = result.chart
                     val newRelease = result.newRelease
                     when (home) {
                         is Resource.Success -> {
-                            _homeItemList.value = home.data ?: listOf()
+                            _continuation.value = home.data?.first
+                            _homeItemList.value = home.data?.second ?: listOf()
                         }
 
                         else -> {
+                            _continuation.value = null
                             _homeItemList.value = listOf()
                         }
                     }
+                    if (continuation.value.isNullOrEmpty())
+                        _homeListState.value = ListState.PAGINATION_EXHAUST
+                    else
+                        _homeListState.value = ListState.IDLE
                     when (chart) {
                         is Resource.Success -> {
                             _chart.value = chart.data
@@ -248,6 +262,45 @@ class HomeViewModel(
                     loading.value = false
                 }
             }
+    }
+
+    fun getContinueHomeItem(
+        continuation: String?,
+    ) {
+        viewModelScope.launch {
+            if (continuation.isNullOrEmpty()) {
+                _homeListState.value = ListState.PAGINATION_EXHAUST
+                return@launch
+            } else {
+                log("Get more home item with continuation: $continuation")
+                _homeListState.value = ListState.PAGINATING
+                homeRepository.getHomeDataContinue(
+                    continuation,
+                    getString(Res.string.view_count),
+                    getString(Res.string.song),
+                ).collect { home ->
+                    when (home) {
+                        is Resource.Success -> {
+                            _continuation.value = home.data?.first
+                            val newItems = home.data?.second ?: listOf()
+                            _homeItemList.update { it + newItems }
+                            if (home.data?.first.isNullOrEmpty()) {
+                                _homeListState.value = ListState.PAGINATION_EXHAUST
+                            } else {
+                                _homeListState.value = ListState.IDLE
+                            }
+                        }
+
+                        is Resource.Error -> {
+                            _continuation.value = null
+                            Logger.w(tag, "getContinueHomeItem: ${home.message}")
+                            showSnackBarErrorState.emit(home.message ?: "Unknown error")
+                            _homeListState.value = ListState.PAGINATION_EXHAUST
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun exploreChart(region: String) {

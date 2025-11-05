@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.expect.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.unit.dp
@@ -12,13 +13,17 @@ import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.colorControls
 import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
 import kotlin.math.sign
 import com.kyant.backdrop.backdrops.layerBackdrop as nativeBackdrop
 
 actual typealias PlatformBackdrop = LayerBackdrop
 
 @Composable
-actual fun rememberBackdrop(): PlatformBackdrop = rememberLayerBackdrop()
+actual fun rememberBackdrop(): PlatformBackdrop = rememberLayerBackdrop {
+    drawRect(Color.Black)
+    drawContent()
+}
 
 actual fun Modifier.layerBackdrop(backdrop: PlatformBackdrop): Modifier = this.nativeBackdrop(backdrop)
 
@@ -32,6 +37,7 @@ actual fun Modifier.drawBackdropCustomShape(
         backdrop = backdrop,
         effects = {
             val l = (luminanceAnimation * 2f - 1f).let { sign(it) * it * it }
+            vibrancy()
             colorControls(
                 brightness =
                     if (l > 0f) {
@@ -61,5 +67,6 @@ actual fun Modifier.drawBackdropCustomShape(
             layer.record { drawBackdrop() }
         },
         shape = { shape },
+        onDrawSurface = { drawRect(Color.Black.copy(alpha = 0.1f)) }
     )
 }

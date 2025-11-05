@@ -38,6 +38,7 @@ import org.jetbrains.compose.resources.getString
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
+import org.koin.dsl.module
 import org.simpmusic.crashlytics.pushPlayerError
 import pub.devrel.easypermissions.EasyPermissions
 import simpmusic.composeapp.generated.resources.Res
@@ -99,6 +100,11 @@ class MainActivity : AppCompatActivity() {
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        loadKoinModules(
+            module {
+                single { this@MainActivity }
+            }
+        )
         // Recreate view model to fix the issue of view model not getting data from the service
         unloadKoinModules(viewModelModule)
         loadKoinModules(viewModelModule)

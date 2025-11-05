@@ -49,6 +49,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -118,6 +119,7 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_ROMAN
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_SAD
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_SLEEP
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_WORKOUT
+import com.maxrave.simpmusic.viewModel.ListState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -210,6 +212,8 @@ fun HomeScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
     val params by viewModel.params.collectAsStateWithLifecycle()
+    val homeListState by viewModel.homeListState.collectAsStateWithLifecycle()
+    val continuation by viewModel.continuation.collectAsStateWithLifecycle()
 
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsStateWithLifecycle()
 
@@ -281,6 +285,29 @@ fun HomeScreen(
         } else {
             showReviewDialog = false
             showRequestShareLyricsPermissions = false
+        }
+    }
+
+    val shouldStartPaginate =
+        remember {
+            derivedStateOf {
+                homeListState != ListState.PAGINATION_EXHAUST &&
+                    (
+                        scrollState.layoutInfo.visibleItemsInfo
+                            .lastOrNull()
+                            ?.index ?: -9
+                        ) >= (scrollState.layoutInfo.totalItemsCount - 1)
+            }
+        }
+
+    LaunchedEffect(key1 = shouldStartPaginate.value) {
+        Logger.d("HomeScreen", "shouldStartPaginate: ${shouldStartPaginate.value}")
+        Logger.d("HomeScreen", "homeListState: $homeListState")
+        Logger.d("HomeScreen", "Continuation: $continuation")
+        if (shouldStartPaginate.value && homeListState == ListState.IDLE) {
+            viewModel.getContinueHomeItem(
+                continuation,
+            )
         }
     }
 
@@ -476,76 +503,92 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(newRelease, key = { it.hashCode() }) {
+                        item {
                             AnimatedVisibility(
-                                visible = newRelease.isNotEmpty(),
+                                homeListState == ListState.PAGINATING,
+                                enter = expandVertically() + expandVertically(),
+                                exit = fadeOut() + shrinkVertically(),
                             ) {
-                                HomeItem(
-                                    navController = navController,
-                                    data = it,
+                                CenterLoadingBox(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
                                 )
                             }
                         }
-                        item {
-                            AnimatedVisibility(
-                                visible = moodMomentAndGenre != null,
-                            ) {
-                                moodMomentAndGenre?.let {
-                                    MoodMomentAndGenre(
-                                        mood = it,
+                        if (homeListState == ListState.PAGINATION_EXHAUST) {
+                            items(newRelease, key = { it.hashCode() }) {
+                                AnimatedVisibility(
+                                    visible = newRelease.isNotEmpty(),
+                                ) {
+                                    HomeItem(
                                         navController = navController,
+                                        data = it,
                                     )
                                 }
                             }
-                        }
-                        item {
-                            Column(
-                                Modifier
-                                    .padding(vertical = 10.dp),
-                                verticalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                ChartTitle()
-                                Spacer(modifier = Modifier.height(5.dp))
-                                Crossfade(targetState = regionChart) {
-                                    Logger.w("HomeScreen", "regionChart: $it")
-                                    if (it != null) {
-                                        DropdownButton(
-                                            items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
-                                            defaultSelected =
-                                                CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                    CHART_SUPPORTED_COUNTRY.items.indexOf(it),
-                                                )
-                                                    ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
-                                        ) {
-                                            viewModel.exploreChart(
-                                                CHART_SUPPORTED_COUNTRY.items[
-                                                    CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
-                                                        it,
-                                                    ),
-                                                ],
-                                            )
-                                        }
+                            item {
+                                AnimatedVisibility(
+                                    visible = moodMomentAndGenre != null,
+                                ) {
+                                    moodMomentAndGenre?.let {
+                                        MoodMomentAndGenre(
+                                            mood = it,
+                                            navController = navController,
+                                        )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(5.dp))
-                                Crossfade(
-                                    targetState = chartLoading,
-                                    label = "Chart",
-                                ) { loading ->
-                                    if (!loading) {
-                                        chart?.let {
-                                            ChartData(
-                                                chart = it,
-                                                navController = navController,
+                            }
+                            item {
+                                Column(
+                                    Modifier
+                                        .padding(vertical = 10.dp),
+                                    verticalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    ChartTitle()
+                                    Spacer(modifier = Modifier.height(5.dp))
+                                    Crossfade(targetState = regionChart) {
+                                        Logger.w("HomeScreen", "regionChart: $it")
+                                        if (it != null) {
+                                            DropdownButton(
+                                                items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
+                                                defaultSelected =
+                                                    CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                        CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                                    )
+                                                        ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                            ) {
+                                                viewModel.exploreChart(
+                                                    CHART_SUPPORTED_COUNTRY.items[
+                                                        CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
+                                                            it,
+                                                        ),
+                                                    ],
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(5.dp))
+                                    Crossfade(
+                                        targetState = chartLoading,
+                                        label = "Chart",
+                                    ) { loading ->
+                                        if (!loading) {
+                                            chart?.let {
+                                                ChartData(
+                                                    chart = it,
+                                                    navController = navController,
+                                                )
+                                            }
+                                        } else {
+                                            CenterLoadingBox(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height(400.dp),
                                             )
                                         }
-                                    } else {
-                                        CenterLoadingBox(
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .height(400.dp),
-                                        )
                                     }
                                 }
                             }

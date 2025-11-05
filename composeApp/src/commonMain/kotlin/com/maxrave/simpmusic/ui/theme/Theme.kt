@@ -1,7 +1,8 @@
 package com.maxrave.simpmusic.ui.theme
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -47,6 +48,7 @@ val DarkColors =
         scrim = md_theme_dark_scrim,
     )
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppTheme(
     content:
@@ -80,7 +82,7 @@ fun AppTheme(
         content()
     }
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = DarkColors,
         content = {
             CompositionLocalProvider(

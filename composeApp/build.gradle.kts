@@ -78,8 +78,6 @@ kotlin {
             // Runtime
             implementation(libs.startup.runtime)
 
-            implementation(libs.lifecycle.viewmodel.ktx)
-
             // Glance
             implementation(libs.glance)
             implementation(libs.glance.appwidget)
