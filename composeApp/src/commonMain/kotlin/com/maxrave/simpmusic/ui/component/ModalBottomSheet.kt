@@ -6,11 +6,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -45,6 +48,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -110,6 +114,7 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.download.DownloadProgress
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
@@ -248,8 +253,10 @@ import simpmusic.composeapp.generated.resources.update_playlist
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.yes
 import simpmusic.composeapp.generated.resources.your_discord_token
+import simpmusic.composeapp.generated.resources.your_playlists
 import simpmusic.composeapp.generated.resources.your_sp_dc_param_of_spotify_cookie
 import simpmusic.composeapp.generated.resources.your_youtube_cookie
+import simpmusic.composeapp.generated.resources.your_youtube_playlists
 import simpmusic.composeapp.generated.resources.youtube_transcript
 import simpmusic.composeapp.generated.resources.youtube_url
 
@@ -863,12 +870,10 @@ fun QueueBottomSheet(
     }
 
     DisposableEffect(Unit) {
-        val currentSongIndex = musicServiceHandler.currentSongIndex()
+        val currentSongIndex = musicServiceHandler.currentOrderIndex()
         Logger.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
         coroutineScope.launch {
-            lazyListState.requestScrollToItem(
-                currentSongIndex,
-            )
+            lazyListState.requestScrollToItem(currentSongIndex)
         }
         onDispose { }
     }
@@ -1362,16 +1367,20 @@ fun NowPlayingBottomSheet(
         AddToPlaylistModalBottomSheet(
             isBottomSheetVisible = true,
             listLocalPlaylist = uiState.listLocalPlaylist,
+            listYouTubePlaylist = uiState.listYouTubePlaylist,
             onDismiss = { addToAPlaylist = false },
             onClick = {
                 viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToPlaylist(it.id))
+            },
+            onYTPlaylistClick = {
+                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist(it.browseId))
             },
             videoId = uiState.songUIState.videoId,
         )
     }
     if (artist) {
         ArtistModalBottomSheet(
-            isBottomSheetVisible = artist,
+            isBottomSheetVisible = true,
             artists = uiState.songUIState.listArtists,
             navController = navController,
             onNavigateToOtherScreen = onNavigateToOtherScreen,
@@ -2041,14 +2050,16 @@ fun PlaybackSpeedPitchBottomSheet(
 fun AddToPlaylistModalBottomSheet(
     isBottomSheetVisible: Boolean,
     listLocalPlaylist: List<LocalPlaylistEntity>,
+    listYouTubePlaylist: List<PlaylistsResult>,
     videoId: String? = null,
     onClick: (LocalPlaylistEntity) -> Unit,
+    onYTPlaylistClick: (PlaylistsResult) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
+            skipPartiallyExpanded = false,
         )
     val hideModalBottomSheet: () -> Unit =
         {
@@ -2070,9 +2081,10 @@ fun AddToPlaylistModalBottomSheet(
             Card(
                 modifier =
                     Modifier
+                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
                         .fillMaxWidth()
                         .wrapContentHeight(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                shape = BottomSheetDefaults.ExpandedShape,
                 colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
             ) {
                 Column(
@@ -2092,7 +2104,43 @@ fun AddToPlaylistModalBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    if (listLocalPlaylist.isEmpty()) {
+
+                    val chipRowState = rememberScrollState()
+                    var isYouTubePlaylistClicked by remember {
+                        mutableStateOf(false)
+                    }
+                    if (listYouTubePlaylist.isNotEmpty()) {
+                        Row(
+                            modifier =
+                                Modifier
+                                    .horizontalScroll(chipRowState)
+                                    .padding(horizontal = 15.dp)
+                                    .padding(vertical = 8.dp)
+                                    .background(Color.Transparent),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Chip(
+                                isAnimated = false,
+                                isSelected = !isYouTubePlaylistClicked,
+                                text = stringResource(Res.string.your_playlists),
+                                onClick = {
+                                    isYouTubePlaylistClicked = false
+                                },
+                            )
+                            Chip(
+                                isAnimated = false,
+                                isSelected = isYouTubePlaylistClicked,
+                                text = stringResource(Res.string.your_youtube_playlists),
+                                onClick = {
+                                    isYouTubePlaylistClicked = true
+                                },
+                            )
+                        }
+                    }
+
+                    if ((listLocalPlaylist.isEmpty() && !isYouTubePlaylistClicked) ||
+                        (listYouTubePlaylist.isEmpty() && isYouTubePlaylistClicked)
+                    ) {
                         Text(
                             text = stringResource(Res.string.no_playlist_found),
                             style = typo().labelSmall,
@@ -2100,37 +2148,30 @@ fun AddToPlaylistModalBottomSheet(
                             color = Color.Gray,
                         )
                     } else {
-                        LazyColumn {
-                            items(listLocalPlaylist) { playlist ->
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 3.dp)
-                                            .clickable(
-                                                enabled = playlist.tracks?.contains(videoId) != true,
-                                                onClick = {
-                                                    onClick(playlist)
-                                                    hideModalBottomSheet()
-                                                },
-                                            ),
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier =
-                                            Modifier
-                                                .padding(12.dp)
-                                                .align(Alignment.CenterStart),
-                                    ) {
-                                        Crossfade(
-                                            targetState = playlist.tracks?.contains(videoId) == true,
+                        Crossfade(isYouTubePlaylistClicked) { clicked ->
+                            if (clicked) {
+                                LazyColumn {
+                                    items(listYouTubePlaylist) { playlist ->
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 3.dp)
+                                                    .clickable(
+                                                        enabled = true,
+                                                        onClick = {
+                                                            onYTPlaylistClick(playlist)
+                                                            hideModalBottomSheet()
+                                                        },
+                                                    ),
                                         ) {
-                                            if (it) {
-                                                Image(
-                                                    painter = painterResource(Res.drawable.done),
-                                                    contentDescription = "",
-                                                )
-                                            } else {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier =
+                                                    Modifier
+                                                        .padding(12.dp)
+                                                        .align(Alignment.CenterStart),
+                                            ) {
                                                 Image(
                                                     painter =
                                                         painterResource(
@@ -2138,14 +2179,65 @@ fun AddToPlaylistModalBottomSheet(
                                                         ),
                                                     contentDescription = "",
                                                 )
+                                                Spacer(modifier = Modifier.width(10.dp))
+                                                Text(
+                                                    text = playlist.title,
+                                                    style = typo().labelSmall,
+                                                    color = Color.White,
+                                                )
                                             }
                                         }
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        Text(
-                                            text = playlist.title,
-                                            style = typo().labelSmall,
-                                            color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
-                                        )
+                                    }
+                                }
+                            } else {
+                                LazyColumn {
+                                    items(listLocalPlaylist) { playlist ->
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 3.dp)
+                                                    .clickable(
+                                                        enabled = playlist.tracks?.contains(videoId) != true,
+                                                        onClick = {
+                                                            onClick(playlist)
+                                                            hideModalBottomSheet()
+                                                        },
+                                                    ),
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier =
+                                                    Modifier
+                                                        .padding(12.dp)
+                                                        .align(Alignment.CenterStart),
+                                            ) {
+                                                Crossfade(
+                                                    targetState = playlist.tracks?.contains(videoId) == true,
+                                                ) {
+                                                    if (it) {
+                                                        Image(
+                                                            painter = painterResource(Res.drawable.done),
+                                                            contentDescription = "",
+                                                        )
+                                                    } else {
+                                                        Image(
+                                                            painter =
+                                                                painterResource(
+                                                                    Res.drawable.baseline_playlist_add_24,
+                                                                ),
+                                                            contentDescription = "",
+                                                        )
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.width(10.dp))
+                                                Text(
+                                                    text = playlist.title,
+                                                    style = typo().labelSmall,
+                                                    color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }

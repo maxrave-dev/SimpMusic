@@ -5,6 +5,7 @@ import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Album
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
@@ -17,9 +18,11 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.SleepTimerState
 import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
+import com.maxrave.domain.utils.collectResource
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.simpmusic.expect.shareUrl
@@ -29,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,16 +41,20 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_playlist
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_playlist
+import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.error_occurred
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_download
+import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
 import simpmusic.composeapp.generated.resources.share_url
 import simpmusic.composeapp.generated.resources.sleep_timer_off_done
 
 class NowPlayingBottomSheetViewModel(
     private val dataStoreManager: DataStoreManager,
     private val localPlaylistRepository: LocalPlaylistRepository,
+    private val playlistRepository: PlaylistRepository,
     private val songRepository: SongRepository,
 ) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject()
@@ -54,6 +62,7 @@ class NowPlayingBottomSheetViewModel(
         MutableStateFlow(
             NowPlayingBottomSheetUIState(
                 listLocalPlaylist = emptyList(),
+                listYouTubePlaylist = emptyList(),
                 mainLyricsProvider = SIMPMUSIC,
                 sleepTimer =
                     SleepTimerState(
@@ -80,6 +89,12 @@ class NowPlayingBottomSheetViewModel(
                         _uiState.update { it.copy(listLocalPlaylist = list) }
                     }
                 }
+            val listYouTubePlaylistJob =
+                launch {
+                    playlistRepository.getLibraryPlaylist().collect { data ->
+                        _uiState.update { it.copy(listYouTubePlaylist = data ?: emptyList()) }
+                    }
+                }
             val mainLyricsProviderJob =
                 launch {
                     dataStoreManager.lyricsProvider.collectLatest { lyricsProvider ->
@@ -104,6 +119,7 @@ class NowPlayingBottomSheetViewModel(
                 }
             sleepTimerJob.join()
             listLocalPlaylistJob.join()
+            listYouTubePlaylistJob.join()
             mainLyricsProviderJob.join()
         }
     }
@@ -164,6 +180,40 @@ class NowPlayingBottomSheetViewModel(
         viewModelScope.launch {
             when (ev) {
                 is NowPlayingBottomSheetUIEvent.DeleteFromPlaylist -> {
+                    localPlaylistRepository
+                        .removeTrackFromLocalPlaylist(
+                            id = ev.playlistId,
+                            song =
+                                songRepository.getSongById(ev.videoId).lastOrNull() ?: run {
+                                    makeToast(getString(Res.string.error_occurred))
+                                    return@launch
+                                },
+                            successMessage = getString(Res.string.delete_song_from_playlist),
+                            updatedYtMessage = getString(Res.string.removed_from_YouTube_playlist),
+                            errorMessage = getString(Res.string.error_occurred),
+                        ).collectResource(
+                            onSuccess = {
+                                makeToast(it ?: getString(Res.string.delete_song_from_playlist))
+                            },
+                            onError = {
+                                makeToast(it)
+                            },
+                        )
+                }
+
+                is NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist -> {
+                    localPlaylistRepository
+                        .addYouTubePlaylistItem(
+                            youtubePlaylistId = ev.browseId,
+                            videoId = songUIState.videoId,
+                        ).collectLatestResource(
+                            onSuccess = {
+                                makeToast(it)
+                            },
+                            onError = {
+                                makeToast(it)
+                            },
+                        )
                 }
 
                 is NowPlayingBottomSheetUIEvent.ToggleLike -> {
@@ -317,6 +367,7 @@ class NowPlayingBottomSheetViewModel(
 data class NowPlayingBottomSheetUIState(
     val songUIState: SongUIState = SongUIState(),
     val listLocalPlaylist: List<LocalPlaylistEntity>,
+    val listYouTubePlaylist: List<PlaylistsResult>,
     val mainLyricsProvider: String,
     val sleepTimer: SleepTimerState,
 ) {
@@ -343,6 +394,10 @@ sealed class NowPlayingBottomSheetUIEvent {
 
     data class AddToPlaylist(
         val playlistId: Long,
+    ) : NowPlayingBottomSheetUIEvent()
+
+    data class AddToYouTubePlaylist(
+        val browseId: String,
     ) : NowPlayingBottomSheetUIEvent()
 
     data object PlayNext : NowPlayingBottomSheetUIEvent()
