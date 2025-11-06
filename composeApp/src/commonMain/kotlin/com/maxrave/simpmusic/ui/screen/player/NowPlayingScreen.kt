@@ -53,6 +53,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Done
@@ -834,6 +836,9 @@ fun NowPlayingScreenContent(
                                     visible = screenDataState.isVideo && shouldShowVideo,
                                     modifier = Modifier.align(Alignment.Center),
                                 ) {
+                                    var internalShowSubtitle by rememberSaveable {
+                                        mutableStateOf(true)
+                                    }
                                     Box(
                                         modifier =
                                             Modifier
@@ -850,7 +855,7 @@ fun NowPlayingScreenContent(
                                             MediaPlayerViewWithSubtitle(
                                                 playerName = MAIN_PLAYER,
                                                 modifier = Modifier.align(Alignment.Center),
-                                                shouldShowSubtitle = true,
+                                                shouldShowSubtitle = internalShowSubtitle,
                                                 shouldPip = false,
                                                 shouldScaleDownSubtitle = true,
                                                 timelineState = timelineState,
@@ -961,6 +966,21 @@ fun NowPlayingScreenContent(
                                                                         Modifier
                                                                             .size(36.dp)
                                                                             .alpha(0.8f),
+                                                                )
+                                                            }
+                                                        }
+                                                        if (screenDataState.lyricsData != null) {
+                                                            IconButton(onClick = {
+                                                                internalShowSubtitle = !internalShowSubtitle
+                                                            }, Modifier.align(Alignment.BottomEnd)) {
+                                                                Icon(
+                                                                    imageVector = if (internalShowSubtitle) {
+                                                                        Icons.Filled.SubtitlesOff
+                                                                    } else {
+                                                                        Icons.Filled.Subtitles
+                                                                    },
+                                                                    contentDescription = "",
+                                                                    tint = Color.White,
                                                                 )
                                                             }
                                                         }
