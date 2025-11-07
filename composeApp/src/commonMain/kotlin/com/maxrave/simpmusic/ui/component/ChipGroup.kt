@@ -1,7 +1,7 @@
 package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ElevatedFilterChip
@@ -11,13 +11,11 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.maxrave.simpmusic.ui.theme.colorPrimaryDark
 
 @Composable
 fun Chip(
@@ -32,15 +30,15 @@ fun Chip(
         backgroundColor = Color.Transparent,
         contentPadding = 0.dp,
         borderWidth = 1.dp,
-        shape = RoundedCornerShape(12.dp),
+        shape = CircleShape,
         oneCircleDurationMillis = 2500,
     ) {
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
             ElevatedFilterChip(
-                shape = RoundedCornerShape(12.dp),
+                shape = CircleShape,
                 colors =
                     FilterChipDefaults.elevatedFilterChipColors(
-                        containerColor = colorPrimaryDark,
+                        containerColor = Color.Transparent,
                         iconColor = Color.White,
                         selectedContainerColor = Color.DarkGray.copy(alpha = 0.8f),
                         labelColor = Color.LightGray,

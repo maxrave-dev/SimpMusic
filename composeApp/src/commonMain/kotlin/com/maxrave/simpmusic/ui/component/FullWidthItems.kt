@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +41,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -449,6 +452,8 @@ fun PlaylistFullWidthItems(
         var secondSubtitle = ""
         var thirdRowSubtitle: String? = null
 
+        var shouldPin = false
+
         firstSubtitle =
             when (data.playlistType()) {
                 PlaylistType.Type.YOUTUBE_PLAYLIST -> stringResource(Res.string.playlist)
@@ -469,6 +474,9 @@ fun PlaylistFullWidthItems(
                 title = data.title
                 thumb = data.thumbnails
                 secondSubtitle = data.author ?: ""
+                if (data.description == "PIN") { // LIKED MUSIC
+                    shouldPin = true
+                }
             }
 
             is LocalPlaylistEntity -> {
@@ -545,20 +553,31 @@ fun PlaylistFullWidthItems(
                             ).focusable(),
                 )
 
-                Text(
-                    text = "$firstSubtitle ${if (secondSubtitle.isNotEmpty()) " • $secondSubtitle" else ""}",
-                    style = typo().bodySmall,
-                    maxLines = 1,
-                    color = Color(0xC4FFFFFF),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
-                )
+                Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (shouldPin) {
+                        Image(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(Color.Cyan),
+                            modifier = Modifier.rotate(30f)
+                                .size(16.dp)
+                        )
+                    }
+                    Text(
+                        text = "$firstSubtitle ${if (secondSubtitle.isNotEmpty()) " • $secondSubtitle" else ""}",
+                        style = typo().bodySmall,
+                        maxLines = 1,
+                        color = Color(0xC4FFFFFF),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable(),
+                    )
+                }
 
                 if (thirdRowSubtitle != null) {
                     Text(

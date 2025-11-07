@@ -1095,7 +1095,7 @@ fun NowPlayingScreenContent(
                                                                 .clickable {
                                                                     val song = sharedViewModel.nowPlayingState.value?.songEntity
                                                                     (
-                                                                        song?.artistId?.firstOrNull()
+                                                                        song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                                                             ?: screenDataState.songInfoData?.authorId
                                                                     )?.let { channelId ->
                                                                         onDismiss()
@@ -1553,7 +1553,7 @@ fun NowPlayingScreenContent(
                                 onClick = {
                                     val song = sharedViewModel.nowPlayingState.value?.songEntity
                                     (
-                                        song?.artistId?.firstOrNull()
+                                        song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                             ?: screenDataState.songInfoData?.authorId
                                     )?.let { channelId ->
                                         onDismiss()

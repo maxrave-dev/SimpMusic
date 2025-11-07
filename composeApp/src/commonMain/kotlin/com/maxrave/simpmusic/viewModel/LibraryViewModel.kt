@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.mapLatest
@@ -34,6 +35,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_local_playlist
+import simpmusic.composeapp.generated.resources.youtube_liked_music
 
 class LibraryViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -78,16 +80,28 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val listCanvasSong: StateFlow<LocalResource<List<SongEntity>>> get() = _listCanvasSong.asStateFlow()
 
+    private val _accountThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
+    val accountThumbnail: StateFlow<String?> get() = _accountThumbnail.asStateFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
 
     init {
         viewModelScope.launch {
-             dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
-                 LibraryChipType.fromStringValue(chipType)?.let {
-                    _currentScreen.value = it
+            val currentScreenJob = launch {
+                dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
+                    LibraryChipType.fromStringValue(chipType)?.let {
+                     _currentScreen.value = it
+                    }
                 }
             }
+            val cookieJob = launch {
+                dataStoreManager.cookie.distinctUntilChanged().collect {
+                    _accountThumbnail.value = dataStoreManager.getString("AccountThumbUrl").first().takeIf { !it.isNullOrEmpty() }
+                }
+            }
+            currentScreenJob.join()
+            cookieJob.join()
         }
     }
 
@@ -110,6 +124,18 @@ class LibraryViewModel(
                         temp.remove(it)
                     }
                 temp.removeIf { it is SongEntity && it.inLibrary == Config.REMOVED_SONG_DATE_TIME }
+                if (dataStoreManager.loggedIn.first() == DataStoreManager.TRUE) {
+                    temp.removeIf { it is PlaylistEntity && it.id == "LM" }
+                    temp.add(
+                        PlaylistEntity(
+                            title = getString(Res.string.youtube_liked_music),
+                            author = "YouTube Music",
+                            id = "LM",
+                            description = "PIN",
+                            thumbnails = "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png"
+                        )
+                    )
+                }
                 temp.reverse()
                 _recentlyAdded.value = LocalResource.Success(temp.toImmutableList())
             }
