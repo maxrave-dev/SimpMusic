@@ -223,6 +223,8 @@ import simpmusic.composeapp.generated.resources.invalid_api_key
 import simpmusic.composeapp.generated.resources.invalid_host
 import simpmusic.composeapp.generated.resources.invalid_language_code
 import simpmusic.composeapp.generated.resources.invalid_port
+import simpmusic.composeapp.generated.resources.keep_service_alive
+import simpmusic.composeapp.generated.resources.keep_service_alive_description
 import simpmusic.composeapp.generated.resources.kill_service_on_exit
 import simpmusic.composeapp.generated.resources.kill_service_on_exit_description
 import simpmusic.composeapp.generated.resources.language
@@ -412,6 +414,7 @@ fun SettingScreen(
     val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
+    val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
@@ -822,11 +825,18 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.save_last_played_track_and_queue),
                     switch = (saveLastPlayed to { viewModel.setSaveLastPlayed(it) }),
                 )
-                SettingItem(
-                    title = stringResource(Res.string.kill_service_on_exit),
-                    subtitle = stringResource(Res.string.kill_service_on_exit_description),
-                    switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
-                )
+                if (getPlatform() == Platform.Android) {
+                    SettingItem(
+                        title = stringResource(Res.string.kill_service_on_exit),
+                        subtitle = stringResource(Res.string.kill_service_on_exit_description),
+                        switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.keep_service_alive),
+                        subtitle = stringResource(Res.string.keep_service_alive_description),
+                        switch = (keepServiceAlive to { viewModel.setKeepServiceAlive(it) }),
+                    )
+                }
             }
         }
         item(key = "lyrics") {

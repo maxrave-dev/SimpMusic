@@ -475,4 +475,6 @@
     <string name="enable_rich_presence">Enable rich presence</string>
     <string name="rich_presence_info">Show media session info on your Discord profile</string>
     <string name="youtube_liked_music">YouTube Liked Music</string>
+    <string name="keep_service_alive">Keep service alive</string>
+    <string name="keep_service_alive_description">Keep music player service alive to avoid being killed by system</string>
 </resources>

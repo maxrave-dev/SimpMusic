@@ -156,6 +156,9 @@ class SettingsViewModel(
     private val _richPresenceEnabled = MutableStateFlow(false)
     val richPresenceEnabled: StateFlow<Boolean> = _richPresenceEnabled
 
+    private val _keepServiceAlive = MutableStateFlow<Boolean>(false)
+    val keepServiceAlive: StateFlow<Boolean> = _keepServiceAlive
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -233,12 +236,28 @@ class SettingsViewModel(
         getExplicitContentEnabled()
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
+        getKeepServiceAlive()
         viewModelScope.launch {
             calculateDataFraction(
                 cacheRepository,
             )?.let {
                 _fraction.value = it
             }
+        }
+    }
+
+    private fun getKeepServiceAlive() {
+        viewModelScope.launch {
+            dataStoreManager.keepServiceAlive.collect { keepServiceAlive ->
+                _keepServiceAlive.value = keepServiceAlive == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setKeepServiceAlive(keepServiceAlive: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setKeepServiceAlive(keepServiceAlive)
+            getKeepServiceAlive()
         }
     }
 

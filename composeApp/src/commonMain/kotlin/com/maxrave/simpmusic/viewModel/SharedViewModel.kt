@@ -1578,6 +1578,8 @@ class SharedViewModel(
     }
 
     fun shouldStopMusicService(): Boolean = runBlocking { dataStoreManager.killServiceOnExit.first() == TRUE }
+
+    fun isUserLoggedIn(): Boolean = runBlocking { dataStoreManager.cookie.first().isNotEmpty() }
 }
 
 sealed class UIEvent {

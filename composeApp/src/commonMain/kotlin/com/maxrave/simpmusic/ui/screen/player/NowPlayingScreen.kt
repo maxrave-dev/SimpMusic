@@ -56,8 +56,8 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Replay5
@@ -1110,6 +1110,44 @@ fun NowPlayingScreenContent(
                                                 }
                                             }
                                         }
+                                        if (sharedViewModel.isUserLoggedIn()) {
+                                            Spacer(modifier = Modifier.size(10.dp))
+                                            Crossfade(
+                                                targetState = likeStatus,
+                                            ) {
+                                                if (it) {
+                                                    IconButton(
+                                                        modifier =
+                                                            Modifier
+                                                                .size(24.dp)
+                                                                .aspectRatio(1f)
+                                                                .clip(
+                                                                    CircleShape,
+                                                                ),
+                                                        onClick = {
+                                                            sharedViewModel.addToYouTubeLiked()
+                                                        },
+                                                    ) {
+                                                        Icon(imageVector = Icons.Rounded.CheckCircle, tint = Color.White, contentDescription = "")
+                                                    }
+                                                } else {
+                                                    IconButton(
+                                                        modifier =
+                                                            Modifier
+                                                                .size(24.dp)
+                                                                .aspectRatio(1f)
+                                                                .clip(
+                                                                    CircleShape,
+                                                                ),
+                                                        onClick = {
+                                                            sharedViewModel.addToYouTubeLiked()
+                                                        },
+                                                    ) {
+                                                        Icon(imageVector = Icons.Rounded.AddCircleOutline, tint = Color.White, contentDescription = "")
+                                                    }
+                                                }
+                                            }
+                                        }
                                         Spacer(modifier = Modifier.size(10.dp))
                                         HeartCheckBox(checked = controllerState.isLiked, size = 32) {
                                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
@@ -1300,63 +1338,24 @@ fun NowPlayingScreenContent(
                                         ) {
                                             Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
                                         }
-                                        Row(
-                                            Modifier.align(Alignment.CenterEnd),
+                                        IconButton(
+                                            modifier =
+                                                Modifier
+                                                    .size(24.dp)
+                                                    .aspectRatio(1f)
+                                                    .align(Alignment.CenterEnd)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ),
+                                            onClick = {
+                                                showQueueBottomSheet = true
+                                            },
                                         ) {
-                                            Crossfade(
-                                                targetState = likeStatus,
-                                            ) {
-                                                if (it) {
-                                                    IconButton(
-                                                        modifier =
-                                                            Modifier
-                                                                .size(24.dp)
-                                                                .aspectRatio(1f)
-                                                                .clip(
-                                                                    CircleShape,
-                                                                ),
-                                                        onClick = {
-                                                            sharedViewModel.addToYouTubeLiked()
-                                                        },
-                                                    ) {
-                                                        Icon(imageVector = Icons.Rounded.Done, tint = Color.White, contentDescription = "")
-                                                    }
-                                                } else {
-                                                    IconButton(
-                                                        modifier =
-                                                            Modifier
-                                                                .size(24.dp)
-                                                                .aspectRatio(1f)
-                                                                .clip(
-                                                                    CircleShape,
-                                                                ),
-                                                        onClick = {
-                                                            sharedViewModel.addToYouTubeLiked()
-                                                        },
-                                                    ) {
-                                                        Icon(imageVector = Icons.Rounded.Add, tint = Color.White, contentDescription = "")
-                                                    }
-                                                }
-                                            }
-                                            Spacer(modifier = Modifier.size(8.dp))
-                                            IconButton(
-                                                modifier =
-                                                    Modifier
-                                                        .size(24.dp)
-                                                        .aspectRatio(1f)
-                                                        .clip(
-                                                            CircleShape,
-                                                        ),
-                                                onClick = {
-                                                    showQueueBottomSheet = true
-                                                },
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                                                    tint = Color.White,
-                                                    contentDescription = "",
-                                                )
-                                            }
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                                tint = Color.White,
+                                                contentDescription = "",
+                                            )
                                         }
                                     }
                                 }
