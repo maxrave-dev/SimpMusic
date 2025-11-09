@@ -9,14 +9,18 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.filter
 import androidx.paging.insertFooterItem
 import com.maxrave.common.ASC
+import com.maxrave.common.CUSTOM_ORDER
 import com.maxrave.common.Config
 import com.maxrave.common.DESC
 import com.maxrave.common.LOCAL_PLAYLIST_ID
+import com.maxrave.common.TITLE
+import com.maxrave.data.db.Converters
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADING
 import com.maxrave.domain.data.entities.DownloadState.STATE_NOT_DOWNLOADED
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SetVideoIdEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
@@ -45,6 +49,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -78,6 +83,7 @@ class LocalPlaylistViewModel(
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
 ) : BaseViewModel() {
+    private val converter = Converters()
     private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
 
     private var _offset: MutableStateFlow<Int> = MutableStateFlow(0)
@@ -117,6 +123,7 @@ class LocalPlaylistViewModel(
                     DataStoreManager.LOCAL_PLAYLIST_FILTER_OLDER_FIRST -> FilterState.OlderFirst
                     DataStoreManager.LOCAL_PLAYLIST_FILTER_NEWER_FIRST -> FilterState.NewerFirst
                     DataStoreManager.LOCAL_PLAYLIST_FILTER_TITLE -> FilterState.Title
+                    DataStoreManager.LOCAL_PLAYLIST_FILTER_CUSTOM_ORDER -> FilterState.CustomOrder
                     else -> FilterState.OlderFirst
                 },
             )
@@ -186,19 +193,19 @@ class LocalPlaylistViewModel(
         }
     }
 
-    private val _tracksPagingState: MutableStateFlow<PagingData<SongEntity>> =
+    private val _tracksPagingState: MutableStateFlow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>> =
         MutableStateFlow(
             PagingData.empty(),
         )
-    val tracksPagingState: StateFlow<PagingData<SongEntity>> get() = _tracksPagingState
-    private val lazyTrackPagingItems: MutableStateFlow<LazyPagingItems<SongEntity>?> = MutableStateFlow(null)
+    val tracksPagingState: StateFlow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>> get() = _tracksPagingState
+    private val lazyTrackPagingItems: MutableStateFlow<LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>?> = MutableStateFlow(null)
 
-    fun setLazyTrackPagingItems(lazyPagingItems: LazyPagingItems<SongEntity>) {
+    fun setLazyTrackPagingItems(lazyPagingItems: LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>) {
         lazyTrackPagingItems.value = lazyPagingItems
         Logger.d(tag, "setLazyTrackPagingItems: ${lazyTrackPagingItems.value?.itemCount}")
     }
 
-    private val modifications = MutableStateFlow<List<PagingActions<SongEntity>>>(emptyList())
+    private val modifications = MutableStateFlow<List<PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>>>(emptyList())
 
     private fun getTracksPagingState(
         id: Long,
@@ -224,9 +231,9 @@ class LocalPlaylistViewModel(
     }
 
     private fun applyActions(
-        pagingData: PagingData<SongEntity>,
-        actions: PagingActions<SongEntity>,
-    ): PagingData<SongEntity> =
+        pagingData: PagingData<Pair<SongEntity, PairSongLocalPlaylist>>,
+        actions: PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>,
+    ): PagingData<Pair<SongEntity, PairSongLocalPlaylist>> =
         when (actions) {
             is PagingActions.Insert -> {
                 val loadState = lazyTrackPagingItems.value?.loadState
@@ -235,12 +242,12 @@ class LocalPlaylistViewModel(
                         ?.itemSnapshotList
                         ?.toList()
                         ?.filterNotNull()
-                        ?.map { it.videoId }
+                        ?.map { it.first.videoId }
                         ?: emptyList()
                 Logger.w(tag, "applyActions: $loadState")
                 if (loadState?.refresh is LoadState.NotLoading &&
                     loadState.append is LoadState.NotLoading &&
-                    !list.contains(actions.item.videoId)
+                    !list.contains(actions.item.first.videoId)
                 ) {
                     pagingData
                         .insertFooterItem(item = actions.item)
@@ -251,12 +258,12 @@ class LocalPlaylistViewModel(
 
             is PagingActions.Remove -> {
                 pagingData.filter {
-                    actions.item.videoId != it.videoId
+                    actions.item.first.videoId != it.first.videoId
                 }
             }
         }
 
-    private fun onApplyActions(actions: PagingActions<SongEntity>) {
+    private fun onApplyActions(actions: PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>) {
         modifications.value += actions
     }
 
@@ -475,6 +482,7 @@ class LocalPlaylistViewModel(
         song: SongEntity,
     ) {
         viewModelScope.launch {
+            val pair = localPlaylistRepository.getPlaylistPairOfSong(id, song.videoId).lastOrNull() ?: return@launch
             localPlaylistRepository
                 .removeTrackFromLocalPlaylist(
                     id,
@@ -485,7 +493,7 @@ class LocalPlaylistViewModel(
                 ).collectLatestResource(
                     onSuccess = {
                         makeToast(it)
-                        onApplyActions(PagingActions.Remove(song))
+                        onApplyActions(PagingActions.Remove(song to pair))
                         updatePlaylistState(id)
                     },
                     onError = {
@@ -703,8 +711,12 @@ class LocalPlaylistViewModel(
                     ).collectLatestResource(
                         onSuccess = {
                             makeToast(it)
-                            // Add to UI
-                            onApplyActions(PagingActions.Insert(track.toSongEntity()))
+                            viewModelScope.launch {
+                                localPlaylistRepository.getPlaylistPairOfSong(id, track.videoId).lastOrNull()?.let { pair ->
+                                    // Add to UI
+                                    onApplyActions(PagingActions.Insert(track.toSongEntity() to pair))
+                                }
+                            }
                         },
                         onError = {
                             makeToast(it)
@@ -723,6 +735,7 @@ class LocalPlaylistViewModel(
                             FilterState.OlderFirst -> DataStoreManager.LOCAL_PLAYLIST_FILTER_OLDER_FIRST
                             FilterState.NewerFirst -> DataStoreManager.LOCAL_PLAYLIST_FILTER_NEWER_FIRST
                             FilterState.Title -> DataStoreManager.LOCAL_PLAYLIST_FILTER_TITLE
+                            FilterState.CustomOrder -> DataStoreManager.LOCAL_PLAYLIST_FILTER_CUSTOM_ORDER
                         },
                     )
                 }
@@ -733,11 +746,11 @@ class LocalPlaylistViewModel(
 
             is LocalPlaylistUIEvent.ItemClick -> {
                 val loadedList = lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
-                val clickedSong = loadedList.find { it?.videoId == ev.videoId } ?: return
+                val clickedSong = loadedList.find { it?.first?.videoId == ev.videoId }?.first ?: return
 
                 setQueueData(
                     QueueData.Data(
-                        listTracks = loadedList.filterNotNull().toArrayListTrack(),
+                        listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
                         firstPlayedTrack = clickedSong.toTrack(),
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
                         playlistName = "${
@@ -748,10 +761,22 @@ class LocalPlaylistViewModel(
                         playlistType = PlaylistType.LOCAL_PLAYLIST,
                         continuation =
                             if (offset.value > 0) {
-                                if (uiState.value.filterState == FilterState.OlderFirst) {
-                                    ASC + offset.value.toString()
-                                } else {
-                                    DESC + offset.value.toString()
+                                when (uiState.value.filterState) {
+                                    FilterState.OlderFirst -> {
+                                        ASC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
+                                    }
+
+                                    FilterState.NewerFirst -> {
+                                        DESC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
+                                    }
+
+                                    FilterState.CustomOrder -> {
+                                        CUSTOM_ORDER + offset.value.toString()
+                                    }
+
+                                    FilterState.Title -> {
+                                        TITLE + offset.value.toString()
+                                    }
                                 }
                             } else {
                                 null
@@ -761,7 +786,7 @@ class LocalPlaylistViewModel(
                 loadMediaItem(
                     clickedSong,
                     Config.PLAYLIST_CLICK,
-                    loadedList.indexOf(clickedSong),
+                    loadedList.map { it?.first }.indexOf(clickedSong),
                 )
             }
 
@@ -794,18 +819,15 @@ class LocalPlaylistViewModel(
 
             is LocalPlaylistUIEvent.PlayClick -> {
                 val loadedList =
-                    lazyTrackPagingItems.value?.itemSnapshotList?.toList().let {
-                        if (it.isNullOrEmpty()) {
-                            makeToast(getString(Res.string.playlist_is_empty))
-                            return
-                        } else {
-                            it.filterNotNull().toArrayListTrack()
-                        }
+                    lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: run {
+                        makeToast(getString(Res.string.playlist_is_empty))
+                        return
                     }
-                val firstPlayTrack = loadedList.firstOrNull()
+
+                val firstPlayTrack = loadedList.firstOrNull()?.first?.toTrack()
                 setQueueData(
                     QueueData.Data(
-                        listTracks = loadedList,
+                        listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
                         firstPlayedTrack = firstPlayTrack,
                         playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
                         playlistName = "${
@@ -816,10 +838,26 @@ class LocalPlaylistViewModel(
                         playlistType = PlaylistType.LOCAL_PLAYLIST,
                         continuation =
                             if (offset.value > 0) {
-                                if (uiState.value.filterState == FilterState.OlderFirst) {
-                                    (ASC + offset.toString())
+                                if (offset.value > 0) {
+                                    when (uiState.value.filterState) {
+                                        FilterState.OlderFirst -> {
+                                            ASC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
+                                        }
+
+                                        FilterState.NewerFirst -> {
+                                            DESC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
+                                        }
+
+                                        FilterState.CustomOrder -> {
+                                            CUSTOM_ORDER + offset.value.toString()
+                                        }
+
+                                        FilterState.Title -> {
+                                            TITLE + offset.value.toString()
+                                        }
+                                    }
                                 } else {
-                                    (DESC + offset)
+                                    null
                                 }
                             } else {
                                 null
@@ -934,6 +972,34 @@ class LocalPlaylistViewModel(
                 hideLoadingDialog()
             }
         }
+    }
+
+    suspend fun changeLocalPlaylistItemPosition(
+        from: Int,
+        to: Int,
+    ) {
+        val loadedList =
+            lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
+        val fromItem = loadedList.getOrNull(from)?.first ?: return
+        val toItem = loadedList.getOrNull(to)?.first ?: return
+        localPlaylistRepository
+            .changePositionOfSongInPlaylist(
+                playlistId = uiState.value.id,
+                videoId = fromItem.videoId,
+                newPosition = to,
+            ).lastOrNull()
+            ?.let {
+                log("changeLocalPlaylistItemPosition: from $it")
+            }
+        localPlaylistRepository
+            .changePositionOfSongInPlaylist(
+                playlistId = uiState.value.id,
+                videoId = toItem.videoId,
+                newPosition = from,
+            ).lastOrNull()
+            ?.let {
+                log("changeLocalPlaylistItemPosition: to $it")
+            }
     }
 }
 

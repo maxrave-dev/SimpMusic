@@ -4,6 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -29,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -104,6 +109,7 @@ fun SongFullWidthItems(
     index: Int? = null,
     songEntity: SongEntity? = null,
     isPlaying: Boolean,
+    shouldShowDragHandle: Boolean = false,
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
@@ -244,7 +250,7 @@ fun SongFullWidthItems(
                         .weight(1f)
                         .padding(start = 12.dp, end = 10.dp)
                         .align(Alignment.CenterVertically),
-                    verticalArrangement = Arrangement.SpaceEvenly
+                    verticalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     Text(
                         text = track?.title ?: songEntity?.title ?: "",
@@ -317,6 +323,18 @@ fun SongFullWidthItems(
                         videoId?.let { onMoreClickListener.invoke(it) }
                     }
                 }
+                AnimatedVisibility(
+                    shouldShowDragHandle,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally(),
+                ) {
+                    Icon(
+                        Icons.Rounded.DragHandle,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                }
             }
         }
     }
@@ -347,7 +365,7 @@ fun SuggestItems(
             Modifier
                 .padding(vertical = 6.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(modifier = Modifier.size(40.dp)) {
                 Crossfade(isPlaying) {
@@ -553,14 +571,16 @@ fun PlaylistFullWidthItems(
                             ).focusable(),
                 )
 
-                Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (shouldPin) {
                         Image(
                             imageVector = Icons.Default.PushPin,
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(Color.Cyan),
-                            modifier = Modifier.rotate(30f)
-                                .size(16.dp)
+                            modifier =
+                                Modifier
+                                    .rotate(30f)
+                                    .size(16.dp),
                         )
                     }
                     Text(

@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.screen.library
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -17,6 +18,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -59,6 +63,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -76,6 +81,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,13 +99,16 @@ import com.kmpalette.rememberPaletteState
 import com.maxrave.common.LOCAL_PLAYLIST_ID
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
+import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
+import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
@@ -108,6 +117,7 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
+import com.maxrave.simpmusic.ui.component.rememberDragDropState
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
@@ -120,11 +130,13 @@ import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
@@ -150,17 +162,16 @@ import simpmusic.composeapp.generated.resources.download_button
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.holder
-import simpmusic.composeapp.generated.resources.newer_first
-import simpmusic.composeapp.generated.resources.older_first
 import simpmusic.composeapp.generated.resources.reload
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
 import simpmusic.composeapp.generated.resources.sync_playlist_warning
-import simpmusic.composeapp.generated.resources.title
 import simpmusic.composeapp.generated.resources.unsync_playlist_warning
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.yes
 import simpmusic.composeapp.generated.resources.your_playlist
+
+private const val TAG = "LocalPlaylistScreen"
 
 @ExperimentalFoundationApi
 @OptIn(
@@ -256,7 +267,11 @@ fun LocalPlaylistScreen(
         mutableStateOf(false)
     }
 
-    val trackPagingItems: LazyPagingItems<SongEntity> = viewModel.tracksPagingState.collectAsLazyPagingItems()
+    var changingOrder by remember {
+        mutableStateOf(false)
+    }
+
+    val trackPagingItems: LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>> = viewModel.tracksPagingState.collectAsLazyPagingItems()
     LaunchedEffect(Unit) {
         snapshotFlow {
             trackPagingItems.loadState
@@ -280,7 +295,7 @@ fun LocalPlaylistScreen(
         )
     }
     val onItemMoreClick: (videoId: String) -> Unit = { videoId ->
-        currentItem = trackPagingItems.itemSnapshotList.findLast { it?.videoId == videoId }
+        currentItem = trackPagingItems.itemSnapshotList.findLast { it?.first?.videoId == videoId }?.first
         if (currentItem != null) {
             itemBottomSheetShow = true
         }
@@ -341,12 +356,63 @@ fun LocalPlaylistScreen(
             showLoadingDialog.second,
         )
     }
+    val coroutineScope = rememberCoroutineScope()
+    val dragDropState =
+        rememberDragDropState(lazyState) { from, to ->
+            coroutineScope.launch {
+                Logger.d(TAG, "onMove from $from to $to")
+                viewModel.changeLocalPlaylistItemPosition(from - 1, to - 1)
+                trackPagingItems.refresh()
+            }
+        }
+    var overscrollJob by remember { mutableStateOf<Job?>(null) }
 //    Box {
     LazyColumn(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .background(Color.Black),
+                .background(Color.Black)
+                .pointerInput(Unit) {
+                    detectDragGesturesAfterLongPress(
+                        onDrag = { change, offset ->
+                            Logger.d(TAG, "onDrag $offset")
+                            change.consume()
+                            dragDropState.onDrag(offset = offset)
+
+                            if (overscrollJob?.isActive == true) {
+                                return@detectDragGesturesAfterLongPress
+                            }
+
+                            dragDropState
+                                .checkForOverScroll()
+                                .takeIf { it != 0f }
+                                ?.let {
+                                    overscrollJob =
+                                        coroutineScope.launch {
+                                            dragDropState.state.animateScrollBy(
+                                                it * 1.3f,
+                                                tween(easing = FastOutLinearInEasing),
+                                            )
+                                        }
+                                }
+                                ?: run { overscrollJob?.cancel() }
+                        },
+                        onDragStart = { offset ->
+                            Logger.d(TAG, "onDragStart $offset")
+                            dragDropState.onDragStart(offset)
+                        },
+                        onDragEnd = {
+                            Logger.d(TAG, "onDragEnd")
+                            dragDropState.onDragInterrupted(true)
+                            overscrollJob?.cancel()
+                        },
+                        onDragCancel = {
+                            Logger.d(TAG, "onDragCancel")
+                            dragDropState.onDragInterrupted()
+                            overscrollJob?.cancel()
+                        },
+                    )
+                },
         state = lazyState,
     ) {
         item(contentType = "header") {
@@ -613,11 +679,11 @@ fun LocalPlaylistScreen(
                                                             // Destination
                                                             with(aiPainter) {
                                                                 translate(
-                                                                    left = (size.width - width/1.5f) / 2,
-                                                                    top = (size.height - width/1.5f) / 2,
+                                                                    left = (size.width - width / 1.5f) / 2,
+                                                                    top = (size.height - width / 1.5f) / 2,
                                                                 ) {
                                                                     draw(
-                                                                        size = Size(width/1.5f, width/1.5f)
+                                                                        size = Size(width / 1.5f, width / 1.5f),
                                                                     )
                                                                 }
                                                             }
@@ -649,17 +715,6 @@ fun LocalPlaylistScreen(
                                         onPlaylistMoreClick()
                                     }
                                 }
-                                // Hide in local playlist
-                                //                                ExpandableText(
-                                //                                    modifier = Modifier.padding(vertical = 8.dp),
-                                //                                    text = stringResource(Res.string.demo_description),
-                                //                                    fontSize = typo().bodyLarge.fontSize,
-                                //                                    showMoreStyle = SpanStyle(Color.Gray),
-                                //                                    showLessStyle = SpanStyle(Color.Gray),
-                                //                                    style = TextStyle(
-                                //                                        color = Color(0xC4FFFFFF)
-                                //                                    )
-                                //                                )
                                 Text(
                                     text =
                                         stringResource(
@@ -685,14 +740,16 @@ fun LocalPlaylistScreen(
                                                         Res.string.suggest,
                                                     ),
                                                 color = Color.White,
-                                                modifier = Modifier.padding(vertical = 8.dp)
-                                                    .weight(1f),
+                                                modifier =
+                                                    Modifier
+                                                        .padding(vertical = 8.dp)
+                                                        .weight(1f),
                                             )
                                             TextButton(
                                                 onClick = { viewModel.reloadSuggestion() },
                                                 modifier =
                                                     Modifier
-                                                        .padding(horizontal = 8.dp)
+                                                        .padding(horizontal = 8.dp),
                                             ) {
                                                 Text(
                                                     text = stringResource(Res.string.reload),
@@ -741,36 +798,59 @@ fun LocalPlaylistScreen(
                                         Spacer(modifier = Modifier.size(8.dp))
                                     }
                                 }
-                                ElevatedButton(
-                                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp),
-                                    modifier =
-                                        Modifier
-                                            .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
-                                    onClick = {
-                                        sortBottomSheetShow = true
-                                    },
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Sharp.Sort,
-                                            contentDescription = "Sort playlist",
-                                            tint = Color.White,
-                                            modifier = Modifier.size(24.dp),
-                                        )
-                                        Spacer(modifier = Modifier.size(4.dp))
-                                        Text(
-                                            text =
-                                                stringResource(Res.string.sort_by) + ": " +
-                                                    stringResource(
-                                                        when (uiState.filterState) {
-                                                            FilterState.Title -> Res.string.title
-                                                            FilterState.NewerFirst -> Res.string.newer_first
-                                                            FilterState.OlderFirst -> Res.string.older_first
-                                                        },
-                                                    ),
-                                            style = typo().bodySmall,
-                                            color = Color.Gray,
-                                        )
+                                Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                                    ElevatedButton(
+                                        contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp),
+                                        modifier =
+                                            Modifier
+                                                .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
+                                        onClick = {
+                                            sortBottomSheetShow = true
+                                        },
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                                contentDescription = "Sort playlist",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                            Spacer(modifier = Modifier.size(4.dp))
+                                            Text(
+                                                text =
+                                                    stringResource(Res.string.sort_by) + ": " +
+                                                        stringResource(
+                                                            uiState.filterState.displayNameRes(),
+                                                        ),
+                                                style = typo().bodySmall,
+                                                color = Color.Gray,
+                                            )
+                                        }
+                                    }
+                                    Spacer(Modifier.weight(1f))
+                                    AnimatedVisibility(
+                                        visible =
+                                            uiState.filterState == FilterState.CustomOrder &&
+                                                uiState.syncState != LocalPlaylistEntity.YouTubeSyncState.Synced,
+                                        enter = fadeIn(),
+                                        exit = fadeOut(),
+                                    ) {
+                                        TextButton(
+                                            onClick = {
+                                                changingOrder = !changingOrder
+                                            },
+                                        ) {
+                                            Text(
+                                                text =
+                                                    if (changingOrder) {
+                                                        "Done"
+                                                    } else {
+                                                        "Change order"
+                                                    },
+                                                style = typo().bodySmall,
+                                                color = Color.Gray,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -781,42 +861,57 @@ fun LocalPlaylistScreen(
         }
         items(count = trackPagingItems.itemCount, key = { index ->
             val item = trackPagingItems[index]
-            (item?.videoId ?: "") + "item_$index"
+            (item?.first?.videoId ?: "") + "item_$index" + item?.second?.inPlaylist + item?.second?.position
         }) { index ->
-            val item = trackPagingItems[index]
+            val item = trackPagingItems[index]?.first
             if (item != null) {
-                if (playingTrack?.videoId == item.videoId && isPlaying) {
-                    SongFullWidthItems(
-                        isPlaying = true,
-                        songEntity = item,
-                        onMoreClickListener = { onItemMoreClick(it) },
-                        onClickListener = {
-                            Logger.w("PlaylistScreen", "index: $index")
-                            onPlaylistItemClick(it)
-                        },
-                        onAddToQueue = {
-                            sharedViewModel.addListToQueue(
-                                arrayListOf(item.toTrack()),
-                            )
-                        },
-                        modifier = Modifier.animateItem(),
-                    )
+                val content = @Composable {
+                    if (playingTrack?.videoId == item.videoId && isPlaying) {
+                        SongFullWidthItems(
+                            isPlaying = true,
+                            shouldShowDragHandle = changingOrder,
+                            songEntity = item,
+                            onMoreClickListener = { onItemMoreClick(it) },
+                            onClickListener = {
+                                Logger.w("PlaylistScreen", "index: $index")
+                                onPlaylistItemClick(it)
+                            },
+                            onAddToQueue = {
+                                sharedViewModel.addListToQueue(
+                                    arrayListOf(item.toTrack()),
+                                )
+                            },
+                            modifier = Modifier.animateItem(),
+                        )
+                    } else {
+                        SongFullWidthItems(
+                            isPlaying = false,
+                            shouldShowDragHandle = changingOrder,
+                            songEntity = item,
+                            onMoreClickListener = { onItemMoreClick(it) },
+                            onClickListener = {
+                                Logger.w("PlaylistScreen", "index: $index")
+                                onPlaylistItemClick(it)
+                            },
+                            onAddToQueue = {
+                                sharedViewModel.addListToQueue(
+                                    arrayListOf(item.toTrack()),
+                                )
+                            },
+                            modifier = Modifier.animateItem(),
+                        )
+                    }
+                }
+                if (changingOrder) {
+                    DraggableItem(
+                        dragDropState,
+                        index + 1,
+                        Modifier.animateItem(),
+                    ) {
+                        content()
+                    }
                 } else {
-                    SongFullWidthItems(
-                        isPlaying = false,
-                        songEntity = item,
-                        onMoreClickListener = { onItemMoreClick(it) },
-                        onClickListener = {
-                            Logger.w("PlaylistScreen", "index: $index")
-                            onPlaylistItemClick(it)
-                        },
-                        onAddToQueue = {
-                            sharedViewModel.addListToQueue(
-                                arrayListOf(item.toTrack()),
-                            )
-                        },
-                        modifier = Modifier.animateItem(),
-                    )
+                    content()
                 }
             }
         }
@@ -943,9 +1038,10 @@ fun LocalPlaylistScreen(
         exit = fadeOut() + slideOutVertically(),
     ) {
         TopAppBar(
-            windowInsets = TopAppBarDefaults.windowInsets.exclude(
-                TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start)
-            ),
+            windowInsets =
+                TopAppBarDefaults.windowInsets.exclude(
+                    TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start),
+                ),
             title = {
                 Text(
                     text = uiState.title,

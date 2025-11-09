@@ -14,6 +14,7 @@ import kotlinx.datetime.toInstant
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.custom_order
 import simpmusic.composeapp.generated.resources.day_s_ago
 import simpmusic.composeapp.generated.resources.filler
 import simpmusic.composeapp.generated.resources.hour_s_ago
@@ -221,6 +222,7 @@ fun FilterState.displayNameRes(): StringResource =
         FilterState.NewerFirst -> Res.string.newer_first
         FilterState.OlderFirst -> Res.string.older_first
         FilterState.Title -> Res.string.title
+        FilterState.CustomOrder -> Res.string.custom_order
     }
 
 @Composable

@@ -120,6 +120,7 @@
     <string name="buy_me_a_coffee">Buy me a coffee</string>
     <string name="paypal">PayPal</string>
     <string name="title">Title</string>
+    <string name="custom_order">Custom order</string>
     <string name="album">Album</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="download_url">Download URL</string>

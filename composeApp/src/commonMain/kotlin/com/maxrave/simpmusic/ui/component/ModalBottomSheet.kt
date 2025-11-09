@@ -2853,6 +2853,7 @@ fun SortPlaylistBottomSheet(
     val filterOptions =
         remember {
             listOf(
+                FilterState.CustomOrder,
                 FilterState.NewerFirst,
                 FilterState.OlderFirst,
                 FilterState.Title,
