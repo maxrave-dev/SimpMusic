@@ -63,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -293,10 +294,11 @@ fun LyricsView(
                     LyricsLineItem(
                         originalWords = it,
                         translatedWords = translatedWords,
-                        isBold = index <= currentLineIndex,
+                        isBold = index <= currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
+                        isCurrent = index == currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
                         modifier =
                             Modifier
-                                .clickable {
+                                .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
                                     onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
                                 }.onGloballyPositioned { c ->
                                     currentLineHeight = c.size.height
@@ -313,6 +315,7 @@ fun LyricsLineItem(
     originalWords: String,
     translatedWords: String?,
     isBold: Boolean,
+    isCurrent: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Crossfade(targetState = isBold) {
@@ -321,9 +324,47 @@ fun LyricsLineItem(
                 modifier = modifier,
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = originalWords, style = typo().headlineMedium, color = Color.White)
+                Text(
+                    modifier =
+                        Modifier.then(
+                            if (isCurrent) {
+                                Modifier
+                            } else {
+                                Modifier.blur(1.dp)
+                            },
+                        ),
+                    text = originalWords,
+                    style = typo().headlineMedium,
+                    color =
+                        if (isCurrent) {
+                            Color.White
+                        } else {
+                            Color.LightGray.copy(
+                                alpha = 0.8f,
+                            )
+                        },
+                )
                 if (translatedWords != null) {
-                    Text(text = translatedWords, style = typo().bodyMedium, color = Color.Yellow)
+                    Text(
+                        modifier =
+                            Modifier.then(
+                                if (isCurrent) {
+                                    Modifier
+                                } else {
+                                    Modifier.blur(1.dp)
+                                },
+                            ),
+                        text = translatedWords,
+                        style = typo().bodyMedium,
+                        color =
+                            if (isCurrent) {
+                                Color.Yellow
+                            } else {
+                                Color(0xFF97971A).copy(
+                                    alpha = 0.5f,
+                                )
+                            },
+                    )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
             }
@@ -335,6 +376,7 @@ fun LyricsLineItem(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
+                modifier = Modifier.blur(1.dp),
                 text = originalWords,
                 style = typo().bodyLarge,
                 color =
@@ -344,11 +386,12 @@ fun LyricsLineItem(
             )
             if (translatedWords != null) {
                 Text(
+                    modifier = Modifier.blur(1.dp),
                     text = translatedWords,
                     style = typo().bodyMedium,
                     color =
                         Color(0xFF97971A).copy(
-                            alpha = 0.8f,
+                            alpha = 0.5f,
                         ),
                 )
             }

@@ -652,6 +652,30 @@ class PlaylistViewModel(
         }
     }
 
+    fun updatePlaylistTitle(
+        title: String,
+        id: String,
+    ) {
+        viewModelScope.launch {
+            playlistRepository
+                .updateYourYouTubePlaylistTitle(
+                    id,
+                    title,
+                ).collect {
+                    when (it) {
+                        is Resource.Success -> {
+                            getData(id)
+                            makeToast(it.data ?: getString(Res.string.synced))
+                        }
+
+                        is Resource.Error -> {
+                            makeToast(it.message ?: getString(Res.string.error))
+                        }
+                    }
+                }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         collectDownloadedJob?.cancel()

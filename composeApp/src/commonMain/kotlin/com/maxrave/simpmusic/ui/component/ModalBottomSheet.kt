@@ -870,7 +870,7 @@ fun QueueBottomSheet(
     }
 
     DisposableEffect(Unit) {
-        val currentSongIndex = musicServiceHandler.currentOrderIndex()
+        val currentSongIndex = musicServiceHandler.currentOrderIndex().takeIf { i -> i > -1 } ?: 0
         Logger.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
         coroutineScope.launch {
             lazyListState.requestScrollToItem(currentSongIndex)
@@ -2445,7 +2445,9 @@ fun ArtistModalBottomSheet(
 fun PlaylistBottomSheet(
     onDismiss: () -> Unit,
     playlistId: String,
+    playlistName: String,
     isYourYouTubePlaylist: Boolean,
+    onEditTitle: (newTitle: String) -> Unit = {},
     onSaveToLocal: () -> Unit,
     onAddToQueue: (() -> Unit)? = null,
     localPlaylistRepository: LocalPlaylistRepository = koinInject(),
@@ -2463,6 +2465,88 @@ fun PlaylistBottomSheet(
                 onDismiss()
             }
         }
+    var showEditTitle by remember { mutableStateOf(false) }
+    if (showEditTitle) {
+        var newTitle by remember { mutableStateOf(playlistName) }
+        val showEditTitleSheetState =
+            rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+            )
+        val hideEditTitleBottomSheet: () -> Unit =
+            {
+                coroutineScope.launch {
+                    showEditTitleSheetState.hide()
+                    onDismiss()
+                }
+            }
+        ModalBottomSheet(
+            onDismissRequest = { showEditTitle = false },
+            sheetState = showEditTitleSheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        ) {
+            Card(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Card(
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
+                        colors =
+                            CardDefaults.cardColors().copy(
+                                containerColor = Color(0xFF474545),
+                            ),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Spacer(modifier = Modifier.height(5.dp))
+                    OutlinedTextField(
+                        value = newTitle,
+                        onValueChange = { s -> newTitle = s },
+                        label = {
+                            Text(text = stringResource(Res.string.title))
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    val playlistNameError = stringResource(Res.string.playlist_name_cannot_be_empty)
+                    TextButton(
+                        onClick = {
+                            if (newTitle.isBlank()) {
+                                showToast(playlistNameError, ToastGravity.Bottom)
+                            } else {
+                                onEditTitle(newTitle)
+                                hideEditTitleBottomSheet()
+                                hideModalBottomSheet()
+                            }
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.CenterHorizontally),
+                    ) {
+                        Text(text = stringResource(Res.string.save))
+                    }
+                    EndOfModalBottomSheet()
+                }
+            }
+        }
+    }
 
     LaunchedEffect(true) {
         localPlaylistRepository.getAllLocalPlaylists().collect {
@@ -2510,6 +2594,9 @@ fun PlaylistBottomSheet(
                     }
                 }
                 if (isYourYouTubePlaylist) {
+                    ActionButton(icon = painterResource(Res.drawable.baseline_edit_24), text = Res.string.edit_title) {
+                        showEditTitle = true
+                    }
                     ActionButton(
                         icon =
                             if (isSavedToLocal) {

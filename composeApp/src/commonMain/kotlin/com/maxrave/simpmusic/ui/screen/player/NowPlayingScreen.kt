@@ -974,11 +974,12 @@ fun NowPlayingScreenContent(
                                                                 internalShowSubtitle = !internalShowSubtitle
                                                             }, Modifier.align(Alignment.BottomEnd)) {
                                                                 Icon(
-                                                                    imageVector = if (internalShowSubtitle) {
-                                                                        Icons.Filled.SubtitlesOff
-                                                                    } else {
-                                                                        Icons.Filled.Subtitles
-                                                                    },
+                                                                    imageVector =
+                                                                        if (internalShowSubtitle) {
+                                                                            Icons.Filled.SubtitlesOff
+                                                                        } else {
+                                                                            Icons.Filled.Subtitles
+                                                                        },
                                                                     contentDescription = "",
                                                                     tint = Color.White,
                                                                 )
@@ -1111,7 +1112,7 @@ fun NowPlayingScreenContent(
                                             }
                                         }
                                         if (sharedViewModel.isUserLoggedIn()) {
-                                            Spacer(modifier = Modifier.size(10.dp))
+                                            Spacer(modifier = Modifier.size(16.dp))
                                             Crossfade(
                                                 targetState = likeStatus,
                                             ) {
@@ -1143,12 +1144,16 @@ fun NowPlayingScreenContent(
                                                             sharedViewModel.addToYouTubeLiked()
                                                         },
                                                     ) {
-                                                        Icon(imageVector = Icons.Rounded.AddCircleOutline, tint = Color.White, contentDescription = "")
+                                                        Icon(
+                                                            imageVector = Icons.Rounded.AddCircleOutline,
+                                                            tint = Color.White,
+                                                            contentDescription = "",
+                                                        )
                                                     }
                                                 }
                                             }
                                         }
-                                        Spacer(modifier = Modifier.size(10.dp))
+                                        Spacer(modifier = Modifier.size(12.dp))
                                         HeartCheckBox(checked = controllerState.isLiked, size = 32) {
                                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                                         }

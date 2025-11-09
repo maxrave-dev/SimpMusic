@@ -385,12 +385,12 @@ fun PlaylistScreen(
                                             Spacer(modifier = Modifier.size(25.dp))
                                             Text(
                                                 text = data.title,
-                                                style = typo().titleLarge,
+                                                style = typo().titleMedium,
                                                 color = Color.White,
                                                 maxLines = 2,
                                             )
                                             Column(
-                                                modifier = Modifier.padding(vertical = 8.dp),
+                                                modifier = Modifier.padding(vertical = 4.dp),
                                             ) {
                                                 CompositionLocalProvider(
                                                     LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -715,11 +715,15 @@ fun PlaylistScreen(
                     PlaylistBottomSheet(
                         onDismiss = { playlistBottomSheetShow = false },
                         playlistId = data.id,
+                        playlistName = data.title,
                         isYourYouTubePlaylist = isYourYouTubePlaylist && !data.isRadio,
                         onSaveToLocal = {
                             viewModel.getFullTracks { track ->
                                 viewModel.saveToLocal(track)
                             }
+                        },
+                        onEditTitle = { newTitle ->
+                            viewModel.updatePlaylistTitle(newTitle, data.id)
                         },
                         onAddToQueue = if (data.isRadio) null else addToQueue,
                     )
@@ -730,9 +734,10 @@ fun PlaylistScreen(
                     exit = fadeOut() + slideOutVertically(),
                 ) {
                     TopAppBar(
-                        windowInsets = TopAppBarDefaults.windowInsets.exclude(
-                            TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start)
-                        ),
+                        windowInsets =
+                            TopAppBarDefaults.windowInsets.exclude(
+                                TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start),
+                            ),
                         title = {
                             Text(
                                 text = data.title,
