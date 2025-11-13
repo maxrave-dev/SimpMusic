@@ -53,9 +53,11 @@ import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
+import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.repository.SearchRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.StreamRepository
+import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.logger.Logger
 import com.maxrave.media3.exoplayer.ExoPlayerAdapter
 import com.maxrave.media3.repository.CacheRepositoryImpl
@@ -198,6 +200,8 @@ private val mediaServiceModule =
                 get<PlaylistRepository>(),
                 get<HomeRepository>(),
                 get<StreamRepository>(),
+                get<PodcastRepository>(),
+                get<AlbumRepository>(),
             )
         }
 

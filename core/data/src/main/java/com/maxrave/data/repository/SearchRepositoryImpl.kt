@@ -1,6 +1,7 @@
 package com.maxrave.data.repository
 
 import com.maxrave.data.db.LocalDataSource
+
 import com.maxrave.data.mapping.toDomainSearchSuggestions
 import com.maxrave.data.parser.parsePodcast
 import com.maxrave.data.parser.search.parseSearchAlbum
@@ -10,6 +11,8 @@ import com.maxrave.data.parser.search.parseSearchSong
 import com.maxrave.data.parser.search.parseSearchVideo
 import com.maxrave.domain.data.entities.SearchHistory
 import com.maxrave.domain.data.model.searchResult.SearchSuggestions
+import com.maxrave.domain.manager.DataStoreManager
+
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
@@ -23,12 +26,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
 internal class SearchRepositoryImpl(
     private val localDataSource: LocalDataSource,
     private val youTube: YouTube,
+    private val dataStoreManager: DataStoreManager,
 ) : SearchRepository {
+
     override fun getSearchHistory(): Flow<List<SearchHistory>> =
         flow {
             emit(localDataSource.getSearchHistory())
@@ -71,8 +77,8 @@ internal class SearchRepositoryImpl(
                                     count++
                                 }
                         }
-
-                        emit(Resource.Success<ArrayList<SongsResult>>(listSongs))
+                        val filtered = filterSongsByContentLanguage(listSongs)
+                        emit(Resource.Success<ArrayList<SongsResult>>(filtered))
                     }.onFailure { e ->
                         Logger.d("Search", "Error: ${e.message}")
                         emit(Resource.Error<ArrayList<SongsResult>>(e.message.toString()))
@@ -107,8 +113,8 @@ internal class SearchRepositoryImpl(
                                     count++
                                 }
                         }
-
-                        emit(Resource.Success<ArrayList<VideosResult>>(listSongs))
+                        val filtered = filterVideosByContentLanguage(listSongs)
+                        emit(Resource.Success<ArrayList<VideosResult>>(filtered))
                     }.onFailure { e ->
                         Logger.d("Search", "Error: ${e.message}")
                         emit(Resource.Error<ArrayList<VideosResult>>(e.message.toString()))
@@ -145,7 +151,8 @@ internal class SearchRepositoryImpl(
                                     count++
                                 }
                         }
-                        emit(Resource.Success<ArrayList<PlaylistsResult>>(listPlaylist))
+                        val filtered = filterPlaylistsByContentLanguage(listPlaylist)
+                        emit(Resource.Success<ArrayList<PlaylistsResult>>(filtered))
                     }.onFailure { e ->
                         Logger.d("Search", "Error: ${e.message}")
                         emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
@@ -180,7 +187,8 @@ internal class SearchRepositoryImpl(
                                     count++
                                 }
                         }
-                        emit(Resource.Success<ArrayList<PlaylistsResult>>(listPlaylist))
+                        val filtered = filterPlaylistsByContentLanguage(listPlaylist)
+                        emit(Resource.Success<ArrayList<PlaylistsResult>>(filtered))
                     }.onFailure { e ->
                         Logger.d("Search", "Error: ${e.message}")
                         emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
@@ -215,7 +223,8 @@ internal class SearchRepositoryImpl(
                                     count++
                                 }
                         }
-                        emit(Resource.Success<ArrayList<ArtistsResult>>(listArtist))
+                        val filtered = filterArtistsByContentLanguage(listArtist)
+                        emit(Resource.Success<ArrayList<ArtistsResult>>(filtered))
                     }.onFailure { e ->
                         Logger.d("Search", "Error: ${e.message}")
                         emit(Resource.Error<ArrayList<ArtistsResult>>(e.message.toString()))
@@ -250,7 +259,8 @@ internal class SearchRepositoryImpl(
                                     count++
                                 }
                         }
-                        emit(Resource.Success<ArrayList<AlbumsResult>>(listAlbum))
+                        val filtered = filterAlbumsByContentLanguage(listAlbum)
+                        emit(Resource.Success<ArrayList<AlbumsResult>>(filtered))
                     }.onFailure { e ->
                         Logger.d("Search", "Error: ${e.message}")
                         emit(Resource.Error<ArrayList<AlbumsResult>>(e.message.toString()))
@@ -285,13 +295,76 @@ internal class SearchRepositoryImpl(
                                     count++
                                 }
                         }
-                        emit(Resource.Success<ArrayList<PlaylistsResult>>(listPlaylist))
+                        val filtered = filterPlaylistsByContentLanguage(listPlaylist)
+                        emit(Resource.Success<ArrayList<PlaylistsResult>>(filtered))
                     }.onFailure { e ->
                         Logger.d("Search", "Error: ${e.message}")
                         emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
                     }
             }
         }.flowOn(Dispatchers.IO)
+
+    // Helpers: Content-language filtering (Tamil)
+    private suspend fun currentContentLanguage(): String = dataStoreManager.contentFilterLanguage.firstOrNull() ?: ""
+
+    private fun String?.containsTamil(): Boolean = this?.any { it in '\u0B80'..'\u0BFF' } == true
+
+    private suspend fun filterSongsByContentLanguage(list: ArrayList<SongsResult>): ArrayList<SongsResult> {
+        val lang = currentContentLanguage()
+        if (lang.isEmpty()) return list
+        if (lang == "ta") {
+            return list.filter { sr ->
+                sr.title.containsTamil() ||
+                    (sr.artists?.any { it.name.containsTamil() } == true) ||
+                    (sr.album?.name.containsTamil())
+            } .let { ArrayList(it) }
+        }
+        return list
+    }
+
+    private suspend fun filterVideosByContentLanguage(list: ArrayList<VideosResult>): ArrayList<VideosResult> {
+        val lang = currentContentLanguage()
+        if (lang.isEmpty()) return list
+        if (lang == "ta") {
+            return list.filter { vr ->
+                (vr.title ?: "").containsTamil() || (vr.artists?.any { it.name.containsTamil() } == true)
+            } .let { ArrayList(it) }
+        }
+        return list
+    }
+
+    private suspend fun filterPlaylistsByContentLanguage(list: ArrayList<PlaylistsResult>): ArrayList<PlaylistsResult> {
+        val lang = currentContentLanguage()
+        if (lang.isEmpty()) return list
+        if (lang == "ta") {
+            return list.filter { pr ->
+                pr.title.containsTamil() || pr.author.containsTamil()
+            } .let { ArrayList(it) }
+        }
+        return list
+    }
+
+    private suspend fun filterAlbumsByContentLanguage(list: ArrayList<AlbumsResult>): ArrayList<AlbumsResult> {
+        val lang = currentContentLanguage()
+        if (lang.isEmpty()) return list
+        if (lang == "ta") {
+            return list.filter { ar ->
+                ar.title.containsTamil() || ar.artists.any { it.name.containsTamil() }
+            } .let { ArrayList(it) }
+        }
+        return list
+    }
+
+    private suspend fun filterArtistsByContentLanguage(list: ArrayList<ArtistsResult>): ArrayList<ArtistsResult> {
+        val lang = currentContentLanguage()
+        if (lang.isEmpty()) return list
+        if (lang == "ta") {
+            return list.filter { ar ->
+                ar.artist.containsTamil()
+            } .let { ArrayList(it) }
+        }
+        return list
+    }
 
     override fun getSuggestQuery(query: String): Flow<Resource<SearchSuggestions>> =
         flow {

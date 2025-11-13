@@ -34,13 +34,21 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Spon
 - And many more!    
   
 > (\*) Use your OpenAI or Gemini API key    
-> (\**) For users who chose "Send back to Google" feature    
+> (\**) For users who chose "Send back to Google" feature
     
 > **Warning**    
  > This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,      
 > please create an issue or contact me via email or Discord server.   
 > Because of depending on YouTube Music, the player error will happen and it's normally, please don't ask me about the stable state of this app.
-    
+
+## What's new
+
+- Content language filter (Settings → Content → Content language filter): choose Off or Tamil.
+- All YouTube search tabs (Songs, Playlists, Albums, Artists, Podcasts) and Android Auto search respect the selected content language.
+- Android Auto search now interleaves Songs, Playlists, Albums, Artists, and Podcasts on the first page, similar to the in-app search.
+- Preference backed by DataStore (`content_filter_language`).
+- Note: Spotify search does not expose a locale filter; results may be post-filtered in-app where applicable.
+
 ## Screenshots    
  <p align="center">          
  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/2.png?raw=true" width="200" />          

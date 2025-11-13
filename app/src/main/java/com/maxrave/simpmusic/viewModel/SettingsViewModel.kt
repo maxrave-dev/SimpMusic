@@ -148,6 +148,9 @@ class SettingsViewModel(
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
+    private val _contentFilterLanguage = MutableStateFlow("")
+    val contentFilterLanguage: StateFlow<String> = _contentFilterLanguage
+
     private var _helpBuildLyricsDatabase: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val helpBuildLyricsDatabase: StateFlow<Boolean> = _helpBuildLyricsDatabase
     private var _contributor: MutableStateFlow<Pair<String, String>> = MutableStateFlow(Pair("", ""))
@@ -231,6 +234,7 @@ class SettingsViewModel(
         getUpdateChannel()
         getEnableLiquidGlass()
         getExplicitContentEnabled()
+        getContentFilterLanguage()
         viewModelScope.launch {
             calculateDataFraction()
         }
@@ -617,6 +621,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setEnableTranslateLyric(useTranslation)
             getUseTranslation()
+        }
+    }
+
+    private fun getContentFilterLanguage() {
+        viewModelScope.launch {
+            dataStoreManager.contentFilterLanguage.collect { lang ->
+                _contentFilterLanguage.value = lang
+            }
+        }
+    }
+
+    fun setContentFilterLanguage(language: String) {
+        viewModelScope.launch {
+            dataStoreManager.setContentFilterLanguage(language)
+            getContentFilterLanguage()
         }
     }
 

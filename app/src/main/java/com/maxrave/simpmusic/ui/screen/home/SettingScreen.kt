@@ -196,6 +196,7 @@ fun SettingScreen(
     val spotifyLoggedIn by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
     val spotifyCanvas by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
+    val contentFilterLanguage by viewModel.contentFilterLanguage.collectAsStateWithLifecycle()
     val enableSponsorBlock by viewModel.sponsorBlockEnabled.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val skipSegments by viewModel.sponsorBlockCategories.collectAsStateWithLifecycle()
     val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
@@ -343,6 +344,31 @@ fun SettingScreen(
                                                 dismiss = context.getString(R.string.cancel),
                                             ),
                                         )
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = "Content language filter",
+                    subtitle = if (contentFilterLanguage.isEmpty()) "Off" else "Tamil",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = "Content language filter",
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect = listOf(
+                                            (contentFilterLanguage.isEmpty()) to "Off",
+                                            (contentFilterLanguage == "ta") to "Tamil",
+                                        ),
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        val selected = state.selectOne?.getSelected()
+                                        val code = if (selected == "Tamil") "ta" else ""
+                                        viewModel.setContentFilterLanguage(code)
                                     },
                                 dismiss = context.getString(R.string.cancel),
                             ),

@@ -104,6 +104,10 @@ interface DataStoreManager {
 
     suspend fun setTranslationLanguage(language: String)
 
+    val contentFilterLanguage: Flow<String>
+
+    suspend fun setContentFilterLanguage(language: String)
+
     val maxSongCacheSize: Flow<Int>
 
     suspend fun setMaxSongCacheSize(size: Int)

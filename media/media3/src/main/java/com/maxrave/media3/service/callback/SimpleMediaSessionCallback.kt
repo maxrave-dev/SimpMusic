@@ -20,14 +20,26 @@ import androidx.media3.session.SessionResult
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.maxrave.common.MERGING_DATA_TYPE
 import com.maxrave.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.common.R
+import com.maxrave.domain.data.entities.EpisodeEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.HomeItem
+import com.maxrave.domain.data.model.home.chart.ChartItemPlaylist
+import com.maxrave.domain.data.model.mood.Mood
+import com.maxrave.domain.data.model.mood.genre.GenreObject
+import com.maxrave.domain.data.model.mood.moodmoments.MoodsMomentObject
+import com.maxrave.domain.data.model.podcast.PodcastBrowse
+import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
+import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
+import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
+import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SearchRepository
 import com.maxrave.domain.repository.SongRepository
@@ -61,6 +73,8 @@ internal class SimpleMediaSessionCallback(
     private val playlistRepository: PlaylistRepository,
     private val homeRepository: HomeRepository,
     private val streamRepository: StreamRepository,
+    private val podcastRepository: PodcastRepository,
+    private val albumRepository: AlbumRepository,
 ) : MediaLibrarySession.Callback {
     var toggleLike: () -> Unit = {
         mediaPlayerHandler.toggleLike()
@@ -70,6 +84,14 @@ internal class SimpleMediaSessionCallback(
     }
     private val searchTempList = mutableListOf<Track>()
     private val listHomeItem = mutableListOf<HomeItem>()
+    private val listChartItem = mutableListOf<ChartItemPlaylist>()
+    private var moodCache: Mood? = null
+    private val genreDetailsCache = mutableMapOf<String, GenreObject>()
+    private val moodsMomentDetailsCache = mutableMapOf<String, MoodsMomentObject>()
+    private val searchPlaylistResults = mutableListOf<PlaylistsResult>()
+    private val searchAlbumResults = mutableListOf<AlbumsResult>()
+    private val searchArtistResults = mutableListOf<ArtistsResult>()
+    private val searchPodcastResults = mutableListOf<PlaylistsResult>()
 
     override fun onConnect(
         session: MediaSession,
@@ -154,23 +176,61 @@ internal class SimpleMediaSessionCallback(
         params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<Void>> =
         scope.future(Dispatchers.IO) {
-            val searchResult =
-                searchRepository.getSearchDataSong(query).lastOrNull()?.let { resource ->
-                    when (resource) {
-                        is Resource.Success -> {
-                            resource.data?.let {
-                                searchTempList.clear()
-                                searchTempList.addAll(it.toListTrack())
-                            }
-                            resource.data
-                        }
+            searchTempList.clear()
+            searchPlaylistResults.clear()
+            searchAlbumResults.clear()
+            searchArtistResults.clear()
+            searchPodcastResults.clear()
 
-                        else -> emptyList()
-                    }
+            // Songs
+            searchRepository.getSearchDataSong(query).lastOrNull()?.let { resource ->
+                if (resource is Resource.Success) {
+                    resource.data?.let { searchTempList.addAll(it.toListTrack()) }
                 }
-            if (searchResult != null) {
-                session.notifySearchResultChanged(browser, query, searchResult.size, params)
             }
+
+            // Playlists (community and featured)
+            val playlistMap = linkedMapOf<String, PlaylistsResult>()
+            searchRepository.getSearchDataPlaylist(query).lastOrNull()?.let { resource ->
+                if (resource is Resource.Success) {
+                    resource.data?.forEach { playlistMap[it.browseId] = it }
+                }
+            }
+            searchRepository.getSearchDataFeaturedPlaylist(query).lastOrNull()?.let { resource ->
+                if (resource is Resource.Success) {
+                    resource.data?.forEach { playlistMap[it.browseId] = it }
+                }
+            }
+            // Filter out podcasts from playlists bucket; podcasts go to dedicated list
+            playlistMap.values.filter { it.objectType().name != "PODCAST" }.let { searchPlaylistResults.addAll(it) }
+
+            // Albums
+            searchRepository.getSearchDataAlbum(query).lastOrNull()?.let { resource ->
+                if (resource is Resource.Success) {
+                    resource.data?.let { searchAlbumResults.addAll(it) }
+                }
+            }
+
+            // Artists
+            searchRepository.getSearchDataArtist(query).lastOrNull()?.let { resource ->
+                if (resource is Resource.Success) {
+                    resource.data?.let { searchArtistResults.addAll(it) }
+                }
+            }
+
+            // Podcasts
+            searchRepository.getSearchDataPodcast(query).lastOrNull()?.let { resource ->
+                if (resource is Resource.Success) {
+                    resource.data?.let { searchPodcastResults.addAll(it) }
+                }
+            }
+
+            val total = searchTempList.size +
+                searchPlaylistResults.size +
+                searchAlbumResults.size +
+                searchArtistResults.size +
+                searchPodcastResults.size
+            session.notifySearchResultChanged(browser, query, total, params)
             LibraryResult.ofVoid()
         }
 
@@ -184,12 +244,39 @@ internal class SimpleMediaSessionCallback(
         params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> =
         scope.future(Dispatchers.IO) {
-            LibraryResult.ofItemList(
-                searchTempList.map {
-                    it.toMediaItemWithoutPath()
-                },
-                params,
-            )
+            val songs = searchTempList.map { it.toMediaItemWithoutPath() }
+            val playlists = searchPlaylistResults.map { it.toMediaItemSearchPlaylist() }
+            val albums = searchAlbumResults.map { it.toMediaItemSearchAlbum() }
+            val artists = searchArtistResults.map { it.toMediaItemSearchArtist() }
+            val podcasts = searchPodcastResults.map { it.toMediaItemSearchPodcast() }
+
+            val buckets = listOf(songs, playlists, albums, artists, podcasts)
+            val indices = IntArray(buckets.size) { 0 }
+            val merged = mutableListOf<MediaItem>()
+
+            val safePage = if (page < 0) 0 else page
+            val hasPaging = pageSize > 0
+            val targetCount = if (hasPaging) (safePage + 1) * pageSize else Int.MAX_VALUE
+
+            var progressed: Boolean
+            do {
+                progressed = false
+                for (i in buckets.indices) {
+                    val bucket = buckets[i]
+                    val idx = indices[i]
+                    if (idx < bucket.size) {
+                        merged.add(bucket[idx])
+                        indices[i] = idx + 1
+                        progressed = true
+                        if (merged.size >= targetCount) break
+                    }
+                }
+            } while (progressed && merged.size < targetCount)
+
+            val from = if (hasPaging) (safePage * pageSize).coerceAtMost(merged.size) else 0
+            val to = if (hasPaging) (from + pageSize).coerceAtMost(merged.size) else merged.size
+            val pageItems = if (from < to) merged.subList(from, to) else emptyList()
+            LibraryResult.ofItemList(pageItems, params)
         }
 
     @UnstableApi
@@ -239,6 +326,34 @@ internal class SimpleMediaSessionCallback(
                                 drawableUri(R.drawable.baseline_playlist_add_24),
                                 MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
                             ),
+                            browsableMediaItem(
+                                CHART,
+                                context.getString(R.string.chart),
+                                context.getString(R.string.available_online),
+                                drawableUri(R.drawable.baseline_trending_up_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                            ),
+                            browsableMediaItem(
+                                MOOD,
+                                context.getString(R.string.moods_amp_moment),
+                                context.getString(R.string.available_online),
+                                drawableUri(R.drawable.baseline_tips_and_updates_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                            ),
+                            browsableMediaItem(
+                                GENRE,
+                                context.getString(R.string.genre),
+                                context.getString(R.string.available_online),
+                                drawableUri(R.drawable.baseline_sort_by_alpha_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                            ),
+                            browsableMediaItem(
+                                PODCAST,
+                                context.getString(R.string.podcasts),
+                                null,
+                                drawableUri(R.drawable.round_library_music_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                            ),
                         )
 
                     SONG ->
@@ -276,6 +391,63 @@ internal class SimpleMediaSessionCallback(
                                 MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
                             )
                         } ?: emptyList()
+                    }
+
+                    CHART -> {
+                        val chart = homeRepository.getChartData().lastOrNull()?.data
+                        val categories = chart?.listChartItem ?: emptyList()
+                        listChartItem.clear()
+                        listChartItem.addAll(categories)
+                        categories.map {
+                            browsableMediaItem(
+                                "$CHART/${it.title}",
+                                it.title,
+                                null,
+                                drawableUri(R.drawable.baseline_trending_up_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                            )
+                        }
+                    }
+
+                    MOOD -> {
+                        val mood = homeRepository.getMoodAndMomentsData().lastOrNull()?.data
+                        moodCache = mood
+                        mood?.moodsMoments?.map {
+                            browsableMediaItem(
+                                "$MOOD/${it.params}",
+                                it.title,
+                                null,
+                                drawableUri(R.drawable.baseline_tips_and_updates_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                            )
+                        } ?: emptyList()
+                    }
+
+                    GENRE -> {
+                        val mood = moodCache ?: homeRepository.getMoodAndMomentsData().lastOrNull()?.data
+                        moodCache = mood
+                        mood?.genres?.map {
+                            browsableMediaItem(
+                                "$GENRE/${it.params}",
+                                it.title,
+                                null,
+                                drawableUri(R.drawable.baseline_sort_by_alpha_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                            )
+                        } ?: emptyList()
+                    }
+
+                    PODCAST -> {
+                        val podcasts = podcastRepository.getAllPodcasts(100).first()
+                        podcasts.sortedBy { it.inLibrary }.map {
+                            browsableMediaItem(
+                                "$PODCAST/${it.podcastId}",
+                                it.title,
+                                it.authorName,
+                                it.thumbnail?.toUri(),
+                                MediaMetadata.MEDIA_TYPE_PLAYLIST,
+                            )
+                        }
                     }
 
                     else -> {
@@ -335,25 +507,127 @@ internal class SimpleMediaSessionCallback(
                                 }
                             }
 
-                            parentId.startsWith("$PLAYLIST/") -> {
-                                val playlistId = parentId.split("/").getOrNull(1)
-                                if (playlistId != null) {
-                                    val playlist =
-                                        localPlaylistRepository.getLocalPlaylist(playlistId.toLong()).lastOrNull()?.data
-                                    if (playlist != null) {
-                                        Logger.w(TAG, "onGetChildren: $playlist")
-                                        val tracks = playlist.tracks
-                                        if (tracks.isNullOrEmpty()) {
+                            parentId.startsWith("$CHART/") -> {
+                                val parts = parentId.split("/")
+                                if (parts.size == 2) {
+                                    val categoryTitle = parts.getOrNull(1)
+                                    val category = listChartItem.find { it.title == categoryTitle }
+                                    category?.playlists?.map {
+                                        browsableMediaItem(
+                                            id = "$CHART/${category?.title}/$PLAYLIST/${it.id}",
+                                            title = it.title,
+                                            subtitle = it.author,
+                                            iconUri = it.thumbnails.lastOrNull()?.url?.toUri(),
+                                            mediaType = MediaMetadata.MEDIA_TYPE_PLAYLIST,
+                                        )
+                                    } ?: emptyList()
+                                } else {
+                                    val playlistId = parts.getOrNull(3)
+                                    if (playlistId != null) {
+                                        val playlist = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                                        if (playlist?.data?.tracks.isNullOrEmpty()) {
                                             emptyList()
                                         } else {
-                                            songRepository
-                                                .getSongsByListVideoId(tracks)
-                                                .lastOrNull()
-                                                ?.map { it.toMediaItem(parentId) } ?: emptyList()
+                                            playlist.data?.toPlaylistEntity()?.let { playlistRepository.insertAndReplacePlaylist(it) }
+                                            playlist.data?.tracks?.map { track ->
+                                                track
+                                                    .toSongEntity()
+                                                    .also { songRepository.insertSong(it).first() }
+                                                    .toMediaItem(parentId)
+                                            } ?: emptyList()
                                         }
-                                    } else {
-                                        emptyList()
+                                    } else emptyList()
+                                }
+                            }
+
+                            parentId.startsWith("$MOOD/") -> {
+                                val parts = parentId.split("/")
+                                if (parts.size == 2) {
+                                    val paramsMood = parts.getOrNull(1)
+                                    val detail = paramsMood?.let {
+                                        moodsMomentDetailsCache[it]
+                                            ?: homeRepository.getMoodData(it).lastOrNull()?.data?.also { data ->
+                                                moodsMomentDetailsCache[it] = data
+                                            }
                                     }
+                                    detail?.items
+                                        ?.flatMap { it.contents }
+                                        ?.map {
+                                            browsableMediaItem(
+                                                id = "$MOOD/${paramsMood}/$PLAYLIST/${it.playlistBrowseId}",
+                                                title = it.title,
+                                                subtitle = null,
+                                                iconUri = it.thumbnails?.lastOrNull()?.url?.toUri(),
+                                                mediaType = MediaMetadata.MEDIA_TYPE_PLAYLIST,
+                                            )
+                                        } ?: emptyList()
+                                } else {
+                                    val playlistId = parts.getOrNull(3)
+                                    if (playlistId != null) {
+                                        val playlist = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                                        if (playlist?.data?.tracks.isNullOrEmpty()) {
+                                            emptyList()
+                                        } else {
+                                            playlist.data?.toPlaylistEntity()?.let { playlistRepository.insertAndReplacePlaylist(it) }
+                                            playlist.data?.tracks?.map { track ->
+                                                track
+                                                    .toSongEntity()
+                                                    .also { songRepository.insertSong(it).first() }
+                                                    .toMediaItem(parentId)
+                                            } ?: emptyList()
+                                        }
+                                    } else emptyList()
+                                }
+                            }
+
+                            parentId.startsWith("$GENRE/") -> {
+                                val parts = parentId.split("/")
+                                if (parts.size == 2) {
+                                    val paramsGenre = parts.getOrNull(1)
+                                    val detail = paramsGenre?.let {
+                                        genreDetailsCache[it]
+                                            ?: homeRepository.getGenreData(it).lastOrNull()?.data?.also { data ->
+                                                genreDetailsCache[it] = data
+                                            }
+                                    }
+                                    detail?.itemsPlaylist
+                                        ?.flatMap { it.contents }
+                                        ?.map {
+                                            browsableMediaItem(
+                                                id = "$GENRE/${paramsGenre}/$PLAYLIST/${it.playlistBrowseId}",
+                                                title = it.title.title,
+                                                subtitle = it.title.subtitle,
+                                                iconUri = it.thumbnail?.lastOrNull()?.url?.toUri(),
+                                                mediaType = MediaMetadata.MEDIA_TYPE_PLAYLIST,
+                                            )
+                                        } ?: emptyList()
+                                } else {
+                                    val playlistId = parts.getOrNull(3)
+                                    if (playlistId != null) {
+                                        val playlist = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                                        if (playlist?.data?.tracks.isNullOrEmpty()) {
+                                            emptyList()
+                                        } else {
+                                            playlist.data?.toPlaylistEntity()?.let { playlistRepository.insertAndReplacePlaylist(it) }
+                                            playlist.data?.tracks?.map { track ->
+                                                track
+                                                    .toSongEntity()
+                                                    .also { songRepository.insertSong(it).first() }
+                                                    .toMediaItem(parentId)
+                                            } ?: emptyList()
+                                        }
+                                    } else emptyList()
+                                }
+                            }
+
+                            parentId.startsWith("$PODCAST/") -> {
+                                val parts = parentId.split("/")
+                                if (parts.size == 2) {
+                                    val podcastId = parts.getOrNull(1)
+                                    if (podcastId != null) {
+                                        val episodes = podcastRepository.getPodcastEpisodes(podcastId).first()
+                                        episodes.map { it.toDisplayMediaItem("$PODCAST/$podcastId/$EPISODE") }
+                                    } else emptyList()
                                 } else {
                                     emptyList()
                                 }
@@ -505,6 +779,152 @@ internal class SimpleMediaSessionCallback(
                     }
                 }
 
+                ONLINE_PLAYLIST -> {
+                    val playlistId = path.getOrNull(1) ?: return@future defaultResult
+                    val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
+                    val tracks = playlistEntity?.tracks
+                    val songs = if (tracks.isNullOrEmpty()) {
+                        val full = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                        if (full?.data?.tracks.isNullOrEmpty()) {
+                            emptyList()
+                        } else {
+                            full.data?.toPlaylistEntity()?.let { playlistRepository.insertAndReplacePlaylist(it) }
+                            full.data?.tracks?.onEach { songRepository.insertSong(it.toSongEntity()).first() }?.map { it.toMediaItem() }
+                                ?: emptyList()
+                        }
+                    } else {
+                        songRepository.getSongsByListVideoId(tracks).first().sortedBy { tracks.indexOf(it.videoId) }.map { it.toMediaItem() }
+                    }
+                    if (songs.isEmpty()) defaultResult else MediaSession.MediaItemsWithStartPosition(songs, 0, startPositionMs)
+                }
+
+                ALBUM -> {
+                    val albumId = path.getOrNull(1) ?: return@future defaultResult
+                    val album = albumRepository.getAlbumData(albumId).lastOrNull()?.data
+                    val tracks = album?.tracks
+                    if (tracks.isNullOrEmpty()) {
+                        defaultResult
+                    } else {
+                        tracks.forEach { songRepository.insertSong(it.toSongEntity()).first() }
+                        val mediaItemList = tracks.map { it.toMediaItem() }
+                        MediaSession.MediaItemsWithStartPosition(mediaItemList, 0, startPositionMs)
+                    }
+                }
+
+                ARTIST -> {
+                    // artist/<channelId>/radio/<radioId>
+                    val radioId = path.getOrNull(3) ?: return@future defaultResult
+                    val radio = playlistRepository.getRadio(radioId).lastOrNull()?.data?.first
+                    val tracks = radio?.tracks
+                    if (tracks.isNullOrEmpty()) {
+                        defaultResult
+                    } else {
+                        tracks.forEach { songRepository.insertSong(it.toSongEntity()).first() }
+                        val mediaItemList = tracks.map { it.toMediaItem() }
+                        MediaSession.MediaItemsWithStartPosition(mediaItemList, 0, startPositionMs)
+                    }
+                }
+
+                CHART -> {
+                    val type = path.getOrNull(2) ?: return@future defaultResult
+                    if (type == PLAYLIST) {
+                        val songId = path.getOrNull(4) ?: return@future defaultResult
+                        val playlistId = path.getOrNull(3) ?: return@future defaultResult
+                        val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
+                        val tracks = playlistEntity?.tracks
+                        if (tracks.isNullOrEmpty()) {
+                            defaultResult
+                        } else {
+                            val mediaItemList =
+                                songRepository
+                                    .getSongsByListVideoId(tracks)
+                                    .first()
+                                    .sortedBy { tracks.indexOf(it.videoId) }
+                                    .map { it.toMediaItem() }
+                            MediaSession.MediaItemsWithStartPosition(
+                                mediaItemList,
+                                mediaItemList.indexOfFirst { it.mediaId == songId }.takeIf { it != -1 } ?: 0,
+                                startPositionMs,
+                            )
+                        }
+                    } else defaultResult
+                }
+
+                MOOD -> {
+                    val type = path.getOrNull(2) ?: return@future defaultResult
+                    if (type == PLAYLIST) {
+                        val songId = path.getOrNull(4) ?: return@future defaultResult
+                        val playlistId = path.getOrNull(3) ?: return@future defaultResult
+                        val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
+                        val tracks = playlistEntity?.tracks
+                        if (tracks.isNullOrEmpty()) {
+                            defaultResult
+                        } else {
+                            val mediaItemList =
+                                songRepository
+                                    .getSongsByListVideoId(tracks)
+                                    .first()
+                                    .sortedBy { tracks.indexOf(it.videoId) }
+                                    .map { it.toMediaItem() }
+                            MediaSession.MediaItemsWithStartPosition(
+                                mediaItemList,
+                                mediaItemList.indexOfFirst { it.mediaId == songId }.takeIf { it != -1 } ?: 0,
+                                startPositionMs,
+                            )
+                        }
+                    } else defaultResult
+                }
+
+                GENRE -> {
+                    val type = path.getOrNull(2) ?: return@future defaultResult
+                    if (type == PLAYLIST) {
+                        val songId = path.getOrNull(4) ?: return@future defaultResult
+                        val playlistId = path.getOrNull(3) ?: return@future defaultResult
+                        val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
+                        val tracks = playlistEntity?.tracks
+                        if (tracks.isNullOrEmpty()) {
+                            defaultResult
+                        } else {
+                            val mediaItemList =
+                                songRepository
+                                    .getSongsByListVideoId(tracks)
+                                    .first()
+                                    .sortedBy { tracks.indexOf(it.videoId) }
+                                    .map { it.toMediaItem() }
+                            MediaSession.MediaItemsWithStartPosition(
+                                mediaItemList,
+                                mediaItemList.indexOfFirst { it.mediaId == songId }.takeIf { it != -1 } ?: 0,
+                                startPositionMs,
+                            )
+                        }
+                    } else defaultResult
+                }
+
+                PODCAST -> {
+                    val podcastId = path.getOrNull(1) ?: return@future defaultResult
+                    val type = path.getOrNull(2)
+                    if (type == EPISODE) {
+                        val videoId = path.getOrNull(3) ?: return@future defaultResult
+                        val episodes = podcastRepository.getPodcastEpisodes(podcastId).first()
+                        val mediaItemList = episodes.map { it.toPlaybackMediaItem() }
+                        MediaSession.MediaItemsWithStartPosition(
+                            mediaItemList,
+                            mediaItemList.indexOfFirst { it.mediaId == videoId }.takeIf { it != -1 } ?: 0,
+                            startPositionMs,
+                        )
+                    } else {
+                        // Play podcast episodes from network if not cached locally
+                        val episodesDb = podcastRepository.getPodcastEpisodes(podcastId).first()
+                        val mediaItemList = if (episodesDb.isNotEmpty()) {
+                            episodesDb.map { it.toPlaybackMediaItem() }
+                        } else {
+                            val pb = podcastRepository.getPodcastData(podcastId).lastOrNull()?.data
+                            pb?.listEpisode?.map { it.toPlaybackMediaItem() } ?: emptyList()
+                        }
+                        if (mediaItemList.isEmpty()) defaultResult else MediaSession.MediaItemsWithStartPosition(mediaItemList, 0, startPositionMs)
+                    }
+                }
+
                 else -> defaultResult
             }
         }
@@ -579,6 +999,125 @@ internal class SimpleMediaSessionCallback(
                     .build(),
             ).build()
 
+    private fun PlaylistsResult.toMediaItemSearchPlaylist(): MediaItem =
+        MediaItem
+            .Builder()
+            .setMediaId("$ONLINE_PLAYLIST/${this.browseId}")
+            .setMediaMetadata(
+                MediaMetadata
+                    .Builder()
+                    .setTitle(this.title)
+                    .setSubtitle(this.author)
+                    .setArtist(this.author)
+                    .setArtworkUri(this.thumbnails.lastOrNull()?.url?.toUri())
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
+                    .build(),
+            ).build()
+
+    private fun AlbumsResult.toMediaItemSearchAlbum(): MediaItem =
+        MediaItem
+            .Builder()
+            .setMediaId("$ALBUM/${this.browseId}")
+            .setMediaMetadata(
+                MediaMetadata
+                    .Builder()
+                    .setTitle(this.title)
+                    .setSubtitle(this.artists.toListName().connectArtists())
+                    .setArtist(this.artists.toListName().connectArtists())
+                    .setArtworkUri(this.thumbnails.lastOrNull()?.url?.toUri())
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
+                    .build(),
+            ).build()
+
+    private fun ArtistsResult.toMediaItemSearchArtist(): MediaItem =
+        MediaItem
+            .Builder()
+            .setMediaId("$ARTIST/${this.browseId}/radio/${this.radioId}")
+            .setMediaMetadata(
+                MediaMetadata
+                    .Builder()
+                    .setTitle(this.artist)
+                    .setSubtitle(null)
+                    .setArtist(this.artist)
+                    .setArtworkUri(this.thumbnails.lastOrNull()?.url?.toUri())
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .build(),
+            ).build()
+
+    private fun PlaylistsResult.toMediaItemSearchPodcast(): MediaItem =
+        MediaItem
+            .Builder()
+            .setMediaId("$PODCAST/${this.browseId}")
+            .setMediaMetadata(
+                MediaMetadata
+                    .Builder()
+                    .setTitle(this.title)
+                    .setSubtitle(this.author)
+                    .setArtist(this.author)
+                    .setArtworkUri(this.thumbnails.lastOrNull()?.url?.toUri())
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
+                    .build(),
+            ).build()
+
+    private fun PodcastBrowse.EpisodeItem.toPlaybackMediaItem(): MediaItem =
+        MediaItem
+            .Builder()
+            .setMediaId(this.videoId)
+            .setUri(this.videoId)
+            .setCustomCacheKey(this.videoId)
+            .setMediaMetadata(
+                MediaMetadata
+                    .Builder()
+                    .setTitle(this.title)
+                    .setSubtitle(this.author.name)
+                    .setArtist(this.author.name)
+                    .setArtworkUri(this.thumbnail.lastOrNull()?.url?.toUri())
+                    .setDescription(MERGING_DATA_TYPE.VIDEO)
+                    .build(),
+            ).build()
+
+    private fun EpisodeEntity.toDisplayMediaItem(path: String) =
+        MediaItem
+            .Builder()
+            .setMediaId("$path/${this.videoId}")
+            .setMediaMetadata(
+                MediaMetadata
+                    .Builder()
+                    .setTitle(this.title)
+                    .setSubtitle(this.authorName)
+                    .setArtist(this.authorName)
+                    .setArtworkUri(this.thumbnail?.toUri())
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .build(),
+            ).build()
+
+    private fun EpisodeEntity.toPlaybackMediaItem(): MediaItem =
+        MediaItem
+            .Builder()
+            .setMediaId(this.videoId)
+            .setUri(this.videoId)
+            .setCustomCacheKey(this.videoId)
+            .setMediaMetadata(
+                MediaMetadata
+                    .Builder()
+                    .setTitle(this.title)
+                    .setSubtitle(this.authorName)
+                    .setArtist(this.authorName)
+                    .setArtworkUri(this.thumbnail?.toUri())
+                    .setDescription(MERGING_DATA_TYPE.VIDEO)
+                    .build(),
+            ).build()
+
     companion object {
         const val ROOT = "root"
         const val SONG = "song"
@@ -586,5 +1125,12 @@ internal class SimpleMediaSessionCallback(
         const val ONLINE_PLAYLIST = "online_playlist"
         const val PLAYLIST = "playlist"
         const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
+        const val CHART = "chart"
+        const val MOOD = "mood"
+        const val GENRE = "genre"
+        const val PODCAST = "podcast"
+        const val EPISODE = "episode"
+        const val ALBUM = "album"
+        const val ARTIST = "artist"
     }
 }

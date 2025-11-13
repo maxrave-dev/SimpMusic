@@ -428,6 +428,19 @@ internal class DataStoreManagerImpl(
         }
     }
 
+    override val contentFilterLanguage: Flow<String> =
+        settingsDataStore.data.map { preferences ->
+            preferences[CONTENT_FILTER_LANGUAGE] ?: ""
+        }
+
+    override suspend fun setContentFilterLanguage(language: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[CONTENT_FILTER_LANGUAGE] = language
+            }
+        }
+    }
+
     override val maxSongCacheSize =
         settingsDataStore.data.map { preferences ->
             preferences[MAX_SONG_CACHE_SIZE] ?: -1
@@ -1187,6 +1200,8 @@ internal class DataStoreManagerImpl(
         val CONTRIBUTOR_EMAIL = stringPreferencesKey("contributor_email")
 
         val BACKUP_DOWNLOADED = stringPreferencesKey("backup_downloaded")
+
+        val CONTENT_FILTER_LANGUAGE = stringPreferencesKey("content_filter_language")
 
         val LIQUID_GLASS = stringPreferencesKey("liquid_glass")
 

@@ -72,7 +72,7 @@ val repositoryModule =
         }
 
         single<SearchRepository> {
-            SearchRepositoryImpl(get(), get())
+            SearchRepositoryImpl(get(), get(), get())
         }
 
         single<SongRepository> {
