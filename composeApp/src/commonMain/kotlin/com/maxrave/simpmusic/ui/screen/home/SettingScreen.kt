@@ -46,7 +46,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -191,6 +190,8 @@ import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
+import simpmusic.composeapp.generated.resources.combine_local_and_youtube_liked_songs
+import simpmusic.composeapp.generated.resources.combine_local_and_youtube_liked_songs_description
 import simpmusic.composeapp.generated.resources.content
 import simpmusic.composeapp.generated.resources.content_country
 import simpmusic.composeapp.generated.resources.contributor_email
@@ -202,6 +203,7 @@ import simpmusic.composeapp.generated.resources.default_models
 import simpmusic.composeapp.generated.resources.description_and_licenses
 import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
+import simpmusic.composeapp.generated.resources.download_quality
 import simpmusic.composeapp.generated.resources.downloaded_cache
 import simpmusic.composeapp.generated.resources.enable_canvas
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
@@ -214,7 +216,6 @@ import simpmusic.composeapp.generated.resources.gemini
 import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
-import simpmusic.composeapp.generated.resources.home_limit
 import simpmusic.composeapp.generated.resources.http
 import simpmusic.composeapp.generated.resources.intro_login_to_discord
 import simpmusic.composeapp.generated.resources.intro_login_to_spotify
@@ -225,6 +226,8 @@ import simpmusic.composeapp.generated.resources.invalid_language_code
 import simpmusic.composeapp.generated.resources.invalid_port
 import simpmusic.composeapp.generated.resources.keep_service_alive
 import simpmusic.composeapp.generated.resources.keep_service_alive_description
+import simpmusic.composeapp.generated.resources.keep_your_youtube_playlist_offline
+import simpmusic.composeapp.generated.resources.keep_your_youtube_playlist_offline_description
 import simpmusic.composeapp.generated.resources.kill_service_on_exit
 import simpmusic.composeapp.generated.resources.kill_service_on_exit_description
 import simpmusic.composeapp.generated.resources.language
@@ -298,6 +301,7 @@ import simpmusic.composeapp.generated.resources.use_your_system_equalizer
 import simpmusic.composeapp.generated.resources.user_interface
 import simpmusic.composeapp.generated.resources.version
 import simpmusic.composeapp.generated.resources.version_format
+import simpmusic.composeapp.generated.resources.video_download_quality
 import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
@@ -371,7 +375,10 @@ fun SettingScreen(
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
-    val homeLimit by viewModel.homeLimit.collectAsStateWithLifecycle()
+    val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
+    val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
+    val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
+    val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
     val playVideo by viewModel.playVideoInsteadOfAudio.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val videoQuality by viewModel.videoQuality.collectAsStateWithLifecycle()
     val sendData by viewModel.sendBackToGoogle.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
@@ -602,21 +609,29 @@ fun SettingScreen(
                     },
                 )
                 SettingItem(
-                    title = stringResource(Res.string.home_limit),
-                    subtitle = homeLimit?.toString() ?: stringResource(Res.string.unknown),
-                ) {
-                    Slider(
-                        value = homeLimit?.toFloat() ?: 3f,
-                        onValueChange = {
-                            viewModel.setHomeLimit(it.toInt())
-                        },
-                        modifier = Modifier,
-                        enabled = true,
-                        valueRange = 3f..8f,
-                        steps = 4,
-                        onValueChangeFinished = {},
-                    )
-                }
+                    title = stringResource(Res.string.download_quality),
+                    subtitle = downloadQuality ?: "",
+                    smallSubtitle = true,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.download_quality) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            QUALITY.items.map { item ->
+                                                (item.toString() == downloadQuality) to item.toString()
+                                            },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        state.selectOne?.getSelected()?.let { viewModel.setDownloadQuality(it) }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
                 SettingItem(
                     title = stringResource(Res.string.play_video_for_video_track_instead_of_audio_only),
                     subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
@@ -647,6 +662,29 @@ fun SettingScreen(
                     },
                 )
                 SettingItem(
+                    title = stringResource(Res.string.video_download_quality),
+                    subtitle = videoDownloadQuality ?: "",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.video_download_quality) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            VIDEO_QUALITY.items.map { item ->
+                                                (item.toString() == videoDownloadQuality) to item.toString()
+                                            },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        viewModel.setVideoDownloadQuality(state.selectOne?.getSelected() ?: "")
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
                     title = stringResource(Res.string.send_back_listening_data_to_google),
                     subtitle =
                         stringResource(
@@ -660,6 +698,16 @@ fun SettingScreen(
                     title = stringResource(Res.string.play_explicit_content),
                     subtitle = stringResource(Res.string.play_explicit_content_description),
                     switch = (explicitContentEnabled to { viewModel.setExplicitContentEnabled(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.keep_your_youtube_playlist_offline),
+                    subtitle = stringResource(Res.string.keep_your_youtube_playlist_offline_description),
+                    switch = (keepYoutubePlaylistOffline to { viewModel.setKeepYouTubePlaylistOffline(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.combine_local_and_youtube_liked_songs),
+                    subtitle = stringResource(Res.string.combine_local_and_youtube_liked_songs_description),
+                    switch = (combineLocalAndYouTubeLiked to { viewModel.setCombineLocalAndYouTubeLiked(it) })
                 )
                 SettingItem(
                     title = stringResource(Res.string.proxy),

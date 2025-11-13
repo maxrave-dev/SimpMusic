@@ -72,6 +72,8 @@
     <string name="content_country">Content Country</string>
     <string name="change">Change</string>
     <string name="quality">Quality</string>
+    <string name="download_quality">Download quality</string>
+    <string name="video_download_quality">Video download quality</string>
     <string name="clear_downloaded_cache">Clear Downloaded Cache</string>
     <string name="clear_thumbnail_cache">Clear Thumbnail Cache</string>
     <string name="add">Add</string>
@@ -478,4 +480,8 @@
     <string name="youtube_liked_music">YouTube Liked Music</string>
     <string name="keep_service_alive">Keep service alive</string>
     <string name="keep_service_alive_description">Keep music player service alive to avoid being killed by system</string>
+    <string name="keep_your_youtube_playlist_offline">Keep showing your YouTube playlist when offline</string>
+    <string name="keep_your_youtube_playlist_offline_description">Save your YT playlist to local and keep to show when offline</string>
+    <string name="combine_local_and_youtube_liked_songs">Replace Favorite by YouTube Liked when logged in</string>
+    <string name="combine_local_and_youtube_liked_songs_description">Using only YouTube Liked (not support like a song when offline)</string>
 </resources>

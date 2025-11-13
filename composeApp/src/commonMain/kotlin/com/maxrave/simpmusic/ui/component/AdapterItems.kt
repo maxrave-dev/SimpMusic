@@ -332,8 +332,25 @@ fun HomeItemContentPlaylist(
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = painterResource(Res.drawable.holder),
-                error = painterResource(Res.drawable.holder),
+                placeholder =
+                    if (data is LocalPlaylistEntity) {
+                        painterPlaylistThumbnail(
+                            data.title,
+                            style = typo().bodySmall,
+                            thumbSize * 0.9f to thumbSize * 0.9f
+                        )
+                    } else {
+                        painterResource(Res.drawable.holder)
+                    },
+                error = if (data is LocalPlaylistEntity) {
+                    painterPlaylistThumbnail(
+                        data.title,
+                        style = typo().bodySmall,
+                        thumbSize * 0.9f to thumbSize * 0.9f
+                    )
+                } else {
+                    painterResource(Res.drawable.holder)
+                },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =

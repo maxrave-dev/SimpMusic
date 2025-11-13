@@ -101,8 +101,6 @@ class SettingsViewModel(
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
     private var _canvasCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
     val canvasCacheSize: StateFlow<Long?> = _canvasCacheSize
-    private var _homeLimit = MutableStateFlow<Int?>(null)
-    val homeLimit: StateFlow<Int?> = _homeLimit
     private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
     val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
     private var _usingProxy = MutableStateFlow(false)
@@ -159,6 +157,18 @@ class SettingsViewModel(
     private val _keepServiceAlive = MutableStateFlow<Boolean>(false)
     val keepServiceAlive: StateFlow<Boolean> = _keepServiceAlive
 
+    private val _keepYouTubePlaylistOffline = MutableStateFlow<Boolean>(false)
+    val keepYouTubePlaylistOffline: StateFlow<Boolean> = _keepYouTubePlaylistOffline
+
+    private val _combineLocalAndYouTubeLiked = MutableStateFlow<Boolean>(false)
+    val combineLocalAndYouTubeLiked: StateFlow<Boolean> = _combineLocalAndYouTubeLiked
+
+    private val _downloadQuality = MutableStateFlow<String?>(null)
+    val downloadQuality: StateFlow<String?> = _downloadQuality
+
+    private val _videoDownloadQuality = MutableStateFlow<String?>(null)
+    val videoDownloadQuality: StateFlow<String?> = _videoDownloadQuality
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -210,7 +220,6 @@ class SettingsViewModel(
         getYoutubeSubtitleLanguage()
         getLyricsProvider()
         getUseTranslation()
-        getHomeLimit()
         getPlayVideoInsteadOfAudio()
         getVideoQuality()
         getSpotifyLogIn()
@@ -237,12 +246,100 @@ class SettingsViewModel(
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
         getKeepServiceAlive()
+        getKeepYouTubePlaylistOffline()
+        getCombineLocalAndYouTubeLiked()
+        getDownloadQuality()
+        getVideoDownloadQuality()
         viewModelScope.launch {
             calculateDataFraction(
                 cacheRepository,
             )?.let {
                 _fraction.value = it
             }
+        }
+    }
+
+    private fun getDownloadQuality() {
+        viewModelScope.launch {
+            dataStoreManager.downloadQuality.collect { quality ->
+                when (quality) {
+                    QUALITY.items[0].toString() -> _downloadQuality.emit(QUALITY.items[0].toString())
+                    QUALITY.items[1].toString() -> _downloadQuality.emit(QUALITY.items[1].toString())
+                    QUALITY.items[2].toString() -> _downloadQuality.emit(QUALITY.items[2].toString())
+                }
+            }
+        }
+    }
+
+    fun setDownloadQuality(quality: String) {
+        viewModelScope.launch {
+            if (getPlatform() == Platform.Android) {
+                dataStoreManager.setDownloadQuality(quality)
+                getQuality()
+            } else if (getPlatform() == Platform.Desktop) {
+                val installed = checkYtdlp()
+                if (installed) {
+                    dataStoreManager.setDownloadQuality(quality)
+                    getQuality()
+                } else {
+                    makeToast("Your device does not have yt-dlp installed. Please install it to use the best quality.")
+                }
+            }
+            getDownloadQuality()
+        }
+    }
+
+    private fun getVideoDownloadQuality() {
+        viewModelScope.launch {
+            dataStoreManager.videoDownloadQuality.collect { videoQuality ->
+                when (videoQuality) {
+                    VIDEO_QUALITY.items[0].toString() -> _videoDownloadQuality.emit(VIDEO_QUALITY.items[0].toString())
+                    VIDEO_QUALITY.items[1].toString() -> _videoDownloadQuality.emit(VIDEO_QUALITY.items[1].toString())
+                    VIDEO_QUALITY.items[2].toString() -> _videoDownloadQuality.emit(VIDEO_QUALITY.items[2].toString())
+                }
+            }
+        }
+    }
+
+    fun setVideoDownloadQuality(quality: String) {
+        viewModelScope.launch {
+            viewModelScope.launch {
+                if (VIDEO_QUALITY.items.contains(quality)) {
+                    dataStoreManager.setVideoQuality(quality)
+                }
+                getVideoQuality()
+            }
+            getVideoDownloadQuality()
+        }
+    }
+
+    private fun getKeepYouTubePlaylistOffline() {
+        viewModelScope.launch {
+            dataStoreManager.keepYouTubePlaylistOffline.collect { keep ->
+                _keepYouTubePlaylistOffline.value = keep == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setKeepYouTubePlaylistOffline(keep: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setKeepYouTubePlaylistOffline(keep)
+            getKeepYouTubePlaylistOffline()
+        }
+    }
+
+    private fun getCombineLocalAndYouTubeLiked() {
+        viewModelScope.launch {
+            dataStoreManager.combineLocalAndYouTubeLiked.collect { combine ->
+                _combineLocalAndYouTubeLiked.value = combine == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCombineLocalAndYouTubeLiked(combine: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setCombineLocalAndYouTubeLiked(combine)
+            getCombineLocalAndYouTubeLiked()
         }
     }
 
@@ -588,6 +685,7 @@ class SettingsViewModel(
                 when (videoQuality) {
                     VIDEO_QUALITY.items[0].toString() -> _videoQuality.emit(VIDEO_QUALITY.items[0].toString())
                     VIDEO_QUALITY.items[1].toString() -> _videoQuality.emit(VIDEO_QUALITY.items[1].toString())
+                    VIDEO_QUALITY.items[2].toString() -> _videoQuality.emit(VIDEO_QUALITY.items[2].toString())
                 }
             }
         }
@@ -1240,21 +1338,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setSpotifyCanvas(loggedIn)
             getSpotifyCanvas()
-        }
-    }
-
-    fun getHomeLimit() {
-        viewModelScope.launch {
-            dataStoreManager.homeLimit.collect {
-                _homeLimit.emit(it)
-            }
-        }
-    }
-
-    fun setHomeLimit(limit: Int) {
-        viewModelScope.launch {
-            dataStoreManager.setHomeLimit(limit)
-            getHomeLimit()
         }
     }
 

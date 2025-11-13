@@ -117,6 +117,7 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
+import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.seed
@@ -161,7 +162,6 @@ import simpmusic.composeapp.generated.resources.created_at
 import simpmusic.composeapp.generated.resources.download_button
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
-import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.reload
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
@@ -487,10 +487,11 @@ fun LocalPlaylistScreen(
                                     .data(uiState.thumbnail)
                                     .diskCachePolicy(CachePolicy.ENABLED)
                                     .diskCacheKey(uiState.thumbnail)
-                                    .crossfade(true)
+                                    .crossfade(550)
                                     .build(),
-                            placeholder = painterResource(Res.drawable.holder),
-                            error = painterResource(Res.drawable.holder),
+                            placeholder = painterPlaylistThumbnail(uiState.title, style = typo().labelMedium, 250.dp to 250.dp),
+                            error = painterPlaylistThumbnail(uiState.title, style = typo().labelMedium, 250.dp to 250.dp),
+                            fallback = painterPlaylistThumbnail(uiState.title, style = typo().labelMedium, 250.dp to 250.dp),
                             contentDescription = null,
                             contentScale = ContentScale.FillHeight,
                             onSuccess = {
@@ -518,7 +519,7 @@ fun LocalPlaylistScreen(
                                 Spacer(modifier = Modifier.size(25.dp))
                                 Text(
                                     text = uiState.title,
-                                    style = typo().titleLarge,
+                                    style = typo().titleMedium,
                                     color = Color.White,
                                 )
                                 Column(
