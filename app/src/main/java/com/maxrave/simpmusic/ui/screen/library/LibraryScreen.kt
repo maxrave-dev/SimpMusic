@@ -50,6 +50,7 @@ import androidx.navigation.NavController
 import com.maxrave.common.LibraryChipType
 import com.maxrave.common.R
 import com.maxrave.domain.utils.LocalResource
+import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.isScrollingUp
@@ -91,6 +92,7 @@ fun LibraryScreen(
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
     val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsStateWithLifecycle()
     val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
+    val savedOnlinePlaylist by viewModel.savedOnlinePlaylist.collectAsStateWithLifecycle()
     val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
     val hazeState =
         rememberHazeState(
@@ -139,6 +141,9 @@ fun LibraryScreen(
             }
             LibraryChipType.FAVORITE_PODCAST -> {
                 viewModel.getFavoritePodcasts()
+            }
+            LibraryChipType.SAVED_ONLINE_PLAYLIST -> {
+                viewModel.getSavedOnlinePlaylist()
             }
         }
     }
@@ -274,6 +279,17 @@ fun LibraryScreen(
                     viewModel.getFavoritePodcasts()
                 }
             }
+            LibraryChipType.SAVED_ONLINE_PLAYLIST -> {
+                GridLibraryPlaylist<PlaylistType>(
+                    navController,
+                    innerPadding.copy(top = topAppBarHeight),
+                    savedOnlinePlaylist,
+                    emptyText = R.string.no_playlists_added,
+                    onScrolling = onScrolling,
+                ) {
+                    viewModel.getSavedOnlinePlaylist()
+                }
+            }
         }
     }
     val coroutineScope = rememberCoroutineScope()
@@ -398,9 +414,10 @@ fun LibraryScreen(
                             LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> stringResource(R.string.your_youtube_playlists)
                             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> stringResource(R.string.mix_for_you)
                             LibraryChipType.LOCAL_PLAYLIST -> stringResource(R.string.your_playlists)
-                            LibraryChipType.FAVORITE_PLAYLIST -> stringResource(R.string.favorite_playlists)
-                            LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(R.string.downloaded_playlists)
-                            LibraryChipType.FAVORITE_PODCAST -> stringResource(R.string.favorite_podcasts)
+                            LibraryChipType.SAVED_ONLINE_PLAYLIST -> stringResource(R.string.playlists)
+                            LibraryChipType.FAVORITE_PLAYLIST -> stringResource(R.string.favorite)
+                            LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(R.string.downloaded)
+                            LibraryChipType.FAVORITE_PODCAST -> stringResource(R.string.favorite)
                         },
                 ) {
                     currentFilter = type

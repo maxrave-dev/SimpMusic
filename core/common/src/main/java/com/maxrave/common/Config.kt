@@ -440,6 +440,7 @@ object MEDIA_CUSTOM_COMMAND {
     const val REPEAT = "repeat"
     const val RADIO = "radio"
     const val SHUFFLE = "shuffle"
+    const val SAVE = "save"
 }
 
 object MEDIA_NOTIFICATION {
@@ -483,4 +484,5 @@ enum class LibraryChipType {
     FAVORITE_PLAYLIST,
     DOWNLOADED_PLAYLIST,
     FAVORITE_PODCAST,
+    SAVED_ONLINE_PLAYLIST,
 }

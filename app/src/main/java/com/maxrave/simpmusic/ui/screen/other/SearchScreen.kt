@@ -608,6 +608,9 @@ fun SearchScreen(
                                                                                 arrayListOf(result.toTrack()),
                                                                             )
                                                                         },
+                                                                        onSaveClick = {
+                                                                            searchViewModel.saveSongFromSearch(result.toTrack())
+                                                                        },
                                                                     )
 
                                                                 is VideosResult ->
@@ -637,6 +640,9 @@ fun SearchScreen(
                                                                             sharedViewModel.addListToQueue(
                                                                                 arrayListOf(result.toTrack()),
                                                                             )
+                                                                        },
+                                                                        onSaveClick = {
+                                                                            searchViewModel.saveSongFromSearch(result.toTrack())
                                                                         },
                                                                     )
 
@@ -681,6 +687,9 @@ fun SearchScreen(
                                                                                     ),
                                                                                 )
                                                                             }
+                                                                        },
+                                                                        onSaveClick = {
+                                                                            searchViewModel.savePlaylistFromSearch(result)
                                                                         },
                                                                     )
                                                             }

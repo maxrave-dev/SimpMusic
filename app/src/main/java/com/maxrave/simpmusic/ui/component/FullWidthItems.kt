@@ -90,6 +90,7 @@ fun SongFullWidthItems(
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
+    onSaveClick: ((videoId: String) -> Unit)? = null,
     modifier: Modifier,
 ) {
     val maxOffset = 360f
@@ -283,6 +284,12 @@ fun SongFullWidthItems(
                         )
                     }
                 }
+                if (onSaveClick != null) {
+                    RippleIconButton(resId = R.drawable.baseline_playlist_add_24, fillMaxSize = false) {
+                        val videoId = track?.videoId ?: songEntity?.videoId
+                        videoId?.let { onSaveClick.invoke(it) }
+                    }
+                }
                 if (onMoreClickListener != null) {
                     RippleIconButton(resId = R.drawable.baseline_more_vert_24, fillMaxSize = false) {
                         val videoId = track?.videoId ?: songEntity?.videoId
@@ -398,6 +405,7 @@ fun SuggestItems(
 fun PlaylistFullWidthItems(
     data: PlaylistType,
     onClickListener: (() -> Unit)? = null,
+    onSaveClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -533,6 +541,11 @@ fun PlaylistFullWidthItems(
                                     animationMode = MarqueeAnimationMode.Immediately,
                                 ).focusable(),
                     )
+                }
+            }
+            if (onSaveClick != null) {
+                RippleIconButton(resId = R.drawable.baseline_playlist_add_24, fillMaxSize = false) {
+                    onSaveClick.invoke()
                 }
             }
         }

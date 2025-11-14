@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.R
 import com.maxrave.common.SELECTED_LANGUAGE
+import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.SearchHistory
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
@@ -14,8 +15,15 @@ import com.maxrave.domain.data.model.searchResult.videos.VideosResult
 import com.maxrave.domain.data.type.SearchResultType
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.SearchRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toQueryList
+import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toPlaylistEntity
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.entities.PlaylistEntity
+import java.time.LocalDateTime
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.delay
@@ -82,6 +90,8 @@ class SearchViewModel(
     application: Application,
     private val dataStoreManager: DataStoreManager,
     private val searchRepository: SearchRepository,
+    private val songRepository: SongRepository,
+    private val playlistRepository: PlaylistRepository,
 ) : BaseViewModel(application) {
     private val _searchScreenUIState = MutableStateFlow<SearchScreenUIState>(SearchScreenUIState.Empty)
     val searchScreenUIState: StateFlow<SearchScreenUIState> get() = _searchScreenUIState.asStateFlow()
@@ -449,6 +459,73 @@ class SearchViewModel(
     fun setSearchType(searchType: SearchType) {
         _searchScreenState.update { state ->
             state.copy(searchType = searchType)
+        }
+    }
+
+    fun saveSongFromSearch(track: Track) {
+        viewModelScope.launch {
+            try {
+                songRepository.insertSong(track.toSongEntity()).collect { }
+            } catch (_: Exception) {
+            }
+            try {
+                songRepository.updateSongInLibrary(LocalDateTime.now(), track.videoId).collect { }
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    fun savePlaylistFromSearch(playlist: PlaylistsResult) {
+        viewModelScope.launch {
+            var inserted = false
+            try {
+                playlistRepository.getFullPlaylistData(playlist.browseId).collectLatest { res ->
+                    when (res) {
+                        is Resource.Success -> {
+                            res.data?.let { pb ->
+                                // Save playlist entity
+                                playlistRepository.insertAndReplacePlaylist(pb.toPlaylistEntity())
+                                // Pre-populate songs referenced by the playlist so UI can render immediately
+                                pb.tracks.forEach { t ->
+                                    try {
+                                        songRepository.insertSong(
+                                            t.toSongEntity().copy(inLibrary = Config.REMOVED_SONG_DATE_TIME),
+                                        ).collect { }
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                                inserted = true
+                            }
+                        }
+                        is Resource.Error -> {}
+                    }
+                }
+            } catch (_: Exception) {
+            }
+            if (!inserted) {
+                val entity =
+                    PlaylistEntity(
+                        id = playlist.browseId,
+                        author = playlist.author,
+                        description = "",
+                        duration = "",
+                        durationSeconds = 0,
+                        privacy = "PRIVATE",
+                        thumbnails = playlist.thumbnails.lastOrNull()?.url ?: "",
+                        title = playlist.title,
+                        trackCount = 0,
+                        tracks = null,
+                        year = null,
+                    )
+                try {
+                    playlistRepository.insertAndReplacePlaylist(entity)
+                } catch (_: Exception) {
+                }
+            }
+            try {
+                playlistRepository.updatePlaylistInLibrary(LocalDateTime.now(), playlist.browseId)
+            } catch (_: Exception) {
+            }
         }
     }
 }

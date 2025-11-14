@@ -42,6 +42,8 @@ val viewModelModule =
                 application = androidApplication(),
                 get(),
                 get(),
+                get(),
+                get(),
             )
         }
         viewModel {

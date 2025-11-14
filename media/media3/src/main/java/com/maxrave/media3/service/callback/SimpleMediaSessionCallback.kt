@@ -106,6 +106,7 @@ internal class SimpleMediaSessionCallback(
                 .add(SessionCommand(MEDIA_CUSTOM_COMMAND.REPEAT, Bundle()))
                 .add(SessionCommand(MEDIA_CUSTOM_COMMAND.RADIO, Bundle()))
                 .add(SessionCommand(MEDIA_CUSTOM_COMMAND.SHUFFLE, Bundle()))
+                .add(SessionCommand(MEDIA_CUSTOM_COMMAND.SAVE, Bundle()))
                 .build()
         return MediaSession.ConnectionResult.accept(
             sessionCommands,
@@ -142,6 +143,53 @@ internal class SimpleMediaSessionCallback(
             MEDIA_CUSTOM_COMMAND.SHUFFLE -> {
                 val isShuffle = session.player.shuffleModeEnabled
                 session.player.shuffleModeEnabled = !isShuffle
+            }
+            MEDIA_CUSTOM_COMMAND.SAVE -> {
+                val item = session.player.currentMediaItem
+                val mediaId = item?.mediaId ?: return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
+                try {
+                    when {
+                        mediaId.startsWith("$ONLINE_PLAYLIST/") -> {
+                            val playlistId = mediaId.split("/").getOrNull(1) ?: return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
+                            scope.future(Dispatchers.IO) {
+                                val full = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()?.data
+                                if (full != null) {
+                                    playlistRepository.insertAndReplacePlaylist(full.toPlaylistEntity())
+                                    // pre-insert tracks so it's visible instantly in library
+                                    full.tracks.forEach { t -> songRepository.insertSong(t.toSongEntity()).lastOrNull() }
+                                    playlistRepository.updatePlaylistInLibrary(java.time.LocalDateTime.now(), playlistId)
+                                }
+                                SessionResult(SessionResult.RESULT_SUCCESS)
+                            }
+                        }
+                        mediaId.startsWith("$SONG/") -> {
+                            val videoId = mediaId.split("/").getOrNull(1) ?: return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
+                            scope.future(Dispatchers.IO) {
+                                val track = searchTempList.find { it.videoId == videoId }
+                                    ?: streamRepository.getFullMetadata(videoId).lastOrNull()?.data
+                                if (track != null) {
+                                    songRepository.insertSong(track.toSongEntity()).lastOrNull()
+                                    songRepository.updateSongInLibrary(java.time.LocalDateTime.now(), videoId).lastOrNull()
+                                }
+                                SessionResult(SessionResult.RESULT_SUCCESS)
+                            }
+                        }
+                        else -> {
+                            // Fallback: try saving current raw video id as song
+                            scope.future(Dispatchers.IO) {
+                                val track = streamRepository.getFullMetadata(mediaId).lastOrNull()?.data
+                                if (track != null) {
+                                    songRepository.insertSong(track.toSongEntity()).lastOrNull()
+                                    songRepository.updateSongInLibrary(java.time.LocalDateTime.now(), mediaId).lastOrNull()
+                                }
+                                SessionResult(SessionResult.RESULT_SUCCESS)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_UNKNOWN))
+                }
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
@@ -320,6 +368,13 @@ internal class SimpleMediaSessionCallback(
                                 MediaMetadata.MEDIA_TYPE_PLAYLIST,
                             ),
                             browsableMediaItem(
+                                ONLINE_PLAYLIST,
+                                context.getString(R.string.playlists),
+                                context.getString(R.string.available_online),
+                                drawableUri(R.drawable.baseline_playlist_add_24),
+                                MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
+                            ),
+                            browsableMediaItem(
                                 PLAYLIST,
                                 context.getString(R.string.playlists),
                                 null,
@@ -374,6 +429,21 @@ internal class SimpleMediaSessionCallback(
                                     it.title,
                                     "${it.tracks?.size ?: 0} ${context.getString(R.string.track)}",
                                     it.thumbnail?.toUri(),
+                                    MediaMetadata.MEDIA_TYPE_PLAYLIST,
+                                )
+                            }
+
+                    ONLINE_PLAYLIST ->
+                        playlistRepository
+                            .getAllPlaylists(100)
+                            .first()
+                            .sortedBy { it.inLibrary }
+                            .map {
+                                browsableMediaItem(
+                                    "$ONLINE_PLAYLIST/${it.id}",
+                                    it.title,
+                                    it.author,
+                                    it.thumbnails.toUri(),
                                     MediaMetadata.MEDIA_TYPE_PLAYLIST,
                                 )
                             }
@@ -505,6 +575,43 @@ internal class SimpleMediaSessionCallback(
                                         emptyList()
                                     }
                                 }
+                            }
+
+                            parentId.startsWith("$ONLINE_PLAYLIST/") -> {
+                                val playlistId = parentId.split("/").getOrNull(1)
+                                if (playlistId != null) {
+                                    val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
+                                    val tracks = playlistEntity?.tracks
+                                    if (tracks.isNullOrEmpty()) {
+                                        val full = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                                        if (full?.data?.tracks.isNullOrEmpty()) {
+                                            emptyList()
+                                        } else {
+                                            full.data?.toPlaylistEntity()?.let { playlistRepository.insertAndReplacePlaylist(it) }
+                                            full.data?.tracks?.map { track ->
+                                                track
+                                                    .toSongEntity()
+                                                    .also { songRepository.insertSong(it).first() }
+                                                    .toMediaItem(parentId)
+                                            } ?: emptyList()
+                                        }
+                                    } else {
+                                        val songsDb = songRepository.getSongsByListVideoId(tracks).first()
+                                        if (songsDb.isEmpty() || songsDb.size < tracks.size) {
+                                            val full = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
+                                            if (full?.data?.tracks.isNullOrEmpty()) {
+                                                emptyList()
+                                            } else {
+                                                full.data?.toPlaylistEntity()?.let { playlistRepository.insertAndReplacePlaylist(it) }
+                                                full.data?.tracks?.forEach { songRepository.insertSong(it.toSongEntity()).first() }
+                                                val ordered = songRepository.getSongsByListVideoId(tracks).first().sortedBy { tracks.indexOf(it.videoId) }
+                                                ordered.map { it.toMediaItem(parentId) }
+                                            }
+                                        } else {
+                                            songsDb.sortedBy { tracks.indexOf(it.videoId) }.map { it.toMediaItem(parentId) }
+                                        }
+                                    }
+                                } else emptyList()
                             }
 
                             parentId.startsWith("$CHART/") -> {
@@ -781,9 +888,10 @@ internal class SimpleMediaSessionCallback(
 
                 ONLINE_PLAYLIST -> {
                     val playlistId = path.getOrNull(1) ?: return@future defaultResult
+                    val selectedSongId = path.getOrNull(2)
                     val playlistEntity = playlistRepository.getPlaylist(playlistId).first()
                     val tracks = playlistEntity?.tracks
-                    val songs = if (tracks.isNullOrEmpty()) {
+                    val mediaItems = if (tracks.isNullOrEmpty()) {
                         val full = playlistRepository.getFullPlaylistData(playlistId).lastOrNull()
                         if (full?.data?.tracks.isNullOrEmpty()) {
                             emptyList()
@@ -795,7 +903,11 @@ internal class SimpleMediaSessionCallback(
                     } else {
                         songRepository.getSongsByListVideoId(tracks).first().sortedBy { tracks.indexOf(it.videoId) }.map { it.toMediaItem() }
                     }
-                    if (songs.isEmpty()) defaultResult else MediaSession.MediaItemsWithStartPosition(songs, 0, startPositionMs)
+                    if (mediaItems.isEmpty()) defaultResult else MediaSession.MediaItemsWithStartPosition(
+                        mediaItems,
+                        selectedSongId?.let { id -> mediaItems.indexOfFirst { it.mediaId == id || it.mediaId.endsWith("/$id") } }?.takeIf { it != -1 } ?: 0,
+                        startPositionMs,
+                    )
                 }
 
                 ALBUM -> {

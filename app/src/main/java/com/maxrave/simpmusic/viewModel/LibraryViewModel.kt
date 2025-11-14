@@ -71,6 +71,10 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val downloadedPlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _downloadedPlaylist.asStateFlow()
 
+    private val _savedOnlinePlaylist: MutableStateFlow<LocalResource<List<PlaylistType>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val savedOnlinePlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _savedOnlinePlaylist.asStateFlow()
+
     private val _listCanvasSong: MutableStateFlow<LocalResource<List<SongEntity>>> =
         MutableStateFlow(LocalResource.Loading())
     val listCanvasSong: StateFlow<LocalResource<List<SongEntity>>> get() = _listCanvasSong.asStateFlow()
@@ -178,7 +182,6 @@ class LibraryViewModel(
         _yourLocalPlaylist.value = LocalResource.Loading()
         viewModelScope.launch {
             localPlaylistRepository.getAllLocalPlaylists().collect { values ->
-//                    _listLocalPlaylist.postValue(values)
                 _yourLocalPlaylist.value = LocalResource.Success(values.reversed())
             }
         }
@@ -188,6 +191,15 @@ class LibraryViewModel(
         viewModelScope.launch {
             playlistRepository.getAllDownloadedPlaylist().collect { values ->
                 _downloadedPlaylist.value = LocalResource.Success(values)
+            }
+        }
+    }
+
+    fun getSavedOnlinePlaylist() {
+        _savedOnlinePlaylist.value = LocalResource.Loading()
+        viewModelScope.launch {
+            playlistRepository.getAllPlaylists(1000).collectLatest { list ->
+                _savedOnlinePlaylist.value = LocalResource.Success(list)
             }
         }
     }
