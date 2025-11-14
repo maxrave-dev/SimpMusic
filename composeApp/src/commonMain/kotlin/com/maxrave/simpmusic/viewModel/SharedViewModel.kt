@@ -262,10 +262,21 @@ class SharedViewModel(
                         _shareSavedLyrics.value = it == TRUE
                     }
                 }
+            val controllerStateJob =
+                launch {
+                    controllerState.map { it.isLiked }.distinctUntilChanged().collectLatest {
+                        if (dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE) {
+                            nowPlayingState.value?.mediaItem?.mediaId?.let {
+                                getLikeStatus(it)
+                            }
+                        }
+                    }
+                }
             timeLineJob.join()
             checkGetVideoJob.join()
             lyricsProviderJob.join()
             shareSavedLyricsJob.join()
+            controllerStateJob.join()
         }
 
         runBlocking {
@@ -1580,6 +1591,8 @@ class SharedViewModel(
     fun shouldStopMusicService(): Boolean = runBlocking { dataStoreManager.killServiceOnExit.first() == TRUE }
 
     fun isUserLoggedIn(): Boolean = runBlocking { dataStoreManager.cookie.first().isNotEmpty() }
+
+    fun isCombineFavoriteAndYTLiked(): Boolean = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
 }
 
 sealed class UIEvent {

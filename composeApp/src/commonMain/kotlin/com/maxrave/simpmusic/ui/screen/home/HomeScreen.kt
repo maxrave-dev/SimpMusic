@@ -458,6 +458,10 @@ fun HomeScreen(
                                     )
                                     Spacer(Modifier.height(8.dp))
                                 }
+                            }
+                        }
+                        items(homeData, key = { it.hashCode() }) { item ->
+                            if (item.title == stringResource(Res.string.quick_picks)) {
                                 AnimatedVisibility(
                                     visible =
                                         homeData.find {
@@ -476,33 +480,30 @@ fun HomeScreen(
                                                             Res.string.quick_picks,
                                                         )
                                                 } ?: return@AnimatedVisibility
-                                            ).let { content ->
-                                                content.copy(
-                                                    contents =
-                                                        content.contents.mapNotNull { ct ->
-                                                            ct?.copy(
-                                                                artists =
-                                                                    ct.artists?.let { art ->
-                                                                        if (art.size > 1) {
-                                                                            art.dropLast(1)
-                                                                        } else {
-                                                                            art
-                                                                        }
-                                                                    },
-                                                            )
-                                                        },
-                                                )
-                                            },
+                                                ).let { content ->
+                                                    content.copy(
+                                                        contents =
+                                                            content.contents.mapNotNull { ct ->
+                                                                ct?.copy(
+                                                                    artists =
+                                                                        ct.artists?.let { art ->
+                                                                            if (art.size > 1) {
+                                                                                art.dropLast(1)
+                                                                            } else {
+                                                                                art
+                                                                            }
+                                                                        },
+                                                                )
+                                                            },
+                                                    )
+                                                },
                                         viewModel = viewModel,
                                     )
                                 }
-                            }
-                        }
-                        items(homeData, key = { it.hashCode() }) {
-                            if (it.title != stringResource(Res.string.quick_picks)) {
+                            } else {
                                 HomeItem(
                                     navController = navController,
-                                    data = it,
+                                    data = item,
                                 )
                             }
                         }

@@ -92,7 +92,10 @@ class NowPlayingBottomSheetViewModel(
             val listYouTubePlaylistJob =
                 launch {
                     playlistRepository.getLibraryPlaylist().collect { data ->
-                        _uiState.update { it.copy(listYouTubePlaylist = data ?: emptyList()) }
+                        _uiState.update { state ->
+                            state.copy(listYouTubePlaylist = data?.filter {
+                            it.browseId != "VLLM"
+                        } ?: emptyList()) }
                     }
                 }
             val mainLyricsProviderJob =
@@ -128,7 +131,12 @@ class NowPlayingBottomSheetViewModel(
         val songOrNowPlaying = songEntity ?: (mediaPlayerHandler.nowPlayingState.value.songEntity ?: return)
         viewModelScope.launch {
             songOrNowPlaying.videoId.let {
-                songRepository.getSongById(it).singleOrNull().let { song ->
+                _uiState.update { state -> state.copy(
+                    songUIState = state.songUIState.copy(
+                        isAddedToYouTubeLiked = false
+                    )
+                ) }
+                songRepository.getSongById(it).lastOrNull().let { song ->
                     if (song != null) {
                         getSongEntityFlow(videoId = song.videoId)
                     } else {
@@ -136,6 +144,21 @@ class NowPlayingBottomSheetViewModel(
                             getSongEntityFlow(videoId = songOrNowPlaying.videoId)
                         }
                     }
+                    getLikeStatus(it)
+                }
+            }
+        }
+    }
+
+    private fun getLikeStatus(videoId: String?) {
+        viewModelScope.launch {
+            if (videoId != null) {
+                songRepository.getLikeStatus(videoId).collectLatest { status ->
+                    _uiState.update { state -> state.copy(
+                        songUIState = state.songUIState.copy(
+                            isAddedToYouTubeLiked = status
+                        )
+                    ) }
                 }
             }
         }
@@ -149,8 +172,8 @@ class NowPlayingBottomSheetViewModel(
                 songRepository.getSongAsFlow(videoId).collectLatest { song ->
                     log("getSongEntityFlow: $song", LogLevel.WARN)
                     if (song != null) {
-                        _uiState.update {
-                            it.copy(
+                        _uiState.update { state ->
+                            state.copy(
                                 songUIState =
                                     NowPlayingBottomSheetUIState.SongUIState(
                                         videoId = song.videoId,
@@ -163,7 +186,7 @@ class NowPlayingBottomSheetViewModel(
                                         liked = song.liked,
                                         downloadState = song.downloadState,
                                         album =
-                                            song.albumName?.let { name ->
+                                            song.albumName?.takeIf { it.isNotEmpty() }?.let { name ->
                                                 Album(name = name, id = song.albumId ?: "")
                                             },
                                     ),
@@ -377,6 +400,7 @@ data class NowPlayingBottomSheetUIState(
         val listArtists: List<Artist> = emptyList(),
         val thumbnails: String? = null,
         val liked: Boolean = false,
+        val isAddedToYouTubeLiked: Boolean = false,
         val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
         val album: Album? = null,
     )

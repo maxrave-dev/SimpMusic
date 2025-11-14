@@ -14,7 +14,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -29,6 +31,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.maxrave.logger.Logger
+import org.jetbrains.compose.resources.painterResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.monochrome
 import kotlin.math.abs
 
 @Composable
@@ -101,15 +107,17 @@ private fun hsvToColor(hue: Float, saturation: Float, value: Float): Color {
 private class PlaylistThumbnailPainter(
     private val size: Size,
     private val title: String,
-    private val textLayoutResult: TextLayoutResult
+    private val textLayoutResult: TextLayoutResult,
+    private val iconPainter: Painter
 ): Painter() {
     override val intrinsicSize: Size
         get() = size
 
     override fun DrawScope.onDraw() {
+        val colors = generateGradientFromTitle(title)
         drawRoundRect(
             brush = Brush.linearGradient(
-                colors = generateGradientFromTitle(title)
+                colors = colors
             ),
             size = size,
             cornerRadius = CornerRadius(16f, 16f),
@@ -125,6 +133,26 @@ private class PlaylistThumbnailPainter(
                 size.height.toInt(),
             ),
         ))
+        Logger.d("PlaylistThumbnailPainter", "Drawing icon $title")
+        Logger.d("PlaylistThumbnailPainter", "Colors: ${colors.map { it.toArgb() }}")
+        val centerX = size.width * 0.9f
+        val centerY = size.height * 0.1f
+        val circleRadius = size.width * 0.1f / 2
+
+        drawCircle(
+            center = Offset(centerX, centerY),
+            color = Color.White,
+            radius = circleRadius
+        )
+
+        translate(
+            left = centerX - size.width * 0.15f / 2,
+            top = centerY - size.height * 0.15f / 2,
+        ) {
+            with(iconPainter) {
+                draw(size * 0.15f, alpha = 0.2f)
+            }
+        }
     }
 }
 
@@ -178,12 +206,14 @@ fun painterPlaylistThumbnail(
                     ),
             )
         }
+    val painterRes = painterResource(Res.drawable.monochrome)
     return PlaylistThumbnailPainter(
         size = Size(
             width = with(density) { sizeDp.first.toPx() },
             height = with(density) { sizeDp.second.toPx() },
         ),
         title = title,
-        textLayoutResult = textLayoutResult
+        textLayoutResult = textLayoutResult,
+        iconPainter = painterRes
     )
 }

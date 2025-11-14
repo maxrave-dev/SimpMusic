@@ -45,6 +45,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -117,6 +119,7 @@ import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
@@ -141,6 +144,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -1668,8 +1672,10 @@ fun NowPlayingBottomSheet(
                             }
                         }
                     }
+                    val isCombineFavoriteAndYTLiked = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
                     CheckBoxActionButton(
-                        defaultChecked = uiState.songUIState.liked,
+                        defaultChecked = if (isCombineFavoriteAndYTLiked) uiState.songUIState.isAddedToYouTubeLiked else uiState.songUIState.liked,
+                        isHeartIcon = !isCombineFavoriteAndYTLiked,
                         onChangeListener = {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
                         },
@@ -1878,6 +1884,7 @@ fun ActionButton(
 @Composable
 fun CheckBoxActionButton(
     defaultChecked: Boolean,
+    isHeartIcon: Boolean,
     onChangeListener: (checked: Boolean) -> Unit,
 ) {
     var stateChecked by remember { mutableStateOf(defaultChecked) }
@@ -1898,7 +1905,17 @@ fun CheckBoxActionButton(
                     .fillMaxWidth(),
         ) {
             Box(Modifier.padding(10.dp)) {
-                HeartCheckBox(checked = stateChecked, size = 30)
+                if (isHeartIcon) {
+                    HeartCheckBox(checked = stateChecked, size = 30)
+                } else {
+                    Crossfade(stateChecked) {
+                        if (it) {
+                            Icon(Icons.Rounded.CheckCircle, "")
+                        } else {
+                            Icon(Icons.Rounded.AddCircleOutline, "")
+                        }
+                    }
+                }
             }
             Text(
                 text =
