@@ -43,11 +43,24 @@ A FOSS YouTube Music client for Android with many features from<br>Spotify, Spon
 
 ## What's new
 
-- Content language filter (Settings → Content → Content language filter): choose Off or Tamil.
-- All YouTube search tabs (Songs, Playlists, Albums, Artists, Podcasts) and Android Auto search respect the selected content language.
-- Android Auto search now interleaves Songs, Playlists, Albums, Artists, and Podcasts on the first page, similar to the in-app search.
-- Preference backed by DataStore (`content_filter_language`).
-- Note: Spotify search does not expose a locale filter; results may be post-filtered in-app where applicable.
+- In-app voice search mic with Tamil-aware locale.
+  - Uses the selected content language (Settings → Content → Content language filter) to set RecognizerIntent locale; falls back to device locale.
+  - Requests RECORD_AUDIO permission at runtime.
+- Google Assistant integration for voice queries.
+  - Implemented `onAddMediaItems` in the Media3 session callback to return playable items for Assistant “play …” requests.
+  - Assistant queries respect the selected content language filter.
+- Android Auto enhancements.
+  - New custom command: SAVE (save current song or online playlist to your library).
+  - Browse “Saved online playlists” and view their tracks in Android Auto.
+  - Correct start index when playing an online playlist from a selected song.
+- Library UI.
+  - Added a dedicated “Saved online playlists” grid section.
+- Playlist hydration fix.
+  - When saving an online playlist, tracks are pre-inserted so opening the playlist (app or Android Auto) shows songs immediately.
+- Content language filter improvements.
+  - All YouTube search tabs (Songs, Playlists, Albums, Artists, Podcasts) and Android Auto search respect the selected content language.
+  - Preference backed by DataStore (`content_filter_language`).
+  - Note: Spotify search does not expose a locale filter; results may be post-filtered in-app where applicable.
 
 ## Screenshots    
  <p align="center">          

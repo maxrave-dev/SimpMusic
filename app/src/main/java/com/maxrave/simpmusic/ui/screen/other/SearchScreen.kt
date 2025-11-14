@@ -1,5 +1,16 @@
 package com.maxrave.simpmusic.ui.screen.other
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Mic
+import androidx.core.content.ContextCompat
+
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -97,6 +108,7 @@ import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.toStringRes
 import org.koin.compose.koinInject
+import com.maxrave.domain.manager.DataStoreManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,10 +118,13 @@ fun SearchScreen(
     navController: NavController,
 ) {
     val context = LocalContext.current
+    val dataStoreManager: DataStoreManager = koinInject()
+
     val focusManager = LocalFocusManager.current
     val searchScreenState by searchViewModel.searchScreenState.collectAsStateWithLifecycle()
     val uiState by searchViewModel.searchScreenUIState.collectAsStateWithLifecycle()
     val searchHistory by searchViewModel.searchHistory.collectAsStateWithLifecycle()
+    val contentFilterLanguage by dataStoreManager.contentFilterLanguage.collectAsStateWithLifecycle(initialValue = "")
 
     var searchUIType by rememberSaveable { mutableStateOf(SearchUIType.EMPTY) }
     var searchText by rememberSaveable { mutableStateOf("") }
@@ -129,6 +144,60 @@ fun SearchScreen(
     val onMoreClick: (SongEntity) -> Unit = { song ->
         sheetSong = song
         showBottomSheet = true
+    }
+
+    val speechLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val text = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (!text.isNullOrBlank()) {
+                val query = text.trim()
+                searchText = query
+                isSearchSubmitted = true
+                focusManager.clearFocus()
+                searchViewModel.insertSearchHistory(query)
+                when (searchScreenState.searchType) {
+                    SearchType.ALL -> searchViewModel.searchAll(query)
+                    SearchType.SONGS -> searchViewModel.searchSongs(query)
+                    SearchType.VIDEOS -> searchViewModel.searchVideos(query)
+                    SearchType.ALBUMS -> searchViewModel.searchAlbums(query)
+                    SearchType.ARTISTS -> searchViewModel.searchArtists(query)
+                    SearchType.PLAYLISTS -> searchViewModel.searchPlaylists(query)
+                    SearchType.FEATURED_PLAYLISTS -> searchViewModel.searchFeaturedPlaylist(query)
+                    SearchType.PODCASTS -> searchViewModel.searchPodcast(query)
+                }
+            }
+        }
+    }
+
+    val requestMicPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                val lang = if (contentFilterLanguage.isNotBlank()) contentFilterLanguage else java.util.Locale.getDefault().toLanguageTag()
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, lang)
+                putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.search))
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+            }
+            speechLauncher.launch(intent)
+        }
+    }
+
+    fun startVoiceSearch() {
+        val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (hasPermission) {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                val lang = if (contentFilterLanguage.isNotBlank()) contentFilterLanguage else java.util.Locale.getDefault().toLanguageTag()
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, lang)
+                putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.search))
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+            }
+            speechLauncher.launch(intent)
+        } else {
+            requestMicPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
     }
 
     LaunchedEffect(searchText) {
@@ -240,6 +309,14 @@ fun SearchScreen(
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_close_24),
                                 contentDescription = "Clear search",
+                            )
+                        }
+                        IconButton(
+                            onClick = { startVoiceSearch() },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Mic,
+                                contentDescription = "Voice search",
                             )
                         }
                     },

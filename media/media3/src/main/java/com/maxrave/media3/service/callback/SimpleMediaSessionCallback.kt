@@ -126,6 +126,7 @@ internal class SimpleMediaSessionCallback(
                 toggleLike()
             }
 
+
             MEDIA_CUSTOM_COMMAND.REPEAT -> {
                 session.player.repeatMode =
                     when (session.player.repeatMode) {
@@ -216,6 +217,46 @@ internal class SimpleMediaSessionCallback(
                 params,
             ),
         )
+
+    @UnstableApi
+    override fun onAddMediaItems(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        mediaItems: MutableList<MediaItem>,
+    ): ListenableFuture<List<MediaItem>> =
+        scope.future(Dispatchers.IO) {
+            val results = mutableListOf<MediaItem>()
+            for (req in mediaItems) {
+                val q = req.requestMetadata.searchQuery?.trim().orEmpty()
+                if (q.isEmpty()) continue
+                val songTracks = searchRepository.getSearchDataSong(q).lastOrNull()?.data?.toListTrack().orEmpty()
+                if (songTracks.isNotEmpty()) {
+                    results.addAll(songTracks.take(25).map { it.toMediaItem() })
+                    continue
+                }
+                val playlist = searchRepository.getSearchDataPlaylist(q).lastOrNull()?.data?.firstOrNull()
+                if (playlist != null) {
+                    results.add(
+                        MediaItem
+                            .Builder()
+                            .setMediaId("$ONLINE_PLAYLIST/${playlist.browseId}")
+                            .setMediaMetadata(
+                                MediaMetadata
+                                    .Builder()
+                                    .setTitle(playlist.title)
+                                    .setArtist(playlist.author)
+                                    .setArtworkUri(playlist.thumbnails.lastOrNull()?.url?.toUri())
+                                    .setIsPlayable(true)
+                                    .setIsBrowsable(false)
+                                    .setMediaType(MediaMetadata.MEDIA_TYPE_PLAYLIST)
+                                    .build(),
+                            ).build(),
+                    )
+                    continue
+                }
+            }
+            if (results.isEmpty()) emptyList() else results
+        }
 
     override fun onSearch(
         session: MediaLibrarySession,
