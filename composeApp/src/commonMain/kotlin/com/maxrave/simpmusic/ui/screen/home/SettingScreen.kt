@@ -190,8 +190,6 @@ import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
-import simpmusic.composeapp.generated.resources.combine_local_and_youtube_liked_songs
-import simpmusic.composeapp.generated.resources.combine_local_and_youtube_liked_songs_description
 import simpmusic.composeapp.generated.resources.content
 import simpmusic.composeapp.generated.resources.content_country
 import simpmusic.composeapp.generated.resources.contributor_email
@@ -704,11 +702,13 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.keep_your_youtube_playlist_offline_description),
                     switch = (keepYoutubePlaylistOffline to { viewModel.setKeepYouTubePlaylistOffline(it) }),
                 )
+                /*
                 SettingItem(
                     title = stringResource(Res.string.combine_local_and_youtube_liked_songs),
                     subtitle = stringResource(Res.string.combine_local_and_youtube_liked_songs_description),
                     switch = (combineLocalAndYouTubeLiked to { viewModel.setCombineLocalAndYouTubeLiked(it) })
                 )
+                 */
                 SettingItem(
                     title = stringResource(Res.string.proxy),
                     subtitle = stringResource(Res.string.proxy_description),

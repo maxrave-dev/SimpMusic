@@ -119,7 +119,6 @@ import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.manager.DataStoreManager
-import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.LocalPlaylistRepository
@@ -144,7 +143,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -1672,10 +1670,9 @@ fun NowPlayingBottomSheet(
                             }
                         }
                     }
-                    val isCombineFavoriteAndYTLiked = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
                     CheckBoxActionButton(
-                        defaultChecked = if (isCombineFavoriteAndYTLiked) uiState.songUIState.isAddedToYouTubeLiked else uiState.songUIState.liked,
-                        isHeartIcon = !isCombineFavoriteAndYTLiked,
+                        defaultChecked = uiState.songUIState.liked,
+                        isHeartIcon = true,
                         onChangeListener = {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
                         },

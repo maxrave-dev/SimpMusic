@@ -93,9 +93,13 @@ class NowPlayingBottomSheetViewModel(
                 launch {
                     playlistRepository.getLibraryPlaylist().collect { data ->
                         _uiState.update { state ->
-                            state.copy(listYouTubePlaylist = data?.filter {
-                            it.browseId != "VLLM"
-                        } ?: emptyList()) }
+                            state.copy(
+                                listYouTubePlaylist =
+                                    data?.filter {
+                                        it.browseId != "VLLM"
+                                    } ?: emptyList(),
+                            )
+                        }
                     }
                 }
             val mainLyricsProviderJob =
@@ -131,11 +135,14 @@ class NowPlayingBottomSheetViewModel(
         val songOrNowPlaying = songEntity ?: (mediaPlayerHandler.nowPlayingState.value.songEntity ?: return)
         viewModelScope.launch {
             songOrNowPlaying.videoId.let {
-                _uiState.update { state -> state.copy(
-                    songUIState = state.songUIState.copy(
-                        isAddedToYouTubeLiked = false
+                _uiState.update { state ->
+                    state.copy(
+                        songUIState =
+                            state.songUIState.copy(
+                                isAddedToYouTubeLiked = false,
+                            ),
                     )
-                ) }
+                }
                 songRepository.getSongById(it).lastOrNull().let { song ->
                     if (song != null) {
                         getSongEntityFlow(videoId = song.videoId)
@@ -144,21 +151,6 @@ class NowPlayingBottomSheetViewModel(
                             getSongEntityFlow(videoId = songOrNowPlaying.videoId)
                         }
                     }
-                    getLikeStatus(it)
-                }
-            }
-        }
-    }
-
-    private fun getLikeStatus(videoId: String?) {
-        viewModelScope.launch {
-            if (videoId != null) {
-                songRepository.getLikeStatus(videoId).collectLatest { status ->
-                    _uiState.update { state -> state.copy(
-                        songUIState = state.songUIState.copy(
-                            isAddedToYouTubeLiked = status
-                        )
-                    ) }
                 }
             }
         }

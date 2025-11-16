@@ -262,21 +262,21 @@ class SharedViewModel(
                         _shareSavedLyrics.value = it == TRUE
                     }
                 }
-            val controllerStateJob =
-                launch {
-                    controllerState.map { it.isLiked }.distinctUntilChanged().collectLatest {
-                        if (dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE) {
-                            nowPlayingState.value?.mediaItem?.mediaId?.let {
-                                getLikeStatus(it)
-                            }
-                        }
-                    }
-                }
+//            val controllerStateJob =
+//                launch {
+//                    controllerState.map { it.isLiked }.distinctUntilChanged().collectLatest {
+//                        if (dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE) {
+//                            nowPlayingState.value?.mediaItem?.mediaId?.let {
+//                                getLikeStatus(it)
+//                            }
+//                        }
+//                    }
+//                }
             timeLineJob.join()
             checkGetVideoJob.join()
             lyricsProviderJob.join()
             shareSavedLyricsJob.join()
-            controllerStateJob.join()
+//            controllerStateJob.join()
         }
 
         runBlocking {
