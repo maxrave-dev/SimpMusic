@@ -50,7 +50,6 @@ import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
 
-
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
     private val commonRepository: CommonRepository,
@@ -1150,8 +1149,9 @@ class SettingsViewModel(
                             .lastOrNull()
                             ?.url ?: "",
                     )
-                    val cookieItem = netscapeCookie ?:
-                        commonRepository.getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL, getPackageName())
+                    val cookieItem =
+                        netscapeCookie ?: commonRepository
+                            .getCookiesFromInternalDatabase(Config.YOUTUBE_MUSIC_MAIN_URL, getPackageName())
                             .toNetScapeString()
                     commonRepository.writeTextToFile(cookieItem, (getFileDir() + "/ytdlp-cookie.txt")).let {
                         Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
@@ -1191,6 +1191,7 @@ class SettingsViewModel(
                 false
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             Logger.e("getAllGoogleAccount", "addAccount: ${e.message}")
             runBlocking {
                 dataStoreManager.setCookie(currentCookie, currentPageId)

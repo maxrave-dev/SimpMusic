@@ -635,6 +635,7 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
                     smallSubtitle = true,
                     switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
+                    isEnable = getPlatform() != Platform.Desktop,
                 )
                 SettingItem(
                     title = stringResource(Res.string.video_quality),

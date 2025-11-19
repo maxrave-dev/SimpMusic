@@ -58,9 +58,11 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
 import com.maxrave.simpmusic.expect.startWorker
 import com.maxrave.simpmusic.expect.ui.toByteArray
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -213,6 +215,9 @@ class SharedViewModel(
                 )
             }
             dataStoreManager.openApp()
+            if (getPlatform() == Platform.Desktop) {
+                dataStoreManager.setWatchVideoInsteadOfPlayingAudio(false)
+            }
             val timeLineJob =
                 launch {
                     nowPlayingState

@@ -640,10 +640,7 @@ fun PlaylistScreen(
                         }
                     } else {
                         stickyHeader {
-                            Box(
-                                Modifier
-                                    .angledGradientBackground(listColors, 90f),
-                            ) {
+                            Box(Modifier.background(Color.Black)) {
                                 Row(
                                     modifier =
                                         Modifier
@@ -677,7 +674,7 @@ fun PlaylistScreen(
                                                     placeholder = {
                                                         Text(
                                                             stringResource(Res.string.search),
-                                                            style = typo().bodySmall,
+                                                            style = typo().bodyMedium,
                                                         )
                                                     },
                                                 )

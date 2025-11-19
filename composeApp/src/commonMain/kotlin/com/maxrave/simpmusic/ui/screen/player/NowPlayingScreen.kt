@@ -1153,11 +1153,9 @@ fun NowPlayingScreenContent(
                                                 }
                                             }
                                         }
-                                        if (!sharedViewModel.isCombineFavoriteAndYTLiked()) {
-                                            Spacer(modifier = Modifier.size(12.dp))
-                                            HeartCheckBox(checked = controllerState.isLiked, size = 32) {
-                                                sharedViewModel.onUIEvent(UIEvent.ToggleLike)
-                                            }
+                                        Spacer(modifier = Modifier.size(12.dp))
+                                        HeartCheckBox(checked = controllerState.isLiked, size = 32) {
+                                            sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                                         }
                                     }
                                     if (getPlatform() == Platform.Android) {

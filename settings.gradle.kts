@@ -86,7 +86,7 @@ include(
     ":media3-ui",
     ":crashlytics",
     ":crashlytics-empty",
-    ":kizzy"
+    ":kizzy",
 )
 project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
 project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
