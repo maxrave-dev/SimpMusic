@@ -47,7 +47,7 @@ fun main() =
                     .substring(0..1)
             }
         changeLanguageNative(language)
-        var windowState =
+        val windowState =
             rememberWindowState(
                 size = DpSize(1280.dp, 720.dp),
             )
@@ -59,7 +59,7 @@ fun main() =
                     ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
                     is ToastType.PlayerError ->
                         runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
-                }
+                },
             )
         }
         Window(

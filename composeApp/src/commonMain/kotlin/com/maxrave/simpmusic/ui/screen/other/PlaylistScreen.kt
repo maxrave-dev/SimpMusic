@@ -656,7 +656,7 @@ fun PlaylistScreen(
                                     SearchBar(
                                         modifier =
                                             Modifier
-                                                .height(45.dp)
+                                                .height(50.dp)
                                                 .padding(horizontal = 12.dp)
                                                 .weight(1f),
                                         colors =
