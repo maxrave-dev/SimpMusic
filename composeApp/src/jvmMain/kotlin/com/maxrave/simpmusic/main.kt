@@ -13,6 +13,8 @@ import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
+import io.sentry.Sentry
+import io.sentry.SentryLevel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastHost
@@ -52,6 +54,13 @@ fun main() =
                 size = DpSize(1280.dp, 720.dp),
             )
         VersionManager.initialize()
+        if (BuildKonfig.sentryDsn.isNotEmpty()) {
+            Sentry.init { options ->
+                options.dsn = BuildKonfig.sentryDsn
+                options.release = "simpmusic-desktop@${VersionManager.getVersionName()}"
+                options.setDiagnosticLevel(SentryLevel.ERROR)
+            }
+        }
         val mediaPlayerHandler by inject<MediaPlayerHandler>(MediaPlayerHandler::class.java)
         mediaPlayerHandler.showToast = { type ->
             showToast(
@@ -61,6 +70,11 @@ fun main() =
                         runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
                 },
             )
+        }
+        mediaPlayerHandler.pushPlayerError = { error ->
+            Sentry.withScope { scope ->
+                Sentry.captureMessage("Player Error: ${error.message}, code: ${error.errorCode}, code name: ${error.errorCodeName}")
+            }
         }
         Window(
             onCloseRequest = ::exitApplication,

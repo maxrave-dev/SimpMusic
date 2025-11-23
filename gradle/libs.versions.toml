@@ -53,7 +53,8 @@ json = "1.9.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
 sentry-android = "8.26.0"
-sentry-gradle = "5.12.2"
+sentry-gradle-android = "5.12.2"
+sentry-jvm = "8.27.0"
 newpipe = "31edd9f7ad2b8e309442e86d5318cc2779480674"
 webkit = "1.14.0"
 napier = "2.7.1"
@@ -214,6 +215,8 @@ koin-android = { module = "io.insert-koin:koin-android"}
 
 #Sentry
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}
+sentry-jvm = { module = "io.sentry:sentry", version.ref = "sentry-jvm"}
+
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging-common" }
@@ -230,7 +233,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
 aboutlibraries-multiplatform = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
 room = { id = "androidx.room", version.ref = "room" }
-sentry-gradle = { id = "io.sentry.android.gradle", version.ref = "sentry-gradle" }
+sentry-gradle = { id = "io.sentry.android.gradle", version.ref = "sentry-gradle-android" }
 
 # KMP
 android-lint = { id = "com.android.lint", version.ref = "android" }
