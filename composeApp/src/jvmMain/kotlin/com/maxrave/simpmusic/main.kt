@@ -76,8 +76,14 @@ fun main() =
                 Sentry.captureMessage("Player Error: ${error.message}, code: ${error.errorCode}, code name: ${error.errorCodeName}")
             }
         }
+        val onExitApplication: () -> Unit = {
+            mediaPlayerHandler.release()
+            exitApplication()
+        }
         Window(
-            onCloseRequest = ::exitApplication,
+            onCloseRequest = {
+                onExitApplication()
+            },
             title = "SimpMusic",
             icon = painterResource(Res.drawable.circle_app_icon),
             undecorated = false,
