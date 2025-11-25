@@ -204,7 +204,7 @@ gst1-java-swing = { module = "org.freedesktop.gstreamer:gst1-java-swing", versio
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jnaPlatform" }
 nowplaying = { module = "org.simpmusic:nowplayingcenter", version = "0.0.1" }
-jmtc = { module = "io.github.selemba1000:JavaMediaTransportControls", version = "0.0.3" }
+jmtc = { module = "org.simpmusic:jmtc", version = "0.0.1" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
