@@ -171,7 +171,6 @@
     <string name="save_last_played">Zapisz ostatnio odtwarzane</string>
     <string name="save_last_played_track_and_queue">Zapisz ostatnio odtwarzany utwór i kolejkę</string>
     <string name="update_available">Dostępna jest nowa aktualizacja</string>
-    <string name="update_message">"Wersja %1$s dostępna\nWydanie: %2$s\nDzienniki zmian:\n%3$s "</string>
     <string name="check_for_update">Sprawdź dostępne aktualizacje</string>
     <string name="last_checked_at">Ostatnio sprawdzono w %1$s</string>
     <string name="checking">Sprawdzanie</string>
@@ -185,7 +184,7 @@
     <string name="music_off_topic">Muzyka poza tematem</string>
     <string name="poi_highlight">Podświetlenie POI</string>
     <string name="sponsorBlock">Blok sponsora</string>
-    <string name="enable_sponsor_block">Włącz SponsorBlock'a</string>
+    <string name="enable_sponsor_block">Włącz SponsorBlock\'a</string>
     <string name="categories_sponsor_block">Wybierz zachowanie segmentu pomijanego</string>
     <string name="what_segments_will_be_skipped">Jakie segmenty zostaną pominięte</string>
     <string name="save">Zapisz</string>

@@ -172,7 +172,6 @@
     <string name="save_last_played">最後に再生したものを保存</string>
     <string name="save_last_played_track_and_queue">最後に再生した曲とキューを保存</string>
     <string name="update_available">最新版があります</string>
-    <string name="update_message">"バージョン %1$s が利用可能です\n公開日時: %2$s\n更新履歴:\n%3$s "</string>
     <string name="check_for_update">更新を確認</string>
     <string name="last_checked_at">最終確認 %1$s</string>
     <string name="checking">確認中</string>

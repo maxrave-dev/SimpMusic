@@ -171,7 +171,6 @@
     <string name="save_last_played">Sla laatst gespeeld op</string>
     <string name="save_last_played_track_and_queue">Sla laatst gespeelde nummer en wachtrij op</string>
     <string name="update_available">Nieuwe update beschikbaar</string>
-    <string name="update_message">"Versie %1$s beschikbaar\nRelease: %2$s\nWijziging logs:\n%3$s "</string>
     <string name="check_for_update">Controleer op update</string>
     <string name="last_checked_at">Laatst gecontroleerd op %1$s</string>
     <string name="checking">Controleren</string>
@@ -193,7 +192,7 @@
     <string name="welcome_back">Welkom terug,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload je luistergeschiedenis naar de YouTube-muziekserver, het zal de aanbeveling van YT Music systeem verbeteren. Het werkt alleen als je ingelogd bent</string>
     <string name="send_back_listening_data_to_google">Stuur luistergegevens terug naar Google</string>
-    <string name="videos_inArtist">Video's</string>
+    <string name="videos_inArtist">Video\'s</string>
     <string name="your_youtube_playlists">Je YouTube-afspeellijsten</string>
     <string name="no_YouTube_playlists">Geen YouTube-afspeellijsten</string>
     <string name="track">nummer(s)</string>

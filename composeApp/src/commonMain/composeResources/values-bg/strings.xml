@@ -171,7 +171,6 @@
     <string name="save_last_played">Запази последното възпроизвеждане</string>
     <string name="save_last_played_track_and_queue">Запази последната изпълнена песен и опашката</string>
     <string name="update_available">Налична е нова актуализация</string>
-    <string name="update_message">"Версия %1$s е налична\nИздание: %2$s\nСписък с промени:\n%3$s "</string>
     <string name="check_for_update">Проверка за актуализации</string>
     <string name="last_checked_at">Последна проверка на %1$s</string>
     <string name="checking">Проверява се</string>

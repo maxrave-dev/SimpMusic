@@ -173,7 +173,6 @@
     <string name="save_last_played">Guardar última reproducción</string>
     <string name="save_last_played_track_and_queue">Guardar última pista reproducida y cola</string>
     <string name="update_available">Nueva actualización disponible</string>
-    <string name="update_message">"Versión %1$s disponible\nLanzamiento: %2$s\nNovedades y cambios:\n%3$s "</string>
     <string name="check_for_update">Buscar actualizaciones</string>
     <string name="last_checked_at">Última comprobación a las %1$s</string>
     <string name="checking">Comprobando</string>
@@ -453,4 +452,12 @@
     <string name="list_all_cookies_of_this_page">Listar todas las cookies de esta página</string>
     <string name="copied_to_clipboard">Copiado al portapapeles</string>
     <string name="update_channel">Actualizar canal</string>
+    <string name="enable_liquid_glass_effect">Habilitar efecto de vidrio líquido (BETA)</string>
+    <string name="enable_liquid_glass_effect_description">Activar efecto de vidrio líquido de iOS en algunas areas (Android 12 o superior)</string>
+    <string name="your_library">Mi biblioteca</string>
+    <string name="play_explicit_content">Reproducir contenido explícito</string>
+    <string name="play_explicit_content_description">Habilitar la reproducción de contenido explícito</string>
+    <string name="explicit_content_blocked">Omitir contenido explícito</string>
+    <string name="mix_for_you">Mezclar para ti</string>
+    <string name="no_mixes_found">No se encontraron mezclas</string>
 </resources>

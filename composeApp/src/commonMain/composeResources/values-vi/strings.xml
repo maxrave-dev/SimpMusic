@@ -173,7 +173,6 @@
     <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
     <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
     <string name="update_available">Phiên bản mới có sẵn</string>
-    <string name="update_message">"Phiên bản %1$s có sẵn\nRa mắt: %2$s\nCác thay đổi:\n%3$s "</string>
     <string name="check_for_update">Kiểm tra cập nhật</string>
     <string name="last_checked_at">Lần kiểm tra cuối vào %1$s</string>
     <string name="checking">Đang kiểm tra</string>

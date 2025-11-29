@@ -173,7 +173,6 @@
     <string name="save_last_played">Сохранить последнюю воспроизводимую</string>
     <string name="save_last_played_track_and_queue">Сохранить последний воспроизведенный трек и очередь</string>
     <string name="update_available">Доступно новое обновление</string>
-    <string name="update_message">"Версия %1$s доступна\nДата выхода: %2$s\nСписок изменений:\n%3$s "</string>
     <string name="check_for_update">Проверить на наличие обновлений</string>
     <string name="last_checked_at">Последняя проверка %1$s</string>
     <string name="checking">Выполняется проверка</string>
@@ -383,7 +382,7 @@
     <string name="auto_check_for_update_description">Проверьте наличие обновлений при открытии приложения</string>
     <string name="blur_fullscreen_lyrics">Эффект размытия экрана текста песен</string>
     <string name="blur_fullscreen_lyrics_description">Размытие фона в полноэкранном просмотре текстов песен</string>
-    <string name="playback_speed_pitch">Скорость и высота воспроизведения</string>
+    <string name="playback_speed_pitch"><![CDATA[Скорость и высота воспроизведения]]></string>
     <string name="playback_speed">Скорость воспроизведения</string>
     <string name="pitch">Тон</string>
     <string name="blur_player_background">Размыть фон плеера</string>
@@ -455,4 +454,12 @@
     <string name="list_all_cookies_of_this_page">Список всех cookies этой страницы</string>
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="update_channel">Канал обновлений</string>
+    <string name="enable_liquid_glass_effect">Включить эффект жидкого стекла (БЕТА)</string>
+    <string name="enable_liquid_glass_effect_description">Включить эффект жидкого стекла из iOS в некоторых местах (Android 12+)</string>
+    <string name="your_library">Ваша библиотека</string>
+    <string name="play_explicit_content">Воспроизводить контент с нецензурной лексикой</string>
+    <string name="play_explicit_content_description">Разрешить воспроизведение контента с нецензурной лексикой</string>
+    <string name="explicit_content_blocked">Неприемлемый контент пропущен</string>
+    <string name="mix_for_you">Миксы для вас</string>
+    <string name="no_mixes_found">Не найдено миксов</string>
 </resources>

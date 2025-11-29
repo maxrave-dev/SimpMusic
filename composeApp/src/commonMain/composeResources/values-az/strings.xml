@@ -171,7 +171,6 @@
     <string name="save_last_played">Son Oynadılanı Saxla</string>
     <string name="save_last_played_track_and_queue">Son səslənən axını və növbəni saxla</string>
     <string name="update_available">Yeni quraşdırma mövcuddur</string>
-    <string name="update_message">"%1$s versiyası mövcuddur\nBuraxılış: %2$s\nDəyişiklik Jurnalı:\n%3$s "</string>
     <string name="check_for_update">Yeniləmələri yoxla</string>
     <string name="last_checked_at">Son dəfə yoxlanılıb: %1$s</string>
     <string name="checking">Yoxlanılır</string>

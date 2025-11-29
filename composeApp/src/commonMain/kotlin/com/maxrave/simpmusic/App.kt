@@ -112,9 +112,7 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class, ExperimentalFoundationApi::class)
 @Composable
-fun App(
-    viewModel: SharedViewModel = koinInject(),
-) {
+fun App(viewModel: SharedViewModel = koinInject()) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
 
@@ -385,7 +383,8 @@ fun App(
                                                 bottom = 4.dp,
                                             )
                                     } else {
-                                        Modifier.fillMaxWidth()
+                                        Modifier
+                                            .fillMaxWidth()
                                             .height(84.dp)
                                             .background(Color.Transparent)
                                             .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
@@ -564,7 +563,6 @@ fun App(
                                         Res.string.update_message,
                                         response.tagName,
                                         formatted,
-                                        "",
                                     )
                                 }
                             Column(
@@ -577,7 +575,7 @@ fun App(
                             ) {
                                 Text(
                                     text = updateMessage,
-                                    style = typo().bodySmall,
+                                    style = typo().labelMedium,
                                     modifier =
                                         Modifier.padding(
                                             vertical = 8.dp,

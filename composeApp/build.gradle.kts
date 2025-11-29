@@ -319,6 +319,20 @@ compose.desktop {
                 includeAllModules = true
                 packageVersion = "2025.11.16"
                 iconFile.set(project.file("icon/circle_app_icon.icns"))
+                val macExtraPlistKeys =
+                    """
+                    <key>LSApplicationCategoryType</key>
+                    <string>public.app-category.music</string>
+                    <key>UIBackgroundModes</key>
+                    <array>
+                        <string>audio</string>
+                        <string>fetch</string>
+                        <string>processing</string>
+                    </array>
+                    """.trimIndent()
+                infoPlist {
+                    extraKeysRawXml = macExtraPlistKeys
+                }
             }
             windows {
                 includeAllModules = true

@@ -174,7 +174,6 @@
     <string name="save_last_played">نگه‌داری آخرین پخش شده</string>
     <string name="save_last_played_track_and_queue">نگه‌داری آخرین آهنگ پخش شده و صف</string>
     <string name="update_available">به‌روزرسانی جدید موجود است</string>
-    <string name="update_message">"نگارش %1$s موجود است\nانتشار: %2$s\nتغییرات:\n%3$s "</string>
     <string name="check_for_update">بررسی به‌روزرسانی</string>
     <string name="last_checked_at">آخرین بررسی در %1$s</string>
     <string name="checking">در حال بررسی</string>

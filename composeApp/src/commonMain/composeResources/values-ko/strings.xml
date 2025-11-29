@@ -173,7 +173,6 @@
     <string name="save_last_played">마지막 재생 항목 저장</string>
     <string name="save_last_played_track_and_queue">마지막으로 재생한 곡과 대기열 저장</string>
     <string name="update_available">새 업데이트 있음</string>
-    <string name="update_message">"%1$s 버전 이용 가능\n출시일: %2$s\n변경 내역:\n%3$s "</string>
     <string name="check_for_update">업데이트</string>
     <string name="last_checked_at">최근 확인: %1$s</string>
     <string name="checking">확인 중</string>
@@ -243,7 +242,7 @@
     <string name="update_playlist">YouTube Music에서 재생목록 업데이트</string>
     <string name="backup_create_success">백업 생성 성공</string>
     <string name="backup_create_failed">백업 생성 실패</string>
-    <string name="main_lyrics_provider">주 자막 제공자</string>
+    <string name="main_lyrics_provider">주 가사 제공자</string>
     <string name="use_ai_translation">AI 가사 번역 사용</string>
     <string name="use_ai_translation_description">AI를 사용하여 가사 번역</string>
     <string name="translation_language">번역 언어</string>
@@ -452,4 +451,12 @@
     <string name="list_all_cookies_of_this_page">이 페이지의 모든 쿠키 나열</string>
     <string name="copied_to_clipboard">클립보드에 복사 완료</string>
     <string name="update_channel">업데이트 채널</string>
+    <string name="enable_liquid_glass_effect">리퀴드 글래스 켜기 (베타)</string>
+    <string name="enable_liquid_glass_effect_description">일부 영역에 iOS 리퀴드 글래스 효과 적용 (Android 12 이상)</string>
+    <string name="your_library">내 라이브러리</string>
+    <string name="play_explicit_content">연령 제한 콘텐츠 재생</string>
+    <string name="play_explicit_content_description">연령 제한 콘텐츠 재생 활성화</string>
+    <string name="explicit_content_blocked">연령 제한 콘텐츠 건너뜀</string>
+    <string name="mix_for_you">당신을 위한 믹스</string>
+    <string name="no_mixes_found">믹스 없음</string>
 </resources>

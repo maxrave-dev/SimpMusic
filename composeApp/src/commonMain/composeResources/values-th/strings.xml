@@ -173,7 +173,6 @@
     <string name="save_last_played">บันทึกการเล่นครั้งล่าสุด</string>
     <string name="save_last_played_track_and_queue">บันทึกเพลงและคิวที่เล่นล่าสุด</string>
     <string name="update_available">อัปเดตใหม่พร้อมใช้งานแล้ว</string>
-    <string name="update_message">"เวอร์ชั่น %1$s ใหม่\nปล่อยเมื่อ: %2$s\nบันทึกการเปลี่ยนแปลง:\n%3$s "</string>
     <string name="check_for_update">ตรวจสอบการอัปเดต</string>
     <string name="last_checked_at">ตรวจสอบล่าสุดเมื่อ %1$s</string>
     <string name="checking">กำลังตรวจสอบ</string>
@@ -452,4 +451,12 @@
     <string name="list_all_cookies_of_this_page">รายการคุกกี้ทั้งหมดของหน้านี้</string>
     <string name="copied_to_clipboard">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
     <string name="update_channel">ช่องทางอัพเดต</string>
+    <string name="enable_liquid_glass_effect">เปิดใช้งาน Liquid Glass (เบต้า)</string>
+    <string name="enable_liquid_glass_effect_description">เปิดใช้งานเอฟเฟ็กต์ Liquid Glass ของ iOS ในบางตำแหน่ง (Android 12 ขึ้นไป)</string>
+    <string name="your_library">คลังเพลงของคุณ</string>
+    <string name="play_explicit_content">เล่นเนื้อหาที่ไม่เหมาะสม</string>
+    <string name="play_explicit_content_description">เปิดใช้งานการเล่นเนื้อหาที่ไม่เหมาะสม</string>
+    <string name="explicit_content_blocked">เนื้อหาที่ไม่เหมาะสมถูกข้าม</string>
+    <string name="mix_for_you">มิกซ์สำหรับคุณ</string>
+    <string name="no_mixes_found">ไม่พบมิกซ์</string>
 </resources>

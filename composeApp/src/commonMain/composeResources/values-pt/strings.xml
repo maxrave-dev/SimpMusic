@@ -23,9 +23,9 @@
     <string name="followed">Seguidos</string>
     <string name="most_played">Mais tocados</string>
     <string name="Downloaded">Baixados</string>
-    <string name="favorite_playlists">Playlists favoritas</string>
-    <string name="no_favorite_playlists">Nenhuma playlist favoritada</string>
-    <string name="downloaded_playlists">Playlists Baixadas</string>
+    <string name="favorite_playlists">\"Playlists\" favoritas</string>
+    <string name="no_favorite_playlists">Nenhuma \"playlist\" favorita</string>
+    <string name="downloaded_playlists">\"Playlists\" Baixadas</string>
     <string name="no_playlists_downloaded">Nenhuma playlist baixada</string>
     <string name="your_playlists">Suas Playlists Locais</string>
     <string name="no_playlists_added">Nenhuma playlist adicionada</string>
@@ -169,11 +169,10 @@
     <string name="save_shuffle_and_repeat_mode">Salvar modo aleatório e de repetição</string>
     <string name="skip_silent">Pular Silencioso</string>
     <string name="skip_no_music_part">Pular parte da silenciosa da música</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo esgotado, verifique a ligação à Internet (%1$s)</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Tempo esgotado, verifique sua conexão com a internet</string>
     <string name="save_last_played">Salvar Última Reprodução</string>
     <string name="save_last_played_track_and_queue">Salvar a última faixa e fila reproduzidas</string>
     <string name="update_available">Nova atualização disponível</string>
-    <string name="update_message">"Versão %1$s disponível\nVersão: %2$s\nMudanças:\n%3$s "</string>
     <string name="check_for_update">Verificar atualizações</string>
     <string name="last_checked_at">Última verificação: %1$s</string>
     <string name="checking">Verificando</string>
@@ -245,13 +244,13 @@
     <string name="backup_create_failed">Falha ao criar backup</string>
     <string name="main_lyrics_provider">Provedor principal de letras</string>
     <string name="use_ai_translation">Usar Tradução de Letras com IA</string>
-    <string name="use_ai_translation_description">Ativar tradução de letras usando IA</string>
-    <string name="translation_language">Idioma de Tradução</string>
+    <string name="use_ai_translation_description">Enable lyrics translation using AI</string>
+    <string name="translation_language">Translation Language</string>
     <string name="follow_app_language">Siga o idioma do aplicativo</string>
     <string name="email">Email</string>
     <string name="password">Senha</string>
     <string name="please_enter_your_email_and_password">Por favor entre com seu e-mail e senha</string>
-    <string name="translation_language_message">Digite o código do idioma (Ex: en) (2 letras). Se você deseja definir o mesmo com o idioma do SimpMusic, deixe a caixa de edição vazia.</string>
+    <string name="translation_language_message">Type language code (Eg: pt) (2 letters). If you want to set same with SimpMusic\'s language, please make edit box empty.</string>
     <string name="invalid_language_code">Código de idioma inválido</string>
     <string name="lyrics_provider_youtube">Letras fornecidas pelo YouTube</string>
     <string name="limit_player_cache">Limitar cache do jogador</string>
@@ -269,7 +268,7 @@
     <string name="older_first">Mais Antigas Primeiro</string>
     <string name="newer_first">Mais Recentes Primeiro</string>
     <string name="added_date">Data adicionada</string>
-    <string name="credit_app">Um aplicativo de música simples que usa o YouTube Music como back-end \n\nO SimpMusic é um projeto de código aberto para transmitir músicas do YouTube e do YouTube Music sem anúncios e rastreamento. O SimpMusic oferece muitos recursos:\n\n - Streaming de música\n - Letras sincronizadas\n - Personalização de dados\n - etc... \n\nO SimpMusic é sempre gratuito e sem anúncios\n\nConstrua com ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Rastreador de problemas</string>
     <string name="featured_playlists">Listas de reprodução em destaque</string>
     <string name="featured_inArtist">Destacado</string>
@@ -307,10 +306,10 @@
     <string name="log_in_to_spotify">Entrar no Spotify</string>
     <string name="intro_login_to_spotify">Fazer login em Spotify Lyrics, Canvas e muito mais</string>
     <string name="enable_spotify_lyrics">Habilitar letras do Spotify</string>
-    <string name="spotify_lyrícs_info">Mais letras sem tradução</string>
+    <string name="spotify_lyrícs_info">More lyrics without translation</string>
     <string name="enable_canvas">Ativar Canvas</string>
     <string name="canvas_info">Mostrar Canvas do Spotify no SimpMusic</string>
-    <string name="spotify_lyrics_provider">Letras fornecidas pelo Spotify</string>
+    <string name="spotify_lyrics_provider">Letras fornecidas pela Lrclib</string>
     <string name="offline_mode">Modo offline</string>
     <string name="added_to_youtube_liked">Adicionado aos \"Curtidos\" do YouTube</string>
     <string name="removed_from_youtube_liked">Removido dos \"Curtidos\" do YouTube</string>
@@ -361,7 +360,7 @@
     <string name="log_in_warning">O YouTube Music agora requer o acesso à conta para fazer a transmissão de músicas, O Piped pode em algum momento não funcionar também. Logue no YouTube para ter uma melhor experiência com a SimpMusic.</string>
     <string name="spotify_canvas_cache">Cache de Tela Spotify</string>
     <string name="clear_canvas_cache">Limpar cache da tela</string>
-    <string name="proxy">'Proxy'</string>
+    <string name="proxy">\'Proxy\'</string>
     <string name="proxy_description">Usando Proxy para ignorar o bloqueio de conteúdo do país</string>
     <string name="proxy_type">Tipo de Proxy</string>
     <string name="http">HTTP</string>
@@ -373,7 +372,7 @@
     <string name="proxy_host_message">Favor insira o seu servidor Proxy</string>
     <string name="proxy_port_message">Favor insira a sua porta Proxy</string>
     <string name="five_seconds">Cinco segundos</string>
-    <string name="lyrics_provider_lrc">Letras fornecidas pela LRCLIB</string>
+    <string name="lyrics_provider_lrc">Letras fornecidas pelo YouTube</string>
     <string name="sync_first">Sincronize esta lista de reprodução com o YouTube Music primeiro</string>
     <string name="endless_queue">Fila infinita</string>
     <string name="do_not_show_again">Não mostrar novamente</string>
@@ -444,7 +443,7 @@
     <string name="contributor_email">E-mail do colaborador</string>
     <string name="anonymous">Anônimo</string>
     <string name="simpmusic_lyrics">SimpMusic Letras</string>
-    <string name="lyrics_provider_simpmusic">Letras fornecidas por SimpMusic Letrad</string>
+    <string name="lyrics_provider_simpmusic">Lyrics provided by SimpMusic Lyrics</string>
     <string name="backup_in_progress">Recuperação Em Progresso</string>
     <string name="restore_in_progress">Restauração Em Progresso</string>
     <string name="backup_downloaded">Recuperação dos dados baixados</string>
@@ -453,4 +452,12 @@
     <string name="list_all_cookies_of_this_page">Listar todos os cookies desta página</string>
     <string name="copied_to_clipboard">Copiado para a área de transferência</string>
     <string name="update_channel">Canal De Atualizações</string>
+    <string name="enable_liquid_glass_effect">Enable liquid glass (BETA)</string>
+    <string name="enable_liquid_glass_effect_description">Enable iOS\'s liquid glass effect in some position (Android 12+)</string>
+    <string name="your_library">Your library</string>
+    <string name="play_explicit_content">Play explicit content</string>
+    <string name="play_explicit_content_description">Enable to play explicit content</string>
+    <string name="explicit_content_blocked">Explicit content is skipped</string>
+    <string name="mix_for_you">Mix for you</string>
+    <string name="no_mixes_found">No mixes found</string>
 </resources>

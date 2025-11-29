@@ -2,7 +2,7 @@
 <resources>
     <string name="Song_and_artist_name">أغنية • %1$s</string>
     <string name="playlist_and_author">قائمة تشغيل • %1$s</string>
-    <string name="album_and_artist_name">ألبوم • %1$s</string>
+    <string name="album_and_artist_name">آلبوم • %1$s</string>
     <string name="subscribers">مشتركون %1$s</string>
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s مسارات  %2$s</string>
@@ -31,7 +31,7 @@
     <string name="no_playlists_added">لم يتم إضافة قوائم تشغيل</string>
     <string name="recently_added">المضافة حديثًا</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">البحث عن أغاني وفنانين وألبومات وقوائم تشغيل والمزيد</string>
-    <string name="everything_you_need">كل ما تحتاجه</string>
+    <string name="everything_you_need">كلّما تحتاج</string>
     <string name="restore_failed">فشلت الاستعادة</string>
     <string name="restore_success">تمت الاستعادة بنجاح</string>
     <string name="search">بحث</string>
@@ -169,10 +169,10 @@
     <string name="save_shuffle_and_repeat_mode">حفظ الوضع العشوائي و التكرار</string>
     <string name="skip_silent">تخطي الوضع الصامت</string>
     <string name="skip_no_music_part">تخطي لا جزء موسيقى</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings"></string>
     <string name="save_last_played">حفظ آخر تشغيل</string>
     <string name="save_last_played_track_and_queue">حفظ آخر مسار وقائمة الانتظار تم تشغيله</string>
     <string name="update_available">تحديث جديد متوفر</string>
-    <string name="update_message">"الإصدار %1$s متاح\nالإصدار: %2$s\nسجل التغييرات:\n%3$s "</string>
     <string name="check_for_update">التحقق من وجود التحديث</string>
     <string name="last_checked_at">آخر تحقق: %1$s</string>
     <string name="checking">التحقق</string>
@@ -198,6 +198,7 @@
     <string name="customactivityoncrash_error_activity_restart_app">إعادة تشغيل التطبيق</string>
     <string name="help_build_lyrics_database">ساعدنا لتقوية قاعدة البيانات الخاصة بكلمات الأغاني</string>
     <string name="help_build_lyrics_database_description">أرسل كلمات الأغاني المسجلة إلى قاعدة البيانات</string>
+    <string name="lyrics_database_description">نحن نعمل على بناء قاعدة بيانات كلمات الأغاني الخاصة بنا لـ سيمب ميوزيك وعملاء YouTube الآخرين لأغراض غير تجارية، وهي مفتوحة المصدر في</string>
     <string name="customactivityoncrash_error_activity_close_app">إغلاق التطبيق</string>
     <string name="customactivityoncrash_error_activity_error_details">تفاصيل الخطأ</string>
     <string name="customactivityoncrash_error_activity_error_details_title">تفاصيل الخطأ</string>
@@ -243,6 +244,7 @@
     <string name="backup_create_failed">فشل إنشاء النسخ الاحتياطي</string>
     <string name="main_lyrics_provider">مورد كلمات الأغاني الرئيسي</string>
     <string name="use_ai_translation">استخدم الذكاء الاصطناعي لترجمة كلمات الأغنية</string>
+    <string name="use_ai_translation_description">فعل خاصية تَرْجَمَة كلمات الأغاني باستخدام الذكاء الاصطناعي</string>
     <string name="translation_language">لغة التّرجمة</string>
     <string name="follow_app_language">تتبع لغة التطبيق</string>
     <string name="email">البريد الإلكتروني</string>
@@ -261,6 +263,10 @@
     <string name="free_space">مساحة فارغة</string>
     <string name="suggest">اقتراح</string>
     <string name="reload">إعادة تحميل</string>
+    <string name="sort_by">فرز حسب</string>
+    <string name="sort">فرز</string>
+    <string name="older_first">إظهار الأقدم أولاً</string>
+    <string name="newer_first">إظهار الأحدث أولاً</string>
     <string name="added_date">تاريخ الإضافة</string>
     <string name="credit_app">تطبيق موسيقي بسيط يستخدم YouTube Music for backend \n\nSimpMusic هو مشروع مفتوح المصدر لبث الموسيقى من YouTube و YouTube Music بدون إعلانات وتتبُّع. يوفر SimpMusic العديد من الميزات:\n\n - بث الموسيقى \n - مزامنة كلمات الاغاني\n - تخصيص البيانات\n - إلخ… \n\nSimpMusic مجاني دائمًا وبدون إعلانات\n\nتم تطويره بـ ❤️ بواسطة Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">متعقب المشاكل</string>
@@ -333,7 +339,11 @@
     <string name="repeat_one">كرر مرة واحدة</string>
     <string name="repeat_all">تكرار الكل</string>
     <string name="repeat_off">التكرار معطل</string>
+    <string name="youtube_transcript">تَرْجَمَة الخاصة ب YouTube</string>
     <string name="user_interface">الواجهة</string>
+    <string name="translucent_bottom_navigation_bar">شريط التنقل السفلي الشفاف</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">يمكنك رؤية المحتوى أسفل الشريط السفلي</string>
+    <string name="donation">إذا كنت تحب عملي، فتبرع لي</string>
     <string name="relax">استرخاء</string>
     <string name="sleep">نوم</string>
     <string name="energize">تنشيط</string>
@@ -347,4 +357,5 @@
     <string name="loading">جاري التحميل</string>
     <string name="updating">جاري التحديث</string>
     <string name="go_to_log_in_page">الذهاب إلى صفحة تسجيل الدخول</string>
+    <string name="download_speed">سرعة التحميل %1$s </string>
 </resources>

@@ -12,6 +12,7 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import io.sentry.Sentry
 import io.sentry.SentryLevel
@@ -79,6 +80,10 @@ fun main() =
         val onExitApplication: () -> Unit = {
             mediaPlayerHandler.release()
             exitApplication()
+        }
+        val sharedViewModel = getKoin().get<SharedViewModel>()
+        if (sharedViewModel.shouldCheckForUpdate()) {
+            sharedViewModel.checkForUpdate()
         }
         Window(
             onCloseRequest = {

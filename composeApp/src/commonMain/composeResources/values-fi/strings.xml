@@ -171,7 +171,6 @@
     <string name="save_last_played">Muista viimeksi soitettu</string>
     <string name="save_last_played_track_and_queue">Muista viimeksi toistettu kappale ja jono</string>
     <string name="update_available">Uusi päivitys on saatavilla</string>
-    <string name="update_message">"Versio %1$s saatavilla\nJulkaisu: %2$s\nMuutosloki:\n%3$s "</string>
     <string name="check_for_update">Tarkista päivitykset</string>
     <string name="last_checked_at">Viimeksi tarkistettu %1$s</string>
     <string name="checking">Tarkistetaan</string>
