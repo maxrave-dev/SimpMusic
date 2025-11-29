@@ -24,3 +24,6 @@ crowdin.yml
 # Sentry Config File
 sentry.properties
 /.claude/
+/composeApp/build/
+/composeApp/cache/
+/composeApp/kcef-bundle/

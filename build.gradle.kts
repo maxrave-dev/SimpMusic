@@ -6,23 +6,20 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.compose.compiler) apply false
-    alias(libs.plugins.navigation.safeargs) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlin.parcelize) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.aboutlibraries) apply false
+    alias(libs.plugins.aboutlibraries.multiplatform) apply false
     alias(libs.plugins.room) apply false
     alias(libs.plugins.sentry.gradle) apply false
-}
-
-buildscript {
-    val isFullBuild by extra {
-        gradle.startParameter.taskNames.any { task ->
-            println("Checking task: $task")
-            task.contains("full", ignoreCase = true)
-        }
-    }
-    println("Is full build: $isFullBuild")
+    alias(libs.plugins.android.lint) apply false
+    alias(libs.plugins.compose.multiplatform) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.android.kotlin.multiplatform.library) apply false
+    alias(libs.plugins.jetbrains.kotlin.jvm) apply false
+    alias(libs.plugins.build.config) apply false
+    alias(libs.plugins.osdetector) apply false
 }
 
 tasks.register<Delete>("Clean") {

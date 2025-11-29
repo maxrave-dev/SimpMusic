@@ -4,7 +4,6 @@
 set -e
 
 # Default variables
-BUILD_VARIANT="full"
 BUILD_TYPE="release"
 KEYSTORE_PATH="./simpmusic.jks"
 # Read passwords from environment variables or use default (for backward compatibility)
@@ -34,8 +33,6 @@ fi
 print_usage() {
   echo "Usage: $0 [options]"
   echo "Options:"
-  echo "  --full             Build the full variant (default)"
-  echo "  --foss             Build the FOSS variant"
   echo "  --release          Build in release mode (default)"
   echo "  --debug            Build in debug mode"
   echo "  -h, --help         Show this help message"
@@ -50,8 +47,6 @@ print_usage() {
 # Process command line arguments
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    --full) BUILD_VARIANT="full" ;;
-    --foss) BUILD_VARIANT="foss" ;;
     --release) BUILD_TYPE="release" ;;
     --debug) BUILD_TYPE="debug" ;;
     -h|--help) print_usage ;;
@@ -61,8 +56,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Set derived variables based on selected options
-APK_OUTPUT_DIR="./app/build/outputs/apk/$BUILD_VARIANT/$BUILD_TYPE"
-SIGNED_APK_OUTPUT_DIR="./app/build/outputs/apk/$BUILD_VARIANT/$BUILD_TYPE"
+APK_OUTPUT_DIR="./composeApp/build/outputs/apk/$BUILD_TYPE"
+SIGNED_APK_OUTPUT_DIR="./composeApp/build/outputs/apk/$BUILD_TYPE"
 
 # Android build-tools path
 BUILD_TOOLS_PATH="$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort | tail -n 1)"
@@ -76,7 +71,6 @@ mkdir -p "$SIGNED_APK_OUTPUT_DIR"
 echo "===================="
 echo "Building APK Process"
 echo "===================="
-echo "Build Variant: $BUILD_VARIANT"
 echo "Build Type: $BUILD_TYPE"
 echo "===================="
 
@@ -87,7 +81,7 @@ echo "Project cleaned successfully."
 
 # Step 2: Build the APK
 echo "[Step 2] Building APK..."
-./gradlew app:assemble"$BUILD_VARIANT""$BUILD_TYPE"
+./gradlew composeApp:assemble"$BUILD_TYPE"
 echo "APK built successfully."
 
 # Step 3: Locate the built APKs
