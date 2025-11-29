@@ -50,7 +50,7 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
    <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/03.png?raw=true" width="200" />          
    <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/04.png?raw=true" width="200" /> </p> <p align="center">          
  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/05.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/06.png?raw=true" width="200" />          
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/17.png?raw=true" width="200" />  
    <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/07.png?raw=true" width="200" />          
    <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/08.png?raw=true" width="200" /> </p> <p align="center">          
  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/09.png?raw=true" width="200" />          
@@ -61,7 +61,7 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/14.png?raw=true" width="200" />         
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/15.png?raw=true" width="200" /> 
      <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/16.png?raw=true" width="200" /> </p> <p align="center">  
-     <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/17.png?raw=true" width="200" />             
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/06.png?raw=true" width="800" />  
 </p>
 
  #### More [screenshots](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
