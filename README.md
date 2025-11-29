@@ -1,4 +1,4 @@
-<div align="center"> <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/jetpack_compose/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>  
+<div align="center"> <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/main/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>  
 A FOSS YouTube Music client for Android and Desktop with many features from<br>Spotify, SponsorBlock, ReturnYouTubeDislike using Compose Multiplatform to develop.
 <br> 
 <br>
@@ -45,23 +45,23 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
     
 ## Screenshots    
  <p align="center">          
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/01.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/02.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/03.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/04.png?raw=true" width="200" /> </p> <p align="center">          
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/05.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/06.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/07.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/08.png?raw=true" width="200" /> </p> <p align="center">          
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/09.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/10.png?raw=true" width="200" />         
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.png?raw=true" width="200" /> 
-     <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/12.png?raw=true" width="200" /> </p> <p align="center">    
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/13.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/14.png?raw=true" width="200" />         
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/15.png?raw=true" width="200" /> 
-     <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/16.png?raw=true" width="200" /> </p> <p align="center">  
-     <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/17.png?raw=true" width="200" />             
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/01.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/02.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/03.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/04.png?raw=true" width="200" /> </p> <p align="center">          
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/05.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/06.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/07.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/08.png?raw=true" width="200" /> </p> <p align="center">          
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/09.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/10.png?raw=true" width="200" />         
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/11.png?raw=true" width="200" /> 
+     <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/12.png?raw=true" width="200" /> </p> <p align="center">    
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/13.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/14.png?raw=true" width="200" />         
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/15.png?raw=true" width="200" /> 
+     <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/16.png?raw=true" width="200" /> </p> <p align="center">  
+     <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/17.png?raw=true" width="200" />             
 </p>
 
  #### More [screenshots](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
@@ -130,14 +130,14 @@ sometimes, some songs or videos get the wrong lyrics
 - [CrazyWolf13](https://github.com/CrazyWolf13): Issues organizer/planner.
 
 We're looking for more contributors, all contributions are welcome!
-See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/CODE_OF_CONDUCT.md)
+See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
 
  ## Showcase
 This project is following clean architecture and MVVM pattern (in UI, app module).
 
  ### Dependencies graph
   <p float="left">        
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/dependencies_graph.svg?raw=true" width="800"> 
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/dependencies_graph.svg?raw=true" width="800"> 
   </p>
 
  ## Support & Donations 
