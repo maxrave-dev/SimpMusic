@@ -24,13 +24,15 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 - Spotify Canvas supported    
 - Play 1080p video option with subtitle    
 - AI song suggestions    
+- Customize your playlist, synced with YouTube Music
 - Notifications from followed artists    
 - Caching and offline playback support    
 - Synced lyrics from SimpMusic Lyrics, LRCLIB, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
 - Personalize data (\**) and multi-YouTube-account support    
 - Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer    
-- Android Auto with online content    
+- Android Auto with online content
+- Discord Rich Presence support
 - And many more!    
   
 > (\*) Use your OpenAI or Gemini API key    
@@ -43,29 +45,36 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
     
 ## Screenshots    
  <p align="center">          
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/2.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/3.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/4.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/5.png?raw=true" width="200" /> </p> <p align="center">          
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/6.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/7.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/8.png?raw=true" width="200" />          
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/9.png?raw=true" width="200" /> </p> <p align="center">          
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/10.png?raw=true" width="200" />          
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.png?raw=true" width="200" />         
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/12.png?raw=true" width="200" /> 
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/01.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/02.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/03.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/04.png?raw=true" width="200" /> </p> <p align="center">          
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/05.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/06.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/07.png?raw=true" width="200" />          
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/08.png?raw=true" width="200" /> </p> <p align="center">          
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/09.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/10.png?raw=true" width="200" />         
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.png?raw=true" width="200" /> 
+     <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/12.png?raw=true" width="200" /> </p> <p align="center">    
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/13.png?raw=true" width="200" />          
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/14.png?raw=true" width="200" />         
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/15.png?raw=true" width="200" /> 
+     <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/16.png?raw=true" width="200" /> </p> <p align="center">  
+     <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/17.png?raw=true" width="200" />             
 </p>
 
  #### More [screenshots](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
  
  ## Data    
- - This app uses hidden API from YouTube Music with some tricks to get data from YouTube Music.    
+- This app uses hidden API from YouTube Music with some tricks to get data from YouTube Music.    
 - Use Spotify Web API and some tricks to get Spotify Canvas and Lyrics    
 - Thanks to [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.    
 - Special thanks to [SmartTube](https://github.com/yuliskov/SmartTube). This repo help me to extract the streaming URL of YouTube Music.    
 - My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos.    
-- ReturnYouTubeDislike for getting information on votes    
-- Lyrics data from LRCLIB. More information [LRCLIB](https://lrclib.net/)    
+- ReturnYouTubeDislike for getting information on votes 
+- Main lyrics data from SimpMusic Lyrics. More information [SimpMusic Lyrics](https://lyrics.simpmusic.org/)
+- Alternative lyrics data from LRCLIB. More information [LRCLIB](https://lrclib.net/)    
  
  ## Privacy    
  SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
@@ -78,6 +87,26 @@ We collect crash data in the Full version to improve the app.
 ## Full or FOSS version
 I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full version. [Sentry](https://github.com/getsentry/sentry) is the open-source project.
  If you don't want to be collected crash data, you must use FOSS version.
+ 
+## Desktop app
+
+### Before downloading the Desktop app, make sure your system installed 3 applications below:
+- [Gstreamer](https://gstreamer.freedesktop.org/download/): Required for playback audio.
+- [Yt-dlp](https://github.com/yt-dlp/yt-dlp): Required for getting streaming URL from YouTube (when using 256kps or higher quality).
+
+### Which file should I download?
+- For Windows: Download the file with extension `.msi`.
+- For macOS: Download the file with extension `.dmg`.
+- For Linux: Download the file with extension `.deb`.
+
+### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
+
+### Some limitations on Desktop app:
+- No offline playback support.
+- No video playback support.
+- Very buggy on some Linux distributions (because of Jetbrains not fix).
+
+Please report issues on our Discord server if you find any bugs.
  
 ## Translation    
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)

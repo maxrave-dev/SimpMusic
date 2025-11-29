@@ -72,6 +72,8 @@
     <string name="content_country">Vị trí nội dung</string>
     <string name="change">Thay đổi</string>
     <string name="quality">Chất lượng âm thanh</string>
+    <string name="download_quality">Chất lượng tải xuống</string>
+    <string name="video_download_quality">Chất lượng video tải xuống</string>
     <string name="clear_downloaded_cache">Xoá tất cả nội dung tải xuống</string>
     <string name="clear_thumbnail_cache">Xoá bộ nhớ cache của trình tải ảnh</string>
     <string name="add">Thêm</string>
@@ -120,6 +122,7 @@
     <string name="buy_me_a_coffee">Hỗ trợ tôi</string>
     <string name="paypal">PayPal</string>
     <string name="title">Tiêu đề</string>
+    <string name="custom_order">Bộ lọc tuỳ chỉnh</string>
     <string name="album">Album</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="download_url">Tải xuống URL</string>
@@ -173,6 +176,7 @@
     <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
     <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
     <string name="update_available">Phiên bản mới có sẵn</string>
+    <string name="update_message">Phiên bản %1$s có sẵn\nXuất bản ngày: %2$s\n</string>
     <string name="check_for_update">Kiểm tra cập nhật</string>
     <string name="last_checked_at">Lần kiểm tra cuối vào %1$s</string>
     <string name="checking">Đang kiểm tra</string>
@@ -424,6 +428,7 @@
     <string name="no_favorite_podcasts">Không có podcast yêu thích nào</string>
     <string name="your_sp_dc_param_of_spotify_cookie">Tham số sp_dc trong cookie của Spotify</string>
     <string name="your_youtube_cookie">Cookie của YouTube</string>
+    <string name="your_discord_token">Mã token Discord</string>
     <string name="can_not_be_empty">Không được để trống</string>
     <string name="processing">Đang xử lý</string>
     <string name="website">Trang web</string>
@@ -459,4 +464,16 @@
     <string name="explicit_content_blocked">Bài hát nhạy cảm đã bị bỏ qua</string>
     <string name="mix_for_you">Mix cho bạn</string>
     <string name="no_mixes_found">Không có bản mix nào</string>
+    <string name="desktop_webview_description">Do những hạn chế của Compose Multiplatform, tôi không thể triển khai WebView trên máy tính để bàn.\nĐọc bài viết này để tìm hiểu thêm về cách đăng nhập trên máy tính để bàn:\n</string>
+    <string name="open_blog_post">Mở bài blog</string>
+    <string name="discord_integration">Tích hợp Discord</string>
+    <string name="log_in_to_discord">Đăng nhập vào Discord</string>
+    <string name="intro_login_to_discord">Đăng nhập đề bật Discord Rich Presence</string>
+    <string name="enable_rich_presence">Kích hoạt Rich Presence</string>
+    <string name="rich_presence_info">Hiển thị phiên phát nhạc trên tài khoản Discord</string>
+    <string name="youtube_liked_music">Danh sách đã thích YouTube</string>
+    <string name="keep_service_alive">Giữ dịch vụ sống lâu hơn</string>
+    <string name="keep_service_alive_description">Bảo vệ dịch vụ phát nhạc sống tránh khỏi bị hệ thống tắt</string>
+    <string name="keep_your_youtube_playlist_offline">Giữ danh sách phát YouTube của bạn hiển thị khi offline</string>
+    <string name="keep_your_youtube_playlist_offline_description">Lưu danh sách phát YT lại và hiển thị khi offline</string>
 </resources>
