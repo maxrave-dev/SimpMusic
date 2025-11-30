@@ -59,13 +59,13 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./build_and_sign_apk.sh --full --release
+        run: ./build_and_sign_apk.sh --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-full-release
-          path: app/build/outputs/apk/full/release/*.apk
+          path: composeApp/build/outputs/apk/release/*.apk
 
   build-foss-release:
     name: Build foss release version
@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-foss-release
-          path: app/build/outputs/apk/foss/release/*.apk
+          path: composeApp/build/outputs/apk/release/*.apk
 
   build-desktop-deb:
     name: Build desktop DEB package
