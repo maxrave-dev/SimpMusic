@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'main'
+      - 'jetpack_compose'
     paths-ignore:
       - 'README.md'
       - 'fastlane/**'
@@ -49,6 +49,11 @@ jobs:
         run:
           echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
 
+      - name: Update build product flavor
+        run: |
+          echo "" >> ./gradle.properties
+          echo "isFullBuild=true" >> ./gradle.properties
+
       - name: Build full release APK
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -86,12 +91,17 @@ jobs:
         run:
           echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
 
+      - name: Update build product flavor
+        run: |
+          echo "" >> ./gradle.properties
+          echo "isFullBuild=false" >> ./gradle.properties
+
       - name: Build foss release APK
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./build_and_sign_apk.sh --foss --release
+        run: ./build_and_sign_apk.sh --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
