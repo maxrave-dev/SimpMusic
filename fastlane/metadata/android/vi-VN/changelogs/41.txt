@@ -1,0 +1,9 @@
+- Phiên bản máy tính để bàn mới có sẵn (beta)
+- Di chuyển sang Compose Multiplatform
+- Tối ưu hóa liquid glass, giảm sự cố
+- Tối ưu hóa thuật toán xáo trộn
+- Tối ưu hóa lời bài hát AI
+- Đồng bộ với danh sách phát YouTube Music
+- Tìm kiếm trong danh sách phát
+- Tối ưu hóa dịch vụ
+- Tối ưu hóa một số UX
