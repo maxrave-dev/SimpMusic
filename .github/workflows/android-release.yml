@@ -2,9 +2,18 @@ name: Build APK for Release (Full & FOSS) && Desktop app release
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/**/*.md'
+      - '.github/FUNDING.yml'
+      - '.github/ISSUE_TEMPLATE/**'
   push:
     branches:
-      - 'jetpack_compose'
+      - 'main'
     paths-ignore:
       - 'README.md'
       - 'fastlane/**'
