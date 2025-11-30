@@ -15,6 +15,8 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 <h4>Nightly Build</h4>  
 <a href="https://simpmusic.org/nightly-download"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/> <a href="https://simpmusic.org/nightly-download"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" width="200"></a> 
 </div>  
+
+> SimpMusic is available on Desktop now!
   
 ## Features ✨️    
 - Play music from YouTube Music or YouTube for free, without ads and in the background    

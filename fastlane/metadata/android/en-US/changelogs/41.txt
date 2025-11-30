@@ -1,0 +1,9 @@
+- New Desktop app available (beta)
+- Migrate to Compose Multiplatform
+- Optimized liquid glass, reduce crash
+- Optimize shuffle algorithm
+- Optimize AI lyrics
+- Synced with YouTube Music playlists
+- Search inside playlist
+- Optimize service
+- Optimize some UX

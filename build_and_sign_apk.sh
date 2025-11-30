@@ -5,6 +5,7 @@ set -e
 
 # Default variables
 BUILD_TYPE="release"
+BUILD_VARIANT="full"
 KEYSTORE_PATH="./simpmusic.jks"
 # Read passwords from environment variables or use default (for backward compatibility)
 KEYSTORE_PASSWORD="${KEYSTORE_PASSWORD}"
@@ -35,6 +36,8 @@ print_usage() {
   echo "Options:"
   echo "  --release          Build in release mode (default)"
   echo "  --debug            Build in debug mode"
+  echo "  --full             Build full with Sentry"
+  echo "  --foss             Build foss, compatibility with F-Droid, no Sentry"
   echo "  -h, --help         Show this help message"
   echo ""
   echo "Environment variables:"
@@ -47,6 +50,8 @@ print_usage() {
 # Process command line arguments
 while [[ "$#" -gt 0 ]]; do
   case $1 in
+    --full) BUILD_VARIANT="full" ;;
+    --foss) BUILD_VARIANT="foss" ;;
     --release) BUILD_TYPE="release" ;;
     --debug) BUILD_TYPE="debug" ;;
     -h|--help) print_usage ;;
@@ -97,7 +102,8 @@ for APK_PATH in $APK_PATHS; do
   ALIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/aligned-$(basename "${APK_PATH/-unsigned/}")"
   RELEASE_NAME=$(basename "${APK_PATH/-unsigned/}")
   RELEASE_NAME="${RELEASE_NAME/app-/}"
-  SIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/SimpMusic-$(basename "$RELEASE_NAME")"
+  RELEASE_NAME="${RELEASE_NAME/composeApp-/}"
+  SIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/SimpMusic-$BUILD_VARIANT-$(basename "$RELEASE_NAME")"
 
   echo "[Step 4] Aligning the APK: $APK_PATH..."
   if [ ! -f "$ZIPALIGN" ]; then
