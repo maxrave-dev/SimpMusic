@@ -208,6 +208,16 @@
 
 
     <meta-data android:name="io.sentry.auto-init" android:value="false" />
+
+    <receiver android:name=".ui.widget.AppWidgetReceiver"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/new_app_widget_info" />
+    </receiver>
 </application>
 
 </manifest>
