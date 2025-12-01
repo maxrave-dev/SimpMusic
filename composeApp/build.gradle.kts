@@ -429,8 +429,20 @@ sentry {
     } else {
         includeProguardMapping.set(false)
         autoUploadProguardMapping.set(false)
+        uploadNativeSymbols.set(false)
+        includeDependenciesReport.set(false)
+        includeSourceContext.set(false)
+        includeNativeSources.set(false)
     }
     telemetry.set(false)
+}
+
+if (!isFullBuild) {
+    tasks.whenTaskAdded {
+        if (name.contains("injectSentryDebugMetaPropertiesIntoAssetsRelease")) {
+            enabled = false
+        }
+    }
 }
 
 afterEvaluate {
