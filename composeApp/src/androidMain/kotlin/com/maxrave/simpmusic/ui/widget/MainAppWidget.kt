@@ -15,6 +15,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -67,7 +68,6 @@ import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.transparent
-import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -231,7 +231,7 @@ class MainAppWidget :
                                 style =
                                     TextStyle(
                                         color = ColorProvider(white),
-                                        fontSize = typo().labelMedium.fontSize,
+                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Start,
                                     ),
@@ -246,7 +246,7 @@ class MainAppWidget :
                                 style =
                                     TextStyle(
                                         color = ColorProvider(Color.LightGray),
-                                        fontSize = typo().bodyMedium.fontSize,
+                                        fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Start,
                                     ),
