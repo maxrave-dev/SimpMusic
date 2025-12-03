@@ -1,0 +1,67 @@
+name: Bug report
+description: Report a reproducible issue in SimpMusic
+labels: [ "bug:unconfirmed" ]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Important:**  
+        Issues that are incomplete or not properly filled out will be closed without further explanation.
+
+  - type: checkboxes
+    id: duplicate_check
+    attributes:
+      label: Duplicate Check
+      description: Confirm you searched both open and closed issues.
+      options:
+        - label: I confirm I searched for existing reports and found no duplicates.
+          required: true
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: Describe the Bug
+      placeholder: Briefly describe the bug you encountered.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. …
+        2. …
+        3. …
+        4. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: Describe what you expected to happen instead.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App Version
+      placeholder: e.g. 1.0.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      placeholder: Add screenshots if they help show the issue.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log / Error Details
+      placeholder: Paste the crash log here if the app crashed.
