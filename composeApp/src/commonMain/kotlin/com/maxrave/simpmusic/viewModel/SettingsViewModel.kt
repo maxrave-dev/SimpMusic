@@ -304,12 +304,22 @@ class SettingsViewModel(
         viewModelScope.launch {
             viewModelScope.launch {
                 if (VIDEO_QUALITY.items.contains(quality)) {
-                    dataStoreManager.setVideoQuality(quality)
+                    dataStoreManager.setVideoDownloadQuality(quality)
                 }
                 getVideoQuality()
             }
             getVideoDownloadQuality()
         }
+
+        // OR
+        /*
+        viewModelScope.launch {
+            if (VIDEO_QUALITY.items.contains(quality)) {
+                dataStoreManager.setVideoDownloadQuality(quality)
+            }
+            getVideoDownloadQuality()
+        }
+         */
     }
 
     private fun getKeepYouTubePlaylistOffline() {
