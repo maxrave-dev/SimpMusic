@@ -302,11 +302,8 @@ class SettingsViewModel(
 
     fun setVideoDownloadQuality(quality: String) {
         viewModelScope.launch {
-            viewModelScope.launch {
-                if (VIDEO_QUALITY.items.contains(quality)) {
-                    dataStoreManager.setVideoQuality(quality)
-                }
-                getVideoQuality()
+            if (VIDEO_QUALITY.items.contains(quality)) {
+                dataStoreManager.setVideoDownloadQuality(quality)
             }
             getVideoDownloadQuality()
         }
