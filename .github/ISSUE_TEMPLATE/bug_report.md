@@ -1,30 +1,48 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report an issue in SimpMusic App
 title: ''
 labels: 'bug:unconfirmed'
 assignees: ''
+---
+
+> ⚠️ **Important:**  
+> Issues that are incomplete or not properly filled out **will be closed without further explanation.**
+
+### 🔍 Duplicate Check
+**Confirm you searched both open and closed issues:**
+- [ ] I confirm I searched for existing reports and found no duplicates.
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### 🐞 Describe the Bug
+<!-- Briefly describe the bug you encountered. -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+---
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+### 🔁 Steps to Reproduce
+<!-- List precise steps that reliably reproduce the issue. -->
+1. <!-- Step 1 -->
+2. <!-- Step 2 -->
+3. <!-- Step 3 -->
+4. <!-- Step 4 -->
 
-**App Version**
-The version number of SimpMusic which is installed.
+---
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+### ✔️ Expected Behavior
+<!-- Describe what you expected to happen instead. -->
 
-**Log (Error Details)**
-Paste the log from the crashing screen, if it is not a crash bug, skip it.
+---
+
+### 📱 App Version
+<!-- Specify the SimpMusic version you are using. -->
+
+---
+
+### 🖼️ Screenshots (optional)
+<!-- Add screenshots if they help illustrate the problem. -->
+
+---
+
+### 📄 Log / Error Details
+<!-- Paste the crash log if applicable. If there's no crash, leave this empty. -->
