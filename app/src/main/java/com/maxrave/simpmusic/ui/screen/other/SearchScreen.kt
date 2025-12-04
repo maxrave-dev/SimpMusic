@@ -698,7 +698,7 @@ fun SearchScreen(
                                                             onSongMoreClick = { result -> onMoreClick(result.toTrack().toSongEntity()) },
                                                             onVideoMoreClick = { result -> onMoreClick(result.toTrack().toSongEntity()) },
                                                             onAlbumSaveClick = { result ->
-                                                                searchViewModel.savePlaylistFromSearch(result)
+                                                                searchViewModel.saveAlbumFromSearch(result)
                                                                 Toast.makeText(context, context.getString(R.string.saved), Toast.LENGTH_SHORT).show()
                                                             },
                                                             onPlaylistSaveClick = { result ->
@@ -813,7 +813,7 @@ fun SearchScreen(
                                                                                         navController.navigate(AlbumDestination(result.browseId))
                                                                                     },
                                                                                     onSaveClick = {
-                                                                                        searchViewModel.savePlaylistFromSearch(result)
+                                                                                        searchViewModel.saveAlbumFromSearch(result)
                                                                                         Toast.makeText(context, context.getString(R.string.saved), Toast.LENGTH_SHORT).show()
                                                                                     },
                                                                                     modifier = Modifier,

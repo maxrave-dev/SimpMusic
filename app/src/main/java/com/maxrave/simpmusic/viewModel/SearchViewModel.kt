@@ -528,4 +528,58 @@ class SearchViewModel(
             }
         }
     }
+
+    fun saveAlbumFromSearch(album: AlbumsResult) {
+        viewModelScope.launch {
+            var inserted = false
+            try {
+                playlistRepository.getFullPlaylistData(album.browseId).collectLatest { res ->
+                    when (res) {
+                        is Resource.Success -> {
+                            res.data?.let { pb ->
+                                // Save playlist entity
+                                playlistRepository.insertAndReplacePlaylist(pb.toPlaylistEntity())
+                                // Pre-populate songs referenced by the playlist so UI can render immediately
+                                pb.tracks.forEach { t ->
+                                    try {
+                                        songRepository.insertSong(
+                                            t.toSongEntity().copy(inLibrary = Config.REMOVED_SONG_DATE_TIME),
+                                        ).collect { }
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                                inserted = true
+                            }
+                        }
+                        is Resource.Error -> {}
+                    }
+                }
+            } catch (_: Exception) {
+            }
+            if (!inserted) {
+                val entity =
+                    PlaylistEntity(
+                        id = album.browseId,
+                        author = album.artists.firstOrNull()?.name ?: "",
+                        description = "",
+                        duration = "",
+                        durationSeconds = 0,
+                        privacy = "PRIVATE",
+                        thumbnails = album.thumbnails.lastOrNull()?.url ?: "",
+                        title = album.title,
+                        trackCount = 0,
+                        tracks = null,
+                        year = album.year,
+                    )
+                try {
+                    playlistRepository.insertAndReplacePlaylist(entity)
+                } catch (_: Exception) {
+                }
+            }
+            try {
+                playlistRepository.updatePlaylistInLibrary(LocalDateTime.now(), album.browseId)
+            } catch (_: Exception) {
+            }
+        }
+    }
 }

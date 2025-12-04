@@ -225,6 +225,9 @@
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
     <string name="no_YouTube_playlists">No YouTube Playlists</string>
     <string name="track">track(s)</string>
+    <string name="tracks">tracks</string>
+    <string name="view_all">View all</string>
+    <string name="youtube_music">YouTube Music</string>
     <string name="save_to_local_playlist">Save to local playlist</string>
     <string name="added_local_playlist">Added Local Playlist</string>
     <string name="sync">Sync to YouTube Music</string>

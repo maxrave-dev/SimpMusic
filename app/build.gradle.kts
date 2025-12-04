@@ -93,6 +93,11 @@ android {
                 )
             } catch (e: Exception) {
                 println("Failed to load SENTRY_DSN from local.properties: ${e.message}")
+                buildConfigField(
+                    "String",
+                    "SENTRY_DSN",
+                    "\"\"",
+                )
             }
         }
     }

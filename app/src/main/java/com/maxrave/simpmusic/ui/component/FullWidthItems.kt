@@ -5,6 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.Icon
@@ -45,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -755,7 +758,7 @@ fun SongSearchResultItem(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = songsResult.title,
+                        text = songsResult.title ?: "",
                         style = typo.labelMedium,
                         maxLines = 1,
                         color = Color.White,
@@ -827,7 +830,6 @@ fun SongSearchResultItem(
                     RippleIconButton(
                         resId = R.drawable.baseline_playlist_add_24,
                         fillMaxSize = false,
-                        size = 40.dp,
                     ) { onSaveClick.invoke() }
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -835,7 +837,6 @@ fun SongSearchResultItem(
                     RippleIconButton(
                         resId = R.drawable.baseline_more_vert_24,
                         fillMaxSize = false,
-                        size = 40.dp,
                     ) { onMoreClickListener.invoke() }
                 }
             }
@@ -1107,7 +1108,6 @@ fun VideoSearchResultItem(
                     RippleIconButton(
                         resId = R.drawable.baseline_playlist_add_24,
                         fillMaxSize = false,
-                        size = 40.dp,
                     ) { onSaveClick.invoke() }
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -1115,7 +1115,6 @@ fun VideoSearchResultItem(
                     RippleIconButton(
                         resId = R.drawable.baseline_more_vert_24,
                         fillMaxSize = false,
-                        size = 40.dp,
                     ) { onMoreClickListener.invoke() }
                 }
             }
@@ -1212,7 +1211,7 @@ fun AlbumSearchResultItem(
                         ).focusable(),
                     )
                     
-                    if (albumsResult.year != null && albumsResult.trackCount != null) {
+                    if (albumsResult.year != null) {
                         Text(
                             text = " • ",
                             style = typo.bodySmall,
@@ -1220,9 +1219,10 @@ fun AlbumSearchResultItem(
                         )
                     }
                     
-                    albumsResult.trackCount?.let { trackCount ->
+                    // Albums don't have trackCount in this data model, showing year instead
+                    albumsResult.year?.let { year ->
                         Text(
-                            text = "$trackCount ${if (trackCount == 1) stringResource(R.string.track) else stringResource(R.string.tracks)}",
+                            text = year,
                             style = typo.bodySmall,
                             color = Color(0x80FFFFFF),
                             modifier = Modifier.basicMarquee(
@@ -1255,7 +1255,6 @@ fun AlbumSearchResultItem(
                     RippleIconButton(
                         resId = R.drawable.baseline_playlist_add_24,
                         fillMaxSize = false,
-                        size = 40.dp,
                     ) { onSaveClick.invoke() }
                 }
             }
@@ -1352,36 +1351,12 @@ fun ArtistSearchResultItem(
                         ).focusable(),
                     )
                     
-                    artistsResult.subscribers?.let { subscribers ->
-                        Text(
-                            text = " • $subscribers",
-                            style = typo.bodyMedium,
-                            maxLines = 1,
-                            color = Color(0xC4FFFFFF),
-                            modifier = Modifier.basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
-                        )
-                    }
+                    // ArtistsResult doesn't have subscribers field in this data model
+                    // Could add channel description or other metadata here if available
                 }
                 
-                artistsResult.description?.let { description ->
-                    Text(
-                        text = description,
-                        style = typo.bodySmall,
-                        maxLines = 1,
-                        color = Color(0x80FFFFFF),
-                        modifier = Modifier
-                            .padding(top = 2.dp)
-                            .fillMaxWidth()
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            )
-                            .focusable(),
-                    )
-                }
+                // ArtistsResult doesn't have description field in this data model
+                // Could add category or other metadata here if available
             }
         }
     }
@@ -1478,8 +1453,9 @@ fun PlaylistSearchResultItem(
                     )
                     
                     playlistsResult.itemCount?.let { count ->
+                        val countInt = count.toIntOrNull() ?: 0
                         Text(
-                            text = " • $count ${if (count == 1) stringResource(R.string.track) else stringResource(R.string.tracks)}",
+                            text = " • $count ${if (countInt == 1) stringResource(R.string.track) else stringResource(R.string.tracks)}",
                             style = typo.bodyMedium,
                             maxLines = 1,
                             color = Color(0xC4FFFFFF),
@@ -1513,7 +1489,6 @@ fun PlaylistSearchResultItem(
                     RippleIconButton(
                         resId = R.drawable.baseline_playlist_add_24,
                         fillMaxSize = false,
-                        size = 40.dp,
                     ) { onSaveClick.invoke() }
                 }
             }
