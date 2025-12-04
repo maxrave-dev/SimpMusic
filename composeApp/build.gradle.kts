@@ -455,5 +455,13 @@ afterEvaluate {
             jvmArgs("--add-opens", "java.desktop/sun.lwawt=ALL-UNNAMED")
             jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
         }
+        
+        // Set GStreamer path for Windows
+        if (System.getProperty("os.name").contains("Windows")) {
+            val gstreamerRoot = "C:\\Program Files\\gstreamer\\1.0\\msvc_x86_64"
+            val gstreamerBin = "$gstreamerRoot\\bin"
+            environment("GSTREAMER_1_0_ROOT_MSVC_X86_64", gstreamerRoot)
+            systemProperty("gstreamer.path", gstreamerBin)
+        }
     }
 }
