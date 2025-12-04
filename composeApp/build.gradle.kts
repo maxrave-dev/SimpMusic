@@ -312,7 +312,7 @@ compose.desktop {
         mainClass = "com.maxrave.simpmusic.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
             modules("jdk.unsupported")
             packageName = "SimpMusic"
             macOS {
