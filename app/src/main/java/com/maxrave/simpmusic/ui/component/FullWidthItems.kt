@@ -858,6 +858,16 @@ fun VideoSearchResultItem(
         LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.audio_playing_animation),
     )
     
+    // Determine video type for appropriate styling
+    val isLiveVideo = videosResult.videoType?.contains("live", ignoreCase = true) == true ||
+                     videosResult.resultType?.contains("live", ignoreCase = true) == true ||
+                     videosResult.title.contains("live", ignoreCase = true) ||
+                     videosResult.category?.contains("live", ignoreCase = true) == true
+    
+    val isMusicVideo = videosResult.category?.contains("music", ignoreCase = true) == true ||
+                      videosResult.videoType?.contains("music", ignoreCase = true) == true ||
+                      videosResult.resultType?.contains("music", ignoreCase = true) == true
+    
     Box(
         modifier = modifier
             .clickable { onClickListener?.invoke() }
@@ -869,7 +879,7 @@ fun VideoSearchResultItem(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Video thumbnail with play overlay
+            // Video thumbnail with type-specific overlay
             Box(
                 modifier = Modifier.size(56.dp),
                 contentAlignment = Alignment.Center,
@@ -894,20 +904,60 @@ fun VideoSearchResultItem(
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(6.dp)),
                             )
-                            // Play icon overlay for visual distinction
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .align(Alignment.Center)
-                                    .background(Color(0x80000000), CircleShape),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.baseline_play_arrow_24),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(14.dp),
-                                )
+                            
+                            // Type-specific overlay
+                            when {
+                                isLiveVideo -> {
+                                    // Live video indicator - red background with LIVE text
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .align(Alignment.TopEnd)
+                                            .background(Color(0xFFCC0000), CircleShape),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(
+                                            text = "LIVE",
+                                            style = typo.labelSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                    }
+                                }
+                                isMusicVideo -> {
+                                    // Music video indicator - music note icon
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .align(Alignment.Center)
+                                            .background(Color(0x80000000), RoundedCornerShape(4.dp)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.baseline_music_note_24),
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(14.dp),
+                                        )
+                                    }
+                                }
+                                else -> {
+                                    // Regular video indicator - play button
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .align(Alignment.Center)
+                                            .background(Color(0x80000000), CircleShape),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.baseline_play_arrow_24),
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(14.dp),
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -924,6 +974,17 @@ fun VideoSearchResultItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
+                    // Live indicator badge in title row
+                    if (isLiveVideo) {
+                        Text(
+                            text = "🔴 LIVE",
+                            style = typo.bodySmall,
+                            color = Color(0xFFCC0000),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                    }
+                    
                     Text(
                         text = videosResult.title,
                         style = typo.labelMedium,
@@ -968,11 +1029,44 @@ fun VideoSearchResultItem(
                     )
                 }
                 
-                // Views and published date for videos
+                // Video type and metadata
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 2.dp),
                 ) {
+                    // Video type indicator
+                    when {
+                        isLiveVideo -> {
+                            Text(
+                                text = "Live",
+                                style = typo.bodySmall,
+                                color = Color(0xFFCC0000),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
+                        }
+                        isMusicVideo -> {
+                            Text(
+                                text = "Music",
+                                style = typo.bodySmall,
+                                color = Color(0xFF4CAF50),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
+                        }
+                        else -> {
+                            videosResult.category?.let { category ->
+                                Text(
+                                    text = category,
+                                    style = typo.bodySmall,
+                                    color = Color(0x80FFFFFF),
+                                    modifier = Modifier.padding(end = 8.dp),
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Views
                     videosResult.views?.let { views ->
                         Text(
                             text = views,
@@ -985,7 +1079,8 @@ fun VideoSearchResultItem(
                         )
                     }
                     
-                    videosResult.published?.let { published ->
+                    // Published date
+                    videosResult.year?.let { year ->
                         if (videosResult.views != null) {
                             Text(
                                 text = " • ",
@@ -994,7 +1089,7 @@ fun VideoSearchResultItem(
                             )
                         }
                         Text(
-                            text = published,
+                            text = year.toString(),
                             style = typo.bodySmall,
                             color = Color(0x80FFFFFF),
                             modifier = Modifier.basicMarquee(

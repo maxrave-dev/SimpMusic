@@ -407,6 +407,17 @@ internal class SimpleMediaSessionCallback(
         PODCAST -> drawableUri(R.drawable.round_library_music_24)
         else -> null
     }
+    
+    private fun getVideoTypeBundle(videoType: String): Bundle = Bundle().apply {
+        when {
+            videoType.contains("live", ignoreCase = true) -> putString("video_type", "live")
+            videoType.contains("music", ignoreCase = true) -> putString("video_type", "music")
+            videoType.contains("tutorial", ignoreCase = true) -> putString("video_type", "tutorial")
+            videoType.contains("gaming", ignoreCase = true) -> putString("video_type", "gaming")
+            videoType.contains("entertainment", ignoreCase = true) -> putString("video_type", "entertainment")
+            else -> putString("video_type", "regular")
+        }
+    }
 
     @UnstableApi
     override fun onGetChildren(
@@ -1199,9 +1210,11 @@ internal class SimpleMediaSessionCallback(
                             ?.lastOrNull()
                             ?.url
                             ?.toUri(),
-                    ).setIsPlayable(true)
+                    )
+                    .setIsPlayable(true)
                     .setIsBrowsable(false)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .setExtras(getVideoTypeBundle(this.videoType ?: ""))
                     .build(),
             ).build()
 
