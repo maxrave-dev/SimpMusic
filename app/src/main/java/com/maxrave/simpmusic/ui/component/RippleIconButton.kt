@@ -18,16 +18,18 @@ fun RippleIconButton(
     modifier: Modifier = Modifier,
     fillMaxSize: Boolean = false,
     tint: Color = Color.White,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     IconButton(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier,
     ) {
         Icon(
             painterResource(id = resId),
             null,
-            tint = tint,
+            tint = if (enabled) tint else tint.copy(alpha = 0.5f),
             modifier = if (fillMaxSize) Modifier.fillMaxSize().padding(4.dp) else Modifier,
         )
     }

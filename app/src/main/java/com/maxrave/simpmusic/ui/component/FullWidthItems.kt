@@ -67,13 +67,19 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.model.searchResult.songs.SongsResult
+import com.maxrave.domain.data.model.searchResult.videos.VideosResult
 import com.maxrave.domain.data.type.ArtistType
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.common.Config
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
@@ -285,7 +291,16 @@ fun SongFullWidthItems(
                     }
                 }
                 if (onSaveClick != null) {
-                    RippleIconButton(resId = R.drawable.baseline_playlist_add_24, fillMaxSize = false) {
+                    val videoId = track?.videoId ?: songEntity?.videoId ?: ""
+                    val isSaved by songRepository
+                        .getSongAsFlow(videoId)
+                        .map { entity -> entity?.inLibrary?.let { dt -> dt != Config.REMOVED_SONG_DATE_TIME } ?: false }
+                        .collectAsState(initial = false)
+                    RippleIconButton(
+                        resId = R.drawable.baseline_playlist_add_24,
+                        fillMaxSize = false,
+                        enabled = !isSaved,
+                    ) {
                         val videoId = track?.videoId ?: songEntity?.videoId
                         videoId?.let { onSaveClick.invoke(it) }
                     }
@@ -544,7 +559,24 @@ fun PlaylistFullWidthItems(
                 }
             }
             if (onSaveClick != null) {
-                RippleIconButton(resId = R.drawable.baseline_playlist_add_24, fillMaxSize = false) {
+                val playlistRepository: PlaylistRepository = koinInject()
+                val playlistId =
+                    when (data) {
+                        is PlaylistsResult -> data.browseId
+                        is PlaylistEntity -> data.id
+                        is LocalPlaylistEntity -> data.id.toString()
+                        else -> null
+                    }
+                val isSaved: Boolean =
+                    playlistId?.let { id ->
+                        val saved by playlistRepository.getPlaylist(id).map { it != null }.collectAsState(initial = false)
+                        saved
+                    } ?: false
+                RippleIconButton(
+                    resId = R.drawable.baseline_playlist_add_24,
+                    fillMaxSize = false,
+                    enabled = !isSaved,
+                ) {
                     onSaveClick.invoke()
                 }
             }
@@ -632,6 +664,763 @@ fun ArtistFullWidthItems(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable(),
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Specialized search result components for different content types
+ */
+
+// Songs Search Result Item - optimized for music tracks
+@Composable
+fun SongSearchResultItem(
+    songsResult: SongsResult,
+    isPlaying: Boolean,
+    onClickListener: (() -> Unit)? = null,
+    onMoreClickListener: (() -> Unit)? = null,
+    onAddToQueue: (() -> Unit)? = null,
+    onSaveClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.audio_playing_animation),
+    )
+    
+    Box(
+        modifier = modifier
+            .clickable { onClickListener?.invoke() }
+            .animateContentSize(),
+    ) {
+        Row(
+            Modifier
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Song thumbnail with music note overlay
+            Box(
+                modifier = Modifier.size(56.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Crossfade(isPlaying) {
+                    if (it) {
+                        LottieAnimation(composition, iterations = LottieConstants.IterateForever)
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(songsResult.thumbnails?.lastOrNull()?.url)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .diskCacheKey(songsResult.thumbnails?.lastOrNull()?.url)
+                                    .crossfade(true)
+                                    .build(),
+                                placeholder = painterResource(R.drawable.holder),
+                                error = painterResource(R.drawable.holder),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(8.dp)),
+                            )
+                            // Music note overlay for visual distinction
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.Center)
+                                    .background(Color(0x80000000), RoundedCornerShape(4.dp)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_music_note_24),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp, end = 12.dp)
+                    .align(Alignment.CenterVertically),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = songsResult.title,
+                        style = typo.labelMedium,
+                        maxLines = 1,
+                        color = Color.White,
+                        modifier = Modifier
+                            .weight(1f)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            )
+                            .focusable(),
+                    )
+                    
+                    // Duration badge for songs
+                    songsResult.duration?.let { duration ->
+                        Text(
+                            text = duration,
+                            style = typo.bodySmall,
+                            color = Color(0x80FFFFFF),
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
+                    // Explicit badge
+                    if (songsResult.isExplicit == true) {
+                        ExplicitBadge(modifier = Modifier.size(16.dp).padding(end = 4.dp))
+                    }
+                    
+                    Text(
+                        text = songsResult.artists?.map { it.name }?.connectArtists() ?: "",
+                        style = typo.bodyMedium,
+                        maxLines = 1,
+                        color = Color(0xC4FFFFFF),
+                        modifier = Modifier
+                            .weight(1f)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            )
+                            .focusable(),
+                    )
+                }
+                
+                // Album info for songs
+                songsResult.album?.name?.let { albumName ->
+                    Text(
+                        text = albumName,
+                        style = typo.bodySmall,
+                        maxLines = 1,
+                        color = Color(0x80FFFFFF),
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            )
+                            .focusable(),
+                    )
+                }
+            }
+            
+            // Action buttons
+            Column(horizontalAlignment = Alignment.End) {
+                if (onSaveClick != null) {
+                    RippleIconButton(
+                        resId = R.drawable.baseline_playlist_add_24,
+                        fillMaxSize = false,
+                        size = 40.dp,
+                    ) { onSaveClick.invoke() }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                if (onMoreClickListener != null) {
+                    RippleIconButton(
+                        resId = R.drawable.baseline_more_vert_24,
+                        fillMaxSize = false,
+                        size = 40.dp,
+                    ) { onMoreClickListener.invoke() }
+                }
+            }
+        }
+    }
+}
+
+// Videos Search Result Item - optimized for video content
+@Composable
+fun VideoSearchResultItem(
+    videosResult: VideosResult,
+    isPlaying: Boolean,
+    onClickListener: (() -> Unit)? = null,
+    onMoreClickListener: (() -> Unit)? = null,
+    onAddToQueue: (() -> Unit)? = null,
+    onSaveClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(com.maxrave.simpmusic.R.raw.audio_playing_animation),
+    )
+    
+    Box(
+        modifier = modifier
+            .clickable { onClickListener?.invoke() }
+            .animateContentSize(),
+    ) {
+        Row(
+            Modifier
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Video thumbnail with play overlay
+            Box(
+                modifier = Modifier.size(56.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Crossfade(isPlaying) {
+                    if (it) {
+                        LottieAnimation(composition, iterations = LottieConstants.IterateForever)
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(videosResult.thumbnails?.lastOrNull()?.url)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .diskCacheKey(videosResult.thumbnails?.lastOrNull()?.url)
+                                    .crossfade(true)
+                                    .build(),
+                                placeholder = painterResource(R.drawable.holder_video),
+                                error = painterResource(R.drawable.holder_video),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(6.dp)),
+                            )
+                            // Play icon overlay for visual distinction
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.Center)
+                                    .background(Color(0x80000000), CircleShape),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_play_arrow_24),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp, end = 12.dp)
+                    .align(Alignment.CenterVertically),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = videosResult.title,
+                        style = typo.labelMedium,
+                        maxLines = 1,
+                        color = Color.White,
+                        modifier = Modifier
+                            .weight(1f)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            )
+                            .focusable(),
+                    )
+                    
+                    // Duration badge for videos
+                    videosResult.duration?.let { duration ->
+                        Text(
+                            text = duration,
+                            style = typo.bodySmall,
+                            color = Color(0x80FFFFFF),
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
+                    Text(
+                        text = videosResult.artists?.map { it.name }?.connectArtists() ?: "",
+                        style = typo.bodyMedium,
+                        maxLines = 1,
+                        color = Color(0xC4FFFFFF),
+                        modifier = Modifier
+                            .weight(1f)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            )
+                            .focusable(),
+                    )
+                }
+                
+                // Views and published date for videos
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 2.dp),
+                ) {
+                    videosResult.views?.let { views ->
+                        Text(
+                            text = views,
+                            style = typo.bodySmall,
+                            color = Color(0x80FFFFFF),
+                            modifier = Modifier.basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable(),
+                        )
+                    }
+                    
+                    videosResult.published?.let { published ->
+                        if (videosResult.views != null) {
+                            Text(
+                                text = " • ",
+                                style = typo.bodySmall,
+                                color = Color(0x60FFFFFF),
+                            )
+                        }
+                        Text(
+                            text = published,
+                            style = typo.bodySmall,
+                            color = Color(0x80FFFFFF),
+                            modifier = Modifier.basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable(),
+                        )
+                    }
+                }
+            }
+            
+            // Action buttons
+            Column(horizontalAlignment = Alignment.End) {
+                if (onSaveClick != null) {
+                    RippleIconButton(
+                        resId = R.drawable.baseline_playlist_add_24,
+                        fillMaxSize = false,
+                        size = 40.dp,
+                    ) { onSaveClick.invoke() }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                if (onMoreClickListener != null) {
+                    RippleIconButton(
+                        resId = R.drawable.baseline_more_vert_24,
+                        fillMaxSize = false,
+                        size = 40.dp,
+                    ) { onMoreClickListener.invoke() }
+                }
+            }
+        }
+    }
+}
+
+// Albums Search Result Item - optimized for albums
+@Composable
+fun AlbumSearchResultItem(
+    albumsResult: AlbumsResult,
+    onClickListener: (() -> Unit)? = null,
+    onSaveClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .clickable { onClickListener?.invoke() }
+            .animateContentSize(),
+    ) {
+        Row(
+            Modifier
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Album thumbnail with album overlay
+            Box(
+                modifier = Modifier.size(56.dp),
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(albumsResult.thumbnails.lastOrNull()?.url)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(albumsResult.thumbnails.lastOrNull()?.url)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.holder),
+                    error = painterResource(R.drawable.holder),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(8.dp)),
+                )
+                // Album icon overlay for visual distinction
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.Center)
+                        .background(Color(0x80000000), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_album_24),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
+            
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp, end = 12.dp)
+                    .align(Alignment.CenterVertically),
+            ) {
+                Text(
+                    text = albumsResult.title,
+                    style = typo.labelMedium,
+                    maxLines = 1,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        )
+                        .focusable(),
+                )
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
+                    Text(
+                        text = albumsResult.year ?: "",
+                        style = typo.bodySmall,
+                        color = Color(0x80FFFFFF),
+                        modifier = Modifier.basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        ).focusable(),
+                    )
+                    
+                    if (albumsResult.year != null && albumsResult.trackCount != null) {
+                        Text(
+                            text = " • ",
+                            style = typo.bodySmall,
+                            color = Color(0x60FFFFFF),
+                        )
+                    }
+                    
+                    albumsResult.trackCount?.let { trackCount ->
+                        Text(
+                            text = "$trackCount ${if (trackCount == 1) stringResource(R.string.track) else stringResource(R.string.tracks)}",
+                            style = typo.bodySmall,
+                            color = Color(0x80FFFFFF),
+                            modifier = Modifier.basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable(),
+                        )
+                    }
+                }
+                
+                Text(
+                    text = albumsResult.artists.map { it.name }.connectArtists(),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    color = Color(0xC4FFFFFF),
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .fillMaxWidth()
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        )
+                        .focusable(),
+                )
+            }
+            
+            // Action buttons
+            Column(horizontalAlignment = Alignment.End) {
+                if (onSaveClick != null) {
+                    RippleIconButton(
+                        resId = R.drawable.baseline_playlist_add_24,
+                        fillMaxSize = false,
+                        size = 40.dp,
+                    ) { onSaveClick.invoke() }
+                }
+            }
+        }
+    }
+}
+
+// Artists Search Result Item - optimized for artists
+@Composable
+fun ArtistSearchResultItem(
+    artistsResult: ArtistsResult,
+    onClickListener: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .clickable { onClickListener?.invoke() }
+            .animateContentSize(),
+    ) {
+        Row(
+            Modifier
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Artist avatar with artist overlay
+            Box(
+                modifier = Modifier.size(56.dp),
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(artistsResult.thumbnails.lastOrNull()?.url)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(artistsResult.thumbnails.lastOrNull()?.url)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.holder),
+                    error = painterResource(R.drawable.holder),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                )
+                // Artist icon overlay for visual distinction
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.Center)
+                        .background(Color(0x80000000), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_people_alt_24),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
+            
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp, end = 12.dp)
+                    .align(Alignment.CenterVertically),
+            ) {
+                Text(
+                    text = artistsResult.artist,
+                    style = typo.labelMedium,
+                    maxLines = 1,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        )
+                        .focusable(),
+                )
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.artists),
+                        style = typo.bodyMedium,
+                        maxLines = 1,
+                        color = Color(0xC4FFFFFF),
+                        modifier = Modifier.basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        ).focusable(),
+                    )
+                    
+                    artistsResult.subscribers?.let { subscribers ->
+                        Text(
+                            text = " • $subscribers",
+                            style = typo.bodyMedium,
+                            maxLines = 1,
+                            color = Color(0xC4FFFFFF),
+                            modifier = Modifier.basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable(),
+                        )
+                    }
+                }
+                
+                artistsResult.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = typo.bodySmall,
+                        maxLines = 1,
+                        color = Color(0x80FFFFFF),
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .fillMaxWidth()
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            )
+                            .focusable(),
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Playlists Search Result Item - optimized for playlists
+@Composable
+fun PlaylistSearchResultItem(
+    playlistsResult: PlaylistsResult,
+    onClickListener: (() -> Unit)? = null,
+    onSaveClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .clickable { onClickListener?.invoke() }
+            .animateContentSize(),
+    ) {
+        Row(
+            Modifier
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Playlist thumbnail with playlist overlay
+            Box(
+                modifier = Modifier.size(56.dp),
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(playlistsResult.thumbnails.lastOrNull()?.url)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(playlistsResult.thumbnails.lastOrNull()?.url)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.holder),
+                    error = painterResource(R.drawable.holder),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(8.dp)),
+                )
+                // Playlist icon overlay for visual distinction
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.Center)
+                        .background(Color(0x80000000), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_queue_music_24),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
+            
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp, end = 12.dp)
+                    .align(Alignment.CenterVertically),
+            ) {
+                Text(
+                    text = playlistsResult.title,
+                    style = typo.labelMedium,
+                    maxLines = 1,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        )
+                        .focusable(),
+                )
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
+                    Text(
+                        text = if (playlistsResult.resultType == "Podcast") stringResource(R.string.podcasts) else stringResource(R.string.playlist),
+                        style = typo.bodyMedium,
+                        maxLines = 1,
+                        color = Color(0xC4FFFFFF),
+                        modifier = Modifier.basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        ).focusable(),
+                    )
+                    
+                    playlistsResult.itemCount?.let { count ->
+                        Text(
+                            text = " • $count ${if (count == 1) stringResource(R.string.track) else stringResource(R.string.tracks)}",
+                            style = typo.bodyMedium,
+                            maxLines = 1,
+                            color = Color(0xC4FFFFFF),
+                            modifier = Modifier.basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable(),
+                        )
+                    }
+                }
+                
+                Text(
+                    text = playlistsResult.author.ifEmpty { stringResource(R.string.youtube_music) },
+                    style = typo.bodySmall,
+                    maxLines = 1,
+                    color = Color(0x80FFFFFF),
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .fillMaxWidth()
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        )
+                        .focusable(),
+                )
+            }
+            
+            // Action buttons
+            Column(horizontalAlignment = Alignment.End) {
+                if (onSaveClick != null) {
+                    RippleIconButton(
+                        resId = R.drawable.baseline_playlist_add_24,
+                        fillMaxSize = false,
+                        size = 40.dp,
+                    ) { onSaveClick.invoke() }
+                }
             }
         }
     }

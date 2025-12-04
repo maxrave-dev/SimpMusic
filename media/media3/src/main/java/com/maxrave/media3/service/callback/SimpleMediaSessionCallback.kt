@@ -333,40 +333,80 @@ internal class SimpleMediaSessionCallback(
         params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> =
         scope.future(Dispatchers.IO) {
-            val songs = searchTempList.map { it.toMediaItemWithoutPath() }
-            val playlists = searchPlaylistResults.map { it.toMediaItemSearchPlaylist() }
-            val albums = searchAlbumResults.map { it.toMediaItemSearchAlbum() }
-            val artists = searchArtistResults.map { it.toMediaItemSearchArtist() }
-            val podcasts = searchPodcastResults.map { it.toMediaItemSearchPodcast() }
+            // Android Auto search results organized by categories
+            val categorizedResults = mutableMapOf<String, MutableList<MediaItem>>()
+            
+            // Songs bucket
+            if (searchTempList.isNotEmpty()) {
+                categorizedResults[SONG] = searchTempList.map { it.toMediaItemWithoutPath() }.toMutableList()
+            }
+            
+            // Playlists bucket
+            if (searchPlaylistResults.isNotEmpty()) {
+                categorizedResults[ONLINE_PLAYLIST] = searchPlaylistResults.map { it.toMediaItemSearchPlaylist() }.toMutableList()
+            }
+            
+            // Albums bucket
+            if (searchAlbumResults.isNotEmpty()) {
+                categorizedResults[ALBUM] = searchAlbumResults.map { it.toMediaItemSearchAlbum() }.toMutableList()
+            }
+            
+            // Artists bucket
+            if (searchArtistResults.isNotEmpty()) {
+                categorizedResults[ARTIST] = searchArtistResults.map { it.toMediaItemSearchArtist() }.toMutableList()
+            }
+            
+            // Podcasts bucket
+            if (searchPodcastResults.isNotEmpty()) {
+                categorizedResults[PODCAST] = searchPodcastResults.map { it.toMediaItemSearchPodcast() }.toMutableList()
+            }
 
-            val buckets = listOf(songs, playlists, albums, artists, podcasts)
-            val indices = IntArray(buckets.size) { 0 }
-            val merged = mutableListOf<MediaItem>()
-
-            val safePage = if (page < 0) 0 else page
-            val hasPaging = pageSize > 0
-            val targetCount = if (hasPaging) (safePage + 1) * pageSize else Int.MAX_VALUE
-
-            var progressed: Boolean
-            do {
-                progressed = false
-                for (i in buckets.indices) {
-                    val bucket = buckets[i]
-                    val idx = indices[i]
-                    if (idx < bucket.size) {
-                        merged.add(bucket[idx])
-                        indices[i] = idx + 1
-                        progressed = true
-                        if (merged.size >= targetCount) break
-                    }
+            // If there are categories, create category browsable items
+            if (categorizedResults.isNotEmpty()) {
+                val categoryItems = categorizedResults.map { (category, items) ->
+                    browsableMediaItem(
+                        id = "search/$category",
+                        title = getCategoryTitle(category),
+                        subtitle = "${items.size} results",
+                        iconUri = getCategoryIcon(category),
+                        mediaType = MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+                    )
+                }.toMutableList()
+                
+                // If this is page 0, return category browsable items
+                if (page == 0) {
+                    LibraryResult.ofItemList(categoryItems, params)
+                } else {
+                    // For subsequent pages, return actual content from first category
+                    val firstCategory = categorizedResults.values.first()
+                    val from = (page * pageSize).coerceAtMost(firstCategory.size)
+                    val to = ((page + 1) * pageSize).coerceAtMost(firstCategory.size)
+                    val pageItems = if (from < to) firstCategory.subList(from, to) else emptyList()
+                    LibraryResult.ofItemList(pageItems, params)
                 }
-            } while (progressed && merged.size < targetCount)
-
-            val from = if (hasPaging) (safePage * pageSize).coerceAtMost(merged.size) else 0
-            val to = if (hasPaging) (from + pageSize).coerceAtMost(merged.size) else merged.size
-            val pageItems = if (from < to) merged.subList(from, to) else emptyList()
-            LibraryResult.ofItemList(pageItems, params)
+            } else {
+                // No results found
+                LibraryResult.ofItemList(emptyList(), params)
+            }
         }
+    
+    private fun getCategoryTitle(category: String): String = when (category) {
+        SONG -> "Songs"
+        ONLINE_PLAYLIST -> "Playlists" 
+        ALBUM -> "Albums"
+        ARTIST -> "Artists"
+        PODCAST -> "Podcasts"
+        else -> "Results"
+    }
+    
+    private fun getCategoryIcon(category: String): Uri? = when (category) {
+        SONG -> drawableUri(R.drawable.baseline_music_note_24)
+        ONLINE_PLAYLIST -> drawableUri(R.drawable.baseline_playlist_add_24)
+        ALBUM -> drawableUri(R.drawable.baseline_album_24)
+        ARTIST -> drawableUri(R.drawable.baseline_people_alt_24)
+        PODCAST -> drawableUri(R.drawable.round_library_music_24)
+        else -> null
+    }
 
     @UnstableApi
     override fun onGetChildren(
@@ -781,6 +821,19 @@ internal class SimpleMediaSessionCallback(
                                 }
                             }
 
+                            // Handle search category browsing
+                            parentId.startsWith("search/") -> {
+                                val category = parentId.split("/").getOrNull(1)
+                                when (category) {
+                                    SONG -> searchTempList.map { it.toMediaItemWithoutPath() }
+                                    ONLINE_PLAYLIST -> searchPlaylistResults.map { it.toMediaItemSearchPlaylist() }
+                                    ALBUM -> searchAlbumResults.map { it.toMediaItemSearchAlbum() }
+                                    ARTIST -> searchArtistResults.map { it.toMediaItemSearchArtist() }
+                                    PODCAST -> searchPodcastResults.map { it.toMediaItemSearchPodcast() }
+                                    else -> emptyList()
+                                }
+                            }
+                            
                             else -> emptyList()
                         }
                     }
