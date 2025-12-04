@@ -19,7 +19,7 @@ permissions:
 jobs:
   build-desktop-rpm:
     name: Build desktop RPM package
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -27,6 +27,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+          
+      - name: Install RPM build tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
 
       - name: set up JDK 17
         uses: actions/setup-java@v4
