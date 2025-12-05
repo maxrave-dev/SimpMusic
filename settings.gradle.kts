@@ -58,7 +58,7 @@ val mediaDir =
         File(rootDir, "./media")
     }
 
-rootProject.name = "SimpMusic"
+rootProject.name = "Srivya Music"
 include(
     "app",
     ":common",
