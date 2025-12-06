@@ -303,27 +303,32 @@ fun SearchScreen(
                         )
                     },
                     trailingIcon = {
-                        IconButton(
-                            modifier =
-                                Modifier
-                                    .clip(CircleShape),
-                            onClick = {
-                                searchText = ""
-                                isSearchSubmitted = false
-                            },
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.baseline_close_24),
-                                contentDescription = "Clear search",
-                            )
-                        }
-                        IconButton(
-                            onClick = { startVoiceSearch() },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Mic,
-                                contentDescription = "Voice search",
-                            )
+                            IconButton(
+                                modifier =
+                                    Modifier
+                                        .clip(CircleShape),
+                                onClick = {
+                                    searchText = ""
+                                    isSearchSubmitted = false
+                                },
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_close_24),
+                                    contentDescription = "Clear search",
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            IconButton(
+                                onClick = { startVoiceSearch() },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Mic,
+                                    contentDescription = "Voice search",
+                                )
+                            }
                         }
                     },
                 )
