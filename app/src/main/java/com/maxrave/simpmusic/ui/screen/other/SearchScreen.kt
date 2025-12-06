@@ -136,6 +136,27 @@ fun SearchScreen(
     var searchText by rememberSaveable { mutableStateOf("") }
     var isSearchSubmitted by rememberSaveable { mutableStateOf(false) }
     var isExpanded by rememberSaveable { mutableStateOf(false) }
+    
+    // Restore search state from ViewModel if available
+    LaunchedEffect(searchScreenState) {
+        if (searchScreenState.hasActiveSearch && searchScreenState.lastSearchQuery.isNotEmpty()) {
+            searchText = searchScreenState.lastSearchQuery
+            isSearchSubmitted = true
+            
+            // Re-execute the search to restore results
+            val query = searchScreenState.lastSearchQuery
+            when (searchScreenState.searchType) {
+                SearchType.ALL -> searchViewModel.searchAll(query)
+                SearchType.SONGS -> searchViewModel.searchSongs(query)
+                SearchType.VIDEOS -> searchViewModel.searchVideos(query)
+                SearchType.ALBUMS -> searchViewModel.searchAlbums(query)
+                SearchType.ARTISTS -> searchViewModel.searchArtists(query)
+                SearchType.PLAYLISTS -> searchViewModel.searchPlaylists(query)
+                SearchType.FEATURED_PLAYLISTS -> searchViewModel.searchFeaturedPlaylist(query)
+                SearchType.PODCASTS -> searchViewModel.searchPodcast(query)
+            }
+        }
+    }
 
     val focusRequester = remember { FocusRequester() }
 
@@ -313,6 +334,7 @@ fun SearchScreen(
                                 onClick = {
                                     searchText = ""
                                     isSearchSubmitted = false
+                                    searchViewModel.clearSearchState()
                                 },
                             ) {
                                 Icon(

@@ -49,6 +49,8 @@ data class SearchScreenState(
     val searchPodcastsResult: List<PlaylistsResult> = emptyList(),
     val suggestQueries: List<String> = emptyList(),
     val suggestYTItems: List<SearchResultType> = emptyList(),
+    val lastSearchQuery: String = "",
+    val hasActiveSearch: Boolean = false,
 )
 
 // Loại tìm kiếm
@@ -143,6 +145,12 @@ class SearchViewModel(
 
     fun searchSongs(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             searchRepository.getSearchDataSong(query).collect { values ->
                 when (values) {
@@ -164,6 +172,12 @@ class SearchViewModel(
 
     fun searchAll(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             var song = ArrayList<SongsResult>()
             val video = ArrayList<VideosResult>()
@@ -314,6 +328,12 @@ class SearchViewModel(
 
     fun searchAlbums(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             searchRepository.getSearchDataAlbum(query).collect { values ->
                 when (values) {
@@ -338,6 +358,12 @@ class SearchViewModel(
 
     fun searchFeaturedPlaylist(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             searchRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
                 when (values) {
@@ -362,6 +388,12 @@ class SearchViewModel(
 
     fun searchPodcast(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             searchRepository.getSearchDataPodcast(query).collect { values ->
                 when (values) {
@@ -386,6 +418,12 @@ class SearchViewModel(
 
     fun searchArtists(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             searchRepository.getSearchDataArtist(query).collect { values ->
                 when (values) {
@@ -410,6 +448,12 @@ class SearchViewModel(
 
     fun searchPlaylists(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             searchRepository.getSearchDataPlaylist(query).collect { values ->
                 when (values) {
@@ -434,6 +478,12 @@ class SearchViewModel(
 
     fun searchVideos(query: String) {
         _searchScreenUIState.value = SearchScreenUIState.Loading
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = query,
+                hasActiveSearch = true
+            )
+        }
         viewModelScope.launch {
             searchRepository.getSearchDataVideo(query).collect { values ->
                 when (values) {
@@ -459,6 +509,15 @@ class SearchViewModel(
     fun setSearchType(searchType: SearchType) {
         _searchScreenState.update { state ->
             state.copy(searchType = searchType)
+        }
+    }
+    
+    fun clearSearchState() {
+        _searchScreenState.update { state ->
+            state.copy(
+                lastSearchQuery = "",
+                hasActiveSearch = false
+            )
         }
     }
 
