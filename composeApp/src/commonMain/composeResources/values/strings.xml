@@ -308,7 +308,7 @@
     <string name="codec">Codec</string>
     <string name="plays">Play/View Count</string>
     <string name="like_and_dislike">%1$d like(s), %2$d dislike(s)</string>
-    <string name="published_at">Published at %1$s</string>
+    <string name="published_at">Published on %1$s</string>
     <string name="less">Less</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Log in to Spotify</string>
