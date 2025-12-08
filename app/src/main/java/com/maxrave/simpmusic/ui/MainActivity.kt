@@ -744,9 +744,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkForUpdate() {
-        if (viewModel.shouldCheckForUpdate()) {
-            viewModel.checkForUpdate()
-        }
+        // Update check disabled
+        // if (viewModel.shouldCheckForUpdate()) {
+        //     viewModel.checkForUpdate()
+        // }
     }
 
     private fun putString(
