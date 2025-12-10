@@ -455,7 +455,7 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="update_channel">Канал обновлений</string>
     <string name="enable_liquid_glass_effect">Включить эффект жидкого стекла (БЕТА)</string>
-    <string name="enable_liquid_glass_effect_description">Включить эффект жидкого стекла из iOS в некоторых местах (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Включить эффект жидкого стекла из iOS в некоторых местах (Android 13+)</string>
     <string name="your_library">Ваша библиотека</string>
     <string name="play_explicit_content">Воспроизводить контент с нецензурной лексикой</string>
     <string name="play_explicit_content_description">Разрешить воспроизведение контента с нецензурной лексикой</string>

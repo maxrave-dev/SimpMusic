@@ -452,7 +452,7 @@
     <string name="copied_to_clipboard">已複製至剪貼簿</string>
     <string name="update_channel">更新頻道</string>
     <string name="enable_liquid_glass_effect">啟用 Liquid Glass 效果（測試版）</string>
-    <string name="enable_liquid_glass_effect_description">在某些地方啟用 iOS 的 Liquid Glass（液態玻璃）效果（僅適用於 Android 12+ 版本）</string>
+    <string name="enable_liquid_glass_effect_description">在某些地方啟用 iOS 的 Liquid Glass（液態玻璃）效果（僅適用於 Android 13+ 版本）</string>
     <string name="your_library">我的音樂庫</string>
     <string name="play_explicit_content">播放露骨內容</string>
     <string name="play_explicit_content_description">允許播放露骨內容</string>

@@ -6,14 +6,6 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import coil3.ImageLoader
-import coil3.compose.setSingletonImageLoaderFactory
-import coil3.disk.DiskCache
-import coil3.network.okhttp.OkHttpNetworkFetcherFactory
-import coil3.request.CachePolicy
-import coil3.request.crossfade
-import okhttp3.OkHttpClient
-import okio.FileSystem
 
 val DarkColors =
     darkColorScheme(
@@ -55,39 +47,12 @@ fun AppTheme(
         @Composable()
         () -> Unit,
 ) {
-    val contentWithImageLoader: @Composable () -> Unit = {
-        setSingletonImageLoaderFactory { context ->
-            ImageLoader
-                .Builder(context)
-                .components {
-                    add(
-                        OkHttpNetworkFetcherFactory(
-                            callFactory = {
-                                OkHttpClient()
-                            },
-                        ),
-                    )
-                }
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .networkCachePolicy(CachePolicy.ENABLED)
-                .diskCache(
-                    DiskCache
-                        .Builder()
-                        .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-                        .maxSizeBytes(512L * 1024 * 1024)
-                        .build(),
-                ).crossfade(true)
-                .build()
-        }
-        content()
-    }
-
     MaterialExpressiveTheme(
         colorScheme = DarkColors,
         content = {
             CompositionLocalProvider(
                 LocalContentColor provides DarkColors.onSurfaceVariant, // replace this with needed color from your pallete
-                contentWithImageLoader,
+                content,
             )
         },
         typography = typo(),

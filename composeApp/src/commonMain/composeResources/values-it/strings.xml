@@ -453,7 +453,7 @@
     <string name="copied_to_clipboard">Copiato negli appunti</string>
     <string name="update_channel">Aggiorna il canale</string>
     <string name="enable_liquid_glass_effect">Abilita liquid glass (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Abilita l\'effetto liquid glass di iOS in alcuni punti (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Abilita l\'effetto liquid glass di iOS in alcuni punti (Android 13+)</string>
     <string name="your_library">La tua libreria</string>
     <string name="play_explicit_content">Riproduci contenuti espliciti</string>
     <string name="play_explicit_content_description">Abilita la riproduzione di contenuti espliciti</string>
