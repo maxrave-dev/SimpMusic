@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an improvement or new idea for SimpMusic
+labels: [ "feat:unconfirmed" ]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Important:**  
+        Feature requests that are incomplete or not properly filled out will be closed without further explanation.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      placeholder: Describe the underlying problem or pain point.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      placeholder: Explain the solution or feature you'd like to see implemented.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      placeholder: Describe any alternative approaches or features you've considered.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      placeholder: Add any extra context, details, or screenshots that help clarify your request.
