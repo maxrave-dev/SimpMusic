@@ -453,7 +453,7 @@
     <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
     <string name="update_channel">Mettre à jour la chaîne</string>
     <string name="enable_liquid_glass_effect">Activer le verre liquide (Bêta)</string>
-    <string name="enable_liquid_glass_effect_description">Activer l\'effet verre liquide d\'iOS dans certaines positions (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Activer l\'effet verre liquide d\'iOS dans certaines positions (Android 13+)</string>
     <string name="your_library">Votre Bibliothèque</string>
     <string name="play_explicit_content">Lire le contenu explicite</string>
     <string name="play_explicit_content_description">Activer la lecture de contenu explicite</string>

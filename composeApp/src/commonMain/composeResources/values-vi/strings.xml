@@ -457,7 +457,7 @@
     <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
     <string name="update_channel">Kênh cập nhật</string>
     <string name="enable_liquid_glass_effect">Bật liquid glass (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Bật thiết kế Liquid glass trong một số vị trí (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Bật thiết kế Liquid glass trong một số vị trí (Android 13+)</string>
     <string name="your_library">Thư viện của bạn</string>
     <string name="play_explicit_content">Phát bài hát chứa nội dung nhạy cảm</string>
     <string name="play_explicit_content_description">Bật để phát cả những bài hát nhạy cảm</string>

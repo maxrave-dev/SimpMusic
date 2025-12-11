@@ -308,7 +308,7 @@
     <string name="codec">Codec</string>
     <string name="plays">Play/View Count</string>
     <string name="like_and_dislike">%1$d like(s), %2$d dislike(s)</string>
-    <string name="published_at">Published at %1$s</string>
+    <string name="published_at">Published on %1$s</string>
     <string name="less">Less</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Log in to Spotify</string>
@@ -463,7 +463,7 @@
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="update_channel">Update channel</string>
     <string name="enable_liquid_glass_effect">Enable liquid glass (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Enable iOS's liquid glass effect in some position (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Enable iOS's liquid glass effect in some position (Android 13+)</string>
     <string name="your_library">Your library</string>
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Enable to play explicit content</string>

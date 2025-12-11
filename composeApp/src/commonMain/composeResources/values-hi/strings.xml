@@ -452,7 +452,7 @@
     <string name="copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="update_channel">चैनल अपडेट करें</string>
     <string name="enable_liquid_glass_effect">लिक्विड ग्लास सक्षम करें (बीटा)</string>
-    <string name="enable_liquid_glass_effect_description">IOS के लिक्विड ग्लास इफ़ेक्ट को किसी भी स्थिति में सक्षम करें (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">IOS के लिक्विड ग्लास इफ़ेक्ट को किसी भी स्थिति में सक्षम करें (Android 13+)</string>
     <string name="your_library">आपकी लाइब्रेरी</string>
     <string name="play_explicit_content">आपत्तिजनक कंटेंट चलाएं</string>
     <string name="play_explicit_content_description">आपत्तिजनक कंटेंट चलाने की अनुमति दें</string>

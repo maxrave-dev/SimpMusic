@@ -312,7 +312,7 @@ compose.desktop {
         mainClass = "com.maxrave.simpmusic.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
             modules("jdk.unsupported")
             packageName = "SimpMusic"
             macOS {
@@ -352,8 +352,8 @@ compose.desktop {
 
         buildTypes.release.proguard {
             optimize.set(true)
-            obfuscate.set(false)
-            configurationFiles.from("proguard-rules.pro")
+            obfuscate.set(true)
+            configurationFiles.from("proguard-desktop-rules.pro")
         }
     }
 }
