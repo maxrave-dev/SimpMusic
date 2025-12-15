@@ -60,6 +60,7 @@
     <string name="playlist_name_cannot_be_empty">Playlist name cannot be empty</string>
     <string name="this_app_needs_to_access_your_notification">This app needs to access your notification</string>
     <string name="shared">Shared</string>
+    <string name="rich_synced">Word by word</string>
     <string name="line_synced">Line Synced</string>
     <string name="unsynced">Unsynced</string>
     <string name="playlist_is_empty">Playlist is empty</string>
