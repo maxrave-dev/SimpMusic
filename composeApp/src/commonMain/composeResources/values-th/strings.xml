@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">รีสตาร์ทแอป</string>
     <string name="help_build_lyrics_database">มีส่วนร่วมในการสร้างฐานข้อมูลเนื้อเพลงกับ SimpMusic Lyrics</string>
     <string name="help_build_lyrics_database_description">อัปโหลดเนื้อเพลงที่คุณบันทึกไว้ไปยังฐานข้อมูล SimpMusic Lyrics</string>
-    <string name="lyrics_database_description">เรากำลังสร้างฐานข้อมูลเนื้อเพลงของเราเองสำหรับ SimpMusic และไคลเอนต์ YouTube อื่น ๆ เพื่อใช้ในวัตถุประสงค์ที่ไม่ใช่เชิงพาณิชย์ โดยเปิดเป็นโอเพ่นซอร์สที่</string>
     <string name="customactivityoncrash_error_activity_close_app">ปิดแอป</string>
     <string name="customactivityoncrash_error_activity_error_details">รายละเอียดข้อผิดพลาด</string>
     <string name="customactivityoncrash_error_activity_error_details_title">รายละเอียดข้อผิดพลาด</string>

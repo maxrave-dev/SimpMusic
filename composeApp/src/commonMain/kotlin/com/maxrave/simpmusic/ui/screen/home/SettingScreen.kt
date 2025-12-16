@@ -238,7 +238,6 @@ import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.lyrics
-import simpmusic.composeapp.generated.resources.lyrics_database_description
 import simpmusic.composeapp.generated.resources.main_lyrics_provider
 import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
 import simpmusic.composeapp.generated.resources.maxrave_dev
@@ -1049,22 +1048,6 @@ fun SettingScreen(
                             ),
                         )
                     },
-                )
-                Text(
-                    buildAnnotatedString {
-                        append(stringResource(Res.string.lyrics_database_description))
-                        append(" ")
-                        withLink(
-                            LinkAnnotation.Url(
-                                "https://github.com/maxrave-dev/lyrics",
-                                TextLinkStyles(style = SpanStyle(color = md_theme_dark_primary)),
-                            ),
-                        ) {
-                            append("https://github.com/maxrave-dev/lyrics")
-                        }
-                    },
-                    style = typo().bodySmall,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
                 )
             }
         }

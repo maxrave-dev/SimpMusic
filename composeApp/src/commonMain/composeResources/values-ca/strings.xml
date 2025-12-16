@@ -197,7 +197,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Reinicieu l\'aplicació</string>
     <string name="help_build_lyrics_database">Ajuda a SimpMusic lyrics a omplir la base de dades de lletres de cançons</string>
     <string name="help_build_lyrics_database_description">Envia les lletres de cançons del dispositiu a la base de dades de SimpMusic lyrics</string>
-    <string name="lyrics_database_description">Estem creant la nostra pròpia base de dades de lletres de cançons per a SimpMusic i altres clients de YouTube amb finalitats no comercials, de codi obert a</string>
     <string name="customactivityoncrash_error_activity_close_app">Tanca l\'aplicació</string>
     <string name="customactivityoncrash_error_activity_error_details">Detalls de l\'error</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Detalls de l\'error</string>

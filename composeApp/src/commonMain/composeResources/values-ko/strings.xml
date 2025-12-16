@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">앱 다시 시작</string>
     <string name="help_build_lyrics_database">SimpMusic 가사에서 가사 데이터베이스를 구축할 수 있도록 도움</string>
     <string name="help_build_lyrics_database_description">저장된 가사를 SimpMusic 가사 데이터베이스로 전송</string>
-    <string name="lyrics_database_description">저희는 SimpMusic과 기타 YouTube 클라이언트를 위해 자체 가사 데이터베이스를 구축하고 있으며 비영리 목적, 오픈 소스로 운영됩니다</string>
     <string name="customactivityoncrash_error_activity_close_app">앱 종료</string>
     <string name="customactivityoncrash_error_activity_error_details">오류 정보</string>
     <string name="customactivityoncrash_error_activity_error_details_title">오류 상세</string>

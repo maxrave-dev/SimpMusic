@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Riavvia l\'app</string>
     <string name="help_build_lyrics_database">Aiuta SimpMusic a costruire il database dei testi</string>
     <string name="help_build_lyrics_database_description">Invia i tuoi testi salvati al database dei testi di SimpMusic</string>
-    <string name="lyrics_database_description">Stiamo costruendo il nostro database di testi per SimpMusic e altri client, open-source</string>
     <string name="customactivityoncrash_error_activity_close_app">Chiudi l\'app</string>
     <string name="customactivityoncrash_error_activity_error_details">Dettagli errore</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Dettagli errore</string>

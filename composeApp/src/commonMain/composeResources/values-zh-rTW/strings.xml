@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">重啟應用程式</string>
     <string name="help_build_lyrics_database">協助 SimpMusic 建立歌詞資料庫</string>
     <string name="help_build_lyrics_database_description">將您儲存的歌詞上傳至 SimpMusic 的資料庫</string>
-    <string name="lyrics_database_description">我們正嘗試建立一個自己的資料庫給 SimpMusic 與其他 YouTube 軟體，用於非商業用途，並且它是開源的</string>
     <string name="customactivityoncrash_error_activity_close_app">關閉應用程式</string>
     <string name="customactivityoncrash_error_activity_error_details">錯誤訊息</string>
     <string name="customactivityoncrash_error_activity_error_details_title">錯誤訊息</string>

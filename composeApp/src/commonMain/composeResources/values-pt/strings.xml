@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Reiniciar aplicativo</string>
     <string name="help_build_lyrics_database">Ajude o SimpMusic Letras a construir o banco de dados de letras</string>
     <string name="help_build_lyrics_database_description">Envie suas letras salvas para o banco de dados do SimpMusic Letras</string>
-    <string name="lyrics_database_description">Nós estamos construindo nosso próprio banco de dados de letras para o SimpMusic e outros clientes do YouTube, para fins não comerciais, com código aberto em</string>
     <string name="customactivityoncrash_error_activity_close_app">Fechar aplicativo</string>
     <string name="customactivityoncrash_error_activity_error_details">Detalhes do erro</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Detalhes do erro</string>

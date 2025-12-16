@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">ऐप पुनः प्रारंभ करें</string>
     <string name="help_build_lyrics_database">सिम्पम्यूजिक गीत को गीत डेटाबेस बनाने में सहायता करें</string>
     <string name="help_build_lyrics_database_description">अपने सहेजे गए गीत सिम्पम्यूजिक गीत डेटाबेस में भेजें</string>
-    <string name="lyrics_database_description">हम गैर-व्यावसायिक उपयोग के लिए सिम्पम्यूजिक और अन्य यूट्यूब क्लाइंट्स के लिए अपना स्वयं का गीत डेटाबेस बना रहे हैं</string>
     <string name="customactivityoncrash_error_activity_close_app">ऐप बंद करें</string>
     <string name="customactivityoncrash_error_activity_error_details">त्रुटि विवरण</string>
     <string name="customactivityoncrash_error_activity_error_details_title">त्रुटि विवरण</string>

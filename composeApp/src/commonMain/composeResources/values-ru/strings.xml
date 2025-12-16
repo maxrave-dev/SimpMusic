@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Перезапустить приложение</string>
     <string name="help_build_lyrics_database">Помогите SimpMusic Lyrics создать базу данных текстов песен</string>
     <string name="help_build_lyrics_database_description">Отправить сохраненные тексты песен в базу данных SimpMusic lyrics</string>
-    <string name="lyrics_database_description">Мы создаем собственную базу данных текстов песен для SimpMusic и других клиентов YouTube в некоммерческих целей, с открытым исходным кодом на</string>
     <string name="customactivityoncrash_error_activity_close_app">Закрыть приложение</string>
     <string name="customactivityoncrash_error_activity_error_details">Подробные сведения об ошибке</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Подробные сведения об ошибке</string>

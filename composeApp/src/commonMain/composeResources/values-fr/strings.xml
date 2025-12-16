@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Redémarrer l'application</string>
     <string name="help_build_lyrics_database">Aidez SimpMusic à créer la base de données des paroles</string>
     <string name="help_build_lyrics_database_description">Envoyez vos paroles enregistrées à la base de données des paroles de SimpMusic</string>
-    <string name="lyrics_database_description">Nous construisons notre propre base de données de paroles pour SimpMusic et d'autres clients YouTube à des fins non commerciales, en open source sur</string>
     <string name="customactivityoncrash_error_activity_close_app">Fermer l'application</string>
     <string name="customactivityoncrash_error_activity_error_details">Détails de l'erreur</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Détails de l'erreur</string>

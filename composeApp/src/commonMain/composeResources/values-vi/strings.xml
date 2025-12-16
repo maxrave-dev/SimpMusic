@@ -202,7 +202,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Khởi động lại ứng dụng</string>
     <string name="help_build_lyrics_database">Giúp đỡ SimpMusic lyrics xây dựng cơ sở dữ liệu lời bài hát</string>
     <string name="help_build_lyrics_database_description">Gửi lời bài hát đã lưu của bạn tới cơ sở dữ liệu của SimpMusic lyrics</string>
-    <string name="lyrics_database_description">Chúng tôi xây dựng một cơ sở dữ liệu lời bàn hát riêng dành cho SimpMusic và các máy khách YouTube khác với mục đích phi thương mại, mã nguồn mở tại</string>
     <string name="customactivityoncrash_error_activity_close_app">Đóng ứng dụng</string>
     <string name="customactivityoncrash_error_activity_error_details">Chi tiết lỗi</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Chi tiết lỗi</string>
