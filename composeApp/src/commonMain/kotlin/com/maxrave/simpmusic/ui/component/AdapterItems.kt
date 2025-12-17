@@ -3,9 +3,7 @@ package com.maxrave.simpmusic.ui.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.HorizontalScrollbar
 import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -30,7 +28,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
@@ -82,6 +79,7 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.ifNullOrEmpty
 import com.maxrave.simpmusic.getPlatform
@@ -291,21 +289,12 @@ fun HomeItem(
             }
         }
         if (getPlatform() == Platform.Desktop) {
-            HorizontalScrollbar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                style = ScrollbarStyle(
-                    minimalHeight = 8.dp,
-                    thickness = 4.dp,
-                    shape = RoundedCornerShape(8.dp),
-                    hoverDurationMillis = 300,
-                    unhoverColor = Color.Gray.copy(alpha = 0.2f),
-                    hoverColor = Color.Gray.copy(alpha = 0.6f),
-                ),
-                adapter = rememberScrollbarAdapter(
-                    scrollState = lazyListState
-                )
+            HorizontalScrollBar(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                scrollState = lazyListState,
             )
         }
     }
@@ -360,20 +349,21 @@ fun HomeItemContentPlaylist(
                         painterPlaylistThumbnail(
                             data.title,
                             style = typo().bodySmall,
-                            thumbSize * 0.9f to thumbSize * 0.9f
+                            thumbSize * 0.9f to thumbSize * 0.9f,
                         )
                     } else {
                         painterResource(Res.drawable.holder)
                     },
-                error = if (data is LocalPlaylistEntity) {
-                    painterPlaylistThumbnail(
-                        data.title,
-                        style = typo().bodySmall,
-                        thumbSize * 0.9f to thumbSize * 0.9f
-                    )
-                } else {
-                    painterResource(Res.drawable.holder)
-                },
+                error =
+                    if (data is LocalPlaylistEntity) {
+                        painterPlaylistThumbnail(
+                            data.title,
+                            style = typo().bodySmall,
+                            thumbSize * 0.9f to thumbSize * 0.9f,
+                        )
+                    } else {
+                        painterResource(Res.drawable.holder)
+                    },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -417,7 +407,7 @@ fun HomeItemContentPlaylist(
             Text(
                 text =
                     when (data) {
-                        is Content ->
+                        is Content -> {
                             data.description
                                 ?: if (data.playlistId == null) {
                                     (
@@ -432,19 +422,55 @@ fun HomeItemContentPlaylist(
                                 } else {
                                     stringResource(Res.string.playlist)
                                 }
+                        }
 
-                        is com.maxrave.domain.data.model.mood.genre.Content -> data.title.subtitle
-                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.subtitle
-                        is LocalPlaylistEntity -> stringResource(Res.string.you)
-                        is PlaylistsResult -> data.author
-                        is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(Res.string.album)
-                        is PlaylistEntity -> data.author ?: stringResource(Res.string.playlist)
-                        is ResultSingle -> data.year
-                        is ResultAlbum -> data.year
-                        is ResultPlaylist -> data.author
-                        is PodcastsEntity -> data.authorName
-                        is AlbumsResult -> data.year
-                        else -> ""
+                        is com.maxrave.domain.data.model.mood.genre.Content -> {
+                            data.title.subtitle
+                        }
+
+                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> {
+                            data.subtitle
+                        }
+
+                        is LocalPlaylistEntity -> {
+                            stringResource(Res.string.you)
+                        }
+
+                        is PlaylistsResult -> {
+                            data.author
+                        }
+
+                        is AlbumEntity -> {
+                            data.artistName?.connectArtists() ?: stringResource(Res.string.album)
+                        }
+
+                        is PlaylistEntity -> {
+                            data.author ?: stringResource(Res.string.playlist)
+                        }
+
+                        is ResultSingle -> {
+                            data.year
+                        }
+
+                        is ResultAlbum -> {
+                            data.year
+                        }
+
+                        is ResultPlaylist -> {
+                            data.author
+                        }
+
+                        is PodcastsEntity -> {
+                            data.authorName
+                        }
+
+                        is AlbumsResult -> {
+                            data.year
+                        }
+
+                        else -> {
+                            ""
+                        }
                     },
                 style = typo().bodySmall,
                 maxLines = 1,
