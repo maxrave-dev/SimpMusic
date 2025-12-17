@@ -3,7 +3,9 @@ package com.maxrave.simpmusic.ui.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.HorizontalScrollbar
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -28,6 +30,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
@@ -78,8 +81,10 @@ import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.ifNullOrEmpty
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
@@ -284,6 +289,24 @@ fun HomeItem(
                     }
                 }
             }
+        }
+        if (getPlatform() == Platform.Desktop) {
+            HorizontalScrollbar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                style = ScrollbarStyle(
+                    minimalHeight = 8.dp,
+                    thickness = 4.dp,
+                    shape = RoundedCornerShape(8.dp),
+                    hoverDurationMillis = 300,
+                    unhoverColor = Color.Gray.copy(alpha = 0.2f),
+                    hoverColor = Color.Gray.copy(alpha = 0.6f),
+                ),
+                adapter = rememberScrollbarAdapter(
+                    scrollState = lazyListState
+                )
+            )
         }
     }
 }

@@ -79,10 +79,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -380,7 +377,7 @@ fun LyricsLineItem(
             Column(
                 modifier = modifier,
             ) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     modifier =
                         Modifier.then(
@@ -391,13 +388,13 @@ fun LyricsLineItem(
                             },
                         ),
                     text = originalWords,
-                    style = typo().headlineMedium,
+                    style = typo().headlineLarge,
                     color =
                         if (isCurrent) {
                             Color.White
                         } else {
                             Color.LightGray.copy(
-                                alpha = 0.8f,
+                                alpha = 0.35f,
                             )
                         },
                 )
@@ -418,12 +415,12 @@ fun LyricsLineItem(
                                 Color.Yellow
                             } else {
                                 Color(0xFF97971A).copy(
-                                    alpha = 0.5f,
+                                    alpha = 0.3f,
                                 )
                             },
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
@@ -431,14 +428,14 @@ fun LyricsLineItem(
         Column(
             modifier = modifier,
         ) {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 modifier = Modifier.blur(1.dp),
                 text = originalWords,
-                style = typo().bodyLarge,
+                style = typo().headlineMedium,
                 color =
                     Color.LightGray.copy(
-                        alpha = 0.8f,
+                        alpha = 0.35f,
                     ),
             )
             if (translatedWords != null) {
@@ -448,11 +445,11 @@ fun LyricsLineItem(
                     style = typo().bodyMedium,
                     color =
                         Color(0xFF97971A).copy(
-                            alpha = 0.5f,
+                            alpha = 0.3f,
                         ),
                 )
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
@@ -479,7 +476,7 @@ fun RichSyncLyricsLineItem(
     Column(
         modifier = modifier,
     ) {
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
         FlowRow(
@@ -522,13 +519,13 @@ fun RichSyncLyricsLineItem(
                         Color.Yellow
                     } else {
                         Color(0xFF97971A).copy(
-                            alpha = 0.5f,
+                            alpha = 0.3f,
                         )
                     },
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
@@ -543,10 +540,10 @@ private fun AnimatedWord(
     val color by animateColorAsState(
         targetValue =
             when {
-                !isCurrent -> Color.LightGray.copy(alpha = 0.8f) // Non-current line
-                isPast -> Color.White.copy(alpha = 0.85f) // Past words - keep highlighted!
+                !isCurrent -> Color.LightGray.copy(alpha = 0.35f) // Non-current line
+                isPast -> Color.White.copy(alpha = 0.7f) // Past words
                 isActive -> Color.White // Current word - full brightness
-                else -> Color.LightGray.copy(alpha = 0.8f) // Future words
+                else -> Color.LightGray.copy(alpha = 0.5f) // Future words
             },
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "wordColor",
@@ -554,7 +551,7 @@ private fun AnimatedWord(
 
     Text(
         text = word,
-        style = typo().headlineMedium,
+        style = typo().headlineLarge,
         color = color,
     )
 }
@@ -684,7 +681,7 @@ fun FullscreenLyricsSheet(
                                 if (shouldHaze) {
                                     Modifier.hazeEffect(
                                         hazeState,
-                                        style = CupertinoMaterials.thin(),
+                                        style = CupertinoMaterials.regular(),
                                     ) {
                                         blurEnabled = true
                                     }
