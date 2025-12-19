@@ -3,8 +3,8 @@
 componentsResources="1.10.0-rc02"
 foundation="1.10.0-rc02"
 runtime="1.10.0-rc02"
-version-name="1.0.0"
-version-code="41"
+version-name="1.0.1"
+version-code="42"
 
 android = "8.13.1"
 kotlin = "2.2.21"

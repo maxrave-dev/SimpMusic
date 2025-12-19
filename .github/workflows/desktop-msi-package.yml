@@ -52,10 +52,10 @@ jobs:
         run: ./gradlew exportLibraryDefinitions
 
       - name: Build desktop MSI package
-        run: ./gradlew packageMsi
+        run: ./gradlew packageReleaseMsi
 
       - name: Upload MSI package
         uses: actions/upload-artifact@v4
         with:
           name: desktop-msi-package
-          path: composeApp/build/compose/binaries/main/msi/*.msi
+          path: composeApp/build/compose/binaries/main-release/msi/*.msi

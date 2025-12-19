@@ -1,0 +1,3 @@
+- Fix some typo
+- Improve desktop app
+- Word by word lyrics (exclusive from SimpMusic Lyrics)

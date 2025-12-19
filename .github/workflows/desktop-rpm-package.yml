@@ -55,10 +55,10 @@ jobs:
         run: ./gradlew exportLibraryDefinitions
 
       - name: Build desktop RPM package
-        run: ./gradlew packageRpm
+        run: ./gradlew packageReleaseRpm
 
       - name: Upload RPM package
         uses: actions/upload-artifact@v4
         with:
           name: desktop-rpm-package
-          path: composeApp/build/compose/binaries/main/rpm/*.rpm
+          path: composeApp/build/compose/binaries/main-release/rpm/*.rpm
