@@ -8,10 +8,19 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import cat.ereza.customactivityoncrash.config.CaocConfig
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.request.CachePolicy
+import coil3.request.crossfade
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import multiplatform.network.cmptoast.AppContext
+import okhttp3.OkHttpClient
+import okio.FileSystem
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
@@ -23,7 +32,8 @@ import java.lang.reflect.Field
 
 class SimpMusicApplication :
     Application(),
-    KoinComponent {
+    KoinComponent,
+    SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -73,4 +83,27 @@ class SimpMusicApplication :
 
         Logger.w("Terminate", "Checking")
     }
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader =
+        ImageLoader
+            .Builder(context)
+            .components {
+                add(
+                    OkHttpNetworkFetcherFactory(
+                        callFactory = {
+                            OkHttpClient()
+                        },
+                    ),
+                )
+            }
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .diskCache(
+                DiskCache
+                    .Builder()
+                    .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+                    .maxSizeBytes(512L * 1024 * 1024)
+                    .build(),
+            ).crossfade(true)
+            .build()
 }

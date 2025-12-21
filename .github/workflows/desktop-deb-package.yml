@@ -52,10 +52,10 @@ jobs:
         run: ./gradlew exportLibraryDefinitions
 
       - name: Build desktop DEB package
-        run: ./gradlew packageDeb
+        run: ./gradlew packageReleaseDeb
 
       - name: Upload DEB package
         uses: actions/upload-artifact@v4
         with:
           name: desktop-deb-package
-          path: composeApp/build/compose/binaries/main/deb/*.deb
+          path: composeApp/build/compose/binaries/main-release/deb/*.deb

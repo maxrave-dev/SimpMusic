@@ -1,0 +1,4 @@
+- Sửa lỗi chính tả
+- Cải thiện ứng dụng trên máy tính để bàn
+- Hỗ trợ thông báo (thông tin đang phát) gốc trên MacOS
+- Lời bài hát từng từ một (độc quyền từ SimpMusic Lyrics)

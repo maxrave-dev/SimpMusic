@@ -51,6 +51,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,6 +84,7 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.ShimmerSearchItem
+import com.maxrave.simpmusic.ui.component.SimpMusicChartButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -120,6 +122,7 @@ fun SearchScreen(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
+    val uriHandler = LocalUriHandler.current
     val focusManager = LocalFocusManager.current
     val searchScreenState by searchViewModel.searchScreenState.collectAsStateWithLifecycle()
     val uiState by searchViewModel.searchScreenUIState.collectAsStateWithLifecycle()
@@ -496,6 +499,13 @@ fun SearchScreen(
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth(),
                             )
+                            SimpMusicChartButton(
+                                modifier =
+                                    Modifier
+                                        .padding(top = 10.dp),
+                            ) {
+                                uriHandler.openUri("https://chart.simpmusic.org")
+                            }
                         }
                     }
                 }
@@ -594,7 +604,7 @@ fun SearchScreen(
                                                     ) {
                                                         items(currentResults) { result ->
                                                             when (result) {
-                                                                is SongsResult ->
+                                                                is SongsResult -> {
                                                                     SongFullWidthItems(
                                                                         track = result.toTrack(),
                                                                         isPlaying = result.videoId == currentVideoId,
@@ -627,8 +637,9 @@ fun SearchScreen(
                                                                             )
                                                                         },
                                                                     )
+                                                                }
 
-                                                                is VideosResult ->
+                                                                is VideosResult -> {
                                                                     SongFullWidthItems(
                                                                         track = result.toTrack(),
                                                                         isPlaying = result.videoId == currentVideoId,
@@ -661,8 +672,9 @@ fun SearchScreen(
                                                                             )
                                                                         },
                                                                     )
+                                                                }
 
-                                                                is AlbumsResult ->
+                                                                is AlbumsResult -> {
                                                                     PlaylistFullWidthItems(
                                                                         data = result,
                                                                         onClickListener = {
@@ -673,8 +685,9 @@ fun SearchScreen(
                                                                             )
                                                                         },
                                                                     )
+                                                                }
 
-                                                                is ArtistsResult ->
+                                                                is ArtistsResult -> {
                                                                     ArtistFullWidthItems(
                                                                         data = result,
                                                                         onClickListener = {
@@ -685,8 +698,9 @@ fun SearchScreen(
                                                                             )
                                                                         },
                                                                     )
+                                                                }
 
-                                                                is PlaylistsResult ->
+                                                                is PlaylistsResult -> {
                                                                     PlaylistFullWidthItems(
                                                                         data = result,
                                                                         onClickListener = {
@@ -705,6 +719,7 @@ fun SearchScreen(
                                                                             }
                                                                         },
                                                                     )
+                                                                }
                                                             }
                                                         }
                                                         // Space at bottom to account for bottom navigation and mini player
@@ -792,16 +807,29 @@ fun SuggestItemRow(
     ) {
         val url =
             when (searchResult) {
-                is SongsResult ->
+                is SongsResult -> {
                     searchResult.thumbnails?.lastOrNull()?.url
+                }
 
-                is AlbumsResult -> searchResult.thumbnails.lastOrNull()?.url
-                is ArtistsResult -> searchResult.thumbnails.lastOrNull()?.url
-                is PlaylistsResult -> searchResult.thumbnails.lastOrNull()?.url
-                is VideosResult ->
+                is AlbumsResult -> {
+                    searchResult.thumbnails.lastOrNull()?.url
+                }
+
+                is ArtistsResult -> {
+                    searchResult.thumbnails.lastOrNull()?.url
+                }
+
+                is PlaylistsResult -> {
+                    searchResult.thumbnails.lastOrNull()?.url
+                }
+
+                is VideosResult -> {
                     searchResult.thumbnails?.lastOrNull()?.url
+                }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
 
         Box(
@@ -841,16 +869,29 @@ fun SuggestItemRow(
         Column(modifier = Modifier.weight(1f)) {
             val title =
                 when (searchResult) {
-                    is SongsResult ->
+                    is SongsResult -> {
                         searchResult.title
+                    }
 
-                    is AlbumsResult -> searchResult.title
-                    is ArtistsResult -> searchResult.artist
-                    is PlaylistsResult -> searchResult.title
-                    is VideosResult ->
+                    is AlbumsResult -> {
                         searchResult.title
+                    }
 
-                    else -> null
+                    is ArtistsResult -> {
+                        searchResult.artist
+                    }
+
+                    is PlaylistsResult -> {
+                        searchResult.title
+                    }
+
+                    is VideosResult -> {
+                        searchResult.title
+                    }
+
+                    else -> {
+                        null
+                    }
                 } ?: "Unknown"
 
             Text(

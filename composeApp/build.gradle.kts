@@ -30,7 +30,7 @@ plugins {
 dependencies {
     coreLibraryDesugaring(libs.desugaring)
     val debugImplementation = "debugImplementation"
-    debugImplementation(compose.uiTooling)
+    debugImplementation(libs.ui.tooling)
 }
 
 kotlin {
@@ -69,7 +69,7 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
 
-            implementation(compose.preview)
+            implementation(libs.jetbrains.ui.tooling.preview)
             implementation(libs.activity.compose)
             implementation(libs.constraintlayout.compose)
 
@@ -107,12 +107,12 @@ kotlin {
             }
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.preview)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
+            implementation(libs.components.resources)
+            implementation(libs.jetbrains.ui.tooling.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
@@ -312,7 +312,7 @@ compose.desktop {
         mainClass = "com.maxrave.simpmusic.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
             modules("jdk.unsupported")
             packageName = "SimpMusic"
             macOS {
@@ -352,8 +352,8 @@ compose.desktop {
 
         buildTypes.release.proguard {
             optimize.set(true)
-            obfuscate.set(false)
-            configurationFiles.from("proguard-rules.pro")
+            obfuscate.set(true)
+            configurationFiles.from("proguard-desktop-rules.pro")
         }
     }
 }
@@ -429,8 +429,20 @@ sentry {
     } else {
         includeProguardMapping.set(false)
         autoUploadProguardMapping.set(false)
+        uploadNativeSymbols.set(false)
+        includeDependenciesReport.set(false)
+        includeSourceContext.set(false)
+        includeNativeSources.set(false)
     }
     telemetry.set(false)
+}
+
+if (!isFullBuild) {
+    tasks.whenTaskAdded {
+        if (name.contains("injectSentryDebugMetaPropertiesIntoAssetsRelease")) {
+            enabled = false
+        }
+    }
 }
 
 afterEvaluate {

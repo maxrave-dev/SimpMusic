@@ -1,4 +1,4 @@
-name: Build desktop MSI package
+name: Build desktop RPM package
 
 on:
   workflow_dispatch:
@@ -17,9 +17,9 @@ permissions:
   contents: write
 
 jobs:
-  build-desktop-msi:
-    name: Build desktop MSI package
-    runs-on: windows-latest
+  build-desktop-rpm:
+    name: Build desktop RPM package
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -27,6 +27,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+          
+      - name: Install RPM build tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
 
       - name: set up JDK 17
         uses: actions/setup-java@v4
@@ -51,11 +54,11 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Build desktop MSI package
-        run: ./gradlew packageReleaseMsi
+      - name: Build desktop RPM package
+        run: ./gradlew packageReleaseRpm
 
-      - name: Upload MSI package
+      - name: Upload RPM package
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-msi-package
-          path: composeApp/build/compose/binaries/main-release/msi/*.msi
+          name: desktop-rpm-package
+          path: composeApp/build/compose/binaries/main-release/rpm/*.rpm

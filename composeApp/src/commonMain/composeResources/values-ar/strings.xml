@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">إعادة تشغيل التطبيق</string>
     <string name="help_build_lyrics_database">ساعدنا لتقوية قاعدة البيانات الخاصة بكلمات الأغاني</string>
     <string name="help_build_lyrics_database_description">أرسل كلمات الأغاني المسجلة إلى قاعدة البيانات</string>
-    <string name="lyrics_database_description">نحن نعمل على بناء قاعدة بيانات كلمات الأغاني الخاصة بنا لـ سيمب ميوزيك وعملاء YouTube الآخرين لأغراض غير تجارية، وهي مفتوحة المصدر في</string>
     <string name="customactivityoncrash_error_activity_close_app">إغلاق التطبيق</string>
     <string name="customactivityoncrash_error_activity_error_details">تفاصيل الخطأ</string>
     <string name="customactivityoncrash_error_activity_error_details_title">تفاصيل الخطأ</string>

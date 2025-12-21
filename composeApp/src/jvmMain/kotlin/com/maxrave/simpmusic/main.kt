@@ -6,6 +6,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import coil3.ImageLoader
+import coil3.compose.LocalPlatformContext
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.disk.DiskCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.request.CachePolicy
+import coil3.request.crossfade
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
@@ -20,6 +27,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastHost
 import multiplatform.network.cmptoast.showToast
+import okhttp3.OkHttpClient
+import okio.FileSystem
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.koin.core.context.loadKoinModules
@@ -94,6 +103,30 @@ fun main() =
             undecorated = false,
             state = windowState,
         ) {
+            val context = LocalPlatformContext.current
+            setSingletonImageLoaderFactory {
+                ImageLoader
+                    .Builder(context)
+                    .components {
+                        add(
+                            OkHttpNetworkFetcherFactory(
+                                callFactory = {
+                                    OkHttpClient()
+                                },
+                            ),
+                        )
+                    }
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .networkCachePolicy(CachePolicy.ENABLED)
+                    .diskCache(
+                        DiskCache
+                            .Builder()
+                            .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+                            .maxSizeBytes(512L * 1024 * 1024)
+                            .build(),
+                    ).crossfade(true)
+                    .build()
+            }
             App()
             ToastHost()
         }

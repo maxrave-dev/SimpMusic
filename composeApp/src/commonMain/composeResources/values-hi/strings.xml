@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">ऐप पुनः प्रारंभ करें</string>
     <string name="help_build_lyrics_database">सिम्पम्यूजिक गीत को गीत डेटाबेस बनाने में सहायता करें</string>
     <string name="help_build_lyrics_database_description">अपने सहेजे गए गीत सिम्पम्यूजिक गीत डेटाबेस में भेजें</string>
-    <string name="lyrics_database_description">हम गैर-व्यावसायिक उपयोग के लिए सिम्पम्यूजिक और अन्य यूट्यूब क्लाइंट्स के लिए अपना स्वयं का गीत डेटाबेस बना रहे हैं</string>
     <string name="customactivityoncrash_error_activity_close_app">ऐप बंद करें</string>
     <string name="customactivityoncrash_error_activity_error_details">त्रुटि विवरण</string>
     <string name="customactivityoncrash_error_activity_error_details_title">त्रुटि विवरण</string>
@@ -452,7 +451,7 @@
     <string name="copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="update_channel">चैनल अपडेट करें</string>
     <string name="enable_liquid_glass_effect">लिक्विड ग्लास सक्षम करें (बीटा)</string>
-    <string name="enable_liquid_glass_effect_description">IOS के लिक्विड ग्लास इफ़ेक्ट को किसी भी स्थिति में सक्षम करें (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">IOS के लिक्विड ग्लास इफ़ेक्ट को किसी भी स्थिति में सक्षम करें (Android 13+)</string>
     <string name="your_library">आपकी लाइब्रेरी</string>
     <string name="play_explicit_content">आपत्तिजनक कंटेंट चलाएं</string>
     <string name="play_explicit_content_description">आपत्तिजनक कंटेंट चलाने की अनुमति दें</string>

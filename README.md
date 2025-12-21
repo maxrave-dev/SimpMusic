@@ -75,7 +75,7 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 - Special thanks to [SmartTube](https://github.com/yuliskov/SmartTube). This repo help me to extract the streaming URL of YouTube Music.    
 - My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos.    
 - ReturnYouTubeDislike for getting information on votes 
-- Main lyrics data from SimpMusic Lyrics. More information [SimpMusic Lyrics](https://lyrics.simpmusic.org/)
+- Main lyrics data from SimpMusic Lyrics
 - Alternative lyrics data from LRCLIB. More information [LRCLIB](https://lrclib.net/)    
  
  ## Privacy    

@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Перезапустити додаток</string>
     <string name="help_build_lyrics_database">Допоможіть SimpMusic перекласти тексти пісень</string>
     <string name="help_build_lyrics_database_description">Надішліть ваші збережені тексти пісень в базу даних SimpMusic</string>
-    <string name="lyrics_database_description">Ми розробляємо нашу власну базу даних текстів пісень для SimpMusic та інших YouTube клієнтів для некомерційних цілей, з відкритим кодом</string>
     <string name="customactivityoncrash_error_activity_close_app">Закрити застосунок</string>
     <string name="customactivityoncrash_error_activity_error_details">Деталі помилки</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Деталі помилки</string>
@@ -455,7 +454,7 @@
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
     <string name="update_channel">Канал оновлень</string>
     <string name="enable_liquid_glass_effect">Увімкнути liquid glass (БЕТА)</string>
-    <string name="enable_liquid_glass_effect_description">Вмикає ефект liquid glass iOS в деяких місцях (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Вмикає ефект liquid glass iOS в деяких місцях (Android 13+)</string>
     <string name="your_library">Ваша бібліотека</string>
     <string name="play_explicit_content">Відтворювати відвертий контент</string>
     <string name="play_explicit_content_description">Ввімкнути відтворення відвертого контенту</string>

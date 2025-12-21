@@ -186,6 +186,7 @@ import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.offline_mode
 import simpmusic.composeapp.generated.resources.published_at
+import simpmusic.composeapp.generated.resources.rich_synced
 import simpmusic.composeapp.generated.resources.show
 import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
 import simpmusic.composeapp.generated.resources.unsynced
@@ -562,6 +563,7 @@ fun NowPlayingScreenContent(
                                         isSwipeHandled = true
                                     }
                                 }
+
                                 // Swipe right (positive dragAmount)
                                 dragAmount > 90 -> {
                                     if (controllerState.isPreviousAvailable) {
@@ -1520,6 +1522,7 @@ fun NowPlayingScreenContent(
                                             text =
                                                 when (screenDataState.lyricsData?.lyrics?.syncType) {
                                                     "LINE_SYNCED" -> stringResource(Res.string.line_synced)
+                                                    "RICH_SYNCED" -> stringResource(Res.string.rich_synced)
                                                     else -> stringResource(Res.string.unsynced)
                                                 },
                                             style = typo().bodySmall,
@@ -1532,11 +1535,26 @@ fun NowPlayingScreenContent(
                                         Text(
                                             text =
                                                 when (screenDataState.lyricsData?.lyricsProvider) {
-                                                    LyricsProvider.SIMPMUSIC -> stringResource(Res.string.lyrics_provider_simpmusic)
-                                                    LyricsProvider.LRCLIB -> stringResource(Res.string.lyrics_provider_lrc)
-                                                    LyricsProvider.YOUTUBE -> stringResource(Res.string.lyrics_provider_youtube)
-                                                    LyricsProvider.SPOTIFY -> stringResource(Res.string.spotify_lyrics_provider)
-                                                    LyricsProvider.OFFLINE -> stringResource(Res.string.offline_mode)
+                                                    LyricsProvider.SIMPMUSIC -> {
+                                                        stringResource(Res.string.lyrics_provider_simpmusic)
+                                                    }
+
+                                                    LyricsProvider.LRCLIB -> {
+                                                        stringResource(Res.string.lyrics_provider_lrc)
+                                                    }
+
+                                                    LyricsProvider.YOUTUBE -> {
+                                                        stringResource(Res.string.lyrics_provider_youtube)
+                                                    }
+
+                                                    LyricsProvider.SPOTIFY -> {
+                                                        stringResource(Res.string.spotify_lyrics_provider)
+                                                    }
+
+                                                    LyricsProvider.OFFLINE -> {
+                                                        stringResource(Res.string.offline_mode)
+                                                    }
+
                                                     else -> {
                                                         ""
                                                     }

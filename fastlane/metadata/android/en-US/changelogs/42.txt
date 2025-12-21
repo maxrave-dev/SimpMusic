@@ -1,0 +1,4 @@
+- Fix some typo
+- Improve desktop app
+- Support notification (now playing info) natively on MacOS
+- Word by word lyrics (exclusive from SimpMusic Lyrics)

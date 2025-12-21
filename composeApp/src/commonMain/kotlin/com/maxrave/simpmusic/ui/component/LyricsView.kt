@@ -2,6 +2,8 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -14,6 +16,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -88,8 +92,10 @@ import coil3.request.crossfade
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
+import com.maxrave.simpmusic.extension.ParsedRichSyncLine
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
+import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -190,7 +196,8 @@ fun LyricsView(
         }
     }
     LaunchedEffect(key1 = currentLineIndex, key2 = currentLineHeight) {
-        if (currentLineIndex > -1 && currentLineHeight > 0 && lyricsData.lyrics.syncType == "LINE_SYNCED") {
+        if (currentLineIndex > -1 && currentLineHeight > 0 &&
+            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")) {
             val boxEnd = listState.layoutInfo.viewportEndOffset
             val boxStart = listState.layoutInfo.viewportStartOffset
             val viewPort = boxEnd - boxStart
@@ -279,7 +286,7 @@ fun LyricsView(
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
                 // Tìm translated lyrics phù hợp dựa vào thời gian
                 val translatedWords =
-                    if (lyricsData.lyrics.syncType == "LINE_SYNCED") {
+                    if (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED") {
                         line?.startTimeMs?.let { findClosestTranslatedLine(it) }
                     } else {
                         lyricsData.translatedLyrics
@@ -290,20 +297,67 @@ fun LyricsView(
                     }
                 Logger.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
 
-                line?.words?.let {
-                    LyricsLineItem(
-                        originalWords = it,
-                        translatedWords = translatedWords,
-                        isBold = index <= currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
-                        isCurrent = index == currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
-                        modifier =
-                            Modifier
-                                .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
-                                    onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
-                                }.onGloballyPositioned { c ->
-                                    currentLineHeight = c.size.height
-                                },
-                    )
+                line?.words?.let { words ->
+                    Logger.d(TAG, "SyncType: ${lyricsData.lyrics.syncType}, Line $index content preview: ${words.take(50)}")
+                    when {
+                        // Rich sync: parse and use RichSyncLyricsLineItem
+                        lyricsData.lyrics.syncType == "RICH_SYNCED" -> {
+                            val parsedLine =
+                                remember(words, line.startTimeMs, line.endTimeMs) {
+                                    val result = parseRichSyncWords(words, line.startTimeMs, line.endTimeMs)
+                                    Logger.d(TAG, "Line $index parseRichSyncWords result: ${if (result != null) "${result.words.size} words" else "null"}")
+                                    result
+                                }
+
+                            if (parsedLine != null) {
+                                RichSyncLyricsLineItem(
+                                    parsedLine = parsedLine,
+                                    translatedWords = translatedWords,
+                                    currentTimeMs = current.current,
+                                    isCurrent = index == currentLineIndex,
+                                    modifier =
+                                        Modifier
+                                            .clickable {
+                                                onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                            }.onGloballyPositioned { c ->
+                                                currentLineHeight = c.size.height
+                                            },
+                                )
+                            } else {
+                                // Fallback to regular line item if parsing fails
+                                LyricsLineItem(
+                                    originalWords = words,
+                                    translatedWords = translatedWords,
+                                    isBold = index <= currentLineIndex,
+                                    isCurrent = index == currentLineIndex,
+                                    modifier =
+                                        Modifier
+                                            .clickable {
+                                                onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                            }.onGloballyPositioned { c ->
+                                                currentLineHeight = c.size.height
+                                            },
+                                )
+                            }
+                        }
+
+                        // Line sync or unsynced: use existing LyricsLineItem
+                        else -> {
+                            LyricsLineItem(
+                                originalWords = words,
+                                translatedWords = translatedWords,
+                                isBold = index <= currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
+                                isCurrent = index == currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
+                                modifier =
+                                    Modifier
+                                        .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
+                                            onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                        }.onGloballyPositioned { c ->
+                                            currentLineHeight = c.size.height
+                                        },
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -323,7 +377,7 @@ fun LyricsLineItem(
             Column(
                 modifier = modifier,
             ) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     modifier =
                         Modifier.then(
@@ -334,13 +388,13 @@ fun LyricsLineItem(
                             },
                         ),
                     text = originalWords,
-                    style = typo().headlineMedium,
+                    style = typo().headlineLarge,
                     color =
                         if (isCurrent) {
                             Color.White
                         } else {
                             Color.LightGray.copy(
-                                alpha = 0.8f,
+                                alpha = 0.35f,
                             )
                         },
                 )
@@ -361,12 +415,12 @@ fun LyricsLineItem(
                                 Color.Yellow
                             } else {
                                 Color(0xFF97971A).copy(
-                                    alpha = 0.5f,
+                                    alpha = 0.3f,
                                 )
                             },
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
@@ -374,14 +428,14 @@ fun LyricsLineItem(
         Column(
             modifier = modifier,
         ) {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 modifier = Modifier.blur(1.dp),
                 text = originalWords,
-                style = typo().bodyLarge,
+                style = typo().headlineMedium,
                 color =
                     Color.LightGray.copy(
-                        alpha = 0.8f,
+                        alpha = 0.35f,
                     ),
             )
             if (translatedWords != null) {
@@ -391,13 +445,115 @@ fun LyricsLineItem(
                     style = typo().bodyMedium,
                     color =
                         Color(0xFF97971A).copy(
-                            alpha = 0.5f,
+                            alpha = 0.3f,
                         ),
                 )
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun RichSyncLyricsLineItem(
+    parsedLine: ParsedRichSyncLine,
+    translatedWords: String?,
+    currentTimeMs: Long,
+    isCurrent: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    // Performance optimization: derive current word index based on timeline
+    val currentWordIndex by remember(currentTimeMs, parsedLine.words) {
+        derivedStateOf {
+            if (!isCurrent) return@derivedStateOf -1
+
+            // Find the last word whose start time is <= current time
+            parsedLine.words.indexOfLast { it.startTimeMs <= currentTimeMs }
+        }
+    }
+
+    Column(
+        modifier = modifier,
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
+        FlowRow(
+            modifier =
+                Modifier.then(
+                    if (isCurrent) {
+                        Modifier
+                    } else {
+                        Modifier.blur(1.dp)
+                    },
+                ),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            parsedLine.words.forEachIndexed { index, wordTiming ->
+                AnimatedWord(
+                    word = wordTiming.text,
+                    isActive = isCurrent && index == currentWordIndex,
+                    isPast = isCurrent && index < currentWordIndex,
+                    isCurrent = isCurrent,
+                )
+            }
+        }
+
+        // Translated lyrics (line-level, no word sync)
+        if (translatedWords != null) {
+            Text(
+                modifier =
+                    Modifier.then(
+                        if (isCurrent) {
+                            Modifier
+                        } else {
+                            Modifier.blur(1.dp)
+                        },
+                    ),
+                text = translatedWords,
+                style = typo().bodyMedium,
+                color =
+                    if (isCurrent) {
+                        Color.Yellow
+                    } else {
+                        Color(0xFF97971A).copy(
+                            alpha = 0.3f,
+                        )
+                    },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+private fun AnimatedWord(
+    word: String,
+    isActive: Boolean,
+    isPast: Boolean,
+    isCurrent: Boolean,
+) {
+    // Smooth color transition with animation
+    val color by animateColorAsState(
+        targetValue =
+            when {
+                !isCurrent -> Color.LightGray.copy(alpha = 0.35f) // Non-current line
+                isPast -> Color.White.copy(alpha = 0.7f) // Past words
+                isActive -> Color.White // Current word - full brightness
+                else -> Color.LightGray.copy(alpha = 0.5f) // Future words
+            },
+        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+        label = "wordColor",
+    )
+
+    Text(
+        text = word,
+        style = typo().headlineLarge,
+        color = color,
+    )
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
@@ -525,7 +681,7 @@ fun FullscreenLyricsSheet(
                                 if (shouldHaze) {
                                     Modifier.hazeEffect(
                                         hazeState,
-                                        style = CupertinoMaterials.thin(),
+                                        style = CupertinoMaterials.regular(),
                                     ) {
                                         blurEnabled = true
                                     }

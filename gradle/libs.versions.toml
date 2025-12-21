@@ -1,24 +1,26 @@
 [versions]
 # App version
-version-name="1.0.0"
-version-code="41"
+componentsResources="1.10.0-rc02"
+foundation="1.10.0-rc02"
+runtime="1.10.0-rc02"
+version-name="1.0.1"
+version-code="42"
 
 android = "8.13.1"
 kotlin = "2.2.21"
 serialization = "2.2.21"
 ksp = "2.2.20-2.0.3"
-compose-bom = "2025.11.00"
-material3-expressive = "1.5.0-alpha07"
+compose-bom = "2025.12.00"
+material3-expressive = "1.5.0-alpha10"
 constraintlayout-compose = "1.1.1"
-activity-compose = "1.11.0"
+activity-compose = "1.12.1"
 lifecycle = "2.9.6"
 core-ktx = "1.17.0"
 appcompat = "1.7.1"
 work = "2.11.0"
 startup-runtime = "1.2.0"
-ui-tooling = "1.9.4"
 media3 = "1.8.0"
-okhttp3 = "5.3.1"
+okhttp3 = "5.3.2"
 junit = "4.13.2"
 androidx-junit = "1.3.0"
 espresso-core = "3.7.0"
@@ -31,20 +33,16 @@ gson = "2.13.2"
 coil3 = "3.3.0"
 kmpalette = "3.1.0"
 easypermissions = "3.0.0"
-preference-ktx = "1.2.1"
 datastore-preferences = "1.2.0"
-lottie = "6.6.10"
 paging = "3.4.0-alpha04"
 customactivityoncrash = "2.4.0"
 aboutlibraries = "13.1.0"
-balloon = "1.6.13"
-ktor = "3.3.2"
+ktor = "3.3.3"
 brotli = "0.1.2"
 ksoup = "0.6.0"
 desugaring = "2.1.5"
 koin-bom = "4.1.1"
 md = "0.38.1"
-ui-text-android = "1.9.4"
 haze = "1.7.1"
 smart-exception = "0.2.1"
 onetimepassword = "2.4.1"
@@ -52,29 +50,28 @@ common = "1.19.0"
 json = "1.9.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.27.1"
+sentry-android = "8.28.0"
 sentry-gradle-android = "5.12.2"
-sentry-jvm = "8.27.1"
+sentry-jvm = "8.28.0"
 newpipe = "31edd9f7ad2b8e309442e86d5318cc2779480674"
 webkit = "1.14.0"
-napier = "2.7.1"
 kermit = "2.0.8"
 paging-common = "3.3.6"
 glance = "1.1.1"
-liquid-glass = "1.0.0"
+liquid-glass = "1.0.2"
 ytdlp = "0.18.1"
 ffmpeg-kit-audio="6.0.1"
-composeHotReload = "1.0.0-rc03"
-composeMultiplatform = "1.10.0-alpha03"
+composeHotReload = "1.0.0"
+composeMultiplatform = "1.10.0-rc02"
 datetime = "0.7.1"
 sqlite = "2.6.2"
 okio = "3.16.4"
 gst1JavaCore = "1.4.0"
 gst1JavaFx = "0.9.0"
 gst1JavaSwing = "0.9.0"
-material3-multiplatform = "1.9.0"
+material3-multiplatform = "1.10.0-alpha05"
 adaptive = "1.2.0"
-material-multiplatform = "1.9.2"
+material-multiplatform = "1.9.3"
 material-icons-multiplatform = "1.7.3"
 compottie = "2.0.2"
 cmptoast = "1.0.71"
@@ -97,7 +94,11 @@ compose-material-ripple = { group = "org.jetbrains.compose.material", name = "ma
 compose-material-icons-core = { group = "org.jetbrains.compose.material", name = "material-icons-core", version.ref = "material-icons-multiplatform" }
 compose-material-icons-extended = { group = "org.jetbrains.compose.material", name = "material-icons-extended", version.ref = "material-icons-multiplatform" }
 constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayout-compose" }
-okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
+foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "foundation" }
+components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
+runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }
+ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
+jetbrains-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -131,16 +132,14 @@ navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navi
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref = "easypermissions" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
-lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
 customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }
 aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries-core", version.ref = "aboutlibraries" }
 aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
-balloon = { group = "com.github.skydoves", name = "balloon", version.ref = "balloon" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil3" }
 kmpalette-core = { module = "com.kmpalette:kmpalette-core", version.ref = "kmpalette" }
+okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
@@ -161,14 +160,12 @@ ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", ve
 markdown = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "md" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-material = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
-androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "ui-text-android" }
 kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword", version.ref = "onetimepassword" }
 common = { module = "commons-codec:commons-codec", version.ref = "common" }
 gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
 logging = { module = "org.slf4j:slf4j-android", version.ref = "slf4j" }
 newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version.ref = "newpipe" }
 #leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
-napier-logging = { module = "io.github.aakira:napier", version.ref = "napier" }
 kermit-logging = { module = "co.touchlab:kermit", version.ref = "kermit" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }

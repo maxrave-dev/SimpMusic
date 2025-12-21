@@ -27,19 +27,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.stringResource
-import simpmusic.composeapp.generated.resources.*
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.contributor_email
+import simpmusic.composeapp.generated.resources.contributor_name
+import simpmusic.composeapp.generated.resources.help_build_lyrics_database
+import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
+import simpmusic.composeapp.generated.resources.later
+import simpmusic.composeapp.generated.resources.ok
+import simpmusic.composeapp.generated.resources.use_anonymous
 
 @Composable
 @ExperimentalMaterial3Api
@@ -105,21 +106,6 @@ fun ShareSavedLyricsDialog(
             Column {
                 Text(
                     stringResource(Res.string.help_build_lyrics_database_description),
-                    style = typo().bodySmall,
-                )
-                Text(
-                    buildAnnotatedString {
-                        append(stringResource(Res.string.lyrics_database_description))
-                        append(" ")
-                        withLink(
-                            LinkAnnotation.Url(
-                                "https://github.com/maxrave-dev/lyrics",
-                                TextLinkStyles(style = SpanStyle(color = md_theme_dark_primary)),
-                            ),
-                        ) {
-                            append("https://github.com/maxrave-dev/lyrics")
-                        }
-                    },
                     style = typo().bodySmall,
                 )
                 Spacer(Modifier.height(8.dp))

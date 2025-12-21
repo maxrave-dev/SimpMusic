@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Uygulamayı yeniden başlat</string>
     <string name="help_build_lyrics_database">SimpMusic şarkı sözlerinin şarkı sözü veritabanını oluşturmasına yardımcı olun</string>
     <string name="help_build_lyrics_database_description">Kaydettiğiniz şarkı sözlerini SimpMusic şarkı sözleri veritabanına gönderin</string>
-    <string name="lyrics_database_description">Ticari olmayan amaçlar için SimpMusic ve diğer YouTube istemcileri için kendi şarkı sözü veritabanımızı oluşturuyoruz, açık kaynaklı</string>
     <string name="customactivityoncrash_error_activity_close_app">Uygulamayı kapat</string>
     <string name="customactivityoncrash_error_activity_error_details">Hata ayrıntıları</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Hata ayrıntıları</string>
@@ -453,7 +452,7 @@
     <string name="copied_to_clipboard">Panoya kopyalandı</string>
     <string name="update_channel">Kanalı güncelle</string>
     <string name="enable_liquid_glass_effect">Sıvı camı etkinleştir (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">iOS\'un sıvı cam efektini bazı konumlarda etkinleştirin (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">iOS\'un sıvı cam efektini bazı konumlarda etkinleştirin (Android 13+)</string>
     <string name="your_library">Kitaplığınız</string>
     <string name="play_explicit_content">Uygunsuz içeriği oynat</string>
     <string name="play_explicit_content_description">Uygunsuz içeriği oynatmayı etkinleştir</string>

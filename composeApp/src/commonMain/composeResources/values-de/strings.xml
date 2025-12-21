@@ -198,7 +198,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">App neu starten</string>
     <string name="help_build_lyrics_database">Hilf SimpMusic-Lyrics beim Aufbau der Songtext-Datenbank</string>
     <string name="help_build_lyrics_database_description">Sende deine gespeicherten Songtexte an die SimpMusic-Lyrics-Datenbank</string>
-    <string name="lyrics_database_description">Wir erstellen unsere eigene Songtext-Datenbank für SimpMusic und andere YouTube-Clients für nicht-kommerzielle Zwecke, unter Open-Source</string>
     <string name="customactivityoncrash_error_activity_close_app">App schließen</string>
     <string name="customactivityoncrash_error_activity_error_details">Fehlerdetails</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Fehlerdetails</string>
@@ -453,7 +452,7 @@
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
     <string name="update_channel">Update-Kanal</string>
     <string name="enable_liquid_glass_effect">Liquid-Glass-Effekt aktivieren (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Aktivieren Sie den Liquid-Glass-Effekt von iOS in bestimmten Positionen (Android 12+).</string>
+    <string name="enable_liquid_glass_effect_description">Aktivieren Sie den Liquid-Glass-Effekt von iOS in bestimmten Positionen (Android 13+).</string>
     <string name="your_library">Deine Bibliothek</string>
     <string name="play_explicit_content">Expliziten Inhalt abspielen</string>
     <string name="play_explicit_content_description">Aktivieren, um explizite Inhalte abzuspielen</string>

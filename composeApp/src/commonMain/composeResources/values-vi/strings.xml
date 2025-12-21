@@ -202,7 +202,6 @@
     <string name="customactivityoncrash_error_activity_restart_app">Khởi động lại ứng dụng</string>
     <string name="help_build_lyrics_database">Giúp đỡ SimpMusic lyrics xây dựng cơ sở dữ liệu lời bài hát</string>
     <string name="help_build_lyrics_database_description">Gửi lời bài hát đã lưu của bạn tới cơ sở dữ liệu của SimpMusic lyrics</string>
-    <string name="lyrics_database_description">Chúng tôi xây dựng một cơ sở dữ liệu lời bàn hát riêng dành cho SimpMusic và các máy khách YouTube khác với mục đích phi thương mại, mã nguồn mở tại</string>
     <string name="customactivityoncrash_error_activity_close_app">Đóng ứng dụng</string>
     <string name="customactivityoncrash_error_activity_error_details">Chi tiết lỗi</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Chi tiết lỗi</string>
@@ -457,7 +456,7 @@
     <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
     <string name="update_channel">Kênh cập nhật</string>
     <string name="enable_liquid_glass_effect">Bật liquid glass (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Bật thiết kế Liquid glass trong một số vị trí (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Bật thiết kế Liquid glass trong một số vị trí (Android 13+)</string>
     <string name="your_library">Thư viện của bạn</string>
     <string name="play_explicit_content">Phát bài hát chứa nội dung nhạy cảm</string>
     <string name="play_explicit_content_description">Bật để phát cả những bài hát nhạy cảm</string>

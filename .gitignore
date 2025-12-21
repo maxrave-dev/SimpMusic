@@ -27,3 +27,4 @@ sentry.properties
 /composeApp/build/
 /composeApp/cache/
 /composeApp/kcef-bundle/
+/.mcp.json

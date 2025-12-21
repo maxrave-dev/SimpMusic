@@ -78,8 +78,11 @@ import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.ifNullOrEmpty
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
@@ -285,6 +288,15 @@ fun HomeItem(
                 }
             }
         }
+        if (getPlatform() == Platform.Desktop) {
+            HorizontalScrollBar(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                scrollState = lazyListState,
+            )
+        }
     }
 }
 
@@ -337,20 +349,21 @@ fun HomeItemContentPlaylist(
                         painterPlaylistThumbnail(
                             data.title,
                             style = typo().bodySmall,
-                            thumbSize * 0.9f to thumbSize * 0.9f
+                            thumbSize * 0.9f to thumbSize * 0.9f,
                         )
                     } else {
                         painterResource(Res.drawable.holder)
                     },
-                error = if (data is LocalPlaylistEntity) {
-                    painterPlaylistThumbnail(
-                        data.title,
-                        style = typo().bodySmall,
-                        thumbSize * 0.9f to thumbSize * 0.9f
-                    )
-                } else {
-                    painterResource(Res.drawable.holder)
-                },
+                error =
+                    if (data is LocalPlaylistEntity) {
+                        painterPlaylistThumbnail(
+                            data.title,
+                            style = typo().bodySmall,
+                            thumbSize * 0.9f to thumbSize * 0.9f,
+                        )
+                    } else {
+                        painterResource(Res.drawable.holder)
+                    },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -394,7 +407,7 @@ fun HomeItemContentPlaylist(
             Text(
                 text =
                     when (data) {
-                        is Content ->
+                        is Content -> {
                             data.description
                                 ?: if (data.playlistId == null) {
                                     (
@@ -409,19 +422,55 @@ fun HomeItemContentPlaylist(
                                 } else {
                                     stringResource(Res.string.playlist)
                                 }
+                        }
 
-                        is com.maxrave.domain.data.model.mood.genre.Content -> data.title.subtitle
-                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.subtitle
-                        is LocalPlaylistEntity -> stringResource(Res.string.you)
-                        is PlaylistsResult -> data.author
-                        is AlbumEntity -> data.artistName?.connectArtists() ?: stringResource(Res.string.album)
-                        is PlaylistEntity -> data.author ?: stringResource(Res.string.playlist)
-                        is ResultSingle -> data.year
-                        is ResultAlbum -> data.year
-                        is ResultPlaylist -> data.author
-                        is PodcastsEntity -> data.authorName
-                        is AlbumsResult -> data.year
-                        else -> ""
+                        is com.maxrave.domain.data.model.mood.genre.Content -> {
+                            data.title.subtitle
+                        }
+
+                        is com.maxrave.domain.data.model.mood.moodmoments.Content -> {
+                            data.subtitle
+                        }
+
+                        is LocalPlaylistEntity -> {
+                            stringResource(Res.string.you)
+                        }
+
+                        is PlaylistsResult -> {
+                            data.author
+                        }
+
+                        is AlbumEntity -> {
+                            data.artistName?.connectArtists() ?: stringResource(Res.string.album)
+                        }
+
+                        is PlaylistEntity -> {
+                            data.author ?: stringResource(Res.string.playlist)
+                        }
+
+                        is ResultSingle -> {
+                            data.year
+                        }
+
+                        is ResultAlbum -> {
+                            data.year
+                        }
+
+                        is ResultPlaylist -> {
+                            data.author
+                        }
+
+                        is PodcastsEntity -> {
+                            data.authorName
+                        }
+
+                        is AlbumsResult -> {
+                            data.year
+                        }
+
+                        else -> {
+                            ""
+                        }
                     },
                 style = typo().bodySmall,
                 maxLines = 1,
