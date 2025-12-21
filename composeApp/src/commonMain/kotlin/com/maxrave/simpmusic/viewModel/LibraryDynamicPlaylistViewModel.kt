@@ -112,7 +112,7 @@ class LibraryDynamicPlaylistViewModel(
         loadMediaItem(
             playTrack.toTrack(),
             Config.PLAYLIST_CLICK,
-            0,
+            targetList.indexOf(playTrack).coerceAtLeast(0),
         )
     }
 }
