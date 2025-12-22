@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="Song_and_artist_name">Titre • %1$s</string>
-    <string name="playlist_and_author">Liste de lecture • %1$s</string>
+    <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s abonnés</string>
     <string name="year_and_category">%1$s • %2$s</string>
@@ -26,7 +26,7 @@
     <string name="favorite_playlists">Playlists Préférées</string>
     <string name="no_favorite_playlists">Aucune playlist préférée</string>
     <string name="downloaded_playlists">Playlists Téléchargées</string>
-    <string name="no_playlists_downloaded">Aucune liste de lecture téléchargée</string>
+    <string name="no_playlists_downloaded">Aucune playlist téléchargée</string>
     <string name="your_playlists">Vos Playlists</string>
     <string name="no_playlists_added">Aucune playlist ajoutée</string>
     <string name="recently_added">Ajoutés Récemment</string>
@@ -112,7 +112,7 @@
     <string name="backup_your_data">Sauvegarder vos données</string>
     <string name="save_all_your_playlist_data">Sauvegarder toutes les données de votre playlist</string>
     <string name="restore_your_data">Restauration</string>
-    <string name="restore_your_saved_data">Restaurer vos données sauvegardées</string>
+    <string name="restore_your_saved_data">Restaurez vos données sauvegardées</string>
     <string name="about_us">Qui sommes-nous ?</string>
     <string name="version">Version</string>
     <string name="github">GitHub</string>
@@ -149,7 +149,7 @@
     <string name="logged_out">Déconnecté</string>
     <string name="playlist">Playlist</string>
     <string name="restart_app">Redémarrer l’application pour appliquer les changements</string>
-    <string name="balance_media_loudness">Équilibrer le volume des médias</string>
+    <string name="balance_media_loudness">Équilibrez le volume des médias</string>
     <string name="normalize_volume">Égaliser le volume</string>
     <string name="audio">Audio</string>
     <string name="no_equalizer">Votre appareil n'a pas d'égaliseur</string>
@@ -166,12 +166,12 @@
     <string name="description">Description</string>
     <string name="playback">Lecture</string>
     <string name="save_playback_state">Enregistrer l'état de lecture</string>
-    <string name="save_shuffle_and_repeat_mode">Enregistrer les modes aléatoire et répétition</string>
+    <string name="save_shuffle_and_repeat_mode">Enregistrez les modes aléatoire et répétition</string>
     <string name="skip_silent">Sauter le silence</string>
-    <string name="skip_no_music_part">Sauter la partie sans musique</string>
+    <string name="skip_no_music_part">Sautez la partie sans musique</string>
     <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Délai d'expiration, vérifiez la connexion Internet (%1$s)</string>
     <string name="save_last_played">Sauvegarder la dernière lecture</string>
-    <string name="save_last_played_track_and_queue">Sauvegarder le dernier titre joué et la file d'attente</string>
+    <string name="save_last_played_track_and_queue">Sauvegardez le dernier titre joué et la file d'attente</string>
     <string name="update_available">Nouvelle mise à jour disponible !</string>
     <string name="check_for_update">Vérifier la mise à jour</string>
     <string name="last_checked_at">Dernière vérification : %1$s</string>
@@ -193,7 +193,7 @@
     <string name="save">Sauvegarder</string>
     <string name="saved">Sauvegarde</string>
     <string name="sponsor_block_intro">SponsorBlock est un système qui permet de sauter les parties gênantes des vidéos YouTube.\nPlus d'informations : https://sponsor.ajay.app/\nDans SimpMusic, SponsorBlock n'est disponible que lorsque l'appareil est en ligne.</string>
-    <string name="skip_sponsor_part_of_video">Ignorer la partie sponsorisée de la vidéo</string>
+    <string name="skip_sponsor_part_of_video">Ignorez la partie sponsorisée de la vidéo</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Une erreur inattendue s'est produite. Désolé pour la gêne occasionnée…</string>
     <string name="customactivityoncrash_error_activity_restart_app">Redémarrer l'application</string>
     <string name="help_build_lyrics_database">Aidez SimpMusic à créer la base de données des paroles</string>
@@ -243,7 +243,7 @@
     <string name="backup_create_failed">Échec de la création de la sauvegarde</string>
     <string name="main_lyrics_provider">Fournisseur principal de paroles</string>
     <string name="use_ai_translation">Utiliser la traduction lyrique par IA</string>
-    <string name="use_ai_translation_description">Activer la traduction des paroles à l'aide de l'IA</string>
+    <string name="use_ai_translation_description">Activez la traduction des paroles à l'aide de l'IA</string>
     <string name="translation_language">Langue de traduction</string>
     <string name="follow_app_language">Suivre la langue de l'application</string>
     <string name="email">E-mail</string>
@@ -285,6 +285,13 @@
     <string name="quality_video">Qualité de la vidéo</string>
     <string name="add_to_queue">Ajouter à la file d'attente</string>
     <string name="added_to_queue">Ajouté à la file d'attente</string>
+ </plurals>
+    <string name="dummy_button">Bouton factice</string>
+    <string name="dummy_content">FAUX\nCONTENU</string>
+    <string name="play_video_instead_of_audio_warning">Cette action supprimera le cache du lecteur. Souhaitez-vous continuer ?</string>
+    <string name="quality_video">Qualité de la vidéo</string>
+    <string name="add_to_queue">Ajouter à la file d'attente</string>
+    <string name="added_to_queue">Ajouté à la file d'attente</string>
     <string name="new_release">Nouveautés</string>
     <string name="music_video">Clips</string>
     <string name="your_music_is_always_up_to_date">VOTRE MUSIQUE EST TOUJOURS À JOUR</string>
@@ -307,7 +314,7 @@
     <string name="enable_spotify_lyrics">Activer les paroles Spotify</string>
     <string name="spotify_lyrícs_info">Plus de paroles sans traduction</string>
     <string name="enable_canvas">Activer la toile</string>
-    <string name="canvas_info">Afficher la toile Spotify dans SimpMusic</string>
+    <string name="canvas_info">Affichez la toile Spotify dans SimpMusic</string>
     <string name="spotify_lyrics_provider">Paroles fournies par Spotify</string>
     <string name="offline_mode">Mode hors-ligne</string>
     <string name="added_to_youtube_liked">Ajouté aux favoris YouTube</string>
@@ -378,7 +385,7 @@
     <string name="auto_check_for_update">Vérification automatique des mises à jour</string>
     <string name="auto_check_for_update_description">Vérification des mises à jour lorsque vous ouvrez l'application</string>
     <string name="blur_fullscreen_lyrics">Effet de flou sur les paroles en plein écran</string>
-    <string name="blur_fullscreen_lyrics_description">Flouter l'arrière-plan de l'effet d'écran des paroles en plein écran</string>
+    <string name="blur_fullscreen_lyrics_description">Floutez l'arrière-plan de l'effet d'écran des paroles en plein écran</string>
     <string name="playback_speed_pitch"><![CDATA[Vitesse et hauteur de lecture]]></string>
     <string name="playback_speed">Vitesse de lecture</string>
     <string name="pitch">Hauteur</string>
@@ -429,7 +436,7 @@
     <string name="website">Site web</string>
     <string name="download_this_song_video_file_to_your_device">Télécharger ce fichier audio/vidéo sur votre appareil</string>
     <string name="kill_service_on_exit">Tuer le service à la sortie</string>
-    <string name="kill_service_on_exit_description">Arrêter le lecteur de musique de fond lors de la sortie de l'application</string>
+    <string name="kill_service_on_exit_description">Arrêtez le lecteur de musique de fond lors de la sortie de l'application</string>
     <string name="crossfade">Fondu enchaîné (BÊTA)</string>
     <string name="crossfade_enabled">Activé (%1$ds)</string>
     <string name="crossfade_disabled">Désactivé</string>
@@ -446,17 +453,31 @@
     <string name="backup_in_progress">Sauvegarde en cours</string>
     <string name="restore_in_progress">Restauration en cours</string>
     <string name="backup_downloaded">Sauvegarder les données téléchargées</string>
-    <string name="backup_downloaded_description">Sauvegarder toutes les données des titres téléchargés</string>
+    <string name="backup_downloaded_description">Sauvegardez toutes les données des titres téléchargés</string>
     <string name="no_playlist_found">Aucune playlist locale trouvée, veuillez d'abord en créer une.</string>
     <string name="list_all_cookies_of_this_page">Lister tous les cookies de cette page</string>
     <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
     <string name="update_channel">Mettre à jour la chaîne</string>
     <string name="enable_liquid_glass_effect">Activer le verre liquide (Bêta)</string>
-    <string name="enable_liquid_glass_effect_description">Activer l'effet verre liquide d'iOS dans certaines positions (Android 12+)</string>
+    <string name="enable_liquid_glass_effect_description">Activez l'effet verre liquide d'iOS dans certaines positions (Android 12+)</string>
     <string name="your_library">Votre Bibliothèque</string>
     <string name="play_explicit_content">Lire le contenu explicite</string>
-    <string name="play_explicit_content_description">Activer la lecture de contenu explicite</string>
+    <string name="play_explicit_content_description">Activez la lecture de contenu explicite</string>
     <string name="explicit_content_blocked">Le contenu explicite est ignoré</string>
     <string name="mix_for_you">Mix pour vous</string>
     <string name="no_mixes_found">Aucun mix trouvé</string>
+    <string name="desktop_webview_description">En raison des limitations de Compose Multiplatform, je ne peux pas implémenter WebView sur ordinateur.\nConsultez ce document pour en savoir plus sur la connexion sur ordinateur :\n</string>
+    <string name="open_blog_post">Ouvrir l'article de blog</string>
+    <string name="discord_integration">Intégration Discord</string>
+    <string name="log_in_to_discord">Se connecter à Discord</string>
+    <string name="intro_login_to_discord">Connectez-vous pour activer la présence enrichie Discord</string>
+    <string name="enable_rich_presence">Activer une présence riche</string>
+    <string name="rich_presence_info">Afficher les informations de la session média sur votre profil Discord</string>
+    <string name="youtube_liked_music">Musique favorite sur YouTube</string>
+    <string name="keep_service_alive">Maintenir le service en vie</string>
+    <string name="keep_service_alive_description">Maintenez le service du lecteur de musique actif pour éviter qu'il ne soit arrêté par le système</string>
+    <string name="keep_your_youtube_playlist_offline">Continuer à afficher votre playlist YouTube même hors ligne</string>
+    <string name="keep_your_youtube_playlist_offline_description">Enregistrez votre playlist YouTube en local et conservez-la pour la visionner hors ligne</string>
+    <string name="combine_local_and_youtube_liked_songs">Remplacer « Favori » par « J’aime » sur YouTube lors de la connexion</string>
+    <string name="combine_local_and_youtube_liked_songs_description">Utilisation uniquement des vidéos aimées sur YouTube (ne prend pas en charge les titres hors ligne)</string>
 </resources>
