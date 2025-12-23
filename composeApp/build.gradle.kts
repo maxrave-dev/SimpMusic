@@ -317,7 +317,7 @@ compose.desktop {
             packageName = "SimpMusic"
             macOS {
                 includeAllModules = true
-                packageVersion = "2025.11.16"
+                packageVersion = "2025.12.24"
                 iconFile.set(project.file("icon/circle_app_icon.icns"))
                 val macExtraPlistKeys =
                     """
@@ -339,6 +339,7 @@ compose.desktop {
                 packageVersion =
                     libs.versions.version.name
                         .get()
+                        .removeSuffix("-hf")
                 iconFile.set(project.file("icon/circle_app_icon.ico"))
             }
             linux {
@@ -346,6 +347,7 @@ compose.desktop {
                 packageVersion =
                     libs.versions.version.name
                         .get()
+                        .removeSuffix("-hf")
                 iconFile.set(project.file("icon/circle_app_icon.png"))
             }
         }
