@@ -54,6 +54,48 @@ body:
     validations:
       required: true
 
+  - type: markdown
+    attributes:
+      value: |
+        ### 📱 Device Information
+        Please provide details about the device where the issue occurred.
+
+  - type: input
+    id: android_version
+    attributes:
+      label: Android Version
+      placeholder: e.g. Android 15
+    validations:
+      required: true
+
+  - type: input
+    id: device_model
+    attributes:
+      label: Device Model
+      placeholder: e.g. Google Pixel 7 Pro
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: custom_rom
+    attributes:
+      label: Custom ROM
+      description: Are you using a custom ROM?
+      options:
+        - label: Yes, I am using a custom ROM.
+
+  - type: input
+    id: rom_name
+    if:
+      condition: custom_rom
+      operator: equals
+      value: true
+    attributes:
+      label: Custom ROM Name
+      placeholder: e.g. LineageOS 21, Pixel Experience, crDroid
+    validations:
+      required: true
+
   - type: textarea
     id: screenshots
     attributes:
