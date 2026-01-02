@@ -54,7 +54,7 @@ body:
     validations:
       required: true
 
-  - type: markdown
+   - type: markdown
     attributes:
       value: |
         ### 📱 Device Information
@@ -80,21 +80,16 @@ body:
     id: custom_rom
     attributes:
       label: Custom ROM
-      description: Are you using a custom ROM?
+      description: Check this if you are using a custom ROM.
       options:
-        - label: Yes, I am using a custom ROM.
+        - label: I am using a custom ROM
 
   - type: input
     id: rom_name
-    if:
-      condition: custom_rom
-      operator: equals
-      value: true
     attributes:
-      label: Custom ROM Name
-      placeholder: e.g. LineageOS 21, Pixel Experience, crDroid
-    validations:
-      required: true
+      label: Custom ROM Name (if applicable)
+      description: Only fill this out if you checked the box above.
+      placeholder: e.g. LineageOS 21, crDroid, Pixel Experience
 
   - type: textarea
     id: screenshots
