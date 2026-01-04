@@ -20,11 +20,8 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import com.maxrave.simpmusic.MainActivity
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.utils.ComposeResUtils
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
-import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.new_albums
-import simpmusic.composeapp.generated.resources.new_singles
 
 object NotificationHandler {
     private const val CHANNEL_ID = "transactions_reminder_channel"
@@ -66,11 +63,15 @@ object NotificationHandler {
                         .build()
 
                 return@runBlocking when (val result = loader.execute(request)) {
-                    is SuccessResult -> result.image.toBitmap()
-                    else ->
+                    is SuccessResult -> {
+                        result.image.toBitmap()
+                    }
+
+                    else -> {
                         AppCompatResources
                             .getDrawable(context, R.drawable.holder)
                             ?.toBitmap(128, 128)
+                    }
                 }
             }
         val builder =
@@ -80,9 +81,9 @@ object NotificationHandler {
                 .setContentTitle(noti.name)
                 .setContentText(
                     if (noti.single.isNotEmpty()) {
-                        "${getString(Res.string.new_singles)}: ${noti.single.joinToString { it.title }}"
+                        "${ComposeResUtils.getResString(ComposeResUtils.StringType.NEW_SINGLES)}: ${noti.single.joinToString { it.title }}"
                     } else {
-                        "${getString(Res.string.new_albums)}: ${noti.album.joinToString { it.title }}"
+                        "${ComposeResUtils.getResString(ComposeResUtils.StringType.NEW_ALBUMS)}: ${noti.album.joinToString { it.title }}"
                     },
                 ).setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setLargeIcon(bitmap)

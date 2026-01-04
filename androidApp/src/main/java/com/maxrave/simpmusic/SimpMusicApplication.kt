@@ -95,8 +95,7 @@ class SimpMusicApplication :
                         },
                     ),
                 )
-            }
-            .diskCachePolicy(CachePolicy.ENABLED)
+            }.diskCachePolicy(CachePolicy.ENABLED)
             .networkCachePolicy(CachePolicy.ENABLED)
             .diskCache(
                 DiskCache
