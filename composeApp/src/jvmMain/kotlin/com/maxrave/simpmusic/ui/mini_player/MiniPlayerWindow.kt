@@ -26,10 +26,11 @@ import java.util.prefs.Preferences
 
 /**
  * Mini player window - a separate always-on-top window for music controls.
- * This window is independent of the main application window.
+ * Spotify-style frameless design with custom close button.
  * 
  * Features:
  * - Always on top of other windows
+ * - Frameless (no title bar)
  * - Resizable (default 400x110 dp)
  * - Shares player state with main window
  * - Close-safe (doesn't close main app)
@@ -79,6 +80,7 @@ fun MiniPlayerWindow(
         title = "SimpMusic - Mini Player",
         icon = painterResource(Res.drawable.circle_app_icon),
         alwaysOnTop = true,
+        undecorated = true,
         resizable = true,
         state = windowState,
         onKeyEvent = { keyEvent ->
@@ -99,6 +101,10 @@ fun MiniPlayerWindow(
             }
         }
     ) {
-        MiniPlayerRoot(sharedViewModel)
+        MiniPlayerRoot(
+            sharedViewModel = sharedViewModel,
+            onClose = onCloseRequest,
+            windowState = windowState
+        )
     }
 }

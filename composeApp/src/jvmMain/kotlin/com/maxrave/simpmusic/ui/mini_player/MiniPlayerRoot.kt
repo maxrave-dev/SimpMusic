@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -24,7 +25,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,10 +43,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.WindowState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.streams.TimeLine
@@ -54,6 +64,8 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_skip_next_24
 import simpmusic.composeapp.generated.resources.baseline_skip_previous_24
 import simpmusic.composeapp.generated.resources.holder
+import java.awt.Cursor
+import java.awt.MouseInfo
 
 /**
  * Root composable for the mini player window content.
@@ -63,9 +75,14 @@ import simpmusic.composeapp.generated.resources.holder
  * - > 360dp: Full (artwork + info + controls)
  * 
  * Shows placeholder when no track is playing.
+ * Includes close button and drag handle since window is frameless.
  */
 @Composable
-fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
+fun MiniPlayerRoot(
+    sharedViewModel: SharedViewModel,
+    onClose: () -> Unit,
+    windowState: WindowState
+) {
     val nowPlayingData by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
@@ -73,30 +90,73 @@ fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
     // Check if there's any track playing
     val hasTrack = nowPlayingData?.nowPlayingTitle?.isNotBlank() == true
     
-    if (!hasTrack) {
-        // Show empty state
-        EmptyMiniPlayerState()
-    } else {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            when {
-                maxWidth < 260.dp -> CompactMiniLayout(
-                    controllerState = controllerState,
-                    timeline = timeline,
-                    onUIEvent = sharedViewModel::onUIEvent
-                )
-                maxWidth < 360.dp -> MediumMiniLayout(
-                    nowPlayingData = nowPlayingData!!,
-                    controllerState = controllerState,
-                    timeline = timeline,
-                    onUIEvent = sharedViewModel::onUIEvent
-                )
-                else -> ExpandedMiniLayout(
-                    nowPlayingData = nowPlayingData!!,
-                    controllerState = controllerState,
-                    timeline = timeline,
-                    onUIEvent = sharedViewModel::onUIEvent
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color(0xFF1C1C1E),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (!hasTrack) {
+                // Show empty state
+                EmptyMiniPlayerState()
+            } else {
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    when {
+                        maxWidth < 260.dp -> CompactMiniLayout(
+                            controllerState = controllerState,
+                            timeline = timeline,
+                            onUIEvent = sharedViewModel::onUIEvent
+                        )
+                        maxWidth < 360.dp -> MediumMiniLayout(
+                            nowPlayingData = nowPlayingData!!,
+                            controllerState = controllerState,
+                            timeline = timeline,
+                            onUIEvent = sharedViewModel::onUIEvent
+                        )
+                        else -> ExpandedMiniLayout(
+                            nowPlayingData = nowPlayingData!!,
+                            controllerState = controllerState,
+                            timeline = timeline,
+                            onUIEvent = sharedViewModel::onUIEvent
+                        )
+                    }
+                }
+            }
+            
+            // Close button (top-right corner)
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Close",
+                    tint = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp)
                 )
             }
+            
+            // Drag handle (top area for moving window)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth(0.7f)
+                    .height(32.dp)
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()
+                            val location = MouseInfo.getPointerInfo().location
+                            windowState.position = androidx.compose.ui.window.WindowPosition(
+                                (location.x - dragAmount.x).dp,
+                                (location.y - dragAmount.y).dp
+                            )
+                        }
+                    }
+                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.MOVE_CURSOR)))
+            )
         }
     }
 }
@@ -106,30 +166,25 @@ fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
  */
 @Composable
 private fun EmptyMiniPlayerState() {
-    Surface(
+    Box(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF1C1C1E)
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "No track playing",
-                    style = typo().bodyMedium.copy(fontSize = 13.sp),
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Play something to see controls",
-                    style = typo().bodySmall.copy(fontSize = 11.sp),
-                    color = Color.White.copy(alpha = 0.4f)
-                )
-            }
+            Text(
+                text = "No track playing",
+                style = typo().bodyMedium.copy(fontSize = 13.sp),
+                color = Color.White.copy(alpha = 0.6f)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Play something to see controls",
+                style = typo().bodySmall.copy(fontSize = 11.sp),
+                color = Color.White.copy(alpha = 0.4f)
+            )
         }
     }
 }
