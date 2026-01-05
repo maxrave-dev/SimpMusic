@@ -1,7 +1,17 @@
 package com.maxrave.simpmusic.ui.mini_player
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +28,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
@@ -51,8 +65,18 @@ fun CompactMiniLayout(
     timeline: TimeLine,
     onUIEvent: (UIEvent) -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val alpha by animateFloatAsState(
+        targetValue = if (isHovered) 1f else 0.9f,
+        animationSpec = tween(200)
+    )
+    
     Surface(
-        modifier = Modifier.fillMaxSize().animateContentSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .animateContentSize(animationSpec = tween(300))
+            .hoverable(interactionSource),
         color = Color(0xFF1C1C1E)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -63,37 +87,44 @@ fun CompactMiniLayout(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(300)) + scaleIn(tween(300)),
+                    exit = fadeOut(tween(200)) + scaleOut(tween(200))
                 ) {
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_previous_24,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isPreviousAvailable) {
-                                onUIEvent(UIEvent.Previous)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.alpha(alpha)
+                    ) {
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_previous_24,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isPreviousAvailable) {
+                                    onUIEvent(UIEvent.Previous)
+                                }
                             }
-                        }
-                    )
-                    
-                    PlayPauseButton(
-                        isPlaying = controllerState.isPlaying,
-                        modifier = Modifier.size(36.dp),
-                        onClick = { onUIEvent(UIEvent.PlayPause) }
-                    )
-                    
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_next_24,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isNextAvailable) {
-                                onUIEvent(UIEvent.Next)
+                        )
+                        
+                        PlayPauseButton(
+                            isPlaying = controllerState.isPlaying,
+                            modifier = Modifier.size(36.dp),
+                            onClick = { onUIEvent(UIEvent.PlayPause) }
+                        )
+                        
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_next_24,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isNextAvailable) {
+                                    onUIEvent(UIEvent.Next)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
             
@@ -114,8 +145,17 @@ fun MediumMiniLayout(
     timeline: TimeLine,
     onUIEvent: (UIEvent) -> Unit
 ) {
+    val artworkInteractionSource = remember { MutableInteractionSource() }
+    val isArtworkHovered by artworkInteractionSource.collectIsHoveredAsState()
+    val artworkScale by animateFloatAsState(
+        targetValue = if (isArtworkHovered) 1.05f else 1f,
+        animationSpec = tween(200)
+    )
+    
     Surface(
-        modifier = Modifier.fillMaxSize().animateContentSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .animateContentSize(animationSpec = tween(300)),
         color = Color(0xFF1C1C1E)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -127,52 +167,66 @@ fun MediumMiniLayout(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Smaller artwork
-                AsyncImage(
-                    model = nowPlayingData.thumbnailURL,
-                    contentDescription = "Album Art",
-                    placeholder = painterResource(Res.drawable.holder),
-                    error = painterResource(Res.drawable.holder),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                )
+                // Smaller artwork with hover effect
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(300)) + scaleIn(tween(300)),
+                    exit = fadeOut(tween(200)) + scaleOut(tween(200))
+                ) {
+                    AsyncImage(
+                        model = nowPlayingData.thumbnailURL,
+                        contentDescription = "Album Art",
+                        placeholder = painterResource(Res.drawable.holder),
+                        error = painterResource(Res.drawable.holder),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .scale(artworkScale)
+                            .clip(RoundedCornerShape(6.dp))
+                            .hoverable(artworkInteractionSource)
+                    )
+                }
                 
                 Spacer(modifier = Modifier.weight(1f))
                 
-                // Controls
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Controls with fade-in
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(300, delayMillis = 100)),
+                    exit = fadeOut(tween(200))
                 ) {
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_previous_24,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isPreviousAvailable) {
-                                onUIEvent(UIEvent.Previous)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_previous_24,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isPreviousAvailable) {
+                                    onUIEvent(UIEvent.Previous)
+                                }
                             }
-                        }
-                    )
-                    
-                    PlayPauseButton(
-                        isPlaying = controllerState.isPlaying,
-                        modifier = Modifier.size(36.dp),
-                        onClick = { onUIEvent(UIEvent.PlayPause) }
-                    )
-                    
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_next_24,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isNextAvailable) {
-                                onUIEvent(UIEvent.Next)
+                        )
+                        
+                        PlayPauseButton(
+                            isPlaying = controllerState.isPlaying,
+                            modifier = Modifier.size(36.dp),
+                            onClick = { onUIEvent(UIEvent.PlayPause) }
+                        )
+                        
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_next_24,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isNextAvailable) {
+                                    onUIEvent(UIEvent.Next)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
             

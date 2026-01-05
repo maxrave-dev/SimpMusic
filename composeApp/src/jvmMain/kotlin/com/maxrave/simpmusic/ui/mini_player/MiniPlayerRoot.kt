@@ -1,6 +1,17 @@
 package com.maxrave.simpmusic.ui.mini_player
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,9 +30,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
@@ -88,9 +101,17 @@ private fun ExpandedMiniLayout(
     timeline: com.maxrave.simpmusic.viewModel.TimeLine,
     onUIEvent: (UIEvent) -> Unit
 ) {
+    val artworkInteractionSource = remember { MutableInteractionSource() }
+    val isArtworkHovered by artworkInteractionSource.collectIsHoveredAsState()
+    val artworkScale by animateFloatAsState(
+        targetValue = if (isArtworkHovered) 1.08f else 1f,
+        animationSpec = tween(250)
+    )
     
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .animateContentSize(animationSpec = tween(300)),
         color = Color(0xFF1C1C1E)
     ) {
         Column(
@@ -105,63 +126,82 @@ private fun ExpandedMiniLayout(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Album artwork
-                AsyncImage(
-                    model = nowPlayingData.thumbnailURL,
-                    contentDescription = "Album Art",
-                    placeholder = painterResource(Res.drawable.holder),
-                    error = painterResource(Res.drawable.holder),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-                
-                // Track info
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center
+                // Album artwork with hover animation
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(300)) + scaleIn(tween(300)),
+                    exit = fadeOut(tween(200)) + scaleOut(tween(200))
                 ) {
-                    Text(
-                        text = nowPlayingData.nowPlayingTitle,
-                        style = typo().bodyMedium,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = nowPlayingData.artistName,
-                        style = typo().bodySmall,
-                        color = Color.Gray,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontSize = 12.sp
+                    AsyncImage(
+                        model = nowPlayingData.thumbnailURL,
+                        contentDescription = "Album Art",
+                        placeholder = painterResource(Res.drawable.holder),
+                        error = painterResource(Res.drawable.holder),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .scale(artworkScale)
+                            .clip(RoundedCornerShape(8.dp))
+                            .hoverable(artworkInteractionSource)
                     )
                 }
                 
-                // Playback controls
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Track info with fade-in animation
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(300, delayMillis = 100)),
+                    exit = fadeOut(tween(200))
                 ) {
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_previous_24,
-                        modifier = Modifier.size(32.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isPreviousAvailable) {
-                                sharedViewModel.onUIEvent(UIEvent.Previous)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = nowPlayingData.nowPlayingTitle,
+                            style = typo().bodyMedium,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = nowPlayingData.artistName,
+                            style = typo().bodySmall,
+                            color = Color.Gray,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                
+                // Playback controls with fade-in animation
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(300, delayMillis = 150)),
+                    exit = fadeOut(tween(200))
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_previous_24,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isPreviousAvailable) {
+                                    onUIEvent(UIEvent.Previous)
+                                }
                             }
-                        }
-                    )
+                        )
                     
                     PlayPauseButton(
                         isPlaying = controllerState.isPlaying,
                         modifier = Modifier.size(40.dp),
                         onClick = {
-                            sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                            onUIEvent(UIEvent.PlayPause)
                         }
                     )
                     
@@ -175,6 +215,7 @@ private fun ExpandedMiniLayout(
                             }
                         }
                     )
+                    }
                 }
             }
             
