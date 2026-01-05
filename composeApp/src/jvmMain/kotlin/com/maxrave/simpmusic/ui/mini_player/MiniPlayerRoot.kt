@@ -61,6 +61,8 @@ import simpmusic.composeapp.generated.resources.holder
  * - < 260dp: Compact (controls only)
  * - 260-360dp: Medium (artwork + controls)
  * - > 360dp: Full (artwork + info + controls)
+ * 
+ * Shows placeholder when no track is playing.
  */
 @Composable
 fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
@@ -68,25 +70,66 @@ fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
     
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        when {
-            maxWidth < 260.dp -> CompactMiniLayout(
-                controllerState = controllerState,
-                timeline = timeline,
-                onUIEvent = sharedViewModel::onUIEvent
-            )
-            maxWidth < 360.dp -> MediumMiniLayout(
-                nowPlayingData = nowPlayingData,
-                controllerState = controllerState,
-                timeline = timeline,
-                onUIEvent = sharedViewModel::onUIEvent
-            )
-            else -> ExpandedMiniLayout(
-                nowPlayingData = nowPlayingData,
-                controllerState = controllerState,
-                timeline = timeline,
-                onUIEvent = sharedViewModel::onUIEvent
-            )
+    // Check if there's any track playing
+    val hasTrack = nowPlayingData?.nowPlayingTitle?.isNotBlank() == true
+    
+    if (!hasTrack) {
+        // Show empty state
+        EmptyMiniPlayerState()
+    } else {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            when {
+                maxWidth < 260.dp -> CompactMiniLayout(
+                    controllerState = controllerState,
+                    timeline = timeline,
+                    onUIEvent = sharedViewModel::onUIEvent
+                )
+                maxWidth < 360.dp -> MediumMiniLayout(
+                    nowPlayingData = nowPlayingData!!,
+                    controllerState = controllerState,
+                    timeline = timeline,
+                    onUIEvent = sharedViewModel::onUIEvent
+                )
+                else -> ExpandedMiniLayout(
+                    nowPlayingData = nowPlayingData!!,
+                    controllerState = controllerState,
+                    timeline = timeline,
+                    onUIEvent = sharedViewModel::onUIEvent
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Empty state when no track is playing
+ */
+@Composable
+private fun EmptyMiniPlayerState() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color(0xFF1C1C1E)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "No track playing",
+                    style = typo().bodyMedium.copy(fontSize = 13.sp),
+                    color = Color.White.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Play something to see controls",
+                    style = typo().bodySmall.copy(fontSize = 11.sp),
+                    color = Color.White.copy(alpha = 0.4f)
+                )
+            }
         }
     }
 }
