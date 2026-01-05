@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.mini_player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,13 +43,51 @@ import simpmusic.composeapp.generated.resources.holder
 
 /**
  * Root composable for the mini player window content.
- * Displays current track information and playback controls.
+ * Automatically switches between layouts based on window width:
+ * - < 260dp: Compact (controls only)
+ * - 260-360dp: Medium (artwork + controls)
+ * - > 360dp: Full (artwork + info + controls)
  */
 @Composable
 fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
     val nowPlayingData by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        when {
+            maxWidth < 260.dp -> CompactMiniLayout(
+                controllerState = controllerState,
+                timeline = timeline,
+                onUIEvent = sharedViewModel::onUIEvent
+            )
+            maxWidth < 360.dp -> MediumMiniLayout(
+                nowPlayingData = nowPlayingData,
+                controllerState = controllerState,
+                timeline = timeline,
+                onUIEvent = sharedViewModel::onUIEvent
+            )
+            else -> ExpandedMiniLayout(
+                nowPlayingData = nowPlayingData,
+                controllerState = controllerState,
+                timeline = timeline,
+                onUIEvent = sharedViewModel::onUIEvent
+            )
+        }
+    }
+}
+
+/**
+ * Legacy full layout - now used only when BoxWithConstraints shows > 360dp
+ * Kept for backwards compatibility
+ */
+@Composable
+private fun ExpandedMiniLayout(
+    nowPlayingData: com.maxrave.simpmusic.viewModel.NowPlayingScreenData,
+    controllerState: com.maxrave.domain.mediaservice.handler.ControlState,
+    timeline: com.maxrave.simpmusic.viewModel.TimeLine,
+    onUIEvent: (UIEvent) -> Unit
+) {
     
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -132,7 +171,7 @@ fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
                         tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                         onClick = {
                             if (controllerState.isNextAvailable) {
-                                sharedViewModel.onUIEvent(UIEvent.Next)
+                                onUIEvent(UIEvent.Next)
                             }
                         }
                     )
