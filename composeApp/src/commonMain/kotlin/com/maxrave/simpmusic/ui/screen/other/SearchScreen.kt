@@ -127,6 +127,7 @@ fun SearchScreen(
     val searchScreenState by searchViewModel.searchScreenState.collectAsStateWithLifecycle()
     val uiState by searchViewModel.searchScreenUIState.collectAsStateWithLifecycle()
     val searchHistory by searchViewModel.searchHistory.collectAsStateWithLifecycle()
+    val searchFocusTrigger by sharedViewModel.searchFocusTrigger.collectAsStateWithLifecycle()
 
     var searchUIType by rememberSaveable { mutableStateOf(SearchUIType.EMPTY) }
     var searchText by rememberSaveable { mutableStateOf("") }
@@ -167,6 +168,12 @@ fun SearchScreen(
     LaunchedEffect(isFocused) {
         if (isFocused) {
             isExpanded = true
+        }
+    }
+
+    LaunchedEffect(searchFocusTrigger) {
+        if (searchFocusTrigger > 0) {
+            focusRequester.requestFocus()
         }
     }
 

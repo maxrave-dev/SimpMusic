@@ -7,6 +7,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -459,33 +461,44 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         tween(100),
                     ) { -it / 2 },
             ) {
-                FloatingActionButton(
-                    modifier =
-                        Modifier.drawBackdropCustomShape(
+                var lastClickTime by remember { mutableStateOf(0L) }
+                val doubleClickThreshold = 300L
+                Box(
+                    modifier = Modifier
+                        .drawBackdropCustomShape(
                             backdrop,
                             layer,
                             luminanceAnimation.value,
                             CircleShape,
-                        ),
-                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
-                    onClick = {
-                        previousSelectedIndex = selectedIndex
-                        selectedIndex = BottomNavScreen.Search.ordinal
-                        navController.navigate(BottomNavScreen.Search.destination) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+                        )
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .combinedClickable(
+                            onClick = {
+                                val currentTime = System.currentTimeMillis()
+                                val isDoubleClick = (currentTime - lastClickTime) < doubleClickThreshold
+                                val isOnSearchScreen = currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
+                                if (isDoubleClick && isOnSearchScreen) {
+                                    viewModel.triggerSearchFocus()
+                                } else if (!isOnSearchScreen) {
+                                    previousSelectedIndex = selectedIndex
+                                    selectedIndex = BottomNavScreen.Search.ordinal
+                                    navController.navigate(BottomNavScreen.Search.destination) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                                lastClickTime = currentTime
                             }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    shape = CircleShape,
-                    containerColor = transparent,
-                    contentColor = transparent,
+                        ),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Outlined.Search,
-                        "",
+                        contentDescription = "Search",
                         tint = searchColor,
                     )
                 }

@@ -129,6 +129,9 @@ class SharedViewModel(
     private var _sleepTimerState = MutableStateFlow(SleepTimerState(false, 0))
     val sleepTimerState: StateFlow<SleepTimerState> = _sleepTimerState
 
+    private var _searchFocusTrigger = MutableStateFlow(0)
+    val searchFocusTrigger: StateFlow<Int> = _searchFocusTrigger
+
     private var regionCode: String? = null
     private var language: String? = null
     private var quality: String? = null
@@ -922,6 +925,10 @@ class SharedViewModel(
         _nowPlayingState.value = null
         mediaPlayerHandler.resetSongAndQueue()
         onUIEvent(UIEvent.Stop)
+    }
+
+    fun triggerSearchFocus() {
+        _searchFocusTrigger.value++
     }
 
     private fun loadPlaylistOrAlbum(index: Int? = null) {

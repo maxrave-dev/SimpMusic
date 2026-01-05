@@ -1,13 +1,17 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -25,15 +29,18 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.*
 import kotlin.reflect.KClass
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppBottomNavigationBar(
     startDestination: Any = HomeDestination,
     navController: NavController,
+    viewModel: SharedViewModel? = null,
     isTranslucentBackground: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
@@ -85,10 +92,17 @@ fun AppBottomNavigationBar(
                 },
         ) {
             bottomNavScreens.forEach { screen ->
+                var lastClickTime by remember { mutableStateOf(0L) }
+                val doubleClickThreshold = 300L                
                 NavigationBarItem(
                     selected = selectedIndex == screen.ordinal,
                     onClick = {
-                        if (selectedIndex == screen.ordinal) {
+                        val currentTime = System.currentTimeMillis()
+                        val isDoubleClick = (currentTime - lastClickTime) < doubleClickThreshold
+                        val isOnSearchScreen = screen == BottomNavScreen.Search && currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
+                        if (isDoubleClick && isOnSearchScreen) {
+                            viewModel?.triggerSearchFocus()
+                        } else if (selectedIndex == screen.ordinal) {
                             if (currentBackStackEntry?.destination?.hierarchy?.any {
                                     it.hasRoute(screen.destination::class)
                                 } == true
@@ -109,6 +123,7 @@ fun AppBottomNavigationBar(
                                 restoreState = true
                             }
                         }
+                        lastClickTime = currentTime
                     },
                     label = {
                         Text(
@@ -136,6 +151,7 @@ fun AppBottomNavigationBar(
 fun AppNavigationRail(
     startDestination: Any = HomeDestination,
     navController: NavController,
+    viewModel: SharedViewModel? = null,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -177,6 +193,8 @@ fun AppNavigationRail(
         }
         Spacer(Modifier.weight(1f))
         bottomNavScreens.forEachIndexed { index, screen ->
+            var lastClickTime by remember { mutableStateOf(0L) }
+            val doubleClickThreshold = 300L
             NavigationRailItem(
                 icon = screen.icon,
                 label = {
@@ -192,7 +210,11 @@ fun AppNavigationRail(
                 },
                 selected = selectedIndex == index,
                 onClick = {
-                    if (selectedIndex == screen.ordinal) {
+                    val currentTime = System.currentTimeMillis()
+                    val isDoubleClick = (currentTime - lastClickTime) < doubleClickThreshold
+                    if (screen == BottomNavScreen.Search && isDoubleClick) {
+                        viewModel?.triggerSearchFocus()
+                    } else if (selectedIndex == screen.ordinal) {
                         if (currentBackStackEntry?.destination?.hierarchy?.any {
                                 it.hasRoute(screen.destination::class)
                             } == true
@@ -213,6 +235,7 @@ fun AppNavigationRail(
                             restoreState = true
                         }
                     }
+                    lastClickTime = currentTime
                 },
             )
         }
