@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
@@ -98,7 +99,7 @@ fun MiniPlayerRoot(sharedViewModel: SharedViewModel) {
 private fun ExpandedMiniLayout(
     nowPlayingData: com.maxrave.simpmusic.viewModel.NowPlayingScreenData,
     controllerState: com.maxrave.domain.mediaservice.handler.ControlState,
-    timeline: com.maxrave.simpmusic.viewModel.TimeLine,
+    timeline: TimeLine,
     onUIEvent: (UIEvent) -> Unit
 ) {
     val artworkInteractionSource = remember { MutableInteractionSource() }
@@ -127,56 +128,44 @@ private fun ExpandedMiniLayout(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Album artwork with hover animation
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(300)) + scaleIn(tween(300)),
-                    exit = fadeOut(tween(200)) + scaleOut(tween(200))
+                AsyncImage(
+                    model = nowPlayingData.thumbnailURL,
+                    contentDescription = "Album Art",
+                    placeholder = painterResource(Res.drawable.holder),
+                    error = painterResource(Res.drawable.holder),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .scale(artworkScale)
+                        .clip(RoundedCornerShape(8.dp))
+                        .hoverable(artworkInteractionSource)
+                )
+                
+                // Track info
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    AsyncImage(
-                        model = nowPlayingData.thumbnailURL,
-                        contentDescription = "Album Art",
-                        placeholder = painterResource(Res.drawable.holder),
-                        error = painterResource(Res.drawable.holder),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .scale(artworkScale)
-                            .clip(RoundedCornerShape(8.dp))
-                            .hoverable(artworkInteractionSource)
+                    Text(
+                        text = nowPlayingData.nowPlayingTitle,
+                        style = typo().bodyMedium,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = nowPlayingData.artistName,
+                        style = typo().bodySmall,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 12.sp
                     )
                 }
                 
-                // Track info with fade-in animation
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(300, delayMillis = 100)),
-                    exit = fadeOut(tween(200))
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = nowPlayingData.nowPlayingTitle,
-                            style = typo().bodyMedium,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 14.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = nowPlayingData.artistName,
-                            style = typo().bodySmall,
-                            color = Color.Gray,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 12.sp
-                        )
-                    }
-                }
-                
-                // Playback controls with fade-in animation
+                // Playback controls
                 AnimatedVisibility(
                     visible = true,
                     enter = fadeIn(tween(300, delayMillis = 150)),
@@ -197,24 +186,24 @@ private fun ExpandedMiniLayout(
                             }
                         )
                     
-                    PlayPauseButton(
-                        isPlaying = controllerState.isPlaying,
-                        modifier = Modifier.size(40.dp),
-                        onClick = {
-                            onUIEvent(UIEvent.PlayPause)
-                        }
-                    )
-                    
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_next_24,
-                        modifier = Modifier.size(32.dp),
-                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isNextAvailable) {
-                                onUIEvent(UIEvent.Next)
+                        PlayPauseButton(
+                            isPlaying = controllerState.isPlaying,
+                            modifier = Modifier.size(40.dp),
+                            onClick = {
+                                onUIEvent(UIEvent.PlayPause)
                             }
-                        }
-                    )
+                        )
+                    
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_next_24,
+                            modifier = Modifier.size(32.dp),
+                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isNextAvailable) {
+                                    onUIEvent(UIEvent.Next)
+                                }
+                            }
+                        )
                     }
                 }
             }

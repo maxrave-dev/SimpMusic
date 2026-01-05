@@ -56,6 +56,7 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Forward5
@@ -125,6 +126,7 @@ import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.GradientAngle
@@ -731,6 +733,16 @@ fun NowPlayingScreenContent(
                         }
                     },
                     actions = {
+                        // Desktop mini player button (JVM only)
+                        if (getPlatform() == Platform.Desktop) {
+                            IconButton(onClick = { toggleMiniPlayer() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.OpenInNew,
+                                    contentDescription = "Mini Player",
+                                    tint = Color.White,
+                                )
+                            }
+                        }
                         IconButton(onClick = {
                             showSheet = true
                         }) {

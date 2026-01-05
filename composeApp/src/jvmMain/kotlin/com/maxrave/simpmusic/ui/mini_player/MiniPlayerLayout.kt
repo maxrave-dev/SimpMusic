@@ -42,12 +42,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
-import com.maxrave.simpmusic.viewModel.TimeLine
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
@@ -84,47 +84,41 @@ fun CompactMiniLayout(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .alpha(alpha),
                 contentAlignment = Alignment.Center
             ) {
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(300)) + scaleIn(tween(300)),
-                    exit = fadeOut(tween(200)) + scaleOut(tween(200))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.alpha(alpha)
-                    ) {
-                        RippleIconButton(
-                            resId = Res.drawable.baseline_skip_previous_24,
-                            modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isPreviousAvailable) {
-                                    onUIEvent(UIEvent.Previous)
-                                }
+                    RippleIconButton(
+                        resId = Res.drawable.baseline_skip_previous_24,
+                        modifier = Modifier.size(28.dp),
+                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                        onClick = {
+                            if (controllerState.isPreviousAvailable) {
+                                onUIEvent(UIEvent.Previous)
                             }
-                        )
-                        
-                        PlayPauseButton(
-                            isPlaying = controllerState.isPlaying,
-                            modifier = Modifier.size(36.dp),
-                            onClick = { onUIEvent(UIEvent.PlayPause) }
-                        )
-                        
-                        RippleIconButton(
-                            resId = Res.drawable.baseline_skip_next_24,
-                            modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isNextAvailable) {
-                                    onUIEvent(UIEvent.Next)
-                                }
+                        }
+                    )
+                    
+                    PlayPauseButton(
+                        isPlaying = controllerState.isPlaying,
+                        modifier = Modifier.size(36.dp),
+                        onClick = { onUIEvent(UIEvent.PlayPause) }
+                    )
+                    
+                    RippleIconButton(
+                        resId = Res.drawable.baseline_skip_next_24,
+                        modifier = Modifier.size(28.dp),
+                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                        onClick = {
+                            if (controllerState.isNextAvailable) {
+                                onUIEvent(UIEvent.Next)
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             }
             
@@ -168,65 +162,53 @@ fun MediumMiniLayout(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Smaller artwork with hover effect
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(300)) + scaleIn(tween(300)),
-                    exit = fadeOut(tween(200)) + scaleOut(tween(200))
-                ) {
-                    AsyncImage(
-                        model = nowPlayingData.thumbnailURL,
-                        contentDescription = "Album Art",
-                        placeholder = painterResource(Res.drawable.holder),
-                        error = painterResource(Res.drawable.holder),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .scale(artworkScale)
-                            .clip(RoundedCornerShape(6.dp))
-                            .hoverable(artworkInteractionSource)
-                    )
-                }
+                AsyncImage(
+                    model = nowPlayingData.thumbnailURL,
+                    contentDescription = "Album Art",
+                    placeholder = painterResource(Res.drawable.holder),
+                    error = painterResource(Res.drawable.holder),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .scale(artworkScale)
+                        .clip(RoundedCornerShape(6.dp))
+                        .hoverable(artworkInteractionSource)
+                )
                 
                 Spacer(modifier = Modifier.weight(1f))
                 
-                // Controls with fade-in
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(300, delayMillis = 100)),
-                    exit = fadeOut(tween(200))
+                // Controls
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RippleIconButton(
-                            resId = Res.drawable.baseline_skip_previous_24,
-                            modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isPreviousAvailable) {
-                                    onUIEvent(UIEvent.Previous)
-                                }
+                    RippleIconButton(
+                        resId = Res.drawable.baseline_skip_previous_24,
+                        modifier = Modifier.size(28.dp),
+                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                        onClick = {
+                            if (controllerState.isPreviousAvailable) {
+                                onUIEvent(UIEvent.Previous)
                             }
-                        )
-                        
-                        PlayPauseButton(
-                            isPlaying = controllerState.isPlaying,
-                            modifier = Modifier.size(36.dp),
-                            onClick = { onUIEvent(UIEvent.PlayPause) }
-                        )
-                        
-                        RippleIconButton(
-                            resId = Res.drawable.baseline_skip_next_24,
-                            modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isNextAvailable) {
-                                    onUIEvent(UIEvent.Next)
-                                }
+                        }
+                    )
+                    
+                    PlayPauseButton(
+                        isPlaying = controllerState.isPlaying,
+                        modifier = Modifier.size(36.dp),
+                        onClick = { onUIEvent(UIEvent.PlayPause) }
+                    )
+                    
+                    RippleIconButton(
+                        resId = Res.drawable.baseline_skip_next_24,
+                        modifier = Modifier.size(28.dp),
+                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                        onClick = {
+                            if (controllerState.isNextAvailable) {
+                                onUIEvent(UIEvent.Next)
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             }
             
