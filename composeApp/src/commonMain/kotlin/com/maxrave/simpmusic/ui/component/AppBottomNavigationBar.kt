@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,18 @@ fun AppBottomNavigationBar(
             },
         )
     }
+
+    LaunchedEffect(currentBackStackEntry) {
+        currentBackStackEntry?.destination?.let { destination ->
+            selectedIndex = when {
+                destination.hasRoute(HomeDestination::class) -> BottomNavScreen.Home.ordinal
+                destination.hasRoute(SearchDestination::class) -> BottomNavScreen.Search.ordinal
+                destination.hasRoute(LibraryDestination::class) -> BottomNavScreen.Library.ordinal
+                else -> selectedIndex
+            }
+        }
+    }
+
     Box(
         modifier =
             Modifier
@@ -171,6 +184,18 @@ fun AppNavigationRail(
             },
         )
     }
+
+    LaunchedEffect(currentBackStackEntry) {
+        currentBackStackEntry?.destination?.let { destination ->
+            selectedIndex = when {
+                destination.hasRoute(HomeDestination::class) -> BottomNavScreen.Home.ordinal
+                destination.hasRoute(SearchDestination::class) -> BottomNavScreen.Search.ordinal
+                destination.hasRoute(LibraryDestination::class) -> BottomNavScreen.Library.ordinal
+                else -> selectedIndex
+            }
+        }
+    }
+
     NavigationRail {
         Spacer(Modifier.height(16.dp))
         Box(Modifier.padding(horizontal = 16.dp)) {
