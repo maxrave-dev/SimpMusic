@@ -18,6 +18,8 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
+import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
@@ -129,5 +131,15 @@ fun main() =
             }
             App()
             ToastHost()
+        }
+        
+        // Mini Player Window (separate window)
+        if (MiniPlayerManager.isOpen) {
+            MiniPlayerWindow(
+                sharedViewModel = sharedViewModel,
+                onCloseRequest = {
+                    MiniPlayerManager.isOpen = false
+                }
+            )
         }
     }
