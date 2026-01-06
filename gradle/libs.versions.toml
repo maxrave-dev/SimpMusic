@@ -1,10 +1,7 @@
 [versions]
 # App version
-componentsResources="1.10.0-rc02"
-foundation="1.10.0-rc02"
-runtime="1.10.0-rc02"
-version-name="1.0.1"
-version-code="42"
+version-name="1.0.1-hf"
+version-code="43"
 
 android = "8.13.1"
 kotlin = "2.2.21"
@@ -73,6 +70,9 @@ material3-multiplatform = "1.10.0-alpha05"
 adaptive = "1.2.0"
 material-multiplatform = "1.9.3"
 material-icons-multiplatform = "1.7.3"
+componentsResources="1.10.0-rc02"
+foundation="1.10.0-rc02"
+runtime="1.10.0-rc02"
 compottie = "2.0.2"
 cmptoast = "1.0.71"
 uri = "0.0.21"

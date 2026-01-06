@@ -317,7 +317,7 @@ compose.desktop {
             packageName = "SimpMusic"
             macOS {
                 includeAllModules = true
-                packageVersion = "2025.11.16"
+                packageVersion = "2025.12.24"
                 iconFile.set(project.file("icon/circle_app_icon.icns"))
                 val macExtraPlistKeys =
                     """
@@ -339,6 +339,7 @@ compose.desktop {
                 packageVersion =
                     libs.versions.version.name
                         .get()
+                        .removeSuffix("-hf")
                 iconFile.set(project.file("icon/circle_app_icon.ico"))
             }
             linux {
@@ -346,6 +347,7 @@ compose.desktop {
                 packageVersion =
                     libs.versions.version.name
                         .get()
+                        .removeSuffix("-hf")
                 iconFile.set(project.file("icon/circle_app_icon.png"))
             }
         }
@@ -438,9 +440,60 @@ sentry {
 }
 
 if (!isFullBuild) {
+    abstract class CleanSentryMetaTask : DefaultTask() {
+        @get:InputFiles
+        abstract val assetDirectories: ConfigurableFileCollection
+
+        @get:Internal
+        abstract val buildDirectory: DirectoryProperty
+
+        @TaskAction
+        fun execute() {
+            assetDirectories.forEach { assetDir ->
+                val sentryFile = File(assetDir, "sentry-debug-meta.properties")
+                if (sentryFile.exists()) {
+                    sentryFile.delete()
+                    println("Deleted: ${sentryFile.absolutePath}")
+                }
+            }
+
+            val dirName = "release/mergeReleaseAssets"
+            val injectDirName = "release/injectSentryDebugMetaPropertiesIntoAssetsRelease"
+            println("Cleaning Sentry meta files in build directories")
+            println("Build directory: ${buildDirectory.asFile.get().absolutePath}")
+
+            val buildAssetsDir = File(buildDirectory.asFile.get(), "intermediates/assets/$dirName")
+            println("Checking directory buildAssetsDir: ${buildAssetsDir.absolutePath}")
+            val sentryFile = File(buildAssetsDir, "sentry-debug-meta.properties")
+            if (sentryFile.exists()) {
+                sentryFile.delete()
+                println("Deleted: ${sentryFile.absolutePath}")
+            }
+
+            val injectBuildAssetsDir = File(buildDirectory.asFile.get(), "intermediates/assets/$injectDirName")
+            println("Checking directory injectBuildAssetsDir: ${injectBuildAssetsDir.absolutePath}")
+            val injectSentryFile = File(injectBuildAssetsDir, "sentry-debug-meta.properties")
+            if (injectSentryFile.exists()) {
+                injectSentryFile.delete()
+                println("Deleted: ${injectSentryFile.absolutePath}")
+                val sentryFile = File(injectBuildAssetsDir, "sentry-debug-meta.properties")
+                sentryFile.writeText("")
+                println("✓ Overwritten: ${sentryFile.absolutePath}")
+            }
+        }
+    }
+
     tasks.whenTaskAdded {
         if (name.contains("injectSentryDebugMetaPropertiesIntoAssetsRelease")) {
-            enabled = false
+            val cleanSentryMetaTaskName = "cleanSentryMetaForRelease"
+            val cleanSentryMetaTask =
+                tasks.register<CleanSentryMetaTask>(cleanSentryMetaTaskName) {
+                    assetDirectories.from(android.sourceSets.flatMap { it.assets.srcDirs })
+                    buildDirectory.set(layout.buildDirectory)
+                }
+            tasks.named(name).configure {
+                finalizedBy(cleanSentryMetaTask)
+            }
         }
     }
 }
