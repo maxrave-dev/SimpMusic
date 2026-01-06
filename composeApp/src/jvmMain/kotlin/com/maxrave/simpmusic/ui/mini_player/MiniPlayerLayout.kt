@@ -14,6 +14,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -160,6 +161,8 @@ fun MediumMiniLayout(
         color = Color(0xFF1C1C1E)
     ) {
         BoxWithConstraints {
+            val showExtraButtons = maxWidth >= 300.dp
+            
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
                     modifier = Modifier
@@ -192,18 +195,24 @@ fun MediumMiniLayout(
                     ) {
                         // Like button - only show if width >= 300dp
                         AnimatedVisibility(
-                            visible = maxWidth >= 300.dp,
+                            visible = showExtraButtons,
                             enter = scaleIn() + fadeIn(),
                             exit = scaleOut() + fadeOut()
                         ) {
                             IconButton(
-                                onClick = { /* TODO: Implement favorite toggle */ },
+                                onClick = { onUIEvent(UIEvent.ToggleLike) },
                                 modifier = Modifier.size(28.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Outlined.FavoriteBorder,
+                                    imageVector = if (controllerState.isLiked) 
+                                        Icons.Filled.Favorite 
+                                    else 
+                                        Icons.Outlined.FavoriteBorder,
                                     contentDescription = "Like",
-                                    tint = Color.White.copy(alpha = 0.7f),
+                                    tint = if (controllerState.isLiked) 
+                                        Color(0xFFFF4081) 
+                                    else 
+                                        Color.White.copy(alpha = 0.7f),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -239,17 +248,24 @@ fun MediumMiniLayout(
                         
                         // Volume button - only show if width >= 300dp
                         AnimatedVisibility(
-                            visible = maxWidth >= 300.dp,
+                            visible = showExtraButtons,
                             enter = scaleIn() + fadeIn(),
                             exit = scaleOut() + fadeOut()
                         ) {
                             IconButton(
-                                onClick = { /* TODO: Implement volume control */ },
+                                onClick = { 
+                                    // Toggle mute/unmute
+                                    val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                                    onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                },
                                 modifier = Modifier.size(28.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.VolumeUp,
-                                    contentDescription = "Volume",
+                                    imageVector = if (controllerState.volume > 0f) 
+                                        Icons.Filled.VolumeUp 
+                                    else 
+                                        Icons.Filled.VolumeOff,
+                                    contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                     tint = Color.White.copy(alpha = 0.7f),
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -393,15 +409,19 @@ fun SquareMiniLayout(
             ) {
                 // Like/Favorite button
                 IconButton(
-                    onClick = {
-                        // TODO: Implement favorite toggle
-                    },
+                    onClick = { onUIEvent(UIEvent.ToggleLike) },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.FavoriteBorder,
+                        imageVector = if (controllerState.isLiked) 
+                            Icons.Filled.Favorite 
+                        else 
+                            Icons.Outlined.FavoriteBorder,
                         contentDescription = "Like",
-                        tint = Color.White.copy(alpha = 0.7f),
+                        tint = if (controllerState.isLiked) 
+                            Color(0xFFFF4081) 
+                        else 
+                            Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -440,13 +460,18 @@ fun SquareMiniLayout(
                 // Volume/Mute button
                 IconButton(
                     onClick = {
-                        // TODO: Implement volume control/mute toggle
+                        // Toggle mute/unmute
+                        val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                        onUIEvent(UIEvent.UpdateVolume(newVolume))
                     },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.VolumeUp,
-                        contentDescription = "Volume",
+                        imageVector = if (controllerState.volume > 0f) 
+                            Icons.Filled.VolumeUp 
+                        else 
+                            Icons.Filled.VolumeOff,
+                        contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                         tint = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.size(24.dp)
                     )

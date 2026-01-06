@@ -29,6 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
@@ -314,13 +316,19 @@ private fun ExpandedMiniLayout(
                     ) {
                         // Like button
                         IconButton(
-                            onClick = { /* TODO: Implement favorite toggle */ },
+                            onClick = { onUIEvent(UIEvent.ToggleLike) },
                             modifier = Modifier.size(28.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.FavoriteBorder,
+                                imageVector = if (controllerState.isLiked) 
+                                    Icons.Filled.Favorite 
+                                else 
+                                    Icons.Outlined.FavoriteBorder,
                                 contentDescription = "Like",
-                                tint = Color.White.copy(alpha = 0.7f),
+                                tint = if (controllerState.isLiked) 
+                                    Color(0xFFFF4081) 
+                                else 
+                                    Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -357,12 +365,19 @@ private fun ExpandedMiniLayout(
                         
                         // Volume button
                         IconButton(
-                            onClick = { /* TODO: Implement volume control */ },
+                            onClick = { 
+                                // Toggle mute/unmute
+                                val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                                onUIEvent(UIEvent.UpdateVolume(newVolume))
+                            },
                             modifier = Modifier.size(28.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.VolumeUp,
-                                contentDescription = "Volume",
+                                imageVector = if (controllerState.volume > 0f) 
+                                    Icons.Filled.VolumeUp 
+                                else 
+                                    Icons.Filled.VolumeOff,
+                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                 tint = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier.size(20.dp)
                             )
