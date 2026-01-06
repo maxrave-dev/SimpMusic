@@ -145,12 +145,12 @@ fun MiniPlayerRoot(
                 )
             }
             
-            // Drag handle (top area for moving window)
+            // Drag handle (top center area for moving window - narrower to avoid resize corners)
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .fillMaxWidth(0.7f)
-                    .height(32.dp)
+                    .fillMaxWidth(0.5f)
+                    .height(28.dp)
                     .pointerInput(Unit) {
                         detectDragGestures(
                             onDragStart = {

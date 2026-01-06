@@ -17,11 +17,13 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
+import androidx.compose.ui.window.rememberWindowState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.circle_app_icon
+import java.awt.Dimension
 import java.util.prefs.Preferences
 
 /**
@@ -44,11 +46,15 @@ fun MiniPlayerWindow(
 ) {
     val prefs = remember { Preferences.userRoot().node("SimpMusic/MiniPlayer") }
     
-    // Load saved position or use default
+    // Minimum size constraints
+    val minWidth = 200f
+    val minHeight = 90f
+    
+    // Load saved position or use default (with minimum constraints)
     val savedX = prefs.getFloat("windowX", Float.NaN)
     val savedY = prefs.getFloat("windowY", Float.NaN)
-    val savedWidth = prefs.getFloat("windowWidth", 400f)
-    val savedHeight = prefs.getFloat("windowHeight", 110f)
+    val savedWidth = prefs.getFloat("windowWidth", 400f).coerceAtLeast(minWidth)
+    val savedHeight = prefs.getFloat("windowHeight", 110f).coerceAtLeast(minHeight)
     
     var windowState by remember {
         mutableStateOf(
@@ -102,6 +108,14 @@ fun MiniPlayerWindow(
             }
         }
     ) {
+        // Set minimum size at AWT level to prevent flickering
+        LaunchedEffect(Unit) {
+            (window as? java.awt.Window)?.minimumSize = Dimension(
+                (minWidth * window.graphicsConfiguration.defaultTransform.scaleX).toInt(),
+                (minHeight * window.graphicsConfiguration.defaultTransform.scaleY).toInt()
+            )
+        }
+        
         MiniPlayerRoot(
             sharedViewModel = sharedViewModel,
             onClose = onCloseRequest,
