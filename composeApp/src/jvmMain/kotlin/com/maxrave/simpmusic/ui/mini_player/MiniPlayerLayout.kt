@@ -24,6 +24,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -152,68 +159,108 @@ fun MediumMiniLayout(
             .animateContentSize(animationSpec = tween(300)),
         color = Color(0xFF1C1C1E)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Smaller artwork with hover effect
-                AsyncImage(
-                    model = nowPlayingData.thumbnailURL,
-                    contentDescription = "Album Art",
-                    placeholder = painterResource(Res.drawable.holder),
-                    error = painterResource(Res.drawable.holder),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .scale(artworkScale)
-                        .clip(RoundedCornerShape(6.dp))
-                        .hoverable(artworkInteractionSource)
-                )
-                
-                Spacer(modifier = Modifier.weight(1f))
-                
-                // Controls
+        BoxWithConstraints {
+            Column(modifier = Modifier.fillMaxSize()) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_previous_24,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isPreviousAvailable) {
-                                onUIEvent(UIEvent.Previous)
-                            }
-                        }
+                    // Smaller artwork with hover effect
+                    AsyncImage(
+                        model = nowPlayingData.thumbnailURL,
+                        contentDescription = "Album Art",
+                        placeholder = painterResource(Res.drawable.holder),
+                        error = painterResource(Res.drawable.holder),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .scale(artworkScale)
+                            .clip(RoundedCornerShape(6.dp))
+                            .hoverable(artworkInteractionSource)
                     )
                     
-                    PlayPauseButton(
-                        isPlaying = controllerState.isPlaying,
-                        modifier = Modifier.size(36.dp),
-                        onClick = { onUIEvent(UIEvent.PlayPause) }
-                    )
+                    Spacer(modifier = Modifier.weight(1f))
                     
-                    RippleIconButton(
-                        resId = Res.drawable.baseline_skip_next_24,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isNextAvailable) {
-                                onUIEvent(UIEvent.Next)
+                    // Controls - show extra buttons only if width >= 300dp
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Like button - only show if width >= 300dp
+                        AnimatedVisibility(
+                            visible = maxWidth >= 300.dp,
+                            enter = scaleIn() + fadeIn(),
+                            exit = scaleOut() + fadeOut()
+                        ) {
+                            IconButton(
+                                onClick = { /* TODO: Implement favorite toggle */ },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.FavoriteBorder,
+                                    contentDescription = "Like",
+                                    tint = Color.White.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
-                    )
+                        
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_previous_24,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isPreviousAvailable) {
+                                    onUIEvent(UIEvent.Previous)
+                                }
+                            }
+                        )
+                        
+                        PlayPauseButton(
+                            isPlaying = controllerState.isPlaying,
+                            modifier = Modifier.size(36.dp),
+                            onClick = { onUIEvent(UIEvent.PlayPause) }
+                        )
+                        
+                        RippleIconButton(
+                            resId = Res.drawable.baseline_skip_next_24,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isNextAvailable) {
+                                    onUIEvent(UIEvent.Next)
+                                }
+                            }
+                        )
+                        
+                        // Volume button - only show if width >= 300dp
+                        AnimatedVisibility(
+                            visible = maxWidth >= 300.dp,
+                            enter = scaleIn() + fadeIn(),
+                            exit = scaleOut() + fadeOut()
+                        ) {
+                            IconButton(
+                                onClick = { /* TODO: Implement volume control */ },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.VolumeUp,
+                                    contentDescription = "Volume",
+                                    tint = Color.White.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
                 }
+                
+                // Progress bar
+                ProgressBar(timeline)
             }
-            
-            // Progress bar
-            ProgressBar(timeline)
         }
     }
 }
@@ -237,6 +284,176 @@ private fun ProgressBar(timeline: TimeLine) {
                 trackColor = Color.Transparent,
                 strokeCap = StrokeCap.Round,
             )
+        }
+    }
+}
+
+/**
+ * Square/Tall layout (Spotify-style): Large artwork centered with controls below
+ * Appears when window is square or taller (aspect ratio <= 1.3)
+ * Includes like/favorite and volume/mute buttons
+ */
+@Composable
+fun SquareMiniLayout(
+    nowPlayingData: NowPlayingScreenData,
+    controllerState: ControlState,
+    timeline: TimeLine,
+    onUIEvent: (UIEvent) -> Unit
+) {
+    val artworkInteractionSource = remember { MutableInteractionSource() }
+    val isArtworkHovered by artworkInteractionSource.collectIsHoveredAsState()
+    val artworkScale by animateFloatAsState(
+        targetValue = if (isArtworkHovered) 1.03f else 1f,
+        animationSpec = tween(300)
+    )
+    
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .animateContentSize(animationSpec = tween(300)),
+        color = Color(0xFF1C1C1E)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Large centered album artwork
+            AsyncImage(
+                model = nowPlayingData.thumbnailURL,
+                contentDescription = "Album Art",
+                placeholder = painterResource(Res.drawable.holder),
+                error = painterResource(Res.drawable.holder),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(0.85f)
+                    .scale(artworkScale)
+                    .clip(RoundedCornerShape(12.dp))
+                    .hoverable(artworkInteractionSource)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Track info
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = nowPlayingData.nowPlayingTitle,
+                    style = typo().bodyLarge,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = nowPlayingData.artistName,
+                    style = typo().bodyMedium,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 13.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Progress bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(Color(0xFF2C2C2E), RoundedCornerShape(2.dp))
+            ) {
+                if (timeline.total > 0L && timeline.current >= 0L) {
+                    LinearProgressIndicator(
+                        progress = { timeline.current.toFloat() / timeline.total },
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.White,
+                        trackColor = Color.Transparent,
+                        strokeCap = StrokeCap.Round,
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Main playback controls
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Like/Favorite button
+                IconButton(
+                    onClick = {
+                        // TODO: Implement favorite toggle
+                    },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Like",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
+                // Previous
+                RippleIconButton(
+                    resId = Res.drawable.baseline_skip_previous_24,
+                    modifier = Modifier.size(36.dp),
+                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                    onClick = {
+                        if (controllerState.isPreviousAvailable) {
+                            onUIEvent(UIEvent.Previous)
+                        }
+                    }
+                )
+                
+                // Play/Pause
+                PlayPauseButton(
+                    isPlaying = controllerState.isPlaying,
+                    modifier = Modifier.size(52.dp),
+                    onClick = { onUIEvent(UIEvent.PlayPause) }
+                )
+                
+                // Next
+                RippleIconButton(
+                    resId = Res.drawable.baseline_skip_next_24,
+                    modifier = Modifier.size(36.dp),
+                    tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                    onClick = {
+                        if (controllerState.isNextAvailable) {
+                            onUIEvent(UIEvent.Next)
+                        }
+                    }
+                )
+                
+                // Volume/Mute button
+                IconButton(
+                    onClick = {
+                        // TODO: Implement volume control/mute toggle
+                    },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.VolumeUp,
+                        contentDescription = "Volume",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

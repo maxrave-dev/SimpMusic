@@ -29,6 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -107,7 +109,17 @@ fun MiniPlayerRoot(
                 EmptyMiniPlayerState()
             } else {
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    // Calculate aspect ratio to detect square/tall layout
+                    val aspectRatio = maxWidth.value / maxHeight.value
+                    val isSquareOrTall = aspectRatio <= 1.3f && maxHeight >= 200.dp
+                    
                     when {
+                        isSquareOrTall -> SquareMiniLayout(
+                            nowPlayingData = nowPlayingData!!,
+                            controllerState = controllerState,
+                            timeline = timeline,
+                            onUIEvent = sharedViewModel::onUIEvent
+                        )
                         maxWidth < 260.dp -> CompactMiniLayout(
                             controllerState = controllerState,
                             timeline = timeline,
@@ -300,6 +312,19 @@ private fun ExpandedMiniLayout(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Like button
+                        IconButton(
+                            onClick = { /* TODO: Implement favorite toggle */ },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.FavoriteBorder,
+                                contentDescription = "Like",
+                                tint = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_previous_24,
                             modifier = Modifier.size(28.dp),
@@ -329,6 +354,19 @@ private fun ExpandedMiniLayout(
                                 }
                             }
                         )
+                        
+                        // Volume button
+                        IconButton(
+                            onClick = { /* TODO: Implement volume control */ },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.VolumeUp,
+                                contentDescription = "Volume",
+                                tint = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
