@@ -81,6 +81,7 @@ fun MiniPlayerWindow(
         icon = painterResource(Res.drawable.circle_app_icon),
         alwaysOnTop = true,
         undecorated = true,
+        transparent = true,
         resizable = true,
         state = windowState,
         onKeyEvent = { keyEvent ->
