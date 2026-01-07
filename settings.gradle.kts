@@ -66,7 +66,8 @@ val mediaDir =
 
 rootProject.name = "SimpMusic"
 include(
-    "composeApp",
+    ":androidApp",
+    ":composeApp",
     ":common",
     ":data",
     ":domain",

@@ -14,11 +14,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.eygraber.uri.toKmpUriOrNull
 import com.maxrave.common.FIRST_TIME_MIGRATION
 import com.maxrave.common.SELECTED_LANGUAGE
@@ -31,21 +35,19 @@ import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.logger.Logger
 import com.maxrave.media3.di.setServiceActivitySession
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.service.test.notification.NotifyWork
+import com.maxrave.simpmusic.utils.ComposeResUtils
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import org.koin.dsl.module
 import org.simpmusic.crashlytics.pushPlayerError
 import pub.devrel.easypermissions.EasyPermissions
-import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.explicit_content_blocked
-import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
-import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
@@ -92,18 +94,17 @@ class MainActivity : AppCompatActivity() {
                 action = intent.action,
                 data = (intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri())?.toKmpUriOrNull(),
                 type = intent.type,
-            )
+            ),
         )
     }
 
-    @ExperimentalMaterial3Api
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         loadKoinModules(
             module {
-                single { this@MainActivity }
-            }
+                single<AppCompatActivity> { this@MainActivity }
+            },
         )
         // Recreate view model to fix the issue of view model not getting data from the service
         unloadKoinModules(viewModelModule)
@@ -118,12 +119,12 @@ class MainActivity : AppCompatActivity() {
         Logger.d("MainActivity", "onCreate: ")
         val data = (intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri())?.toKmpUriOrNull()
         if (data != null) {
-            viewModel.setIntent(           
+            viewModel.setIntent(
                 GenericIntent(
                     action = intent.action,
                     data = data,
                     type = intent.type,
-                )
+                ),
             )
         }
         Logger.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
@@ -182,13 +183,28 @@ class MainActivity : AppCompatActivity() {
                 ),
         )
         viewModel.checkIsRestoring()
-        viewModel.runWorker()
+        val request =
+            PeriodicWorkRequestBuilder<NotifyWork>(
+                12L,
+                TimeUnit.HOURS,
+            ).addTag("Worker Test")
+                .setConstraints(
+                    Constraints
+                        .Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build(),
+                ).build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "Artist Worker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request,
+        )
 
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 EasyPermissions.requestPermissions(
                     this,
-                    runBlocking { getString(Res.string.this_app_needs_to_access_your_notification) },
+                    runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.NOTIFICATION_REQUEST) },
                     1,
                     Manifest.permission.POST_NOTIFICATIONS,
                 )
@@ -229,10 +245,14 @@ class MainActivity : AppCompatActivity() {
         mediaPlayerHandler.showToast = { type ->
             viewModel.makeToast(
                 when (type) {
-                    ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
-                    is ToastType.PlayerError ->
-                        runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
-                }
+                    is ToastType.ExplicitContent -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.EXPLICIT_CONTENT_BLOCKED) }
+                    }
+
+                    is ToastType.PlayerError -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.TIME_OUT_ERROR) }
+                    }
+                },
             )
         }
         viewModel.isServiceRunning = true

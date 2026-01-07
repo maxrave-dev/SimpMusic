@@ -36,7 +36,7 @@ abstract class BaseViewModel :
     /**
      * Tag for logging
      */
-    protected val tag: String = javaClass.simpleName
+    protected val tag: String = this::class.simpleName ?: "BaseViewModel"
 
     /**
      * Log with viewModel tag
