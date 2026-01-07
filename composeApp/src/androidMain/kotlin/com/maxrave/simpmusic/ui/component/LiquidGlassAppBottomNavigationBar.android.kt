@@ -467,38 +467,35 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         tween(100),
                     ) { -it / 2 },
             ) {
-                var lastClickTime by remember { mutableStateOf(0L) }
-                val doubleClickThreshold = 300L
                 Box(
                     modifier = Modifier
-                        .drawBackdropCustomShape(
-                            backdrop,
-                            layer,
-                            luminanceAnimation.value,
-                            CircleShape,
-                        )
+                        .drawBackdropCustomShape(backdrop, layer, luminanceAnimation.value, CircleShape)
                         .size(56.dp)
                         .clip(CircleShape)
                         .combinedClickable(
                             onClick = {
-                                val currentTime = System.currentTimeMillis()
-                                val isDoubleClick = (currentTime - lastClickTime) < doubleClickThreshold
-                                val isOnSearchScreen = currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
-                                if (isDoubleClick && isOnSearchScreen) {
-                                    viewModel.triggerSearchFocus()
-                                } else if (!isOnSearchScreen) {
+                                if (currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) != true) {
                                     previousSelectedIndex = selectedIndex
                                     selectedIndex = BottomNavScreen.Search.ordinal
                                     navController.navigate(BottomNavScreen.Search.destination) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                                         launchSingleTop = true
                                         restoreState = true
                                     }
                                 }
-                                lastClickTime = currentTime
-                            }
+                            },
+                            onDoubleClick = {
+                                viewModel.triggerSearchFocus()
+                                if (currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) != true) {
+                                    previousSelectedIndex = selectedIndex
+                                    selectedIndex = BottomNavScreen.Search.ordinal
+                                    navController.navigate(BottomNavScreen.Search.destination) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
                         ),
                     contentAlignment = Alignment.Center,
                 ) {

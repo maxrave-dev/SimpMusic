@@ -38,6 +38,7 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -136,6 +137,12 @@ fun SearchScreen(
 
     val focusRequester = remember { FocusRequester() }
 
+    // `searchFocusTrigger` is a monotonically increasing counter in SharedViewModel.
+    // If we request focus whenever its value is > 0, then after the first ever trigger,
+    // *every* future navigation to SearchScreen will immediately open the keyboard.
+    // Persist the last-consumed value so we only focus when a new trigger arrives.
+    var lastConsumedSearchFocusTrigger by rememberSaveable { mutableIntStateOf(0) }
+
     var isFocused by rememberSaveable { mutableStateOf(false) }
 
     var sheetSong by remember { mutableStateOf<SongEntity?>(null) }
@@ -172,7 +179,8 @@ fun SearchScreen(
     }
 
     LaunchedEffect(searchFocusTrigger) {
-        if (searchFocusTrigger > 0) {
+        if (searchFocusTrigger > 0 && searchFocusTrigger != lastConsumedSearchFocusTrigger) {
+            lastConsumedSearchFocusTrigger = searchFocusTrigger
             focusRequester.requestFocus()
         }
     }

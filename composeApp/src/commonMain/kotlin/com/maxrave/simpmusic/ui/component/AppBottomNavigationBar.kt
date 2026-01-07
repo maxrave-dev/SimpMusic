@@ -106,37 +106,50 @@ fun AppBottomNavigationBar(
         ) {
             bottomNavScreens.forEach { screen ->
                 var lastClickTime by remember { mutableStateOf(0L) }
-                val doubleClickThreshold = 300L                
                 NavigationBarItem(
                     selected = selectedIndex == screen.ordinal,
                     onClick = {
                         val currentTime = System.currentTimeMillis()
-                        val isDoubleClick = (currentTime - lastClickTime) < doubleClickThreshold
-                        val isOnSearchScreen = screen == BottomNavScreen.Search && currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
-                        if (isDoubleClick && isOnSearchScreen) {
-                            viewModel?.triggerSearchFocus()
-                        } else if (selectedIndex == screen.ordinal) {
-                            if (currentBackStackEntry?.destination?.hierarchy?.any {
-                                    it.hasRoute(screen.destination::class)
-                                } == true
-                            ) {
-                                reloadDestinationIfNeeded(
-                                    screen.destination::class,
-                                )
-                            } else {
-                                navController.navigate(screen.destination)
-                            }
-                        } else {
-                            selectedIndex = screen.ordinal
-                            navController.navigate(screen.destination) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+                        val isDoubleClick = (currentTime - lastClickTime) < 300L
+                        val isOnSearchScreen = currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
+                        lastClickTime = currentTime
+
+                        when {
+                            screen == BottomNavScreen.Search && isDoubleClick -> {
+                                viewModel?.triggerSearchFocus()
+                                if (!isOnSearchScreen) {
+                                    selectedIndex = screen.ordinal
+                                    navController.navigate(screen.destination) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            }
+                            screen == BottomNavScreen.Search && !isOnSearchScreen -> {
+                                selectedIndex = screen.ordinal
+                                navController.navigate(screen.destination) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                            selectedIndex == screen.ordinal -> {
+                                if (currentBackStackEntry?.destination?.hierarchy?.any { it.hasRoute(screen.destination::class) } == true) {
+                                    reloadDestinationIfNeeded(screen.destination::class)
+                                } else {
+                                    navController.navigate(screen.destination)
+                                }
+                            }
+                            else -> {
+                                selectedIndex = screen.ordinal
+                                navController.navigate(screen.destination) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         }
-                        lastClickTime = currentTime
                     },
                     label = {
                         Text(
@@ -219,7 +232,6 @@ fun AppNavigationRail(
         Spacer(Modifier.weight(1f))
         bottomNavScreens.forEachIndexed { index, screen ->
             var lastClickTime by remember { mutableStateOf(0L) }
-            val doubleClickThreshold = 300L
             NavigationRailItem(
                 icon = screen.icon,
                 label = {
@@ -236,31 +248,46 @@ fun AppNavigationRail(
                 selected = selectedIndex == index,
                 onClick = {
                     val currentTime = System.currentTimeMillis()
-                    val isDoubleClick = (currentTime - lastClickTime) < doubleClickThreshold
-                    if (screen == BottomNavScreen.Search && isDoubleClick) {
-                        viewModel?.triggerSearchFocus()
-                    } else if (selectedIndex == screen.ordinal) {
-                        if (currentBackStackEntry?.destination?.hierarchy?.any {
-                                it.hasRoute(screen.destination::class)
-                            } == true
-                        ) {
-                            reloadDestinationIfNeeded(
-                                screen.destination::class,
-                            )
-                        } else {
-                            navController.navigate(screen.destination)
-                        }
-                    } else {
-                        selectedIndex = screen.ordinal
-                        navController.navigate(screen.destination) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+                    val isDoubleClick = (currentTime - lastClickTime) < 300L
+                    val isOnSearchScreen = currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
+                    lastClickTime = currentTime
+
+                    when {
+                        screen == BottomNavScreen.Search && isDoubleClick -> {
+                            viewModel?.triggerSearchFocus()
+                            if (!isOnSearchScreen) {
+                                selectedIndex = screen.ordinal
+                                navController.navigate(screen.destination) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                            launchSingleTop = true
-                            restoreState = true
+                        }
+                        screen == BottomNavScreen.Search && !isOnSearchScreen -> {
+                            selectedIndex = screen.ordinal
+                            navController.navigate(screen.destination) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                        selectedIndex == screen.ordinal -> {
+                            if (currentBackStackEntry?.destination?.hierarchy?.any { it.hasRoute(screen.destination::class) } == true) {
+                                reloadDestinationIfNeeded(screen.destination::class)
+                            } else {
+                                navController.navigate(screen.destination)
+                            }
+                        }
+                        else -> {
+                            selectedIndex = screen.ordinal
+                            navController.navigate(screen.destination) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
-                    lastClickTime = currentTime
                 },
             )
         }
