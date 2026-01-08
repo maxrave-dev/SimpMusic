@@ -484,4 +484,6 @@
     <string name="keep_your_youtube_playlist_offline_description">Save your YT playlist to local and keep to show when offline</string>
     <string name="combine_local_and_youtube_liked_songs">Replace Favorite by YouTube Liked when logged in</string>
     <string name="combine_local_and_youtube_liked_songs_description">Using only YouTube Liked (not support like a song when offline)</string>
+    <string name="smart_add_to_queue">Smart add to queue</string>
+    <string name="smart_add_to_queue_description">Add songs before auto-generated queue</string>
 </resources>

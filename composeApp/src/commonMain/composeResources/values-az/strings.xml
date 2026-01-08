@@ -381,4 +381,6 @@
     <string name="ok">Oldu</string>
     <string name="to_download_folder">" bu endirmə qovluğuna"</string>
     <string name="download_speed">Yüklənmə sürəti: %1$s </string>
+    <string name="smart_add_to_queue">Növbəyə ağıllı əlavə</string>
+    <string name="smart_add_to_queue_description">Mahnıları avtomatik yaradılan növbədən əvvəl əlavə et</string>
 </resources>

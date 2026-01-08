@@ -398,4 +398,6 @@
     <string name="visitor_data_retrieved">Получени данни за посещения</string>
     <string name="data_sync_id_retrieved">Получен DataSyncId</string>
     <string name="retrieve_youtube_data">Получаване на данни от YouTube</string>
+    <string name="smart_add_to_queue">Интелигентно добавяне към опашката</string>
+    <string name="smart_add_to_queue_description">Добавяне на песни преди автоматично генерираната опашка</string>
 </resources>

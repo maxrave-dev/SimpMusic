@@ -461,4 +461,6 @@
     <string name="explicit_content_blocked">Відвертий контент пропускається</string>
     <string name="mix_for_you">Мікс для вас</string>
     <string name="no_mixes_found">Мікси не знайдено</string>
+    <string name="smart_add_to_queue">Розумне додавання до черги</string>
+    <string name="smart_add_to_queue_description">Додати пісні перед автоматично створеною чергою</string>
 </resources>
