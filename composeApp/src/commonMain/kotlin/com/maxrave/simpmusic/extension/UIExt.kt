@@ -192,20 +192,26 @@ fun Modifier.angledGradientBackground(
                     in 0f..gamma, in (2 * PI - gamma)..2 * PI -> {
                         x / cos(alpha)
                     }
+
                     // ray from centre cuts the top edge of the rectangle
                     in gamma..(PI - gamma).toFloat() -> {
                         y / sin(alpha)
                     }
+
                     // ray from centre cuts the left edge of the rectangle
                     in (PI - gamma)..(PI + gamma) -> {
                         x / -cos(alpha)
                     }
+
                     // ray from centre cuts the bottom edge of the rectangle
                     in (PI + gamma)..(2 * PI - gamma) -> {
                         y / -sin(alpha)
                     }
+
                     // default case (which shouldn't really happen)
-                    else -> hypot(x, y)
+                    else -> {
+                        hypot(x, y)
+                    }
                 }
 
             val centerOffsetX = cos(alpha) * gradientLength / 2
@@ -228,53 +234,61 @@ fun Modifier.angledGradientBackground(
 // Angle Gradient Background without size
 fun GradientOffset(angle: GradientAngle): GradientOffset =
     when (angle) {
-        GradientAngle.CW45 ->
+        GradientAngle.CW45 -> {
             GradientOffset(
                 start = Offset.Zero,
                 end = Offset.Infinite,
             )
+        }
 
-        GradientAngle.CW90 ->
+        GradientAngle.CW90 -> {
             GradientOffset(
                 start = Offset.Zero,
                 end = Offset(0f, Float.POSITIVE_INFINITY),
             )
+        }
 
-        GradientAngle.CW135 ->
+        GradientAngle.CW135 -> {
             GradientOffset(
                 start = Offset(Float.POSITIVE_INFINITY, 0f),
                 end = Offset(0f, Float.POSITIVE_INFINITY),
             )
+        }
 
-        GradientAngle.CW180 ->
+        GradientAngle.CW180 -> {
             GradientOffset(
                 start = Offset(Float.POSITIVE_INFINITY, 0f),
                 end = Offset.Zero,
             )
+        }
 
-        GradientAngle.CW225 ->
+        GradientAngle.CW225 -> {
             GradientOffset(
                 start = Offset.Infinite,
                 end = Offset.Zero,
             )
+        }
 
-        GradientAngle.CW270 ->
+        GradientAngle.CW270 -> {
             GradientOffset(
                 start = Offset(0f, Float.POSITIVE_INFINITY),
                 end = Offset.Zero,
             )
+        }
 
-        GradientAngle.CW315 ->
+        GradientAngle.CW315 -> {
             GradientOffset(
                 start = Offset(0f, Float.POSITIVE_INFINITY),
                 end = Offset(Float.POSITIVE_INFINITY, 0f),
             )
+        }
 
-        else ->
+        else -> {
             GradientOffset(
                 start = Offset.Zero,
                 end = Offset(Float.POSITIVE_INFINITY, 0f),
             )
+        }
     }
 
 /**
@@ -345,7 +359,7 @@ fun LazyListState.animateScrollAndCentralizeItem(
         if (itemInfo != null) {
             val center = this@animateScrollAndCentralizeItem.layoutInfo.viewportEndOffset / 2
             val childCenter = itemInfo.offset + itemInfo.size / 2
-            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center / 1.5f).toFloat(), tween(800))
+            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center).toFloat(), tween(800))
         } else {
             this@animateScrollAndCentralizeItem.animateScrollToItem(index)
         }
