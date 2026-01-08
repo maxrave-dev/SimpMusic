@@ -285,4 +285,6 @@
     <string name="guest">Vieras</string>
     <string name="log_out_warning">Kirjaudu ulos kaikista tileistä?</string>
     <string name="play_next">Toista seuraavaksi</string>
+    <string name="smart_add_to_queue">Älykäs lisääminen jonoon</string>
+    <string name="smart_add_to_queue_description">Lisää kappaleita ennen automaattisesti luotua jonoa</string>
 </resources>

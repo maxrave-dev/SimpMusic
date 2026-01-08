@@ -459,4 +459,6 @@
     <string name="explicit_content_blocked">Expliziter Inhalt blockiert</string>
     <string name="mix_for_you">Mix für Dich</string>
     <string name="no_mixes_found">Keine Mixes gefunden</string>
+    <string name="smart_add_to_queue">Intelligente Warteschlange</string>
+    <string name="smart_add_to_queue_description">Songs vor automatischer Warteschlange hinzufügen</string>
 </resources>

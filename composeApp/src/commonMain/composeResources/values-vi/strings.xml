@@ -475,4 +475,6 @@
     <string name="keep_service_alive_description">Bảo vệ dịch vụ phát nhạc sống tránh khỏi bị hệ thống tắt</string>
     <string name="keep_your_youtube_playlist_offline">Giữ danh sách phát YouTube của bạn hiển thị khi offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Lưu danh sách phát YT lại và hiển thị khi offline</string>
+    <string name="smart_add_to_queue">Thêm thông minh vào hàng đợi</string>
+    <string name="smart_add_to_queue_description">Thêm bài hát trước hàng đợi tự tạo</string>
 </resources>

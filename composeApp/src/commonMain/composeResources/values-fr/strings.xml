@@ -459,4 +459,6 @@
     <string name="explicit_content_blocked">Le contenu explicite est ignoré</string>
     <string name="mix_for_you">Mix pour vous</string>
     <string name="no_mixes_found">Aucun mix trouvé</string>
+    <string name="smart_add_to_queue">Ajout intelligent à la file</string>
+    <string name="smart_add_to_queue_description">Ajouter les chansons avant la file automatique</string>
 </resources>

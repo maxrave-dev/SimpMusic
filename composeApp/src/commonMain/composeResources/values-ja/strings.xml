@@ -431,4 +431,6 @@
     <string name="set_crossfade_duration">クロスフェードの長さを秒単位で設定 (%1$ds)</string>
     <string name="youtube_subtitle_language">YouTube字幕 翻訳言語</string>
     <string name="youtube_subtitle_language_message">言語コード (例 en) (2 文字) これは、YouTube の字幕に適する翻訳言語です。</string>
+    <string name="smart_add_to_queue">キューへのスマート追加</string>
+    <string name="smart_add_to_queue_description">自動生成されたキューの前に曲を追加</string>
 </resources>

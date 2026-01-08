@@ -306,7 +306,7 @@ class NowPlayingBottomSheetViewModel(
 
                 is NowPlayingBottomSheetUIEvent.AddToQueue -> {
                     val songEntity = songRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
-                    mediaPlayerHandler.loadMoreCatalog(arrayListOf(songEntity.toTrack()), isAddToQueue = true)
+                    mediaPlayerHandler.addToQueue(songEntity.toTrack())
                     makeToast(getString(Res.string.added_to_queue))
                 }
 

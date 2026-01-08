@@ -326,4 +326,6 @@
     <string name="if_you_love_my_work_consider">"如果你喜欢我的工作，请考虑： "</string>
     <string name="invalid_number"></string>
     <string name="shuffle_not_available">随机终端不可用</string>
+    <string name="smart_add_to_queue">智能添加到队列</string>
+    <string name="smart_add_to_queue_description">在自动生成的队列之前添加歌曲</string>
 </resources>
