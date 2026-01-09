@@ -459,4 +459,6 @@
     <string name="explicit_content_blocked">Açık içerik atlandı</string>
     <string name="mix_for_you">Senin için karıştır</string>
     <string name="no_mixes_found">Karışım bulunamadı</string>
+    <string name="smart_add_to_queue">Sıraya akıllı ekleme</string>
+    <string name="smart_add_to_queue_description">Otomatik oluşturulan sıradan önce şarkıları ekle</string>
 </resources>

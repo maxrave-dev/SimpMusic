@@ -276,6 +276,8 @@ import simpmusic.composeapp.generated.resources.simpmusic_lyrics
 import simpmusic.composeapp.generated.resources.skip_no_music_part
 import simpmusic.composeapp.generated.resources.skip_silent
 import simpmusic.composeapp.generated.resources.skip_sponsor_part_of_video
+import simpmusic.composeapp.generated.resources.smart_add_to_queue
+import simpmusic.composeapp.generated.resources.smart_add_to_queue_description
 import simpmusic.composeapp.generated.resources.socks
 import simpmusic.composeapp.generated.resources.sponsorBlock
 import simpmusic.composeapp.generated.resources.sponsor_block_intro
@@ -419,6 +421,7 @@ fun SettingScreen(
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
     val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
+    val smartQueueEnabled by viewModel.smartQueueEnabled.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
@@ -874,6 +877,11 @@ fun SettingScreen(
                     title = stringResource(Res.string.save_last_played),
                     subtitle = stringResource(Res.string.save_last_played_track_and_queue),
                     switch = (saveLastPlayed to { viewModel.setSaveLastPlayed(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.smart_add_to_queue),
+                    subtitle = stringResource(Res.string.smart_add_to_queue_description),
+                    switch = (smartQueueEnabled to { viewModel.setSmartQueueEnabled(it) }),
                 )
                 if (getPlatform() == Platform.Android) {
                     SettingItem(

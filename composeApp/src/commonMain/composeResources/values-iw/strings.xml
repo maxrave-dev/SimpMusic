@@ -345,4 +345,6 @@ SimpMusic תמיד בחינם וללא פרסומות\n\nבונה מ ❤️מ-Tu
     <string name="party">מסיבה</string>
     <string name="commute">בדרכים</string>
     <string name="focus">להישאר בפוקוס</string>
+    <string name="smart_add_to_queue">הוספה חכמה לתור</string>
+    <string name="smart_add_to_queue_description">הוסף שירים לפני התור שנוצר אוטומטית</string>
 </resources>

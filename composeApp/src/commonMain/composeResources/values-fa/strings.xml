@@ -406,4 +406,6 @@
     <string name="disabled">غیرفعال</string>
     <string name="duration">مدت</string>
     <string name="invalid_number">عدد نامعتبر</string>
+    <string name="smart_add_to_queue">افزودن هوشمند به صف</string>
+    <string name="smart_add_to_queue_description">افزودن آهنگ‌ها قبل از صف ایجاد شده به صورت خودکار</string>
 </resources>

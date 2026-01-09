@@ -459,4 +459,6 @@
     <string name="explicit_content_blocked">Omitir contenido explícito</string>
     <string name="mix_for_you">Mezclar para ti</string>
     <string name="no_mixes_found">No se encontraron mezclas</string>
+    <string name="smart_add_to_queue">Añadir a cola inteligente</string>
+    <string name="smart_add_to_queue_description">Añadir canciones antes de la cola automática</string>
 </resources>

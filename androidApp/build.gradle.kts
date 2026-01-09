@@ -75,6 +75,38 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreFile = rootProject.file("mi-keystore.jks")
+            if (keystoreFile.exists()) {
+                println("Signing: Found keystore file at ${keystoreFile.absolutePath}")
+                storeFile = keystoreFile
+                val properties = Properties()
+                val localProperties = rootProject.file("local.properties")
+                if (localProperties.exists()) {
+                    println("Signing: Found local.properties at ${localProperties.absolutePath}")
+                    properties.load(localProperties.inputStream())
+                } else {
+                    println("Signing: local.properties NOT found at ${localProperties.absolutePath}")
+                }
+                
+                val kStorePass = properties.getProperty("KEYSTORE_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
+                val kAlias = properties.getProperty("KEY_ALIAS") ?: System.getenv("KEY_ALIAS")
+                val kPass = properties.getProperty("KEY_PASSWORD") ?: System.getenv("KEY_PASSWORD")
+                
+                println("Signing: KEYSTORE_PASSWORD found: ${kStorePass != null}")
+                println("Signing: KEY_ALIAS found: ${kAlias != null}")
+                println("Signing: KEY_PASSWORD found: ${kPass != null}")
+
+                storePassword = kStorePass
+                keyAlias = kAlias
+                keyPassword = kPass
+            } else {
+                println("Signing: Keystore file NOT found at ${keystoreFile.absolutePath}")
+            }
+        }
+    }
+
     bundle {
         language {
             enableSplit = false
@@ -83,6 +115,7 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

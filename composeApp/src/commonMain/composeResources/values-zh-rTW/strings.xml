@@ -458,4 +458,6 @@
     <string name="explicit_content_blocked">露骨內容已被跳過</string>
     <string name="mix_for_you">為您準備</string>
     <string name="no_mixes_found">找不到合輯</string>
+    <string name="smart_add_to_queue">智能新增至隊列</string>
+    <string name="smart_add_to_queue_description">在自動產生的隊列之前新增歌曲</string>
 </resources>
