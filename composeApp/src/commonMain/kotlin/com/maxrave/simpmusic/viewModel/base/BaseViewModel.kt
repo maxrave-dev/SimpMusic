@@ -67,7 +67,6 @@ abstract class BaseViewModel :
     }
 
     fun makeToast(message: String?) {
-        Res.string.loading
         showToast(
             message = message ?: "NO MESSAGE",
             duration = ToastDuration.Short,

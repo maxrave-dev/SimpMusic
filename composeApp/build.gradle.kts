@@ -35,6 +35,7 @@ kotlin {
     android {
         namespace = "com.maxrave.simpmusic.composeapp"
         compileSdk = 36
+        minSdk = 26
         withJava()
         androidResources {
             enable = true

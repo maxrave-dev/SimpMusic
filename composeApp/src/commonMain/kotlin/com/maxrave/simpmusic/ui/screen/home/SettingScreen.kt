@@ -375,6 +375,7 @@ fun SettingScreen(
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
+    val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
     val playVideo by viewModel.playVideoInsteadOfAudio.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val videoQuality by viewModel.videoQuality.collectAsStateWithLifecycle()
@@ -703,6 +704,11 @@ fun SettingScreen(
                     title = stringResource(Res.string.keep_your_youtube_playlist_offline),
                     subtitle = stringResource(Res.string.keep_your_youtube_playlist_offline_description),
                     switch = (keepYoutubePlaylistOffline to { viewModel.setKeepYouTubePlaylistOffline(it) }),
+                )
+                SettingItem(
+                    title = "Local tracking listening history",
+                    subtitle = "Log your listening history to local database",
+                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
                 )
                 /*
                 SettingItem(

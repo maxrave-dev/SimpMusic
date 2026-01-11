@@ -168,6 +168,9 @@ class SettingsViewModel(
     private val _videoDownloadQuality = MutableStateFlow<String?>(null)
     val videoDownloadQuality: StateFlow<String?> = _videoDownloadQuality
 
+    private val _localTrackingEnabled = MutableStateFlow<Boolean>(false)
+    val localTrackingEnabled: StateFlow<Boolean> = _localTrackingEnabled
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -249,12 +252,28 @@ class SettingsViewModel(
         getCombineLocalAndYouTubeLiked()
         getDownloadQuality()
         getVideoDownloadQuality()
+        getLocalTrackingEnabled()
         viewModelScope.launch {
             calculateDataFraction(
                 cacheRepository,
             )?.let {
                 _fraction.value = it
             }
+        }
+    }
+
+    private fun getLocalTrackingEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.localTrackingEnabled.collect { enabled ->
+                _localTrackingEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setLocalTrackingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setLocalTrackingEnabled(enabled)
+            getLocalTrackingEnabled()
         }
     }
 

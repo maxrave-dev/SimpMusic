@@ -484,4 +484,19 @@
     <string name="keep_your_youtube_playlist_offline_description">Save your YT playlist to local and keep to show when offline</string>
     <string name="combine_local_and_youtube_liked_songs">Replace Favorite by YouTube Liked when logged in</string>
     <string name="combine_local_and_youtube_liked_songs_description">Using only YouTube Liked (not support like a song when offline)</string>
+    <string name="this_year">This year</string>
+    <string name="last_90_days">Last 90 days</string>
+    <string name="last_30_days">Last 30 days</string>
+    <string name="last_7_days">Last 7 days</string>
+    <string name="lower_plays">plays</string>
+    <string name="top_song">Top song</string>
+    <string name="songs_played">Songs played</string>
+    <string name="total_listened_time">Total listened time</string>
+    <string name="seconds">seconds</string>
+    <string name="your_recently_played">Your recently played</string>
+    <string name="your_top_artists">Your top artists</string>
+    <string name="your_top_albums">Your top albums</string>
+    <string name="your_top_tracks">Your top tracks</string>
+    <string name="date_range">Date range</string>
+    <string name="no_data_analytics">Please play some music to see analytics</string>
 </resources>
