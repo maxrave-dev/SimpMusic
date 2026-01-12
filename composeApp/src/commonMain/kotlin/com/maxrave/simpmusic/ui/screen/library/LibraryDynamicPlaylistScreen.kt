@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.library
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -77,6 +79,7 @@ import simpmusic.composeapp.generated.resources.followed
 import simpmusic.composeapp.generated.resources.lower_plays
 import simpmusic.composeapp.generated.resources.most_played
 import simpmusic.composeapp.generated.resources.search
+import simpmusic.composeapp.generated.resources.seconds
 import simpmusic.composeapp.generated.resources.your_top_albums
 import simpmusic.composeapp.generated.resources.your_top_artists
 import simpmusic.composeapp.generated.resources.your_top_tracks
@@ -291,6 +294,21 @@ fun LibraryDynamicPlaylistScreen(
                                 sharedViewModel.addListToQueue(
                                     arrayListOf(song.second.toTrack()),
                                 )
+                            },
+                            rightView = {
+                                Column(
+                                    modifier = Modifier.wrapContentWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    Text(
+                                        text = "${song.first.totalListeningTime} ${stringResource(Res.string.seconds)}",
+                                        style = typo().bodySmall,
+                                    )
+                                    Text(
+                                        text = "${song.first.playCount} ${stringResource(Res.string.lower_plays)}",
+                                        style = typo().bodySmall,
+                                    )
+                                }
                             },
                         )
                     }

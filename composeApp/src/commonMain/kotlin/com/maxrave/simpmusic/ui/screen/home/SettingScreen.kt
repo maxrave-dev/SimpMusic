@@ -168,6 +168,16 @@ import simpmusic.composeapp.generated.resources.auto_check_for_update_descriptio
 import simpmusic.composeapp.generated.resources.backup
 import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
+import simpmusic.composeapp.generated.resources.auto_backup
+import simpmusic.composeapp.generated.resources.auto_backup_description
+import simpmusic.composeapp.generated.resources.backup_frequency
+import simpmusic.composeapp.generated.resources.daily
+import simpmusic.composeapp.generated.resources.weekly
+import simpmusic.composeapp.generated.resources.monthly
+import simpmusic.composeapp.generated.resources.keep_backups
+import simpmusic.composeapp.generated.resources.keep_backups_format
+import simpmusic.composeapp.generated.resources.last_backup
+import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.balance_media_loudness
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_close_24
@@ -415,6 +425,10 @@ fun SettingScreen(
     val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
+    val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsStateWithLifecycle()
+    val autoBackupFrequency by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
+    val autoBackupMaxFiles by viewModel.autoBackupMaxFiles.collectAsStateWithLifecycle()
+    val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
     val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
@@ -1647,6 +1661,86 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.backup_downloaded_description),
                     switch = (backupDownloaded to { viewModel.setBackupDownloaded(it) }),
                 )
+                // Auto Backup (Android only)
+                if (getPlatform() == Platform.Android) {
+                    SettingItem(
+                        title = stringResource(Res.string.auto_backup),
+                        subtitle = stringResource(Res.string.auto_backup_description),
+                        switch = (autoBackupEnabled to { viewModel.setAutoBackupEnabled(it) }),
+                    )
+                    AnimatedVisibility(visible = autoBackupEnabled) {
+                        Column {
+                            SettingItem(
+                                title = stringResource(Res.string.backup_frequency),
+                                subtitle = when (autoBackupFrequency) {
+                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY -> stringResource(Res.string.daily)
+                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY -> stringResource(Res.string.weekly)
+                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY -> stringResource(Res.string.monthly)
+                                    else -> stringResource(Res.string.daily)
+                                },
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.backup_frequency) },
+                                            selectOne = SettingAlertState.SelectData(
+                                                listSelect = listOf(
+                                                    (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY) to runBlocking { getString(Res.string.daily) },
+                                                    (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY) to runBlocking { getString(Res.string.weekly) },
+                                                    (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY) to runBlocking { getString(Res.string.monthly) },
+                                                ),
+                                            ),
+                                            confirm = runBlocking { getString(Res.string.change) } to { state ->
+                                                val frequency = when (state.selectOne?.getSelected()) {
+                                                    runBlocking { getString(Res.string.daily) } -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
+                                                    runBlocking { getString(Res.string.weekly) } -> DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY
+                                                    runBlocking { getString(Res.string.monthly) } -> DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY
+                                                    else -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
+                                                }
+                                                viewModel.setAutoBackupFrequency(frequency)
+                                            },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.keep_backups),
+                                subtitle = stringResource(Res.string.keep_backups_format, autoBackupMaxFiles),
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.keep_backups) },
+                                            selectOne = SettingAlertState.SelectData(
+                                                listSelect = listOf(
+                                                    (autoBackupMaxFiles == 3) to "3",
+                                                    (autoBackupMaxFiles == 5) to "5",
+                                                    (autoBackupMaxFiles == 10) to "10",
+                                                    (autoBackupMaxFiles == 15) to "15",
+                                                ),
+                                            ),
+                                            confirm = runBlocking { getString(Res.string.change) } to { state ->
+                                                val maxFiles = state.selectOne?.getSelected()?.toIntOrNull() ?: 5
+                                                viewModel.setAutoBackupMaxFiles(maxFiles)
+                                            },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.last_backup),
+                                subtitle = if (autoBackupLastTime == 0L) {
+                                    stringResource(Res.string.never)
+                                } else {
+                                    DateTimeFormatter
+                                        .ofPattern("yyyy-MM-dd HH:mm:ss")
+                                        .withZone(ZoneId.systemDefault())
+                                        .format(Instant.ofEpochMilli(autoBackupLastTime))
+                                },
+                            )
+                        }
+                    }
+                }
                 SettingItem(
                     title = stringResource(Res.string.backup),
                     subtitle = stringResource(Res.string.save_all_your_playlist_data),
