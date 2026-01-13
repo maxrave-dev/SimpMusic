@@ -465,7 +465,7 @@
     <string name="weekly">Weekly</string>
     <string name="monthly">Monthly</string>
     <string name="keep_backups">Keep backups</string>
-    <string name="keep_backups_format">Keep last %d backups</string>
+    <string name="keep_backups_format">Keep last %1$s backups</string>
     <string name="last_backup">Last backup</string>
     <string name="never">Never</string>
     <string name="auto_backup_success">Auto backup completed successfully</string>

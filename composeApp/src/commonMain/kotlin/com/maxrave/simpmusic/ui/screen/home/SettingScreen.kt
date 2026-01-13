@@ -163,21 +163,14 @@ import simpmusic.composeapp.generated.resources.anonymous
 import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.audio
 import simpmusic.composeapp.generated.resources.author
+import simpmusic.composeapp.generated.resources.auto_backup
+import simpmusic.composeapp.generated.resources.auto_backup_description
 import simpmusic.composeapp.generated.resources.auto_check_for_update
 import simpmusic.composeapp.generated.resources.auto_check_for_update_description
 import simpmusic.composeapp.generated.resources.backup
 import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
-import simpmusic.composeapp.generated.resources.auto_backup
-import simpmusic.composeapp.generated.resources.auto_backup_description
 import simpmusic.composeapp.generated.resources.backup_frequency
-import simpmusic.composeapp.generated.resources.daily
-import simpmusic.composeapp.generated.resources.weekly
-import simpmusic.composeapp.generated.resources.monthly
-import simpmusic.composeapp.generated.resources.keep_backups
-import simpmusic.composeapp.generated.resources.keep_backups_format
-import simpmusic.composeapp.generated.resources.last_backup
-import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.balance_media_loudness
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_close_24
@@ -206,6 +199,7 @@ import simpmusic.composeapp.generated.resources.contributor_email
 import simpmusic.composeapp.generated.resources.contributor_name
 import simpmusic.composeapp.generated.resources.custom_ai_model_id
 import simpmusic.composeapp.generated.resources.custom_model_id_messages
+import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
 import simpmusic.composeapp.generated.resources.default_models
 import simpmusic.composeapp.generated.resources.description_and_licenses
@@ -232,6 +226,8 @@ import simpmusic.composeapp.generated.resources.invalid_api_key
 import simpmusic.composeapp.generated.resources.invalid_host
 import simpmusic.composeapp.generated.resources.invalid_language_code
 import simpmusic.composeapp.generated.resources.invalid_port
+import simpmusic.composeapp.generated.resources.keep_backups
+import simpmusic.composeapp.generated.resources.keep_backups_format
 import simpmusic.composeapp.generated.resources.keep_service_alive
 import simpmusic.composeapp.generated.resources.keep_service_alive_description
 import simpmusic.composeapp.generated.resources.keep_your_youtube_playlist_offline
@@ -239,6 +235,7 @@ import simpmusic.composeapp.generated.resources.keep_your_youtube_playlist_offli
 import simpmusic.composeapp.generated.resources.kill_service_on_exit
 import simpmusic.composeapp.generated.resources.kill_service_on_exit_description
 import simpmusic.composeapp.generated.resources.language
+import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.last_checked_at
 import simpmusic.composeapp.generated.resources.limit_player_cache
 import simpmusic.composeapp.generated.resources.log_in_to_discord
@@ -251,6 +248,8 @@ import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.main_lyrics_provider
 import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
 import simpmusic.composeapp.generated.resources.maxrave_dev
+import simpmusic.composeapp.generated.resources.monthly
+import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.open_system_equalizer
@@ -311,6 +310,7 @@ import simpmusic.composeapp.generated.resources.version_format
 import simpmusic.composeapp.generated.resources.video_download_quality
 import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.warning
+import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
 import simpmusic.composeapp.generated.resources.you_can_see_the_content_below_the_bottom_bar
 import simpmusic.composeapp.generated.resources.youtube_account
@@ -1705,7 +1705,7 @@ fun SettingScreen(
                             )
                             SettingItem(
                                 title = stringResource(Res.string.keep_backups),
-                                subtitle = stringResource(Res.string.keep_backups_format, autoBackupMaxFiles),
+                                subtitle = stringResource(Res.string.keep_backups_format, "$autoBackupMaxFiles"),
                                 onClick = {
                                     viewModel.setAlertData(
                                         SettingAlertState(
