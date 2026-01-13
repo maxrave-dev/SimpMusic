@@ -17,7 +17,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
-import androidx.compose.ui.window.rememberWindowState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
@@ -29,7 +28,7 @@ import java.util.prefs.Preferences
 /**
  * Mini player window - a separate always-on-top window for music controls.
  * Spotify-style frameless design with custom close button.
- * 
+ *
  * Features:
  * - Always on top of other windows
  * - Frameless (no title bar)
@@ -42,34 +41,35 @@ import java.util.prefs.Preferences
 @Composable
 fun MiniPlayerWindow(
     sharedViewModel: SharedViewModel,
-    onCloseRequest: () -> Unit
+    onCloseRequest: () -> Unit,
 ) {
     val prefs = remember { Preferences.userRoot().node("SimpMusic/MiniPlayer") }
-    
+
     // Minimum size constraints
     val minWidth = 200f
-    val minHeight = 90f
-    
+    val minHeight = 56f
+
     // Load saved position or use default (with minimum constraints)
     val savedX = prefs.getFloat("windowX", Float.NaN)
     val savedY = prefs.getFloat("windowY", Float.NaN)
     val savedWidth = prefs.getFloat("windowWidth", 400f).coerceAtLeast(minWidth)
-    val savedHeight = prefs.getFloat("windowHeight", 110f).coerceAtLeast(minHeight)
-    
+    val savedHeight = prefs.getFloat("windowHeight", 56f).coerceAtLeast(minHeight)
+
     var windowState by remember {
         mutableStateOf(
             WindowState(
                 placement = WindowPlacement.Floating,
-                position = if (savedX.isNaN() || savedY.isNaN()) {
-                    WindowPosition(Alignment.BottomEnd)
-                } else {
-                    WindowPosition(savedX.dp, savedY.dp)
-                },
-                size = DpSize(savedWidth.dp, savedHeight.dp)
-            )
+                position =
+                    if (savedX.isNaN() || savedY.isNaN()) {
+                        WindowPosition(Alignment.BottomEnd)
+                    } else {
+                        WindowPosition(savedX.dp, savedY.dp)
+                    },
+                size = DpSize(savedWidth.dp, savedHeight.dp),
+            ),
         )
     }
-    
+
     // Save position on change
     LaunchedEffect(windowState.position, windowState.size) {
         val pos = windowState.position
@@ -80,7 +80,7 @@ fun MiniPlayerWindow(
         prefs.putFloat("windowWidth", windowState.size.width.value)
         prefs.putFloat("windowHeight", windowState.size.height.value)
     }
-    
+
     Window(
         onCloseRequest = onCloseRequest,
         title = "SimpMusic - Mini Player",
@@ -96,30 +96,36 @@ fun MiniPlayerWindow(
                     sharedViewModel.onUIEvent(UIEvent.PlayPause)
                     true
                 }
+
                 keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.DirectionRight -> {
                     sharedViewModel.onUIEvent(UIEvent.Next)
                     true
                 }
+
                 keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.DirectionLeft -> {
                     sharedViewModel.onUIEvent(UIEvent.Previous)
                     true
                 }
-                else -> false
+
+                else -> {
+                    false
+                }
             }
-        }
+        },
     ) {
         // Set minimum size at AWT level to prevent flickering
         LaunchedEffect(Unit) {
-            (window as? java.awt.Window)?.minimumSize = Dimension(
-                (minWidth * window.graphicsConfiguration.defaultTransform.scaleX).toInt(),
-                (minHeight * window.graphicsConfiguration.defaultTransform.scaleY).toInt()
-            )
+            (window as? java.awt.Window)?.minimumSize =
+                Dimension(
+                    (minWidth * window.graphicsConfiguration.defaultTransform.scaleX).toInt(),
+                    (minHeight * window.graphicsConfiguration.defaultTransform.scaleY).toInt(),
+                )
         }
-        
+
         MiniPlayerRoot(
             sharedViewModel = sharedViewModel,
             onClose = onCloseRequest,
-            windowState = windowState
+            windowState = windowState,
         )
     }
 }
