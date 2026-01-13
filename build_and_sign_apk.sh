@@ -61,8 +61,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Set derived variables based on selected options
-APK_OUTPUT_DIR="./composeApp/build/outputs/apk/$BUILD_TYPE"
-SIGNED_APK_OUTPUT_DIR="./composeApp/build/outputs/apk/$BUILD_TYPE"
+APK_OUTPUT_DIR="./androidApp/build/outputs/apk/$BUILD_TYPE"
+SIGNED_APK_OUTPUT_DIR="./androidApp/build/outputs/apk/$BUILD_TYPE"
 
 # Android build-tools path
 BUILD_TOOLS_PATH="$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort | tail -n 1)"
@@ -86,7 +86,7 @@ echo "Project cleaned successfully."
 
 # Step 2: Build the APK
 echo "[Step 2] Building APK..."
-./gradlew composeApp:assemble"$BUILD_TYPE"
+./gradlew androidApp:assemble"$BUILD_TYPE"
 echo "APK built successfully."
 
 # Step 3: Locate the built APKs
@@ -102,7 +102,7 @@ for APK_PATH in $APK_PATHS; do
   ALIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/aligned-$(basename "${APK_PATH/-unsigned/}")"
   RELEASE_NAME=$(basename "${APK_PATH/-unsigned/}")
   RELEASE_NAME="${RELEASE_NAME/app-/}"
-  RELEASE_NAME="${RELEASE_NAME/composeApp-/}"
+  RELEASE_NAME="${RELEASE_NAME/androidApp-/}"
   SIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/SimpMusic-$BUILD_VARIANT-$(basename "$RELEASE_NAME")"
 
   echo "[Step 4] Aligning the APK: $APK_PATH..."

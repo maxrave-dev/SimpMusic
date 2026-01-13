@@ -60,7 +60,6 @@ import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
-import com.maxrave.simpmusic.expect.startWorker
 import com.maxrave.simpmusic.expect.ui.toByteArray
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.utils.VersionManager
@@ -732,24 +731,36 @@ class SharedViewModel(
     fun onUIEvent(uiEvent: UIEvent) =
         viewModelScope.launch {
             when (uiEvent) {
-                UIEvent.Backward ->
+                UIEvent.Backward -> {
                     mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.Backward,
                     )
+                }
 
-                UIEvent.Forward -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Forward)
-                UIEvent.PlayPause ->
+                UIEvent.Forward -> {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Forward)
+                }
+
+                UIEvent.PlayPause -> {
                     mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.PlayPause,
                     )
+                }
 
-                UIEvent.Next -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Next)
-                UIEvent.Previous ->
+                UIEvent.Next -> {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Next)
+                }
+
+                UIEvent.Previous -> {
                     mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.Previous,
                     )
+                }
 
-                UIEvent.Stop -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Stop)
+                UIEvent.Stop -> {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Stop)
+                }
+
                 is UIEvent.UpdateProgress -> {
                     mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.UpdateProgress(
@@ -758,8 +769,14 @@ class SharedViewModel(
                     )
                 }
 
-                UIEvent.Repeat -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Repeat)
-                UIEvent.Shuffle -> mediaPlayerHandler.onPlayerEvent(PlayerEvent.Shuffle)
+                UIEvent.Repeat -> {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Repeat)
+                }
+
+                UIEvent.Shuffle -> {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.Shuffle)
+                }
+
                 UIEvent.ToggleLike -> {
                     Logger.w(tag, "ToggleLike")
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.ToggleLike)
@@ -1524,11 +1541,6 @@ class SharedViewModel(
     }
 
     fun shouldCheckForUpdate(): Boolean = runBlocking { dataStoreManager.autoCheckForUpdates.first() == TRUE }
-
-    fun runWorker() {
-        Logger.w("Check Worker", "Worker")
-        startWorker()
-    }
 
     private var _downloadFileProgress = MutableStateFlow<DownloadProgress>(DownloadProgress.INIT)
     val downloadFileProgress: StateFlow<DownloadProgress> get() = _downloadFileProgress
