@@ -35,6 +35,9 @@ jobs:
           distribution: "zulu"
           cache: 'gradle'
 
+      - name: Install libfuse2
+        run: sudo apt install libfuse2
+
       - name: Update build product flavor
         run: |
           echo "" >> ./gradle.properties
