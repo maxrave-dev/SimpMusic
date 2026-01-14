@@ -134,6 +134,12 @@ sometimes, some songs or videos get the wrong lyrics
 We're looking for more contributors, all contributions are welcome!
 See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
 
+Thanks for all my contributors:
+
+<a href="https://github.com/maxrave-dev/SimpMusic/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=maxrave-dev/SimpMusic" />
+</a>
+
  ## Showcase
 This project is following clean architecture and MVVM pattern (in UI, app module).
 
