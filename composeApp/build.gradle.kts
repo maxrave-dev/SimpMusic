@@ -172,6 +172,7 @@ compose.desktop {
             modules("jdk.unsupported")
             packageName = "SimpMusic"
             macOS {
+                targetFormats(TargetFormat.Dmg)
                 includeAllModules = true
                 packageVersion = "2025.12.24"
                 iconFile.set(project.file("icon/circle_app_icon.icns"))
@@ -191,6 +192,7 @@ compose.desktop {
                 }
             }
             windows {
+                targetFormats(TargetFormat.Msi)
                 includeAllModules = true
                 packageVersion =
                     libs.versions.version.name
