@@ -172,7 +172,6 @@ compose.desktop {
             modules("jdk.unsupported")
             packageName = "SimpMusic"
             macOS {
-                targetFormats(TargetFormat.Dmg)
                 includeAllModules = true
                 packageVersion = "2025.12.24"
                 iconFile.set(project.file("icon/circle_app_icon.icns"))
@@ -192,7 +191,6 @@ compose.desktop {
                 }
             }
             windows {
-                targetFormats(TargetFormat.Msi)
                 includeAllModules = true
                 packageVersion =
                     libs.versions.version.name
@@ -201,7 +199,6 @@ compose.desktop {
                 iconFile.set(project.file("icon/circle_app_icon.ico"))
             }
             linux {
-                targetFormats(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
                 includeAllModules = true
                 packageVersion =
                     libs.versions.version.name
@@ -279,26 +276,37 @@ afterEvaluate {
             jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
         }
     }
+
     fun packAppImage(isRelease: Boolean) {
         val appName = "SimpMusic"
         val appDirSrc = project.file("appimage")
-        val packageOutput = if (isRelease)
-            layout.buildDirectory.dir("compose/binaries/main-release/app/${appName}")
-                .get().asFile
-        else
-            layout.buildDirectory.dir("compose/binaries/main/app/${appName}")
-                .get().asFile
+        val packageOutput =
+            if (isRelease) {
+                layout.buildDirectory
+                    .dir("compose/binaries/main-release/app/$appName")
+                    .get()
+                    .asFile
+            } else {
+                layout.buildDirectory
+                    .dir("compose/binaries/main/app/$appName")
+                    .get()
+                    .asFile
+            }
         if (!appDirSrc.exists() || !packageOutput.exists()) {
             return
         }
 
-        val appimagetool = layout.buildDirectory.dir("tmp").get().asFile
-            .resolve("appimagetool-x86_64.AppImage")
+        val appimagetool =
+            layout.buildDirectory
+                .dir("tmp")
+                .get()
+                .asFile
+                .resolve("appimagetool-x86_64.AppImage")
 
         if (!appimagetool.exists()) {
             downloadFile(
                 "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage",
-                appimagetool
+                appimagetool,
             )
         }
 
@@ -306,12 +314,18 @@ afterEvaluate {
             appimagetool.setExecutable(true)
         }
 
-        val appDir = if (isRelease)
-            layout.buildDirectory.dir("appimage/main-release/${appName}.AppDir")
-                .get().asFile
-        else
-            layout.buildDirectory.dir("appimage/main/${appName}.AppDir")
-                .get().asFile
+        val appDir =
+            if (isRelease) {
+                layout.buildDirectory
+                    .dir("appimage/main-release/$appName.AppDir")
+                    .get()
+                    .asFile
+            } else {
+                layout.buildDirectory
+                    .dir("appimage/main/$appName.AppDir")
+                    .get()
+                    .asFile
+            }
         if (appDir.exists()) {
             appDir.deleteRecursively()
         }
@@ -319,27 +333,29 @@ afterEvaluate {
         FileUtils.copyDirectory(appDirSrc, appDir)
         FileUtils.copyDirectory(packageOutput, appDir)
 
-        val appExecutable = appDir.resolve("bin/${appName}")
+        val appExecutable = appDir.resolve("bin/$appName")
         if (!appExecutable.canExecute()) {
             appimagetool.setExecutable(true)
         }
 
         val appRun = appDir.resolve("AppRun")
         if (!appRun.canExecute()) {
-            appRun.setReadable(true, false)   // readable by all
-            appRun.setWritable(true, true)    // writable only by owner
+            appRun.setReadable(true, false) // readable by all
+            appRun.setWritable(true, true) // writable only by owner
             appRun.setExecutable(true, false)
 
-            println("Set AppRun executable permissions, readable: ${appRun.canRead()}, writable: ${appRun.canWrite()}, executable: ${appRun.canExecute()}")
+            println(
+                "Set AppRun executable permissions, readable: ${appRun.canRead()}, writable: ${appRun.canWrite()}, executable: ${appRun.canExecute()}",
+            )
         }
 
         exec {
             workingDir = appDir.parentFile
             executable = appimagetool.canonicalPath
-            environment("ARCH", "x86_64")  // TODO: 支持arm64
+            environment("ARCH", "x86_64") // TODO: 支持arm64
             args(
-                "${appName}.AppDir",
-                "${appName}-x86_64.AppImage"
+                "$appName.AppDir",
+                "$appName-x86_64.AppImage",
             )
         }
     }
@@ -352,7 +368,10 @@ afterEvaluate {
     }
 }
 
-fun downloadFile(url: String, destFile: File) {
+fun downloadFile(
+    url: String,
+    destFile: File,
+) {
     val destParent = destFile.parentFile
     destParent.mkdirs()
 

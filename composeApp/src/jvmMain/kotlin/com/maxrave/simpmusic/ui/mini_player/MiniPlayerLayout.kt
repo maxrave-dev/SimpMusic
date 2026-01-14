@@ -56,7 +56,9 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.mediaservice.handler.ControlState
+import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
+import com.maxrave.simpmusic.ui.component.RichSyncLyricsLineItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
@@ -307,24 +309,43 @@ fun MediumMiniLayout(
                                     .padding(horizontal = 8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight(
-                                            align = Alignment.CenterVertically,
-                                        ).basicMarquee(
-                                            iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
-                                textAlign = TextAlign.Center,
-                                text = currentLine.words,
-                                style = typo().bodySmall,
-                                color = Color.White.copy(alpha = 0.9f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                fontSize = 11.sp,
-                            )
+                            if (lyricsData.lyrics.syncType == "RICH_SYNCED") {
+                                val parsedLine =
+                                    remember(currentLine.words, currentLine.startTimeMs, currentLine.endTimeMs) {
+                                        val result = parseRichSyncWords(currentLine.words, currentLine.startTimeMs, currentLine.endTimeMs)
+                                        result
+                                    }
+
+                                if (parsedLine != null) {
+                                    RichSyncLyricsLineItem(
+                                        parsedLine = parsedLine,
+                                        translatedWords = null,
+                                        currentTimeMs = timeline.current,
+                                        isCurrent = true,
+                                        customFontSize = typo().bodySmall.fontSize,
+                                        modifier = Modifier,
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(
+                                                align = Alignment.CenterVertically,
+                                            ).basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                    textAlign = TextAlign.Center,
+                                    text = currentLine.words,
+                                    style = typo().bodySmall,
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = 11.sp,
+                                )
+                            }
                         }
                     }
                 }
@@ -451,26 +472,45 @@ fun SquareMiniLayout(
                     }
 
                 if (currentLine != null) {
-                    Text(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                                .wrapContentHeight(
-                                    align = Alignment.CenterVertically,
-                                ).basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                ).focusable(),
-                        textAlign = TextAlign.Center,
-                        text = currentLine.words,
-                        style = typo().bodySmall,
-                        color = Color.White.copy(alpha = 0.9f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontSize = 12.sp,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    if (lyricsData.lyrics.syncType == "RICH_SYNCED") {
+                        val parsedLine =
+                            remember(currentLine.words, currentLine.startTimeMs, currentLine.endTimeMs) {
+                                val result = parseRichSyncWords(currentLine.words, currentLine.startTimeMs, currentLine.endTimeMs)
+                                result
+                            }
+
+                        if (parsedLine != null) {
+                            RichSyncLyricsLineItem(
+                                parsedLine = parsedLine,
+                                translatedWords = null,
+                                currentTimeMs = timeline.current,
+                                isCurrent = true,
+                                customFontSize = typo().bodySmall.fontSize,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                            )
+                        }
+                    } else {
+                        Text(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                                    .wrapContentHeight(
+                                        align = Alignment.CenterVertically,
+                                    ).basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                    ).focusable(),
+                            textAlign = TextAlign.Center,
+                            text = currentLine.words,
+                            style = typo().bodySmall,
+                            color = Color.White.copy(alpha = 0.9f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = 12.sp,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
 
@@ -794,24 +834,43 @@ fun ExpandedMiniLayout(
                                 .padding(horizontal = 12.dp)
                                 .padding(bottom = 8.dp),
                     ) {
-                        Text(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(
-                                        align = Alignment.CenterVertically,
-                                    ).basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
-                            textAlign = TextAlign.Center,
-                            text = currentLine.words,
-                            style = typo().bodySmall,
-                            color = Color.White.copy(alpha = 0.9f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 11.sp,
-                        )
+                        if (lyricsData.lyrics.syncType == "RICH_SYNCED") {
+                            val parsedLine =
+                                remember(currentLine.words, currentLine.startTimeMs, currentLine.endTimeMs) {
+                                    val result = parseRichSyncWords(currentLine.words, currentLine.startTimeMs, currentLine.endTimeMs)
+                                    result
+                                }
+
+                            if (parsedLine != null) {
+                                RichSyncLyricsLineItem(
+                                    parsedLine = parsedLine,
+                                    translatedWords = null,
+                                    currentTimeMs = timeline.current,
+                                    isCurrent = true,
+                                    customFontSize = typo().bodySmall.fontSize,
+                                    modifier = Modifier,
+                                )
+                            }
+                        } else {
+                            Text(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(
+                                            align = Alignment.CenterVertically,
+                                        ).basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
+                                textAlign = TextAlign.Center,
+                                text = currentLine.words,
+                                style = typo().bodySmall,
+                                color = Color.White.copy(alpha = 0.9f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                fontSize = 11.sp,
+                            )
+                        }
                     }
                 }
             }
