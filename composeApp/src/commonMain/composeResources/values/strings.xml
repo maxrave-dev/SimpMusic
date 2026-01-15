@@ -511,4 +511,11 @@
     <string name="your_top_tracks">Your top tracks</string>
     <string name="date_range">Date range</string>
     <string name="no_data_analytics">Please play some music to see analytics</string>
+    <string name="rate_translated_lyrics">Rate translation</string>
+    <string name="rate_lyrics">Rate lyrics</string>
+    <string name="vote_for_lyrics">Vote for lyrics</string>
+    <string name="upvote">Upvote</string>
+    <string name="downvote">Downvote</string>
+    <string name="vote_submitted">Thank you for voting this lyrics!</string>
+    <string name="vote_error">Failed to submit</string>
 </resources>

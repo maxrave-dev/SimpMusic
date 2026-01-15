@@ -96,6 +96,7 @@ import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
 import simpmusic.composeapp.generated.resources.updated
+import simpmusic.composeapp.generated.resources.vote_submitted
 import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.reflect.KClass
@@ -300,6 +301,7 @@ class SharedViewModel(
                     it.songEntity?.videoId
                 }.collectLatest { state ->
                     Logger.w(tag, "NowPlayingState is $state")
+                    resetLyricsVoteState()
                     canvasJob?.cancel()
                     _nowPlayingState.value = state
                     state.track?.let { track ->
@@ -1605,6 +1607,97 @@ class SharedViewModel(
         }
     }
 
+    // Vote state for translated lyrics
+    private val _translatedVoteState = MutableStateFlow<VoteState>(VoteState.Idle)
+    val translatedVoteState: StateFlow<VoteState> = _translatedVoteState.asStateFlow()
+
+    // Vote state for original lyrics
+    private val _lyricsVoteState = MutableStateFlow<VoteState>(VoteState.Idle)
+    val lyricsVoteState: StateFlow<VoteState> = _lyricsVoteState.asStateFlow()
+
+    /**
+     * Vote for SimpMusic original lyrics (upvote or downvote)
+     * @param upvote true for upvote, false for downvote
+     */
+    fun voteLyrics(upvote: Boolean) {
+        val lyricsData = _nowPlayingScreenData.value.lyricsData
+        val lyricsProvider = lyricsData?.lyricsProvider
+        val simpMusicLyricsId = lyricsData?.lyrics?.simpMusicLyricsId
+
+        if (lyricsProvider != LyricsProvider.SIMPMUSIC || simpMusicLyricsId.isNullOrEmpty()) {
+            Logger.w(tag, "Cannot vote: not a SimpMusic lyrics or missing ID")
+            return
+        }
+
+        viewModelScope.launch {
+            _lyricsVoteState.value = VoteState.Loading
+            lyricsCanvasRepository
+                .voteSimpMusicLyrics(
+                    lyricsId = simpMusicLyricsId,
+                    upvote = upvote,
+                ).collectLatest { result ->
+                    when (result) {
+                        is Resource.Error -> {
+                            Logger.w(tag, "Vote SimpMusic Lyrics Error ${result.message}")
+                            _lyricsVoteState.value = VoteState.Error(result.message ?: "Unknown error")
+                        }
+
+                        is Resource.Success -> {
+                            Logger.d(tag, "Vote SimpMusic Lyrics Success")
+                            _lyricsVoteState.value = VoteState.Success(upvote)
+                            makeToast(getString(Res.string.vote_submitted))
+                        }
+                    }
+                }
+        }
+    }
+
+    fun resetLyricsVoteState() {
+        _lyricsVoteState.value = VoteState.Idle
+        _translatedVoteState.value = VoteState.Idle
+    }
+
+    /**
+     * Vote for SimpMusic translated lyrics (upvote or downvote)
+     * @param upvote true for upvote, false for downvote
+     */
+    fun voteTranslatedLyrics(upvote: Boolean) {
+        val translatedLyrics = _nowPlayingScreenData.value.lyricsData?.translatedLyrics
+        val lyricsProvider = translatedLyrics?.second
+        val simpMusicLyricsId = translatedLyrics?.first?.simpMusicLyricsId
+
+        if (lyricsProvider != LyricsProvider.SIMPMUSIC || simpMusicLyricsId.isNullOrEmpty()) {
+            Logger.w(tag, "Cannot vote: not a SimpMusic translated lyrics or missing ID")
+            return
+        }
+
+        viewModelScope.launch {
+            _translatedVoteState.value = VoteState.Loading
+            lyricsCanvasRepository
+                .voteSimpMusicTranslatedLyrics(
+                    translatedLyricsId = simpMusicLyricsId,
+                    upvote = upvote,
+                ).collectLatest { result ->
+                    when (result) {
+                        is Resource.Error -> {
+                            Logger.w(tag, "Vote SimpMusic Translated Lyrics Error ${result.message}")
+                            _translatedVoteState.value = VoteState.Error(result.message ?: "Unknown error")
+                        }
+
+                        is Resource.Success -> {
+                            Logger.d(tag, "Vote SimpMusic Translated Lyrics Success")
+                            _translatedVoteState.value = VoteState.Success(upvote)
+                            makeToast(getString(Res.string.vote_submitted))
+                        }
+                    }
+                }
+        }
+    }
+
+    fun resetVoteState() {
+        _translatedVoteState.value = VoteState.Idle
+    }
+
     fun shouldStopMusicService(): Boolean = runBlocking { dataStoreManager.killServiceOnExit.first() == TRUE }
 
     fun isUserLoggedIn(): Boolean = runBlocking { dataStoreManager.cookie.first().isNotEmpty() }
@@ -1685,4 +1778,11 @@ data class NowPlayingScreenData(
                 playlistName = "",
             )
     }
+}
+
+sealed class VoteState {
+    data object Idle : VoteState()
+    data object Loading : VoteState()
+    data class Success(val upvote: Boolean) : VoteState()
+    data class Error(val message: String) : VoteState()
 }
