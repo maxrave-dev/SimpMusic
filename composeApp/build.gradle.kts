@@ -4,6 +4,7 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.apache.commons.io.FileUtils
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.net.URI
@@ -349,14 +350,20 @@ afterEvaluate {
             )
         }
 
-        exec {
-            workingDir = appDir.parentFile
-            executable = appimagetool.canonicalPath
-            environment("ARCH", "x86_64") // TODO: 支持arm64
-            args(
-                "$appName.AppDir",
-                "$appName-x86_64.AppImage",
-            )
+        // Use ProcessBuilder instead of exec {} to avoid capturing project reference
+        val process = ProcessBuilder(
+            appimagetool.canonicalPath,
+            "$appName.AppDir",
+            "$appName-x86_64.AppImage"
+        )
+            .directory(appDir.parentFile)
+            .apply { environment()["ARCH"] = "x86_64" } // TODO: 支持arm64
+            .inheritIO()
+            .start()
+
+        val exitCode = process.waitFor()
+        if (exitCode != 0) {
+            throw GradleException("appimagetool failed with exit code $exitCode")
         }
     }
 
@@ -368,7 +375,13 @@ afterEvaluate {
     }
 }
 
-fun downloadFile(
+// Mark JPackage tasks as not compatible with configuration cache
+// This must be done outside afterEvaluate to work properly
+tasks.withType<AbstractJPackageTask>().configureEach {
+    notCompatibleWithConfigurationCache("Compose Desktop JPackage tasks are not yet compatible with configuration cache")
+}
+
+private fun downloadFile(
     url: String,
     destFile: File,
 ) {
