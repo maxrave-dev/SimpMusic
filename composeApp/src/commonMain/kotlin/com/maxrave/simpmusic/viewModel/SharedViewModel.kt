@@ -304,15 +304,14 @@ class SharedViewModel(
                     resetLyricsVoteState()
                     canvasJob?.cancel()
                     _nowPlayingState.value = state
-                    state.track?.let { track ->
+                    state.songEntity?.let { track ->
                         _nowPlayingScreenData.value =
                             NowPlayingScreenData(
                                 nowPlayingTitle = track.title,
                                 artistName =
                                     track
-                                        .artists
-                                        .toListName()
-                                        .joinToString(", "),
+                                        .artistName
+                                        ?.joinToString(", ") ?: "",
                                 isVideo = false,
                                 thumbnailURL = null,
                                 canvasData = null,

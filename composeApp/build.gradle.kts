@@ -169,7 +169,17 @@ compose.desktop {
         mainClass = "com.maxrave.simpmusic.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+            val listTarget = mutableListOf<TargetFormat>()
+            if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
+                listTarget.addAll(
+                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
+                )
+            } else {
+                listTarget.addAll(
+                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+                )
+            }
+            targetFormats(*listTarget.toTypedArray())
             modules("jdk.unsupported")
             packageName = "SimpMusic"
             macOS {
@@ -297,75 +307,75 @@ afterEvaluate {
             return
         }
 
-        val appimagetool =
-            layout.buildDirectory
-                .dir("tmp")
-                .get()
-                .asFile
-                .resolve("appimagetool-x86_64.AppImage")
-
-        if (!appimagetool.exists()) {
-            downloadFile(
-                "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage",
-                appimagetool,
-            )
-        }
-
-        if (!appimagetool.canExecute()) {
-            appimagetool.setExecutable(true)
-        }
-
-        val appDir =
-            if (isRelease) {
+            val appimagetool =
                 layout.buildDirectory
-                    .dir("appimage/main-release/$appName.AppDir")
+                    .dir("tmp")
                     .get()
                     .asFile
-            } else {
-                layout.buildDirectory
-                    .dir("appimage/main/$appName.AppDir")
-                    .get()
-                    .asFile
+                    .resolve("appimagetool-x86_64.AppImage")
+
+            if (!appimagetool.exists()) {
+                downloadFile(
+                    "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage",
+                    appimagetool,
+                )
             }
-        if (appDir.exists()) {
-            appDir.deleteRecursively()
-        }
 
-        FileUtils.copyDirectory(appDirSrc, appDir)
-        FileUtils.copyDirectory(packageOutput, appDir)
+            if (!appimagetool.canExecute()) {
+                appimagetool.setExecutable(true)
+            }
 
-        val appExecutable = appDir.resolve("bin/$appName")
-        if (!appExecutable.canExecute()) {
-            appimagetool.setExecutable(true)
-        }
+            val appDir =
+                if (isRelease) {
+                    layout.buildDirectory
+                        .dir("appimage/main-release/$appName.AppDir")
+                        .get()
+                        .asFile
+                } else {
+                    layout.buildDirectory
+                        .dir("appimage/main/$appName.AppDir")
+                        .get()
+                        .asFile
+                }
+            if (appDir.exists()) {
+                appDir.deleteRecursively()
+            }
 
-        val appRun = appDir.resolve("AppRun")
-        if (!appRun.canExecute()) {
-            appRun.setReadable(true, false) // readable by all
-            appRun.setWritable(true, true) // writable only by owner
-            appRun.setExecutable(true, false)
+            FileUtils.copyDirectory(appDirSrc, appDir)
+            FileUtils.copyDirectory(packageOutput, appDir)
 
-            println(
-                "Set AppRun executable permissions, readable: ${appRun.canRead()}, writable: ${appRun.canWrite()}, executable: ${appRun.canExecute()}",
+            val appExecutable = appDir.resolve("bin/$appName")
+            if (!appExecutable.canExecute()) {
+                appimagetool.setExecutable(true)
+            }
+
+            val appRun = appDir.resolve("AppRun")
+            if (!appRun.canExecute()) {
+                appRun.setReadable(true, false) // readable by all
+                appRun.setWritable(true, true) // writable only by owner
+                appRun.setExecutable(true, false)
+
+                println(
+                    "Set AppRun executable permissions, readable: ${appRun.canRead()}, writable: ${appRun.canWrite()}, executable: ${appRun.canExecute()}",
+                )
+            }
+
+            // Use ProcessBuilder instead of exec {} to avoid capturing project reference
+            val process = ProcessBuilder(
+                appimagetool.canonicalPath,
+                "$appName.AppDir",
+                "$appName-x86_64.AppImage"
             )
-        }
+                .directory(appDir.parentFile)
+                .apply { environment()["ARCH"] = "x86_64" } // TODO: 支持arm64
+                .inheritIO()
+                .start()
 
-        // Use ProcessBuilder instead of exec {} to avoid capturing project reference
-        val process = ProcessBuilder(
-            appimagetool.canonicalPath,
-            "$appName.AppDir",
-            "$appName-x86_64.AppImage"
-        )
-            .directory(appDir.parentFile)
-            .apply { environment()["ARCH"] = "x86_64" } // TODO: 支持arm64
-            .inheritIO()
-            .start()
-
-        val exitCode = process.waitFor()
-        if (exitCode != 0) {
-            throw GradleException("appimagetool failed with exit code $exitCode")
+            val exitCode = process.waitFor()
+            if (exitCode != 0) {
+                throw GradleException("appimagetool failed with exit code $exitCode")
+            }
         }
-    }
 
     tasks.findByName("packageAppImage")?.doLast {
         packAppImage(false)

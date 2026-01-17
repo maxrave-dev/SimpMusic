@@ -99,7 +99,7 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 ### Which file should I download?
 - For Windows: Download the file with extension `.msi`.
 - For macOS: Download the file with extension `.dmg`.
-- For Linux: Download the file with extension `.deb`.
+- For Linux: Download the file with extension `.deb` (Debian based), `.rpm` (Red-hat based), `.AppImage` (all Linux distributions) .
 
 ### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
 
