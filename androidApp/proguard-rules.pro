@@ -212,6 +212,10 @@
 -keep class org.simpmusic.lyrics.models.** { *; }
 -keep class com.simpmusic.lyrics.parser.** { *; }
 
+-keep class com.google.re2j.** { *; }
+-dontwarn com.google.re2j.Matcher
+-dontwarn com.google.re2j.Pattern
+
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
 
 -dontwarn io.sentry.android.core.SentryLogcatAdapter
