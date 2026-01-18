@@ -77,9 +77,13 @@ fun main() {
     mediaPlayerHandler.showToast = { type ->
         showToast(
             when (type) {
-                ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
-                is ToastType.PlayerError ->
+                ToastType.ExplicitContent -> {
+                    runBlocking { getString(Res.string.explicit_content_blocked) }
+                }
+
+                is ToastType.PlayerError -> {
                     runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
+                }
             },
         )
     }
@@ -121,8 +125,7 @@ fun main() {
                                 },
                             ),
                         )
-                    }
-                    .diskCachePolicy(CachePolicy.ENABLED)
+                    }.diskCachePolicy(CachePolicy.ENABLED)
                     .networkCachePolicy(CachePolicy.ENABLED)
                     .diskCache(
                         DiskCache
@@ -143,7 +146,7 @@ fun main() {
                 sharedViewModel = sharedViewModel,
                 onCloseRequest = {
                     MiniPlayerManager.isOpen = false
-                }
+                },
             )
         }
     }

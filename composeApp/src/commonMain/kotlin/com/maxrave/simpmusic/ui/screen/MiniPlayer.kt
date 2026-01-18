@@ -96,13 +96,13 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.drawBackdropCustomShape
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.toResizedBitmap
-import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -161,7 +161,7 @@ fun MiniPlayer(
                     thumbnail.readPixels(buffer)
                 }
             } catch (e: Exception) {
-                Logger.e(TAG, "Error getting pixels from layer: ${e.localizedMessage}")
+                Logger.e(TAG, "Error getting pixels from layer: ${e.message}")
             }
             val averageLuminance =
                 (0 until 25).sumOf { index ->
@@ -816,7 +816,7 @@ fun MiniPlayer(
                             IconButton(onClick = { toggleMiniPlayer() }) {
                                 Icon(
                                     imageVector = Icons.Outlined.OpenInNew,
-                                    contentDescription = "Mini Player"
+                                    contentDescription = "Mini Player",
                                 )
                             }
                         }
@@ -825,14 +825,16 @@ fun MiniPlayer(
                                 // Toggle mute/unmute
                                 val newVolume = if (controllerState.volume > 0f) 0f else 1f
                                 sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
-                            }
+                            },
                         ) {
                             Icon(
-                                imageVector = if (controllerState.volume > 0f) 
-                                    Icons.Filled.VolumeUp 
-                                else 
-                                    Icons.Filled.VolumeOff,
-                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute"
+                                imageVector =
+                                    if (controllerState.volume > 0f) {
+                                        Icons.Filled.VolumeUp
+                                    } else {
+                                        Icons.Filled.VolumeOff
+                                    },
+                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                             )
                         }
                         Spacer(Modifier.width(4.dp))

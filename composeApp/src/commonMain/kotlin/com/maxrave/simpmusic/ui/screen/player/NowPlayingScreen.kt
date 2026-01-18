@@ -181,6 +181,7 @@ import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.downvote
 import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.holder_video
 import simpmusic.composeapp.generated.resources.like_and_dislike
@@ -199,7 +200,6 @@ import simpmusic.composeapp.generated.resources.show
 import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
 import simpmusic.composeapp.generated.resources.unsynced
 import simpmusic.composeapp.generated.resources.upvote
-import simpmusic.composeapp.generated.resources.downvote
 import simpmusic.composeapp.generated.resources.view_count
 import simpmusic.composeapp.generated.resources.vote_error
 import simpmusic.composeapp.generated.resources.vote_submitted
@@ -535,10 +535,17 @@ fun NowPlayingScreenContent(
 
     // Vote Dialog
     if (showVoteDialog) {
-        val canVoteLyrics = screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
-            !screenDataState.lyricsData?.lyrics?.simpMusicLyricsId.isNullOrEmpty()
-        val canVoteTranslatedLyrics = screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
-            !screenDataState.lyricsData?.translatedLyrics?.first?.simpMusicLyricsId.isNullOrEmpty()
+        val canVoteLyrics =
+            screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
+                screenDataState.lyricsData
+                    ?.lyrics
+                    ?.simpMusicLyrics != null
+        val canVoteTranslatedLyrics =
+            screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
+                screenDataState.lyricsData
+                    ?.translatedLyrics
+                    ?.first
+                    ?.simpMusicLyrics != null
 
         VoteLyricsDialog(
             canVoteLyrics = canVoteLyrics,
@@ -1536,10 +1543,17 @@ fun NowPlayingScreenContent(
                                         }
                                         Spacer(modifier = Modifier.weight(1f))
                                         // Vote button - only show if lyrics or translated lyrics from SimpMusic
-                                        val canVoteLyrics = screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
-                                            !screenDataState.lyricsData?.lyrics?.simpMusicLyricsId.isNullOrEmpty()
-                                        val canVoteTranslatedLyrics = screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
-                                            !screenDataState.lyricsData?.translatedLyrics?.first?.simpMusicLyricsId.isNullOrEmpty()
+                                        val canVoteLyrics =
+                                            screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
+                                                screenDataState.lyricsData
+                                                    ?.lyrics
+                                                    ?.simpMusicLyrics != null
+                                        val canVoteTranslatedLyrics =
+                                            screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
+                                                screenDataState.lyricsData
+                                                    ?.translatedLyrics
+                                                    ?.first
+                                                    ?.simpMusicLyrics != null
                                         if (canVoteLyrics || canVoteTranslatedLyrics) {
                                             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                                 IconButton(

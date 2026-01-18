@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.VoteData
 import com.maxrave.simpmusic.viewModel.VoteState
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
@@ -36,8 +37,8 @@ import simpmusic.composeapp.generated.resources.vote_for_lyrics
 fun VoteLyricsDialog(
     canVoteLyrics: Boolean,
     canVoteTranslatedLyrics: Boolean,
-    lyricsVoteState: VoteState,
-    translatedLyricsVoteState: VoteState,
+    lyricsVoteState: VoteData?,
+    translatedLyricsVoteState: VoteData?,
     onVoteLyrics: (upvote: Boolean) -> Unit,
     onVoteTranslatedLyrics: (upvote: Boolean) -> Unit,
     onDismiss: () -> Unit,
@@ -64,7 +65,7 @@ fun VoteLyricsDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 // Vote for original lyrics
-                if (canVoteLyrics) {
+                if (canVoteLyrics && lyricsVoteState != null) {
                     VoteRow(
                         label = stringResource(Res.string.rate_lyrics),
                         voteState = lyricsVoteState,
@@ -74,7 +75,7 @@ fun VoteLyricsDialog(
                 }
 
                 // Vote for translated lyrics
-                if (canVoteTranslatedLyrics) {
+                if (canVoteTranslatedLyrics && translatedLyricsVoteState != null) {
                     VoteRow(
                         label = stringResource(Res.string.rate_translated_lyrics),
                         voteState = translatedLyricsVoteState,
@@ -90,64 +91,81 @@ fun VoteLyricsDialog(
 @Composable
 private fun VoteRow(
     label: String,
-    voteState: VoteState,
+    voteState: VoteData,
     onUpvote: () -> Unit,
     onDownvote: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = label,
-            style = typo().bodySmall,
-        )
-        when (voteState) {
-            is VoteState.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                )
-            }
-            is VoteState.Success -> {
-                Icon(
-                    imageVector = if (voteState.upvote) Icons.Rounded.ThumbUpAlt else Icons.Rounded.ThumbDownAlt,
-                    contentDescription = null,
-                    tint = Color.Cyan,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-            is VoteState.Error -> {
-                Text(
-                    text = voteState.message,
-                    style = typo().bodySmall,
-                    color = Color.Red,
-                )
-            }
-            is VoteState.Idle -> {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    IconButton(
-                        onClick = onUpvote,
-                        modifier = Modifier.size(36.dp),
+        Column {
+            Text(
+                text = label,
+                style = typo().bodySmall,
+            )
+            Text(
+                text = "ID: ${voteState.id}",
+                style = typo().bodySmall,
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "Vote: ${voteState.vote}",
+                style = typo().bodySmall,
+            )
+            when (voteState.state) {
+                is VoteState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+
+                is VoteState.Success -> {
+                    Icon(
+                        imageVector = if (voteState.state.upvote) Icons.Rounded.ThumbUpAlt else Icons.Rounded.ThumbDownAlt,
+                        contentDescription = null,
+                        tint = Color.Cyan,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+
+                is VoteState.Error -> {
+                    Text(
+                        text = voteState.state.message,
+                        style = typo().bodySmall,
+                        color = Color.Red,
+                    )
+                }
+
+                is VoteState.Idle -> {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ThumbUp,
-                            contentDescription = stringResource(Res.string.upvote),
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                    IconButton(
-                        onClick = onDownvote,
-                        modifier = Modifier.size(36.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ThumbDown,
-                            contentDescription = stringResource(Res.string.downvote),
-                            modifier = Modifier.size(20.dp),
-                        )
+                        IconButton(
+                            onClick = onUpvote,
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.ThumbUp,
+                                contentDescription = stringResource(Res.string.upvote),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        IconButton(
+                            onClick = onDownvote,
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.ThumbDown,
+                                contentDescription = stringResource(Res.string.downvote),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                     }
                 }
             }
