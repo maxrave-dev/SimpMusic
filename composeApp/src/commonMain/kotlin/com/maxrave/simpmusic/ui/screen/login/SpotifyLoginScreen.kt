@@ -172,7 +172,7 @@ fun SpotifyLoginScreen(
                             }
                         viewModel.setFullSpotifyCookies(cookies)
                     }
-                if (url == Config.SPOTIFY_ACCOUNT_URL) {
+                if (Regex("^https://accounts\\.spotify\\.com/[a-z]{2}(-[a-zA-Z]{2})?/status$").matches(url)) {
                     createWebViewCookieManager()
                         .getCookie(url)
                         .takeIf {
