@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 jobs:
-  build-desktop-deb:
+  build-desktop-appimage:
     name: Build desktop AppImage package
     runs-on: ubuntu-22.04
     defaults:

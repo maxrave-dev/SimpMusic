@@ -72,6 +72,8 @@
     <string name="content_country">內容國家</string>
     <string name="change">更改</string>
     <string name="quality">音質</string>
+    <string name="download_quality"></string>
+    <string name="video_download_quality"></string>
     <string name="clear_downloaded_cache">清除下載快取</string>
     <string name="clear_thumbnail_cache">清除縮圖快取</string>
     <string name="add">加入</string>
@@ -298,7 +300,6 @@
     <string name="codec">編解碼器</string>
     <string name="plays">播放/觀看次數</string>
     <string name="like_and_dislike">%1$d 喜歡, %2$d 不喜歡</string>
-    <string name="published_at">發佈於%1$s</string>
     <string name="less">收起</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">使用Spotify帳號登入</string>
@@ -451,7 +452,6 @@
     <string name="copied_to_clipboard">已複製至剪貼簿</string>
     <string name="update_channel">更新頻道</string>
     <string name="enable_liquid_glass_effect">啟用 Liquid Glass 效果（測試版）</string>
-    <string name="enable_liquid_glass_effect_description">在某些地方啟用 iOS 的 Liquid Glass（液態玻璃）效果（僅適用於 Android 13+ 版本）</string>
     <string name="your_library">我的音樂庫</string>
     <string name="play_explicit_content">播放露骨內容</string>
     <string name="play_explicit_content_description">允許播放露骨內容</string>

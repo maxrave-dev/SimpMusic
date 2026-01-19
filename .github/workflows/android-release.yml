@@ -2,15 +2,6 @@ name: Build APK for Release (Full & FOSS) && Desktop app release
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - 'README.md'
-      - 'fastlane/**'
-      - 'assets/**'
-      - '.github/**/*.md'
-      - '.github/FUNDING.yml'
-      - '.github/ISSUE_TEMPLATE/**'
   push:
     branches:
       - 'main'
@@ -153,13 +144,105 @@ jobs:
         run: ./gradlew exportLibraryDefinitions
 
       - name: Build desktop DEB package
-        run: ./gradlew packageDeb
+        run: ./gradlew packageReleaseDeb
 
       - name: Upload DEB package
         uses: actions/upload-artifact@v4
         with:
           name: desktop-deb-package
-          path: composeApp/build/compose/binaries/main/deb/*.deb
+          path: composeApp/build/compose/binaries/main-release/deb/*.deb
+
+  build-desktop-rpm:
+    name: Build desktop RPM package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Install RPM build tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "zulu"
+          cache: 'gradle'
+
+      - name: Update build product flavor
+        run: |
+          echo "" >> ./gradle.properties
+          echo "isFullBuild=true" >> ./gradle.properties
+
+      - name: Update Sentry Secrets
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_JVM }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN_JVM }}' > ./local.properties
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
+
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
+      - name: Build desktop RPM package
+        run: ./gradlew packageReleaseRpm
+
+      - name: Upload RPM package
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-rpm-package
+          path: composeApp/build/compose/binaries/main-release/rpm/*.rpm
+
+  build-desktop-appimage:
+    name: Build desktop AppImage package
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "zulu"
+          cache: 'gradle'
+
+      - name: Install libfuse2
+        run: sudo apt install libfuse2
+
+      - name: Update build product flavor
+        run: |
+          echo "" >> ./gradle.properties
+          echo "isFullBuild=true" >> ./gradle.properties
+
+      - name: Update Sentry Secrets
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_JVM }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN_JVM }}' > ./local.properties
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
+
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
+      - name: Build desktop AppImage package
+        run: ./gradlew composeApp:packageReleaseAppImage
+
+      - name: Upload AppImage package
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-appimage-package
+          path: composeApp/build/appimage/main-release/SimpMusic-x86_64.AppImage
 
   build-desktop-dmg:
     name: Build desktop DMG package
@@ -196,13 +279,13 @@ jobs:
         run: ./gradlew exportLibraryDefinitions
 
       - name: Build desktop DMG package
-        run: ./gradlew packageDmg
+        run: ./gradlew packageReleaseDmg
 
       - name: Upload DMG package
         uses: actions/upload-artifact@v4
         with:
           name: desktop-dmg-package
-          path: composeApp/build/compose/binaries/main/dmg/*.dmg
+          path: composeApp/build/compose/binaries/main-release/dmg/*.dmg
 
   build-desktop-msi:
     name: Build desktop MSI package
@@ -239,10 +322,10 @@ jobs:
         run: ./gradlew exportLibraryDefinitions
 
       - name: Build desktop MSI package
-        run: ./gradlew packageMsi
+        run: ./gradlew packageReleaseMsi
 
       - name: Upload MSI package
         uses: actions/upload-artifact@v4
         with:
           name: desktop-msi-package
-          path: composeApp/build/compose/binaries/main/msi/*.msi
+          path: composeApp/build/compose/binaries/main-release/msi/*.msi

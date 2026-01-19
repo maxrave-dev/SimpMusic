@@ -72,6 +72,8 @@
     <string name="content_country">Страна контента</string>
     <string name="change">Изменить</string>
     <string name="quality">Качество</string>
+    <string name="download_quality">Качество загрузки</string>
+    <string name="video_download_quality">Качество загрузки видео</string>
     <string name="clear_downloaded_cache">Очистить скачанный кэш</string>
     <string name="clear_thumbnail_cache">Очистить кэш миниатюр</string>
     <string name="add">Добавить</string>
@@ -120,6 +122,7 @@
     <string name="buy_me_a_coffee">Купите мне кофе</string>
     <string name="paypal">PayPal</string>
     <string name="title">Название</string>
+    <string name="custom_order">Свой порядок</string>
     <string name="album">Альбом</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="download_url">URL Скачивания</string>
@@ -173,6 +176,7 @@
     <string name="save_last_played">Сохранить последнюю воспроизводимую</string>
     <string name="save_last_played_track_and_queue">Сохранить последний воспроизведенный трек и очередь</string>
     <string name="update_available">Доступно новое обновление</string>
+    <string name="update_message">Версия %1$s доступна\nВерсия:%2$s\n</string>
     <string name="check_for_update">Проверить на наличие обновлений</string>
     <string name="last_checked_at">Последняя проверка %1$s</string>
     <string name="checking">Выполняется проверка</string>
@@ -301,7 +305,6 @@
     <string name="codec">Кодек</string>
     <string name="plays">Количество просмотров</string>
     <string name="like_and_dislike">%1$d лайков, %2$d дизлайков</string>
-    <string name="published_at">Опубликовано %1$s</string>
     <string name="less">Меньше</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Войти в Spotify</string>
@@ -426,6 +429,7 @@
     <string name="no_favorite_podcasts">Нет любимых подкастов</string>
     <string name="your_sp_dc_param_of_spotify_cookie">Ваш sp_dc параметр с Spotify cookie</string>
     <string name="your_youtube_cookie">Ваш YouTube Cookie</string>
+    <string name="your_discord_token">Ваш Discord токен</string>
     <string name="can_not_be_empty">Не может быть пустым</string>
     <string name="processing">Обработка</string>
     <string name="website">Веб-сайт</string>
@@ -454,11 +458,25 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="update_channel">Канал обновлений</string>
     <string name="enable_liquid_glass_effect">Включить эффект жидкого стекла (БЕТА)</string>
-    <string name="enable_liquid_glass_effect_description">Включить эффект жидкого стекла из iOS в некоторых местах (Android 13+)</string>
     <string name="your_library">Ваша библиотека</string>
     <string name="play_explicit_content">Воспроизводить контент с нецензурной лексикой</string>
     <string name="play_explicit_content_description">Разрешить воспроизведение контента с нецензурной лексикой</string>
     <string name="explicit_content_blocked">Неприемлемый контент пропущен</string>
     <string name="mix_for_you">Миксы для вас</string>
     <string name="no_mixes_found">Не найдено миксов</string>
+    <string name="desktop_webview_description">В связи с ограничениями Compose Multiplatform, WebView невозможно реализовать на настольных устройствах.\n
+Ознакомьтесь с этим руководством, чтобы узнать, как выполнить вход на настольной версии:\n</string>
+    <string name="open_blog_post">Читать в блоге</string>
+    <string name="discord_integration">Интеграция Discord</string>
+    <string name="log_in_to_discord">Войти в Discord</string>
+    <string name="intro_login_to_discord">Войдите, чтобы включить Discord Rich Presence</string>
+    <string name="enable_rich_presence">Включить Rich Presence</string>
+    <string name="rich_presence_info">Показывать информацию о медиа-сессии в вашем профиле Discord</string>
+    <string name="youtube_liked_music">Любимые треки YouTube</string>
+    <string name="keep_service_alive">Сохранять работу сервиса</string>
+    <string name="keep_service_alive_description">Держать музыкальный плеер активным</string>
+    <string name="keep_your_youtube_playlist_offline">Показывать плейлист YouTube офлайн</string>
+    <string name="keep_your_youtube_playlist_offline_description">Сохранить плейлист YouTube и использовать офлайн</string>
+    <string name="combine_local_and_youtube_liked_songs">Заменить Избранное на Понравившиеся в YouTube при входе</string>
+    <string name="combine_local_and_youtube_liked_songs_description">Использовать только Понравившиеся на YouTube (лайки песен офлайн не поддерживаются)</string>
 </resources>
