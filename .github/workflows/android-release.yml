@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-full-release
-          path: composeApp/build/outputs/apk/release/*.apk
+          path: androidApp/build/outputs/apk/release/*.apk
 
   build-foss-release:
     name: Build foss release version
@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-foss-release
-          path: composeApp/build/outputs/apk/release/*.apk
+          path: androidApp/build/outputs/apk/release/*.apk
 
   build-desktop-deb:
     name: Build desktop DEB package
