@@ -100,6 +100,7 @@ fun SpotifyLoginScreen(
     }
 
     val state = rememberWebViewState()
+    val cookieManager = createWebViewCookieManager()
 
     Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
         Column {
@@ -160,27 +161,25 @@ fun SpotifyLoginScreen(
                     }
                 },
             ) { url ->
-                createWebViewCookieManager()
-                    .getCookie(url)
-                    .takeIf {
-                        it.isNotEmpty()
-                    }?.let { cookie ->
-                        val cookies =
-                            cookie.split("; ").map {
-                                val (key, value) = it.split("=")
-                                key to value
-                            }
-                        viewModel.setFullSpotifyCookies(cookies)
-                    }
+                val cookie = cookieManager.getCookie(url)
+                cookie.takeIf {
+                    it.isNotEmpty()
+                }?.let { cookie ->
+                    val cookies =
+                        cookie.split("; ").map {
+                            val (key, value) = it.split("=")
+                            key to value
+                        }
+                    viewModel.setFullSpotifyCookies(cookies)
+                }
                 if (Regex("^https://accounts\\.spotify\\.com/[a-z]{2}(-[a-zA-Z]{2})?/status$").matches(url)) {
-                    createWebViewCookieManager()
-                        .getCookie(url)
+                    cookie
                         .takeIf {
                             it.isNotEmpty()
                         }?.let {
                             viewModel.saveSpotifySpdc(it)
                         }
-                    createWebViewCookieManager().removeAllCookies()
+                    cookieManager.removeAllCookies()
                 }
             }
         }
