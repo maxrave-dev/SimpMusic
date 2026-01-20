@@ -56,11 +56,14 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Replay5
+import androidx.compose.material.icons.rounded.ThumbUp
+import androidx.compose.material.icons.rounded.ThumbsUpDown
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -125,6 +128,7 @@ import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.GradientAngle
@@ -133,6 +137,7 @@ import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
@@ -148,6 +153,7 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
+import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
@@ -175,6 +181,7 @@ import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.downvote
 import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.holder_video
 import simpmusic.composeapp.generated.resources.like_and_dislike
@@ -186,11 +193,16 @@ import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.offline_mode
 import simpmusic.composeapp.generated.resources.published_at
+import simpmusic.composeapp.generated.resources.rate_lyrics
+import simpmusic.composeapp.generated.resources.rate_translated_lyrics
 import simpmusic.composeapp.generated.resources.rich_synced
 import simpmusic.composeapp.generated.resources.show
 import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
 import simpmusic.composeapp.generated.resources.unsynced
+import simpmusic.composeapp.generated.resources.upvote
 import simpmusic.composeapp.generated.resources.view_count
+import simpmusic.composeapp.generated.resources.vote_error
+import simpmusic.composeapp.generated.resources.vote_submitted
 import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
@@ -276,6 +288,8 @@ fun NowPlayingScreenContent(
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
+    val translatedVoteState by sharedViewModel.translatedVoteState.collectAsStateWithLifecycle()
+    val lyricsVoteState by sharedViewModel.lyricsVoteState.collectAsStateWithLifecycle()
     // State
     val isInPipMode = rememberIsInPipMode()
 
@@ -298,6 +312,10 @@ fun NowPlayingScreenContent(
     }
 
     var showInfoBottomSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showVoteDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -511,6 +529,37 @@ fun NowPlayingScreenContent(
         InfoPlayerBottomSheet(
             onDismiss = {
                 showInfoBottomSheet = false
+            },
+        )
+    }
+
+    // Vote Dialog
+    if (showVoteDialog) {
+        val canVoteLyrics =
+            screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
+                screenDataState.lyricsData
+                    ?.lyrics
+                    ?.simpMusicLyrics != null
+        val canVoteTranslatedLyrics =
+            screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
+                screenDataState.lyricsData
+                    ?.translatedLyrics
+                    ?.first
+                    ?.simpMusicLyrics != null
+
+        VoteLyricsDialog(
+            canVoteLyrics = canVoteLyrics,
+            canVoteTranslatedLyrics = canVoteTranslatedLyrics,
+            lyricsVoteState = lyricsVoteState,
+            translatedLyricsVoteState = translatedVoteState,
+            onVoteLyrics = { upvote ->
+                sharedViewModel.voteLyrics(upvote)
+            },
+            onVoteTranslatedLyrics = { upvote ->
+                sharedViewModel.voteTranslatedLyrics(upvote)
+            },
+            onDismiss = {
+                showVoteDialog = false
             },
         )
     }
@@ -731,6 +780,16 @@ fun NowPlayingScreenContent(
                         }
                     },
                     actions = {
+                        // Desktop mini player button (JVM only)
+                        if (getPlatform() == Platform.Desktop) {
+                            IconButton(onClick = { toggleMiniPlayer() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.OpenInNew,
+                                    contentDescription = "Mini Player",
+                                    tint = Color.White,
+                                )
+                            }
+                        }
                         IconButton(onClick = {
                             showSheet = true
                         }) {
@@ -1483,6 +1542,35 @@ fun NowPlayingScreenContent(
                                             AIBadge()
                                         }
                                         Spacer(modifier = Modifier.weight(1f))
+                                        // Vote button - only show if lyrics or translated lyrics from SimpMusic
+                                        val canVoteLyrics =
+                                            screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
+                                                screenDataState.lyricsData
+                                                    ?.lyrics
+                                                    ?.simpMusicLyrics != null
+                                        val canVoteTranslatedLyrics =
+                                            screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
+                                                screenDataState.lyricsData
+                                                    ?.translatedLyrics
+                                                    ?.first
+                                                    ?.simpMusicLyrics != null
+                                        if (canVoteLyrics || canVoteTranslatedLyrics) {
+                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                                IconButton(
+                                                    onClick = {
+                                                        showVoteDialog = true
+                                                    },
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.ThumbsUpDown,
+                                                        contentDescription = stringResource(Res.string.rate_lyrics),
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(16.dp),
+                                                    )
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                        }
                                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                             TextButton(
                                                 onClick = {

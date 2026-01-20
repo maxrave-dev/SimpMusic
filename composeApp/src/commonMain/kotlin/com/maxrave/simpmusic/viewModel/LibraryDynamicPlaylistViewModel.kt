@@ -93,6 +93,7 @@ class LibraryDynamicPlaylistViewModel(
                 LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value to listDownloadedSong.value.find { it.videoId == videoId }
                 LibraryDynamicPlaylistType.Followed -> return
                 LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value to listMostPlayedSong.value.find { it.videoId == videoId }
+                else -> return
             }
         if (playTrack == null) return
         setQueueData(

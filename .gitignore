@@ -21,6 +21,10 @@ crowdin.yml
 /simpmusic.jks
 /ffmpeg-kit/build/
 
+#dev files
+ign.md
+.docs
+
 # Sentry Config File
 sentry.properties
 /.claude/
@@ -28,3 +32,6 @@ sentry.properties
 /composeApp/cache/
 /composeApp/kcef-bundle/
 /.mcp.json
+
+/androidApp/build/
+/androidApp/cache/

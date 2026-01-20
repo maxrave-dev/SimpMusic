@@ -40,6 +40,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material3.Card
@@ -93,6 +96,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.drawBackdropCustomShape
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
@@ -157,7 +161,7 @@ fun MiniPlayer(
                     thumbnail.readPixels(buffer)
                 }
             } catch (e: Exception) {
-                Logger.e(TAG, "Error getting pixels from layer: ${e.localizedMessage}")
+                Logger.e(TAG, "Error getting pixels from layer: ${e.message}")
             }
             val averageLuminance =
                 (0 until 25).sumOf { index ->
@@ -807,7 +811,32 @@ fun MiniPlayer(
                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                         }
                         Spacer(Modifier.width(8.dp))
-                        Icon(Icons.Rounded.Speaker, "")
+                        // Desktop mini player button (JVM only)
+                        if (getPlatform() == Platform.Desktop) {
+                            IconButton(onClick = { toggleMiniPlayer() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.OpenInNew,
+                                    contentDescription = "Mini Player",
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = {
+                                // Toggle mute/unmute
+                                val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                                sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                            },
+                        ) {
+                            Icon(
+                                imageVector =
+                                    if (controllerState.volume > 0f) {
+                                        Icons.Filled.VolumeUp
+                                    } else {
+                                        Icons.Filled.VolumeOff
+                                    },
+                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
+                            )
+                        }
                         Spacer(Modifier.width(4.dp))
                         var isVolumeSliding by rememberSaveable {
                             mutableStateOf(false)

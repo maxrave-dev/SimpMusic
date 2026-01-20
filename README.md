@@ -99,7 +99,7 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 ### Which file should I download?
 - For Windows: Download the file with extension `.msi`.
 - For macOS: Download the file with extension `.dmg`.
-- For Linux: Download the file with extension `.deb`.
+- For Linux: Download the file with extension `.deb` (Debian based), `.rpm` (Red-hat based), `.AppImage` (all Linux distributions) .
 
 ### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
 
@@ -133,6 +133,12 @@ sometimes, some songs or videos get the wrong lyrics
 
 We're looking for more contributors, all contributions are welcome!
 See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
+
+Thanks for all my contributors:
+
+<a href="https://github.com/maxrave-dev/SimpMusic/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=maxrave-dev/SimpMusic" />
+</a>
 
  ## Showcase
 This project is following clean architecture and MVVM pattern (in UI, app module).

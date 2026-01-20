@@ -168,6 +168,22 @@ class SettingsViewModel(
     private val _videoDownloadQuality = MutableStateFlow<String?>(null)
     val videoDownloadQuality: StateFlow<String?> = _videoDownloadQuality
 
+    private val _localTrackingEnabled = MutableStateFlow<Boolean>(false)
+    val localTrackingEnabled: StateFlow<Boolean> = _localTrackingEnabled
+
+    // Auto Backup
+    private val _autoBackupEnabled = MutableStateFlow<Boolean>(false)
+    val autoBackupEnabled: StateFlow<Boolean> = _autoBackupEnabled
+
+    private val _autoBackupFrequency = MutableStateFlow<String>(DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY)
+    val autoBackupFrequency: StateFlow<String> = _autoBackupFrequency
+
+    private val _autoBackupMaxFiles = MutableStateFlow<Int>(5)
+    val autoBackupMaxFiles: StateFlow<Int> = _autoBackupMaxFiles
+
+    private val _autoBackupLastTime = MutableStateFlow<Long>(0L)
+    val autoBackupLastTime: StateFlow<Long> = _autoBackupLastTime
+
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
 
@@ -249,12 +265,32 @@ class SettingsViewModel(
         getCombineLocalAndYouTubeLiked()
         getDownloadQuality()
         getVideoDownloadQuality()
+        getLocalTrackingEnabled()
+        getAutoBackupEnabled()
+        getAutoBackupFrequency()
+        getAutoBackupMaxFiles()
+        getAutoBackupLastTime()
         viewModelScope.launch {
             calculateDataFraction(
                 cacheRepository,
             )?.let {
                 _fraction.value = it
             }
+        }
+    }
+
+    private fun getLocalTrackingEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.localTrackingEnabled.collect { enabled ->
+                _localTrackingEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setLocalTrackingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setLocalTrackingEnabled(enabled)
+            getLocalTrackingEnabled()
         }
     }
 
@@ -443,6 +479,60 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setBackupDownloaded(backupDownloaded)
             getBackupDownloaded()
+        }
+    }
+
+    // Auto Backup functions
+    private fun getAutoBackupEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupEnabled.collect { enabled ->
+                _autoBackupEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setAutoBackupEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoBackupEnabled(enabled)
+            getAutoBackupEnabled()
+        }
+    }
+
+    private fun getAutoBackupFrequency() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupFrequency.collect { frequency ->
+                _autoBackupFrequency.value = frequency
+            }
+        }
+    }
+
+    fun setAutoBackupFrequency(frequency: String) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoBackupFrequency(frequency)
+            getAutoBackupFrequency()
+        }
+    }
+
+    private fun getAutoBackupMaxFiles() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupMaxFiles.collect { max ->
+                _autoBackupMaxFiles.value = max
+            }
+        }
+    }
+
+    fun setAutoBackupMaxFiles(max: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoBackupMaxFiles(max)
+            getAutoBackupMaxFiles()
+        }
+    }
+
+    private fun getAutoBackupLastTime() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupLastTime.collect { time ->
+                _autoBackupLastTime.value = time
+            }
         }
     }
 

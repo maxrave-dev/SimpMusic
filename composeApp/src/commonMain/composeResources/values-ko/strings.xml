@@ -298,7 +298,6 @@
     <string name="codec">코덱</string>
     <string name="plays">재생/조회수</string>
     <string name="like_and_dislike">좋아요 %1$d, 싫어요 %2$d</string>
-    <string name="published_at">발매일: %1$s</string>
     <string name="less">간단히</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Spotify에 로그인</string>
@@ -451,7 +450,6 @@
     <string name="copied_to_clipboard">클립보드에 복사 완료</string>
     <string name="update_channel">업데이트 채널</string>
     <string name="enable_liquid_glass_effect">리퀴드 글래스 켜기 (베타)</string>
-    <string name="enable_liquid_glass_effect_description">일부 영역에 iOS 리퀴드 글래스 효과 적용 (Android 12 이상)</string>
     <string name="your_library">내 라이브러리</string>
     <string name="play_explicit_content">연령 제한 콘텐츠 재생</string>
     <string name="play_explicit_content_description">연령 제한 콘텐츠 재생 활성화</string>

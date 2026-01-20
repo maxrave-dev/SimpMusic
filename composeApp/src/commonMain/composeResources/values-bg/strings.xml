@@ -289,7 +289,6 @@
     <string name="codec">Кодек</string>
     <string name="plays">Изпълни/Виж броя</string>
     <string name="like_and_dislike">%1$d харесване(ия), %2$d нехаресване(ия)</string>
-    <string name="published_at">Публикуване на %1$s</string>
     <string name="less">По-малко</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Вход в Spotify</string>

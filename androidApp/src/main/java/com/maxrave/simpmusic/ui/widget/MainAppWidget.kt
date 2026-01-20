@@ -175,12 +175,15 @@ class MainAppWidget :
                     val result = ImageLoader(context).execute(request)
                     randomImage =
                         when (result) {
-                            is SuccessResult ->
+                            is SuccessResult -> {
                                 result.image.toBitmap().also {
                                     bitmap = it
                                 }
+                            }
 
-                            else -> null
+                            else -> {
+                                null
+                            }
                         }
                 }
 
