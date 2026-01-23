@@ -16,9 +16,11 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 <a href="https://simpmusic.org/nightly-download"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/> <a href="https://simpmusic.org/nightly-download"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" width="200"></a> 
 </div>  
 
+> [!Note]
 > SimpMusic is available on Desktop now!
   
-## Features ✨️    
+<div align="center"> <h1>Features ✨️</h1> </div> 
+
 - Play music from YouTube Music or YouTube for free, without ads and in the background    
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    
 - Search everything on YouTube    
@@ -36,16 +38,18 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 - Android Auto with online content
 - Discord Rich Presence support
 - And many more!    
-  
-> (\*) Use your OpenAI or Gemini API key    
-> (\**) For users who chose "Send back to Google" feature    
+> (\*) You must provide your OpenAI or Gemini API key in order to use this feature
+> 
+> (\**) For users who choosed the `Send back to Google` feature    
     
-> **Warning**    
- > This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,      
-> please create an issue or contact me via email or Discord server.   
-> Because of depending on YouTube Music, the player error will happen and it's normally, please don't ask me about the stable state of this app.
+> [!Warning]
+> 
+> This app is in the **beta stage**, so it might have numerous bugs which **will** cause the app to crash. If you do find any bugs,      
+> please create an issue, contact me via email or report that in [my discord server](https://discord.com/channels/1136988323819298856/1349800418745778196).
+> 
+> Because the app depends on YouTube Music, some errors will occur during playback and that's very normal. Oh yeah, don't ask me about the stability status of this application. If you understand english, you might have concluded that it is **kind of stable**. _Doesn't mean that it is 100% stable tho._
     
-## Screenshots    
+<div align="center"> <h1>Screenshots</h1> </div>  
  <p align="center">          
  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/01.png?raw=true" width="200" />          
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/02.png?raw=true" width="200" />          
@@ -66,9 +70,12 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
    <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/06.png?raw=true" width="800" />  
 </p>
 
- #### More [screenshots](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
+<div align="center"> <h2>Want to see more ?</h2> </div>
+
+                                                https://photos.app.goo.gl/AbieoXG5ctDrpwzp7
  
- ## Data    
+<div align="center"> <h2>Data</h2> </div>     
+
 - This app uses hidden API from YouTube Music with some tricks to get data from YouTube Music.    
 - Use Spotify Web API and some tricks to get Spotify Canvas and Lyrics    
 - Thanks to [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.    
@@ -78,42 +85,42 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 - Main lyrics data from SimpMusic Lyrics
 - Alternative lyrics data from LRCLIB. More information [LRCLIB](https://lrclib.net/)    
  
- ## Privacy    
- SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
-logged-in users enable "Send back to Google" feature, SimpMusic only uses YouTube Music Tracking API to send listening history and listening record of video to Google for better recommendations and      
-supporting artist or YouTube Creator (For API reference,      
-see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
+<div align="center"> <h2>Privacy</h2> </div>  
 
-We collect crash data in the Full version to improve the app.
+ SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
+logged-in users enable "Send back to Google" feature, SimpMusic only uses YouTube Music Tracking API to send listening history and listening record of video to Google for better recommendations and supporting artist or YouTube Creator (For API reference, see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
+> [!Note]
+> We do collect crash data in the **Full version** to improve the app.
    
 ## Full or FOSS version
-I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full version. [Sentry](https://github.com/getsentry/sentry) is the open-source project.
- If you don't want to be collected crash data, you must use FOSS version.
+I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the **Full version**. [Sentry](https://github.com/getsentry/sentry) is the open-source project.
+ If you don't want your crash data to be collected, then you must use the **FOSS version**.
  
-## Desktop app
+<div align="center"> <h1>Desktop app</h1> </div> 
 
-### Before downloading the Desktop app, make sure your system installed 3 applications below:
-- [Gstreamer](https://gstreamer.freedesktop.org/download/): Required for playback audio.
-- [Yt-dlp](https://github.com/yt-dlp/yt-dlp): Required for getting streaming URL from YouTube (when using 256kps or higher quality).
+### Before downloading the Desktop app, make sure that your computer has these 3 applications installed:
+- **[Gstreamer](https://gstreamer.freedesktop.org/download/):** Required for playback audio.
+- **[Yt-dlp](https://github.com/yt-dlp/yt-dlp):** Required for getting streaming URL from YouTube (_when using 256kps or higher quality_).
 
 ### Which file should I download?
-- For Windows: Download the file with extension `.msi`.
-- For macOS: Download the file with extension `.dmg`.
-- For Linux: Download the file with extension `.deb` (Debian based), `.rpm` (Red-hat based), `.AppImage` (all Linux distributions) .
+- **For Windows:** Download the file with extension `.msi`.
+- **For macOS:** Download the file with extension `.dmg`.
+- **For Linux:** Download the file with extension `.deb` (_For debian-based distros like Ubuntu, Mint or Zorin... Or debian itself_), `.rpm` (_for red-hat based distros like RedHat entreprise or Fedora_), `.AppImage` (_for any other linux distributions_) .
 
 ### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
 
-### Some limitations on Desktop app:
+### Some limitations existing on the desktop app you should consider:
 - No offline playback support.
 - No video playback support.
-- Very buggy on some Linux distributions (because of Jetbrains not fix).
+- Insanely buggy on some Linux distributions (_mainly because of Jetbrains, there's no fix for that right now_).
 
-Please report issues on our Discord server if you find any bugs.
+Please report issues on our Discord server if you find any bugs, we really need that.
  
-## Translation    
+<div align="center"> <h1>Translation</h1> </div> 
+
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)
 <br/>
-You can help me translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)    
+You can help me translate this app into your language by using Crowdin: [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)    
  #### Special thanks to all translators on Crowdin ❤️    
  ## FAQ    
  #### 1. Wrong Lyrics?    
@@ -124,15 +131,15 @@ sometimes, some songs or videos get the wrong lyrics
 #### 2. Why the name or brand is "SimpMusic"?    
  Simply, because I love the name. It's a combination of 'Simple' and 'Music'. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.    
   
-#### More FAQ, join [my Discord channel](https://discord.com/channels/1136988323819298856/1349800418745778196)  
-  ## Developer/Team    
+#### For more information or help, feel free to join [my discord server](https://discord.com/channels/1136988323819298856/1349800418745778196)  
+  ## Developer/Team behind the app.  
 - [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer    
 - [Owen Connor](https://github.com/owencz1998): Discord Server Admin.    
 - [ilianoKokoro](https://github.com/ilianoKokoro): Discord Server Admin.
 - [CrazyWolf13](https://github.com/CrazyWolf13): Issues organizer/planner.
 
 We're looking for more contributors, all contributions are welcome!
-See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
+Check out our [code of conduct !](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
 
 Thanks for all my contributors:
 
@@ -143,14 +150,16 @@ Thanks for all my contributors:
  ## Showcase
 This project is following clean architecture and MVVM pattern (in UI, app module).
 
- ### Dependencies graph
-  <p float="left">        
+<div align="center"> <h1>Dependencies graph</h1> </div> 
+  <p float="center">        
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/dependencies_graph.svg?raw=true" width="800"> 
   </p>
 
+<div align="center">
+
  ## Support & Donations 
  #### Special thanks to all supporter ❤️    
- <div align="left"> 
+ <div align="center"> 
  <a href="https://simpmusic.org/"><img alt="Visit the website" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/website_vector.svg"></a> &nbsp;        
 <a href="https://discord.gg/Rq5tWVM9Hg"><img alt="Discord Server" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg"></a> &nbsp;        
 <br> <a href="https://www.buymeacoffee.com/maxrave"><img alt="Buy me a Coffee" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a> &nbsp;        
@@ -186,10 +195,13 @@ src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets
 Get a free $200 credit over 60 days on DigitalOcean: [GET NOW](https://www.digitalocean.com/?refcode=d7f6eedfb9a9&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
 Crowdin and Sentry both have a free enterprise plan for Open-source projects. Follow the URLs: 
-- [Open Source License Request Form | Crowdin](https://crowdin.com/page/open-source-project-setup-request)
-- [Sentry for Open Source | Sentry](https://sentry.io/for/open-source/)
+
+-[Open Source License Request Form | Crowdin](https://crowdin.com/page/open-source-project-setup-request)
+
+-[Sentry for Open Source | Sentry](https://sentry.io/for/open-source/)
 
 Check out the Vercel open-source program:
-- https://vercel.com/open-source-program
+
+-https://vercel.com/open-source-program
 
 *This project is a part of SimpMusic.org Open-source project by me [maxrave-dev](https://github.com/maxrave-dev)*
