@@ -72,23 +72,22 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 
 <div align="center"> <h2>Want to see more ?</h2> </div>
 
-                                                https://photos.app.goo.gl/AbieoXG5ctDrpwzp7
+`https://photos.app.goo.gl/AbieoXG5ctDrpwzp7`
  
 <div align="center"> <h2>Data</h2> </div>     
 
-- This app uses hidden API from YouTube Music with some tricks to get data from YouTube Music.    
-- Use Spotify Web API and some tricks to get Spotify Canvas and Lyrics    
-- Thanks to [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.    
-- Special thanks to [SmartTube](https://github.com/yuliskov/SmartTube). This repo help me to extract the streaming URL of YouTube Music.    
-- My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos.    
-- ReturnYouTubeDislike for getting information on votes 
-- Main lyrics data from SimpMusic Lyrics
-- Alternative lyrics data from LRCLIB. More information [LRCLIB](https://lrclib.net/)    
+- This app uses **hidden APIs from YouTube Music** with some tricks to get data from YouTube Music.    
+- We also use **Spotify Web API** with some tricks to get Spotify Canvas and Lyrics. 
+- Thanks to **[InnerTune](https://github.com/z-huang/InnerTune/)** for the idea to get data from YouTube Music. This repository is my inspiration to create this app.    
+- Special thanks to **[SmartTube](https://github.com/yuliskov/SmartTube).** This repo help me to extract the streaming URL of YouTube Music.    
+- My app is features [SponsorBlock](https://sponsor.ajay.app/), a third-party service used to skip sponsors when playing YouTube videos.    
+- **ReturnYouTubeDislike** for getting information on votes 
+- Main lyrics data is retrieved from **SimpMusic Lyrics**, an alternative lyrics database used in the app is **LRCLIB**. More information [LRCLIB](https://lrclib.net/)    
  
 <div align="center"> <h2>Privacy</h2> </div>  
 
  SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
-logged-in users enable "Send back to Google" feature, SimpMusic only uses YouTube Music Tracking API to send listening history and listening record of video to Google for better recommendations and supporting artist or YouTube Creator (For API reference, see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
+logged-in users enable the "Send back to Google" feature, then SimpMusic will only use YouTube Music's Tracking API to send listening/viewing history to Google for better recommendations and to support artists on YouTube Creator (For API reference, see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
 > [!Note]
 > We do collect crash data in the **Full version** to improve the app.
    
@@ -138,10 +137,10 @@ sometimes, some songs or videos get the wrong lyrics
 - [ilianoKokoro](https://github.com/ilianoKokoro): Discord Server Admin.
 - [CrazyWolf13](https://github.com/CrazyWolf13): Issues organizer/planner.
 
-We're looking for more contributors, all contributions are welcome!
+We're currently looking for more contributors, all contributions are welcome!
 Check out our [code of conduct !](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
 
-Thanks for all my contributors:
+Thanks for all my current contributors:
 
 <a href="https://github.com/maxrave-dev/SimpMusic/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=maxrave-dev/SimpMusic" />
