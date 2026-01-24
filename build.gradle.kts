@@ -42,9 +42,3 @@ subprojects {
         }
     }
 }
-android {
-    defaultConfig {
-            }
-        }
-    }
-}
