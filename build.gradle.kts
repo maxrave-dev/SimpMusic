@@ -20,7 +20,6 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.build.config) apply false
     alias(libs.plugins.osdetector) apply false
-    id("com.chaquo.python")
 }
 
 tasks.register<Delete>("Clean") {
@@ -45,11 +44,6 @@ subprojects {
 }
 android {
     defaultConfig {
-        python {
-            pip {
-                // This tells Chaquopy to download and bundle the library syncedlyrics library
-                // syncedlyrics is a python library that can fetch word-level synced lyrics.
-                install("syncedlyrics")
             }
         }
     }
