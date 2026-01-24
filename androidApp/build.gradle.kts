@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.sentry.gradle)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    id("com.chaquo.python")
 }
 
 android {
@@ -67,7 +68,11 @@ android {
                 )
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
+        python {
+            pip {
+                install("syncedlyrics") 
+            }
+        }
         ndk {
             abiFilters.add("x86_64")
             abiFilters.add("armeabi-v7a")
