@@ -40,6 +40,10 @@ import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+<<<<<<< HEAD
+import androidx.compose.material3.HorizontalDivider
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -123,7 +127,13 @@ import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
+<<<<<<< HEAD
+import com.maxrave.simpmusic.viewModel.SettingsStorageSectionFraction
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+=======
+import com.maxrave.simpmusic.viewModel.SharedViewModel
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.ChipColors
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
@@ -148,6 +158,10 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
+<<<<<<< HEAD
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -253,6 +267,11 @@ import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.open_system_equalizer
+<<<<<<< HEAD
+import simpmusic.composeapp.generated.resources.enable_karaoke_filter
+import simpmusic.composeapp.generated.resources.karaoke_filter_description
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.other_app
 import simpmusic.composeapp.generated.resources.play_explicit_content
@@ -329,6 +348,59 @@ import java.time.format.DateTimeFormatter
     ExperimentalCalfApi::class,
 )
 @Composable
+<<<<<<< HEAD
+private fun renderTextField(
+    alertState: SettingAlertState,
+    viewModel: SettingsViewModel
+) {
+    val textField = alertState.textField ?: return
+    val verify =
+        textField.verifyCodeBlock?.invoke(
+            textField.value,
+        ) ?: (true to null)
+    TextField(
+        value = textField.value,
+        onValueChange = {
+            viewModel.setAlertData(
+                alertState.copy(
+                    textField =
+                        textField.copy(
+                            value = it,
+                        ),
+                ),
+            )
+        },
+        isError = !verify.first,
+        label = { Text(text = textField.label) },
+        supportingText = {
+            if (!verify.first) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = verify.second ?: "",
+                    color = DarkColors.error,
+                )
+            }
+        },
+        trailingIcon = {
+            if (!verify.first) {
+                Icons.Outlined.Error
+            }
+        },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 6.dp,
+                ),
+    )
+}
+
+@OptIn(
+    ExperimentalCalfApi::class,
+)
+@Composable
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
 fun SettingScreen(
     innerPadding: PaddingValues,
     navController: NavController,
@@ -378,6 +450,79 @@ fun SettingScreen(
     // Open equalizer
     val resultLauncher = openEqResult(viewModel.getAudioSessionId())
 
+<<<<<<< HEAD
+    val enableTranslucentNavBar: Boolean by viewModel.translucentBottomBar.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val language: String? by viewModel.language.collectAsStateWithLifecycle()
+    val location: String? by viewModel.location.collectAsStateWithLifecycle()
+    val quality: String? by viewModel.quality.collectAsStateWithLifecycle()
+    val downloadQuality: String? by viewModel.downloadQuality.collectAsStateWithLifecycle()
+    val videoDownloadQuality: String? by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
+    val keepYoutubePlaylistOffline: Boolean by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
+    val localTrackingEnabled: Boolean by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val combineLocalAndYouTubeLiked: Boolean by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
+    val playVideo: Boolean by viewModel.playVideoInsteadOfAudio.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val videoQuality: String? by viewModel.videoQuality.collectAsStateWithLifecycle()
+    val sendData: Boolean by viewModel.sendBackToGoogle.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val normalizeVolume: Boolean by viewModel.normalizeVolume.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val skipSilent: Boolean by viewModel.skipSilent.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val savePlaybackState: Boolean by viewModel.savedPlaybackState.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val saveLastPlayed: Boolean by viewModel.saveRecentSongAndQueue.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val killServiceOnExit: Boolean by viewModel.killServiceOnExit.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = true)
+    val mainLyricsProvider: String? by viewModel.mainLyricsProvider.collectAsStateWithLifecycle()
+    val youtubeSubtitleLanguage: String? by viewModel.youtubeSubtitleLanguage.collectAsStateWithLifecycle()
+    val spotifyLoggedIn: Boolean by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
+    val spotifyLyrics: Boolean by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
+    val spotifyCanvas: Boolean by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
+    val enableSponsorBlock: Boolean by viewModel.sponsorBlockEnabled.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val skipSegments: ArrayList<String>? by viewModel.sponsorBlockCategories.collectAsStateWithLifecycle()
+    val playerCache: Long? by viewModel.cacheSize.collectAsStateWithLifecycle()
+    val downloadedCache: Long? by viewModel.downloadedCacheSize.collectAsStateWithLifecycle()
+    val thumbnailCache: Long? by viewModel.thumbCacheSize.collectAsStateWithLifecycle()
+    val canvasCache: Long? by viewModel.canvasCacheSize.collectAsStateWithLifecycle()
+    val limitPlayerCache: Int? by viewModel.playerCacheLimit.collectAsStateWithLifecycle()
+    val fraction: SettingsStorageSectionFraction by viewModel.fraction.collectAsStateWithLifecycle()
+    val lastCheckUpdate: String? by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
+    val explicitContentEnabled: Boolean by viewModel.explicitContentEnabled.collectAsStateWithLifecycle()
+    val usingProxy: Boolean by viewModel.usingProxy.collectAsStateWithLifecycle()
+    val proxyType: DataStoreManager.ProxyType? by viewModel.proxyType.collectAsStateWithLifecycle()
+    val proxyHost: String? by viewModel.proxyHost.collectAsStateWithLifecycle()
+    val proxyPort: Int? by viewModel.proxyPort.collectAsStateWithLifecycle()
+    val autoCheckUpdate: Boolean by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
+    val blurFullscreenLyrics: Boolean by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
+    val blurPlayerBackground: Boolean by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
+    val aiProvider: String? by viewModel.aiProvider.collectAsStateWithLifecycle()
+    val isHasApiKey: Boolean by viewModel.isHasApiKey.collectAsStateWithLifecycle()
+    val useAITranslation: Boolean by viewModel.useAITranslation.collectAsStateWithLifecycle()
+    val translationLanguage: String? by viewModel.translationLanguage.collectAsStateWithLifecycle()
+    val customModelId: String? by viewModel.customModelId.collectAsStateWithLifecycle()
+    val helpBuildLyricsDatabase: Boolean by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
+    val contributor: Pair<String, String> by viewModel.contributor.collectAsStateWithLifecycle()
+    val backupDownloaded: Boolean by viewModel.backupDownloaded.collectAsStateWithLifecycle()
+    val autoBackupEnabled: Boolean by viewModel.autoBackupEnabled.collectAsStateWithLifecycle()
+    val autoBackupFrequency: String? by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
+    val autoBackupMaxFiles: Int? by viewModel.autoBackupMaxFiles.collectAsStateWithLifecycle()
+    val autoBackupLastTime: Long? by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
+    val updateChannel: String? by viewModel.updateChannel.collectAsStateWithLifecycle()
+    val enableLiquidGlass: Boolean by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
+    val discordLoggedIn: Boolean by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
+    val richPresenceEnabled: Boolean by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
+    val keepServiceAlive: Boolean by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
+
+    val autoDJEnabled: Boolean by viewModel.autoDJEnabled.collectAsStateWithLifecycle()
+    val autoDJSmoothTransitions: Boolean by viewModel.autoDJSmoothTransitions.collectAsStateWithLifecycle()
+    val autoDJEnergyMatching: Float by viewModel.autoDJEnergyMatching.collectAsStateWithLifecycle()
+    val autoDJTempoVariation: Float by viewModel.autoDJTempoVariation.collectAsStateWithLifecycle()
+    val autoDJGenreConsistency: Float by viewModel.autoDJGenreConsistency.collectAsStateWithLifecycle()
+    
+    // Boolean versions for UI
+    val autoDJEnergyMatchingEnabled: Boolean by viewModel.autoDJEnergyMatching.map { it == 1f }.collectAsStateWithLifecycle(initialValue = false)
+    val autoDJTempoVariationEnabled: Boolean by viewModel.autoDJTempoVariation.map { it == 1f }.collectAsStateWithLifecycle(initialValue = false)
+    val autoDJGenreConsistencyEnabled: Boolean by viewModel.autoDJGenreConsistency.map { it == 1f }.collectAsStateWithLifecycle(initialValue = false)
+    val autoDJMaxQueueSize: Int by viewModel.autoDJMaxQueueSize.collectAsStateWithLifecycle()
+    val autoDJCrossfadeDuration: Int by viewModel.autoDJCrossfadeDuration.collectAsStateWithLifecycle()
+    
+    val isCheckingUpdate: Boolean by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
+=======
     val enableTranslucentNavBar by viewModel.translucentBottomBar.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
@@ -436,6 +581,7 @@ fun SettingScreen(
     val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
 
     val hazeState =
         rememberHazeState(
@@ -748,6 +894,10 @@ fun SettingScreen(
                                 when (proxyType) {
                                     DataStoreManager.ProxyType.PROXY_TYPE_HTTP -> stringResource(Res.string.http)
                                     DataStoreManager.ProxyType.PROXY_TYPE_SOCKS -> stringResource(Res.string.socks)
+<<<<<<< HEAD
+                                    null -> stringResource(Res.string.http)
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                 },
                             onClick = {
                                 viewModel.setAlertData(
@@ -765,6 +915,11 @@ fun SettingScreen(
                                                             },
                                                         (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_SOCKS) to
                                                             runBlocking { getString(Res.string.socks) },
+<<<<<<< HEAD
+                                                        (proxyType == null) to
+                                                            runBlocking { getString(Res.string.http) },
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                                     ),
                                             ),
                                         confirm =
@@ -775,8 +930,13 @@ fun SettingScreen(
                                                     } else {
                                                         DataStoreManager.ProxyType.PROXY_TYPE_HTTP
                                                     },
+<<<<<<< HEAD
+                                                    proxyHost ?: "",
+                                                    proxyPort ?: 0,
+=======
                                                     proxyHost,
                                                     proxyPort,
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                                 )
                                             },
                                         dismiss = runBlocking { getString(Res.string.cancel) },
@@ -786,7 +946,11 @@ fun SettingScreen(
                         )
                         SettingItem(
                             title = stringResource(Res.string.proxy_host),
+<<<<<<< HEAD
+                            subtitle = proxyHost ?: "",
+=======
                             subtitle = proxyHost,
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                             onClick = {
                                 viewModel.setAlertData(
                                     SettingAlertState(
@@ -795,7 +959,11 @@ fun SettingScreen(
                                         textField =
                                             SettingAlertState.TextFieldData(
                                                 label = runBlocking { getString(Res.string.proxy_host) },
+<<<<<<< HEAD
+                                                value = proxyHost ?: "",
+=======
                                                 value = proxyHost,
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                                 verifyCodeBlock = {
                                                     isValidProxyHost(it) to runBlocking { getString(Res.string.invalid_host) }
                                                 },
@@ -803,9 +971,15 @@ fun SettingScreen(
                                         confirm =
                                             runBlocking { getString(Res.string.change) } to { state ->
                                                 viewModel.setProxy(
+<<<<<<< HEAD
+                                                    proxyType ?: DataStoreManager.ProxyType.PROXY_TYPE_HTTP,
+                                                    state.textField?.value ?: "",
+                                                    proxyPort ?: 8080,
+=======
                                                     proxyType,
                                                     state.textField?.value ?: "",
                                                     proxyPort,
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                                 )
                                             },
                                         dismiss = runBlocking { getString(Res.string.cancel) },
@@ -815,7 +989,11 @@ fun SettingScreen(
                         )
                         SettingItem(
                             title = stringResource(Res.string.proxy_port),
+<<<<<<< HEAD
+                            subtitle = (proxyPort ?: 8080).toString(),
+=======
                             subtitle = proxyPort.toString(),
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                             onClick = {
                                 viewModel.setAlertData(
                                     SettingAlertState(
@@ -824,7 +1002,11 @@ fun SettingScreen(
                                         textField =
                                             SettingAlertState.TextFieldData(
                                                 label = runBlocking { getString(Res.string.proxy_port) },
+<<<<<<< HEAD
+                                                value = (proxyPort ?: 8080).toString(),
+=======
                                                 value = proxyPort.toString(),
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                                 verifyCodeBlock = {
                                                     (it.toIntOrNull() != null) to runBlocking { getString(Res.string.invalid_port) }
                                                 },
@@ -832,8 +1014,13 @@ fun SettingScreen(
                                         confirm =
                                             runBlocking { getString(Res.string.change) } to { state ->
                                                 viewModel.setProxy(
+<<<<<<< HEAD
+                                                    proxyType ?: DataStoreManager.ProxyType.PROXY_TYPE_HTTP,
+                                                    proxyHost ?: "",
+=======
                                                     proxyType,
                                                     proxyHost,
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                                     state.textField?.value?.toIntOrNull() ?: 0,
                                                 )
                                             },
@@ -877,6 +1064,203 @@ fun SettingScreen(
                 }
             }
         }
+<<<<<<< HEAD
+        item(key = "auto_dj") {
+            Column {
+                Text(
+                    text = "Auto DJ",
+                    style = typo().labelMedium,
+                    color = white,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                SettingItem(
+                    title = "Enable Auto DJ",
+                    subtitle = "Automatically select and mix songs based on style, rhythm, and mood",
+                    switch = (autoDJEnabled to { 
+                        viewModel.setAutoDJEnabled(it) 
+                    }),
+                )
+                
+                AnimatedVisibility(visible = autoDJEnabled) {
+                    Column {
+                        SettingItem(
+                            title = "Smooth Transitions",
+                            subtitle = "Enable intelligent crossfade between songs",
+                            switch = (autoDJSmoothTransitions to { 
+                                viewModel.setAutoDJSmoothTransitions(it) 
+                            }),
+                        )
+                        
+                        SettingItem(
+                            title = "Energy Matching",
+                            subtitle = "How much to match energy levels: ${(autoDJEnergyMatching * 100).toInt()}%",
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = "Energy Matching",
+                                        textField = SettingAlertState.TextFieldData(
+                                            label = "Enter energy matching (0-100%)",
+                                            value = (autoDJEnergyMatching * 100).toInt().toString(),
+                                            verifyCodeBlock = { input ->
+                                                val value = input.toIntOrNull()
+                                                when {
+                                                    value == null -> false to "Please enter a valid number"
+                                                    value < 0 -> false to "Minimum value is 0%"
+                                                    value > 100 -> false to "Maximum value is 100%"
+                                                    else -> true to null
+                                                }
+                                            }
+                                        ),
+                                        confirm = "OK" to { state ->
+                                            state.textField?.value?.toIntOrNull()?.let { value ->
+                                                if (value in 0..100) {
+                                                    viewModel.setAutoDJEnergyMatching(value / 100f)
+                                                }
+                                            }
+                                        },
+                                        dismiss = "Cancel"
+                                    )
+                                )
+                            }
+                        )
+                        
+                        SettingItem(
+                            title = "Tempo Variation",
+                            subtitle = "Allowed tempo variation: ${(autoDJTempoVariation * 100).toInt()}%",
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = "Tempo Variation",
+                                        textField = SettingAlertState.TextFieldData(
+                                            label = "Enter tempo variation (0-100%)",
+                                            value = (autoDJTempoVariation * 100).toInt().toString(),
+                                            verifyCodeBlock = { input ->
+                                                val value = input.toIntOrNull()
+                                                when {
+                                                    value == null -> false to "Please enter a valid number"
+                                                    value < 0 -> false to "Minimum value is 0%"
+                                                    value > 100 -> false to "Maximum value is 100%"
+                                                    else -> true to null
+                                                }
+                                            }
+                                        ),
+                                        confirm = "OK" to { state ->
+                                            state.textField?.value?.toIntOrNull()?.let { value ->
+                                                if (value in 0..100) {
+                                                    viewModel.setAutoDJTempoVariation(value / 100f)
+                                                }
+                                            }
+                                        },
+                                        dismiss = "Cancel"
+                                    )
+                                )
+                            }
+                        )
+                        
+                        SettingItem(
+                            title = "Genre Consistency",
+                            subtitle = "How much to stick to similar genres: ${(autoDJGenreConsistency * 100).toInt()}%",
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = "Genre Consistency",
+                                        textField = SettingAlertState.TextFieldData(
+                                            label = "Enter genre consistency (0-100%)",
+                                            value = (autoDJGenreConsistency * 100).toInt().toString(),
+                                            verifyCodeBlock = { input ->
+                                                val value = input.toIntOrNull()
+                                                when {
+                                                    value == null -> false to "Please enter a valid number"
+                                                    value < 0 -> false to "Minimum value is 0%"
+                                                    value > 100 -> false to "Maximum value is 100%"
+                                                    else -> true to null
+                                                }
+                                            }
+                                        ),
+                                        confirm = "OK" to { state ->
+                                            state.textField?.value?.toIntOrNull()?.let { value ->
+                                                if (value in 0..100) {
+                                                    viewModel.setAutoDJGenreConsistency(value / 100f)
+                                                }
+                                            }
+                                        },
+                                        dismiss = "Cancel"
+                                    )
+                                )
+                            }
+                        )
+                        
+                        SettingItem(
+                            title = "Max Queue Size",
+                            subtitle = "Maximum number of songs in Auto DJ queue: $autoDJMaxQueueSize",
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = "Max Queue Size",
+                                        textField = SettingAlertState.TextFieldData(
+                                            label = "Enter max queue size (5-50)",
+                                            value = autoDJMaxQueueSize.toString(),
+                                            verifyCodeBlock = { input ->
+                                                val value = input.toIntOrNull()
+                                                when {
+                                                    value == null -> false to "Please enter a valid number"
+                                                    value < 5 -> false to "Minimum value is 5"
+                                                    value > 50 -> false to "Maximum value is 50"
+                                                    else -> true to null
+                                                }
+                                            }
+                                        ),
+                                        confirm = "OK" to { state ->
+                                            state.textField?.value?.toIntOrNull()?.let { value ->
+                                                if (value in 5..50) {
+                                                    viewModel.setAutoDJMaxQueueSize(value)
+                                                }
+                                            }
+                                        },
+                                        dismiss = "Cancel"
+                                    )
+                                )
+                            }
+                        )
+                        
+                        SettingItem(
+                            title = "Crossfade Duration",
+                            subtitle = "Crossfade duration in milliseconds: ${autoDJCrossfadeDuration}ms",
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = "Crossfade Duration",
+                                        textField = SettingAlertState.TextFieldData(
+                                            label = "Enter crossfade duration (1000-10000 ms)",
+                                            value = autoDJCrossfadeDuration.toString(),
+                                            verifyCodeBlock = { input ->
+                                                val value = input.toIntOrNull()
+                                                when {
+                                                    value == null -> false to "Please enter a valid number"
+                                                    value < 1000 -> false to "Minimum value is 1000ms"
+                                                    value > 10000 -> false to "Maximum value is 10000ms"
+                                                    else -> true to null
+                                                }
+                                            }
+                                        ),
+                                        confirm = "OK" to { state ->
+                                            state.textField?.value?.toIntOrNull()?.let { value ->
+                                                if (value in 1000..10000) {
+                                                    viewModel.setAutoDJCrossfadeDuration(value)
+                                                }
+                                            }
+                                        },
+                                        dismiss = "Cancel"
+                                    )
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        }
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
         item(key = "playback") {
             Column {
                 Text(
@@ -987,7 +1371,11 @@ fun SettingScreen(
                 )
                 SettingItem(
                     title = stringResource(Res.string.youtube_subtitle_language),
+<<<<<<< HEAD
+                    subtitle = youtubeSubtitleLanguage ?: "",
+=======
                     subtitle = youtubeSubtitleLanguage,
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
@@ -995,7 +1383,11 @@ fun SettingScreen(
                                 textField =
                                     SettingAlertState.TextFieldData(
                                         label = runBlocking { getString(Res.string.youtube_subtitle_language) },
+<<<<<<< HEAD
+                                        value = youtubeSubtitleLanguage ?: "",
+=======
                                         value = youtubeSubtitleLanguage,
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                         verifyCodeBlock = {
                                             (it.length == 2 && it.isTwoLetterCode()) to
                                                 runBlocking { getString(Res.string.invalid_language_code) }
@@ -1138,7 +1530,11 @@ fun SettingScreen(
                 )
                 SettingItem(
                     title = stringResource(Res.string.custom_ai_model_id),
+<<<<<<< HEAD
+                    subtitle = customModelId?.ifEmpty { stringResource(Res.string.default_models) } ?: stringResource(Res.string.default_models),
+=======
                     subtitle = customModelId.ifEmpty { stringResource(Res.string.default_models) },
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
@@ -1301,6 +1697,13 @@ fun SettingScreen(
                                         viewModel.setSponsorBlockCategories(
                                             state.multipleSelect
                                                 ?.getListSelected()
+<<<<<<< HEAD
+                                                ?.map { selected: String ->
+                                                    listName.indexOf(selected)
+                                                }?.mapNotNull { s: Int ->
+                                                    SponsorBlockType.toList().getOrNull(s)?.value
+                                                }?.toCollection(ArrayList<String>()) ?: arrayListOf(),
+=======
                                                 ?.map { selected ->
                                                     listName.indexOf(selected)
                                                 }?.mapNotNull { s ->
@@ -1308,6 +1711,7 @@ fun SettingScreen(
                                                         it?.value
                                                     }
                                                 }?.toCollection(ArrayList()) ?: arrayListOf(),
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                         )
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
@@ -1735,7 +2139,11 @@ fun SettingScreen(
                                     DateTimeFormatter
                                         .ofPattern("yyyy-MM-dd HH:mm:ss")
                                         .withZone(ZoneId.systemDefault())
+<<<<<<< HEAD
+                                        .format(Instant.ofEpochMilli(autoBackupLastTime ?: 0L))
+=======
                                         .format(Instant.ofEpochMilli(autoBackupLastTime))
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                                 },
                             )
                         }
@@ -1850,7 +2258,11 @@ fun SettingScreen(
             EndOfPage()
         }
     }
+<<<<<<< HEAD
+    val basisAlertData = viewModel.basicAlertData.collectAsStateWithLifecycle().value
+=======
     val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
     if (basisAlertData != null) {
         val alertBasicState = basisAlertData ?: return
         AlertDialog(
@@ -1887,6 +2299,10 @@ fun SettingScreen(
             },
         )
     }
+<<<<<<< HEAD
+    @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
     if (showYouTubeAccountDialog) {
         BasicAlertDialog(
             onDismissRequest = { },
@@ -2069,6 +2485,13 @@ fun SettingScreen(
                     Column {
                         Text(text = alertState.message)
                         if (alertState.textField != null) {
+<<<<<<< HEAD
+                            renderTextField(alertState, viewModel)
+                        }
+                    }
+                } else if (alertState.textField != null) {
+                    renderTextField(alertState, viewModel)
+=======
                             val verify =
                                 alertState.textField.verifyCodeBlock?.invoke(
                                     alertState.textField.value,
@@ -2110,6 +2533,7 @@ fun SettingScreen(
                             )
                         }
                     }
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                 } else if (alertState.selectOne != null) {
                     LazyColumn(
                         Modifier
@@ -2239,6 +2663,10 @@ fun SettingScreen(
         )
     }
 
+<<<<<<< HEAD
+    @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
     if (showThirdPartyLibraries) {
         val libraries by produceLibraries {
             Res.readBytes("files/aboutlibraries.json").decodeToString()
@@ -2250,6 +2678,10 @@ fun SettingScreen(
             }
         }
         val sheetState =
+<<<<<<< HEAD
+            @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
             rememberModalBottomSheetState(
                 skipPartiallyExpanded = true,
                 confirmValueChange = {
@@ -2257,6 +2689,10 @@ fun SettingScreen(
                 },
             )
         val coroutineScope = rememberCoroutineScope()
+<<<<<<< HEAD
+        @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
         ModalBottomSheet(
             modifier =
                 Modifier
@@ -2297,6 +2733,10 @@ fun SettingScreen(
                     ),
                 header = {
                     item {
+<<<<<<< HEAD
+                        @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
                         TopAppBar(
                             windowInsets = WindowInsets(0, 0, 0, 0),
                             title = {
@@ -2330,6 +2770,10 @@ fun SettingScreen(
         }
     }
 
+<<<<<<< HEAD
+    @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
     TopAppBar(
         title = {
             Text(
