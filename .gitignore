@@ -35,3 +35,4 @@ sentry.properties
 
 /androidApp/build/
 /androidApp/cache/
+core/

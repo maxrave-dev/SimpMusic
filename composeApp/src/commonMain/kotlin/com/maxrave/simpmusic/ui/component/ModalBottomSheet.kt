@@ -1305,6 +1305,10 @@ fun NowPlayingBottomSheet(
     setSleepTimerEnable: Boolean = false,
     changeMainLyricsProviderEnable: Boolean = false,
     onNavigateToOtherScreen: () -> Unit = {}, // Fix the now playing screen not disappearing when navigating to other screen
+<<<<<<< HEAD
+    onViewModelReady: ((NowPlayingBottomSheetViewModel) -> Unit)? = null, // Callback to initialize ViewModel
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
     // Delete is specific to playlist
     onDelete: (() -> Unit)? = null,
     onLibraryDelete: (() -> Unit)? = null,
@@ -1312,6 +1316,15 @@ fun NowPlayingBottomSheet(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+<<<<<<< HEAD
+    
+    // Initialize ViewModel with the current song when ready
+    LaunchedEffect(song) {
+        onViewModelReady?.invoke(viewModel)
+        viewModel.setSongEntity(song)
+    }
+=======
+>>>>>>> b4b08beb9872537da9becf0dd247fbd569039180
     val modelBottomSheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
