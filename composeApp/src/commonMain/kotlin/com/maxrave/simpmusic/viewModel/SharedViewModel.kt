@@ -98,7 +98,6 @@ import simpmusic.composeapp.generated.resources.shared
 import simpmusic.composeapp.generated.resources.updated
 import simpmusic.composeapp.generated.resources.vote_submitted
 import java.io.FileOutputStream
-import java.lang.Exception
 import kotlin.math.abs
 import kotlin.reflect.KClass
 
@@ -1671,6 +1670,7 @@ class SharedViewModel(
                             _lyricsVoteState.update {
                                 it?.copy(
                                     state = VoteState.Success(upvote),
+                                    vote = it.vote + if (upvote) 1 else -1
                                 )
                             }
                             makeToast(getString(Res.string.vote_submitted))
@@ -1722,7 +1722,12 @@ class SharedViewModel(
 
                         is Resource.Success -> {
                             Logger.d(tag, "Vote SimpMusic Translated Lyrics Success")
-                            _translatedVoteState.update { it?.copy(state = VoteState.Success(upvote)) }
+                            _translatedVoteState.update {
+                                it?.copy(
+                                    state = VoteState.Success(upvote),
+                                    vote = it.vote + if (upvote) 1 else -1
+                                )
+                            }
                             makeToast(getString(Res.string.vote_submitted))
                         }
                     }

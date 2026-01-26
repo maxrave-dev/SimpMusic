@@ -159,6 +159,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sentry.jvm)
+            implementation(libs.native.tray)
             implementation(projects.mediaJvmUi)
         }
     }

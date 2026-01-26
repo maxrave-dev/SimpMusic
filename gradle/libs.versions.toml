@@ -34,7 +34,7 @@ datastore-preferences = "1.2.0"
 paging = "3.4.0-rc01"
 customactivityoncrash = "2.4.0"
 aboutlibraries = "13.2.1"
-ktor = "3.3.3"
+ktor = "3.4.0"
 brotli = "0.1.2"
 ksoup = "0.6.0"
 desugaring = "2.1.5"
@@ -44,12 +44,12 @@ haze = "1.7.1"
 smart-exception = "0.2.1"
 onetimepassword = "2.4.1"
 common = "1.20.0"
-json = "1.9.0"
+json = "1.10.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.30.0"
+sentry-android = "8.31.0"
 sentry-gradle-android = "5.12.2"
-sentry-jvm = "8.30.0"
+sentry-jvm = "8.31.0"
 newpipe = "v0.25.0"
 webkit = "1.15.0"
 kermit = "2.0.8"
@@ -82,6 +82,7 @@ jnaPlatform = "5.18.1"
 calf = "0.9.0"
 material = "1.13.0"
 osdetector = "1.7.3"
+tray = "1.0.4"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -192,7 +193,8 @@ compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref
 compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
 compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
 cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calf"}
+file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calf" }
+native-tray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "tray" }
 
 #JVM
 gst1-java-core = { module = "org.freedesktop.gstreamer:gst1-java-core", version.ref = "gst1JavaCore" }
