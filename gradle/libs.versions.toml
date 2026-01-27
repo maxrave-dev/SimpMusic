@@ -1,5 +1,6 @@
 [versions]
 # App version
+commonsIo = "2.5"
 version-name = "1.0.2"
 version-code = "44"
 
@@ -140,6 +141,7 @@ aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-com
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil3" }
 kmpalette-core = { module = "com.kmpalette:kmpalette-core", version.ref = "kmpalette" }
+kmpalette-network = { module = "com.kmpalette:extensions-network", version.ref = "kmpalette" }
 okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
@@ -171,6 +173,7 @@ kermit-logging = { module = "co.touchlab:kermit", version.ref = "kermit" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 
 liquid-glass = { module = "io.github.kyant0:backdrop", version.ref = "liquid-glass" }
 

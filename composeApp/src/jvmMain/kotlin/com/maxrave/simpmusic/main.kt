@@ -113,7 +113,7 @@ fun main() {
     application {
         val windowState =
             rememberWindowState(
-                size = DpSize(1280.dp, 720.dp),
+                size = DpSize(1600.dp, 720.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
         Tray(
@@ -122,7 +122,7 @@ fun main() {
             primaryAction = {
                 isVisible = true
                 windowState.isMinimized = false
-            }
+            },
         ) {
             if (!isVisible) {
                 Item("Open SimpMusic") {
@@ -156,8 +156,12 @@ fun main() {
             state = windowState,
             visible = isVisible,
         ) {
-            Column(modifier = Modifier.fillMaxSize()
-                .clip(RoundedCornerShape(12.dp))) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp)),
+            ) {
                 CustomTitleBar(
                     title = "SimpMusic",
                     windowState = windowState,

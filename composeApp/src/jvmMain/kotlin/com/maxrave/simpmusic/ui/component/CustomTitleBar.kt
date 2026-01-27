@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.UnfoldLess
 import androidx.compose.material.icons.rounded.UnfoldMore
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.theme.typo
 import java.awt.MouseInfo
 import java.awt.Window
 
@@ -83,8 +85,7 @@ fun CustomTitleBar(
                             }
                         },
                     )
-                }
-                .pointerInput(Unit) {
+                }.pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = {
                             val mouseLocation = MouseInfo.getPointerInfo().location
@@ -117,12 +118,20 @@ fun CustomTitleBar(
                     .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-
             // Window control buttons
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                // Close button
+                WindowControlButton(
+                    onClick = onCloseRequest,
+                    backgroundColor = Color(0xFFFF605C),
+                    hoverColor = Color(0xFFE54942),
+                    icon = WindowControlIcon.Close,
+                )
+                
+                Spacer(modifier = Modifier.width(8.dp))
+
                 // Minimize button
                 WindowControlButton(
                     onClick = {
@@ -148,17 +157,15 @@ fun CustomTitleBar(
                     hoverColor = Color(0xFF00B344),
                     icon = if (isMaximized) WindowControlIcon.Restore else WindowControlIcon.Maximize,
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Close button
-                WindowControlButton(
-                    onClick = onCloseRequest,
-                    backgroundColor = Color(0xFFFF605C),
-                    hoverColor = Color(0xFFE54942),
-                    icon = WindowControlIcon.Close,
-                )
             }
+            Spacer(modifier = Modifier.weight(1f))
+            // Title text (optional)
+            Text(
+                text = title,
+                style = typo().labelSmall,
+                color = Color.White,
+            )
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -200,15 +207,15 @@ private fun WindowControlButton(
             Box(modifier = Modifier.padding(1.dp)) {
                 when (icon) {
                     WindowControlIcon.Minimize -> {
-                        Icon(Icons.Rounded.Remove, tint = Color.White, contentDescription = "Minimize")
+                        Icon(Icons.Rounded.Remove, tint = Color.DarkGray, contentDescription = "Minimize")
                     }
 
                     WindowControlIcon.Maximize -> {
                         Icon(
                             modifier = Modifier.rotate(45f),
                             imageVector = Icons.Rounded.UnfoldMore,
-                            tint = Color.White,
-                            contentDescription = "Minimize"
+                            tint = Color.DarkGray,
+                            contentDescription = "Minimize",
                         )
                     }
 
@@ -216,16 +223,16 @@ private fun WindowControlButton(
                         Icon(
                             modifier = Modifier.rotate(45f),
                             imageVector = Icons.Rounded.UnfoldLess,
-                            tint = Color.White,
-                            contentDescription = "Minimize"
+                            tint = Color.DarkGray,
+                            contentDescription = "Minimize",
                         )
                     }
 
                     WindowControlIcon.Close -> {
                         Icon(
                             imageVector = Icons.Rounded.Close,
-                            tint = Color.White,
-                            contentDescription = "Close"
+                            tint = Color.DarkGray,
+                            contentDescription = "Close",
                         )
                     }
                 }
