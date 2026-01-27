@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -8,6 +9,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -696,77 +698,91 @@ fun HomeScreen(
                 }
             }
         }
-        Column(
-            modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                        blurEnabled = true
-                    }.onGloballyPositioned { coordinates ->
-                        topAppBarHeightPx = coordinates.size.height
-                    },
-        ) {
-            AnimatedVisibility(
-                visible = isScrollingUp,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                HomeTopAppBar(navController)
-            }
-            AnimatedVisibility(
-                visible = !isScrollingUp,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                Spacer(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .windowInsetsPadding(
-                                WindowInsets.statusBars,
-                            ),
-                )
-            }
-            Row(
+        AnimatedContent(
+            targetState = scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0,
+            transitionSpec = {
+                fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
+            },
+        ) { target ->
+            Column(
                 modifier =
                     Modifier
-                        .horizontalScroll(chipRowState)
-                        .padding(vertical = 8.dp, horizontal = 15.dp)
-                        .background(Color.Transparent),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        .align(Alignment.TopCenter)
+                        .then(
+                            if (target) {
+                                Modifier.background(Color.Transparent)
+                            } else {
+                                Modifier
+                                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                                        blurEnabled = true
+                                    }
+                            },
+                        ).onGloballyPositioned { coordinates ->
+                            topAppBarHeightPx = coordinates.size.height
+                        },
             ) {
-                listOfHomeChip.forEach { id ->
-                    val isSelected =
-                        when (params) {
-                            HOME_PARAMS_RELAX -> id == Res.string.relax
-                            HOME_PARAMS_SLEEP -> id == Res.string.sleep
-                            HOME_PARAMS_ENERGIZE -> id == Res.string.energize
-                            HOME_PARAMS_SAD -> id == Res.string.sad
-                            HOME_PARAMS_ROMANCE -> id == Res.string.romance
-                            HOME_PARAMS_FEEL_GOOD -> id == Res.string.feel_good
-                            HOME_PARAMS_WORKOUT -> id == Res.string.workout
-                            HOME_PARAMS_PARTY -> id == Res.string.party
-                            HOME_PARAMS_COMMUTE -> id == Res.string.commute
-                            HOME_PARAMS_FOCUS -> id == Res.string.focus
-                            else -> id == Res.string.all
-                        }
-                    Chip(
-                        isAnimated = loading,
-                        isSelected = isSelected,
-                        text = stringResource(id),
-                    ) {
-                        when (id) {
-                            Res.string.all -> viewModel.setParams(null)
-                            Res.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
-                            Res.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
-                            Res.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
-                            Res.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
-                            Res.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
-                            Res.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
-                            Res.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
-                            Res.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
-                            Res.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
-                            Res.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
+                AnimatedVisibility(
+                    visible = isScrollingUp,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    HomeTopAppBar(navController)
+                }
+                AnimatedVisibility(
+                    visible = !isScrollingUp,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    Spacer(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .windowInsetsPadding(
+                                    WindowInsets.statusBars,
+                                ),
+                    )
+                }
+                Row(
+                    modifier =
+                        Modifier
+                            .horizontalScroll(chipRowState)
+                            .padding(vertical = 8.dp, horizontal = 15.dp)
+                            .background(Color.Transparent),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    listOfHomeChip.forEach { id ->
+                        val isSelected =
+                            when (params) {
+                                HOME_PARAMS_RELAX -> id == Res.string.relax
+                                HOME_PARAMS_SLEEP -> id == Res.string.sleep
+                                HOME_PARAMS_ENERGIZE -> id == Res.string.energize
+                                HOME_PARAMS_SAD -> id == Res.string.sad
+                                HOME_PARAMS_ROMANCE -> id == Res.string.romance
+                                HOME_PARAMS_FEEL_GOOD -> id == Res.string.feel_good
+                                HOME_PARAMS_WORKOUT -> id == Res.string.workout
+                                HOME_PARAMS_PARTY -> id == Res.string.party
+                                HOME_PARAMS_COMMUTE -> id == Res.string.commute
+                                HOME_PARAMS_FOCUS -> id == Res.string.focus
+                                else -> id == Res.string.all
+                            }
+                        Chip(
+                            isAnimated = loading,
+                            isSelected = isSelected,
+                            text = stringResource(id),
+                        ) {
+                            when (id) {
+                                Res.string.all -> viewModel.setParams(null)
+                                Res.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
+                                Res.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
+                                Res.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
+                                Res.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
+                                Res.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
+                                Res.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
+                                Res.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
+                                Res.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
+                                Res.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
+                                Res.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
+                            }
                         }
                     }
                 }

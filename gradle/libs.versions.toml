@@ -1,6 +1,5 @@
 [versions]
 # App version
-commonsIo = "2.5"
 version-name = "1.0.2"
 version-code = "44"
 
@@ -17,7 +16,7 @@ core-ktx = "1.17.0"
 appcompat = "1.7.1"
 work = "2.11.0"
 startup-runtime = "1.2.0"
-media3 = "1.9.0"
+media3 = "1.9.1"
 okhttp3 = "5.3.2"
 junit = "4.13.2"
 androidx-junit = "1.3.0"
@@ -84,6 +83,7 @@ calf = "0.9.0"
 material = "1.13.0"
 osdetector = "1.7.3"
 tray = "1.0.4"
+commonsIo = "2.5"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
