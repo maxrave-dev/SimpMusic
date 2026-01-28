@@ -96,6 +96,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
@@ -256,7 +257,7 @@ fun HomeScreen(
 
     LaunchedEffect(dominantColorState) {
         snapshotFlow { dominantColorState.color }.collect {
-            topHeaderColor = it
+            topHeaderColor = it.rgbFactor(0.3f)
         }
     }
 

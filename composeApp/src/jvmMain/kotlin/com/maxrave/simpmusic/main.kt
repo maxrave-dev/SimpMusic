@@ -44,11 +44,13 @@ import okhttp3.OkHttpClient
 import okio.FileSystem
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.mp.KoinPlatform.getKoin
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.circle_app_icon
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
 import simpmusic.composeapp.generated.resources.mono
@@ -117,8 +119,8 @@ fun main() {
             )
         var isVisible by remember { mutableStateOf(true) }
         Tray(
-            icon = painterResource(Res.drawable.mono),
-            tooltip = "SimpMusic",
+            icon = painterResource(Res.drawable.circle_app_icon),
+            tooltip = stringResource(Res.string.app_name),
             primaryAction = {
                 isVisible = true
                 windowState.isMinimized = false
@@ -149,10 +151,10 @@ fun main() {
             onCloseRequest = {
                 isVisible = false
             },
-            title = "SimpMusic",
+            title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
             undecorated = true,
-            transparent = true,
+            transparent = false,
             state = windowState,
             visible = isVisible,
         ) {
@@ -163,7 +165,7 @@ fun main() {
                         .clip(RoundedCornerShape(12.dp)),
             ) {
                 CustomTitleBar(
-                    title = "SimpMusic",
+                    title = stringResource(Res.string.app_name),
                     windowState = windowState,
                     window = window,
                     onCloseRequest = {
