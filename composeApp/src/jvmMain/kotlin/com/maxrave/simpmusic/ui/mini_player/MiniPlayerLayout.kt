@@ -12,6 +12,8 @@ import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -24,9 +26,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -35,7 +40,6 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,10 +51,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -68,6 +73,102 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_skip_next_24
 import simpmusic.composeapp.generated.resources.baseline_skip_previous_24
 import simpmusic.composeapp.generated.resources.holder
+
+private fun timelineToPercent(timeline: TimeLine): Float {
+    return if (timeline.total > 0L) {
+        (timeline.current.toFloat() / timeline.total) * 100f
+    } else {
+        0f
+    }
+}
+
+private fun formatTime(ms: Long): String {
+    val totalSeconds = ms / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
+}
+
+
+@Composable
+private fun MiniPlayerSeekBar(
+    timeline: TimeLine,
+    onUIEvent: (UIEvent) -> Unit,
+    modifier: Modifier = Modifier,
+    trackHeight: Dp = 4.dp,
+    thumbSize: Dp = 10.dp,
+    hitHeight: Dp = 24.dp,
+) {
+    if (timeline.total <= 0L) return
+
+    val progress =
+        (timeline.current.toFloat() / timeline.total.toFloat())
+            .coerceIn(0f, 1f)
+
+    BoxWithConstraints(
+        modifier = modifier
+                .fillMaxWidth()
+                .height(hitHeight)
+                .pointerInput(Unit) {
+                    detectTapGestures { offset ->
+                        val percent =
+                            (offset.x / size.width)
+                                .coerceIn(0f, 1f) * 100f
+                        onUIEvent(UIEvent.UpdateProgress(percent))
+                    }
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            val percent =
+                                (offset.x / size.width)
+                                    .coerceIn(0f, 1f) * 100f
+                            onUIEvent(UIEvent.UpdateProgress(percent))
+                        },
+                        onDrag = { change, _ ->
+                            val percent =
+                                (change.position.x / size.width)
+                                    .coerceIn(0f, 1f) * 100f
+                            onUIEvent(UIEvent.UpdateProgress(percent))
+                        }
+                    )
+                },
+        contentAlignment = Alignment.CenterStart
+    ) {
+        // Track
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(trackHeight)
+                .align(Alignment.Center)
+                .background(
+                    Color.White.copy(alpha = 0.25f),
+                    RoundedCornerShape(50)
+                )
+        )
+
+        // Progress
+        Box(
+            Modifier
+                .width(maxWidth * progress)
+                .height(trackHeight)
+                .align(Alignment.CenterStart)
+                .background(
+                    Color.White,
+                    RoundedCornerShape(50)
+                )
+        )
+
+        // Thumb
+        Box(
+            Modifier
+                .offset(x = (maxWidth * progress) - (thumbSize / 2))
+                .size(thumbSize)
+                .align(Alignment.CenterStart)
+                .background(Color.White, CircleShape)
+        )
+    }
+}
 
 /**
  * Compact layout (< 260dp): Controls only, no artwork or text
@@ -138,8 +239,40 @@ fun CompactMiniLayout(
                 }
             }
 
-            // Progress bar
-            ProgressBar(timeline)
+            // Seek bar
+            BoxWithConstraints(
+                modifier = Modifier.padding(horizontal = 12.dp)
+            ) {
+                val showTimestamps = maxWidth > 240.dp
+
+                Column {
+                    MiniPlayerSeekBar(
+                        timeline = timeline,
+                        onUIEvent = onUIEvent
+                    )
+
+                    if (showTimestamps) {
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = formatTime(timeline.current),
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.65f)
+                            )
+
+                            Text(
+                                text = formatTime(timeline.total),
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.65f)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -350,33 +483,41 @@ fun MediumMiniLayout(
                     }
                 }
 
-                // Progress bar
-                ProgressBar(timeline)
-            }
-        }
-    }
-}
+                // Seek bar
+                BoxWithConstraints(
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                ) {
+                    val showTimestamps = maxWidth > 240.dp   // tweak if needed
 
-/**
- * Progress bar component shared across all layouts
- */
-@Composable
-private fun ProgressBar(timeline: TimeLine) {
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(3.dp)
-                .background(Color(0xFF2C2C2E)),
-    ) {
-        if (timeline.total > 0L && timeline.current >= 0L) {
-            LinearProgressIndicator(
-                progress = { timeline.current.toFloat() / timeline.total },
-                modifier = Modifier.fillMaxSize(),
-                color = Color.White,
-                trackColor = Color.Transparent,
-                strokeCap = StrokeCap.Round,
-            )
+                    Column {
+                        MiniPlayerSeekBar(
+                            timeline = timeline,
+                            onUIEvent = onUIEvent
+                        )
+
+                        if (showTimestamps) {
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = formatTime(timeline.current),
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.65f)
+                                )
+
+                                Text(
+                                    text = formatTime(timeline.total),
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.65f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -514,25 +655,40 @@ fun SquareMiniLayout(
                 }
             }
 
-            // Progress bar
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(4.dp)
-                        .background(Color(0xFF2C2C2E), RoundedCornerShape(2.dp)),
+            // Seek bar
+            BoxWithConstraints(
+                modifier = Modifier.padding(horizontal = 12.dp)
             ) {
-                if (timeline.total > 0L && timeline.current >= 0L) {
-                    LinearProgressIndicator(
-                        progress = { timeline.current.toFloat() / timeline.total },
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.White,
-                        trackColor = Color.Transparent,
-                        strokeCap = StrokeCap.Round,
+                val showTimestamps = maxWidth > 240.dp   // tweak if needed
+
+                Column {
+                    MiniPlayerSeekBar(
+                        timeline = timeline,
+                        onUIEvent = onUIEvent
                     )
+
+                    if (showTimestamps) {
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = formatTime(timeline.current),
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.65f)
+                            )
+
+                            Text(
+                                text = formatTime(timeline.total),
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.65f)
+                            )
+                        }
+                    }
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
 
             // Main playback controls
@@ -875,22 +1031,38 @@ fun ExpandedMiniLayout(
                 }
             }
 
-            // Progress bar
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .background(Color(0xFF2C2C2E)),
+            // Seek bar
+            BoxWithConstraints(
+                modifier = Modifier.padding(horizontal = 12.dp)
             ) {
-                if (timeline.total > 0L && timeline.current >= 0L) {
-                    LinearProgressIndicator(
-                        progress = { timeline.current.toFloat() / timeline.total },
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.White,
-                        trackColor = Color.Transparent,
-                        strokeCap = StrokeCap.Round,
+                val showTimestamps = maxWidth > 240.dp   // tweak if needed
+
+                Column {
+                    MiniPlayerSeekBar(
+                        timeline = timeline,
+                        onUIEvent = onUIEvent
                     )
+
+                    if (showTimestamps) {
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = formatTime(timeline.current),
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.65f)
+                            )
+
+                            Text(
+                                text = formatTime(timeline.total),
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.65f)
+                            )
+                        }
+                    }
                 }
             }
         }
