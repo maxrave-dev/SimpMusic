@@ -7,6 +7,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -194,6 +196,12 @@ actual fun LiquidGlassAppBottomNavigationBar(
         currentBackStackEntry?.destination?.let { current ->
             Logger.d(TAG, "LiquidGlassAppBottomNavigationBar: current route: ${current.route}")
             isInSearchDestination = current.hasRoute(SearchDestination::class)
+            selectedIndex = when {
+                current.hasRoute(HomeDestination::class) -> BottomNavScreen.Home.ordinal
+                current.hasRoute(SearchDestination::class) -> BottomNavScreen.Search.ordinal
+                current.hasRoute(LibraryDestination::class) -> BottomNavScreen.Library.ordinal
+                else -> selectedIndex
+            }
         }
     }
 
@@ -459,33 +467,41 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         tween(100),
                     ) { -it / 2 },
             ) {
-                FloatingActionButton(
-                    modifier =
-                        Modifier.drawBackdropCustomShape(
-                            backdrop,
-                            layer,
-                            luminanceAnimation.value,
-                            CircleShape,
+                Box(
+                    modifier = Modifier
+                        .drawBackdropCustomShape(backdrop, layer, luminanceAnimation.value, CircleShape)
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .combinedClickable(
+                            onClick = {
+                                if (currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) != true) {
+                                    previousSelectedIndex = selectedIndex
+                                    selectedIndex = BottomNavScreen.Search.ordinal
+                                    navController.navigate(BottomNavScreen.Search.destination) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            onDoubleClick = {
+                                viewModel.triggerSearchFocus()
+                                if (currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) != true) {
+                                    previousSelectedIndex = selectedIndex
+                                    selectedIndex = BottomNavScreen.Search.ordinal
+                                    navController.navigate(BottomNavScreen.Search.destination) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
                         ),
-                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
-                    onClick = {
-                        previousSelectedIndex = selectedIndex
-                        selectedIndex = BottomNavScreen.Search.ordinal
-                        navController.navigate(BottomNavScreen.Search.destination) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    shape = CircleShape,
-                    containerColor = transparent,
-                    contentColor = transparent,
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Outlined.Search,
-                        "",
+                        contentDescription = "Search",
                         tint = searchColor,
                     )
                 }

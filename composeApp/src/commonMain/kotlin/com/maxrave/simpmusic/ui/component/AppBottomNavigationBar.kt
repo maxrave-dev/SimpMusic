@@ -1,13 +1,18 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -25,15 +30,18 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.*
 import kotlin.reflect.KClass
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppBottomNavigationBar(
     startDestination: Any = HomeDestination,
     navController: NavController,
+    viewModel: SharedViewModel? = null,
     isTranslucentBackground: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
@@ -54,6 +62,18 @@ fun AppBottomNavigationBar(
             },
         )
     }
+
+    LaunchedEffect(currentBackStackEntry) {
+        currentBackStackEntry?.destination?.let { destination ->
+            selectedIndex = when {
+                destination.hasRoute(HomeDestination::class) -> BottomNavScreen.Home.ordinal
+                destination.hasRoute(SearchDestination::class) -> BottomNavScreen.Search.ordinal
+                destination.hasRoute(LibraryDestination::class) -> BottomNavScreen.Library.ordinal
+                else -> selectedIndex
+            }
+        }
+    }
+
     Box(
         modifier =
             Modifier
@@ -85,28 +105,49 @@ fun AppBottomNavigationBar(
                 },
         ) {
             bottomNavScreens.forEach { screen ->
+                var lastClickTime by remember { mutableStateOf(0L) }
                 NavigationBarItem(
                     selected = selectedIndex == screen.ordinal,
                     onClick = {
-                        if (selectedIndex == screen.ordinal) {
-                            if (currentBackStackEntry?.destination?.hierarchy?.any {
-                                    it.hasRoute(screen.destination::class)
-                                } == true
-                            ) {
-                                reloadDestinationIfNeeded(
-                                    screen.destination::class,
-                                )
-                            } else {
-                                navController.navigate(screen.destination)
-                            }
-                        } else {
-                            selectedIndex = screen.ordinal
-                            navController.navigate(screen.destination) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+                        val currentTime = System.currentTimeMillis()
+                        val isDoubleClick = (currentTime - lastClickTime) < 300L
+                        val isOnSearchScreen = currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
+                        lastClickTime = currentTime
+
+                        when {
+                            screen == BottomNavScreen.Search && isDoubleClick -> {
+                                viewModel?.triggerSearchFocus()
+                                if (!isOnSearchScreen) {
+                                    selectedIndex = screen.ordinal
+                                    navController.navigate(screen.destination) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            }
+                            screen == BottomNavScreen.Search && !isOnSearchScreen -> {
+                                selectedIndex = screen.ordinal
+                                navController.navigate(screen.destination) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                            selectedIndex == screen.ordinal -> {
+                                if (currentBackStackEntry?.destination?.hierarchy?.any { it.hasRoute(screen.destination::class) } == true) {
+                                    reloadDestinationIfNeeded(screen.destination::class)
+                                } else {
+                                    navController.navigate(screen.destination)
+                                }
+                            }
+                            else -> {
+                                selectedIndex = screen.ordinal
+                                navController.navigate(screen.destination) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         }
                     },
@@ -136,6 +177,7 @@ fun AppBottomNavigationBar(
 fun AppNavigationRail(
     startDestination: Any = HomeDestination,
     navController: NavController,
+    viewModel: SharedViewModel? = null,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -155,6 +197,18 @@ fun AppNavigationRail(
             },
         )
     }
+
+    LaunchedEffect(currentBackStackEntry) {
+        currentBackStackEntry?.destination?.let { destination ->
+            selectedIndex = when {
+                destination.hasRoute(HomeDestination::class) -> BottomNavScreen.Home.ordinal
+                destination.hasRoute(SearchDestination::class) -> BottomNavScreen.Search.ordinal
+                destination.hasRoute(LibraryDestination::class) -> BottomNavScreen.Library.ordinal
+                else -> selectedIndex
+            }
+        }
+    }
+
     NavigationRail {
         Spacer(Modifier.height(16.dp))
         Box(Modifier.padding(horizontal = 16.dp)) {
@@ -177,6 +231,7 @@ fun AppNavigationRail(
         }
         Spacer(Modifier.weight(1f))
         bottomNavScreens.forEachIndexed { index, screen ->
+            var lastClickTime by remember { mutableStateOf(0L) }
             NavigationRailItem(
                 icon = screen.icon,
                 label = {
@@ -192,25 +247,45 @@ fun AppNavigationRail(
                 },
                 selected = selectedIndex == index,
                 onClick = {
-                    if (selectedIndex == screen.ordinal) {
-                        if (currentBackStackEntry?.destination?.hierarchy?.any {
-                                it.hasRoute(screen.destination::class)
-                            } == true
-                        ) {
-                            reloadDestinationIfNeeded(
-                                screen.destination::class,
-                            )
-                        } else {
-                            navController.navigate(screen.destination)
-                        }
-                    } else {
-                        selectedIndex = screen.ordinal
-                        navController.navigate(screen.destination) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+                    val currentTime = System.currentTimeMillis()
+                    val isDoubleClick = (currentTime - lastClickTime) < 300L
+                    val isOnSearchScreen = currentBackStackEntry?.destination?.hasRoute(SearchDestination::class) == true
+                    lastClickTime = currentTime
+
+                    when {
+                        screen == BottomNavScreen.Search && isDoubleClick -> {
+                            viewModel?.triggerSearchFocus()
+                            if (!isOnSearchScreen) {
+                                selectedIndex = screen.ordinal
+                                navController.navigate(screen.destination) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                            launchSingleTop = true
-                            restoreState = true
+                        }
+                        screen == BottomNavScreen.Search && !isOnSearchScreen -> {
+                            selectedIndex = screen.ordinal
+                            navController.navigate(screen.destination) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                        selectedIndex == screen.ordinal -> {
+                            if (currentBackStackEntry?.destination?.hierarchy?.any { it.hasRoute(screen.destination::class) } == true) {
+                                reloadDestinationIfNeeded(screen.destination::class)
+                            } else {
+                                navController.navigate(screen.destination)
+                            }
+                        }
+                        else -> {
+                            selectedIndex = screen.ordinal
+                            navController.navigate(screen.destination) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 },

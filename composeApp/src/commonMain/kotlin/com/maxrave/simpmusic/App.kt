@@ -299,6 +299,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                             } else {
                                 AppBottomNavigationBar(
                                     navController = navController,
+                                    viewModel = viewModel,
                                     isTranslucentBackground = isTranslucentBottomBar == TRUE,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
@@ -326,6 +327,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                         if (isTablet && !isInFullscreen) {
                             AppNavigationRail(
                                 navController = navController,
+                                viewModel = viewModel,
                             ) { klass ->
                                 viewModel.reloadDestination(klass)
                             }
