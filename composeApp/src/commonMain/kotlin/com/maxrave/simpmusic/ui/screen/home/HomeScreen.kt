@@ -1,11 +1,15 @@
 package com.maxrave.simpmusic.ui.screen.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +20,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -37,6 +40,7 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -64,6 +68,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -76,6 +81,8 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.kmpalette.loader.rememberNetworkLoader
+import com.kmpalette.rememberDominantColorState
 import com.maxrave.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.common.Config
 import com.maxrave.domain.data.model.browse.album.Track
@@ -87,7 +94,9 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
@@ -109,6 +118,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -129,6 +139,9 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.http.Url
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -223,6 +236,31 @@ fun HomeScreen(
     val openAppTime by sharedViewModel.openAppTime.collectAsStateWithLifecycle()
     val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsStateWithLifecycle()
 
+    var topHeaderColor by remember {
+        mutableStateOf(md_theme_dark_background)
+    }
+    val animatedColor by animateColorAsState(topHeaderColor, tween(500))
+    val mainHomeThumbnail by viewModel.mainHomeThumbnail.collectAsStateWithLifecycle()
+    val networkLoader = rememberNetworkLoader(HttpClient(CIO))
+    val dominantColorState =
+        rememberDominantColorState(
+            defaultColor = md_theme_dark_background,
+            defaultOnColor = md_theme_dark_background,
+            loader = networkLoader,
+        )
+
+    LaunchedEffect(mainHomeThumbnail) {
+        mainHomeThumbnail?.let {
+            dominantColorState.updateFrom(Url(it))
+        }
+    }
+
+    LaunchedEffect(dominantColorState) {
+        snapshotFlow { dominantColorState.color }.collect {
+            topHeaderColor = it.rgbFactor(0.3f)
+        }
+    }
+
     var showReviewDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -299,7 +337,7 @@ fun HomeScreen(
                         scrollState.layoutInfo.visibleItemsInfo
                             .lastOrNull()
                             ?.index ?: -9
-                        ) >= (scrollState.layoutInfo.totalItemsCount - 1)
+                    ) >= (scrollState.layoutInfo.totalItemsCount - 1)
             }
         }
 
@@ -435,76 +473,109 @@ fun HomeScreen(
                 )
             },
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
                     LazyColumn(
-                        modifier =
-                            Modifier
-                                .padding(horizontal = 15.dp),
-                        contentPadding =
-                            PaddingValues(
-                                top = with(LocalDensity.current) { topAppBarHeightPx.toDp() },
-                            ),
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(28.dp),
                     ) {
-                        item {
-                            Column {
-                                if (accountInfo != null && accountShow) {
-                                    AccountLayout(
-                                        accountName = accountInfo?.first ?: "",
-                                        url = accountInfo?.second ?: "",
-                                    )
-                                    Spacer(Modifier.height(8.dp))
+                        itemsIndexed(homeData, key = { _, item ->
+                            item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
+                        }) { index, item ->
+                            Box {
+                                if (index == 0) {
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(300.dp)
+                                                .angledGradientBackground(listOf(animatedColor, md_theme_dark_background), 25f),
+                                    ) {
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .height(180.dp)
+                                                    .align(Alignment.BottomCenter)
+                                                    .background(
+                                                        brush =
+                                                            Brush.verticalGradient(
+                                                                listOf(
+                                                                    Color.Transparent,
+                                                                    Color(0x75000000),
+                                                                    Color.Black,
+                                                                ),
+                                                            ),
+                                                    ),
+                                        )
+                                    }
                                 }
-                            }
-                        }
-                        items(homeData, key = { it.hashCode() }) { item ->
-                            if (item.title == stringResource(Res.string.quick_picks)) {
-                                AnimatedVisibility(
-                                    visible =
-                                        homeData.find {
-                                            it.title ==
-                                                stringResource(
-                                                    Res.string.quick_picks,
-                                                )
-                                        } != null,
+                                Column(
+                                    modifier =
+                                        Modifier
+                                            .padding(horizontal = 15.dp),
                                 ) {
-                                    QuickPicks(
-                                        homeItem =
-                                            (
+                                    if (index == 0) {
+                                        Spacer(
+                                            Modifier.height(
+                                                with(LocalDensity.current) { topAppBarHeightPx.toDp() },
+                                            ),
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    if (index == 0 && accountInfo != null && accountShow) {
+                                        AccountLayout(
+                                            accountName = accountInfo?.first ?: "",
+                                            url = accountInfo?.second ?: "",
+                                        )
+                                        Spacer(Modifier.height(8.dp))
+                                    }
+                                    if (item.title == stringResource(Res.string.quick_picks)) {
+                                        AnimatedVisibility(
+                                            visible =
                                                 homeData.find {
                                                     it.title ==
                                                         stringResource(
                                                             Res.string.quick_picks,
                                                         )
-                                                } ?: return@AnimatedVisibility
-                                                ).let { content ->
-                                                    content.copy(
-                                                        contents =
-                                                            content.contents.mapNotNull { ct ->
-                                                                ct?.copy(
-                                                                    artists =
-                                                                        ct.artists?.let { art ->
-                                                                            if (art.size > 1) {
-                                                                                art.dropLast(1)
-                                                                            } else {
-                                                                                art
-                                                                            }
-                                                                        },
+                                                } != null,
+                                        ) {
+                                            QuickPicks(
+                                                homeItem =
+                                                    (
+                                                        homeData.find {
+                                                            it.title ==
+                                                                stringResource(
+                                                                    Res.string.quick_picks,
                                                                 )
-                                                            },
-                                                    )
-                                                },
-                                        viewModel = viewModel,
-                                    )
+                                                        } ?: return@AnimatedVisibility
+                                                    ).let { content ->
+                                                        content.copy(
+                                                            contents =
+                                                                content.contents.mapNotNull { ct ->
+                                                                    ct?.copy(
+                                                                        artists =
+                                                                            ct.artists?.let { art ->
+                                                                                if (art.size > 1) {
+                                                                                    art.dropLast(1)
+                                                                                } else {
+                                                                                    art
+                                                                                }
+                                                                            },
+                                                                    )
+                                                                },
+                                                        )
+                                                    },
+                                                viewModel = viewModel,
+                                            )
+                                        }
+                                    } else {
+                                        HomeItem(
+                                            navController = navController,
+                                            data = item,
+                                        )
+                                    }
                                 }
-                            } else {
-                                HomeItem(
-                                    navController = navController,
-                                    data = item,
-                                )
                             }
                         }
                         item {
@@ -526,28 +597,41 @@ fun HomeScreen(
                                 AnimatedVisibility(
                                     visible = newRelease.isNotEmpty(),
                                 ) {
-                                    HomeItem(
-                                        navController = navController,
-                                        data = it,
-                                    )
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .padding(horizontal = 15.dp),
+                                    ) {
+                                        HomeItem(
+                                            navController = navController,
+                                            data = it,
+                                        )
+                                    }
                                 }
                             }
                             item {
                                 AnimatedVisibility(
                                     visible = moodMomentAndGenre != null,
                                 ) {
-                                    moodMomentAndGenre?.let {
-                                        MoodMomentAndGenre(
-                                            mood = it,
-                                            navController = navController,
-                                        )
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .padding(horizontal = 15.dp),
+                                    ) {
+                                        moodMomentAndGenre?.let {
+                                            MoodMomentAndGenre(
+                                                mood = it,
+                                                navController = navController,
+                                            )
+                                        }
                                     }
                                 }
                             }
                             item {
                                 Column(
                                     Modifier
-                                        .padding(vertical = 10.dp),
+                                        .padding(vertical = 10.dp)
+                                        .padding(horizontal = 15.dp),
                                     verticalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     ChartTitle()
@@ -615,77 +699,91 @@ fun HomeScreen(
                 }
             }
         }
-        Column(
-            modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                        blurEnabled = true
-                    }.onGloballyPositioned { coordinates ->
-                        topAppBarHeightPx = coordinates.size.height
-                    },
-        ) {
-            AnimatedVisibility(
-                visible = isScrollingUp,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                HomeTopAppBar(navController)
-            }
-            AnimatedVisibility(
-                visible = !isScrollingUp,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                Spacer(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .windowInsetsPadding(
-                                WindowInsets.statusBars,
-                            ),
-                )
-            }
-            Row(
+        AnimatedContent(
+            targetState = scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0,
+            transitionSpec = {
+                fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
+            },
+        ) { target ->
+            Column(
                 modifier =
                     Modifier
-                        .horizontalScroll(chipRowState)
-                        .padding(vertical = 8.dp, horizontal = 15.dp)
-                        .background(Color.Transparent),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        .align(Alignment.TopCenter)
+                        .then(
+                            if (target) {
+                                Modifier.background(Color.Transparent)
+                            } else {
+                                Modifier
+                                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                                        blurEnabled = true
+                                    }
+                            },
+                        ).onGloballyPositioned { coordinates ->
+                            topAppBarHeightPx = coordinates.size.height
+                        },
             ) {
-                listOfHomeChip.forEach { id ->
-                    val isSelected =
-                        when (params) {
-                            HOME_PARAMS_RELAX -> id == Res.string.relax
-                            HOME_PARAMS_SLEEP -> id == Res.string.sleep
-                            HOME_PARAMS_ENERGIZE -> id == Res.string.energize
-                            HOME_PARAMS_SAD -> id == Res.string.sad
-                            HOME_PARAMS_ROMANCE -> id == Res.string.romance
-                            HOME_PARAMS_FEEL_GOOD -> id == Res.string.feel_good
-                            HOME_PARAMS_WORKOUT -> id == Res.string.workout
-                            HOME_PARAMS_PARTY -> id == Res.string.party
-                            HOME_PARAMS_COMMUTE -> id == Res.string.commute
-                            HOME_PARAMS_FOCUS -> id == Res.string.focus
-                            else -> id == Res.string.all
-                        }
-                    Chip(
-                        isAnimated = loading,
-                        isSelected = isSelected,
-                        text = stringResource(id),
-                    ) {
-                        when (id) {
-                            Res.string.all -> viewModel.setParams(null)
-                            Res.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
-                            Res.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
-                            Res.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
-                            Res.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
-                            Res.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
-                            Res.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
-                            Res.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
-                            Res.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
-                            Res.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
-                            Res.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
+                AnimatedVisibility(
+                    visible = isScrollingUp,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    HomeTopAppBar(navController)
+                }
+                AnimatedVisibility(
+                    visible = !isScrollingUp,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    Spacer(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .windowInsetsPadding(
+                                    WindowInsets.statusBars,
+                                ),
+                    )
+                }
+                Row(
+                    modifier =
+                        Modifier
+                            .horizontalScroll(chipRowState)
+                            .padding(vertical = 8.dp, horizontal = 15.dp)
+                            .background(Color.Transparent),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    listOfHomeChip.forEach { id ->
+                        val isSelected =
+                            when (params) {
+                                HOME_PARAMS_RELAX -> id == Res.string.relax
+                                HOME_PARAMS_SLEEP -> id == Res.string.sleep
+                                HOME_PARAMS_ENERGIZE -> id == Res.string.energize
+                                HOME_PARAMS_SAD -> id == Res.string.sad
+                                HOME_PARAMS_ROMANCE -> id == Res.string.romance
+                                HOME_PARAMS_FEEL_GOOD -> id == Res.string.feel_good
+                                HOME_PARAMS_WORKOUT -> id == Res.string.workout
+                                HOME_PARAMS_PARTY -> id == Res.string.party
+                                HOME_PARAMS_COMMUTE -> id == Res.string.commute
+                                HOME_PARAMS_FOCUS -> id == Res.string.focus
+                                else -> id == Res.string.all
+                            }
+                        Chip(
+                            isAnimated = loading,
+                            isSelected = isSelected,
+                            text = stringResource(id),
+                        ) {
+                            when (id) {
+                                Res.string.all -> viewModel.setParams(null)
+                                Res.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
+                                Res.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
+                                Res.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
+                                Res.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
+                                Res.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
+                                Res.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
+                                Res.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
+                                Res.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
+                                Res.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
+                                Res.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
+                            }
                         }
                     }
                 }
@@ -703,9 +801,10 @@ fun HomeTopAppBar(navController: NavController) {
             date.hour
         }
     TopAppBar(
-        windowInsets = TopAppBarDefaults.windowInsets.exclude(
-            TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start)
-        ),
+        windowInsets =
+            TopAppBarDefaults.windowInsets.exclude(
+                TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start),
+            ),
         title = {
             Column {
                 Text(

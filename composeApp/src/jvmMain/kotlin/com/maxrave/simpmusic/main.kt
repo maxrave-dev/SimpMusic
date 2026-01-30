@@ -1,6 +1,15 @@
 package com.maxrave.simpmusic
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -13,11 +22,14 @@ import coil3.disk.DiskCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
+import com.kdroid.composetray.tray.api.Tray
+import com.kdroid.composetray.utils.SingleInstanceManager
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.ui.component.CustomTitleBar
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
 import com.maxrave.simpmusic.utils.VersionManager
@@ -33,13 +45,19 @@ import okhttp3.OkHttpClient
 import okio.FileSystem
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.mp.KoinPlatform.getKoin
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.circle_app_icon
+import simpmusic.composeapp.generated.resources.close_miniplayer
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
+import simpmusic.composeapp.generated.resources.open_app
+import simpmusic.composeapp.generated.resources.open_miniplayer
+import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,45 +117,110 @@ fun main() {
     }
     
     application {
+        // Main Window
         val windowState =
             rememberWindowState(
-                size = DpSize(1280.dp, 720.dp),
+                size = DpSize(1600.dp, 720.dp),
             )
-        Window(
-            onCloseRequest = {
+        var isVisible by remember { mutableStateOf(true) }
+        // Single management
+        val isSingleInstance =
+            SingleInstanceManager.isSingleInstance(
+                onRestoreRequest = {
+                    isVisible = true
+                    windowState.isMinimized = false
+                },
+            )
+
+        if (!isSingleInstance) {
+            exitApplication()
+            return@application
+        }
+        val openAppString = stringResource(Res.string.open_app)
+        val quitAppString = stringResource(Res.string.quit_app)
+        val openMiniPlayer = stringResource(Res.string.open_miniplayer)
+        val closeMiniPlayer = stringResource(Res.string.close_miniplayer)
+        Tray(
+            icon = painterResource(Res.drawable.circle_app_icon),
+            tooltip = stringResource(Res.string.app_name),
+            primaryAction = {
+                isVisible = true
+                windowState.isMinimized = false
+            },
+        ) {
+            if (!isVisible) {
+                Item(openAppString) {
+                    isVisible = true
+                    windowState.isMinimized = false
+                }
+            }
+            if (MiniPlayerManager.isOpen) {
+                Item(closeMiniPlayer) {
+                    MiniPlayerManager.isOpen = false
+                }
+            } else {
+                Item(openMiniPlayer) {
+                    MiniPlayerManager.isOpen = true
+                }
+            }
+            Divider()
+            Item(quitAppString) {
                 mediaPlayerHandler.release()
                 exitApplication()
-            },
-            title = "SimpMusic",
-            icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = false,
-            state = windowState,
-        ) {
-            val context = LocalPlatformContext.current
-            setSingletonImageLoaderFactory {
-                ImageLoader
-                    .Builder(context)
-                    .components {
-                        add(
-                            OkHttpNetworkFetcherFactory(
-                                callFactory = {
-                                    OkHttpClient()
-                                },
-                            ),
-                        )
-                    }.diskCachePolicy(CachePolicy.ENABLED)
-                    .networkCachePolicy(CachePolicy.ENABLED)
-                    .diskCache(
-                        DiskCache
-                            .Builder()
-                            .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-                            .maxSizeBytes(512L * 1024 * 1024)
-                            .build(),
-                    ).crossfade(true)
-                    .build()
             }
-            App()
-            ToastHost()
+        }
+        Window(
+            onCloseRequest = {
+                isVisible = false
+            },
+            title = stringResource(Res.string.app_name),
+            icon = painterResource(Res.drawable.circle_app_icon),
+            undecorated = true,
+            transparent = true,
+            state = windowState,
+            visible = isVisible,
+        ) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp)),
+            ) {
+                CustomTitleBar(
+                    title = stringResource(Res.string.app_name),
+                    windowState = windowState,
+                    window = window,
+                    onCloseRequest = {
+                        isVisible = false
+                    },
+                )
+                
+                val context = LocalPlatformContext.current
+                setSingletonImageLoaderFactory {
+                    ImageLoader
+                        .Builder(context)
+                        .components {
+                            add(
+                                OkHttpNetworkFetcherFactory(
+                                    callFactory = {
+                                        OkHttpClient()
+                                    },
+                                ),
+                            )
+                        }.diskCachePolicy(CachePolicy.ENABLED)
+                        .networkCachePolicy(CachePolicy.ENABLED)
+                        .diskCache(
+                            DiskCache
+                                .Builder()
+                                .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+                                .maxSizeBytes(512L * 1024 * 1024)
+                                .build(),
+                        ).crossfade(true)
+                        .build()
+                }
+                App()
+                ToastHost()
+            }
         }
         
         // Mini Player Window (separate window)
