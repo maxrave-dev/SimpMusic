@@ -29,6 +29,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.build.config)
     alias(libs.plugins.osdetector)
+    alias(libs.plugins.packagedeps)
 }
 
 kotlin {
@@ -289,6 +290,10 @@ aboutLibraries {
         // Configure the duplication rule, to match "duplicates" with
         duplicationRule = com.mikepenz.aboutlibraries.plugin.DuplicateRule.SIMPLE
     }
+}
+
+linuxDebConfig {
+    startupWMClass.set("java-lang-Thread")
 }
 
 afterEvaluate {

@@ -7,14 +7,14 @@ android = "8.13.2"
 kotlin = "2.3.0"
 serialization = "2.3.0"
 ksp = "2.3.4"
-compose-bom = "2026.01.00"
-material3-expressive = "1.5.0-alpha12"
+compose-bom = "2026.01.01"
+material3-expressive = "1.5.0-alpha13"
 constraintlayout-compose = "1.1.1"
-activity-compose = "1.12.2"
+activity-compose = "1.12.3"
 lifecycle = "2.9.6"
 core-ktx = "1.17.0"
 appcompat = "1.7.1"
-work = "2.11.0"
+work = "2.11.1"
 startup-runtime = "1.2.0"
 media3 = "1.9.1"
 okhttp3 = "5.3.2"
@@ -31,7 +31,7 @@ coil3 = "3.3.0"
 kmpalette = "3.1.0"
 easypermissions = "3.0.0"
 datastore-preferences = "1.2.0"
-paging = "3.4.0-rc01"
+paging = "3.4.0"
 customactivityoncrash = "2.4.0"
 aboutlibraries = "13.2.1"
 ktor = "3.4.0"
@@ -53,7 +53,7 @@ sentry-jvm = "8.31.0"
 newpipe = "251f7f6625c76dc8e975be77666a4ede223c56c7"
 webkit = "1.15.0"
 kermit = "2.0.8"
-paging-common = "3.3.6"
+paging-common = "3.4.0"
 glance = "1.1.1"
 liquid-glass = "1.0.4"
 ytdlp = "0.18.1"
@@ -84,6 +84,7 @@ material = "1.13.0"
 osdetector = "1.7.3"
 tray = "1.0.4"
 commonsIo = "2.5"
+packagedeps = "0.2.5"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -247,6 +248,7 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 build-config = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
+packagedeps = { id = "io.github.kdroidfilter.compose.linux.packagedeps", version.ref = "packagedeps"}
 
 # JVM
 osdetector = { id = "com.google.osdetector", version.ref = "osdetector" }

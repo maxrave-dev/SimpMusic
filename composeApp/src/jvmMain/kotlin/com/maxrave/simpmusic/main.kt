@@ -23,6 +23,7 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
 import com.kdroid.composetray.tray.api.Tray
+import com.kdroid.composetray.utils.SingleInstanceManager
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
@@ -52,8 +53,11 @@ import org.koin.mp.KoinPlatform.getKoin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.circle_app_icon
+import simpmusic.composeapp.generated.resources.close_miniplayer
 import simpmusic.composeapp.generated.resources.explicit_content_blocked
-import simpmusic.composeapp.generated.resources.mono
+import simpmusic.composeapp.generated.resources.open_app
+import simpmusic.composeapp.generated.resources.open_miniplayer
+import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,11 +117,29 @@ fun main() {
     }
     
     application {
+        // Main Window
         val windowState =
             rememberWindowState(
                 size = DpSize(1600.dp, 720.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
+        // Single management
+        val isSingleInstance =
+            SingleInstanceManager.isSingleInstance(
+                onRestoreRequest = {
+                    isVisible = true
+                    windowState.isMinimized = false
+                },
+            )
+
+        if (!isSingleInstance) {
+            exitApplication()
+            return@application
+        }
+        val openAppString = stringResource(Res.string.open_app)
+        val quitAppString = stringResource(Res.string.quit_app)
+        val openMiniPlayer = stringResource(Res.string.open_miniplayer)
+        val closeMiniPlayer = stringResource(Res.string.close_miniplayer)
         Tray(
             icon = painterResource(Res.drawable.circle_app_icon),
             tooltip = stringResource(Res.string.app_name),
@@ -127,22 +149,22 @@ fun main() {
             },
         ) {
             if (!isVisible) {
-                Item("Open SimpMusic") {
+                Item(openAppString) {
                     isVisible = true
                     windowState.isMinimized = false
                 }
             }
             if (MiniPlayerManager.isOpen) {
-                Item("Close Miniplayer") {
+                Item(closeMiniPlayer) {
                     MiniPlayerManager.isOpen = false
                 }
             } else {
-                Item("Open Miniplayer") {
+                Item(openMiniPlayer) {
                     MiniPlayerManager.isOpen = true
                 }
             }
             Divider()
-            Item("Quit app") {
+            Item(quitAppString) {
                 mediaPlayerHandler.release()
                 exitApplication()
             }
@@ -154,7 +176,7 @@ fun main() {
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
             undecorated = true,
-            transparent = false,
+            transparent = true,
             state = windowState,
             visible = isVisible,
         ) {
