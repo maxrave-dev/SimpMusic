@@ -467,6 +467,7 @@ fun RichSyncLyricsLineItem(
     currentTimeMs: Long,
     isCurrent: Boolean,
     customFontSize: TextUnit? = null,
+    customPadding: Dp = 12.dp,
     modifier: Modifier = Modifier,
 ) {
     // Performance optimization: derive current word index based on timeline
@@ -482,7 +483,7 @@ fun RichSyncLyricsLineItem(
     Column(
         modifier = modifier,
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(customPadding))
 
         // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
         FlowRow(
@@ -532,7 +533,7 @@ fun RichSyncLyricsLineItem(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(customPadding))
     }
 }
 

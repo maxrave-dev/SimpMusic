@@ -898,8 +898,7 @@ fun ExpandedMiniLayout(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp)
-                                .padding(bottom = 4.dp),
+                                .padding(horizontal = 12.dp),
                     ) {
                         if (lyricsData.lyrics.syncType == "RICH_SYNCED") {
                             val parsedLine =
@@ -915,6 +914,7 @@ fun ExpandedMiniLayout(
                                     currentTimeMs = timeline.current,
                                     isCurrent = true,
                                     customFontSize = typo().bodySmall.fontSize,
+                                    customPadding = 4.dp,
                                     modifier = Modifier,
                                 )
                             }
@@ -928,7 +928,8 @@ fun ExpandedMiniLayout(
                                         ).basicMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                        ).focusable()
+                                        .padding(bottom = 4.dp),
                                 textAlign = TextAlign.Center,
                                 text = currentLine.words,
                                 style = typo().bodySmall,
