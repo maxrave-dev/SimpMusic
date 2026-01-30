@@ -34,6 +34,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
@@ -74,29 +76,13 @@ import simpmusic.composeapp.generated.resources.baseline_skip_next_24
 import simpmusic.composeapp.generated.resources.baseline_skip_previous_24
 import simpmusic.composeapp.generated.resources.holder
 
-private fun timelineToPercent(timeline: TimeLine): Float {
-    return if (timeline.total > 0L) {
-        (timeline.current.toFloat() / timeline.total) * 100f
-    } else {
-        0f
-    }
-}
-
-private fun formatTime(ms: Long): String {
-    val totalSeconds = ms / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%d:%02d".format(minutes, seconds)
-}
-
-
 @Composable
 private fun MiniPlayerSeekBar(
     timeline: TimeLine,
     onUIEvent: (UIEvent) -> Unit,
     modifier: Modifier = Modifier,
     trackHeight: Dp = 4.dp,
-    thumbSize: Dp = 10.dp,
+    thumbSize: Dp = 6.dp,
     hitHeight: Dp = 24.dp,
 ) {
     if (timeline.total <= 0L) return
@@ -106,7 +92,8 @@ private fun MiniPlayerSeekBar(
             .coerceIn(0f, 1f)
 
     BoxWithConstraints(
-        modifier = modifier
+        modifier =
+            modifier
                 .fillMaxWidth()
                 .height(hitHeight)
                 .pointerInput(Unit) {
@@ -116,8 +103,7 @@ private fun MiniPlayerSeekBar(
                                 .coerceIn(0f, 1f) * 100f
                         onUIEvent(UIEvent.UpdateProgress(percent))
                     }
-                }
-                .pointerInput(Unit) {
+                }.pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = { offset ->
                             val percent =
@@ -130,10 +116,10 @@ private fun MiniPlayerSeekBar(
                                 (change.position.x / size.width)
                                     .coerceIn(0f, 1f) * 100f
                             onUIEvent(UIEvent.UpdateProgress(percent))
-                        }
+                        },
                     )
                 },
-        contentAlignment = Alignment.CenterStart
+        contentAlignment = Alignment.CenterStart,
     ) {
         // Track
         Box(
@@ -143,8 +129,8 @@ private fun MiniPlayerSeekBar(
                 .align(Alignment.Center)
                 .background(
                     Color.White.copy(alpha = 0.25f),
-                    RoundedCornerShape(50)
-                )
+                    RoundedCornerShape(50),
+                ),
         )
 
         // Progress
@@ -155,8 +141,8 @@ private fun MiniPlayerSeekBar(
                 .align(Alignment.CenterStart)
                 .background(
                     Color.White,
-                    RoundedCornerShape(50)
-                )
+                    RoundedCornerShape(50),
+                ),
         )
 
         // Thumb
@@ -165,7 +151,7 @@ private fun MiniPlayerSeekBar(
                 .offset(x = (maxWidth * progress) - (thumbSize / 2))
                 .size(thumbSize)
                 .align(Alignment.CenterStart)
-                .background(Color.White, CircleShape)
+                .background(Color.White, CircleShape),
         )
     }
 }
@@ -240,38 +226,13 @@ fun CompactMiniLayout(
             }
 
             // Seek bar
-            BoxWithConstraints(
-                modifier = Modifier.padding(horizontal = 12.dp)
+            Box(
+                modifier = Modifier.padding(horizontal = 12.dp),
             ) {
-                val showTimestamps = maxWidth > 240.dp
-
-                Column {
-                    MiniPlayerSeekBar(
-                        timeline = timeline,
-                        onUIEvent = onUIEvent
-                    )
-
-                    if (showTimestamps) {
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = formatTime(timeline.current),
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.65f)
-                            )
-
-                            Text(
-                                text = formatTime(timeline.total),
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.65f)
-                            )
-                        }
-                    }
-                }
+                MiniPlayerSeekBar(
+                    timeline = timeline,
+                    onUIEvent = onUIEvent,
+                )
             }
         }
     }
@@ -484,38 +445,13 @@ fun MediumMiniLayout(
                 }
 
                 // Seek bar
-                BoxWithConstraints(
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                Box(
+                    modifier = Modifier.padding(horizontal = 12.dp),
                 ) {
-                    val showTimestamps = maxWidth > 240.dp   // tweak if needed
-
-                    Column {
-                        MiniPlayerSeekBar(
-                            timeline = timeline,
-                            onUIEvent = onUIEvent
-                        )
-
-                        if (showTimestamps) {
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = formatTime(timeline.current),
-                                    fontSize = 11.sp,
-                                    color = Color.White.copy(alpha = 0.65f)
-                                )
-
-                                Text(
-                                    text = formatTime(timeline.total),
-                                    fontSize = 11.sp,
-                                    color = Color.White.copy(alpha = 0.65f)
-                                )
-                            }
-                        }
-                    }
+                    MiniPlayerSeekBar(
+                        timeline = timeline,
+                        onUIEvent = onUIEvent,
+                    )
                 }
             }
         }
@@ -656,38 +592,13 @@ fun SquareMiniLayout(
             }
 
             // Seek bar
-            BoxWithConstraints(
-                modifier = Modifier.padding(horizontal = 12.dp)
+            Box(
+                modifier = Modifier.padding(horizontal = 12.dp),
             ) {
-                val showTimestamps = maxWidth > 240.dp   // tweak if needed
-
-                Column {
-                    MiniPlayerSeekBar(
-                        timeline = timeline,
-                        onUIEvent = onUIEvent
-                    )
-
-                    if (showTimestamps) {
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = formatTime(timeline.current),
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.65f)
-                            )
-
-                            Text(
-                                text = formatTime(timeline.total),
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.65f)
-                            )
-                        }
-                    }
-                }
+                MiniPlayerSeekBar(
+                    timeline = timeline,
+                    onUIEvent = onUIEvent,
+                )
             }
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -808,7 +719,7 @@ fun EmptyMiniPlayerState() {
 }
 
 /**
- * Legacy full layout - now used only when BoxWithConstraints shows > 360dp
+ * Legacy full layout - now used only when Box shows > 360dp
  * Kept for backwards compatibility
  */
 @Composable
@@ -960,9 +871,9 @@ fun ExpandedMiniLayout(
                             Icon(
                                 imageVector =
                                     if (controllerState.volume > 0f) {
-                                        Icons.Filled.VolumeUp
+                                        Icons.AutoMirrored.Filled.VolumeUp
                                     } else {
-                                        Icons.Filled.VolumeOff
+                                        Icons.AutoMirrored.Filled.VolumeOff
                                     },
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                 tint = Color.White.copy(alpha = 0.7f),
@@ -988,7 +899,7 @@ fun ExpandedMiniLayout(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp)
-                                .padding(bottom = 8.dp),
+                                .padding(bottom = 4.dp),
                     ) {
                         if (lyricsData.lyrics.syncType == "RICH_SYNCED") {
                             val parsedLine =
@@ -1032,38 +943,13 @@ fun ExpandedMiniLayout(
             }
 
             // Seek bar
-            BoxWithConstraints(
-                modifier = Modifier.padding(horizontal = 12.dp)
+            Box(
+                modifier = Modifier.padding(horizontal = 12.dp),
             ) {
-                val showTimestamps = maxWidth > 240.dp   // tweak if needed
-
-                Column {
-                    MiniPlayerSeekBar(
-                        timeline = timeline,
-                        onUIEvent = onUIEvent
-                    )
-
-                    if (showTimestamps) {
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = formatTime(timeline.current),
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.65f)
-                            )
-
-                            Text(
-                                text = formatTime(timeline.total),
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.65f)
-                            )
-                        }
-                    }
-                }
+                MiniPlayerSeekBar(
+                    timeline = timeline,
+                    onUIEvent = onUIEvent,
+                )
             }
         }
     }
