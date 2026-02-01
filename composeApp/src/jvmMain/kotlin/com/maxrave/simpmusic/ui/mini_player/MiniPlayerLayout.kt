@@ -12,6 +12,8 @@ import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -24,18 +26,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,10 +53,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -68,6 +75,86 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_skip_next_24
 import simpmusic.composeapp.generated.resources.baseline_skip_previous_24
 import simpmusic.composeapp.generated.resources.holder
+
+@Composable
+private fun MiniPlayerSeekBar(
+    timeline: TimeLine,
+    onUIEvent: (UIEvent) -> Unit,
+    modifier: Modifier = Modifier,
+    trackHeight: Dp = 4.dp,
+    thumbSize: Dp = 6.dp,
+    hitHeight: Dp = 24.dp,
+) {
+    if (timeline.total <= 0L) return
+
+    val progress =
+        (timeline.current.toFloat() / timeline.total.toFloat())
+            .coerceIn(0f, 1f)
+
+    BoxWithConstraints(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(hitHeight)
+                .pointerInput(Unit) {
+                    detectTapGestures { offset ->
+                        val percent =
+                            (offset.x / size.width)
+                                .coerceIn(0f, 1f) * 100f
+                        onUIEvent(UIEvent.UpdateProgress(percent))
+                    }
+                }.pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            val percent =
+                                (offset.x / size.width)
+                                    .coerceIn(0f, 1f) * 100f
+                            onUIEvent(UIEvent.UpdateProgress(percent))
+                        },
+                        onDrag = { change, _ ->
+                            val percent =
+                                (change.position.x / size.width)
+                                    .coerceIn(0f, 1f) * 100f
+                            onUIEvent(UIEvent.UpdateProgress(percent))
+                        },
+                    )
+                },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        // Track
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(trackHeight)
+                .align(Alignment.Center)
+                .background(
+                    Color.White.copy(alpha = 0.25f),
+                    RoundedCornerShape(50),
+                ),
+        )
+
+        // Progress
+        Box(
+            Modifier
+                .width(maxWidth * progress)
+                .height(trackHeight)
+                .align(Alignment.CenterStart)
+                .background(
+                    Color.White,
+                    RoundedCornerShape(50),
+                ),
+        )
+
+        // Thumb
+        Box(
+            Modifier
+                .offset(x = (maxWidth * progress) - (thumbSize / 2))
+                .size(thumbSize)
+                .align(Alignment.CenterStart)
+                .background(Color.White, CircleShape),
+        )
+    }
+}
 
 /**
  * Compact layout (< 260dp): Controls only, no artwork or text
@@ -138,8 +225,15 @@ fun CompactMiniLayout(
                 }
             }
 
-            // Progress bar
-            ProgressBar(timeline)
+            // Seek bar
+            Box(
+                modifier = Modifier.padding(horizontal = 12.dp),
+            ) {
+                MiniPlayerSeekBar(
+                    timeline = timeline,
+                    onUIEvent = onUIEvent,
+                )
+            }
         }
     }
 }
@@ -350,33 +444,16 @@ fun MediumMiniLayout(
                     }
                 }
 
-                // Progress bar
-                ProgressBar(timeline)
+                // Seek bar
+                Box(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                ) {
+                    MiniPlayerSeekBar(
+                        timeline = timeline,
+                        onUIEvent = onUIEvent,
+                    )
+                }
             }
-        }
-    }
-}
-
-/**
- * Progress bar component shared across all layouts
- */
-@Composable
-private fun ProgressBar(timeline: TimeLine) {
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(3.dp)
-                .background(Color(0xFF2C2C2E)),
-    ) {
-        if (timeline.total > 0L && timeline.current >= 0L) {
-            LinearProgressIndicator(
-                progress = { timeline.current.toFloat() / timeline.total },
-                modifier = Modifier.fillMaxSize(),
-                color = Color.White,
-                trackColor = Color.Transparent,
-                strokeCap = StrokeCap.Round,
-            )
         }
     }
 }
@@ -514,25 +591,15 @@ fun SquareMiniLayout(
                 }
             }
 
-            // Progress bar
+            // Seek bar
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(4.dp)
-                        .background(Color(0xFF2C2C2E), RoundedCornerShape(2.dp)),
+                modifier = Modifier.padding(horizontal = 12.dp),
             ) {
-                if (timeline.total > 0L && timeline.current >= 0L) {
-                    LinearProgressIndicator(
-                        progress = { timeline.current.toFloat() / timeline.total },
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.White,
-                        trackColor = Color.Transparent,
-                        strokeCap = StrokeCap.Round,
-                    )
-                }
+                MiniPlayerSeekBar(
+                    timeline = timeline,
+                    onUIEvent = onUIEvent,
+                )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
 
             // Main playback controls
@@ -652,7 +719,7 @@ fun EmptyMiniPlayerState() {
 }
 
 /**
- * Legacy full layout - now used only when BoxWithConstraints shows > 360dp
+ * Legacy full layout - now used only when Box shows > 360dp
  * Kept for backwards compatibility
  */
 @Composable
@@ -804,9 +871,9 @@ fun ExpandedMiniLayout(
                             Icon(
                                 imageVector =
                                     if (controllerState.volume > 0f) {
-                                        Icons.Filled.VolumeUp
+                                        Icons.AutoMirrored.Filled.VolumeUp
                                     } else {
-                                        Icons.Filled.VolumeOff
+                                        Icons.AutoMirrored.Filled.VolumeOff
                                     },
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                 tint = Color.White.copy(alpha = 0.7f),
@@ -831,8 +898,7 @@ fun ExpandedMiniLayout(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp)
-                                .padding(bottom = 8.dp),
+                                .padding(horizontal = 12.dp),
                     ) {
                         if (lyricsData.lyrics.syncType == "RICH_SYNCED") {
                             val parsedLine =
@@ -848,6 +914,7 @@ fun ExpandedMiniLayout(
                                     currentTimeMs = timeline.current,
                                     isCurrent = true,
                                     customFontSize = typo().bodySmall.fontSize,
+                                    customPadding = 4.dp,
                                     modifier = Modifier,
                                 )
                             }
@@ -861,7 +928,8 @@ fun ExpandedMiniLayout(
                                         ).basicMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                        ).focusable()
+                                        .padding(bottom = 4.dp),
                                 textAlign = TextAlign.Center,
                                 text = currentLine.words,
                                 style = typo().bodySmall,
@@ -875,23 +943,14 @@ fun ExpandedMiniLayout(
                 }
             }
 
-            // Progress bar
+            // Seek bar
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .background(Color(0xFF2C2C2E)),
+                modifier = Modifier.padding(horizontal = 12.dp),
             ) {
-                if (timeline.total > 0L && timeline.current >= 0L) {
-                    LinearProgressIndicator(
-                        progress = { timeline.current.toFloat() / timeline.total },
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.White,
-                        trackColor = Color.Transparent,
-                        strokeCap = StrokeCap.Round,
-                    )
-                }
+                MiniPlayerSeekBar(
+                    timeline = timeline,
+                    onUIEvent = onUIEvent,
+                )
             }
         }
     }

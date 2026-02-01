@@ -6,3 +6,4 @@ Exec=bin/SimpMusic
 Icon=simpmusic
 Terminal=false
 Categories=Audio;AudioVideo;
+StartupWMClass=java-lang-Thread

@@ -1,0 +1,3 @@
+- Fixed error when listening
+- Improved UI in Mini-player desktop
+- Improved Home UI

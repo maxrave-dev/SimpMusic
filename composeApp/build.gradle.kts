@@ -8,6 +8,9 @@ import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.net.URI
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Properties
 
 val isFullBuild: Boolean =
@@ -26,6 +29,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.build.config)
     alias(libs.plugins.osdetector)
+    alias(libs.plugins.packagedeps)
 }
 
 kotlin {
@@ -66,8 +70,7 @@ kotlin {
             val koinBom = project.dependencies.platform(libs.koin.bom)
             implementation(composeBom)
             implementation(koinBom)
-
-            implementation("commons-io:commons-io:2.5")
+            implementation(libs.commons.io)
         }
         androidMain.dependencies {
             api(libs.koin.android)
@@ -120,6 +123,8 @@ kotlin {
             api(libs.coil.compose)
             api(libs.coil.network.okhttp)
             api(libs.kmpalette.core)
+            api(libs.kmpalette.network)
+            implementation(libs.ktor.client.cio)
 
             // DataStore
             implementation(libs.datastore.preferences)
@@ -159,6 +164,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sentry.jvm)
+            implementation(libs.native.tray)
             implementation(projects.mediaJvmUi)
         }
     }
@@ -170,21 +176,31 @@ compose.desktop {
 
         nativeDistributions {
             val listTarget = mutableListOf<TargetFormat>()
-            if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
+            if (org.gradle.internal.os.OperatingSystem
+                    .current()
+                    .isMacOsX
+            ) {
                 listTarget.addAll(
-                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
+                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm),
                 )
             } else {
                 listTarget.addAll(
-                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage),
                 )
             }
             targetFormats(*listTarget.toTypedArray())
             modules("jdk.unsupported")
             packageName = "SimpMusic"
             macOS {
+                val formatedDate =
+                    Instant.now().let {
+                        DateTimeFormatter
+                            .ofPattern("yyyy.MM.dd")
+                            .withZone(ZoneId.of("UTC"))
+                            .format(it)
+                    }
                 includeAllModules = true
-                packageVersion = "2025.12.24"
+                packageVersion = formatedDate
                 iconFile.set(project.file("icon/circle_app_icon.icns"))
                 val macExtraPlistKeys =
                     """
@@ -276,6 +292,10 @@ aboutLibraries {
     }
 }
 
+linuxDebConfig {
+    startupWMClass.set("java-lang-Thread")
+}
+
 afterEvaluate {
     tasks.withType<JavaExec> {
         jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
@@ -307,75 +327,75 @@ afterEvaluate {
             return
         }
 
-            val appimagetool =
+        val appimagetool =
+            layout.buildDirectory
+                .dir("tmp")
+                .get()
+                .asFile
+                .resolve("appimagetool-x86_64.AppImage")
+
+        if (!appimagetool.exists()) {
+            downloadFile(
+                "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage",
+                appimagetool,
+            )
+        }
+
+        if (!appimagetool.canExecute()) {
+            appimagetool.setExecutable(true)
+        }
+
+        val appDir =
+            if (isRelease) {
                 layout.buildDirectory
-                    .dir("tmp")
+                    .dir("appimage/main-release/$appName.AppDir")
                     .get()
                     .asFile
-                    .resolve("appimagetool-x86_64.AppImage")
-
-            if (!appimagetool.exists()) {
-                downloadFile(
-                    "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage",
-                    appimagetool,
-                )
+            } else {
+                layout.buildDirectory
+                    .dir("appimage/main/$appName.AppDir")
+                    .get()
+                    .asFile
             }
+        if (appDir.exists()) {
+            appDir.deleteRecursively()
+        }
 
-            if (!appimagetool.canExecute()) {
-                appimagetool.setExecutable(true)
-            }
+        FileUtils.copyDirectory(appDirSrc, appDir)
+        FileUtils.copyDirectory(packageOutput, appDir)
 
-            val appDir =
-                if (isRelease) {
-                    layout.buildDirectory
-                        .dir("appimage/main-release/$appName.AppDir")
-                        .get()
-                        .asFile
-                } else {
-                    layout.buildDirectory
-                        .dir("appimage/main/$appName.AppDir")
-                        .get()
-                        .asFile
-                }
-            if (appDir.exists()) {
-                appDir.deleteRecursively()
-            }
+        val appExecutable = appDir.resolve("bin/$appName")
+        if (!appExecutable.canExecute()) {
+            appimagetool.setExecutable(true)
+        }
 
-            FileUtils.copyDirectory(appDirSrc, appDir)
-            FileUtils.copyDirectory(packageOutput, appDir)
+        val appRun = appDir.resolve("AppRun")
+        if (!appRun.canExecute()) {
+            appRun.setReadable(true, false) // readable by all
+            appRun.setWritable(true, true) // writable only by owner
+            appRun.setExecutable(true, false)
 
-            val appExecutable = appDir.resolve("bin/$appName")
-            if (!appExecutable.canExecute()) {
-                appimagetool.setExecutable(true)
-            }
+            println(
+                "Set AppRun executable permissions, readable: ${appRun.canRead()}, writable: ${appRun.canWrite()}, executable: ${appRun.canExecute()}",
+            )
+        }
 
-            val appRun = appDir.resolve("AppRun")
-            if (!appRun.canExecute()) {
-                appRun.setReadable(true, false) // readable by all
-                appRun.setWritable(true, true) // writable only by owner
-                appRun.setExecutable(true, false)
-
-                println(
-                    "Set AppRun executable permissions, readable: ${appRun.canRead()}, writable: ${appRun.canWrite()}, executable: ${appRun.canExecute()}",
-                )
-            }
-
-            // Use ProcessBuilder instead of exec {} to avoid capturing project reference
-            val process = ProcessBuilder(
+        // Use ProcessBuilder instead of exec {} to avoid capturing project reference
+        val process =
+            ProcessBuilder(
                 appimagetool.canonicalPath,
                 "$appName.AppDir",
-                "$appName-x86_64.AppImage"
-            )
-                .directory(appDir.parentFile)
+                "$appName-x86_64.AppImage",
+            ).directory(appDir.parentFile)
                 .apply { environment()["ARCH"] = "x86_64" } // TODO: 支持arm64
                 .inheritIO()
                 .start()
 
-            val exitCode = process.waitFor()
-            if (exitCode != 0) {
-                throw GradleException("appimagetool failed with exit code $exitCode")
-            }
+        val exitCode = process.waitFor()
+        if (exitCode != 0) {
+            throw GradleException("appimagetool failed with exit code $exitCode")
         }
+    }
 
     tasks.findByName("packageAppImage")?.doLast {
         packAppImage(false)

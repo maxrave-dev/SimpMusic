@@ -1,22 +1,22 @@
 [versions]
 # App version
-version-name = "1.0.2"
-version-code = "44"
+version-name = "1.0.3"
+version-code = "45"
 
 android = "8.13.2"
 kotlin = "2.3.0"
 serialization = "2.3.0"
 ksp = "2.3.4"
-compose-bom = "2026.01.00"
-material3-expressive = "1.5.0-alpha12"
+compose-bom = "2026.01.01"
+material3-expressive = "1.5.0-alpha13"
 constraintlayout-compose = "1.1.1"
-activity-compose = "1.12.2"
+activity-compose = "1.12.3"
 lifecycle = "2.9.6"
 core-ktx = "1.17.0"
 appcompat = "1.7.1"
-work = "2.11.0"
+work = "2.11.1"
 startup-runtime = "1.2.0"
-media3 = "1.9.0"
+media3 = "1.9.1"
 okhttp3 = "5.3.2"
 junit = "4.13.2"
 androidx-junit = "1.3.0"
@@ -31,33 +31,33 @@ coil3 = "3.3.0"
 kmpalette = "3.1.0"
 easypermissions = "3.0.0"
 datastore-preferences = "1.2.0"
-paging = "3.4.0-rc01"
+paging = "3.4.0"
 customactivityoncrash = "2.4.0"
 aboutlibraries = "13.2.1"
-ktor = "3.3.3"
+ktor = "3.4.0"
 brotli = "0.1.2"
 ksoup = "0.6.0"
 desugaring = "2.1.5"
 koin-bom = "4.1.1"
-md = "0.39.1"
+md = "0.39.2"
 haze = "1.7.1"
 smart-exception = "0.2.1"
 onetimepassword = "2.4.1"
-common = "1.20.0"
-json = "1.9.0"
+common = "1.21.0"
+json = "1.10.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.30.0"
-sentry-gradle-android = "5.12.2"
-sentry-jvm = "8.30.0"
-newpipe = "v0.25.0"
+sentry-android = "8.31.0"
+sentry-gradle-android = "6.0.0"
+sentry-jvm = "8.31.0"
+newpipe = "251f7f6625c76dc8e975be77666a4ede223c56c7"
 webkit = "1.15.0"
 kermit = "2.0.8"
-paging-common = "3.3.6"
+paging-common = "3.4.0"
 glance = "1.1.1"
-liquid-glass = "1.0.4"
+liquid-glass = "1.0.5"
 ytdlp = "0.18.1"
-ffmpeg-kit-audio="6.0.1"
+ffmpeg-kit-audio = "6.0.1"
 composeHotReload = "1.0.0"
 composeMultiplatform = "1.10.0"
 datetime = "0.7.1"
@@ -82,6 +82,9 @@ jnaPlatform = "5.18.1"
 calf = "0.9.0"
 material = "1.13.0"
 osdetector = "1.7.3"
+tray = "1.0.4"
+commonsIo = "2.5"
+packagedeps = "0.2.5"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -139,6 +142,7 @@ aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-com
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil3" }
 kmpalette-core = { module = "com.kmpalette:kmpalette-core", version.ref = "kmpalette" }
+kmpalette-network = { module = "com.kmpalette:extensions-network", version.ref = "kmpalette" }
 okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
@@ -170,6 +174,7 @@ kermit-logging = { module = "co.touchlab:kermit", version.ref = "kermit" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 
 liquid-glass = { module = "io.github.kyant0:backdrop", version.ref = "liquid-glass" }
 
@@ -192,7 +197,8 @@ compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref
 compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
 compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
 cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calf"}
+file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calf" }
+native-tray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "tray" }
 
 #JVM
 gst1-java-core = { module = "org.freedesktop.gstreamer:gst1-java-core", version.ref = "gst1JavaCore" }
@@ -242,6 +248,7 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 build-config = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
+packagedeps = { id = "io.github.kdroidfilter.compose.linux.packagedeps", version.ref = "packagedeps"}
 
 # JVM
 osdetector = { id = "com.google.osdetector", version.ref = "osdetector" }
