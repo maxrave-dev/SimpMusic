@@ -17,6 +17,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
@@ -63,9 +64,9 @@ fun MiniPlayerWindow(
                     if (savedX.isNaN() || savedY.isNaN()) {
                         WindowPosition(Alignment.BottomEnd)
                     } else {
-                        WindowPosition(savedX.dp, savedY.dp)
+                        WindowPosition(savedX.coerceAtLeast(0f).dp, savedY.coerceAtLeast(0f).dp)
                     },
-                size = DpSize(savedWidth.dp, savedHeight.dp),
+                size = DpSize(savedWidth.coerceAtLeast(0f).dp, savedHeight.coerceAtLeast(0f).dp),
             ),
         )
     }
@@ -73,6 +74,7 @@ fun MiniPlayerWindow(
     // Save position on change
     LaunchedEffect(windowState.position, windowState.size) {
         val pos = windowState.position
+        Logger.w("MiniPlayerWindow", "Saving position: $pos")
         if (pos is WindowPosition.Absolute) {
             prefs.putFloat("windowX", pos.x.value)
             prefs.putFloat("windowY", pos.y.value)

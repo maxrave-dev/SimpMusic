@@ -101,6 +101,8 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 - For macOS: Download the file with extension `.dmg`.
 - For Linux: Download the file with extension `.deb` (Debian based), `.rpm` (Red-hat based), `.AppImage` (all Linux distributions) .
 
+***Caution***: Not support ARM in Windows and Linux version now, only x86-64. But in macOS version, both ARM and x86-64 are supported.
+
 ### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
 
 ### Some limitations on Desktop app:

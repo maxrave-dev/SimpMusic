@@ -65,13 +65,13 @@ fun main() {
     System.setProperty("compose.swing.render.on.graphics", "true")
     System.setProperty("compose.interop.blending", "true")
     System.setProperty("compose.layers.type", "COMPONENT")
-    
+
     // Initialize Koin ONCE before application starts
     startKoin {
         loadAllModules()
         loadKoinModules(viewModelModule)
     }
-    
+
     val language =
         runBlocking {
             getKoin()
@@ -81,7 +81,7 @@ fun main() {
                 .substring(0..1)
         }
     changeLanguageNative(language)
-    
+
     VersionManager.initialize()
     if (BuildKonfig.sentryDsn.isNotEmpty()) {
         Sentry.init { options ->
@@ -90,7 +90,7 @@ fun main() {
             options.setDiagnosticLevel(SentryLevel.ERROR)
         }
     }
-    
+
     val mediaPlayerHandler by inject<MediaPlayerHandler>(MediaPlayerHandler::class.java)
     mediaPlayerHandler.showToast = { type ->
         showToast(
@@ -110,17 +110,17 @@ fun main() {
             Sentry.captureMessage("Player Error: ${error.message}, code: ${error.errorCode}, code name: ${error.errorCodeName}")
         }
     }
-    
+
     val sharedViewModel = getKoin().get<SharedViewModel>()
     if (sharedViewModel.shouldCheckForUpdate()) {
         sharedViewModel.checkForUpdate()
     }
-    
+
     application {
         // Main Window
         val windowState =
             rememberWindowState(
-                size = DpSize(1600.dp, 720.dp),
+                size = DpSize(1340.dp, 860.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
         // Single management
@@ -194,7 +194,7 @@ fun main() {
                         isVisible = false
                     },
                 )
-                
+
                 val context = LocalPlatformContext.current
                 setSingletonImageLoaderFactory {
                     ImageLoader
@@ -222,7 +222,7 @@ fun main() {
                 ToastHost()
             }
         }
-        
+
         // Mini Player Window (separate window)
         if (MiniPlayerManager.isOpen) {
             MiniPlayerWindow(
