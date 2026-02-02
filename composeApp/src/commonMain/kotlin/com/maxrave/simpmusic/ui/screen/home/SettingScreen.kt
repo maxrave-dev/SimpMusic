@@ -254,6 +254,7 @@ import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
+import simpmusic.composeapp.generated.resources.openai_api_compatible
 import simpmusic.composeapp.generated.resources.other_app
 import simpmusic.composeapp.generated.resources.play_explicit_content
 import simpmusic.composeapp.generated.resources.play_explicit_content_description
@@ -422,6 +423,8 @@ fun SettingScreen(
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
     val translationLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
+    val customOpenAIBaseUrl by viewModel.customOpenAIBaseUrl.collectAsStateWithLifecycle()
+    val customOpenAIHeaders by viewModel.customOpenAIHeaders.collectAsStateWithLifecycle()
     val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
@@ -1080,6 +1083,7 @@ fun SettingScreen(
                         when (aiProvider) {
                             DataStoreManager.AI_PROVIDER_OPENAI -> stringResource(Res.string.openai)
                             DataStoreManager.AI_PROVIDER_GEMINI -> stringResource(Res.string.gemini)
+                            DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI -> stringResource(Res.string.openai_api_compatible)
                             else -> stringResource(Res.string.unknown)
                         },
                     onClick = {
@@ -1094,6 +1098,8 @@ fun SettingScreen(
                                                     runBlocking { getString(Res.string.openai) },
                                                 (mainLyricsProvider == DataStoreManager.AI_PROVIDER_GEMINI) to
                                                     runBlocking { getString(Res.string.gemini) },
+                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) to
+                                                    runBlocking { getString(Res.string.openai_api_compatible) },
                                             ),
                                     ),
                                 confirm =
@@ -1102,6 +1108,13 @@ fun SettingScreen(
                                             when (state.selectOne?.getSelected()) {
                                                 runBlocking { getString(Res.string.openai) } -> DataStoreManager.AI_PROVIDER_OPENAI
                                                 runBlocking { getString(Res.string.gemini) } -> DataStoreManager.AI_PROVIDER_GEMINI
+                                                runBlocking {
+                                                    getString(
+                                                        Res.string.openai_api_compatible,
+                                                    )
+                                                },
+                                                -> DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI
+
                                                 else -> DataStoreManager.AI_PROVIDER_OPENAI
                                             },
                                         )
@@ -1161,6 +1174,69 @@ fun SettingScreen(
                         )
                     },
                 )
+                // Custom OpenAI Base URL - only show when Custom OpenAI is selected
+                if (aiProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) {
+                    SettingItem(
+                        title = "Custom Base URL",
+                        subtitle = customOpenAIBaseUrl.ifEmpty { "https://api.openai.com/v1/" },
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = "Custom Base URL",
+                                    textField =
+                                        SettingAlertState.TextFieldData(
+                                            label = "Base URL",
+                                            value = customOpenAIBaseUrl,
+                                            verifyCodeBlock = {
+                                                (it.isEmpty() || it.startsWith("http")) to "Invalid URL format"
+                                            },
+                                        ),
+                                    message = "Enter OpenAI-compatible API base URL (e.g., https://api.openai.com/v1/)",
+                                    confirm =
+                                        runBlocking { getString(Res.string.set) } to { state ->
+                                            viewModel.setCustomOpenAIBaseUrl(state.textField?.value ?: "")
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                    SettingItem(
+                        title = "Custom Headers",
+                        subtitle = if (customOpenAIHeaders.isNotEmpty()) "Configured" else "Not set",
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = "Custom Headers (JSON)",
+                                    textField =
+                                        SettingAlertState.TextFieldData(
+                                            label = "Headers JSON",
+                                            value = customOpenAIHeaders,
+                                            verifyCodeBlock = { input ->
+                                                if (input.isEmpty()) {
+                                                    true to null
+                                                } else {
+                                                    try {
+                                                        // Simple validation: check if it looks like JSON
+                                                        val trimmed = input.trim()
+                                                        (trimmed.startsWith("{") && trimmed.endsWith("}")) to "Invalid JSON format"
+                                                    } catch (e: Exception) {
+                                                        false to "Invalid JSON format"
+                                                    }
+                                                }
+                                            },
+                                        ),
+                                    message = "Enter custom headers in JSON format:\n{\"key1\":\"value1\",\"key2\":\"value2\"}",
+                                    confirm =
+                                        runBlocking { getString(Res.string.set) } to { state ->
+                                            viewModel.setCustomOpenAIHeaders(state.textField?.value ?: "")
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.use_ai_translation),
                     subtitle = stringResource(Res.string.use_ai_translation_description),
@@ -1672,32 +1748,55 @@ fun SettingScreen(
                         Column {
                             SettingItem(
                                 title = stringResource(Res.string.backup_frequency),
-                                subtitle = when (autoBackupFrequency) {
-                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY -> stringResource(Res.string.daily)
-                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY -> stringResource(Res.string.weekly)
-                                    DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY -> stringResource(Res.string.monthly)
-                                    else -> stringResource(Res.string.daily)
-                                },
+                                subtitle =
+                                    when (autoBackupFrequency) {
+                                        DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY -> stringResource(Res.string.daily)
+                                        DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY -> stringResource(Res.string.weekly)
+                                        DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY -> stringResource(Res.string.monthly)
+                                        else -> stringResource(Res.string.daily)
+                                    },
                                 onClick = {
                                     viewModel.setAlertData(
                                         SettingAlertState(
                                             title = runBlocking { getString(Res.string.backup_frequency) },
-                                            selectOne = SettingAlertState.SelectData(
-                                                listSelect = listOf(
-                                                    (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY) to runBlocking { getString(Res.string.daily) },
-                                                    (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY) to runBlocking { getString(Res.string.weekly) },
-                                                    (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY) to runBlocking { getString(Res.string.monthly) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        listOf(
+                                                            (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY) to
+                                                                runBlocking { getString(Res.string.daily) },
+                                                            (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY) to
+                                                                runBlocking { getString(Res.string.weekly) },
+                                                            (autoBackupFrequency == DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY) to
+                                                                runBlocking { getString(Res.string.monthly) },
+                                                        ),
                                                 ),
-                                            ),
-                                            confirm = runBlocking { getString(Res.string.change) } to { state ->
-                                                val frequency = when (state.selectOne?.getSelected()) {
-                                                    runBlocking { getString(Res.string.daily) } -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
-                                                    runBlocking { getString(Res.string.weekly) } -> DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY
-                                                    runBlocking { getString(Res.string.monthly) } -> DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY
-                                                    else -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
-                                                }
-                                                viewModel.setAutoBackupFrequency(frequency)
-                                            },
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    val frequency =
+                                                        when (state.selectOne?.getSelected()) {
+                                                            runBlocking {
+                                                                getString(
+                                                                    Res.string.daily,
+                                                                )
+                                                            },
+                                                            -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
+                                                            runBlocking {
+                                                                getString(
+                                                                    Res.string.weekly,
+                                                                )
+                                                            },
+                                                            -> DataStoreManager.AUTO_BACKUP_FREQUENCY_WEEKLY
+                                                            runBlocking {
+                                                                getString(
+                                                                    Res.string.monthly,
+                                                                )
+                                                            },
+                                                            -> DataStoreManager.AUTO_BACKUP_FREQUENCY_MONTHLY
+                                                            else -> DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY
+                                                        }
+                                                    viewModel.setAutoBackupFrequency(frequency)
+                                                },
                                             dismiss = runBlocking { getString(Res.string.cancel) },
                                         ),
                                     )
@@ -1710,18 +1809,21 @@ fun SettingScreen(
                                     viewModel.setAlertData(
                                         SettingAlertState(
                                             title = runBlocking { getString(Res.string.keep_backups) },
-                                            selectOne = SettingAlertState.SelectData(
-                                                listSelect = listOf(
-                                                    (autoBackupMaxFiles == 3) to "3",
-                                                    (autoBackupMaxFiles == 5) to "5",
-                                                    (autoBackupMaxFiles == 10) to "10",
-                                                    (autoBackupMaxFiles == 15) to "15",
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        listOf(
+                                                            (autoBackupMaxFiles == 3) to "3",
+                                                            (autoBackupMaxFiles == 5) to "5",
+                                                            (autoBackupMaxFiles == 10) to "10",
+                                                            (autoBackupMaxFiles == 15) to "15",
+                                                        ),
                                                 ),
-                                            ),
-                                            confirm = runBlocking { getString(Res.string.change) } to { state ->
-                                                val maxFiles = state.selectOne?.getSelected()?.toIntOrNull() ?: 5
-                                                viewModel.setAutoBackupMaxFiles(maxFiles)
-                                            },
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    val maxFiles = state.selectOne?.getSelected()?.toIntOrNull() ?: 5
+                                                    viewModel.setAutoBackupMaxFiles(maxFiles)
+                                                },
                                             dismiss = runBlocking { getString(Res.string.cancel) },
                                         ),
                                     )
@@ -1729,14 +1831,15 @@ fun SettingScreen(
                             )
                             SettingItem(
                                 title = stringResource(Res.string.last_backup),
-                                subtitle = if (autoBackupLastTime == 0L) {
-                                    stringResource(Res.string.never)
-                                } else {
-                                    DateTimeFormatter
-                                        .ofPattern("yyyy-MM-dd HH:mm:ss")
-                                        .withZone(ZoneId.systemDefault())
-                                        .format(Instant.ofEpochMilli(autoBackupLastTime))
-                                },
+                                subtitle =
+                                    if (autoBackupLastTime == 0L) {
+                                        stringResource(Res.string.never)
+                                    } else {
+                                        DateTimeFormatter
+                                            .ofPattern("yyyy-MM-dd HH:mm:ss")
+                                            .withZone(ZoneId.systemDefault())
+                                            .format(Instant.ofEpochMilli(autoBackupLastTime))
+                                    },
                             )
                         }
                     }

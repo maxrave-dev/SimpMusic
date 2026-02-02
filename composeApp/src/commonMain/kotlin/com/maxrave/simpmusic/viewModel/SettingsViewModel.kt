@@ -126,6 +126,10 @@ class SettingsViewModel(
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
+    private val _customOpenAIBaseUrl = MutableStateFlow<String>("")
+    val customOpenAIBaseUrl: StateFlow<String> = _customOpenAIBaseUrl
+    private val _customOpenAIHeaders = MutableStateFlow<String>("")
+    val customOpenAIHeaders: StateFlow<String> = _customOpenAIHeaders
     private val _crossfadeEnabled = MutableStateFlow<Boolean>(false)
     val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled
     private val _crossfadeDuration = MutableStateFlow<Int>(5000)
@@ -250,6 +254,8 @@ class SettingsViewModel(
         getAIApiKey()
         getAITranslation()
         getCustomModelId()
+        getCustomOpenAIBaseUrl()
+        getCustomOpenAIHeaders()
         getKillServiceOnExit()
         getCrossfadeEnabled()
         getCrossfadeDuration()
@@ -572,6 +578,36 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCustomModelId(modelId)
             getCustomModelId()
+        }
+    }
+
+    private fun getCustomOpenAIBaseUrl() {
+        viewModelScope.launch {
+            dataStoreManager.customOpenAIBaseUrl.collect { baseUrl ->
+                _customOpenAIBaseUrl.value = baseUrl
+            }
+        }
+    }
+
+    fun setCustomOpenAIBaseUrl(baseUrl: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomOpenAIBaseUrl(baseUrl)
+            getCustomOpenAIBaseUrl()
+        }
+    }
+
+    private fun getCustomOpenAIHeaders() {
+        viewModelScope.launch {
+            dataStoreManager.customOpenAIHeaders.collect { headers ->
+                _customOpenAIHeaders.value = headers
+            }
+        }
+    }
+
+    fun setCustomOpenAIHeaders(headers: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomOpenAIHeaders(headers)
+            getCustomOpenAIHeaders()
         }
     }
 
