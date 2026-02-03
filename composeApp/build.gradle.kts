@@ -285,6 +285,14 @@ afterEvaluate {
             jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
             jvmArgs("--add-opens", "java.desktop/sun.lwawt=ALL-UNNAMED")
             jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
+            // GStreamer library path for Homebrew installations
+            // Apple Silicon uses /opt/homebrew, Intel Macs use /usr/local
+            val homebrewLib = if (System.getProperty("os.arch") == "aarch64") {
+                "/opt/homebrew/lib"
+            } else {
+                "/usr/local/lib"
+            }
+            jvmArgs("-Djna.library.path=$homebrewLib")
         }
     }
 
