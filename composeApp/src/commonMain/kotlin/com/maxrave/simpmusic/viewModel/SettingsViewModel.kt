@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.expect.checkYtdlp
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -393,6 +394,36 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setKeepServiceAlive(keepServiceAlive)
             getKeepServiceAlive()
+        }
+    }
+
+    private fun getCrossfadeEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeEnabled.collect { enabled ->
+                _crossfadeEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeEnabled(enabled)
+            getCrossfadeEnabled()
+        }
+    }
+
+    private fun getCrossfadeDuration() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeDuration.collect { duration ->
+                _crossfadeDuration.value = duration
+            }
+        }
+    }
+
+    fun setCrossfadeDuration(duration: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeDuration(duration)
+            getCrossfadeDuration()
         }
     }
 
@@ -1479,36 +1510,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setKillServiceOnExit(kill)
             getKillServiceOnExit()
-        }
-    }
-
-    private fun getCrossfadeEnabled() {
-        viewModelScope.launch {
-            dataStoreManager.crossfadeEnabled.collect { crossfadeEnabled ->
-                _crossfadeEnabled.value = crossfadeEnabled == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setCrossfadeEnabled(crossfadeEnabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setCrossfadeEnabled(crossfadeEnabled)
-            getCrossfadeEnabled()
-        }
-    }
-
-    private fun getCrossfadeDuration() {
-        viewModelScope.launch {
-            dataStoreManager.crossfadeDuration.collect { duration ->
-                _crossfadeDuration.value = duration
-            }
-        }
-    }
-
-    fun setCrossfadeDuration(duration: Int) {
-        viewModelScope.launch {
-            dataStoreManager.setCrossfadeDuration(duration)
-            getCrossfadeDuration()
         }
     }
 

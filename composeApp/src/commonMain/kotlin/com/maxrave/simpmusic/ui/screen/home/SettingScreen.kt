@@ -197,12 +197,16 @@ import simpmusic.composeapp.generated.resources.content
 import simpmusic.composeapp.generated.resources.content_country
 import simpmusic.composeapp.generated.resources.contributor_email
 import simpmusic.composeapp.generated.resources.contributor_name
+import simpmusic.composeapp.generated.resources.crossfade
+import simpmusic.composeapp.generated.resources.crossfade_description
+import simpmusic.composeapp.generated.resources.crossfade_duration
 import simpmusic.composeapp.generated.resources.custom_ai_model_id
 import simpmusic.composeapp.generated.resources.custom_model_id_messages
 import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
 import simpmusic.composeapp.generated.resources.default_models
 import simpmusic.composeapp.generated.resources.description_and_licenses
+import simpmusic.composeapp.generated.resources.desktop_player
 import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
 import simpmusic.composeapp.generated.resources.download_quality
@@ -437,6 +441,9 @@ fun SettingScreen(
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
     val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
+
+    val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
+    val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
@@ -909,6 +916,69 @@ fun SettingScreen(
                         subtitle = stringResource(Res.string.keep_service_alive_description),
                         switch = (keepServiceAlive to { viewModel.setKeepServiceAlive(it) }),
                     )
+                }
+            }
+        }
+        // Desktop Player Settings (Desktop only)
+        if (getPlatform() == Platform.Desktop) {
+            item(key = "desktop_player") {
+                Column {
+                    Text(
+                        text = stringResource(Res.string.desktop_player),
+                        style = typo().labelMedium,
+                        color = white,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.crossfade),
+                        subtitle = stringResource(Res.string.crossfade_description),
+                        smallSubtitle = true,
+                        switch = (crossfadeEnabled to { viewModel.setCrossfadeEnabled(it) }),
+                    )
+                    AnimatedVisibility(visible = crossfadeEnabled) {
+                        SettingItem(
+                            title = stringResource(Res.string.crossfade_duration),
+                            subtitle = "${crossfadeDuration / 1000}s",
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = runBlocking { getString(Res.string.crossfade_duration) },
+                                        selectOne =
+                                            SettingAlertState.SelectData(
+                                                listSelect =
+                                                    listOf(
+                                                        (crossfadeDuration == 1000) to "1s",
+                                                        (crossfadeDuration == 2000) to "2s",
+                                                        (crossfadeDuration == 3000) to "3s",
+                                                        (crossfadeDuration == 5000) to "5s",
+                                                        (crossfadeDuration == 8000) to "8s",
+                                                        (crossfadeDuration == 10000) to "10s",
+                                                        (crossfadeDuration == 12000) to "12s",
+                                                        (crossfadeDuration == 15000) to "15s",
+                                                    ),
+                                            ),
+                                        confirm =
+                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                val duration =
+                                                    when (state.selectOne?.getSelected()) {
+                                                        "1s" -> 1000
+                                                        "2s" -> 2000
+                                                        "3s" -> 3000
+                                                        "5s" -> 5000
+                                                        "8s" -> 8000
+                                                        "10s" -> 10000
+                                                        "12s" -> 12000
+                                                        "15s" -> 15000
+                                                        else -> 5000
+                                                    }
+                                                viewModel.setCrossfadeDuration(duration)
+                                            },
+                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                    ),
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }
