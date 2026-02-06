@@ -234,6 +234,7 @@ fun RecentlySongsScreen(
                     }
                 }
             },
+            actions = {},
             colors =
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,

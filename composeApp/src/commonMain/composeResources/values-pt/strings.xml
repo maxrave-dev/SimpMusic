@@ -72,6 +72,7 @@
     <string name="content_country">Conteúdo do País</string>
     <string name="change">Alterar</string>
     <string name="quality">Qualidade</string>
+    <string name="download_quality">Download qualidade</string>
     <string name="clear_downloaded_cache">Limpar o Cache Baixado</string>
     <string name="clear_thumbnail_cache">Limpar Cache de Miniaturas</string>
     <string name="add">Adicionar</string>
@@ -249,7 +250,7 @@
     <string name="email">Email</string>
     <string name="password">Senha</string>
     <string name="please_enter_your_email_and_password">Por favor entre com seu e-mail e senha</string>
-    <string name="translation_language_message">Type language code (Eg: pt) (2 letters). If you want to set same with SimpMusic\'s language, please make edit box empty.</string>
+    <string name="translation_language_message">Type language code (Eg: pt) (2 letters). If you want to set same with SimpMusic's language, please make edit box empty.</string>
     <string name="invalid_language_code">Código de idioma inválido</string>
     <string name="lyrics_provider_youtube">Letras fornecidas pelo YouTube</string>
     <string name="limit_player_cache">Limitar cache do jogador</string>
@@ -299,7 +300,6 @@
     <string name="codec">Codec</string>
     <string name="plays">Quantidade de visualizações</string>
     <string name="like_and_dislike">%1$d curtida(s), %2$d não gostei(s)</string>
-    <string name="published_at">Publicado em %1$s</string>
     <string name="less">Menos</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Entrar no Spotify</string>
@@ -359,7 +359,7 @@
     <string name="log_in_warning">O YouTube Music agora requer o acesso à conta para fazer a transmissão de músicas, O Piped pode em algum momento não funcionar também. Logue no YouTube para ter uma melhor experiência com a SimpMusic.</string>
     <string name="spotify_canvas_cache">Cache de Tela Spotify</string>
     <string name="clear_canvas_cache">Limpar cache da tela</string>
-    <string name="proxy">\'Proxy\'</string>
+    <string name="proxy">'Proxy'</string>
     <string name="proxy_description">Usando Proxy para ignorar o bloqueio de conteúdo do país</string>
     <string name="proxy_type">Tipo de Proxy</string>
     <string name="http">HTTP</string>
@@ -424,6 +424,7 @@
     <string name="no_favorite_podcasts">Nenhum \"podcast\" favorito</string>
     <string name="your_sp_dc_param_of_spotify_cookie">Seu parâmetro sp_dc do cookie do Spotify</string>
     <string name="your_youtube_cookie">Seu cookie do YouTube</string>
+    <string name="your_discord_token">Seu Discord token</string>
     <string name="can_not_be_empty">Não pode estar vazio</string>
     <string name="processing">Processando</string>
     <string name="website">Site</string>
@@ -452,7 +453,6 @@
     <string name="copied_to_clipboard">Copiado para a área de transferência</string>
     <string name="update_channel">Canal De Atualizações</string>
     <string name="enable_liquid_glass_effect">Enable liquid glass (BETA)</string>
-    <string name="enable_liquid_glass_effect_description">Enable iOS\'s liquid glass effect in some position (Android 13+)</string>
     <string name="your_library">Your library</string>
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Enable to play explicit content</string>

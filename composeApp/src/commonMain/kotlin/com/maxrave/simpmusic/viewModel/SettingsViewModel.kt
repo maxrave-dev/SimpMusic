@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.expect.checkYtdlp
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -126,6 +127,10 @@ class SettingsViewModel(
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
+    private val _customOpenAIBaseUrl = MutableStateFlow<String>("")
+    val customOpenAIBaseUrl: StateFlow<String> = _customOpenAIBaseUrl
+    private val _customOpenAIHeaders = MutableStateFlow<String>("")
+    val customOpenAIHeaders: StateFlow<String> = _customOpenAIHeaders
     private val _crossfadeEnabled = MutableStateFlow<Boolean>(false)
     val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled
     private val _crossfadeDuration = MutableStateFlow<Int>(5000)
@@ -170,6 +175,22 @@ class SettingsViewModel(
 
     private val _smartQueueEnabled = MutableStateFlow<Boolean>(false)
     val smartQueueEnabled: StateFlow<Boolean> = _smartQueueEnabled
+    
+    private val _localTrackingEnabled = MutableStateFlow<Boolean>(false)
+    val localTrackingEnabled: StateFlow<Boolean> = _localTrackingEnabled
+
+    // Auto Backup
+    private val _autoBackupEnabled = MutableStateFlow<Boolean>(false)
+    val autoBackupEnabled: StateFlow<Boolean> = _autoBackupEnabled
+
+    private val _autoBackupFrequency = MutableStateFlow<String>(DataStoreManager.AUTO_BACKUP_FREQUENCY_DAILY)
+    val autoBackupFrequency: StateFlow<String> = _autoBackupFrequency
+
+    private val _autoBackupMaxFiles = MutableStateFlow<Int>(5)
+    val autoBackupMaxFiles: StateFlow<Int> = _autoBackupMaxFiles
+
+    private val _autoBackupLastTime = MutableStateFlow<Long>(0L)
+    val autoBackupLastTime: StateFlow<Long> = _autoBackupLastTime
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -237,6 +258,8 @@ class SettingsViewModel(
         getAIApiKey()
         getAITranslation()
         getCustomModelId()
+        getCustomOpenAIBaseUrl()
+        getCustomOpenAIHeaders()
         getKillServiceOnExit()
         getCrossfadeEnabled()
         getCrossfadeDuration()
@@ -253,12 +276,32 @@ class SettingsViewModel(
         getDownloadQuality()
         getVideoDownloadQuality()
         getSmartQueueEnabled()
+        getLocalTrackingEnabled()
+        getAutoBackupEnabled()
+        getAutoBackupFrequency()
+        getAutoBackupMaxFiles()
+        getAutoBackupLastTime()
         viewModelScope.launch {
             calculateDataFraction(
                 cacheRepository,
             )?.let {
                 _fraction.value = it
             }
+        }
+    }
+
+    private fun getLocalTrackingEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.localTrackingEnabled.collect { enabled ->
+                _localTrackingEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setLocalTrackingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setLocalTrackingEnabled(enabled)
+            getLocalTrackingEnabled()
         }
     }
 
@@ -373,6 +416,36 @@ class SettingsViewModel(
         }
     }
 
+    private fun getCrossfadeEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeEnabled.collect { enabled ->
+                _crossfadeEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeEnabled(enabled)
+            getCrossfadeEnabled()
+        }
+    }
+
+    private fun getCrossfadeDuration() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeDuration.collect { duration ->
+                _crossfadeDuration.value = duration
+            }
+        }
+    }
+
+    fun setCrossfadeDuration(duration: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeDuration(duration)
+            getCrossfadeDuration()
+        }
+    }
+
     private fun getDiscordLoggedIn() {
         viewModelScope.launch {
             dataStoreManager.discordToken.collect { loggedIn ->
@@ -465,6 +538,60 @@ class SettingsViewModel(
         }
     }
 
+    // Auto Backup functions
+    private fun getAutoBackupEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupEnabled.collect { enabled ->
+                _autoBackupEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setAutoBackupEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoBackupEnabled(enabled)
+            getAutoBackupEnabled()
+        }
+    }
+
+    private fun getAutoBackupFrequency() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupFrequency.collect { frequency ->
+                _autoBackupFrequency.value = frequency
+            }
+        }
+    }
+
+    fun setAutoBackupFrequency(frequency: String) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoBackupFrequency(frequency)
+            getAutoBackupFrequency()
+        }
+    }
+
+    private fun getAutoBackupMaxFiles() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupMaxFiles.collect { max ->
+                _autoBackupMaxFiles.value = max
+            }
+        }
+    }
+
+    fun setAutoBackupMaxFiles(max: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoBackupMaxFiles(max)
+            getAutoBackupMaxFiles()
+        }
+    }
+
+    private fun getAutoBackupLastTime() {
+        viewModelScope.launch {
+            dataStoreManager.autoBackupLastTime.collect { time ->
+                _autoBackupLastTime.value = time
+            }
+        }
+    }
+
     private fun getContributorNameAndEmail() {
         viewModelScope.launch {
             combine(dataStoreManager.contributorName, dataStoreManager.contributorEmail) { name, email ->
@@ -501,6 +628,36 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCustomModelId(modelId)
             getCustomModelId()
+        }
+    }
+
+    private fun getCustomOpenAIBaseUrl() {
+        viewModelScope.launch {
+            dataStoreManager.customOpenAIBaseUrl.collect { baseUrl ->
+                _customOpenAIBaseUrl.value = baseUrl
+            }
+        }
+    }
+
+    fun setCustomOpenAIBaseUrl(baseUrl: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomOpenAIBaseUrl(baseUrl)
+            getCustomOpenAIBaseUrl()
+        }
+    }
+
+    private fun getCustomOpenAIHeaders() {
+        viewModelScope.launch {
+            dataStoreManager.customOpenAIHeaders.collect { headers ->
+                _customOpenAIHeaders.value = headers
+            }
+        }
+    }
+
+    fun setCustomOpenAIHeaders(headers: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomOpenAIHeaders(headers)
+            getCustomOpenAIHeaders()
         }
     }
 
@@ -1372,36 +1529,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setKillServiceOnExit(kill)
             getKillServiceOnExit()
-        }
-    }
-
-    private fun getCrossfadeEnabled() {
-        viewModelScope.launch {
-            dataStoreManager.crossfadeEnabled.collect { crossfadeEnabled ->
-                _crossfadeEnabled.value = crossfadeEnabled == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setCrossfadeEnabled(crossfadeEnabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setCrossfadeEnabled(crossfadeEnabled)
-            getCrossfadeEnabled()
-        }
-    }
-
-    private fun getCrossfadeDuration() {
-        viewModelScope.launch {
-            dataStoreManager.crossfadeDuration.collect { duration ->
-                _crossfadeDuration.value = duration
-            }
-        }
-    }
-
-    fun setCrossfadeDuration(duration: Int) {
-        viewModelScope.launch {
-            dataStoreManager.setCrossfadeDuration(duration)
-            getCrossfadeDuration()
         }
     }
 

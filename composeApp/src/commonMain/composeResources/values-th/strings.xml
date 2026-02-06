@@ -298,7 +298,6 @@
     <string name="codec">โคเดก</string>
     <string name="plays">เล่น/ดูจำนวน</string>
     <string name="like_and_dislike">%1$d ชอบ, %2$d ไม่ชอบ</string>
-    <string name="published_at">เผยแพร่ที่ %1$s</string>
     <string name="less">น้อยลง</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">เข้าสู่ระบบ Spotify</string>
@@ -451,7 +450,6 @@
     <string name="copied_to_clipboard">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
     <string name="update_channel">ช่องทางอัพเดต</string>
     <string name="enable_liquid_glass_effect">เปิดใช้งาน Liquid Glass (เบต้า)</string>
-    <string name="enable_liquid_glass_effect_description">เปิดใช้งานเอฟเฟ็กต์ Liquid Glass ของ iOS ในบางตำแหน่ง (Android 12 ขึ้นไป)</string>
     <string name="your_library">คลังเพลงของคุณ</string>
     <string name="play_explicit_content">เล่นเนื้อหาที่ไม่เหมาะสม</string>
     <string name="play_explicit_content_description">เปิดใช้งานการเล่นเนื้อหาที่ไม่เหมาะสม</string>

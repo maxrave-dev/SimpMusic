@@ -8,15 +8,16 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import kotlinx.coroutines.delay
 
 /**
@@ -82,13 +84,14 @@ fun InfiniteBorderAnimationView(
                         }
                     }
                 },
+        color = backgroundColor,
         shape = shape,
     ) {
         Box(
             modifier =
                 Modifier
                     .background(
-                        color = backgroundColor,
+                        color = if (isAnimated) md_theme_dark_background else backgroundColor,
                     ).padding(
                         contentPadding,
                     ),

@@ -289,7 +289,6 @@
     <string name="codec">Kodlama</string>
     <string name="plays">Səsləndirmə/Baxış Sayı</string>
     <string name="like_and_dislike">%1$d bəyənmə, %2$d bəyənməmə</string>
-    <string name="published_at">%1$s tarixində yayımlandı</string>
     <string name="less">Daha az</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Spotify-a daxil olun</string>

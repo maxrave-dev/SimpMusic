@@ -72,6 +72,8 @@
     <string name="content_country">Країна контенту</string>
     <string name="change">Змінити</string>
     <string name="quality">Якість</string>
+    <string name="download_quality">Якість завантаження</string>
+    <string name="video_download_quality">Якість завантаження відео</string>
     <string name="clear_downloaded_cache">Очистити кеш завантажених</string>
     <string name="clear_thumbnail_cache">Очистити кеш мініатюр</string>
     <string name="add">Додати</string>
@@ -104,7 +106,7 @@
     <string name="all">Всі</string>
     <string name="videos">Відео</string>
     <string name="content">Контент</string>
-    <string name="storage">Пам\'ять</string>
+    <string name="storage">Пам'ять</string>
     <string name="player_cache">Кеш плеєра</string>
     <string name="downloaded_cache">Кеш завантажених</string>
     <string name="thumbnail_cache">Кеш мініатюр</string>
@@ -120,6 +122,7 @@
     <string name="buy_me_a_coffee">Купіть мені каву</string>
     <string name="paypal">PayPal</string>
     <string name="title">Назва</string>
+    <string name="custom_order">Власний порядок</string>
     <string name="album">Альбом</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="download_url">Завантажити URL</string>
@@ -173,6 +176,7 @@
     <string name="save_last_played">Зберегти останнє відтворене</string>
     <string name="save_last_played_track_and_queue">Зберегти останній відтворений трек і чергу</string>
     <string name="update_available">Доступне нове оновлення</string>
+    <string name="update_message">Доступна версія %1$s\nРеліз: %2$s\n</string>
     <string name="check_for_update">Перевірити наявність оновлень</string>
     <string name="last_checked_at">Остання перевірка о %1$s</string>
     <string name="checking">Перевірка</string>
@@ -301,7 +305,6 @@
     <string name="codec">Кодек</string>
     <string name="plays">К-сть відтворень/переглядів</string>
     <string name="like_and_dislike">%1$d вподобань, %2$d невподобань</string>
-    <string name="published_at">Опубліковано в %1$s</string>
     <string name="less">Менше</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Увійти в Spotify</string>
@@ -372,7 +375,7 @@
     <string name="invalid_port">Недійсний порт</string>
     <string name="proxy_host_message">Введіть проксі-сервер</string>
     <string name="proxy_port_message">Введіть проксі-порт</string>
-    <string name="five_seconds">П\'ять секунд</string>
+    <string name="five_seconds">П'ять секунд</string>
     <string name="lyrics_provider_lrc">Тексти пісень надано LRCLIB</string>
     <string name="sync_first">Спочатку синхронізуйте цей список відтворення з YouTube Music</string>
     <string name="endless_queue">Нескінченна черга</string>
@@ -386,7 +389,7 @@
     <string name="pitch">Тон</string>
     <string name="blur_player_background">Розмити фон плеєра</string>
     <string name="blur_player_background_description">Розмиття фону екрана, що зараз відтворюється</string>
-    <string name="merging_audio_and_video">Об\'єднання аудіо та відео</string>
+    <string name="merging_audio_and_video">Об'єднання аудіо та відео</string>
     <string name="error_occurred">Сталася помилка</string>
     <string name="downloading_audio">Завантаження аудіо: %1$s </string>
     <string name="downloading_video">Завантаження відео: %1$s </string>
@@ -426,6 +429,7 @@
     <string name="no_favorite_podcasts">Немає улюблених подкастів</string>
     <string name="your_sp_dc_param_of_spotify_cookie">Ваш sp_dc параметр з Spotify cookie</string>
     <string name="your_youtube_cookie">Ваш YouTube cookie</string>
+    <string name="your_discord_token">Ваш Discord токен</string>
     <string name="can_not_be_empty">Не може бути порожнім</string>
     <string name="processing">Обробка</string>
     <string name="website">Веб-сайт</string>
@@ -439,8 +443,8 @@
     <string name="set_crossfade_duration">Встановити тривалість затухання в секундах (%1$d)</string>
     <string name="youtube_subtitle_language">Мова перекладу субтитрів YouTube</string>
     <string name="youtube_subtitle_language_message">Введіть код мови (Eg: en) (2 букви). Це бажана мова перекладу для YouTube субтитрів.</string>
-    <string name="use_anonymous">Використовувати анонімне ім\'я для співпраці</string>
-    <string name="contributor_name">Ім\'я учасника</string>
+    <string name="use_anonymous">Використовувати анонімне ім'я для співпраці</string>
+    <string name="contributor_name">Ім'я учасника</string>
     <string name="contributor_email">Електронна пошта учасника</string>
     <string name="anonymous">Анонімно</string>
     <string name="simpmusic_lyrics">Тексти пісень SimpMusic</string>
@@ -454,7 +458,6 @@
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
     <string name="update_channel">Канал оновлень</string>
     <string name="enable_liquid_glass_effect">Увімкнути liquid glass (БЕТА)</string>
-    <string name="enable_liquid_glass_effect_description">Вмикає ефект liquid glass iOS в деяких місцях (Android 13+)</string>
     <string name="your_library">Ваша бібліотека</string>
     <string name="play_explicit_content">Відтворювати відвертий контент</string>
     <string name="play_explicit_content_description">Ввімкнути відтворення відвертого контенту</string>
@@ -463,4 +466,18 @@
     <string name="no_mixes_found">Мікси не знайдено</string>
     <string name="smart_add_to_queue">Розумне додавання до черги</string>
     <string name="smart_add_to_queue_description">Додати пісні перед автоматично створеною чергою</string>
+    <string name="desktop_webview_description">Через обмеження Compose Multiplatform, WebView на ПК недоступний.\nДокладніше про вхід на ПК\n</string>
+    <string name="open_blog_post">Відкрити блог</string>
+    <string name="discord_integration">Інтеграція з Discord</string>
+    <string name="log_in_to_discord">Увійти в Discord</string>
+    <string name="intro_login_to_discord">Увійдіть, щоб увімкнути Discord Rich Presence</string>
+    <string name="enable_rich_presence">Увімкнути Rich Presence</string>
+    <string name="rich_presence_info">Показувати інформацію про медіа-сеанс у профілі Discord</string>
+    <string name="youtube_liked_music">Вподобана музика YouTube</string>
+    <string name="keep_service_alive">Підтримувати службу активною</string>
+    <string name="keep_service_alive_description">Утримувати музичний плеєр активним, щоб не бути закритим системою</string>
+    <string name="keep_your_youtube_playlist_offline">Показувати ваш YouTube-плейлист офлайн</string>
+    <string name="keep_your_youtube_playlist_offline_description">Зберегти свій плейліст YouTube локально й переглядати офлайн</string>
+    <string name="combine_local_and_youtube_liked_songs">Замінювати «Обране» на «Вподобане YouTube» після входу в обліковий запис</string>
+    <string name="combine_local_and_youtube_liked_songs_description">Використовує лише «Вподобане YouTube» (без підтримки вподобання пісень офлайн)</string>
 </resources>

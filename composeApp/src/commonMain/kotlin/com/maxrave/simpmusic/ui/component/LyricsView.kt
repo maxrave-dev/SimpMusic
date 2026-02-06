@@ -82,6 +82,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -197,7 +198,8 @@ fun LyricsView(
     }
     LaunchedEffect(key1 = currentLineIndex, key2 = currentLineHeight) {
         if (currentLineIndex > -1 && currentLineHeight > 0 &&
-            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")) {
+            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
+        ) {
             val boxEnd = listState.layoutInfo.viewportEndOffset
             val boxStart = listState.layoutInfo.viewportStartOffset
             val viewPort = boxEnd - boxStart
@@ -305,7 +307,10 @@ fun LyricsView(
                             val parsedLine =
                                 remember(words, line.startTimeMs, line.endTimeMs) {
                                     val result = parseRichSyncWords(words, line.startTimeMs, line.endTimeMs)
-                                    Logger.d(TAG, "Line $index parseRichSyncWords result: ${if (result != null) "${result.words.size} words" else "null"}")
+                                    Logger.d(
+                                        TAG,
+                                        "Line $index parseRichSyncWords result: ${if (result != null) "${result.words.size} words" else "null"}",
+                                    )
                                     result
                                 }
 
@@ -461,6 +466,8 @@ fun RichSyncLyricsLineItem(
     translatedWords: String?,
     currentTimeMs: Long,
     isCurrent: Boolean,
+    customFontSize: TextUnit? = null,
+    customPadding: Dp = 12.dp,
     modifier: Modifier = Modifier,
 ) {
     // Performance optimization: derive current word index based on timeline
@@ -476,7 +483,7 @@ fun RichSyncLyricsLineItem(
     Column(
         modifier = modifier,
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(customPadding))
 
         // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
         FlowRow(
@@ -497,6 +504,7 @@ fun RichSyncLyricsLineItem(
                     isActive = isCurrent && index == currentWordIndex,
                     isPast = isCurrent && index < currentWordIndex,
                     isCurrent = isCurrent,
+                    customFontSize = customFontSize,
                 )
             }
         }
@@ -525,7 +533,7 @@ fun RichSyncLyricsLineItem(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(customPadding))
     }
 }
 
@@ -535,14 +543,21 @@ private fun AnimatedWord(
     isActive: Boolean,
     isPast: Boolean,
     isCurrent: Boolean,
+    customFontSize: TextUnit? = null,
 ) {
     // Smooth color transition with animation
     val color by animateColorAsState(
         targetValue =
             when {
-                !isCurrent -> Color.LightGray.copy(alpha = 0.35f) // Non-current line
-                isPast -> Color.White.copy(alpha = 0.7f) // Past words
-                isActive -> Color.White // Current word - full brightness
+                !isCurrent -> Color.LightGray.copy(alpha = 0.35f)
+
+                // Non-current line
+                isPast -> Color.White.copy(alpha = 0.7f)
+
+                // Past words
+                isActive -> Color.White
+
+                // Current word - full brightness
                 else -> Color.LightGray.copy(alpha = 0.5f) // Future words
             },
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
@@ -551,7 +566,10 @@ private fun AnimatedWord(
 
     Text(
         text = word,
-        style = typo().headlineLarge,
+        style =
+            typo().headlineLarge.copy(
+                fontSize = customFontSize ?: typo().headlineLarge.fontSize,
+            ),
         color = color,
     )
 }
