@@ -671,8 +671,15 @@ fun NowPlayingScreenContent(
                                     modifier =
                                         Modifier
                                             .fillMaxHeight()
-                                            .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
-                                            .align(Alignment.Center),
+                                            .then(
+                                                if (getPlatform() == Platform.Desktop) {
+                                                    Modifier
+                                                } else {
+                                                    Modifier
+                                                        .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
+                                                        .align(Alignment.Center)
+                                                },
+                                            ),
                                 )
                             }
                         } else if (isVideo == false) {

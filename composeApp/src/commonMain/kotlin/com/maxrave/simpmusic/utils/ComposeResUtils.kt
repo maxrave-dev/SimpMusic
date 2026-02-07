@@ -9,11 +9,14 @@ import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_no
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 
 object ComposeResUtils {
-    suspend fun getResString(type: StringType): String =
+    suspend fun getResString(
+        type: StringType,
+        vararg format: String,
+    ): String =
         when (type) {
             StringType.EXPLICIT_CONTENT_BLOCKED -> getString(Res.string.explicit_content_blocked)
             StringType.NOTIFICATION_REQUEST -> getString(Res.string.this_app_needs_to_access_your_notification)
-            StringType.TIME_OUT_ERROR -> getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings)
+            StringType.TIME_OUT_ERROR -> getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, format)
             StringType.NEW_SINGLES -> getString(Res.string.new_singles)
             StringType.NEW_ALBUMS -> getString(Res.string.new_albums)
         }

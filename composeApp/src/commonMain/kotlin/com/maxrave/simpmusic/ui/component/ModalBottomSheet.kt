@@ -1680,30 +1680,35 @@ fun NowPlayingBottomSheet(
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED ->
+                                DownloadState.STATE_NOT_DOWNLOADED -> {
                                     painterResource(
                                         Res.drawable.outline_download_for_offline_24,
                                     )
+                                }
 
-                                DownloadState.STATE_DOWNLOADING ->
+                                DownloadState.STATE_DOWNLOADING -> {
                                     painterResource(
                                         Res.drawable.baseline_downloading_white,
                                     )
+                                }
 
-                                DownloadState.STATE_DOWNLOADED ->
+                                DownloadState.STATE_DOWNLOADED -> {
                                     painterResource(
                                         Res.drawable.baseline_downloaded,
                                     )
+                                }
 
-                                DownloadState.STATE_PREPARING ->
+                                DownloadState.STATE_PREPARING -> {
                                     painterResource(
                                         Res.drawable.baseline_downloading_white,
                                     )
+                                }
 
-                                else ->
+                                else -> {
                                     painterResource(
                                         Res.drawable.outline_download_for_offline_24,
                                     )
+                                }
                             },
                         text =
                             when (uiState.songUIState.downloadState) {
