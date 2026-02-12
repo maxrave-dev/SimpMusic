@@ -259,6 +259,7 @@
     <string name="translation_language_message">Type language code (Eg: en) (2 letters). If you want to set same with SimpMusic's language, please make edit box empty.</string>
     <string name="invalid_language_code">Invalid language code</string>
     <string name="lyrics_provider_youtube">Lyrics provided by YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Lyrics provided by BetterLyrics</string>
     <string name="limit_player_cache">Limit Player Cache</string>
     <string name="unlimited">Unlimited</string>
     <string name="third_party_libraries">Third party libraries</string>
@@ -381,6 +382,7 @@
     <string name="proxy_port_message">Please enter your Proxy port</string>
     <string name="five_seconds">Five seconds</string>
     <string name="lrclib" translatable="false">LRCLIB</string>
+    <string name="better_lyrics" translatable="false">BetterLyrics</string>
     <string name="lyrics_provider_lrc">Lyrics provided by LRCLIB</string>
     <string name="sync_first">Sync this playlist to YouTube Music first</string>
     <string name="endless_queue">Endless queue</string>

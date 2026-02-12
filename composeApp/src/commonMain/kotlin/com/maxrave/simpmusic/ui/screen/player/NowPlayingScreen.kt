@@ -187,6 +187,7 @@ import simpmusic.composeapp.generated.resources.holder_video
 import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.line_synced
 import simpmusic.composeapp.generated.resources.lyrics
+import simpmusic.composeapp.generated.resources.lyrics_provider_betterlyrics
 import simpmusic.composeapp.generated.resources.lyrics_provider_lrc
 import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
 import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
@@ -1648,6 +1649,10 @@ fun NowPlayingScreenContent(
 
                                                     LyricsProvider.OFFLINE -> {
                                                         stringResource(Res.string.offline_mode)
+                                                    }
+
+                                                    LyricsProvider.BETTER_LYRICS -> {
+                                                        stringResource(Res.string.lyrics_provider_betterlyrics)
                                                     }
 
                                                     else -> {

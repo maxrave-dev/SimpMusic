@@ -84,9 +84,6 @@ kotlin {
             // Runtime
             api(libs.startup.runtime)
 
-            // Liquid glass
-            implementation(libs.liquid.glass)
-
             api(projects.media3)
             api(projects.media3Ui)
         }
@@ -156,6 +153,10 @@ kotlin {
 
             api(libs.cmptoast)
             implementation(libs.file.picker)
+
+            // Liquid glass
+            implementation(libs.liquid.glass)
+            implementation(libs.liquid.glass.shape)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

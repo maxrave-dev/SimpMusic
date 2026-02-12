@@ -4,8 +4,8 @@ version-name = "1.0.3"
 version-code = "45"
 
 android = "8.13.2"
-kotlin = "2.3.0"
-serialization = "2.3.0"
+kotlin = "2.3.10"
+serialization = "2.3.10"
 ksp = "2.3.4"
 compose-bom = "2026.01.01"
 material3-expressive = "1.5.0-alpha13"
@@ -55,7 +55,8 @@ webkit = "1.15.0"
 kermit = "2.0.8"
 paging-common = "3.4.0"
 glance = "1.1.1"
-liquid-glass = "1.0.5"
+liquid-glass = "2.0.0-alpha01"
+liquid-glass-shapes = "1.0.4"
 ytdlp = "0.18.1"
 ffmpeg-kit-audio = "6.0.1"
 composeHotReload = "1.0.0"
@@ -82,7 +83,7 @@ jnaPlatform = "5.18.1"
 calf = "0.9.0"
 material = "1.13.0"
 osdetector = "1.7.3"
-tray = "1.0.4"
+tray = "1.0.11"
 commonsIo = "2.5"
 packagedeps = "0.2.5"
 
@@ -118,7 +119,6 @@ media3-exoplayer-rtsp = { group = "androidx.media3", name = "media3-exoplayer-rt
 media3-exoplayer-smoothstreaming = { group = "androidx.media3", name = "media3-exoplayer-smoothstreaming", version.ref = "media3" }
 media3-exoplayer-workmanager = { group = "androidx.media3", name = "media3-exoplayer-workmanager", version.ref = "media3" }
 media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
-smart-exception = { module = "com.arthenica:smart-exception-java", version.ref = "smart-exception" }
 okhttp3-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
@@ -177,8 +177,7 @@ glance-material3 = { group = "androidx.glance", name = "glance-material3", versi
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 
 liquid-glass = { module = "io.github.kyant0:backdrop", version.ref = "liquid-glass" }
-
-ytdlp-android = { module = "io.github.junkfood02.youtubedl-android:library", version.ref = "ytdlp" }
+liquid-glass-shape = { module = "io.github.kyant0:shapes", version.ref = "liquid-glass-shapes" }
 
 ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.ref = "ffmpeg-kit-audio" }
 

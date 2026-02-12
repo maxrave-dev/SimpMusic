@@ -22,7 +22,6 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.expect.checkYtdlp
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -315,18 +314,7 @@ class SettingsViewModel(
 
     fun setDownloadQuality(quality: String) {
         viewModelScope.launch {
-            if (getPlatform() == Platform.Android) {
-                dataStoreManager.setDownloadQuality(quality)
-                getQuality()
-            } else if (getPlatform() == Platform.Desktop) {
-                val installed = checkYtdlp()
-                if (installed) {
-                    dataStoreManager.setDownloadQuality(quality)
-                    getQuality()
-                } else {
-                    makeToast("Your device does not have yt-dlp installed. Please install it to use the best quality.")
-                }
-            }
+            dataStoreManager.setDownloadQuality(quality)
             getDownloadQuality()
         }
     }
@@ -1004,18 +992,8 @@ class SettingsViewModel(
     fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
             log("changeQuality: $qualityItem")
-            if (getPlatform() == Platform.Android) {
-                dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
-                getQuality()
-            } else if (getPlatform() == Platform.Desktop) {
-                val installed = checkYtdlp()
-                if (installed) {
-                    dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
-                    getQuality()
-                } else {
-                    makeToast("Your device does not have yt-dlp installed. Please install it to use the best quality.")
-                }
-            }
+            dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
+            getQuality()
         }
     }
 

@@ -1170,34 +1170,39 @@ class SharedViewModel(
                 }
             resetLyricsVoteState()
             val lyricsProvider = dataStoreManager.lyricsProvider.first()
-            if (isVideo) {
-                getYouTubeCaption(
-                    videoId,
-                    song,
-                    (artist ?: "").toString(),
-                    duration,
-                )
-            } else {
-                when (lyricsProvider) {
-                    DataStoreManager.SIMPMUSIC -> {
-                        getSimpMusicLyrics(
-                            videoId,
-                            song,
-                            (artist ?: "").toString(),
-                            duration,
-                        )
-                    }
+            when (lyricsProvider) {
+                DataStoreManager.SIMPMUSIC -> {
+                    getSimpMusicLyrics(
+                        videoId,
+                        song,
+                        (artist ?: ""),
+                        duration,
+                    )
+                }
 
-                    DataStoreManager.LRCLIB -> {
-                        getLrclibLyrics(
-                            song,
-                            (artist ?: "").toString(),
-                            duration,
-                        )
-                    }
+                DataStoreManager.LRCLIB -> {
+                    getLrclibLyrics(
+                        song,
+                        (artist ?: ""),
+                        duration,
+                    )
+                }
 
-                    DataStoreManager.YOUTUBE -> {
-                    }
+                DataStoreManager.YOUTUBE -> {
+                    getYouTubeCaption(
+                        videoId,
+                        song,
+                        (artist ?: ""),
+                        duration,
+                    )
+                }
+
+                DataStoreManager.BETTER_LYRICS -> {
+                    getBetterLyrics(
+                        song,
+                        (artist ?: "").toString(),
+                        duration,
+                    )
                 }
             }
         }
@@ -1334,6 +1339,54 @@ class SharedViewModel(
                                 song.toTrack().copy(
                                     durationSeconds = duration,
                                 ),
+                            )
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun getBetterLyrics(
+        song: SongEntity,
+        artist: String,
+        duration: Int,
+    ) {
+        viewModelScope.launch {
+            lyricsCanvasRepository
+                .getBetterLyrics(
+                    artist,
+                    song.title,
+                    duration,
+                ).collectLatest { res ->
+                    val data = res.data
+                    when (res) {
+                        is Resource.Success if (data != null) -> {
+                            Logger.d(tag, "Get BetterLyrics Success")
+                            updateLyrics(
+                                song.videoId,
+                                duration,
+                                data,
+                                false,
+                                LyricsProvider.BETTER_LYRICS,
+                            )
+                            insertLyrics(
+                                data.toLyricsEntity(
+                                    song.videoId,
+                                ),
+                            )
+                            getAITranslationLyrics(
+                                song.videoId,
+                                data,
+                            )
+                        }
+
+                        else -> {
+                            log("Get BetterLyrics Error: ${res.message}")
+                            getSimpMusicLyrics(
+                                song.videoId,
+                                song,
+                                artist,
+                                duration,
                             )
                         }
                     }
@@ -1670,7 +1723,7 @@ class SharedViewModel(
                             _lyricsVoteState.update {
                                 it?.copy(
                                     state = VoteState.Success(upvote),
-                                    vote = it.vote + if (upvote) 1 else -1
+                                    vote = it.vote + if (upvote) 1 else -1,
                                 )
                             }
                             makeToast(getString(Res.string.vote_submitted))
@@ -1725,7 +1778,7 @@ class SharedViewModel(
                             _translatedVoteState.update {
                                 it?.copy(
                                     state = VoteState.Success(upvote),
-                                    vote = it.vote + if (upvote) 1 else -1
+                                    vote = it.vote + if (upvote) 1 else -1,
                                 )
                             }
                             makeToast(getString(Res.string.vote_submitted))
@@ -1775,6 +1828,7 @@ enum class LyricsProvider {
     YOUTUBE,
     SPOTIFY,
     LRCLIB,
+    BETTER_LYRICS,
     AI,
     OFFLINE,
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config
@@ -72,7 +74,9 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_close_24
+import simpmusic.composeapp.generated.resources.baseline_play_circle_24
 import simpmusic.composeapp.generated.resources.baseline_search_24
+import simpmusic.composeapp.generated.resources.baseline_shuffle_24
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
@@ -382,50 +386,118 @@ fun LibraryDynamicPlaylistScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val type = LibraryDynamicPlaylistType.toType(type)
-        TopAppBar(
-            title = {
-                Text(
-                    text =
-                        stringResource(
-                            type.name(),
-                        ),
-                    style = typo().titleMedium,
-                )
-            },
-            navigationIcon = {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    RippleIconButton(
-                        Res.drawable.baseline_arrow_back_ios_new_24,
-                        Modifier
-                            .size(32.dp),
-                        true,
-                    ) {
-                        navController.navigateUp()
+        val isSongType =
+            type != LibraryDynamicPlaylistType.Followed &&
+                type != LibraryDynamicPlaylistType.TopArtists &&
+                type != LibraryDynamicPlaylistType.TopAlbums
+        Box {
+            TopAppBar(
+                title = {
+                    Text(
+                        text =
+                            stringResource(
+                                type.name(),
+                            ),
+                        style = typo().titleMedium,
+                    )
+                },
+                navigationIcon = {
+                    Box(Modifier.padding(horizontal = 5.dp)) {
+                        RippleIconButton(
+                            Res.drawable.baseline_arrow_back_ios_new_24,
+                            Modifier
+                                .size(32.dp),
+                            true,
+                        ) {
+                            navController.navigateUp()
+                        }
                     }
-                }
-            },
-            actions = {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    RippleIconButton(
-                        if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,
-                        Modifier
-                            .size(32.dp),
-                        true,
-                    ) {
-                        showSearchBar = !showSearchBar
+                },
+                actions = {
+                    if (isSongType) {
+                        RippleIconButton(
+                            Res.drawable.baseline_play_circle_24,
+                            Modifier
+                                .size(48.dp),
+                            fillMaxSize = true,
+                        ) {
+                            if (type == LibraryDynamicPlaylistType.TopTracks) {
+                                val data = analyticsUIState.topTracks.data
+                                if (!data.isNullOrEmpty()) {
+                                    val first = data.first().second
+                                    sharedViewModel.setQueueData(
+                                        QueueData.Data(
+                                            listTracks = data.map { it.second }.toArrayListTrack(),
+                                            firstPlayedTrack = first.toTrack(),
+                                            playlistId = null,
+                                            playlistName = getStringBlocking(Res.string.your_top_tracks),
+                                            playlistType = PlaylistType.RADIO,
+                                            continuation = null,
+                                        ),
+                                    )
+                                    sharedViewModel.loadMediaItem(
+                                        first.toTrack(),
+                                        Config.PLAYLIST_CLICK,
+                                        0,
+                                    )
+                                }
+                            } else {
+                                viewModel.playAll(type)
+                            }
+                        }
+                        RippleIconButton(
+                            Res.drawable.baseline_shuffle_24,
+                            Modifier.size(32.dp),
+                            true,
+                        ) {
+                            if (type == LibraryDynamicPlaylistType.TopTracks) {
+                                val data = analyticsUIState.topTracks.data
+                                if (!data.isNullOrEmpty()) {
+                                    val shuffled = data.shuffled()
+                                    val first = shuffled.first().second
+                                    sharedViewModel.setQueueData(
+                                        QueueData.Data(
+                                            listTracks = shuffled.map { it.second }.toArrayListTrack(),
+                                            firstPlayedTrack = first.toTrack(),
+                                            playlistId = null,
+                                            playlistName = getStringBlocking(Res.string.your_top_tracks),
+                                            playlistType = PlaylistType.RADIO,
+                                            continuation = null,
+                                        ),
+                                    )
+                                    sharedViewModel.loadMediaItem(
+                                        first.toTrack(),
+                                        Config.PLAYLIST_CLICK,
+                                        0,
+                                    )
+                                }
+                            } else {
+                                viewModel.shuffle(type)
+                            }
+                        }
                     }
-                }
-            },
-            modifier =
-                Modifier
-                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                        blurEnabled = true
-                    },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
-        )
+                    Box(Modifier.padding(horizontal = 5.dp)) {
+                        RippleIconButton(
+                            if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,
+                            Modifier
+                                .size(32.dp),
+                            true,
+                        ) {
+                            showSearchBar = !showSearchBar
+                        }
+                    }
+                },
+                modifier =
+                    Modifier
+                        .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                            blurEnabled = true
+                        },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                    ),
+            )
+        }
         androidx.compose.animation.AnimatedVisibility(visible = showSearchBar) {
             SearchBar(
                 modifier =
