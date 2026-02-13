@@ -306,7 +306,7 @@ class SettingsViewModel(
                 when (quality) {
                     QUALITY.items[0].toString() -> _downloadQuality.emit(QUALITY.items[0].toString())
                     QUALITY.items[1].toString() -> _downloadQuality.emit(QUALITY.items[1].toString())
-                    QUALITY.items[2].toString() -> _downloadQuality.emit(QUALITY.items[2].toString())
+                    QUALITY.items[2].toString() -> _downloadQuality.emit(QUALITY.items[1].toString())
                 }
             }
         }
@@ -974,7 +974,7 @@ class SettingsViewModel(
                 when (quality) {
                     QUALITY.items[0].toString() -> _quality.emit(QUALITY.items[0].toString())
                     QUALITY.items[1].toString() -> _quality.emit(QUALITY.items[1].toString())
-                    QUALITY.items[2].toString() -> _quality.emit(QUALITY.items[2].toString())
+                    QUALITY.items[2].toString() -> _quality.emit(QUALITY.items[1].toString())
                 }
             }
         }
