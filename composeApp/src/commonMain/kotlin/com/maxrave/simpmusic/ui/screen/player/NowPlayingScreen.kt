@@ -143,6 +143,7 @@ import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AIBadge
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
@@ -161,6 +162,8 @@ import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
+import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
+import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.hazeEffect
@@ -176,10 +179,12 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.downvote
 import simpmusic.composeapp.generated.resources.holder
@@ -316,6 +321,11 @@ fun NowPlayingScreenContent(
     }
 
     var showVoteDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    // NEW: Add to Playlist state
+    var showAddToPlaylistDirectly by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -530,6 +540,32 @@ fun NowPlayingScreenContent(
             onDismiss = {
                 showInfoBottomSheet = false
             },
+        )
+    }
+
+    // NEW: Add to Playlist Bottom Sheet
+    if (showAddToPlaylistDirectly) {
+        val viewModel: NowPlayingBottomSheetViewModel = koinViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        
+        LaunchedEffect(Unit) {
+            viewModel.setSongEntity(null) // Uses current playing song
+        }
+        
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = uiState.listLocalPlaylist,
+            listYouTubePlaylist = uiState.listYouTubePlaylist,
+            onDismiss = { showAddToPlaylistDirectly = false },
+            onClick = { playlist ->
+                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToPlaylist(playlist.id))
+                showAddToPlaylistDirectly = false
+            },
+            onYTPlaylistClick = { playlist ->
+                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist(playlist.browseId))
+                showAddToPlaylistDirectly = false
+            },
+            videoId = uiState.songUIState.videoId,
         )
     }
 
@@ -1380,48 +1416,69 @@ fun NowPlayingScreenContent(
                                     } else {
                                         Spacer(Modifier.height(16.dp))
                                     }
-                                    // List Bottom Buttons
-                                    // 24.dp
-                                    Box(
+                                    // List Bottom Buttons - MODIFIED TO ADD PLAYLIST BUTTON
+                                    Row(
                                         modifier =
                                             Modifier
                                                 .height(32.dp)
                                                 .fillMaxWidth()
                                                 .padding(horizontal = 20.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
+                                        // Info Button (Left)
                                         IconButton(
                                             modifier =
                                                 Modifier
                                                     .size(24.dp)
                                                     .aspectRatio(1f)
-                                                    .align(Alignment.CenterStart)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ),
+                                                    .clip(CircleShape),
                                             onClick = {
                                                 showInfoBottomSheet = true
                                             },
                                         ) {
                                             Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
                                         }
-                                        IconButton(
-                                            modifier =
-                                                Modifier
-                                                    .size(24.dp)
-                                                    .aspectRatio(1f)
-                                                    .align(Alignment.CenterEnd)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ),
-                                            onClick = {
-                                                showQueueBottomSheet = true
-                                            },
+                                        
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                                                tint = Color.White,
-                                                contentDescription = "",
-                                            )
+                                            // NEW: Add to Playlist Button (Center-Right)
+                                            IconButton(
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(CircleShape),
+                                                onClick = {
+                                                    showAddToPlaylistDirectly = true
+                                                },
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                                                    tint = Color.White,
+                                                    contentDescription = "Add to Playlist",
+                                                )
+                                            }
+                                            
+                                            // Queue Button (Right)
+                                            IconButton(
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(CircleShape),
+                                                onClick = {
+                                                    showQueueBottomSheet = true
+                                                },
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                                    tint = Color.White,
+                                                    contentDescription = "",
+                                                )
+                                            }
                                         }
                                     }
                                 }
