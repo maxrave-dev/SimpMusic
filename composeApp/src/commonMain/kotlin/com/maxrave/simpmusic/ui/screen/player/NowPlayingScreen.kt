@@ -516,10 +516,10 @@ fun NowPlayingScreenContent(
             changeMainLyricsProviderEnable = true,
         )
     }
-
     if (showFullscreenLyrics) {
         FullscreenLyricsSheet(
             sharedViewModel = sharedViewModel,
+            navController = navController,  // <-- ADD THIS LINE
             color = startColor.value,
             shouldHaze = sharedViewModel.blurFullscreenLyrics(),
         ) {
@@ -547,11 +547,11 @@ fun NowPlayingScreenContent(
     if (showAddToPlaylistDirectly) {
         val viewModel: NowPlayingBottomSheetViewModel = koinViewModel()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        
+
         LaunchedEffect(Unit) {
             viewModel.setSongEntity(null) // Uses current playing song
         }
-        
+
         AddToPlaylistModalBottomSheet(
             isBottomSheetVisible = true,
             listLocalPlaylist = uiState.listLocalPlaylist,
@@ -1195,14 +1195,14 @@ fun NowPlayingScreenContent(
                                                                     (
                                                                         song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                                                             ?: screenDataState.songInfoData?.authorId
-                                                                    )?.let { channelId ->
-                                                                        onDismiss()
-                                                                        navController.navigate(
-                                                                            ArtistDestination(
-                                                                                channelId = channelId,
-                                                                            ),
-                                                                        )
-                                                                    }
+                                                                        )?.let { channelId ->
+                                                                            onDismiss()
+                                                                            navController.navigate(
+                                                                                ArtistDestination(
+                                                                                    channelId = channelId,
+                                                                                ),
+                                                                            )
+                                                                        }
                                                                 },
                                                     )
                                                 }
@@ -1439,7 +1439,7 @@ fun NowPlayingScreenContent(
                                         ) {
                                             Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
                                         }
-                                        
+
                                         Row(
                                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                                             verticalAlignment = Alignment.CenterVertically,
@@ -1461,7 +1461,7 @@ fun NowPlayingScreenContent(
                                                     contentDescription = "Add to Playlist",
                                                 )
                                             }
-                                            
+
                                             // Queue Button (Right)
                                             IconButton(
                                                 modifier =
@@ -1722,14 +1722,14 @@ fun NowPlayingScreenContent(
                                     (
                                         song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                             ?: screenDataState.songInfoData?.authorId
-                                    )?.let { channelId ->
-                                        onDismiss()
-                                        navController.navigate(
-                                            ArtistDestination(
-                                                channelId = channelId,
-                                            ),
-                                        )
-                                    }
+                                        )?.let { channelId ->
+                                            onDismiss()
+                                            navController.navigate(
+                                                ArtistDestination(
+                                                    channelId = channelId,
+                                                ),
+                                            )
+                                        }
                                 },
                                 shape = RoundedCornerShape(8.dp),
                                 colors =
