@@ -390,13 +390,13 @@ class SharedViewModel(
                                             )
                                         }
                                     }
-                                } else {
-                                    _timeline.update {
-                                        it.copy(
-                                            loading = true,
-                                        )
-                                    }
                                 }
+                                // When progress hasn't changed (same value polled again) or is negative,
+                                // don't modify loading state. The loading flag is already managed by
+                                // Buffering/Ready/Loading state events. Setting loading=true here would
+                                // cause rapid flickering because the progress poll interval (100ms) is
+                                // shorter than the adapter's position cache update interval (200ms),
+                                // resulting in duplicate position values that incorrectly triggered loading.
                             }
 
                             is SimpleMediaState.Loading -> {
