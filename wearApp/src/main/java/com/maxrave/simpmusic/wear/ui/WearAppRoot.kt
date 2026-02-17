@@ -33,8 +33,10 @@ import com.maxrave.simpmusic.wear.ui.screens.ArtistBrowseScreen
 import com.maxrave.simpmusic.wear.ui.screens.DiscoverScreen
 import com.maxrave.simpmusic.wear.ui.screens.DownloadsScreen
 import com.maxrave.simpmusic.wear.ui.screens.FollowedArtistsScreen
+import com.maxrave.simpmusic.wear.ui.screens.FollowedReleasesScreen
 import com.maxrave.simpmusic.wear.ui.screens.HomeScreen
 import com.maxrave.simpmusic.wear.ui.screens.LibraryScreen
+import com.maxrave.simpmusic.wear.ui.screens.LikedAlbumsScreen
 import com.maxrave.simpmusic.wear.ui.screens.LikedSongsScreen
 import com.maxrave.simpmusic.wear.ui.screens.LoginScreen
 import com.maxrave.simpmusic.wear.ui.screens.NowPlayingScreen
@@ -58,6 +60,8 @@ private object Routes {
     const val LIKED_SONGS = "liked_songs"
     const val RECENTLY_PLAYED = "recently_played"
     const val FOLLOWED_ARTISTS = "followed_artists"
+    const val LIKED_ALBUMS = "liked_albums"
+    const val FOLLOWED_RELEASES = "followed_releases"
     const val NOW_PLAYING = "now_playing"
     const val QUEUE = "queue"
     const val LIBRARY = "library"
@@ -222,6 +226,8 @@ fun WearAppRoot(mediaPlayerHandler: MediaPlayerHandler) {
                     openLikedSongs = { navController.navigate(Routes.LIKED_SONGS) },
                     openRecentPlays = { navController.navigate(Routes.RECENTLY_PLAYED) },
                     openFollowedArtists = { navController.navigate(Routes.FOLLOWED_ARTISTS) },
+                    openLikedAlbums = { navController.navigate(Routes.LIKED_ALBUMS) },
+                    openFollowedReleases = { navController.navigate(Routes.FOLLOWED_RELEASES) },
                 )
             }
             composable(Routes.LIKED_SONGS) {
@@ -243,6 +249,19 @@ fun WearAppRoot(mediaPlayerHandler: MediaPlayerHandler) {
             composable(Routes.FOLLOWED_ARTISTS) {
                 FollowedArtistsScreen(
                     onBack = { navController.popBackStack() },
+                    openArtist = { artistId -> navController.navigate("${Routes.ARTIST}/${encodeNavArg(artistId)}") },
+                )
+            }
+            composable(Routes.LIKED_ALBUMS) {
+                LikedAlbumsScreen(
+                    onBack = { navController.popBackStack() },
+                    openAlbum = { albumId -> navController.navigate("${Routes.ALBUM}/${encodeNavArg(albumId)}") },
+                )
+            }
+            composable(Routes.FOLLOWED_RELEASES) {
+                FollowedReleasesScreen(
+                    onBack = { navController.popBackStack() },
+                    openAlbum = { albumId -> navController.navigate("${Routes.ALBUM}/${encodeNavArg(albumId)}") },
                     openArtist = { artistId -> navController.navigate("${Routes.ARTIST}/${encodeNavArg(artistId)}") },
                 )
             }

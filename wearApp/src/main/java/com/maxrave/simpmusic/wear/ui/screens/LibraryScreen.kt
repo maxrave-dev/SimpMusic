@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
@@ -61,6 +63,8 @@ fun LibraryScreen(
     openLikedSongs: () -> Unit,
     openRecentPlays: () -> Unit,
     openFollowedArtists: () -> Unit,
+    openLikedAlbums: () -> Unit,
+    openFollowedReleases: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -144,6 +148,26 @@ fun LibraryScreen(
                     label = "Artists",
                     icon = Icons.Filled.Person,
                     onClick = openFollowedArtists,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                QuickActionChip(
+                    label = "Albums",
+                    icon = Icons.Filled.Album,
+                    onClick = openLikedAlbums,
+                    modifier = Modifier.weight(1f),
+                )
+                QuickActionChip(
+                    label = "Releases",
+                    icon = Icons.Filled.LibraryMusic,
+                    onClick = openFollowedReleases,
                     modifier = Modifier.weight(1f),
                 )
             }
