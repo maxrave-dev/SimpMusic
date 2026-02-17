@@ -14,6 +14,22 @@ WearOS-focused fork of SimpMusic, with standalone watch playback and a Wear-nati
 - Playback pipeline has Wear-specific reliability hardening and resolver fallback tuning.
 - Tested on: Galaxy Watch4 Classic, WearOS 5
 
+## Recent Progress (Feb 2026)
+- Migrated this fork onto `upstream/main` lineage and consolidated the fork to a single default branch: `main`.
+- Added proper Wear-native rotary + visible list scroll UX using `rotaryScrollable` and `ScrollIndicator`.
+- Expanded Library parity with new Wear screens/routes:
+  - Liked songs
+  - Recently played
+  - Followed artists
+  - Liked albums
+  - Followed releases (artist singles/albums)
+- Replaced oversized quick actions with compact chip-style actions better suited to round Wear displays.
+- Revalidated repeatedly with:
+  - `:wearApp:lintDebug`
+  - `:wearApp:assembleDebug`
+  - `:wearApp:testDebugUnitTest`
+- Installed and verified on real watch hardware over wireless ADB.
+
 ## Architecture Notes
 - Reuses shared core/data/media/service modules from the original app where practical.
 - Adds Wear-specific app shell, navigation, auth bridge, network binding, and UX flows.
