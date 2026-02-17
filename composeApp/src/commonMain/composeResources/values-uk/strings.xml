@@ -464,6 +464,8 @@
     <string name="explicit_content_blocked">Відвертий контент пропускається</string>
     <string name="mix_for_you">Мікс для вас</string>
     <string name="no_mixes_found">Мікси не знайдено</string>
+    <string name="smart_add_to_queue">Розумне додавання до черги</string>
+    <string name="smart_add_to_queue_description">Додати пісні перед автоматично створеною чергою</string>
     <string name="desktop_webview_description">Через обмеження Compose Multiplatform, WebView на ПК недоступний.\nДокладніше про вхід на ПК\n</string>
     <string name="open_blog_post">Відкрити блог</string>
     <string name="discord_integration">Інтеграція з Discord</string>

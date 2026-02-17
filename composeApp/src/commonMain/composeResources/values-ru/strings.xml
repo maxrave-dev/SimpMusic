@@ -464,6 +464,8 @@
     <string name="explicit_content_blocked">Неприемлемый контент пропущен</string>
     <string name="mix_for_you">Миксы для вас</string>
     <string name="no_mixes_found">Не найдено миксов</string>
+    <string name="smart_add_to_queue">Умное добавление в очередь</string>
+    <string name="smart_add_to_queue_description">Добавлять песни перед автоматически созданной очередью</string>
     <string name="desktop_webview_description">В связи с ограничениями Compose Multiplatform, WebView невозможно реализовать на настольных устройствах.\n
 Ознакомьтесь с этим руководством, чтобы узнать, как выполнить вход на настольной версии:\n</string>
     <string name="open_blog_post">Читать в блоге</string>

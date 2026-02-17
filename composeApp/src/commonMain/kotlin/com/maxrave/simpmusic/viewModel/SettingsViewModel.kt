@@ -174,6 +174,9 @@ class SettingsViewModel(
     private val _videoDownloadQuality = MutableStateFlow<String?>(null)
     val videoDownloadQuality: StateFlow<String?> = _videoDownloadQuality
 
+    private val _smartQueueEnabled = MutableStateFlow<Boolean>(false)
+    val smartQueueEnabled: StateFlow<Boolean> = _smartQueueEnabled
+    
     private val _localTrackingEnabled = MutableStateFlow<Boolean>(false)
     val localTrackingEnabled: StateFlow<Boolean> = _localTrackingEnabled
 
@@ -274,6 +277,7 @@ class SettingsViewModel(
         getCombineLocalAndYouTubeLiked()
         getDownloadQuality()
         getVideoDownloadQuality()
+        getSmartQueueEnabled()
         getLocalTrackingEnabled()
         getAutoBackupEnabled()
         getAutoBackupFrequency()
@@ -370,6 +374,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCombineLocalAndYouTubeLiked(combine)
             getCombineLocalAndYouTubeLiked()
+        }
+    }
+
+    private fun getSmartQueueEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.smartQueueEnabled.collect { enabled ->
+                _smartQueueEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setSmartQueueEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSmartQueueEnabled(enabled)
+            getSmartQueueEnabled()
         }
     }
 

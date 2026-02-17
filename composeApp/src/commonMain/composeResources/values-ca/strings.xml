@@ -453,6 +453,9 @@
     <string name="play_explicit_content_description">Activa per reproduir contingut explícit</string>
     <string name="explicit_content_blocked">El contingut explícit serà saltat</string>
     <string name="mix_for_you">Mescla per a vostè</string>
+    <string name="no_mixes_found">No s\'han trobat mescles</string>
+    <string name="smart_add_to_queue">Afegir intel·ligent a la cua</string>
+    <string name="smart_add_to_queue_description">Afegir cançons abans de la cua generada automàticament</string>
     <string name="no_mixes_found">No s'han trobat mescles</string>
     <string name="desktop_webview_description">A causa de les limitacions de Compose Multiplatform, no puc implementar WebView a l’entorn d’escriptori.\nLlegeix això per obtenir més informació sobre com iniciar sessió a l’escriptori:\n</string>
 </resources>

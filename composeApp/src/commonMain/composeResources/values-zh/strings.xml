@@ -383,6 +383,9 @@
     <string name="fade_audio_effect">音频淡入淡出</string>
     <string name="disabled">停用</string>
     <string name="invalid_number"></string>
+    <string name="shuffle_not_available">随机终端不可用</string>
+    <string name="smart_add_to_queue">智能添加到队列</string>
+    <string name="smart_add_to_queue_description">在自动生成的队列之前添加歌曲</string>
     <string name="shuffle_not_available">随机播放功能暂不可用</string>
     <string name="retrieve_youtube_data">获取 YouTube 数据</string>
     <string name="no_results_found">未找到结果</string>

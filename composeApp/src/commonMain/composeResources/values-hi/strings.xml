@@ -456,4 +456,6 @@
     <string name="explicit_content_blocked">आपत्तिजनक कंटेंट स्किप किया गया</string>
     <string name="mix_for_you">आपके लिए मिक्स</string>
     <string name="no_mixes_found">कोई मिक्स नहीं मिला</string>
+    <string name="smart_add_to_queue">कतार में स्मार्ट जोड़</string>
+    <string name="smart_add_to_queue_description">स्वचालित कतार से पहले गाने जोड़ें</string>
 </resources>

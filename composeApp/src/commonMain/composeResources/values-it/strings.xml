@@ -462,6 +462,8 @@
     <string name="explicit_content_blocked">Il contenuto esplicito è saltato</string>
     <string name="mix_for_you">Mix per te</string>
     <string name="no_mixes_found">Nessun mix trovato</string>
+    <string name="smart_add_to_queue">Coda intelligente</string>
+    <string name="smart_add_to_queue_description">Aggiungere brani prima della coda automatica</string>
     <string name="desktop_webview_description">A causa delle limitazioni di Compose Multiplatform, non posso implementare WebView sul desktop.\nLeggi questo per saperne di più su come accedere al desktop:\n</string>
     <string name="open_blog_post">Apri post del blog</string>
     <string name="discord_integration">integrazione discord</string>

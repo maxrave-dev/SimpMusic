@@ -357,4 +357,6 @@
     <string name="go_to_log_in_page">الذهاب إلى صفحة تسجيل الدخول</string>
     <string name="proxy_host"></string>
     <string name="download_speed">سرعة التحميل %1$s </string>
+    <string name="smart_add_to_queue">إضافة ذكية إلى قائمة الانتظار</string>
+    <string name="smart_add_to_queue_description">إضافة الأغاني قبل قائمة الانتظار التي تم إنشاؤها تلقائيًا</string>
 </resources>

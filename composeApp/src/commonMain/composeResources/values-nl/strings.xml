@@ -212,4 +212,6 @@
     <string name="sync_playlist_warning">SimpMusic maakt automatisch een YouTube-afspeellijst aan. Weet je het zeker?</string>
     <string name="syncing">Synchroniseren</string>
     <string name="unsync_playlist_warning">"Deze afspeellijst de-synchroniseren? Deze afspeellijst zal niet verwijderd worden van YouTube Muziek "</string>
+    <string name="smart_add_to_queue">Slim toevoegen aan wachtrij</string>
+    <string name="smart_add_to_queue_description">Nummers toevoegen vóór automatisch gegenereerde wachtrij</string>
 </resources>

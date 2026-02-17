@@ -456,4 +456,6 @@
     <string name="explicit_content_blocked">연령 제한 콘텐츠 건너뜀</string>
     <string name="mix_for_you">당신을 위한 믹스</string>
     <string name="no_mixes_found">믹스 없음</string>
+    <string name="smart_add_to_queue">스마트 대기열 추가</string>
+    <string name="smart_add_to_queue_description">자동 생성된 대기열 앞에 곡 추가</string>
 </resources>

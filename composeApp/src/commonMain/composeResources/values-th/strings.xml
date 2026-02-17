@@ -456,4 +456,6 @@
     <string name="explicit_content_blocked">เนื้อหาที่ไม่เหมาะสมถูกข้าม</string>
     <string name="mix_for_you">มิกซ์สำหรับคุณ</string>
     <string name="no_mixes_found">ไม่พบมิกซ์</string>
+    <string name="smart_add_to_queue">เพิ่มลงในคิวอย่างชาญฉลาด</string>
+    <string name="smart_add_to_queue_description">เพิ่มเพลงก่อนคิวที่สร้างอัตโนมัติ</string>
 </resources>

@@ -477,6 +477,8 @@
     <string name="explicit_content_blocked">Le contenu explicite est ignoré</string>
     <string name="mix_for_you">Mix pour vous</string>
     <string name="no_mixes_found">Aucun mix trouvé</string>
+    <string name="smart_add_to_queue">Ajout intelligent à la file</string>
+    <string name="smart_add_to_queue_description">Ajouter les chansons avant la file automatique</string>
     <string name="desktop_webview_description">En raison des limitations de Compose Multiplatform, je ne peux pas implémenter WebView sur ordinateur.\nConsultez ce document pour en savoir plus sur la connexion sur ordinateur :\n</string>
     <string name="open_blog_post">Ouvrir l'article de blog</string>
     <string name="discord_integration">Intégration Discord</string>
