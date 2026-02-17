@@ -5,9 +5,15 @@ package com.maxrave.simpmusic.ui.screen.player
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -52,6 +58,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.SubtitlesOff
@@ -180,6 +187,7 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.downvote
 import simpmusic.composeapp.generated.resources.holder
@@ -204,9 +212,36 @@ import simpmusic.composeapp.generated.resources.upvote
 import simpmusic.composeapp.generated.resources.view_count
 import simpmusic.composeapp.generated.resources.vote_error
 import simpmusic.composeapp.generated.resources.vote_submitted
+import kotlin.math.abs
 import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
+
+/** Converts HSV (hue 0-360, saturation 0-1, value 0-1) to Compose Color. */
+private fun hsvToColor(
+    hue: Float,
+    saturation: Float,
+    value: Float,
+): Color {
+    val c = value * saturation
+    val x = c * (1 - abs((hue / 60f) % 2f - 1f))
+    val m = value - c
+    val (r, g, b) =
+        when {
+            hue < 60f -> Triple(c, x, 0f)
+            hue < 120f -> Triple(x, c, 0f)
+            hue < 180f -> Triple(0f, c, x)
+            hue < 240f -> Triple(0f, x, c)
+            hue < 300f -> Triple(x, 0f, c)
+            else -> Triple(c, 0f, x)
+        }
+    return Color(
+        red = (r + m).coerceIn(0f, 1f),
+        green = (g + m).coerceIn(0f, 1f),
+        blue = (b + m).coerceIn(0f, 1f),
+        alpha = 1f,
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
@@ -419,6 +454,26 @@ fun NowPlayingScreenContent(
                 }
         }
     }
+
+    // Crossfade: RGB rainbow color cycling when transitioning between tracks
+    val infiniteTransition = rememberInfiniteTransition(label = "crossfadeRainbow")
+    val rainbowHue by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "rainbowHue",
+    )
+    val rainbowColor = hsvToColor(rainbowHue, 1f, 1f)
+    val sliderTrackColor by animateColorAsState(
+        targetValue = if (timelineState.isCrossfading) rainbowColor else Color.White,
+        animationSpec = tween(300),
+        label = "sliderCrossfadeColor",
+    )
+
     // Show ControlLayout Or Show Artist Badge
     var showHideControlLayout by rememberSaveable {
         mutableStateOf(true)
@@ -792,7 +847,7 @@ fun NowPlayingScreenContent(
                         if (getPlatform() == Platform.Desktop) {
                             IconButton(onClick = { toggleMiniPlayer() }) {
                                 Icon(
-                                    imageVector = Icons.Outlined.OpenInNew,
+                                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
                                     contentDescription = "Mini Player",
                                     tint = Color.White,
                                 )
@@ -1318,8 +1373,8 @@ fun NowPlayingScreenContent(
                                                             sliderState = sliderState,
                                                             colors =
                                                                 SliderDefaults.colors().copy(
-                                                                    thumbColor = Color.White,
-                                                                    activeTrackColor = Color.White,
+                                                                    thumbColor = sliderTrackColor,
+                                                                    activeTrackColor = sliderTrackColor,
                                                                     inactiveTrackColor = Color.Transparent,
                                                                 ),
                                                             thumbTrackGapSize = 0.dp,
@@ -1343,8 +1398,8 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             colors =
                                                                 SliderDefaults.colors().copy(
-                                                                    thumbColor = Color.White,
-                                                                    activeTrackColor = Color.White,
+                                                                    thumbColor = sliderTrackColor,
+                                                                    activeTrackColor = sliderTrackColor,
                                                                     inactiveTrackColor = Color.Transparent,
                                                                 ),
                                                             enabled = true,
@@ -1365,6 +1420,18 @@ fun NowPlayingScreenContent(
                                                 modifier = Modifier.weight(1f),
                                                 textAlign = TextAlign.Left,
                                             )
+                                            AnimatedVisibility(
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                visible = timelineState.isCrossfading,
+                                            ) {
+                                                Text(
+                                                    text = stringResource(Res.string.crossfading),
+                                                    style = typo().bodyMedium,
+                                                    modifier = Modifier.weight(1f),
+                                                    textAlign = TextAlign.Center,
+                                                )
+                                            }
                                             Text(
                                                 text = formatDuration(timelineState.total),
                                                 style = typo().bodyMedium,

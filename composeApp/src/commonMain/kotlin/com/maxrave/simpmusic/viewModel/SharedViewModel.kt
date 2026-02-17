@@ -426,6 +426,10 @@ class SharedViewModel(
                     mediaPlayerHandler.controlState.collectLatest {
                         Logger.w(tag, "ControlState is $it")
                         _controllerState.value = it
+                        // Propagate crossfade state to timeline so UI can react
+                        _timeline.update { timeline ->
+                            timeline.copy(isCrossfading = it.isCrossfading)
+                        }
                     }
                 }
             val sleepTimerJob =

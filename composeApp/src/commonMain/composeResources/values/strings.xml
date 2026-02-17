@@ -451,6 +451,8 @@
     <string name="crossfade_disabled">Disabled</string>
     <string name="crossfade_duration">Crossfade Duration</string>
     <string name="set_crossfade_duration">Set crossfade duration in seconds (%1$ds)</string>
+    <string name="crossfade_dj_mode">DJ-Style Transition</string>
+    <string name="crossfade_dj_mode_description">Apply low-pass and high-pass filter sweeps during crossfade for a smoother, DJ-like transition (similar to Apple Music Automix).</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
     <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred translation language for YouTube subtitles.</string>
     <string name="use_anonymous">Use anonymous name to contribute</string>
@@ -531,4 +533,5 @@
     <string name="local_tracking_title">Local tracking listening history</string>
     <string name="local_tracking_description">Log your listening history to local database</string>
     <string name="simpmusic_charts">SimpMusic Charts</string>
+    <string name="crossfading">Crossfading</string>
 </resources>
