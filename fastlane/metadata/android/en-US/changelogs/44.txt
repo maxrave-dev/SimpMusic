@@ -1,7 +1,0 @@
-- Mini floating player in desktop app
-- New AppImage package for Linux desktop app
-- Local tracking listening history and analytics
-- Auto backup (Android only)
-- Vote for SimpMusic Lyrics
-- Fix download playlist
-- Fix Spotify Canvas

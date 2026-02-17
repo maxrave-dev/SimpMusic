@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Version=1.0
-Name=SimpMusic
-Exec=bin/SimpMusic
-Icon=simpmusic
-Terminal=false
-Categories=Audio;AudioVideo;
-StartupWMClass=java-lang-Thread

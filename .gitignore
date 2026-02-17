@@ -1,5 +1,8 @@
 *.iml
 .gradle
+/.gradle-user-home/
+/.android-home/
+/.kotlin-daemon/
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -9,6 +12,7 @@
 /.idea/assetWizardSettings.xml
 .DS_Store
 /build
+**/build/
 /captures
 .externalNativeBuild
 .cxx
@@ -21,17 +25,8 @@ crowdin.yml
 /simpmusic.jks
 /ffmpeg-kit/build/
 
-#dev files
-ign.md
-.docs
-
 # Sentry Config File
 sentry.properties
 /.claude/
-/composeApp/build/
-/composeApp/cache/
-/composeApp/kcef-bundle/
-/.mcp.json
-
-/androidApp/build/
-/androidApp/cache/
+/_codex/
+/Screenshot_*_dev.png

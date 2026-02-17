@@ -1,3 +1,0 @@
-- Sửa lỗi khi nghe nhạc
-- Cải thiện giao diện người dùng ở Mini-player trên máy tính để bàn
-- Cải thiện giao diện người dùng ở trang Chủ

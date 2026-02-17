@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose provides most UI theming, but we still need an app theme for XML resources
+         (e.g. shared drawables referencing ?attr/colorOnPrimary) and system surfaces. -->
+    <style name="Theme.SimpMusicWear" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/sm_primary</item>
+        <item name="colorPrimaryVariant">@color/sm_primary_variant</item>
+        <item name="colorOnPrimary">@color/sm_on_primary</item>
+        <item name="android:colorBackground">@color/sm_background</item>
+        <item name="colorOnBackground">@color/sm_on_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+</resources>
+

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sm_primary">#0E7CFF</color>
+    <color name="sm_primary_variant">#0A5FCC</color>
+    <color name="sm_on_primary">#FFFFFF</color>
+    <color name="sm_background">#0B0D12</color>
+    <color name="sm_on_background">#F2F4F8</color>
+</resources>
+

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Keep Gradle/Android state inside the repo so builds work in restricted environments.
+export GRADLE_USER_HOME="$ROOT_DIR/.gradle-user-home"
+export ANDROID_USER_HOME="$ROOT_DIR/.android-home"
+export KOTLIN_DAEMON_RUN_FILES_PATH="$ROOT_DIR/.kotlin-daemon"
+
+mkdir -p "$GRADLE_USER_HOME" "$ANDROID_USER_HOME" "$KOTLIN_DAEMON_RUN_FILES_PATH"
+
+exec "$ROOT_DIR/gradlew" --no-daemon "$@"
+
