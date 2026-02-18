@@ -40,6 +40,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -646,7 +648,7 @@ fun MiniPlayer(
                 }
                 // Part 2
                 Box(modifier = Modifier.weight(1f)) {
-                    Column(Modifier.width(380.dp).padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(Modifier.width(600.dp).padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
                             contentAlignment = Alignment.Center,
                         ) {
@@ -810,7 +812,7 @@ fun MiniPlayer(
                         HeartCheckBox(checked = controllerState.isLiked, size = 30) {
                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                         }
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(4.dp))
                         // Desktop mini player button (JVM only)
                         if (getPlatform() == Platform.Desktop) {
                             IconButton(onClick = { toggleMiniPlayer() }) {
@@ -830,14 +832,14 @@ fun MiniPlayer(
                             Icon(
                                 imageVector =
                                     if (controllerState.volume > 0f) {
-                                        Icons.Filled.VolumeUp
+                                        Icons.AutoMirrored.Filled.VolumeUp
                                     } else {
-                                        Icons.Filled.VolumeOff
+                                        Icons.AutoMirrored.Filled.VolumeOff
                                     },
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                             )
                         }
-                        Spacer(Modifier.width(4.dp))
+                        Spacer(Modifier.width(2.dp))
                         var isVolumeSliding by rememberSaveable {
                             mutableStateOf(false)
                         }
@@ -910,7 +912,7 @@ fun MiniPlayer(
                                 },
                             )
                         }
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(4.dp))
                         IconButton(onClick = { onClose() }) {
                             Icon(Icons.Rounded.Close, "")
                         }

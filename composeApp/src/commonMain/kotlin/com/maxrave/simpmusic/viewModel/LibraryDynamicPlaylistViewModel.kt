@@ -116,4 +116,54 @@ class LibraryDynamicPlaylistViewModel(
             targetList.indexOf(playTrack).coerceAtLeast(0),
         )
     }
+
+    private fun getSongList(type: LibraryDynamicPlaylistType): List<SongEntity> =
+        when (type) {
+            LibraryDynamicPlaylistType.Favorite -> listFavoriteSong.value
+            LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value
+            LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value
+            else -> emptyList()
+        }
+
+    fun playAll(type: LibraryDynamicPlaylistType) {
+        val targetList = getSongList(type)
+        val firstTrack = targetList.firstOrNull() ?: return
+        setQueueData(
+            QueueData.Data(
+                listTracks = targetList.toArrayListTrack(),
+                firstPlayedTrack = firstTrack.toTrack(),
+                playlistId = null,
+                playlistName = "${getString(Res.string.playlist)} ${getString(type.name())}",
+                playlistType = PlaylistType.RADIO,
+                continuation = null,
+            ),
+        )
+        loadMediaItem(
+            firstTrack.toTrack(),
+            Config.PLAYLIST_CLICK,
+            0,
+        )
+    }
+
+    fun shuffle(type: LibraryDynamicPlaylistType) {
+        val targetList = getSongList(type)
+        if (targetList.isEmpty()) return
+        val shuffledList = targetList.shuffled()
+        val firstTrack = shuffledList.first()
+        setQueueData(
+            QueueData.Data(
+                listTracks = shuffledList.toArrayListTrack(),
+                firstPlayedTrack = firstTrack.toTrack(),
+                playlistId = null,
+                playlistName = "${getString(Res.string.playlist)} ${getString(type.name())}",
+                playlistType = PlaylistType.RADIO,
+                continuation = null,
+            ),
+        )
+        loadMediaItem(
+            firstTrack.toTrack(),
+            Config.PLAYLIST_CLICK,
+            0,
+        )
+    }
 }

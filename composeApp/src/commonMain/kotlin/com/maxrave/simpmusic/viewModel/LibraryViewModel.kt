@@ -8,6 +8,7 @@ import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.manager.DataStoreManager
@@ -18,6 +19,7 @@ import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
+import com.maxrave.domain.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -76,6 +78,10 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val downloadedPlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _downloadedPlaylist.asStateFlow()
 
+    private val _chartPlaylists: MutableStateFlow<LocalResource<List<ChartItem>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val chartPlaylists: StateFlow<LocalResource<List<ChartItem>>> get() = _chartPlaylists.asStateFlow()
+
     private val _listCanvasSong: MutableStateFlow<LocalResource<List<SongEntity>>> =
         MutableStateFlow(LocalResource.Loading())
     val listCanvasSong: StateFlow<LocalResource<List<SongEntity>>> get() = _listCanvasSong.asStateFlow()
@@ -88,18 +94,20 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch {
-            val currentScreenJob = launch {
-                dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
-                    LibraryChipType.fromStringValue(chipType)?.let {
-                     _currentScreen.value = it
+            val currentScreenJob =
+                launch {
+                    dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
+                        LibraryChipType.fromStringValue(chipType)?.let {
+                            _currentScreen.value = it
+                        }
                     }
                 }
-            }
-            val cookieJob = launch {
-                dataStoreManager.cookie.distinctUntilChanged().collect {
-                    _accountThumbnail.value = dataStoreManager.getString("AccountThumbUrl").first().takeIf { !it.isNullOrEmpty() }
+            val cookieJob =
+                launch {
+                    dataStoreManager.cookie.distinctUntilChanged().collect {
+                        _accountThumbnail.value = dataStoreManager.getString("AccountThumbUrl").first().takeIf { !it.isNullOrEmpty() }
+                    }
                 }
-            }
             currentScreenJob.join()
             cookieJob.join()
         }
@@ -132,8 +140,8 @@ class LibraryViewModel(
                             author = "YouTube Music",
                             id = "LM",
                             description = "PIN",
-                            thumbnails = "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png"
-                        )
+                            thumbnails = "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
+                        ),
                     )
                 }
                 temp.reverse()
@@ -234,6 +242,18 @@ class LibraryViewModel(
         viewModelScope.launch {
             playlistRepository.getAllDownloadedPlaylist().collect { values ->
                 _downloadedPlaylist.value = LocalResource.Success(values)
+            }
+        }
+    }
+
+    fun getChartPlaylists() {
+        _chartPlaylists.value = LocalResource.Loading()
+        viewModelScope.launch {
+            playlistRepository.getChartPlaylist().collectLatest {
+                when (it) {
+                    is Resource.Success -> _chartPlaylists.value = LocalResource.Success(it.data ?: emptyList())
+                    is Resource.Error -> _chartPlaylists.value = LocalResource.Error(it.message ?: "Unknown error")
+                }
             }
         }
     }

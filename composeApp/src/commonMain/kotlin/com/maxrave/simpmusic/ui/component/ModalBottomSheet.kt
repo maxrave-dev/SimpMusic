@@ -180,6 +180,7 @@ import simpmusic.composeapp.generated.resources.baseline_share_24
 import simpmusic.composeapp.generated.resources.baseline_sync_24
 import simpmusic.composeapp.generated.resources.baseline_sync_disabled_24
 import simpmusic.composeapp.generated.resources.baseline_update_24
+import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.bitrate
 import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
@@ -1440,6 +1441,7 @@ fun NowPlayingBottomSheet(
                     DataStoreManager.SIMPMUSIC -> 0
                     DataStoreManager.LRCLIB -> 1
                     DataStoreManager.YOUTUBE -> 2
+                    DataStoreManager.BETTER_LYRICS -> 3
                     else -> 0
                 },
             )
@@ -1513,6 +1515,25 @@ fun NowPlayingBottomSheet(
                         Spacer(modifier = Modifier.size(10.dp))
                         Text(text = stringResource(Res.string.youtube_transcript), style = typo().labelSmall)
                     }
+                    Row(
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 4.dp)
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = 3
+                                },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selected == 3,
+                            onClick = {
+                                selected = 3
+                            },
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(text = stringResource(Res.string.better_lyrics), style = typo().labelSmall)
+                    }
                 }
             },
             confirmButton = {
@@ -1524,6 +1545,7 @@ fun NowPlayingBottomSheet(
                                     0 -> DataStoreManager.SIMPMUSIC
                                     1 -> DataStoreManager.LRCLIB
                                     2 -> DataStoreManager.YOUTUBE
+                                    3 -> DataStoreManager.BETTER_LYRICS
                                     else -> DataStoreManager.SIMPMUSIC
                                 },
                             ),
@@ -1680,30 +1702,35 @@ fun NowPlayingBottomSheet(
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED ->
+                                DownloadState.STATE_NOT_DOWNLOADED -> {
                                     painterResource(
                                         Res.drawable.outline_download_for_offline_24,
                                     )
+                                }
 
-                                DownloadState.STATE_DOWNLOADING ->
+                                DownloadState.STATE_DOWNLOADING -> {
                                     painterResource(
                                         Res.drawable.baseline_downloading_white,
                                     )
+                                }
 
-                                DownloadState.STATE_DOWNLOADED ->
+                                DownloadState.STATE_DOWNLOADED -> {
                                     painterResource(
                                         Res.drawable.baseline_downloaded,
                                     )
+                                }
 
-                                DownloadState.STATE_PREPARING ->
+                                DownloadState.STATE_PREPARING -> {
                                     painterResource(
                                         Res.drawable.baseline_downloading_white,
                                     )
+                                }
 
-                                else ->
+                                else -> {
                                     painterResource(
                                         Res.drawable.outline_download_for_offline_24,
                                     )
+                                }
                             },
                         text =
                             when (uiState.songUIState.downloadState) {

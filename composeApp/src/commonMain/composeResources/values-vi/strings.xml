@@ -257,6 +257,7 @@
     <string name="translation_language_message">Nhập mã ngôn ngữ (Ví dụ: vi) (2 kí tự). Nếu bạn muốn để theo ngôn ngữ chính của SimpMusic, hãy để trống</string>
     <string name="invalid_language_code">Mã ngôn ngữ không hợp lệ</string>
     <string name="lyrics_provider_youtube">Lời bài hát được cung cấp bởi YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Lời bài hát được cung cấp bởi BetterLyrics</string>
     <string name="limit_player_cache">Giới hạn cache của trình phát nhạc</string>
     <string name="unlimited">Không giới hạn</string>
     <string name="third_party_libraries">Thư viện bên thứ ba</string>
@@ -418,6 +419,7 @@
     <string name="ai_provider">Nhà cung cấp AI</string>
     <string name="openai">OpenAI</string>
     <string name="gemini">Gemini</string>
+    <string name="openai_api_compatible">Tương thích OpenAI tùy chỉnh</string>
     <string name="ai_api_key">Khóa API của AI</string>
     <string name="invalid_api_key">Khóa API không hợp lệ</string>
     <string name="custom_ai_model_id">Tùy chỉnh ID của mô hình AI</string>
@@ -435,11 +437,15 @@
     <string name="download_this_song_video_file_to_your_device">Tải xuống bài hát/video này về thiết bị của bạn</string>
     <string name="kill_service_on_exit">Tắt trình phát nhạc khi thoát ứng dụng</string>
     <string name="kill_service_on_exit_description">Dừng trình phát nhạc trong nền khi thoát ứng dụng</string>
+    <string name="desktop_player">Trình phát desktop</string>
     <string name="crossfade">Chuyển bài mượt mà (BETA)</string>
+    <string name="crossfade_description">Chuyển tiếp mượt mà giữa các bài hát bằng cách làm mờ dần bài hát hiện tại trong khi làm mờ dần bài hát tiếp theo.</string>
     <string name="crossfade_enabled">Đã bật (%1$ds)</string>
     <string name="crossfade_disabled">Vô hiệu hóa</string>
     <string name="crossfade_duration">Thời gian chuyển bài</string>
     <string name="set_crossfade_duration">Thiết lập thời gian chuyển bài, tính bằng giây (%1$ds)</string>
+    <string name="crossfade_dj_mode">Chuyển tiếp dạng DJ</string>
+    <string name="crossfade_dj_mode_description">Áp dụng các bộ lọc thông thấp và thông cao trong quá trình chuyển tiếp mượt mà hơn, tạo hiệu ứng giống DJ (tương tự như tính năng Automix của Apple Music).</string>
     <string name="youtube_subtitle_language">Ngôn ngữ dịch cho phụ đề YouTube</string>
     <string name="youtube_subtitle_language_message">Nhập mã ngôn ngữ (Eg: vi) (2 ký tự). Đây là ngôn ngữ ưu tiên để dịch cho phụ đề YouTube.</string>
     <string name="use_anonymous">Sử dụng tên ẩn danh để đóng góp</string>
@@ -476,6 +482,7 @@
     <string name="explicit_content_blocked">Bài hát nhạy cảm đã bị bỏ qua</string>
     <string name="mix_for_you">Mix cho bạn</string>
     <string name="no_mixes_found">Không có bản mix nào</string>
+    <string name="no_charts_found">Không tìm thấy bảng xếp hạng nào</string>
     <string name="desktop_webview_description">Do những hạn chế của Compose Multiplatform, tôi không thể triển khai WebView trên máy tính để bàn.\nĐọc bài viết này để tìm hiểu thêm về cách đăng nhập trên máy tính để bàn:\n</string>
     <string name="open_blog_post">Mở bài blog</string>
     <string name="discord_integration">Tích hợp Discord</string>
@@ -512,4 +519,12 @@
     <string name="downvote">Không thích</string>
     <string name="vote_submitted">Cảm ơn vì đã bình chọn cho lời bài hát!</string>
     <string name="vote_error">Gửi không thành công</string>
+    <string name="open_app">Mở SimpMusic</string>
+    <string name="close_miniplayer">Đóng trình phát thu nhỏ</string>
+    <string name="open_miniplayer">Mở trình phát thu nhỏ</string>
+    <string name="quit_app">Thoát ứng dụng</string>
+    <string name="local_tracking_title">Theo dõi lịch sử nghe cục bộ</string>
+    <string name="local_tracking_description">Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu cục bộ</string>
+    <string name="simpmusic_charts">SimpMusic Charts</string>
+    <string name="crossfading">Đang chuyển bài mượt mà</string>
 </resources>

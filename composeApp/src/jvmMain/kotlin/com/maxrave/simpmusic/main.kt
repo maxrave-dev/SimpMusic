@@ -120,7 +120,7 @@ fun main() {
         // Main Window
         val windowState =
             rememberWindowState(
-                size = DpSize(1340.dp, 860.dp),
+                size = DpSize(1500.dp, 860.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
         // Single management

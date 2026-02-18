@@ -73,6 +73,8 @@
     <string name="content_country">Content Country</string>
     <string name="change">Change</string>
     <string name="quality">Quality</string>
+    <string name="prefer_320kbps_stream">Prefer 320kbps stream</string>
+    <string name="prefer_320kbps_stream_description">Automatically search for 320kbps audio stream when available on the internet. Falls back to default quality if not found.</string>
     <string name="download_quality">Download quality</string>
     <string name="video_download_quality">Video download quality</string>
     <string name="clear_downloaded_cache">Clear Downloaded Cache</string>
@@ -259,6 +261,7 @@
     <string name="translation_language_message">Type language code (Eg: en) (2 letters). If you want to set same with SimpMusic's language, please make edit box empty.</string>
     <string name="invalid_language_code">Invalid language code</string>
     <string name="lyrics_provider_youtube">Lyrics provided by YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Lyrics provided by BetterLyrics</string>
     <string name="limit_player_cache">Limit Player Cache</string>
     <string name="unlimited">Unlimited</string>
     <string name="third_party_libraries">Third party libraries</string>
@@ -381,6 +384,7 @@
     <string name="proxy_port_message">Please enter your Proxy port</string>
     <string name="five_seconds">Five seconds</string>
     <string name="lrclib" translatable="false">LRCLIB</string>
+    <string name="better_lyrics" translatable="false">BetterLyrics</string>
     <string name="lyrics_provider_lrc">Lyrics provided by LRCLIB</string>
     <string name="sync_first">Sync this playlist to YouTube Music first</string>
     <string name="endless_queue">Endless queue</string>
@@ -424,6 +428,7 @@
     <string name="ai_provider">AI provider</string>
     <string name="openai">OpenAI</string>
     <string name="gemini">Gemini</string>
+    <string name="openai_api_compatible">Custom OpenAI Compatible</string>
     <string name="ai_api_key">Your AI API Key</string>
     <string name="invalid_api_key">Invalid API key</string>
     <string name="custom_ai_model_id">Custom AI model ID</string>
@@ -441,11 +446,15 @@
     <string name="download_this_song_video_file_to_your_device">Download this song/video file to your device</string>
     <string name="kill_service_on_exit">Kill service on exit</string>
     <string name="kill_service_on_exit_description">Stop background music player when exiting app</string>
+    <string name="desktop_player">Desktop player</string>
     <string name="crossfade">Crossfade (BETA)</string>
+    <string name="crossfade_description">Smoothly transition between songs by fading out the current track while fading in the next one.</string>
     <string name="crossfade_enabled">Enabled (%1$ds)</string>
     <string name="crossfade_disabled">Disabled</string>
     <string name="crossfade_duration">Crossfade Duration</string>
     <string name="set_crossfade_duration">Set crossfade duration in seconds (%1$ds)</string>
+    <string name="crossfade_dj_mode">DJ-Style Transition</string>
+    <string name="crossfade_dj_mode_description">Apply low-pass and high-pass filter sweeps during crossfade for a smoother, DJ-like transition (similar to Apple Music Automix).</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
     <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred translation language for YouTube subtitles.</string>
     <string name="use_anonymous">Use anonymous name to contribute</string>
@@ -482,6 +491,7 @@
     <string name="explicit_content_blocked">Explicit content is skipped</string>
     <string name="mix_for_you">Mix for you</string>
     <string name="no_mixes_found">No mixes found</string>
+    <string name="no_charts_found">No charts found</string>
     <string name="desktop_webview_description">Because of the limitations of Compose Multiplatform, I can not implement WebView on desktop.\nRead this to learn more how to log in in desktop:\n</string>
     <string name="open_blog_post">Open blog post</string>
     <string name="discord_integration">Discord integration</string>
@@ -522,4 +532,9 @@
     <string name="close_miniplayer">Close Mini-player</string>
     <string name="open_miniplayer">Open Mini-player</string>
     <string name="quit_app">Quit app</string>
+    <string name="local_tracking_title">Local tracking listening history</string>
+    <string name="local_tracking_description">Log your listening history to local database</string>
+    <string name="simpmusic_charts">SimpMusic Charts</string>
+    <string name="crossfading">Crossfading</string>
+    <string name="your_320kbps_url">Your 320kbps URL</string>
 </resources>

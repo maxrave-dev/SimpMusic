@@ -185,11 +185,6 @@ fun LyricsView(
         if (currentLineIndex > -1 && currentLineHeight > 0 &&
             (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
         ) {
-            val boxEnd = listState.layoutInfo.viewportEndOffset
-            val boxStart = listState.layoutInfo.viewportStartOffset
-            val viewPort = boxEnd - boxStart
-            val offset = viewPort / 2 - currentLineHeight / 2
-            Logger.w(TAG, "Offset: $offset")
             listState.animateScrollAndCentralizeItem(
                 index = currentLineIndex,
                 this,
@@ -234,20 +229,14 @@ fun LyricsView(
                             ?.getOrNull(index)
                             ?.words
                     }
-                Logger.d(TAG, "Line $index: ${line?.words}, Translated: $translatedWords")
 
                 line?.words?.let { words ->
-                    Logger.d(TAG, "SyncType: ${lyricsData.lyrics.syncType}, Line $index content preview: ${words.take(50)}")
                     when {
                         // Rich sync: parse and use RichSyncLyricsLineItem
                         lyricsData.lyrics.syncType == "RICH_SYNCED" -> {
                             val parsedLine =
                                 remember(words, line.startTimeMs, line.endTimeMs) {
                                     val result = parseRichSyncWords(words, line.startTimeMs, line.endTimeMs)
-                                    Logger.d(
-                                        TAG,
-                                        "Line $index parseRichSyncWords result: ${if (result != null) "${result.words.size} words" else "null"}",
-                                    )
                                     result
                                 }
 

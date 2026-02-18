@@ -373,9 +373,9 @@ fun MediumMiniLayout(
                                 Icon(
                                     imageVector =
                                         if (controllerState.volume > 0f) {
-                                            Icons.Filled.VolumeUp
+                                            Icons.AutoMirrored.Filled.VolumeUp
                                         } else {
-                                            Icons.Filled.VolumeOff
+                                            Icons.AutoMirrored.Filled.VolumeOff
                                         },
                                     contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                     tint = Color.White.copy(alpha = 0.7f),
@@ -674,9 +674,9 @@ fun SquareMiniLayout(
                     Icon(
                         imageVector =
                             if (controllerState.volume > 0f) {
-                                Icons.Filled.VolumeUp
+                                Icons.AutoMirrored.Filled.VolumeUp
                             } else {
-                                Icons.Filled.VolumeOff
+                                Icons.AutoMirrored.Filled.VolumeOff
                             },
                         contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                         tint = Color.White.copy(alpha = 0.7f),
