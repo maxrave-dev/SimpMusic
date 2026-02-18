@@ -60,6 +60,7 @@
     <string name="playlist_name_cannot_be_empty">Oynatma listesi adı boş olamaz</string>
     <string name="this_app_needs_to_access_your_notification">Bu uygulamanın bildirimlere erişmesi gerekiyor</string>
     <string name="shared">Paylaşılan</string>
+    <string name="rich_synced">Kelime kelime</string>
     <string name="line_synced">Hat Senkronize Edildi</string>
     <string name="unsynced">Senkronize Değil</string>
     <string name="playlist_is_empty">Oynatma listesi boş</string>
@@ -72,6 +73,8 @@
     <string name="content_country">İçerik Bölgesi</string>
     <string name="change">Değiştir</string>
     <string name="quality">Kalite</string>
+    <string name="download_quality">İndirme kalitesi</string>
+    <string name="video_download_quality">Video indirme kalitesi</string>
     <string name="clear_downloaded_cache">İndirilen Önbelleğini Temizle</string>
     <string name="clear_thumbnail_cache">Küçük Resim Önbelleğini Temizle</string>
     <string name="add">Ekle</string>
@@ -120,6 +123,7 @@
     <string name="buy_me_a_coffee">Bana bir kahve ısmarla</string>
     <string name="paypal">PayPal</string>
     <string name="title">Başlık</string>
+    <string name="custom_order">Özel sipariş</string>
     <string name="album">Albüm</string>
     <string name="youtube_url">YouTube URL'si</string>
     <string name="download_url">İndirme Bağlantısı</string>
@@ -173,6 +177,7 @@
     <string name="save_last_played">Son Oynatılanı Kaydet</string>
     <string name="save_last_played_track_and_queue">Son çalınan parçayı ve sırayı kaydet</string>
     <string name="update_available">Yeni güncelleme mevcut</string>
+    <string name="update_message">Sürüm %1$s mevcut\nSürüm: %2$s\n</string>
     <string name="check_for_update">Güncellemeleri denetle</string>
     <string name="last_checked_at">Son kontrol: %1$s</string>
     <string name="checking">Kontrol ediliyor</string>
@@ -299,6 +304,7 @@
     <string name="codec">Kodek</string>
     <string name="plays">Oynatma/Görüntüleme Sayısı</string>
     <string name="like_and_dislike">%1$d beğeni %2$d beğenmeme</string>
+    <string name="published_at">Yayınlanma tarihi %1$s</string>
     <string name="less">Daha az</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Spotify ile giriş yap</string>
@@ -423,13 +429,13 @@
     <string name="no_favorite_podcasts">Favori podcast yok</string>
     <string name="your_sp_dc_param_of_spotify_cookie">Spotify çerezinizin sp_dc parametresi</string>
     <string name="your_youtube_cookie">YouTube Çereziniz</string>
+    <string name="your_discord_token">Discord jetonunuz</string>
     <string name="can_not_be_empty">Boş olamaz</string>
     <string name="processing">İşleme</string>
     <string name="website">Website</string>
     <string name="download_this_song_video_file_to_your_device">Bu şarkıyı/video dosyasını cihazınıza indirin</string>
     <string name="kill_service_on_exit">Çıkınca hizmeti sonlandır</string>
     <string name="kill_service_on_exit_description">Uygulama kapatılırsa arka plan müzik çalarını durdur</string>
-    <string name="crossfade">Çapraz geçiş (BETA)</string>
     <string name="crossfade_enabled">Etkinleştirildi (%1$ds)</string>
     <string name="crossfade_disabled">Devredışı</string>
     <string name="crossfade_duration">Geçiş Süresi</string>

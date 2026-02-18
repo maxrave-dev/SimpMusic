@@ -404,6 +404,7 @@ class SharedViewModel(
                                     it.copy(
                                         bufferedPercent = mediaState.bufferedPercentage,
                                         total = mediaState.duration,
+                                        loading = true,
                                     )
                                 }
                             }

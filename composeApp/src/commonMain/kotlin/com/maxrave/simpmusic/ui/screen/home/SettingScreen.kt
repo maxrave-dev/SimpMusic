@@ -176,6 +176,7 @@ import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_close_24
 import simpmusic.composeapp.generated.resources.baseline_people_alt_24
 import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
+import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.blur_fullscreen_lyrics
 import simpmusic.composeapp.generated.resources.blur_fullscreen_lyrics_description
 import simpmusic.composeapp.generated.resources.blur_player_background
@@ -208,7 +209,6 @@ import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
 import simpmusic.composeapp.generated.resources.default_models
 import simpmusic.composeapp.generated.resources.description_and_licenses
-
 import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
 import simpmusic.composeapp.generated.resources.download_quality
@@ -252,7 +252,6 @@ import simpmusic.composeapp.generated.resources.log_out
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.lrclib
-import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.main_lyrics_provider
 import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
@@ -955,6 +954,8 @@ fun SettingScreen(
                                                         (crossfadeDuration == 10000) to "10s",
                                                         (crossfadeDuration == 12000) to "12s",
                                                         (crossfadeDuration == 15000) to "15s",
+                                                        (crossfadeDuration == 20000) to "20s",
+                                                        (crossfadeDuration == 30000) to "30s",
                                                     ),
                                             ),
                                         confirm =
@@ -969,6 +970,8 @@ fun SettingScreen(
                                                         "10s" -> 10000
                                                         "12s" -> 12000
                                                         "15s" -> 15000
+                                                        "20s" -> 20000
+                                                        "30s" -> 30000
                                                         else -> 5000
                                                     }
                                                 viewModel.setCrossfadeDuration(duration)
