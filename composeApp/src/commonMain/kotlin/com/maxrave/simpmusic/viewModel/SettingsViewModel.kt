@@ -136,6 +136,10 @@ class SettingsViewModel(
     val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
     private val _crossfadeDjMode = MutableStateFlow<Boolean>(true)
     val crossfadeDjMode: StateFlow<Boolean> = _crossfadeDjMode
+    private val _prefer320kbpsStream = MutableStateFlow<Boolean>(false)
+    val prefer320kbpsStream: StateFlow<Boolean> = _prefer320kbpsStream
+    private val _your320kbpsUrl: MutableStateFlow<String> = MutableStateFlow("")
+    val your320kbpsUrl: StateFlow<String> = _your320kbpsUrl
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
@@ -262,6 +266,8 @@ class SettingsViewModel(
         getCrossfadeEnabled()
         getCrossfadeDuration()
         getCrossfadeDjMode()
+        getPrefer320kbpsStream()
+        getYour320kbpsUrl()
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
@@ -430,6 +436,36 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCrossfadeDjMode(enabled)
             getCrossfadeDjMode()
+        }
+    }
+
+    private fun getPrefer320kbpsStream() {
+        viewModelScope.launch {
+            dataStoreManager.prefer320kbpsStream.collect { enabled ->
+                _prefer320kbpsStream.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setPrefer320kbpsStream(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setPrefer320kbpsStream(enabled)
+            getPrefer320kbpsStream()
+        }
+    }
+
+    private fun getYour320kbpsUrl() {
+        viewModelScope.launch {
+            dataStoreManager.your320kbpsUrl.collect { url ->
+                _your320kbpsUrl.value = url
+            }
+        }
+    }
+
+    fun setYour320kbpsUrl(url: String) {
+        viewModelScope.launch {
+            dataStoreManager.setYour320kbpsUrl(url)
+            getYour320kbpsUrl()
         }
     }
 

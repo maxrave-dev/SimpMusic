@@ -269,6 +269,8 @@ import simpmusic.composeapp.generated.resources.play_explicit_content_descriptio
 import simpmusic.composeapp.generated.resources.play_video_for_video_track_instead_of_audio_only
 import simpmusic.composeapp.generated.resources.playback
 import simpmusic.composeapp.generated.resources.player_cache
+import simpmusic.composeapp.generated.resources.prefer_320kbps_stream
+import simpmusic.composeapp.generated.resources.prefer_320kbps_stream_description
 import simpmusic.composeapp.generated.resources.proxy
 import simpmusic.composeapp.generated.resources.proxy_description
 import simpmusic.composeapp.generated.resources.proxy_host
@@ -322,6 +324,7 @@ import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
 import simpmusic.composeapp.generated.resources.you_can_see_the_content_below_the_bottom_bar
+import simpmusic.composeapp.generated.resources.your_320kbps_url
 import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
@@ -391,6 +394,8 @@ fun SettingScreen(
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
+    val prefer320kbpsStream by viewModel.prefer320kbpsStream.collectAsStateWithLifecycle()
+    val your320kbpsUrl by viewModel.your320kbpsUrl.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
@@ -629,6 +634,38 @@ fun SettingScreen(
                                 confirm =
                                     runBlocking { getString(Res.string.change) } to { state ->
                                         viewModel.changeQuality(state.selectOne?.getSelected())
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.prefer_320kbps_stream),
+                    subtitle = stringResource(Res.string.prefer_320kbps_stream_description),
+                    smallSubtitle = true,
+                    switch = (prefer320kbpsStream to { viewModel.setPrefer320kbpsStream(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.your_320kbps_url),
+                    subtitle = your320kbpsUrl,
+                    isEnable = prefer320kbpsStream,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.your_320kbps_url) },
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = runBlocking { getString(Res.string.your_320kbps_url) },
+                                        value = "",
+                                        verifyCodeBlock = {
+                                            (it.isNotEmpty()) to runBlocking { getString(Res.string.invalid) }
+                                        },
+                                    ),
+                                message = "",
+                                confirm =
+                                    runBlocking { getString(Res.string.set) } to { state ->
+                                        viewModel.setYour320kbpsUrl(state.textField?.value ?: "")
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
                             ),

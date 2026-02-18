@@ -73,6 +73,8 @@
     <string name="content_country">Content Country</string>
     <string name="change">Change</string>
     <string name="quality">Quality</string>
+    <string name="prefer_320kbps_stream">Prefer 320kbps stream</string>
+    <string name="prefer_320kbps_stream_description">Automatically search for 320kbps audio stream when available on the internet. Falls back to default quality if not found.</string>
     <string name="download_quality">Download quality</string>
     <string name="video_download_quality">Video download quality</string>
     <string name="clear_downloaded_cache">Clear Downloaded Cache</string>
@@ -534,4 +536,5 @@
     <string name="local_tracking_description">Log your listening history to local database</string>
     <string name="simpmusic_charts">SimpMusic Charts</string>
     <string name="crossfading">Crossfading</string>
+    <string name="your_320kbps_url">Your 320kbps URL</string>
 </resources>
