@@ -738,7 +738,7 @@ fun FullscreenLyricsSheet(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                            .padding(horizontal = 36.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // Song Poster (Small, Top Left)
