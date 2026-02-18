@@ -150,6 +150,7 @@ import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AIBadge
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
@@ -168,6 +169,8 @@ import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
+import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
+import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.hazeEffect
@@ -188,8 +191,8 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
+import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.downvote
 import simpmusic.composeapp.generated.resources.holder
@@ -573,7 +576,7 @@ fun NowPlayingScreenContent(
     if (showFullscreenLyrics) {
         FullscreenLyricsSheet(
             sharedViewModel = sharedViewModel,
-            navController = navController,  // <-- ADD THIS LINE
+            navController = navController, // <-- ADD THIS LINE
             color = startColor.value,
             shouldHaze = sharedViewModel.blurFullscreenLyrics(),
         ) {
@@ -1256,14 +1259,14 @@ fun NowPlayingScreenContent(
                                                                     (
                                                                         song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                                                             ?: screenDataState.songInfoData?.authorId
-                                                                        )?.let { channelId ->
-                                                                            onDismiss()
-                                                                            navController.navigate(
-                                                                                ArtistDestination(
-                                                                                    channelId = channelId,
-                                                                                ),
-                                                                            )
-                                                                        }
+                                                                    )?.let { channelId ->
+                                                                        onDismiss()
+                                                                        navController.navigate(
+                                                                            ArtistDestination(
+                                                                                channelId = channelId,
+                                                                            ),
+                                                                        )
+                                                                    }
                                                                 },
                                                     )
                                                 }
@@ -1799,14 +1802,14 @@ fun NowPlayingScreenContent(
                                     (
                                         song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                             ?: screenDataState.songInfoData?.authorId
-                                        )?.let { channelId ->
-                                            onDismiss()
-                                            navController.navigate(
-                                                ArtistDestination(
-                                                    channelId = channelId,
-                                                ),
-                                            )
-                                        }
+                                    )?.let { channelId ->
+                                        onDismiss()
+                                        navController.navigate(
+                                            ArtistDestination(
+                                                channelId = channelId,
+                                            ),
+                                        )
+                                    }
                                 },
                                 shape = RoundedCornerShape(8.dp),
                                 colors =

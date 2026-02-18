@@ -96,15 +96,12 @@ import coil3.request.crossfade
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.PI
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.parseRichSyncWords
-import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -123,7 +120,10 @@ import simpmusic.composeapp.generated.resources.baseline_keyboard_arrow_down_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.unavailable
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 private const val TAG = "LyricsView"
 
@@ -171,9 +171,9 @@ fun LyricsView(
                         0..(
                             lines.getOrNull(0)?.startTimeMs
                                 ?: "0"
-                            ).toLong()
-                        )
+                        ).toLong()
                     )
+                )
             ) {
                 currentLineIndex = -1
             }
@@ -214,7 +214,7 @@ fun LyricsView(
     Box(modifier = modifier) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             items(lyricsData.lyrics.lines?.size ?: 0) { index ->
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
@@ -573,25 +573,25 @@ fun FullscreenLyricsSheet(
             launch {
                 startColor.animateTo(
                     targetValue = color,
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
                 )
             }
             launch {
                 midColor1.animateTo(
                     targetValue = color.copy(alpha = 0.95f),
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
                 )
             }
             launch {
                 midColor2.animateTo(
                     targetValue = color.copy(alpha = 0.85f),
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
                 )
             }
             launch {
                 endColor.animateTo(
                     targetValue = Color.Black,
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
                 )
             }
         }
@@ -649,24 +649,26 @@ fun FullscreenLyricsSheet(
         shape = RectangleShape,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-
             // ── Haze state (used only when shouldHaze = true) ─────────────────
             val hazeState = rememberHazeState(blurEnabled = true)
 
             if (shouldHaze) {
                 // Full-screen album art as haze SOURCE — blurred poster background
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .hazeSource(hazeState),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .hazeSource(hazeState),
                 ) {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalPlatformContext.current)
-                            .data(screenDataState.thumbnailURL)
-                            .crossfade(300)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(screenDataState.thumbnailURL)
-                            .build(),
+                        model =
+                            ImageRequest
+                                .Builder(LocalPlatformContext.current)
+                                .data(screenDataState.thumbnailURL)
+                                .crossfade(300)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(screenDataState.thumbnailURL)
+                                .build(),
                         contentDescription = null,
                         contentScale = ContentScale.FillHeight,
                         modifier = Modifier.fillMaxSize(),
@@ -675,96 +677,106 @@ fun FullscreenLyricsSheet(
             } else {
                 // Animated gradient background — only shown when haze is OFF
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    startColor.value,
-                                    midColor1.value,
-                                    midColor2.value,
-                                    endColor.value.copy(alpha = 0.9f),
-                                    endColor.value
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.linearGradient(
+                                    colors =
+                                        listOf(
+                                            startColor.value,
+                                            midColor1.value,
+                                            midColor2.value,
+                                            endColor.value.copy(alpha = 0.9f),
+                                            endColor.value,
+                                        ),
+                                    start =
+                                        Offset(
+                                            x = gradientOffsetX + (cos(gradientAngle * PI.toFloat() / 180f) * 800f),
+                                            y = gradientOffsetY + (sin(gradientAngle * PI.toFloat() / 180f) * 800f),
+                                        ),
+                                    end =
+                                        Offset(
+                                            x = gradientOffsetX + 2500f + (cos((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
+                                            y = gradientOffsetY + 2500f + (sin((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
+                                        ),
                                 ),
-                                start = Offset(
-                                    x = gradientOffsetX + (cos(gradientAngle * PI.toFloat() / 180f) * 800f),
-                                    y = gradientOffsetY + (sin(gradientAngle * PI.toFloat() / 180f) * 800f)
-                                ),
-                                end = Offset(
-                                    x = gradientOffsetX + 2500f + (cos((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
-                                    y = gradientOffsetY + 2500f + (sin((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f)
-                                )
-                            )
-                        )
+                            ),
                 )
             }
 
             // ── Foreground content column ─────────────────────────────────────
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    // Apply frosted glass haze effect over the poster when enabled
-                    .then(
-                        if (shouldHaze) {
-                            Modifier.hazeEffect(
-                                hazeState,
-                                style = CupertinoMaterials.regular(),
-                            ) {
-                                blurEnabled = true
-                            }
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .padding(
-                        bottom = with(localDensity) {
-                            windowInsets.getBottom(localDensity).toDp()
-                        },
-                        top = with(localDensity) {
-                            windowInsets.getTop(localDensity).toDp()
-                        },
-                    ),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        // Apply frosted glass haze effect over the poster when enabled
+                        .then(
+                            if (shouldHaze) {
+                                Modifier.hazeEffect(
+                                    hazeState,
+                                    style = CupertinoMaterials.regular(),
+                                ) {
+                                    blurEnabled = true
+                                }
+                            } else {
+                                Modifier
+                            },
+                        ).padding(
+                            bottom =
+                                with(localDensity) {
+                                    windowInsets.getBottom(localDensity).toDp()
+                                },
+                            top =
+                                with(localDensity) {
+                                    windowInsets.getTop(localDensity).toDp()
+                                },
+                        ),
             ) {
                 // New Apple Music Style Header
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // Song Poster (Small, Top Left)
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalPlatformContext.current)
-                            .data(screenDataState.thumbnailURL)
-                            .crossfade(300)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(screenDataState.thumbnailURL)
-                            .build(),
+                        model =
+                            ImageRequest
+                                .Builder(LocalPlatformContext.current)
+                                .data(screenDataState.thumbnailURL)
+                                .crossfade(300)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(screenDataState.thumbnailURL)
+                                .build(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(55.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                        modifier =
+                            Modifier
+                                .size(45.dp)
+                                .clip(RoundedCornerShape(8.dp)),
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
 
                     // Song Info Column
                     Column(
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     ) {
                         // Song Name
                         Text(
                             text = screenDataState.nowPlayingTitle,
-                            style = typo().bodyLarge,
+                            style = typo().labelSmall,
                             color = Color.White,
                             maxLines = 1,
-                            modifier = Modifier
-                                .basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                )
-                                .focusable(),
+                            modifier =
+                                Modifier
+                                    .basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                    ).focusable(),
                         )
 
                         Spacer(modifier = Modifier.height(2.dp))
@@ -772,12 +784,13 @@ fun FullscreenLyricsSheet(
                         // Artist Name with Explicit Badge
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
-                                coroutineScope.launch {
-                                    val song = sharedViewModel.nowPlayingState.value?.songEntity
-                                    (
-                                        song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
-                                            ?: screenDataState.songInfoData?.authorId
+                            modifier =
+                                Modifier.clickable {
+                                    coroutineScope.launch {
+                                        val song = sharedViewModel.nowPlayingState.value?.songEntity
+                                        (
+                                            song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
+                                                ?: screenDataState.songInfoData?.authorId
                                         )?.let { channelId ->
                                             sheetState.hide()
                                             onDismiss()
@@ -787,27 +800,28 @@ fun FullscreenLyricsSheet(
                                                 ),
                                             )
                                         }
-                                }
-                            }
+                                    }
+                                },
                         ) {
                             if (screenDataState.isExplicit) {
                                 ExplicitBadge(
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .padding(end = 4.dp)
+                                    modifier =
+                                        Modifier
+                                            .size(16.dp)
+                                            .padding(end = 4.dp),
                                 )
                             }
                             Text(
                                 text = screenDataState.artistName,
-                                style = typo().bodyMedium,
+                                style = typo().bodySmall,
                                 color = Color.White.copy(alpha = 0.7f),
                                 maxLines = 1,
-                                modifier = Modifier
-                                    .basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    )
-                                    .focusable(),
+                                modifier =
+                                    Modifier
+                                        .basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
                             )
                         }
                     }
@@ -817,7 +831,7 @@ fun FullscreenLyricsSheet(
                     // Like Button (Heart)
                     HeartCheckBox(
                         checked = controllerState.isLiked,
-                        size = 28
+                        size = 28,
                     ) {
                         sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                     }
@@ -826,7 +840,7 @@ fun FullscreenLyricsSheet(
 
                     // Three Dot Menu
                     IconButton(
-                        onClick = { showNowPlayingSheet = true }
+                        onClick = { showNowPlayingSheet = true },
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.baseline_more_vert_24),
