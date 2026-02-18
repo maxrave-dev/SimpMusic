@@ -252,6 +252,7 @@ private fun Header(
                 Modifier
                     .fillMaxSize(),
         )
+        // YouTube Music style gradient - smooth fade from image to content
         Box(
             Modifier
                 .fillMaxSize()
@@ -261,11 +262,14 @@ private fun Header(
                             colors =
                                 listOf(
                                     Color.Transparent,
-                                    Color.Black.copy(
-                                        alpha = 0.8f,
-                                    ),
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Black.copy(alpha = 0.6f),
+                                    Color.Black.copy(alpha = 0.85f),
+                                    md_theme_dark_background,
                                 ),
-                            startY = headerHeightPx * 3 / 4, // Gradient applied to wrap the title only
+                            startY = headerHeightPx / 2,  // Start fade at middle of header
+                            endY = headerHeightPx,         // Complete at bottom of header
                         ),
                 ),
         )

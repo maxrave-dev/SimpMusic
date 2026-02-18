@@ -1,6 +1,13 @@
 package com.maxrave.simpmusic.ui.screen.other
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -38,6 +45,7 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -96,6 +104,7 @@ import com.maxrave.simpmusic.viewModel.SearchType
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.toStringRes
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -136,6 +145,28 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
 
     var isFocused by rememberSaveable { mutableStateOf(false) }
+
+    // Animated Placeholder
+    val placeholderTexts = remember {
+        listOf(
+            "Search for songs...",
+            "Search for artists...",
+            "Search for albums...",
+            "Search for playlists...",
+            "Search for videos...",
+            "Search for podcasts..."
+        )
+    }
+
+    var currentPlaceholderIndex by remember { mutableIntStateOf(0) }
+
+    // Animate placeholder - pause when focused
+    LaunchedEffect(isFocused) {
+        while (!isFocused) {
+            delay(3000) // Change every 3 seconds
+            currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderTexts.size
+        }
+    }
 
     var sheetSong by remember { mutableStateOf<SongEntity?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -201,10 +232,7 @@ fun SearchScreen(
                 .background(Color.Transparent)
                 .padding(vertical = 10.dp),
     ) {
-        // Search Bar
-        // Search suggestions within search bar dropdown
-
-        // YTItem suggestions
+        // Search Bar with Animated Placeholder
         SearchBar(
             inputField = {
                 SearchBarDefaults.InputField(
@@ -233,10 +261,24 @@ fun SearchScreen(
                     onExpandedChange = {},
                     enabled = true,
                     placeholder = {
-                        Text(
-                            text = stringResource(Res.string.what_do_you_want_to_listen_to),
-                            style = typo().labelMedium,
-                        )
+                        // Animated placeholder text
+                        AnimatedContent(
+                            targetState = currentPlaceholderIndex,
+                            transitionSpec = {
+                                (fadeIn(animationSpec = tween(500)) +
+                                    slideInVertically { height -> height })
+                                    .togetherWith(
+                                        fadeOut(animationSpec = tween(500)) +
+                                            slideOutVertically { height -> -height }
+                                    )
+                            },
+                            label = "placeholder_animation"
+                        ) { index ->
+                            Text(
+                                text = placeholderTexts[index],
+                                style = typo().labelMedium,
+                            )
+                        }
                     },
                     leadingIcon = {
                         Icon(
@@ -245,19 +287,20 @@ fun SearchScreen(
                         )
                     },
                     trailingIcon = {
-                        IconButton(
-                            modifier =
-                                Modifier
-                                    .clip(CircleShape),
-                            onClick = {
-                                searchText = ""
-                                isSearchSubmitted = false
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.baseline_close_24),
-                                contentDescription = "Clear search",
-                            )
+                        // X button only shows when there's text
+                        if (searchText.isNotEmpty()) {
+                            IconButton(
+                                modifier = Modifier.clip(CircleShape),
+                                onClick = {
+                                    searchText = ""
+                                    isSearchSubmitted = false
+                                },
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.baseline_close_24),
+                                    contentDescription = "Clear search",
+                                )
+                            }
                         }
                     },
                 )

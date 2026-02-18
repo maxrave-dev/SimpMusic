@@ -153,15 +153,7 @@ fun ArtistScreen(
                     Column {
                         Column(
                             Modifier
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors =
-                                            listOf(
-                                                color.rgbFactor(0.5f),
-                                                md_theme_dark_background,
-                                            ),
-                                    ),
-                                ).padding(horizontal = 20.dp)
+                                .padding(horizontal = 20.dp)
                                 .padding(top = 16.dp)
                                 .padding(bottom = 8.dp),
                         ) {
