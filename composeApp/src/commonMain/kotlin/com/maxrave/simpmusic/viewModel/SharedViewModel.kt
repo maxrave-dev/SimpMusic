@@ -27,6 +27,7 @@ import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.model.update.UpdateData
+import com.maxrave.domain.extension.decodeHtmlEntities
 import com.maxrave.domain.extension.isSong
 import com.maxrave.domain.extension.isVideo
 import com.maxrave.domain.extension.toGenericMediaItem
@@ -377,6 +378,7 @@ class SharedViewModel(
                                     if (_timeline.value.total > 0L) {
                                         _timeline.update {
                                             it.copy(
+                                                total = mediaPlayerHandler.getPlayerDuration(),
                                                 current = mediaState.progress,
                                                 loading = false,
                                             )
@@ -953,11 +955,11 @@ class SharedViewModel(
     private fun updateLyrics(
         videoId: String,
         duration: Int, // 0 if translated lyrics
-        lyrics: Lyrics?,
+        inputLyrics: Lyrics?,
         isTranslatedLyrics: Boolean,
         lyricsProvider: LyricsProvider = LyricsProvider.SIMPMUSIC,
     ) {
-        if (lyrics == null) {
+        if (inputLyrics == null) {
             _nowPlayingScreenData.update {
                 it.copy(
                     lyricsData = null,
@@ -965,6 +967,16 @@ class SharedViewModel(
             }
             return
         }
+
+        val lyrics =
+            inputLyrics.copy(
+                lines =
+                    inputLyrics.lines?.map { line ->
+                        line.copy(
+                            words = decodeHtmlEntities(line.words),
+                        )
+                    },
+            )
 
         if (isTranslatedLyrics) {
             val originalLyrics = _nowPlayingScreenData.value.lyricsData?.lyrics

@@ -5,8 +5,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -59,6 +66,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -94,11 +102,11 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.model.streams.TimeLine
-import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
+import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -116,9 +124,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_keyboard_arrow_down_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.now_playing_upper
+import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.unavailable
 import kotlin.math.PI
 import kotlin.math.abs
@@ -181,9 +188,10 @@ fun LyricsView(
             currentLineIndex = -1
         }
     }
-    LaunchedEffect(key1 = currentLineIndex, key2 = currentLineHeight) {
+    LaunchedEffect(key1 = currentLineIndex, key2 = currentLineHeight, key3 = current) {
         if (currentLineIndex > -1 && currentLineHeight > 0 &&
-            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
+            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED") &&
+            !current.isCrossfading
         ) {
             listState.animateScrollAndCentralizeItem(
                 index = currentLineIndex,
@@ -648,6 +656,24 @@ fun FullscreenLyricsSheet(
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         shape = RectangleShape,
     ) {
+        // Crossfade: RGB rainbow color cycling when transitioning between tracks
+        val infiniteTransition = rememberInfiniteTransition(label = "crossfadeRainbow")
+        val rainbowHue by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+            label = "rainbowHue",
+        )
+        val rainbowColor = hsvToColor(rainbowHue, 1f, 1f)
+        val sliderTrackColor by animateColorAsState(
+            targetValue = if (timelineState.isCrossfading) rainbowColor else Color.White,
+            animationSpec = tween(300),
+            label = "sliderCrossfadeColor",
+        )
         Box(modifier = Modifier.fillMaxSize()) {
             // ── Haze state (used only when shouldHaze = true) ─────────────────
             val hazeState = rememberHazeState(blurEnabled = true)
@@ -973,8 +999,8 @@ fun FullscreenLyricsSheet(
                                         sliderState = sliderState,
                                         colors =
                                             SliderDefaults.colors().copy(
-                                                thumbColor = Color.White,
-                                                activeTrackColor = Color.White,
+                                                thumbColor = sliderTrackColor,
+                                                activeTrackColor = sliderTrackColor,
                                                 inactiveTrackColor = Color.Transparent,
                                             ),
                                         thumbTrackGapSize = 0.dp,
@@ -1022,6 +1048,18 @@ fun FullscreenLyricsSheet(
                                     modifier = Modifier.weight(1f),
                                     textAlign = TextAlign.Left,
                                 )
+                                AnimatedVisibility(
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
+                                    visible = timelineState.isCrossfading,
+                                ) {
+                                    Text(
+                                        text = stringResource(Res.string.crossfading),
+                                        style = typo().bodyMedium,
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
                                 Text(
                                     text = formatDuration(timelineState.total),
                                     style = typo().bodyMedium,

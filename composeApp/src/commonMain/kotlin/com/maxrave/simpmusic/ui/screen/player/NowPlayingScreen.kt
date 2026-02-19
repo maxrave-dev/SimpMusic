@@ -145,6 +145,7 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
@@ -221,32 +222,6 @@ import kotlin.math.abs
 import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
-
-/** Converts HSV (hue 0-360, saturation 0-1, value 0-1) to Compose Color. */
-private fun hsvToColor(
-    hue: Float,
-    saturation: Float,
-    value: Float,
-): Color {
-    val c = value * saturation
-    val x = c * (1 - abs((hue / 60f) % 2f - 1f))
-    val m = value - c
-    val (r, g, b) =
-        when {
-            hue < 60f -> Triple(c, x, 0f)
-            hue < 120f -> Triple(x, c, 0f)
-            hue < 180f -> Triple(0f, c, x)
-            hue < 240f -> Triple(0f, x, c)
-            hue < 300f -> Triple(x, 0f, c)
-            else -> Triple(c, 0f, x)
-        }
-    return Color(
-        red = (r + m).coerceIn(0f, 1f),
-        green = (g + m).coerceIn(0f, 1f),
-        blue = (b + m).coerceIn(0f, 1f),
-        alpha = 1f,
-    )
-}
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
