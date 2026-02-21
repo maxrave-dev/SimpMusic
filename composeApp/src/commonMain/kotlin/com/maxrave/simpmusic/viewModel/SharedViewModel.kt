@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.viewModel
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config.ALBUM_CLICK
 import com.maxrave.common.Config.DOWNLOAD_CACHE
@@ -1810,6 +1811,13 @@ class SharedViewModel(
     fun isUserLoggedIn(): Boolean = runBlocking { dataStoreManager.cookie.first().isNotEmpty() }
 
     fun isCombineFavoriteAndYTLiked(): Boolean = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
+
+      private val _artworkGradientColors = MutableStateFlow<List<Color>>(emptyList())
+    val artworkGradientColors: StateFlow<List<Color>> = _artworkGradientColors.asStateFlow()
+
+    fun setArtworkGradientColors(colors: List<Color>) {
+        _artworkGradientColors.value = colors
+    }
 }
 
 sealed class UIEvent {
