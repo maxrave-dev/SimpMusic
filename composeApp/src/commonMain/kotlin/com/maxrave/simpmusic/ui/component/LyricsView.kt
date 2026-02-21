@@ -20,7 +20,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -42,7 +41,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -76,12 +74,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -338,19 +339,40 @@ fun RichSyncLyricsLineItem(
         }
     }
 
-    Column(modifier = modifier) {
+    val lineScale by animateFloatAsState(
+        targetValue = if (isCurrent) 1.0f else 0.92f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
+        label = "lineScale",
+    )
+
+    Column(
+        modifier = modifier.graphicsLayer {
+            scaleX = lineScale
+            scaleY = lineScale
+            transformOrigin = TransformOrigin(0f, 0.5f)
+        },
+    ) {
         Spacer(modifier = Modifier.height(customPadding))
 
         FlowRow(
             modifier = Modifier.then(
-                if (!isCurrent) Modifier.blur(1.5.dp) else Modifier
+                if (!isCurrent) Modifier.blur(1.8.dp) else Modifier
             ),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.Center,
         ) {
             parsedLine.words.forEachIndexed { index, wordTiming ->
-                AppleMusicWord(
+                val wordEndMs = parsedLine.words.getOrNull(index + 1)?.startTimeMs
+                    ?: (wordTiming.startTimeMs + 600L)
+
+                KaraokeWord(
                     word = wordTiming.text,
+                    wordStartMs = wordTiming.startTimeMs,
+                    wordEndMs = wordEndMs,
+                    currentTimeMs = currentTimeMs,
                     isActive = isCurrent && index == currentWordIndex,
                     isPast = isCurrent && index < currentWordIndex,
                     isCurrent = isCurrent,
@@ -375,50 +397,67 @@ fun RichSyncLyricsLineItem(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// KARAOKE WIPE WORD  —  KMP-compatible glow
+//
+// How the glow works without any Android-only APIs:
+//
+//   Box (word-sized)
+//   ├── Text  dim   — full width, low alpha  (always visible)
+//   ├── Text  glow  — white, blurred via Modifier.blur(), alpha = effectiveGlow
+//   │              clipped to wipeProgress width via drawWithContent + drawRect
+//   └── Text  lit   — solid white, same clip, drawn sharp on top
+//
+// Modifier.blur() is a Compose multiplatform modifier — no Android import needed.
+// The clip is done with drawWithContent so we never leave commonMain.
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun AppleMusicWord(
+private fun KaraokeWord(
     word: String,
+    wordStartMs: Long,
+    wordEndMs: Long,
+    currentTimeMs: Long,
     isActive: Boolean,
     isPast: Boolean,
     isCurrent: Boolean,
     customFontSize: TextUnit? = null,
     modifier: Modifier = Modifier,
 ) {
-    // ── 1. Alpha ──────────────────────────────────────────────────────────────
-    val targetAlpha = when {
-        !isCurrent -> 0.28f
-        isPast     -> 0.72f
-        isActive   -> 1.00f
-        else       -> 0.45f
+    val baseStyle = typo().headlineLarge.copy(
+        fontSize = customFontSize ?: typo().headlineLarge.fontSize,
+    )
+
+    // ── Wipe progress 0.0 → 1.0 ──────────────────────────────────────────────
+    val rawProgress = when {
+        !isCurrent -> 0f
+        isPast     -> 1f
+        isActive   -> {
+            val duration = (wordEndMs - wordStartMs).coerceAtLeast(1L)
+            ((currentTimeMs - wordStartMs).toFloat() / duration).coerceIn(0f, 1f)
+        }
+        else       -> 0f
     }
-    val alpha by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = 160, easing = FastOutSlowInEasing),
-        label = "wAlpha",
+
+    val wipeProgress by animateFloatAsState(
+        targetValue = rawProgress,
+        animationSpec = tween(durationMillis = 80, easing = LinearEasing),
+        label = "wipeProgress_$word",
     )
 
-    // ── 2. Scale spring ───────────────────────────────────────────────────────
-    val scale by animateFloatAsState(
-        targetValue = if (isActive) 1.07f else 1.00f,
-        animationSpec = if (isActive) {
-            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
-        } else {
-            spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow)
-        },
-        label = "wScale",
-    )
-
-    // ── 3. Glow base ─────────────────────────────────────────────────────────
+    // ── Glow base: smooth ramp when isActive toggles ──────────────────────────
     val glowBase = remember { androidx.compose.animation.core.Animatable(0f) }
     LaunchedEffect(isActive) {
         glowBase.animateTo(
             targetValue = if (isActive) 1f else 0f,
-            animationSpec = tween(durationMillis = if (isActive) 120 else 200, easing = FastOutSlowInEasing),
+            animationSpec = tween(
+                durationMillis = if (isActive) 120 else 250,
+                easing = FastOutSlowInEasing,
+            ),
         )
     }
 
-    // ── 4. Glow pulse ────────────────────────────────────────────────────────
-    val infiniteTransition = rememberInfiniteTransition(label = "wPulse")
+    // ── Glow pulse: gentle breathe while active ───────────────────────────────
+    val infiniteTransition = rememberInfiniteTransition(label = "wPulse_$word")
     val glowPulse by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -426,30 +465,160 @@ private fun AppleMusicWord(
             animation = tween(durationMillis = 850, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse,
         ),
-        label = "wPulseVal",
+        label = "wPulseVal_$word",
     )
 
     val effectiveGlow = glowBase.value * (0.78f + 0.22f * glowPulse)
 
-    // ── 5. Inner glow via TextStyle.shadow (restored to original) ────────────
-    val baseStyle = typo().headlineLarge.copy(
-        fontSize = customFontSize ?: typo().headlineLarge.fontSize,
-    )
-    val styledText = baseStyle.copy(
-        shadow = Shadow(
-            color = Color.White.copy(alpha = (effectiveGlow * 0.95f).coerceIn(0f, 1f)),
-            offset = Offset.Zero,
-            blurRadius = effectiveGlow * 10f,
+    // ── Wipe clip modifier (commonMain-safe) ──────────────────────────────────
+    // drawWithContent lets us clip to [0, width * wipeProgress] without
+    // any platform APIs — we simply skip drawing outside that rect by
+    // only issuing drawContent() inside a clipRect call on the DrawScope.
+    fun Modifier.wipeClip(progress: Float): Modifier = this.drawWithContent {
+        if (progress <= 0f) return@drawWithContent
+        val clipWidth = size.width * progress
+        // clip to left portion and draw
+        drawContext.canvas.save()
+        drawContext.canvas.clipRect(
+            left   = 0f,
+            top    = 0f,
+            right  = clipWidth,
+            bottom = size.height,
+        )
+        drawContent()
+        drawContext.canvas.restore()
+    }
+
+    Box(modifier = modifier) {
+        // ── Layer 1: dim text — always full width ─────────────────────────────
+        Text(
+            text = word,
+            style = baseStyle,
+            color = Color.White.copy(alpha = if (!isCurrent) 0.22f else 0.35f),
+        )
+
+        // ── Layer 2: glow text — blurred, clipped to wipe width ───────────────
+        // Modifier.blur() is pure Compose — works in commonMain.
+        // Alpha is driven by effectiveGlow so it fades in/out and breathes.
+        if (wipeProgress > 0f && effectiveGlow > 0.01f) {
+            Text(
+                text = word,
+                style = baseStyle,
+                color = Color.White.copy(alpha = (effectiveGlow * 0.9f).coerceIn(0f, 1f)),
+                modifier = Modifier
+                    .blur(
+                        // blur radius grows with glow — 6dp max
+                        radiusX = (6.dp * effectiveGlow),
+                        radiusY = (6.dp * effectiveGlow),
+                    )
+                    .wipeClip(wipeProgress),
+            )
+        }
+
+        // ── Layer 3: sharp lit text — clipped to wipe width ───────────────────
+        if (wipeProgress > 0f) {
+            Text(
+                text = word,
+                style = baseStyle,
+                color = Color.White,
+                modifier = Modifier.wipeClip(wipeProgress),
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPLE MUSIC AURORA GRADIENT BACKGROUND
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun AuroraBlobBackground(
+    colors: List<Color>,
+    modifier: Modifier = Modifier,
+) {
+    val fallback = listOf(Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460))
+    val palette = (colors + fallback).take(3)
+
+    val animOrb0 = remember { Animatable(palette[0]) }
+    val animOrb1 = remember { Animatable(palette[1]) }
+    val animOrb2 = remember { Animatable(palette[2]) }
+
+    LaunchedEffect(palette[0]) { animOrb0.animateTo(palette[0], tween(1800, easing = FastOutSlowInEasing)) }
+    LaunchedEffect(palette[1]) { animOrb1.animateTo(palette[1], tween(2000, easing = FastOutSlowInEasing)) }
+    LaunchedEffect(palette[2]) { animOrb2.animateTo(palette[2], tween(2200, easing = FastOutSlowInEasing)) }
+
+    val orb0Color = animOrb0.value.copy(alpha = 0.60f)
+    val orb1Color = animOrb1.value.copy(alpha = 0.55f)
+    val orb2Color = animOrb2.value.copy(alpha = 0.50f)
+
+    val infiniteTransition = rememberInfiniteTransition(label = "auroraMaster")
+    val masterTime by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2f * PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 24000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
         ),
+        label = "masterTime",
     )
 
-    Text(
-        text = word,
-        style = styledText,
-        color = Color.White.copy(alpha = alpha),
-        modifier = modifier.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
+    fun multiSine(
+        t: Float, center: Float, spread: Float,
+        f1: Float, p1: Float, a1: Float,
+        f2: Float, p2: Float, a2: Float,
+        f3: Float, p3: Float, a3: Float,
+    ): Float {
+        val total = a1 + a2 + a3
+        val raw = (
+            a1 * sin(f1 * t + p1).toFloat() +
+                a2 * sin(f2 * t + p2).toFloat() +
+                a3 * sin(f3 * t + p3).toFloat()
+            ) / total
+        return (center + raw * spread * 0.5f).coerceIn(0.02f, 0.98f)
+    }
+
+    val orb0X = multiSine(masterTime, 0.32f, 0.52f, 1f, 0.00f, 0.50f, 3f, 1.20f, 0.30f, 5f, 2.80f, 0.20f)
+    val orb0Y = multiSine(masterTime, 0.26f, 0.44f, 1f, 0.50f, 0.45f, 3f, 2.10f, 0.35f, 7f, 0.70f, 0.20f)
+    val orb1X = multiSine(masterTime, 0.72f, 0.48f, 2f, 1.60f, 0.40f, 4f, 0.30f, 0.35f, 6f, 3.50f, 0.25f)
+    val orb1Y = multiSine(masterTime, 0.68f, 0.48f, 2f, 2.40f, 0.42f, 4f, 0.90f, 0.33f, 6f, 4.10f, 0.25f)
+    val orb2X = multiSine(masterTime, 0.54f, 0.58f, 3f, 3.10f, 0.38f, 5f, 1.70f, 0.37f, 7f, 0.40f, 0.25f)
+    val orb2Y = multiSine(masterTime, 0.50f, 0.62f, 3f, 4.70f, 0.40f, 5f, 2.30f, 0.35f, 7f, 1.10f, 0.25f)
+
+    Box(
+        modifier = modifier.drawBehind {
+            val w = size.width
+            val h = size.height
+            drawRect(Color(0xFF06060E))
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(orb0Color, orb0Color.copy(alpha = orb0Color.alpha * 0.45f), Color.Transparent),
+                    center = Offset(orb0X * w, orb0Y * h), radius = w * 0.82f,
+                ),
+                radius = w * 0.82f, center = Offset(orb0X * w, orb0Y * h),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(orb1Color, orb1Color.copy(alpha = orb1Color.alpha * 0.38f), Color.Transparent),
+                    center = Offset(orb1X * w, orb1Y * h), radius = w * 0.72f,
+                ),
+                radius = w * 0.72f, center = Offset(orb1X * w, orb1Y * h),
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(orb2Color, orb2Color.copy(alpha = orb2Color.alpha * 0.32f), Color.Transparent),
+                    center = Offset(orb2X * w, orb2Y * h), radius = w * 0.64f,
+                ),
+                radius = w * 0.64f, center = Offset(orb2X * w, orb2Y * h),
+            )
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colorStops = arrayOf(
+                        0.00f to Color(0xAA000000),
+                        0.22f to Color.Transparent,
+                        0.78f to Color.Transparent,
+                        1.00f to Color(0xCC000000),
+                    ),
+                ),
+            )
         },
     )
 }
@@ -469,6 +638,8 @@ fun FullscreenLyricsSheet(
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
 
+    val artworkColors by sharedViewModel.artworkGradientColors.collectAsStateWithLifecycle()
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
@@ -479,36 +650,8 @@ fun FullscreenLyricsSheet(
     var showNowPlayingSheet by rememberSaveable { mutableStateOf(false) }
 
     val startColor = remember { Animatable(color) }
-    val midColor1 = remember { Animatable(color.copy(alpha = 0.95f)) }
-    val midColor2 = remember { Animatable(color.copy(alpha = 0.85f)) }
-    val endColor = remember { Animatable(Color.Black) }
-
-    var gradientAngle by remember { mutableFloatStateOf(0f) }
-    var gradientOffsetX by remember { mutableFloatStateOf(0f) }
-    var gradientOffsetY by remember { mutableFloatStateOf(0f) }
-
-    LaunchedEffect(Unit) {
-        if (!shouldHaze) {
-            var direction = 1f
-            var angleDirection = 1f
-            while (true) {
-                gradientAngle += angleDirection * 0.3f
-                if (gradientAngle > 45f || gradientAngle < -45f) angleDirection *= -1f
-                gradientOffsetX += direction * 1.2f
-                gradientOffsetY += direction * 0.8f
-                if (gradientOffsetX > 1500f || gradientOffsetX < -1500f) direction *= -1f
-                delay(16)
-            }
-        }
-    }
-
     LaunchedEffect(color) {
-        if (!shouldHaze) {
-            launch { startColor.animateTo(color, tween(1200, easing = FastOutSlowInEasing)) }
-            launch { midColor1.animateTo(color.copy(alpha = 0.95f), tween(1200, easing = FastOutSlowInEasing)) }
-            launch { midColor2.animateTo(color.copy(alpha = 0.85f), tween(1200, easing = FastOutSlowInEasing)) }
-            launch { endColor.animateTo(Color.Black, tween(1200, easing = FastOutSlowInEasing)) }
-        }
+        startColor.animateTo(color, tween(1200, easing = FastOutSlowInEasing))
     }
 
     LaunchedEffect(key1 = showControlButtons) {
@@ -570,117 +713,80 @@ fun FullscreenLyricsSheet(
             val hazeState = rememberHazeState(blurEnabled = true)
 
             if (shouldHaze) {
-                Box(
-                    modifier = Modifier.fillMaxSize().hazeSource(hazeState),
-                ) {
+                Box(modifier = Modifier.fillMaxSize().hazeSource(hazeState)) {
                     AsyncImage(
-                        model =
-                            ImageRequest.Builder(LocalPlatformContext.current)
-                                .data(screenDataState.thumbnailURL)
-                                .crossfade(300)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .diskCacheKey(screenDataState.thumbnailURL)
-                                .build(),
+                        model = ImageRequest.Builder(LocalPlatformContext.current)
+                            .data(screenDataState.thumbnailURL)
+                            .crossfade(300)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .diskCacheKey(screenDataState.thumbnailURL)
+                            .build(),
                         contentDescription = null,
                         contentScale = ContentScale.FillHeight,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
             } else {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(
-                                        startColor.value,
-                                        midColor1.value,
-                                        midColor2.value,
-                                        endColor.value.copy(alpha = 0.9f),
-                                        endColor.value,
-                                    ),
-                                    start = Offset(
-                                        x = gradientOffsetX + (cos(gradientAngle * PI.toFloat() / 180f) * 800f),
-                                        y = gradientOffsetY + (sin(gradientAngle * PI.toFloat() / 180f) * 800f),
-                                    ),
-                                    end = Offset(
-                                        x = gradientOffsetX + 2500f + (cos((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
-                                        y = gradientOffsetY + 2500f + (sin((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
-                                    ),
-                                ),
-                            ),
-                )
+                val resolvedColors = if (artworkColors.isNotEmpty()) artworkColors
+                else listOf(color, color.copy(alpha = 0.7f), Color(0xFF0A0A0A))
+                AuroraBlobBackground(colors = resolvedColors, modifier = Modifier.fillMaxSize())
             }
 
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .then(
-                            if (shouldHaze) {
-                                Modifier.hazeEffect(hazeState, style = CupertinoMaterials.regular()) {
-                                    blurEnabled = true
-                                }
-                            } else {
-                                Modifier
-                            },
-                        ).padding(
-                            bottom = with(localDensity) { windowInsets.getBottom(localDensity).toDp() },
-                            top = with(localDensity) { windowInsets.getTop(localDensity).toDp() },
-                        ),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (shouldHaze) Modifier.hazeEffect(hazeState, style = CupertinoMaterials.regular()) {
+                            blurEnabled = true
+                        } else Modifier
+                    )
+                    .padding(
+                        bottom = with(localDensity) { windowInsets.getBottom(localDensity).toDp() },
+                        top = with(localDensity) { windowInsets.getTop(localDensity).toDp() },
+                    ),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 36.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     AsyncImage(
-                        model =
-                            ImageRequest.Builder(LocalPlatformContext.current)
-                                .data(screenDataState.thumbnailURL)
-                                .crossfade(300)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .diskCacheKey(screenDataState.thumbnailURL)
-                                .build(),
+                        model = ImageRequest.Builder(LocalPlatformContext.current)
+                            .data(screenDataState.thumbnailURL)
+                            .crossfade(300)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .diskCacheKey(screenDataState.thumbnailURL)
+                            .build(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.size(45.dp).clip(RoundedCornerShape(8.dp)),
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = screenDataState.nowPlayingTitle,
                             style = typo().labelSmall,
                             color = Color.White,
                             maxLines = 1,
-                            modifier =
-                                Modifier
-                                    .basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
+                            modifier = Modifier
+                                .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                                .focusable(),
                         )
-
                         Spacer(modifier = Modifier.height(2.dp))
-
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier =
-                                Modifier.clickable {
-                                    coroutineScope.launch {
-                                        val song = sharedViewModel.nowPlayingState.value?.songEntity
-                                        (
-                                            song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
-                                                ?: screenDataState.songInfoData?.authorId
-                                            )?.let { channelId ->
-                                                sheetState.hide()
-                                                onDismiss()
-                                                navController.navigate(ArtistDestination(channelId = channelId))
-                                            }
-                                    }
-                                },
+                            modifier = Modifier.clickable {
+                                coroutineScope.launch {
+                                    val song = sharedViewModel.nowPlayingState.value?.songEntity
+                                    (
+                                        song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
+                                            ?: screenDataState.songInfoData?.authorId
+                                        )?.let { channelId ->
+                                            sheetState.hide()
+                                            onDismiss()
+                                            navController.navigate(ArtistDestination(channelId = channelId))
+                                        }
+                                }
+                            },
                         ) {
                             if (screenDataState.isExplicit) {
                                 ExplicitBadge(modifier = Modifier.size(16.dp).padding(end = 4.dp))
@@ -690,24 +796,17 @@ fun FullscreenLyricsSheet(
                                 style = typo().bodySmall,
                                 color = Color.White.copy(alpha = 0.7f),
                                 maxLines = 1,
-                                modifier =
-                                    Modifier
-                                        .basicMarquee(
-                                            iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
+                                modifier = Modifier
+                                    .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                                    .focusable(),
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     HeartCheckBox(checked = controllerState.isLiked, size = 28) {
                         sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                     }
-
                     Spacer(modifier = Modifier.width(8.dp))
-
                     IconButton(onClick = { showNowPlayingSheet = true }) {
                         Icon(
                             painter = painterResource(Res.drawable.baseline_more_vert_24),
@@ -717,25 +816,14 @@ fun FullscreenLyricsSheet(
                     }
                 }
 
-                Box(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .padding(horizontal = 50.dp),
-                ) {
-                    Crossfade(
-                        targetState = screenDataState.lyricsData != null,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 50.dp)) {
+                    Crossfade(targetState = screenDataState.lyricsData != null, modifier = Modifier.fillMaxSize()) {
                         if (it) {
                             screenDataState.lyricsData?.let { lyrics ->
                                 LyricsView(
                                     lyricsData = lyrics,
                                     timeLine = sharedViewModel.timeline,
-                                    onLineClick = { f ->
-                                        sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
-                                    },
+                                    onLineClick = { f -> sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f)) },
                                     modifier = Modifier.fillMaxSize(),
                                     showScrollShadows = true,
                                     backgroundColor = startColor.value,
@@ -743,10 +831,7 @@ fun FullscreenLyricsSheet(
                                 )
                             }
                         } else {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center,
-                            ) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = stringResource(Res.string.unavailable),
                                     style = typo().bodyMedium,
@@ -759,23 +844,14 @@ fun FullscreenLyricsSheet(
                 }
 
                 Column {
-                    Box(
-                        Modifier.padding(top = 15.dp).padding(horizontal = 40.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().height(24.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
+                    Box(Modifier.padding(top = 15.dp).padding(horizontal = 40.dp)) {
+                        Box(modifier = Modifier.fillMaxWidth().height(24.dp), contentAlignment = Alignment.Center) {
                             Crossfade(timelineState.loading) {
                                 if (it) {
                                     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                         LinearProgressIndicator(
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .height(4.dp)
-                                                    .padding(horizontal = 3.dp)
-                                                    .clip(RoundedCornerShape(8.dp)),
+                                            modifier = Modifier.fillMaxWidth().height(4.dp)
+                                                .padding(horizontal = 3.dp).clip(RoundedCornerShape(8.dp)),
                                             color = Color.Gray,
                                             trackColor = Color.DarkGray,
                                             strokeCap = StrokeCap.Round,
@@ -785,12 +861,8 @@ fun FullscreenLyricsSheet(
                                     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                         LinearProgressIndicator(
                                             progress = { timelineState.bufferedPercent.toFloat() / 100 },
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .height(4.dp)
-                                                    .padding(horizontal = 3.dp)
-                                                    .clip(RoundedCornerShape(8.dp)),
+                                            modifier = Modifier.fillMaxWidth().height(4.dp)
+                                                .padding(horizontal = 3.dp).clip(RoundedCornerShape(8.dp)),
                                             color = Color.Gray,
                                             trackColor = Color.DarkGray,
                                             strokeCap = StrokeCap.Round,
@@ -805,22 +877,17 @@ fun FullscreenLyricsSheet(
                                 value = sliderValue,
                                 onValueChange = { sharedViewModel.onUIEvent(UIEvent.UpdateProgress(it)) },
                                 valueRange = 0f..100f,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 3.dp)
-                                        .align(Alignment.TopCenter),
+                                modifier = Modifier.fillMaxWidth().padding(top = 3.dp).align(Alignment.TopCenter),
                                 track = { sliderState ->
                                     SliderDefaults.Track(
                                         modifier = Modifier.height(5.dp),
                                         enabled = true,
                                         sliderState = sliderState,
-                                        colors =
-                                            SliderDefaults.colors().copy(
-                                                thumbColor = sliderTrackColor,
-                                                activeTrackColor = sliderTrackColor,
-                                                inactiveTrackColor = Color.Transparent,
-                                            ),
+                                        colors = SliderDefaults.colors().copy(
+                                            thumbColor = sliderTrackColor,
+                                            activeTrackColor = sliderTrackColor,
+                                            inactiveTrackColor = Color.Transparent,
+                                        ),
                                         thumbTrackGapSize = 0.dp,
                                         drawTick = { _, _ -> },
                                         drawStopIndicator = null,
@@ -831,12 +898,11 @@ fun FullscreenLyricsSheet(
                                         modifier = Modifier.height(18.dp).width(8.dp).padding(vertical = 4.dp),
                                         thumbSize = DpSize(8.dp, 8.dp),
                                         interactionSource = remember { MutableInteractionSource() },
-                                        colors =
-                                            SliderDefaults.colors().copy(
-                                                thumbColor = Color.White,
-                                                activeTrackColor = Color.White,
-                                                inactiveTrackColor = Color.Transparent,
-                                            ),
+                                        colors = SliderDefaults.colors().copy(
+                                            thumbColor = Color.White,
+                                            activeTrackColor = Color.White,
+                                            inactiveTrackColor = Color.Transparent,
+                                        ),
                                         enabled = true,
                                     )
                                 },
@@ -846,20 +912,14 @@ fun FullscreenLyricsSheet(
 
                     LazyColumn {
                         item {
-                            Row(
-                                Modifier.fillMaxWidth().padding(horizontal = 40.dp),
-                            ) {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 40.dp)) {
                                 Text(
                                     text = formatDuration(timelineState.current),
                                     style = typo().bodyMedium,
                                     modifier = Modifier.weight(1f),
                                     textAlign = TextAlign.Left,
                                 )
-                                AnimatedVisibility(
-                                    enter = fadeIn(),
-                                    exit = fadeOut(),
-                                    visible = timelineState.isCrossfading,
-                                ) {
+                                AnimatedVisibility(enter = fadeIn(), exit = fadeOut(), visible = timelineState.isCrossfading) {
                                     Text(
                                         text = stringResource(Res.string.crossfading),
                                         style = typo().bodyMedium,
@@ -876,7 +936,6 @@ fun FullscreenLyricsSheet(
                             }
                             Spacer(modifier = Modifier.fillMaxWidth().height(5.dp))
                         }
-
                         item {
                             AnimatedVisibility(
                                 visible = showControlButtons,
@@ -890,45 +949,20 @@ fun FullscreenLyricsSheet(
                                 enter = expandVertically(tween(300)),
                                 exit = shrinkVertically(tween(300)),
                             ) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .height(32.dp)
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 40.dp),
-                                ) {
+                                Box(modifier = Modifier.height(32.dp).fillMaxWidth().padding(horizontal = 40.dp)) {
                                     IconButton(
-                                        modifier =
-                                            Modifier
-                                                .size(24.dp)
-                                                .aspectRatio(1f)
-                                                .align(Alignment.CenterStart)
-                                                .clip(CircleShape),
-                                        onClick = {
-                                            showInfoBottomSheet = true
-                                            showControlButtons = true
-                                        },
+                                        modifier = Modifier.size(24.dp).aspectRatio(1f).align(Alignment.CenterStart).clip(CircleShape),
+                                        onClick = { showInfoBottomSheet = true; showControlButtons = true },
                                     ) {
                                         Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
                                     }
                                     Row(Modifier.align(Alignment.CenterEnd)) {
                                         Spacer(modifier = Modifier.size(8.dp))
                                         IconButton(
-                                            modifier =
-                                                Modifier
-                                                    .size(24.dp)
-                                                    .aspectRatio(1f)
-                                                    .clip(CircleShape),
-                                            onClick = {
-                                                showQueueBottomSheet = true
-                                                showControlButtons = true
-                                            },
+                                            modifier = Modifier.size(24.dp).aspectRatio(1f).clip(CircleShape),
+                                            onClick = { showQueueBottomSheet = true; showControlButtons = true },
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
-                                                tint = Color.White,
-                                                contentDescription = "",
-                                            )
+                                            Icon(imageVector = Icons.AutoMirrored.Outlined.QueueMusic, tint = Color.White, contentDescription = "")
                                         }
                                     }
                                 }
@@ -938,19 +972,13 @@ fun FullscreenLyricsSheet(
                     }
                 }
 
-                if (!showControlButtons) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
+                if (!showControlButtons) Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
 
-    if (showQueueBottomSheet) {
-        QueueBottomSheet(onDismiss = { showQueueBottomSheet = false })
-    }
-    if (showInfoBottomSheet) {
-        InfoPlayerBottomSheet(onDismiss = { showInfoBottomSheet = false })
-    }
+    if (showQueueBottomSheet) QueueBottomSheet(onDismiss = { showQueueBottomSheet = false })
+    if (showInfoBottomSheet) InfoPlayerBottomSheet(onDismiss = { showInfoBottomSheet = false })
     if (showNowPlayingSheet) {
         NowPlayingBottomSheet(
             onDismiss = { showNowPlayingSheet = false },
