@@ -132,6 +132,26 @@ class NowPlayingBottomSheetViewModel(
         }
     }
 
+    fun resetPlaylists() {
+        viewModelScope.launch {
+            localPlaylistRepository.getAllLocalPlaylists().collectLatest { list ->
+                _uiState.update { it.copy(listLocalPlaylist = list) }
+            }
+        }
+        viewModelScope.launch {
+            playlistRepository.getLibraryPlaylist().collect { data ->
+                _uiState.update { state ->
+                    state.copy(
+                        listYouTubePlaylist =
+                            data?.filter {
+                                it.browseId != "VLLM"
+                            } ?: emptyList(),
+                    )
+                }
+            }
+        }
+    }
+
     fun setSongEntity(songEntity: SongEntity?) {
         val songOrNowPlaying = songEntity ?: (mediaPlayerHandler.nowPlayingState.value.songEntity ?: return)
         viewModelScope.launch {

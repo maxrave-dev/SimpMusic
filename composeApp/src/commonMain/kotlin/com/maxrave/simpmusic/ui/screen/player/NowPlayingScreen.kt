@@ -581,6 +581,7 @@ fun NowPlayingScreenContent(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         LaunchedEffect(Unit) {
+            viewModel.resetPlaylists()
             viewModel.setSongEntity(null) // Uses current playing song
         }
 

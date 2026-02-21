@@ -1747,6 +1747,7 @@ fun NowPlayingBottomSheet(
                         icon = painterResource(Res.drawable.baseline_playlist_add_24),
                         text = Res.string.add_to_a_playlist,
                     ) {
+                        viewModel.resetPlaylists()
                         addToAPlaylist = true
                     }
                     ActionButton(
