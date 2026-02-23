@@ -588,7 +588,7 @@ fun InfoPlayerBottomSheet(
                     color = white,
                 )
                 Text(
-                    text = format?.itag?.toString() ?: stringResource(Res.string.unknown),
+                    text = (if (format?.itag == 0) "320kbps Hi-res" else format?.itag?.toString()) ?: stringResource(Res.string.unknown),
                     modifier =
                         Modifier
                             .fillMaxWidth()
