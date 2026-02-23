@@ -464,7 +464,7 @@ class SettingsViewModel(
 
     fun setYour320kbpsUrl(url: String) {
         viewModelScope.launch {
-            dataStoreManager.setYour320kbpsUrl(url)
+            dataStoreManager.setYour320kbpsUrl(url.removeSuffix("/"))
             getYour320kbpsUrl()
         }
     }

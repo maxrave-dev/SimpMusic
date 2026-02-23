@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.viewModel
 
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
+import com.maxrave.common.Config.REMOVED_SONG_DATE_TIME
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.mediaservice.handler.PlaylistType
@@ -47,7 +48,7 @@ class LibraryDynamicPlaylistViewModel(
             songRepository.getLikedSongs().collectLatest { likedSong ->
                 _listFavoriteSong.value =
                     likedSong.sortedByDescending {
-                        it.favoriteAt ?: it.inLibrary
+                        it.favoriteAt ?: REMOVED_SONG_DATE_TIME
                     }
             }
         }
@@ -58,7 +59,7 @@ class LibraryDynamicPlaylistViewModel(
             artistRepository.getFollowedArtists().collectLatest { followedArtist ->
                 _listFollowedArtist.value =
                     followedArtist.sortedByDescending {
-                        it.followedAt ?: it.inLibrary
+                        it.followedAt ?: REMOVED_SONG_DATE_TIME
                     }
             }
         }
@@ -77,7 +78,7 @@ class LibraryDynamicPlaylistViewModel(
             songRepository.getDownloadedSongs().collectLatest { downloadedSong ->
                 _listDownloadedSong.value =
                     (downloadedSong ?: emptyList()).sortedByDescending {
-                        it.downloadedAt ?: it.inLibrary
+                        it.downloadedAt ?: REMOVED_SONG_DATE_TIME
                     }
             }
         }
