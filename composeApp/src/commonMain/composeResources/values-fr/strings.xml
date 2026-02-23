@@ -273,8 +273,8 @@
     <string name="newer_first">Les plus récents d'abord</string>
     <string name="download_sort_title_asc">Titre (A-Z)</string>
     <string name="download_sort_title_desc">Titre (Z-A)</string>
-    <string name="download_sort_date_newest">Plus récents d\u0027abord</string>
-    <string name="download_sort_date_oldest">Plus anciens d\u0027abord</string>
+    <string name="download_sort_date_newest">Plus récents d'abord</string>
+    <string name="download_sort_date_oldest">Plus anciens d'abord</string>
     <string name="download_sort_artist_asc">Artiste (A-Z)</string>
     <string name="download_sort_artist_desc">Artiste (Z-A)</string>
     <string name="added_date">Date d'ajout</string>
