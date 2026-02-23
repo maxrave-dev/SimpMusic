@@ -266,6 +266,12 @@
     <string name="sort">Sırala</string>
     <string name="older_first">Eskiden Yeniye</string>
     <string name="newer_first">Yeniden Eskiye</string>
+    <string name="download_sort_title_asc">Başlık (A-Z)</string>
+    <string name="download_sort_title_desc">Başlık (Z-A)</string>
+    <string name="download_sort_date_newest">En yeniler önce</string>
+    <string name="download_sort_date_oldest">En eskiler önce</string>
+    <string name="download_sort_artist_asc">Sanatçı (A-Z)</string>
+    <string name="download_sort_artist_desc">Sanatçı (Z-A)</string>
     <string name="added_date">Tarih eklendi</string>
     <string name="credit_app">Arka uç olarak YouTube Music'i kullanan basit bir müzik uygulaması \n\nSimpMusic, reklamlar ve izleme olmadan YouTube ve YouTube Music'ten müzik akışı sağlayan açık kaynaklı bir projedir. SimpMusic birçok özellik sunar:\n\n - Müzik akışı \n - Senkronize şarkı sözleri\n - Verileri kişiselleştirin\n - vb… \n\nSimpMusic her zaman ücretsizdir ve reklam içermez\n\nTuan Minh Nguyen Duc'tan ❤️ ile oluşturun (maxrave-dev)</string>
     <string name="issue_tracker">Sorun Takibi</string>

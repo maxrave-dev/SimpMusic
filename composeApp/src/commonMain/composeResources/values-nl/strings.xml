@@ -212,4 +212,10 @@
     <string name="sync_playlist_warning">SimpMusic maakt automatisch een YouTube-afspeellijst aan. Weet je het zeker?</string>
     <string name="syncing">Synchroniseren</string>
     <string name="unsync_playlist_warning">"Deze afspeellijst de-synchroniseren? Deze afspeellijst zal niet verwijderd worden van YouTube Muziek "</string>
+    <string name="download_sort_title_asc">Titel (A-Z)</string>
+    <string name="download_sort_title_desc">Titel (Z-A)</string>
+    <string name="download_sort_date_newest">Nieuwste eerst</string>
+    <string name="download_sort_date_oldest">Oudste eerst</string>
+    <string name="download_sort_artist_asc">Artiest (A-Z)</string>
+    <string name="download_sort_artist_desc">Artiest (Z-A)</string>
 </resources>

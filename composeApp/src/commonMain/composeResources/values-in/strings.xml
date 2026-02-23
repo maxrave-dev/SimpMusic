@@ -258,6 +258,12 @@
     <string name="free_space">Ruang kosong</string>
     <string name="suggest">Saran</string>
     <string name="reload">Memuat ulang</string>
+    <string name="download_sort_title_asc">Judul (A-Z)</string>
+    <string name="download_sort_title_desc">Judul (Z-A)</string>
+    <string name="download_sort_date_newest">Terbaru dulu</string>
+    <string name="download_sort_date_oldest">Terlama dulu</string>
+    <string name="download_sort_artist_asc">Artis (A-Z)</string>
+    <string name="download_sort_artist_desc">Artis (Z-A)</string>
     <string name="added_date">Tanggal ditambahkan</string>
     <string name="credit_app">Aplikasi musik sederhana yang menggunakan YouTube Music untuk backend \n\nSimpMusic adalah proyek sumber terbuka untuk streaming musik dari YouTube dan YouTube Music tanpa iklan dan pelacakan. SimpMusic menyediakan banyak fitur:\n\n - Streaming musik\n - Lirik yang disinkronkan\n - Personalisasi data\n - dll... \n\nSimpMusic selalu gratis dan tidak ada iklan\n\nDibangun dengan ❤️ oleh Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Pelacak Masalah</string>

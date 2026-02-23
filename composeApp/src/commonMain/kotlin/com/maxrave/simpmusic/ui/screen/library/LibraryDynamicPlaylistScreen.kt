@@ -54,6 +54,7 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.SortDownloadsBottomSheet
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -73,6 +74,7 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_close_24
 import simpmusic.composeapp.generated.resources.baseline_search_24
+import simpmusic.composeapp.generated.resources.baseline_sort_24
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
@@ -100,7 +102,10 @@ fun LibraryDynamicPlaylistScreen(
     var chosenSong: SongEntity? by remember { mutableStateOf(null) }
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showSearchBar by rememberSaveable { mutableStateOf(false) }
+    var sortBottomSheetShow by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
+
+    val downloadSortType by viewModel.downloadSortType.collectAsStateWithLifecycle()
 
     val favorite by viewModel.listFavoriteSong.collectAsStateWithLifecycle()
     var tempFavorite by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
@@ -378,6 +383,16 @@ fun LibraryDynamicPlaylistScreen(
             song = chosenSong ?: return,
         )
     }
+    if (sortBottomSheetShow) {
+        SortDownloadsBottomSheet(
+            selectedState = downloadSortType,
+            onDismiss = { sortBottomSheetShow = false },
+            onSortChanged = {
+                viewModel.setDownloadSort(it)
+                sortBottomSheetShow = false
+            },
+        )
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -405,6 +420,18 @@ fun LibraryDynamicPlaylistScreen(
                 }
             },
             actions = {
+                if (LibraryDynamicPlaylistType.toType(type) == LibraryDynamicPlaylistType.Downloaded) {
+                    Box(Modifier.padding(horizontal = 5.dp)) {
+                        RippleIconButton(
+                            Res.drawable.baseline_sort_24,
+                            Modifier
+                                .size(32.dp),
+                            true,
+                        ) {
+                            sortBottomSheetShow = true
+                        }
+                    }
+                }
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
                         if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,

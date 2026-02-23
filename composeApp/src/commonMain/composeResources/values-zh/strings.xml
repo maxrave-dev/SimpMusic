@@ -270,6 +270,12 @@
     <string name="sort">排序方式</string>
     <string name="older_first">较早的优先</string>
     <string name="newer_first">较新的在前</string>
+    <string name="download_sort_title_asc">标题 (A-Z)</string>
+    <string name="download_sort_title_desc">标题 (Z-A)</string>
+    <string name="download_sort_date_newest">最新优先</string>
+    <string name="download_sort_date_oldest">最旧优先</string>
+    <string name="download_sort_artist_asc">艺术家 (A-Z)</string>
+    <string name="download_sort_artist_desc">艺术家 (Z-A)</string>
     <string name="added_date">已添加日期</string>
     <string name="credit_app">使用 YouTube Music 作为后端的简单音乐应用 \n\nSimpMusic 是一个开源项目，可以在没有广告和跟踪的情况下从 YouTube 和 YouTube Music 中流式播放音乐。SimpMusic 提供许多功能：\n\n - 流媒体音乐 \n - 同步歌词 \n - 个性化数据 \n -等等… \n\nSimpMusic始终是免费的，没有广告\n\n Tuan Minh Nguyen Duc(Maxrave-dev) 用 ❤️ 构建</string>
     <string name="issue_tracker">问题跟踪</string>
