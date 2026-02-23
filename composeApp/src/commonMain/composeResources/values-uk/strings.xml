@@ -270,6 +270,12 @@
     <string name="sort">Упорядкувати</string>
     <string name="older_first">Спочатку старіші</string>
     <string name="newer_first">Спочатку новіші</string>
+    <string name="download_sort_title_asc">Назва (А-Я)</string>
+    <string name="download_sort_title_desc">Назва (Я-А)</string>
+    <string name="download_sort_date_newest">Спочатку новіші</string>
+    <string name="download_sort_date_oldest">Спочатку старіші</string>
+    <string name="download_sort_artist_asc">Виконавець (А-Я)</string>
+    <string name="download_sort_artist_desc">Виконавець (Я-А)</string>
     <string name="added_date">Дата додавання</string>
     <string name="credit_app">Простий музичний застосунок з використанням YouTube Music для бекенду \n\nSimpMusic - це проєкт з відкритим вихідним кодом для потокової передачі музики з YouTube та YouTube Music без реклами та відстеження. SimpMusic надає багато можливостей:\n\n - Потокова музика\n - Синхронізовані тексти\n - Персоналізація даних\n - тощо... \n\nSimpMusic завжди безкоштовний і без реклами\n\nСтворено з ❤️ від Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Відстежувач випусків</string>

@@ -133,6 +133,7 @@ import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.screen.library.DownloadSortType
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.ui.theme.white
@@ -3173,4 +3174,100 @@ sealed class DevLogInType {
             is YouTube -> getString(Res.string.your_youtube_cookie)
             is Discord -> getString(Res.string.your_discord_token)
         }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SortDownloadsBottomSheet(
+    selectedState: DownloadSortType,
+    onDismiss: () -> Unit,
+    onSortChanged: (DownloadSortType) -> Unit,
+) {
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val sortOptions =
+        remember {
+            DownloadSortType.entries
+        }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Text(
+                    stringResource(Res.string.sort_by),
+                    style = typo().labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier =
+                        Modifier
+                            .padding(start = 16.dp, top = 16.dp, bottom = 24.dp)
+                            .align(Alignment.Start),
+                )
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                ) {
+                    items(sortOptions, key = { sortOption -> sortOption.hashCode() }) { sortOption ->
+                        val isSelected = sortOption == selectedState
+                        Row(
+                            Modifier
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    onSortChanged(sortOption)
+                                    onDismiss()
+                                }.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(sortOption.displayNameRes()),
+                                style = typo().labelMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isSelected) seed else Color.White,
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            if (isSelected) {
+                                Image(
+                                    painter = painterResource(Res.drawable.done),
+                                    contentDescription = "Selected",
+                                    colorFilter = ColorFilter.tint(seed),
+                                    modifier = Modifier.size(32.dp),
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.size(32.dp))
+                            }
+                        }
+                    }
+                }
+                EndOfModalBottomSheet()
+            }
+        }
+    }
 }

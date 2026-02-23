@@ -266,6 +266,12 @@
     <string name="sort">정렬</string>
     <string name="older_first">날짜순</string>
     <string name="newer_first">최신순</string>
+    <string name="download_sort_title_asc">제목 (가-하)</string>
+    <string name="download_sort_title_desc">제목 (하-가)</string>
+    <string name="download_sort_date_newest">최신순</string>
+    <string name="download_sort_date_oldest">오래된순</string>
+    <string name="download_sort_artist_asc">아티스트 (가-하)</string>
+    <string name="download_sort_artist_desc">아티스트 (하-가)</string>
     <string name="added_date">추가한 날짜</string>
     <string name="credit_app">YouTube Music을 백엔드로 사용하는 간단한 음악 앱 \n\nSimpMusic은 광고나 추적 없이 YouTube나 YouTube Music에서 음악을 스트리밍하는 오픈 소스 프로젝트입니다. SimpMusic에서는 다양한 기능들을 이용할 수 있습니다.\n\n - 음악 스트리밍 \n - 가사 싱크\n - 데이터 개인화\n - 기타… \n\nSimpMusic은 항상 무료이며 광고도 없습니다\n\nTuan Minh Nguyen Duc (maxrave-dev)가 ❤️을 담아 만듦</string>
     <string name="issue_tracker">이슈 트래커</string>

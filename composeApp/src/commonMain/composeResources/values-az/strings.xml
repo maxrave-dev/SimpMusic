@@ -256,6 +256,12 @@
     <string name="free_space">Boş yer</string>
     <string name="suggest">Tövsiyə</string>
     <string name="reload">Təkrar yüklə</string>
+    <string name="download_sort_title_asc">Başlıq (A-Z)</string>
+    <string name="download_sort_title_desc">Başlıq (Z-A)</string>
+    <string name="download_sort_date_newest">Ən yenilər əvvəl</string>
+    <string name="download_sort_date_oldest">Ən köhnələr əvvəl</string>
+    <string name="download_sort_artist_asc">Ifacı (A-Z)</string>
+    <string name="download_sort_artist_desc">Ifacı (Z-A)</string>
     <string name="added_date">Əlavə edilmə tarixi</string>
     <string name="credit_app">Geri çıxış üçün YouTube Music işlədən sadə musiqi tətbiqi \n\nSimpMusic reklam və izləmə olmadan YouTube və YouTube Music-dən musiqi yayımlamaq üçün açıq mənbə layihədir. SimpMusic bir çox xüsusiyyətləri təmin edir:\n\n - Musiqi yayımı\n - Sinxronlaşdırılan lirika\n - Məlumatları fərdiləşdir\n - və s... \n\nSimpMusic həmişə pulsuzdur və reklam yoxdur\n\nTuan Minh Nguyen Duc (maxrave-dev) ❤️- ilə qurur</string>
     <string name="issue_tracker">Problem İzləyici</string>

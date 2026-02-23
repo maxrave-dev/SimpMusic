@@ -258,6 +258,12 @@
     <string name="free_space">מקום פנוי</string>
     <string name="suggest">הצעה</string>
     <string name="reload">טען מחדש</string>
+    <string name="download_sort_title_asc">כותרת (א-ת)</string>
+    <string name="download_sort_title_desc">כותרת (ת-א)</string>
+    <string name="download_sort_date_newest">חדשים ראשון</string>
+    <string name="download_sort_date_oldest">ישנים ראשון</string>
+    <string name="download_sort_artist_asc">אמן (א-ת)</string>
+    <string name="download_sort_artist_desc">אמן (ת-א)</string>
     <string name="added_date">נוסף תאריך</string>
     <string name="credit_app">אפליקציית מוזיקה פשוטה באמצעות YouTube Music עבור backend \n\nSimpMusic הוא פרויקט קוד פתוח להזרמת מוזיקה מ-YouTube ו-YouTube Music ללא מודעות ומעקב. SimpMusic מספקת תכונות רבות:\n\n - הזרמת מוזיקה \n - מילים מסונכרנות\n - התאמה אישית של נתונים\n - אקו… \n\n
 SimpMusic תמיד בחינם וללא פרסומות\n\nבונה מ ❤️מ-Tuan Minh Nguyen Duc (maxrave-dev)</string>

@@ -6,6 +6,7 @@ import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.ui.screen.library.DownloadSortType
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -223,6 +224,16 @@ fun FilterState.displayNameRes(): StringResource =
         FilterState.OlderFirst -> Res.string.older_first
         FilterState.Title -> Res.string.title
         FilterState.CustomOrder -> Res.string.custom_order
+    }
+
+fun DownloadSortType.displayNameRes(): StringResource =
+    when (this) {
+        DownloadSortType.TitleAsc -> Res.string.download_sort_title_asc
+        DownloadSortType.TitleDesc -> Res.string.download_sort_title_desc
+        DownloadSortType.DateNewest -> Res.string.download_sort_date_newest
+        DownloadSortType.DateOldest -> Res.string.download_sort_date_oldest
+        DownloadSortType.ArtistAsc -> Res.string.download_sort_artist_asc
+        DownloadSortType.ArtistDesc -> Res.string.download_sort_artist_desc
     }
 
 @Composable

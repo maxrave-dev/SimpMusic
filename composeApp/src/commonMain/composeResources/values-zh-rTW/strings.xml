@@ -268,6 +268,12 @@
     <string name="sort">排序</string>
     <string name="older_first">由舊至新</string>
     <string name="newer_first">最新作品</string>
+    <string name="download_sort_title_asc">標題 (A-Z)</string>
+    <string name="download_sort_title_desc">標題 (Z-A)</string>
+    <string name="download_sort_date_newest">最新優先</string>
+    <string name="download_sort_date_oldest">最舊優先</string>
+    <string name="download_sort_artist_asc">藝人 (A-Z)</string>
+    <string name="download_sort_artist_desc">藝人 (Z-A)</string>
     <string name="added_date">已添加日期</string>
     <string name="credit_app">SimpMusic是一個開放原始碼、零廣告、使用YouTube Music作為後端的簡單音樂應用程式 \n\n用於從YouTube和YouTube Music串流音樂。SimpMusic提供許多功能：\n\n - 串流音樂\n - 同步歌詞\n - 個人化資料\n - 等等... \n\nSimpMusic總是免費，無廣告\n\n由Tuan Minh Nguyen Duc (maxrave) 開發 ❤️</string>
     <string name="issue_tracker">回報問題</string>

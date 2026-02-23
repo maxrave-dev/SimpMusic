@@ -266,6 +266,12 @@
     <string name="sort">क्रम से लगाएं</string>
     <string name="older_first">पुराने पहले</string>
     <string name="newer_first">नए पहले</string>
+    <string name="download_sort_title_asc">शीर्षक (A-Z)</string>
+    <string name="download_sort_title_desc">शीर्षक (Z-A)</string>
+    <string name="download_sort_date_newest">नवीनतम पहले</string>
+    <string name="download_sort_date_oldest">सबसे पुराने पहले</string>
+    <string name="download_sort_artist_asc">कलाकार (A-Z)</string>
+    <string name="download_sort_artist_desc">कलाकार (Z-A)</string>
     <string name="added_date">जोड़ने की तिथि</string>
     <string name="credit_app">बैकएंड के लिए YouTube Music का उपयोग करने वाला एक सरल संगीत ऐप \n\nSimpMusic YouTube और YouTube Music से बिना विज्ञापनों और ट्रैकिंग के संगीत स्ट्रीम करने के लिए एक ओपन सोर्स प्रोजेक्ट है। SimpMusic कई सुविधाएं प्रदान करता है:\n\n - संगीत स्ट्रीमिंग \n - सिंक किए गए गाने के बोल\n - व्यक्तिगत डेटा\n - और बहुत कुछ… \n\nSimpMusic हमेशा मुफ्त और बिना विज्ञापनों के है\n\nतुआन मिन्ह न्गुयेन डक (maxrave-dev) द्वारा ❤️ से बनाया गया</string>
     <string name="issue_tracker">समस्या ट्रैकर</string>

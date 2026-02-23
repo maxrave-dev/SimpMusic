@@ -255,6 +255,12 @@
     <string name="free_space">Wolne miejsce</string>
     <string name="suggest">Sugestia</string>
     <string name="reload">Przeładować</string>
+    <string name="download_sort_title_asc">Tytuł (A-Z)</string>
+    <string name="download_sort_title_desc">Tytuł (Z-A)</string>
+    <string name="download_sort_date_newest">Najnowsze najpierw</string>
+    <string name="download_sort_date_oldest">Najstarsze najpierw</string>
+    <string name="download_sort_artist_asc">Artysta (A-Z)</string>
+    <string name="download_sort_artist_desc">Artysta (Z-A)</string>
     <string name="added_date">Dodana data</string>
     <string name="credit_app">Prosta aplikacja muzyczna wykorzystująca YouTube Music jako zaplecze \n\nSimpMusic to projekt typu open source umożliwiający strumieniowe przesyłanie muzyki z YouTube i YouTube Music bez reklam i śledzenia. SimpMusic zapewnia wiele funkcji:\n\n – Przesyłanie strumieniowe muzyki \n – Zsynchronizowane teksty\n – Personalizacja danych\n – itp… \n\nSimpMusic jest zawsze darmowy i nie zawiera reklam\n\nTwórz za pomocą ❤️ od Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Lista problemow</string>
