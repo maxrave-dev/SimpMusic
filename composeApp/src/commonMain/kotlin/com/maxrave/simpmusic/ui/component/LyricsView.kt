@@ -8,6 +8,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -15,6 +16,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
@@ -35,6 +37,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -86,6 +89,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -433,8 +437,28 @@ fun RichSyncLyricsLineItem(
             verticalArrangement = Arrangement.Center,
         ) {
             parsedLine.words.forEachIndexed { index, wordTiming ->
+                // Calculate word end time (start time of next word or line end time)
+                // If last word and lineEndTimeMs is invalid (Long.MAX_VALUE), estimate based on previous word duration
+                val wordEndTimeMs =
+                    if (index < parsedLine.words.size - 1) {
+                        parsedLine.words[index + 1].startTimeMs
+                    } else if (parsedLine.lineEndTimeMs == Long.MAX_VALUE || parsedLine.lineEndTimeMs <= wordTiming.startTimeMs) {
+                        // Estimate: use previous word duration or default 500ms
+                        if (index > 0 && parsedLine.words[index - 1].startTimeMs < wordTiming.startTimeMs) {
+                            val prevWordDuration = wordTiming.startTimeMs - parsedLine.words[index - 1].startTimeMs
+                            wordTiming.startTimeMs + prevWordDuration
+                        } else {
+                            wordTiming.startTimeMs + 500L // Default 500ms if no reference
+                        }
+                    } else {
+                        parsedLine.lineEndTimeMs
+                    }
                 AnimatedWord(
                     word = wordTiming.text,
+                    wordIndex = index,
+                    wordStartTimeMs = wordTiming.startTimeMs,
+                    wordEndTimeMs = wordEndTimeMs,
+                    currentTimeMs = currentTimeMs,
                     isActive = isCurrent && index == currentWordIndex,
                     isPast = isCurrent && index < currentWordIndex,
                     isCurrent = isCurrent,
@@ -471,41 +495,119 @@ fun RichSyncLyricsLineItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AnimatedWord(
     word: String,
+    wordIndex: Int,
+    wordStartTimeMs: Long,
+    wordEndTimeMs: Long,
+    currentTimeMs: Long,
     isActive: Boolean,
     isPast: Boolean,
     isCurrent: Boolean,
     customFontSize: TextUnit? = null,
 ) {
-    // Smooth color transition with animation
-    val color by animateColorAsState(
-        targetValue =
-            when {
-                !isCurrent -> Color.LightGray.copy(alpha = 0.35f)
+    // Non-current lines render simply with dimmed color
+    if (!isCurrent) {
+        Text(
+            text = word,
+            style =
+                typo().headlineLarge.copy(
+                    fontSize = customFontSize ?: typo().headlineLarge.fontSize,
+                ),
+            color = Color.LightGray.copy(alpha = 0.35f),
+        )
+        return
+    }
 
-                // Non-current line
-                isPast -> Color.White.copy(alpha = 0.7f)
+    // Calculate word duration
+    val wordDuration = (wordEndTimeMs - wordStartTimeMs).coerceAtLeast(100L)
 
-                // Past words
-                isActive -> Color.White
+    // Apple Music style: Character-level wipe effect
+    // Split word into individual characters and animate each one
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        word.forEachIndexed { charIndex, char ->
+            // Calculate timing for each character
+            // Characters are evenly spaced in time within the word
+            val charStartTimeMs = wordStartTimeMs + (wordDuration * charIndex / word.length)
+            val charEndTimeMs =
+                if (charIndex < word.length - 1) {
+                    wordStartTimeMs + (wordDuration * (charIndex + 1) / word.length)
+                } else {
+                    wordEndTimeMs
+                }
 
-                // Current word - full brightness
-                else -> Color.LightGray.copy(alpha = 0.5f) // Future words
-            },
-        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-        label = "wordColor",
-    )
+            // Calculate character progress - optimized to avoid excessive recomposition
+            val isPastChar = currentTimeMs >= charEndTimeMs
+            val isFutureChar = currentTimeMs <= charStartTimeMs
 
-    Text(
-        text = word,
-        style =
-            typo().headlineLarge.copy(
-                fontSize = customFontSize ?: typo().headlineLarge.fontSize,
-            ),
-        color = color,
-    )
+            // Use direct calculation for smoother performance
+            val rawProgress =
+                remember(currentTimeMs, charStartTimeMs, charEndTimeMs) {
+                    when {
+                        isPastChar -> {
+                            1f
+                        }
+
+                        isFutureChar -> {
+                            0f
+                        }
+
+                        else -> {
+                            (
+                                (currentTimeMs - charStartTimeMs).toFloat() /
+                                    (charEndTimeMs - charStartTimeMs).toFloat()
+                            ).coerceIn(0f, 1f)
+                        }
+                    }
+                }
+
+            // Animate character progress with smoother easing
+            val animatedCharProgress by animateFloatAsState(
+                targetValue = rawProgress,
+                animationSpec =
+                    tween(
+                        durationMillis = 60,
+                        easing = FastOutSlowInEasing,
+                    ),
+                label = "charProgress",
+            )
+
+            // Determine color based on progress with smooth interpolation
+            val charColor =
+                when {
+                    animatedCharProgress >= 1f -> {
+                        Color.White
+                    }
+                    animatedCharProgress <= 0f -> {
+                        Color.LightGray.copy(alpha = 0.6f)
+                    }
+                    else -> {
+                        // Smooth interpolation
+                        val t = animatedCharProgress
+                        val gray = Color.LightGray.copy(alpha = 0.6f)
+                        Color(
+                            red = gray.red + (1f - gray.red) * t,
+                            green = gray.green + (1f - gray.green) * t,
+                            blue = gray.blue + (1f - gray.blue) * t,
+                            alpha = gray.alpha + (1f - gray.alpha) * t,
+                        )
+                    }
+                }
+
+            Text(
+                text = char.toString(),
+                style =
+                    typo().headlineLarge.copy(
+                        fontSize = customFontSize ?: typo().headlineLarge.fontSize,
+                    ),
+                color = charColor,
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
