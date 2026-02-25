@@ -172,6 +172,7 @@
                 android:name="autoStoreLocales"
                 android:value="true" />
         </service>
+        <!-- Keep media service implementation in the media module (clean/old architecture). -->
         <service
             android:name=".service.SimpMusicMediaService"
             android:exported="true"
