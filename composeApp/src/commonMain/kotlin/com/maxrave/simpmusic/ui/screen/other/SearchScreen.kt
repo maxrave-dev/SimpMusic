@@ -109,6 +109,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.albums
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_arrow_outward_24
 import simpmusic.composeapp.generated.resources.baseline_close_24
@@ -120,8 +121,13 @@ import simpmusic.composeapp.generated.resources.everything_you_need
 import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.in_search
 import simpmusic.composeapp.generated.resources.no_results_found
+import simpmusic.composeapp.generated.resources.playlists
+import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.retry
+import simpmusic.composeapp.generated.resources.search_for
 import simpmusic.composeapp.generated.resources.search_for_songs_artists_albums_playlists_and_more
+import simpmusic.composeapp.generated.resources.song
+import simpmusic.composeapp.generated.resources.videos
 import simpmusic.composeapp.generated.resources.what_do_you_want_to_listen_to
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,17 +152,26 @@ fun SearchScreen(
 
     var isFocused by rememberSaveable { mutableStateOf(false) }
 
+    val searchForString = stringResource(Res.string.search_for)
+    val songString = stringResource(Res.string.song).lowercase()
+    val artistString = stringResource(Res.string.artists).lowercase()
+    val albumString = stringResource(Res.string.albums).lowercase()
+    val playlistString = stringResource(Res.string.playlists).lowercase()
+    val videoString = stringResource(Res.string.videos).lowercase()
+    val podcastString = stringResource(Res.string.podcasts).lowercase()
+
     // Animated Placeholder
-    val placeholderTexts = remember {
-        listOf(
-            "Search for songs...",
-            "Search for artists...",
-            "Search for albums...",
-            "Search for playlists...",
-            "Search for videos...",
-            "Search for podcasts..."
-        )
-    }
+    val placeholderTexts =
+        remember {
+            listOf(
+                "$searchForString $songString...",
+                "$searchForString $artistString...",
+                "$searchForString $albumString...",
+                "$searchForString $playlistString...",
+                "$searchForString $videoString...",
+                "$searchForString $podcastString...",
+            )
+        }
 
     var currentPlaceholderIndex by remember { mutableIntStateOf(0) }
 
@@ -265,14 +280,15 @@ fun SearchScreen(
                         AnimatedContent(
                             targetState = currentPlaceholderIndex,
                             transitionSpec = {
-                                (fadeIn(animationSpec = tween(500)) +
-                                    slideInVertically { height -> height })
-                                    .togetherWith(
-                                        fadeOut(animationSpec = tween(500)) +
-                                            slideOutVertically { height -> -height }
-                                    )
+                                (
+                                    fadeIn(animationSpec = tween(500)) +
+                                        slideInVertically { height -> height }
+                                ).togetherWith(
+                                    fadeOut(animationSpec = tween(500)) +
+                                        slideOutVertically { height -> -height },
+                                )
                             },
-                            label = "placeholder_animation"
+                            label = "placeholder_animation",
                         ) { index ->
                             Text(
                                 text = placeholderTexts[index],
