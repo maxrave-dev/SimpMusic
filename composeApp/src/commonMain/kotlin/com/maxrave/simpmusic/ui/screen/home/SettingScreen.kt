@@ -1018,12 +1018,14 @@ fun SettingScreen(
                                 )
                             },
                         )
-                        SettingItem(
-                            title = stringResource(Res.string.crossfade_dj_mode),
-                            subtitle = stringResource(Res.string.crossfade_dj_mode_description),
-                            smallSubtitle = true,
-                            switch = (crossfadeDjMode to { viewModel.setCrossfadeDjMode(it) }),
-                        )
+                        if (getPlatform() == Platform.Android) {
+                            SettingItem(
+                                title = stringResource(Res.string.crossfade_dj_mode),
+                                subtitle = stringResource(Res.string.crossfade_dj_mode_description),
+                                smallSubtitle = true,
+                                switch = (crossfadeDjMode to { viewModel.setCrossfadeDjMode(it) }),
+                            )
+                        }
                     }
                 }
             }
