@@ -104,7 +104,9 @@ fun CollapsingToolbarParallaxEffect(
         TopAppBarDefaults.TopAppBarExpandedHeight + with(density) { WindowInsets.statusBars.getTop(this).toDp() * 2 }
 
     val scroll: ScrollState = rememberScrollState(0)
-    val headerHeight = (getScreenSizeInfo().hDP.dp * 2 / 6).coerceAtLeast(200.dp)
+
+    // Increased from 2/6 to 2/4 (50% of screen height) for a bigger, more prominent artist image
+    val headerHeight = (getScreenSizeInfo().hDP.dp * 2 / 4).coerceAtLeast(250.dp)
 
     val headerHeightPx = with(density) { headerHeight.toPx() }
     val toolbarHeightPx = with(density) { toolbarHeight.toPx() }
@@ -387,7 +389,7 @@ private fun Title(
 
     Text(
         text = title,
-        fontSize = 48.sp,
+        fontSize = 30.sp, // Reduced from 48.sp — still bold and prominent, fits longer names
         fontWeight = FontWeight.Bold,
         color = Color.White,
         maxLines = 1,
