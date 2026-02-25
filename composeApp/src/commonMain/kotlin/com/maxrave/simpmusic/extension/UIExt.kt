@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.extension
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -360,7 +361,7 @@ fun LazyListState.animateScrollAndCentralizeItem(
         if (itemInfo != null) {
             val center = this@animateScrollAndCentralizeItem.layoutInfo.viewportEndOffset / 2
             val childCenter = itemInfo.offset + itemInfo.size / 2
-            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center).toFloat(), tween(300))
+            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center).toFloat(), tween(300, 0, LinearOutSlowInEasing))
         } else {
             this@animateScrollAndCentralizeItem.animateScrollToItem(index)
         }
