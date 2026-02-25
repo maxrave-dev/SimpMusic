@@ -173,7 +173,7 @@
                 android:value="true" />
         </service>
         <service
-            android:name="com.maxrave.media3.service.SimpleMediaService"
+            android:name=".service.SimpMusicMediaService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback"
             android:stopWithTask="false"
