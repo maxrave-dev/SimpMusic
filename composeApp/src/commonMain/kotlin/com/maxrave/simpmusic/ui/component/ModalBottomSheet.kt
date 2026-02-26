@@ -357,7 +357,8 @@ fun InfoPlayerBottomSheet(
                                     }
                                 } else if (it.isDone) {
                                     Text(
-                                        text = stringResource(Res.string.downloaded) + stringResource(Res.string.to_download_folder),
+                                        text =
+                                            stringResource(Res.string.downloaded) + stringResource(Res.string.to_download_folder).removePrefix("\""),
                                         modifier = Modifier.padding(vertical = 5.dp),
                                         style = typo().bodyMedium,
                                     )
@@ -2016,24 +2017,29 @@ fun SleepTimerBottomSheet(
     var showCustomInput by rememberSaveable { mutableStateOf(false) }
     var customMinutes by rememberSaveable { mutableStateOf("") }
 
-    data class Preset(val label: String, val minutes: Int)
-
-    val presets = listOf(
-        Preset("5 min", 5),
-        Preset("10 min", 10),
-        Preset("15 min", 15),
-        Preset("30 min", 30),
-        Preset("45 min", 45),
-        Preset("1 hour", 60),
+    data class Preset(
+        val label: String,
+        val minutes: Int,
     )
 
+    val presets =
+        listOf(
+            Preset("5 min", 5),
+            Preset("10 min", 10),
+            Preset("15 min", 15),
+            Preset("30 min", 30),
+            Preset("45 min", 45),
+            Preset("1 hour", 60),
+        )
+
     // Whether the Set button should be enabled
-    val isSetEnabled = when {
-        selectedPreset == END_OF_SONG_SENTINEL -> true
-        selectedPreset > 0 && !showCustomInput -> true
-        showCustomInput && (customMinutes.toIntOrNull() ?: 0) > 0 -> true
-        else -> false
-    }
+    val isSetEnabled =
+        when {
+            selectedPreset == END_OF_SONG_SENTINEL -> true
+            selectedPreset > 0 && !showCustomInput -> true
+            showCustomInput && (customMinutes.toIntOrNull() ?: 0) > 0 -> true
+            else -> false
+        }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2102,13 +2108,15 @@ fun SleepTimerBottomSheet(
                                 },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
-                                ),
-                                border = BorderStroke(
-                                    width = if (isSelected) 1.5.dp else 1.dp,
-                                    color = if (isSelected) seed else Color(0xFF3D3D3D),
-                                ),
+                                colors =
+                                    ButtonDefaults.outlinedButtonColors(
+                                        containerColor = if (isSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                    ),
+                                border =
+                                    BorderStroke(
+                                        width = if (isSelected) 1.5.dp else 1.dp,
+                                        color = if (isSelected) seed else Color(0xFF3D3D3D),
+                                    ),
                                 contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                             ) {
                                 Text(
@@ -2138,13 +2146,15 @@ fun SleepTimerBottomSheet(
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (isEndSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
-                        ),
-                        border = BorderStroke(
-                            width = if (isEndSelected) 1.5.dp else 1.dp,
-                            color = if (isEndSelected) seed else Color(0xFF3D3D3D),
-                        ),
+                        colors =
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isEndSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                            ),
+                        border =
+                            BorderStroke(
+                                width = if (isEndSelected) 1.5.dp else 1.dp,
+                                color = if (isEndSelected) seed else Color(0xFF3D3D3D),
+                            ),
                         contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                     ) {
                         Text(
@@ -2164,13 +2174,15 @@ fun SleepTimerBottomSheet(
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (isCustomSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
-                        ),
-                        border = BorderStroke(
-                            width = if (isCustomSelected) 1.5.dp else 1.dp,
-                            color = if (isCustomSelected) seed else Color(0xFF3D3D3D),
-                        ),
+                        colors =
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isCustomSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                            ),
+                        border =
+                            BorderStroke(
+                                width = if (isCustomSelected) 1.5.dp else 1.dp,
+                                color = if (isCustomSelected) seed else Color(0xFF3D3D3D),
+                            ),
                         contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                     ) {
                         Text(
@@ -2259,10 +2271,11 @@ fun SleepTimerBottomSheet(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = seed,
-                        disabledContainerColor = seed.copy(alpha = 0.3f),
-                    ),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = seed,
+                            disabledContainerColor = seed.copy(alpha = 0.3f),
+                        ),
                     enabled = isSetEnabled,
                 ) {
                     Text(
@@ -2425,7 +2438,10 @@ fun AddToPlaylistModalBottomSheet(
                                                     if (it) {
                                                         Image(painter = painterResource(Res.drawable.done), contentDescription = "")
                                                     } else {
-                                                        Image(painter = painterResource(Res.drawable.baseline_playlist_add_24), contentDescription = "")
+                                                        Image(
+                                                            painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                                                            contentDescription = "",
+                                                        )
                                                     }
                                                 }
                                                 Spacer(modifier = Modifier.width(10.dp))
@@ -3093,7 +3109,9 @@ fun EndOfModalBottomSheet() {
 
 sealed class DevLogInType {
     data object Spotify : DevLogInType()
+
     data object YouTube : DevLogInType()
+
     data object Discord : DevLogInType()
 
     suspend fun getTitle(): String =
