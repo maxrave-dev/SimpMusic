@@ -73,6 +73,8 @@
     <string name="content_country">Vị trí nội dung</string>
     <string name="change">Thay đổi</string>
     <string name="quality">Chất lượng âm thanh</string>
+    <string name="prefer_320kbps_stream">Ưu tiên luồng 320kbps</string>
+    <string name="prefer_320kbps_stream_description">Tự động tìm kiếm luồng âm thanh 320kbps khi có sẵn trên internet. Nếu không tìm thấy, sẽ chuyển sang chất lượng mặc định.</string>
     <string name="download_quality">Chất lượng tải xuống</string>
     <string name="video_download_quality">Chất lượng video tải xuống</string>
     <string name="clear_downloaded_cache">Xoá tất cả nội dung tải xuống</string>
@@ -527,4 +529,6 @@
     <string name="local_tracking_description">Ghi lại lịch sử nghe nhạc vào cơ sở dữ liệu cục bộ</string>
     <string name="simpmusic_charts">SimpMusic Charts</string>
     <string name="crossfading">Đang chuyển bài mượt mà</string>
+    <string name="your_320kbps_url">Đường dẫn link 320kbps của bạn</string>
+    <string name="search_for">Tìm kiếm cho</string>
 </resources>

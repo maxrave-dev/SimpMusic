@@ -1,0 +1,12 @@
+- Thêm hỗ trợ cho API OpenAI Tương thích Tùy chỉnh trong Dịch lời bài hát AI
+- Thêm nhà cung cấp lời bài hát BetterLyrics
+- Sửa và cải thiện hiệu ứng lời bài hát theo từng từ
+- Thêm SimpMusic Chart vào màn hình thư viện
+- Sửa và cải thiện màn hình lời bài hát toàn màn hình
+- Sửa và cải thiện danh sách phát cục bộ
+- Sửa và cải thiện một số giao diện
+- Sửa và cải thiện tốc độ tải xuống tệp
+# Máy tính để bàn:
+ - Sửa và cải thiện xử lý đường dẫn GStreamer trên Windows
+# Ứng dụng Android:
+ - Thêm hiệu ứng Crossfade và chuyển đổi kiểu DJ giống Apple Music

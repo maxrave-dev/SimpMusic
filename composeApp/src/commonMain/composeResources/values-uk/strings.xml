@@ -107,7 +107,7 @@
     <string name="all">Всі</string>
     <string name="videos">Відео</string>
     <string name="content">Контент</string>
-    <string name="storage">Пам'ять</string>
+    <string name="storage">Пам\'ять</string>
     <string name="player_cache">Кеш плеєра</string>
     <string name="downloaded_cache">Кеш завантажених</string>
     <string name="thumbnail_cache">Кеш мініатюр</string>
@@ -377,7 +377,7 @@
     <string name="invalid_port">Недійсний порт</string>
     <string name="proxy_host_message">Введіть проксі-сервер</string>
     <string name="proxy_port_message">Введіть проксі-порт</string>
-    <string name="five_seconds">П'ять секунд</string>
+    <string name="five_seconds">П\'ять секунд</string>
     <string name="lyrics_provider_lrc">Тексти пісень надано LRCLIB</string>
     <string name="sync_first">Спочатку синхронізуйте цей список відтворення з YouTube Music</string>
     <string name="endless_queue">Нескінченна черга</string>
@@ -391,7 +391,7 @@
     <string name="pitch">Тон</string>
     <string name="blur_player_background">Розмити фон плеєра</string>
     <string name="blur_player_background_description">Розмиття фону екрана, що зараз відтворюється</string>
-    <string name="merging_audio_and_video">Об'єднання аудіо та відео</string>
+    <string name="merging_audio_and_video">Об\'єднання аудіо та відео</string>
     <string name="error_occurred">Сталася помилка</string>
     <string name="downloading_audio">Завантаження аудіо: %1$s </string>
     <string name="downloading_video">Завантаження відео: %1$s </string>
@@ -444,8 +444,8 @@
     <string name="set_crossfade_duration">Встановити тривалість затухання в секундах (%1$d)</string>
     <string name="youtube_subtitle_language">Мова перекладу субтитрів YouTube</string>
     <string name="youtube_subtitle_language_message">Введіть код мови (Eg: en) (2 букви). Це бажана мова перекладу для YouTube субтитрів.</string>
-    <string name="use_anonymous">Використовувати анонімне ім'я для співпраці</string>
-    <string name="contributor_name">Ім'я учасника</string>
+    <string name="use_anonymous">Використовувати анонімне ім\'я для співпраці</string>
+    <string name="contributor_name">Ім\'я учасника</string>
     <string name="contributor_email">Електронна пошта учасника</string>
     <string name="anonymous">Анонімно</string>
     <string name="simpmusic_lyrics">Тексти пісень SimpMusic</string>

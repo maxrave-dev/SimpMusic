@@ -1,0 +1,12 @@
+- Add Support for Custom OpenAI Compatible API in AI Lyrics Translate
+- Add BetterLyrics Lyrics Provider
+- Improve Word-by-word lyrics
+- Add SimpMusic Chart to Library screen
+- Improve full screen lyrics screen
+- Improve local playlist
+- Improve some UI
+- Improve file download speed
+# Desktop app:
+ - Improve GStreamer path handling in Windows
+# Android app:
+ - Add Crossfade and DJ-style transition like Apple Music

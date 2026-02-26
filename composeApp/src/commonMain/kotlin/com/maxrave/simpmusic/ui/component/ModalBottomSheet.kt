@@ -358,7 +358,9 @@ fun InfoPlayerBottomSheet(
                                 } else if (it.isDone) {
                                     Text(
                                         text =
-                                            stringResource(Res.string.downloaded) + stringResource(Res.string.to_download_folder).removePrefix("\""),
+                                            stringResource(Res.string.downloaded) +
+                                                stringResource(Res.string.to_download_folder)
+                                                    .replace("\"", ""),
                                         modifier = Modifier.padding(vertical = 5.dp),
                                         style = typo().bodyMedium,
                                     )

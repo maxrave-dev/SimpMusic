@@ -73,6 +73,8 @@
     <string name="content_country">Страна контента</string>
     <string name="change">Изменить</string>
     <string name="quality">Качество</string>
+    <string name="prefer_320kbps_stream">Предпочитать поток 320 кбит/с</string>
+    <string name="prefer_320kbps_stream_description">Автоматически искать в интернете аудиопоток 320 кбит/с при наличии. Если не найден - использовать качество по умолчанию.</string>
     <string name="download_quality">Качество загрузки</string>
     <string name="video_download_quality">Качество загрузки видео</string>
     <string name="clear_downloaded_cache">Очистить скачанный кэш</string>
@@ -441,11 +443,14 @@
     <string name="kill_service_on_exit">Убить сервис при выходе</string>
     <string name="kill_service_on_exit_description">Остановить воспроизведение при выходе из приложения</string>
     <string name="desktop_player">Десктопный плеер</string>
+    <string name="crossfade">Кроссфейд (БЕТА)</string>
     <string name="crossfade_description">Плавный переход между песнями с затуханием текущего трека и нарастанием громкости следующего.</string>
     <string name="crossfade_enabled">Включено (%1$ds)</string>
     <string name="crossfade_disabled">Отключено</string>
     <string name="crossfade_duration">Продолжительность кроссфейда</string>
     <string name="set_crossfade_duration">Задать длительность кроссфейда в секундах (%1$ds)</string>
+    <string name="crossfade_dj_mode">DJ-переход</string>
+    <string name="crossfade_dj_mode_description">Применять фильтры низких и высоких частот во время кроссфейда для более плавного перехода в стиле DJ (аналогично Automix в Apple Music).</string>
     <string name="youtube_subtitle_language">Язык перевода субтитров YouTube</string>
     <string name="youtube_subtitle_language_message">Введите код языка (например: en) (2 буквы). Это предпочитаемый язык перевода для субтитров YouTube.</string>
     <string name="use_anonymous">Использовать анонимное имя для участия</string>
@@ -482,6 +487,7 @@
     <string name="explicit_content_blocked">Неприемлемый контент пропущен</string>
     <string name="mix_for_you">Миксы для вас</string>
     <string name="no_mixes_found">Не найдено миксов</string>
+    <string name="no_charts_found">Чарты не найдены</string>
     <string name="desktop_webview_description">В связи с ограничениями Compose Multiplatform, WebView невозможно реализовать на настольных устройствах.\n
 Ознакомьтесь с этим руководством, чтобы узнать, как выполнить вход на настольной версии:\n</string>
     <string name="open_blog_post">Читать в блоге</string>
@@ -525,4 +531,7 @@
     <string name="quit_app">Выйти из приложения</string>
     <string name="local_tracking_title">Локальная история прослушивания</string>
     <string name="local_tracking_description">Записывать историю прослушивания в локальную базу данных</string>
+    <string name="simpmusic_charts">Чарты SimpMusic</string>
+    <string name="crossfading">Кроссфейд</string>
+    <string name="your_320kbps_url">Ваш URL 320 кбит/с</string>
 </resources>

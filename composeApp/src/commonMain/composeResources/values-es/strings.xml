@@ -73,6 +73,8 @@
     <string name="content_country">Región del contenido</string>
     <string name="change">Cambiar</string>
     <string name="quality">Calidad</string>
+    <string name="prefer_320kbps_stream">Flujo preferido de 320kbps</string>
+    <string name="prefer_320kbps_stream_description">Buscar automáticamente por flujo de audio de 320kbps cuando esté disponible en internet.</string>
     <string name="download_quality">Calidad de descarga</string>
     <string name="video_download_quality">Calidad de descarga de vídeo</string>
     <string name="clear_downloaded_cache">Limpiar caché de descargas</string>
@@ -420,7 +422,7 @@
     <string name="ai_provider">Provedor de IA</string>
     <string name="openai">OpenAI</string>
     <string name="gemini">Gemini</string>
-    <string name="openai_api_compatible">OpenAI personalizado</string>
+    <string name="openai_api_compatible">Compatible con OpenAI</string>
     <string name="ai_api_key">Tu clave API de IA</string>
     <string name="invalid_api_key">Clave de API inválida</string>
     <string name="custom_ai_model_id">ID de modelo de IA personalizado</string>
@@ -524,7 +526,9 @@
     <string name="close_miniplayer">Cerrar minireproductor</string>
     <string name="open_miniplayer">Abrir minireproductor</string>
     <string name="quit_app">Salir</string>
-    <string name="local_tracking_title">Historial local de escuchas de seguimiento</string>
+    <string name="local_tracking_title">Historial de escuchas local de seguimiento</string>
     <string name="local_tracking_description">Registra tu historial de escucha en la base de datos local</string>
-    <string name="simpmusic_charts">Gráficos de SimpMusic</string>
+    <string name="simpmusic_charts">Gráficos SimpMusic</string>
+    <string name="crossfading">Crossfade</string>
+    <string name="your_320kbps_url">Su URL de 320kbps</string>
 </resources>

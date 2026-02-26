@@ -388,7 +388,7 @@
     <string name="playback_speed">Wiedergabegeschwindigkeit</string>
     <string name="pitch">Tonhöhe</string>
     <string name="blur_player_background">Player Hintergrund verwischen</string>
-    <string name="blur_player_background_description">Verwischt den Hintergrund des ''spielt gerade'' Bildschirmeffekts</string>
+    <string name="blur_player_background_description">Verwischt den Hintergrund des \'\'spielt gerade\'\' Bildschirmeffekts</string>
     <string name="merging_audio_and_video">Audio und Video zusammenfügen</string>
     <string name="error_occurred">Es ist ein Fehler aufgetreten</string>
     <string name="downloading_audio">Audio wird heruntergeladen: %1$s </string>

@@ -257,7 +257,6 @@
     <string name="translation_language_message">언어 코드 2글자(예: ko)를 입력합니다. SimpMusic 앱의 언어와 동일하게 설정하려면, 입력란을 비워 둡니다.</string>
     <string name="invalid_language_code">잘못된 언어 코드</string>
     <string name="lyrics_provider_youtube">YouTube에서 제공된 가사</string>
-    <string name="lyrics_provider_betterlyrics">BetterLyrics에서 제공된 가사</string>
     <string name="limit_player_cache">플레이어 캐시 제한</string>
     <string name="unlimited">무제한</string>
     <string name="third_party_libraries">서드파티 라이브러리</string>
@@ -419,7 +418,6 @@
     <string name="ai_provider">AI 제공자</string>
     <string name="openai">OpenAI</string>
     <string name="gemini">Gemini</string>
-    <string name="openai_api_compatible">사용자 지정 OpenAI 호환</string>
     <string name="ai_api_key">내 AI API 키</string>
     <string name="invalid_api_key">잘못된 API 키</string>
     <string name="custom_ai_model_id">사용자 AI 모델 ID</string>
@@ -437,9 +435,7 @@
     <string name="download_this_song_video_file_to_your_device">이 음악/동영상 파일을 기기로 다운로드</string>
     <string name="kill_service_on_exit">나갈 때 서비스 종료</string>
     <string name="kill_service_on_exit_description">앱을 종료할 때 백그라운드 음악 플레이어 멈춤</string>
-    <string name="desktop_player">데스크톱 플레이어</string>
     <string name="crossfade">크로스페이드 (베타)</string>
-    <string name="crossfade_description">현재 음악을 페이드 아웃하면서 다음 음악을 페이드 인하여 음악 사이를 부드럽게 전환합니다.</string>
     <string name="crossfade_enabled">켜짐 (%1$d초)</string>
     <string name="crossfade_disabled">꺼짐</string>
     <string name="crossfade_duration">크로스페이드 시간</string>
@@ -480,7 +476,6 @@
     <string name="explicit_content_blocked">연령 제한 콘텐츠 건너뜀</string>
     <string name="mix_for_you">당신을 위한 믹스</string>
     <string name="no_mixes_found">믹스 없음</string>
-    <string name="no_charts_found">차트 없음</string>
     <string name="desktop_webview_description">Compose Multiplatform의 제한으로 인해 데스크톱에서 WebView를 구현할 수 없습니다.\n데스크톱에 로그인하는 방법을 자세히 알아보려면 다음을 읽어보세요.\n</string>
     <string name="open_blog_post">블로그 게시물 열기</string>
     <string name="discord_integration">Discord 연동</string>
@@ -521,7 +516,4 @@
     <string name="close_miniplayer">미니 플레이어 닫기</string>
     <string name="open_miniplayer">미니 플레이어 열기</string>
     <string name="quit_app">앱 종료</string>
-    <string name="local_tracking_title">로컬에 재생 내역 기록</string>
-    <string name="local_tracking_description">로컬 데이터베이스에 재생 내역을 기록합니다</string>
-    <string name="simpmusic_charts">SimpMusic 차트</string>
 </resources>

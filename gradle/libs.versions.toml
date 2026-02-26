@@ -1,14 +1,14 @@
 [versions]
 # App version
-version-name = "1.0.3"
-version-code = "45"
+version-name = "1.0.4"
+version-code = "46"
 
 android = "8.13.2"
 kotlin = "2.3.10"
 serialization = "2.3.10"
 ksp = "2.3.4"
 compose-bom = "2026.02.00"
-material3-expressive = "1.5.0-alpha14"
+material3-expressive = "1.5.0-alpha15"
 constraintlayout-compose = "1.1.1"
 activity-compose = "1.12.4"
 lifecycle = "2.9.6"

@@ -73,6 +73,8 @@
     <string name="content_country">ประเทศ/ภูมิภาคของเนื้อหา</string>
     <string name="change">เปลี่ยน</string>
     <string name="quality">คุณภาพ</string>
+    <string name="prefer_320kbps_stream">เลือกสตรีม 320 kbps</string>
+    <string name="prefer_320kbps_stream_description">ค้นหาสตรีมเสียงคุณภาพ 320 kbps โดยอัตโนมัติเมื่อมีให้บริการบนอินเทอร์เน็ต หากไม่พบ จะใช้คุณภาพเริ่มต้นแทน</string>
     <string name="download_quality">คุณภาพการดาวน์โหลด</string>
     <string name="video_download_quality">คุณภาพการดาวน์โหลดวิดีโอ</string>
     <string name="clear_downloaded_cache">ล้างแคชที่ดาวน์โหลด</string>
@@ -257,7 +259,7 @@
     <string name="translation_language_message">พิมพ์ภาษา (เช่น en) (2 ตัวอักษร) หากต้องการตั้งค่าให้ตรงกับภาษาของ SimpMusic โปรดเว้นช่องแก้ไขให้ว่างไว้</string>
     <string name="invalid_language_code">ภาษาไม่ถูกต้อง</string>
     <string name="lyrics_provider_youtube">เนื้อเพลงโดย YouTube</string>
-    <string name="lyrics_provider_betterlyrics">เนื้อเพลงโดย BetterLyrics</string>
+    <string name="lyrics_provider_betterlyrics">เนื้อเพลงจัดทำโดย BetterLyrics</string>
     <string name="limit_player_cache">จำกัดแคชของเครื่องเล่น</string>
     <string name="unlimited">ไม่จำกัด</string>
     <string name="third_party_libraries">ไลบรารีของบุคคลที่สาม</string>
@@ -527,4 +529,5 @@
     <string name="local_tracking_description">บันทึกประวัติการฟังไว้ในฐานข้อมูลภายในเครื่อง</string>
     <string name="simpmusic_charts">ชาร์ต SimpMusic</string>
     <string name="crossfading">Crossfading</string>
+    <string name="your_320kbps_url">ลิงก์สตรีม 320 kbps ของคุณ</string>
 </resources>
