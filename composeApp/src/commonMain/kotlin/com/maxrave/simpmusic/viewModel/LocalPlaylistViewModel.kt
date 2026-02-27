@@ -165,9 +165,10 @@ class LocalPlaylistViewModel(
                                                     downloadState != STATE_DOWNLOADING
                                                 ) {
                                                     updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                                                } else if (notDownloadedList.isNotEmpty()) {
+                                                } else if (notDownloadedList.isNotEmpty() && downloadState != STATE_DOWNLOADING) {
                                                     updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
                                                     downloadTracks(notDownloadedList)
+                                                    downloadFullPlaylistState(uiState.value.id, notDownloadedList)
                                                 }
                                             }
                                     }

@@ -271,7 +271,6 @@ class SearchViewModel(
 
                 _searchScreenState.update { state ->
                     state.copy(
-                        searchType = SearchType.ALL,
                         searchAllResult = temp,
                         searchSongsResult = song,
                         searchArtistsResult = artist,
