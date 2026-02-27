@@ -10,6 +10,7 @@ import com.maxrave.domain.data.model.searchResult.songs.Album
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.BETTER_LYRICS
 import com.maxrave.domain.manager.DataStoreManager.Values.LRCLIB
 import com.maxrave.domain.manager.DataStoreManager.Values.SIMPMUSIC
 import com.maxrave.domain.manager.DataStoreManager.Values.YOUTUBE
@@ -128,6 +129,26 @@ class NowPlayingBottomSheetViewModel(
             listLocalPlaylistJob.join()
             listYouTubePlaylistJob.join()
             mainLyricsProviderJob.join()
+        }
+    }
+
+    fun resetPlaylists() {
+        viewModelScope.launch {
+            localPlaylistRepository.getAllLocalPlaylists().collectLatest { list ->
+                _uiState.update { it.copy(listLocalPlaylist = list) }
+            }
+        }
+        viewModelScope.launch {
+            playlistRepository.getLibraryPlaylist().collect { data ->
+                _uiState.update { state ->
+                    state.copy(
+                        listYouTubePlaylist =
+                            data?.filter {
+                                it.browseId != "VLLM"
+                            } ?: emptyList(),
+                    )
+                }
+            }
         }
     }
 
@@ -311,7 +332,7 @@ class NowPlayingBottomSheetViewModel(
                 }
 
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
-                    if (listOf(SIMPMUSIC, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
+                    if (listOf(SIMPMUSIC, YOUTUBE, LRCLIB, BETTER_LYRICS).contains(ev.lyricsProvider)) {
                         dataStoreManager.setLyricsProvider(ev.lyricsProvider)
                     } else {
                         return@launch

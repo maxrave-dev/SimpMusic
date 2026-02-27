@@ -446,7 +446,6 @@
     <string name="download_this_song_video_file_to_your_device">این فایل آهنگ/ویدیو را روی دستگاه خود دانلود کنید</string>
     <string name="kill_service_on_exit">بستن سرویس هنگام خروج</string>
     <string name="kill_service_on_exit_description">توقف پخش موسیقی پس زمینه هنگام خروج از برنامه</string>
-    <string name="crossfade">درهم آمیزی(آزمایشی)</string>
     <string name="crossfade_enabled">فعال شد (%1$ds)</string>
     <string name="crossfade_disabled">غیرفعال</string>
     <string name="crossfade_duration">مدت زمان درهم آمیزی</string>

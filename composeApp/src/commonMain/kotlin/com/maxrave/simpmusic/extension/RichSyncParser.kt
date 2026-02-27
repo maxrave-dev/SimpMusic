@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.extension
 
+import com.maxrave.domain.extension.decodeHtmlEntities
+
 /**
  * Represents a single word with its timing information for rich sync lyrics
  */
@@ -76,7 +78,7 @@ fun parseRichSyncWords(
 
         // Only add if there's actual text (not just whitespace or empty)
         if (textBetween.isNotBlank()) {
-            wordTimings.add(WordTiming(text = textBetween, startTimeMs = timeMs))
+            wordTimings.add(WordTiming(text = decodeHtmlEntities(textBetween), startTimeMs = timeMs))
         }
     }
 

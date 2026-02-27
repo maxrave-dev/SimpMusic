@@ -5,9 +5,15 @@ package com.maxrave.simpmusic.ui.screen.player
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -52,6 +58,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.SubtitlesOff
@@ -138,11 +145,13 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AIBadge
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
@@ -161,6 +170,8 @@ import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
+import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
+import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.hazeEffect
@@ -176,10 +187,13 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
+import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
+import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.downvote
 import simpmusic.composeapp.generated.resources.holder
@@ -187,6 +201,7 @@ import simpmusic.composeapp.generated.resources.holder_video
 import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.line_synced
 import simpmusic.composeapp.generated.resources.lyrics
+import simpmusic.composeapp.generated.resources.lyrics_provider_betterlyrics
 import simpmusic.composeapp.generated.resources.lyrics_provider_lrc
 import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
 import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
@@ -203,6 +218,7 @@ import simpmusic.composeapp.generated.resources.upvote
 import simpmusic.composeapp.generated.resources.view_count
 import simpmusic.composeapp.generated.resources.vote_error
 import simpmusic.composeapp.generated.resources.vote_submitted
+import kotlin.math.abs
 import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
@@ -319,6 +335,11 @@ fun NowPlayingScreenContent(
         mutableStateOf(false)
     }
 
+    // NEW: Add to Playlist state
+    var showAddToPlaylistDirectly by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     var shouldShowToolbar by remember {
         mutableStateOf(false)
     }
@@ -418,6 +439,26 @@ fun NowPlayingScreenContent(
                 }
         }
     }
+
+    // Crossfade: RGB rainbow color cycling when transitioning between tracks
+    val infiniteTransition = rememberInfiniteTransition(label = "crossfadeRainbow")
+    val rainbowHue by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "rainbowHue",
+    )
+    val rainbowColor = hsvToColor(rainbowHue, 1f, 1f)
+    val sliderTrackColor by animateColorAsState(
+        targetValue = if (timelineState.isCrossfading) rainbowColor else Color.White,
+        animationSpec = tween(300),
+        label = "sliderCrossfadeColor",
+    )
+
     // Show ControlLayout Or Show Artist Badge
     var showHideControlLayout by rememberSaveable {
         mutableStateOf(true)
@@ -510,6 +551,7 @@ fun NowPlayingScreenContent(
     if (showFullscreenLyrics) {
         FullscreenLyricsSheet(
             sharedViewModel = sharedViewModel,
+            navController = navController, // <-- ADD THIS LINE
             color = startColor.value,
             shouldHaze = sharedViewModel.blurFullscreenLyrics(),
         ) {
@@ -530,6 +572,33 @@ fun NowPlayingScreenContent(
             onDismiss = {
                 showInfoBottomSheet = false
             },
+        )
+    }
+
+    // NEW: Add to Playlist Bottom Sheet
+    if (showAddToPlaylistDirectly) {
+        val viewModel: NowPlayingBottomSheetViewModel = koinViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        LaunchedEffect(Unit) {
+            viewModel.resetPlaylists()
+            viewModel.setSongEntity(null) // Uses current playing song
+        }
+
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = uiState.listLocalPlaylist,
+            listYouTubePlaylist = uiState.listYouTubePlaylist,
+            onDismiss = { showAddToPlaylistDirectly = false },
+            onClick = { playlist ->
+                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToPlaylist(playlist.id))
+                showAddToPlaylistDirectly = false
+            },
+            onYTPlaylistClick = { playlist ->
+                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist(playlist.browseId))
+                showAddToPlaylistDirectly = false
+            },
+            videoId = uiState.songUIState.videoId,
         )
     }
 
@@ -671,8 +740,15 @@ fun NowPlayingScreenContent(
                                     modifier =
                                         Modifier
                                             .fillMaxHeight()
-                                            .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
-                                            .align(Alignment.Center),
+                                            .then(
+                                                if (getPlatform() == Platform.Desktop) {
+                                                    Modifier
+                                                } else {
+                                                    Modifier
+                                                        .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
+                                                        .align(Alignment.Center)
+                                                },
+                                            ),
                                 )
                             }
                         } else if (isVideo == false) {
@@ -784,7 +860,7 @@ fun NowPlayingScreenContent(
                         if (getPlatform() == Platform.Desktop) {
                             IconButton(onClick = { toggleMiniPlayer() }) {
                                 Icon(
-                                    imageVector = Icons.Outlined.OpenInNew,
+                                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
                                     contentDescription = "Mini Player",
                                     tint = Color.White,
                                 )
@@ -1310,8 +1386,8 @@ fun NowPlayingScreenContent(
                                                             sliderState = sliderState,
                                                             colors =
                                                                 SliderDefaults.colors().copy(
-                                                                    thumbColor = Color.White,
-                                                                    activeTrackColor = Color.White,
+                                                                    thumbColor = sliderTrackColor,
+                                                                    activeTrackColor = sliderTrackColor,
                                                                     inactiveTrackColor = Color.Transparent,
                                                                 ),
                                                             thumbTrackGapSize = 0.dp,
@@ -1335,8 +1411,8 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             colors =
                                                                 SliderDefaults.colors().copy(
-                                                                    thumbColor = Color.White,
-                                                                    activeTrackColor = Color.White,
+                                                                    thumbColor = sliderTrackColor,
+                                                                    activeTrackColor = sliderTrackColor,
                                                                     inactiveTrackColor = Color.Transparent,
                                                                 ),
                                                             enabled = true,
@@ -1357,6 +1433,18 @@ fun NowPlayingScreenContent(
                                                 modifier = Modifier.weight(1f),
                                                 textAlign = TextAlign.Left,
                                             )
+                                            AnimatedVisibility(
+                                                enter = fadeIn(),
+                                                exit = fadeOut(),
+                                                visible = timelineState.isCrossfading,
+                                            ) {
+                                                Text(
+                                                    text = stringResource(Res.string.crossfading),
+                                                    style = typo().bodyMedium,
+                                                    modifier = Modifier.weight(1f),
+                                                    textAlign = TextAlign.Center,
+                                                )
+                                            }
                                             Text(
                                                 text = formatDuration(timelineState.total),
                                                 style = typo().bodyMedium,
@@ -1380,48 +1468,69 @@ fun NowPlayingScreenContent(
                                     } else {
                                         Spacer(Modifier.height(16.dp))
                                     }
-                                    // List Bottom Buttons
-                                    // 24.dp
-                                    Box(
+                                    // List Bottom Buttons - MODIFIED TO ADD PLAYLIST BUTTON
+                                    Row(
                                         modifier =
                                             Modifier
                                                 .height(32.dp)
                                                 .fillMaxWidth()
                                                 .padding(horizontal = 20.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
+                                        // Info Button (Left)
                                         IconButton(
                                             modifier =
                                                 Modifier
                                                     .size(24.dp)
                                                     .aspectRatio(1f)
-                                                    .align(Alignment.CenterStart)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ),
+                                                    .clip(CircleShape),
                                             onClick = {
                                                 showInfoBottomSheet = true
                                             },
                                         ) {
                                             Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
                                         }
-                                        IconButton(
-                                            modifier =
-                                                Modifier
-                                                    .size(24.dp)
-                                                    .aspectRatio(1f)
-                                                    .align(Alignment.CenterEnd)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ),
-                                            onClick = {
-                                                showQueueBottomSheet = true
-                                            },
+
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                                                tint = Color.White,
-                                                contentDescription = "",
-                                            )
+                                            // NEW: Add to Playlist Button (Center-Right)
+                                            IconButton(
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(CircleShape),
+                                                onClick = {
+                                                    showAddToPlaylistDirectly = true
+                                                },
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                                                    tint = Color.White,
+                                                    contentDescription = "Add to Playlist",
+                                                )
+                                            }
+
+                                            // Queue Button (Right)
+                                            IconButton(
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(CircleShape),
+                                                onClick = {
+                                                    showQueueBottomSheet = true
+                                                },
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                                    tint = Color.White,
+                                                    contentDescription = "",
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -1641,6 +1750,10 @@ fun NowPlayingScreenContent(
 
                                                     LyricsProvider.OFFLINE -> {
                                                         stringResource(Res.string.offline_mode)
+                                                    }
+
+                                                    LyricsProvider.BETTER_LYRICS -> {
+                                                        stringResource(Res.string.lyrics_provider_betterlyrics)
                                                     }
 
                                                     else -> {

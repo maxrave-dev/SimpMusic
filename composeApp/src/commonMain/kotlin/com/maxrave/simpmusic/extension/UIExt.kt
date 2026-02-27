@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.extension
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -62,6 +63,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -359,7 +361,7 @@ fun LazyListState.animateScrollAndCentralizeItem(
         if (itemInfo != null) {
             val center = this@animateScrollAndCentralizeItem.layoutInfo.viewportEndOffset / 2
             val childCenter = itemInfo.offset + itemInfo.size / 2
-            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center).toFloat(), tween(300))
+            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center).toFloat(), tween(300, 0, LinearOutSlowInEasing))
         } else {
             this@animateScrollAndCentralizeItem.animateScrollToItem(index)
         }
@@ -530,3 +532,29 @@ fun getStringBlocking(res: StringResource): String =
     runBlocking {
         getString(res)
     }
+
+/** Converts HSV (hue 0-360, saturation 0-1, value 0-1) to Compose Color. */
+fun hsvToColor(
+    hue: Float,
+    saturation: Float,
+    value: Float,
+): Color {
+    val c = value * saturation
+    val x = c * (1 - abs((hue / 60f) % 2f - 1f))
+    val m = value - c
+    val (r, g, b) =
+        when {
+            hue < 60f -> Triple(c, x, 0f)
+            hue < 120f -> Triple(x, c, 0f)
+            hue < 180f -> Triple(0f, c, x)
+            hue < 240f -> Triple(0f, x, c)
+            hue < 300f -> Triple(x, 0f, c)
+            else -> Triple(c, 0f, x)
+        }
+    return Color(
+        red = (r + m).coerceIn(0f, 1f),
+        green = (g + m).coerceIn(0f, 1f),
+        blue = (b + m).coerceIn(0f, 1f),
+        alpha = 1f,
+    )
+}

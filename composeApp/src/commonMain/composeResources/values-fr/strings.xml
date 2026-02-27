@@ -56,7 +56,7 @@
     <string name="good_night">Bonsoir !</string>
     <string name="quick_picks">Sélection Rapide</string>
     <string name="this_song_is_not_available">Ce titre n'est pas disponible</string>
-    <string name="in_charts">dans les charts</string>
+    <string name="in_charts">dans les Classements</string>
     <string name="playlist_name_cannot_be_empty">Le nom de la playlist ne peut pas être vide</string>
     <string name="this_app_needs_to_access_your_notification">Cette application doit accéder à vos notifications</string>
     <string name="shared">Partagé</string>
@@ -73,6 +73,8 @@
     <string name="content_country">Pays du contenu</string>
     <string name="change">Changer</string>
     <string name="quality">Qualité</string>
+    <string name="prefer_320kbps_stream">Préférer un flux à 320 kbps</string>
+    <string name="prefer_320kbps_stream_description">Recherche automatique d'un flux audio 320 kbps lorsqu'il est disponible sur Internet. Utilisation de la qualité par défaut si aucun flux n'est trouvé.</string>
     <string name="download_quality">Qualité de téléchargement</string>
     <string name="video_download_quality">Qualité de téléchargement vidéo</string>
     <string name="clear_downloaded_cache">Effacer le cache téléchargé</string>
@@ -257,6 +259,7 @@
     <string name="translation_language_message">Saisissez le code de langue (par exemple : en) (2 lettres). Si vous souhaitez définir la même langue que celle de SimpMusic, veuillez laisser la zone d'édition vide.</string>
     <string name="invalid_language_code">Code de langue invalide</string>
     <string name="lyrics_provider_youtube">Paroles fournies par YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Paroles fournies par BetterLyrics</string>
     <string name="limit_player_cache">Limiter le cache du lecteur</string>
     <string name="unlimited">Illimité</string>
     <string name="third_party_libraries">Bibliothèques tierces</string>
@@ -419,6 +422,7 @@
     <string name="ai_provider">Fournisseur d'IA</string>
     <string name="openai">OpenAI</string>
     <string name="gemini">Gemini</string>
+    <string name="openai_api_compatible">Compatible avec OpenAI personnalisé</string>
     <string name="ai_api_key">Votre clé API IA</string>
     <string name="invalid_api_key">Clé API non valide</string>
     <string name="custom_ai_model_id">ID de modèle d'IA personnalisé</string>
@@ -436,11 +440,15 @@
     <string name="download_this_song_video_file_to_your_device">Télécharger ce fichier audio/vidéo sur votre appareil</string>
     <string name="kill_service_on_exit">Tuer le service à la sortie</string>
     <string name="kill_service_on_exit_description">Arrêter le lecteur de musique de fond lors de la sortie de l'application</string>
-    <string name="crossfade">Fondu enchaîné (BÊTA)</string>
+    <string name="desktop_player">Lecteur de bureau</string>
+    <string name="crossfade">Fondu enchaîné (Bêta)</string>
+    <string name="crossfade_description">Assurez une transition fluide entre les titres en estompant progressivement le titre en cours tout en faisant apparaître progressivement le suivant.</string>
     <string name="crossfade_enabled">Activé (%1$ds)</string>
     <string name="crossfade_disabled">Désactivé</string>
     <string name="crossfade_duration">Durée du fondu enchaîné</string>
     <string name="set_crossfade_duration">Définir la durée du fondu enchaîné en secondes (%1$ds)</string>
+    <string name="crossfade_dj_mode">Transition de style DJ</string>
+    <string name="crossfade_dj_mode_description">Appliquez des balayages de filtre passe-bas et passe-haut pendant le fondu enchaîné pour obtenir une transition plus fluide, semblable à celle d'un DJ (similaire à Apple Music Automix).</string>
     <string name="youtube_subtitle_language">Langue de traduction des sous-titres YouTube</string>
     <string name="youtube_subtitle_language_message">Saisissez le code de langue (ex. : en) (2 lettres). Il s'agit de la langue de traduction préférée pour les sous-titres YouTube.</string>
     <string name="use_anonymous">Utilisez un nom anonyme pour contribuer</string>
@@ -477,6 +485,7 @@
     <string name="explicit_content_blocked">Le contenu explicite est ignoré</string>
     <string name="mix_for_you">Mix pour vous</string>
     <string name="no_mixes_found">Aucun mix trouvé</string>
+    <string name="no_charts_found">Aucun classement trouvé</string>
     <string name="desktop_webview_description">En raison des limitations de Compose Multiplatform, je ne peux pas implémenter WebView sur ordinateur.\nConsultez ce document pour en savoir plus sur la connexion sur ordinateur :\n</string>
     <string name="open_blog_post">Ouvrir l'article de blog</string>
     <string name="discord_integration">Intégration Discord</string>
@@ -513,4 +522,14 @@
     <string name="downvote">Vote négatif</string>
     <string name="vote_submitted">Merci d'avoir voté pour ces paroles !</string>
     <string name="vote_error">Échec de la soumission</string>
+    <string name="open_app">Ouvrir SimpMusic</string>
+    <string name="close_miniplayer">Fermer le mini-lecteur</string>
+    <string name="open_miniplayer">Ouvrir le mini-lecteur</string>
+    <string name="quit_app">Quitter l'application</string>
+    <string name="local_tracking_title">Historique d'écoute local</string>
+    <string name="local_tracking_description">Enregistrez votre historique d'écoute dans une base de données locale</string>
+    <string name="simpmusic_charts">Classements SimpMusic</string>
+    <string name="crossfading">Fondu enchaîné</string>
+    <string name="your_320kbps_url">Votre URL 320 kbps</string>
+    <string name="search_for">Rechercher</string>
 </resources>

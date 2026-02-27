@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -37,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maxrave.domain.data.entities.AlbumEntity
@@ -44,6 +46,7 @@ import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
@@ -72,7 +75,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
     noinline createNewPlaylist: (() -> Unit)? = null,
     noinline onReload: () -> Unit,
 ) {
-    Logger.w("GridLibraryPlaylist", "Generic Type: ${T::class.java}")
+    Logger.w("GridLibraryPlaylist", "Generic Type: ${T::class.simpleName}")
     val state = rememberLazyGridState()
     val isScrollingUp by state.isScrollingUp()
 
@@ -110,7 +113,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
     ) {
         Crossfade(targetState = data) { data ->
             val list = (data as? LocalResource.Success)?.data ?: emptyList()
-            if (data is LocalResource.Success && list.isNotEmpty() || createNewPlaylist != null) {
+            if ((data is LocalResource.Success && list.isNotEmpty()) || createNewPlaylist != null) {
                 LazyVerticalGrid(
                     columns = GridCells.FixedSize(size = 132.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
@@ -178,6 +181,15 @@ internal inline fun <reified T> GridLibraryPlaylist(
                         HomeItemContentPlaylist(
                             onClick = {
                                 when (item) {
+                                    is ChartItem -> {
+                                        navController.navigate(
+                                            PlaylistDestination(
+                                                playlistId = item.ytPlaylistId,
+                                                isYourYouTubePlaylist = false,
+                                            ),
+                                        )
+                                    }
+
                                     is LocalPlaylistEntity -> {
                                         navController.navigate(
                                             LocalPlaylistDestination(
@@ -222,6 +234,19 @@ internal inline fun <reified T> GridLibraryPlaylist(
                             },
                             data = item,
                             thumbSize = 132.dp,
+                        )
+                    }
+
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        val uriHandler = LocalUriHandler.current
+                        SimpMusicChartButton(
+                            modifier =
+                                Modifier.wrapContentWidth().padding(
+                                    vertical = 16.dp,
+                                ),
+                            onClick = {
+                                uriHandler.openUri("https://chart.simpmusic.org")
+                            },
                         )
                     }
 

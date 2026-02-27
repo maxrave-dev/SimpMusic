@@ -60,6 +60,7 @@
     <string name="playlist_name_cannot_be_empty">O nome da playlist não pode estar vazio</string>
     <string name="this_app_needs_to_access_your_notification">Este aplicativo precisa de acesso às suas notificações</string>
     <string name="shared">Compartilhado</string>
+    <string name="rich_synced">Palavra por palavra</string>
     <string name="line_synced">Linha sincronizada</string>
     <string name="unsynced">Não sincronizado</string>
     <string name="playlist_is_empty">Playlist está vazia</string>
@@ -72,7 +73,10 @@
     <string name="content_country">Conteúdo do País</string>
     <string name="change">Alterar</string>
     <string name="quality">Qualidade</string>
-    <string name="download_quality">Download qualidade</string>
+    <string name="prefer_320kbps_stream">Stream preferencial de 320kbps</string>
+    <string name="prefer_320kbps_stream_description">Procurar automaticamente o fluxo de áudio 320kbps quando disponível na internet. Volta para a qualidade padrão se não for encontrado.</string>
+    <string name="download_quality">Qualidade do Download</string>
+    <string name="video_download_quality">Qualidade do Download de Vídeo</string>
     <string name="clear_downloaded_cache">Limpar o Cache Baixado</string>
     <string name="clear_thumbnail_cache">Limpar Cache de Miniaturas</string>
     <string name="add">Adicionar</string>
@@ -121,6 +125,7 @@
     <string name="buy_me_a_coffee">Compre-me um café</string>
     <string name="paypal">PayPal</string>
     <string name="title">Título</string>
+    <string name="custom_order">Manual</string>
     <string name="album">Álbum</string>
     <string name="youtube_url">URL do Youtube</string>
     <string name="download_url">Baixar URL</string>
@@ -174,6 +179,7 @@
     <string name="save_last_played">Salvar Última Reprodução</string>
     <string name="save_last_played_track_and_queue">Salvar a última faixa e fila reproduzidas</string>
     <string name="update_available">Nova atualização disponível</string>
+    <string name="update_message"></string>
     <string name="check_for_update">Verificar atualizações</string>
     <string name="last_checked_at">Última verificação: %1$s</string>
     <string name="checking">Verificando</string>
@@ -253,6 +259,7 @@
     <string name="translation_language_message">Type language code (Eg: pt) (2 letters). If you want to set same with SimpMusic's language, please make edit box empty.</string>
     <string name="invalid_language_code">Código de idioma inválido</string>
     <string name="lyrics_provider_youtube">Letras fornecidas pelo YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Letra fornecida por BetterLyrics</string>
     <string name="limit_player_cache">Limitar cache do jogador</string>
     <string name="unlimited">Ilimitado</string>
     <string name="third_party_libraries">Bibliotecas de terceiros</string>
@@ -300,6 +307,7 @@
     <string name="codec">Codec</string>
     <string name="plays">Quantidade de visualizações</string>
     <string name="like_and_dislike">%1$d curtida(s), %2$d não gostei(s)</string>
+    <string name="published_at">Publicado em %1$s</string>
     <string name="less">Menos</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Entrar no Spotify</string>
@@ -431,7 +439,6 @@
     <string name="download_this_song_video_file_to_your_device">Baixar este arquivo de música/vídeo para seu dispositivo</string>
     <string name="kill_service_on_exit">Encerrar serviço ao sair</string>
     <string name="kill_service_on_exit_description">Parar reprodutor de música em segundo plano ao sair do app</string>
-    <string name="crossfade">Transição entre faixas (BETA)</string>
     <string name="crossfade_enabled">Ativado (%1$ds)</string>
     <string name="crossfade_disabled">Desativado</string>
     <string name="crossfade_duration">Duração da Transição</string>
@@ -459,4 +466,9 @@
     <string name="explicit_content_blocked">Explicit content is skipped</string>
     <string name="mix_for_you">Mix for you</string>
     <string name="no_mixes_found">No mixes found</string>
+    <string name="desktop_webview_description">Devido às limitações do Compose Multiplataform, não posso implementar WebView no desktop. U\nLeia isso para saber mais como fazer login no desktop:\n</string>
+    <string name="open_blog_post">Abrir post do blog</string>
+    <string name="rich_presence_info"></string>
+    <string name="youtube_liked_music">Músicas curtidas do YouTube</string>
+    <string name="seconds">segundos</string>
 </resources>

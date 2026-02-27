@@ -250,7 +250,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     is ToastType.PlayerError -> {
-                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.TIME_OUT_ERROR) }
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.TIME_OUT_ERROR, type.error) }
                     }
                 },
             )

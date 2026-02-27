@@ -73,6 +73,8 @@
     <string name="content_country">Región del contenido</string>
     <string name="change">Cambiar</string>
     <string name="quality">Calidad</string>
+    <string name="prefer_320kbps_stream">Flujo preferido de 320kbps</string>
+    <string name="prefer_320kbps_stream_description">Buscar automáticamente por flujo de audio de 320kbps cuando esté disponible en internet.</string>
     <string name="download_quality">Calidad de descarga</string>
     <string name="video_download_quality">Calidad de descarga de vídeo</string>
     <string name="clear_downloaded_cache">Limpiar caché de descargas</string>
@@ -257,6 +259,7 @@
     <string name="translation_language_message">Escribe el código de idioma (p. ej.: en) (2 letras). Si deseas usar el idioma de SimpMusic, deja el cuadro de edición vacío.</string>
     <string name="invalid_language_code">Código de idioma no válido</string>
     <string name="lyrics_provider_youtube">Letra proporcionada por YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Letras proporcionadas por BetterLyrics</string>
     <string name="limit_player_cache">Limitar caché del reproductor</string>
     <string name="unlimited">Ilimitado</string>
     <string name="third_party_libraries">Bibliotecas de terceros</string>
@@ -419,6 +422,7 @@
     <string name="ai_provider">Provedor de IA</string>
     <string name="openai">OpenAI</string>
     <string name="gemini">Gemini</string>
+    <string name="openai_api_compatible">Compatible con OpenAI</string>
     <string name="ai_api_key">Tu clave API de IA</string>
     <string name="invalid_api_key">Clave de API inválida</string>
     <string name="custom_ai_model_id">ID de modelo de IA personalizado</string>
@@ -436,11 +440,15 @@
     <string name="download_this_song_video_file_to_your_device">Descargar este archivo de canción/vídeo a tu dispositivo</string>
     <string name="kill_service_on_exit">Cerrar servicio al salir</string>
     <string name="kill_service_on_exit_description">Detener reproductor de música en segundo plano al salir de la aplicación</string>
-    <string name="crossfade">Crossfade (BETA)</string>
+    <string name="desktop_player">Reproductor de escritorio</string>
+    <string name="crossfade">Efecto crossfade (BETA)</string>
+    <string name="crossfade_description">Transición suavizada entre canciones desvaneciendo la canción actual mientras se desvanece en la siguiente.</string>
     <string name="crossfade_enabled">Activado (%1$ds)</string>
     <string name="crossfade_disabled">Desactivado</string>
     <string name="crossfade_duration">Duración del crossfade</string>
     <string name="set_crossfade_duration">Establecer la duración del crossfade en segundos (%1$ds)</string>
+    <string name="crossfade_dj_mode">Transición estilo DJ</string>
+    <string name="crossfade_dj_mode_description">Aplica un filtro de barrido durante el efecto crossfade para una transición más suave (similar al Automix de Apple Music).</string>
     <string name="youtube_subtitle_language">Idioma de traducción de subtítulos de YouTube</string>
     <string name="youtube_subtitle_language_message">Escribe el código de idioma (ej.: es) (2 letras). Este es el idioma de traducción preferido para los subtítulos de YouTube.</string>
     <string name="use_anonymous">Usa un nombre anónimo para contribuir</string>
@@ -448,7 +456,7 @@
     <string name="contributor_email">Correo del contribuidor</string>
     <string name="anonymous">Anónimo</string>
     <string name="simpmusic_lyrics">SimpMusic Lyrics</string>
-    <string name="lyrics_provider_simpmusic">Letras proveídas por SimpMusic Lyrics</string>
+    <string name="lyrics_provider_simpmusic">Letras proporcionadas por SimpMusic Lyrics</string>
     <string name="backup_in_progress">Copia de seguridad en curso</string>
     <string name="restore_in_progress">Restauración en curso</string>
     <string name="backup_downloaded">Respaldar datos descargados</string>
@@ -477,6 +485,7 @@
     <string name="explicit_content_blocked">Omitir contenido explícito</string>
     <string name="mix_for_you">Mezclar para ti</string>
     <string name="no_mixes_found">No se encontraron mezclas</string>
+    <string name="no_charts_found">No se encontraron gráficos</string>
     <string name="desktop_webview_description">Debido a las limitaciones de Compose Multiplatform, no puedo implementar WebView en el ordenador.\nLee esto para aprender más cómo iniciar sesión en el escritorio:\n</string>
     <string name="open_blog_post">Abrir entrada del blog</string>
     <string name="discord_integration">Integración con Discord</string>
@@ -513,4 +522,13 @@
     <string name="downvote">Voto negativo</string>
     <string name="vote_submitted">¡Gracias por votar esta letra!</string>
     <string name="vote_error">Error al enviar</string>
+    <string name="open_app">Abrir SimpMusic</string>
+    <string name="close_miniplayer">Cerrar minireproductor</string>
+    <string name="open_miniplayer">Abrir minireproductor</string>
+    <string name="quit_app">Salir</string>
+    <string name="local_tracking_title">Historial de escuchas local de seguimiento</string>
+    <string name="local_tracking_description">Registra tu historial de escucha en la base de datos local</string>
+    <string name="simpmusic_charts">Gráficos SimpMusic</string>
+    <string name="crossfading">Crossfade</string>
+    <string name="your_320kbps_url">Su URL de 320kbps</string>
 </resources>

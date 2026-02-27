@@ -27,6 +27,7 @@ import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.model.update.UpdateData
+import com.maxrave.domain.extension.decodeHtmlEntities
 import com.maxrave.domain.extension.isSong
 import com.maxrave.domain.extension.isVideo
 import com.maxrave.domain.extension.toGenericMediaItem
@@ -377,6 +378,7 @@ class SharedViewModel(
                                     if (_timeline.value.total > 0L) {
                                         _timeline.update {
                                             it.copy(
+                                                total = mediaPlayerHandler.getPlayerDuration(),
                                                 current = mediaState.progress,
                                                 loading = false,
                                             )
@@ -390,13 +392,13 @@ class SharedViewModel(
                                             )
                                         }
                                     }
-                                } else {
-                                    _timeline.update {
-                                        it.copy(
-                                            loading = true,
-                                        )
-                                    }
                                 }
+                                // When progress hasn't changed (same value polled again) or is negative,
+                                // don't modify loading state. The loading flag is already managed by
+                                // Buffering/Ready/Loading state events. Setting loading=true here would
+                                // cause rapid flickering because the progress poll interval (100ms) is
+                                // shorter than the adapter's position cache update interval (200ms),
+                                // resulting in duplicate position values that incorrectly triggered loading.
                             }
 
                             is SimpleMediaState.Loading -> {
@@ -404,6 +406,7 @@ class SharedViewModel(
                                     it.copy(
                                         bufferedPercent = mediaState.bufferedPercentage,
                                         total = mediaState.duration,
+                                        loading = true,
                                     )
                                 }
                             }
@@ -426,6 +429,10 @@ class SharedViewModel(
                     mediaPlayerHandler.controlState.collectLatest {
                         Logger.w(tag, "ControlState is $it")
                         _controllerState.value = it
+                        // Propagate crossfade state to timeline so UI can react
+                        _timeline.update { timeline ->
+                            timeline.copy(isCrossfading = it.isCrossfading)
+                        }
                     }
                 }
             val sleepTimerJob =
@@ -948,11 +955,11 @@ class SharedViewModel(
     private fun updateLyrics(
         videoId: String,
         duration: Int, // 0 if translated lyrics
-        lyrics: Lyrics?,
+        inputLyrics: Lyrics?,
         isTranslatedLyrics: Boolean,
         lyricsProvider: LyricsProvider = LyricsProvider.SIMPMUSIC,
     ) {
-        if (lyrics == null) {
+        if (inputLyrics == null) {
             _nowPlayingScreenData.update {
                 it.copy(
                     lyricsData = null,
@@ -960,6 +967,16 @@ class SharedViewModel(
             }
             return
         }
+
+        val lyrics =
+            inputLyrics.copy(
+                lines =
+                    inputLyrics.lines?.map { line ->
+                        line.copy(
+                            words = decodeHtmlEntities(line.words),
+                        )
+                    },
+            )
 
         if (isTranslatedLyrics) {
             val originalLyrics = _nowPlayingScreenData.value.lyricsData?.lyrics
@@ -1170,34 +1187,39 @@ class SharedViewModel(
                 }
             resetLyricsVoteState()
             val lyricsProvider = dataStoreManager.lyricsProvider.first()
-            if (isVideo) {
-                getYouTubeCaption(
-                    videoId,
-                    song,
-                    (artist ?: "").toString(),
-                    duration,
-                )
-            } else {
-                when (lyricsProvider) {
-                    DataStoreManager.SIMPMUSIC -> {
-                        getSimpMusicLyrics(
-                            videoId,
-                            song,
-                            (artist ?: "").toString(),
-                            duration,
-                        )
-                    }
+            when (lyricsProvider) {
+                DataStoreManager.SIMPMUSIC -> {
+                    getSimpMusicLyrics(
+                        videoId,
+                        song,
+                        (artist ?: ""),
+                        duration,
+                    )
+                }
 
-                    DataStoreManager.LRCLIB -> {
-                        getLrclibLyrics(
-                            song,
-                            (artist ?: "").toString(),
-                            duration,
-                        )
-                    }
+                DataStoreManager.LRCLIB -> {
+                    getLrclibLyrics(
+                        song,
+                        (artist ?: ""),
+                        duration,
+                    )
+                }
 
-                    DataStoreManager.YOUTUBE -> {
-                    }
+                DataStoreManager.YOUTUBE -> {
+                    getYouTubeCaption(
+                        videoId,
+                        song,
+                        (artist ?: ""),
+                        duration,
+                    )
+                }
+
+                DataStoreManager.BETTER_LYRICS -> {
+                    getBetterLyrics(
+                        song,
+                        (artist ?: "").toString(),
+                        duration,
+                    )
                 }
             }
         }
@@ -1334,6 +1356,54 @@ class SharedViewModel(
                                 song.toTrack().copy(
                                     durationSeconds = duration,
                                 ),
+                            )
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun getBetterLyrics(
+        song: SongEntity,
+        artist: String,
+        duration: Int,
+    ) {
+        viewModelScope.launch {
+            lyricsCanvasRepository
+                .getBetterLyrics(
+                    artist,
+                    song.title,
+                    duration,
+                ).collectLatest { res ->
+                    val data = res.data
+                    when (res) {
+                        is Resource.Success if (data != null) -> {
+                            Logger.d(tag, "Get BetterLyrics Success")
+                            updateLyrics(
+                                song.videoId,
+                                duration,
+                                data,
+                                false,
+                                LyricsProvider.BETTER_LYRICS,
+                            )
+                            insertLyrics(
+                                data.toLyricsEntity(
+                                    song.videoId,
+                                ),
+                            )
+                            getAITranslationLyrics(
+                                song.videoId,
+                                data,
+                            )
+                        }
+
+                        else -> {
+                            log("Get BetterLyrics Error: ${res.message}")
+                            getSimpMusicLyrics(
+                                song.videoId,
+                                song,
+                                artist,
+                                duration,
                             )
                         }
                     }
@@ -1670,7 +1740,7 @@ class SharedViewModel(
                             _lyricsVoteState.update {
                                 it?.copy(
                                     state = VoteState.Success(upvote),
-                                    vote = it.vote + if (upvote) 1 else -1
+                                    vote = it.vote + if (upvote) 1 else -1,
                                 )
                             }
                             makeToast(getString(Res.string.vote_submitted))
@@ -1725,7 +1795,7 @@ class SharedViewModel(
                             _translatedVoteState.update {
                                 it?.copy(
                                     state = VoteState.Success(upvote),
-                                    vote = it.vote + if (upvote) 1 else -1
+                                    vote = it.vote + if (upvote) 1 else -1,
                                 )
                             }
                             makeToast(getString(Res.string.vote_submitted))
@@ -1775,6 +1845,7 @@ enum class LyricsProvider {
     YOUTUBE,
     SPOTIFY,
     LRCLIB,
+    BETTER_LYRICS,
     AI,
     OFFLINE,
 }

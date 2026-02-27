@@ -22,10 +22,10 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.expect.checkYtdlp
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -126,10 +126,20 @@ class SettingsViewModel(
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
+    private val _customOpenAIBaseUrl = MutableStateFlow<String>("")
+    val customOpenAIBaseUrl: StateFlow<String> = _customOpenAIBaseUrl
+    private val _customOpenAIHeaders = MutableStateFlow<String>("")
+    val customOpenAIHeaders: StateFlow<String> = _customOpenAIHeaders
     private val _crossfadeEnabled = MutableStateFlow<Boolean>(false)
     val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled
     private val _crossfadeDuration = MutableStateFlow<Int>(5000)
     val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
+    private val _crossfadeDjMode = MutableStateFlow<Boolean>(true)
+    val crossfadeDjMode: StateFlow<Boolean> = _crossfadeDjMode
+    private val _prefer320kbpsStream = MutableStateFlow<Boolean>(false)
+    val prefer320kbpsStream: StateFlow<Boolean> = _prefer320kbpsStream
+    private val _your320kbpsUrl: MutableStateFlow<String> = MutableStateFlow("")
+    val your320kbpsUrl: StateFlow<String> = _your320kbpsUrl
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
@@ -250,9 +260,14 @@ class SettingsViewModel(
         getAIApiKey()
         getAITranslation()
         getCustomModelId()
+        getCustomOpenAIBaseUrl()
+        getCustomOpenAIHeaders()
         getKillServiceOnExit()
         getCrossfadeEnabled()
         getCrossfadeDuration()
+        getCrossfadeDjMode()
+        getPrefer320kbpsStream()
+        getYour320kbpsUrl()
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
@@ -300,7 +315,7 @@ class SettingsViewModel(
                 when (quality) {
                     QUALITY.items[0].toString() -> _downloadQuality.emit(QUALITY.items[0].toString())
                     QUALITY.items[1].toString() -> _downloadQuality.emit(QUALITY.items[1].toString())
-                    QUALITY.items[2].toString() -> _downloadQuality.emit(QUALITY.items[2].toString())
+                    else -> _downloadQuality.emit(QUALITY.items[0].toString())
                 }
             }
         }
@@ -308,18 +323,7 @@ class SettingsViewModel(
 
     fun setDownloadQuality(quality: String) {
         viewModelScope.launch {
-            if (getPlatform() == Platform.Android) {
-                dataStoreManager.setDownloadQuality(quality)
-                getQuality()
-            } else if (getPlatform() == Platform.Desktop) {
-                val installed = checkYtdlp()
-                if (installed) {
-                    dataStoreManager.setDownloadQuality(quality)
-                    getQuality()
-                } else {
-                    makeToast("Your device does not have yt-dlp installed. Please install it to use the best quality.")
-                }
-            }
+            dataStoreManager.setDownloadQuality(quality)
             getDownloadQuality()
         }
     }
@@ -387,6 +391,81 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setKeepServiceAlive(keepServiceAlive)
             getKeepServiceAlive()
+        }
+    }
+
+    private fun getCrossfadeEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeEnabled.collect { enabled ->
+                _crossfadeEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeEnabled(enabled)
+            getCrossfadeEnabled()
+        }
+    }
+
+    private fun getCrossfadeDuration() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeDuration.collect { duration ->
+                _crossfadeDuration.value = duration
+            }
+        }
+    }
+
+    fun setCrossfadeDuration(duration: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeDuration(duration)
+            getCrossfadeDuration()
+        }
+    }
+
+    private fun getCrossfadeDjMode() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeDjMode.collect { enabled ->
+                _crossfadeDjMode.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeDjMode(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setCrossfadeDjMode(enabled)
+            getCrossfadeDjMode()
+        }
+    }
+
+    private fun getPrefer320kbpsStream() {
+        viewModelScope.launch {
+            dataStoreManager.prefer320kbpsStream.collect { enabled ->
+                _prefer320kbpsStream.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setPrefer320kbpsStream(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setPrefer320kbpsStream(enabled)
+            getPrefer320kbpsStream()
+        }
+    }
+
+    private fun getYour320kbpsUrl() {
+        viewModelScope.launch {
+            dataStoreManager.your320kbpsUrl.collect { url ->
+                _your320kbpsUrl.value = url
+            }
+        }
+    }
+
+    fun setYour320kbpsUrl(url: String) {
+        viewModelScope.launch {
+            dataStoreManager.setYour320kbpsUrl(url.removeSuffix("/"))
+            getYour320kbpsUrl()
         }
     }
 
@@ -572,6 +651,36 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCustomModelId(modelId)
             getCustomModelId()
+        }
+    }
+
+    private fun getCustomOpenAIBaseUrl() {
+        viewModelScope.launch {
+            dataStoreManager.customOpenAIBaseUrl.collect { baseUrl ->
+                _customOpenAIBaseUrl.value = baseUrl
+            }
+        }
+    }
+
+    fun setCustomOpenAIBaseUrl(baseUrl: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomOpenAIBaseUrl(baseUrl)
+            getCustomOpenAIBaseUrl()
+        }
+    }
+
+    private fun getCustomOpenAIHeaders() {
+        viewModelScope.launch {
+            dataStoreManager.customOpenAIHeaders.collect { headers ->
+                _customOpenAIHeaders.value = headers
+            }
+        }
+    }
+
+    fun setCustomOpenAIHeaders(headers: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomOpenAIHeaders(headers)
+            getCustomOpenAIHeaders()
         }
     }
 
@@ -919,7 +1028,7 @@ class SettingsViewModel(
                 when (quality) {
                     QUALITY.items[0].toString() -> _quality.emit(QUALITY.items[0].toString())
                     QUALITY.items[1].toString() -> _quality.emit(QUALITY.items[1].toString())
-                    QUALITY.items[2].toString() -> _quality.emit(QUALITY.items[2].toString())
+                    else -> _quality.emit(QUALITY.items[0].toString())
                 }
             }
         }
@@ -937,18 +1046,8 @@ class SettingsViewModel(
     fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
             log("changeQuality: $qualityItem")
-            if (getPlatform() == Platform.Android) {
-                dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
-                getQuality()
-            } else if (getPlatform() == Platform.Desktop) {
-                val installed = checkYtdlp()
-                if (installed) {
-                    dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
-                    getQuality()
-                } else {
-                    makeToast("Your device does not have yt-dlp installed. Please install it to use the best quality.")
-                }
-            }
+            dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
+            getQuality()
         }
     }
 
@@ -1443,36 +1542,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setKillServiceOnExit(kill)
             getKillServiceOnExit()
-        }
-    }
-
-    private fun getCrossfadeEnabled() {
-        viewModelScope.launch {
-            dataStoreManager.crossfadeEnabled.collect { crossfadeEnabled ->
-                _crossfadeEnabled.value = crossfadeEnabled == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setCrossfadeEnabled(crossfadeEnabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setCrossfadeEnabled(crossfadeEnabled)
-            getCrossfadeEnabled()
-        }
-    }
-
-    private fun getCrossfadeDuration() {
-        viewModelScope.launch {
-            dataStoreManager.crossfadeDuration.collect { duration ->
-                _crossfadeDuration.value = duration
-            }
-        }
-    }
-
-    fun setCrossfadeDuration(duration: Int) {
-        viewModelScope.launch {
-            dataStoreManager.setCrossfadeDuration(duration)
-            getCrossfadeDuration()
         }
     }
 

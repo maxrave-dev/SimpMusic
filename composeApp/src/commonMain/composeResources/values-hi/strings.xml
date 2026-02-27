@@ -429,7 +429,6 @@
     <string name="download_this_song_video_file_to_your_device">इस गीत/वीडियो फ़ाइल को अपने डिवाइस पर डाउनलोड करें</string>
     <string name="kill_service_on_exit">बाहर निकलने पर सेवा समाप्त करें</string>
     <string name="kill_service_on_exit_description">ऐप से बाहर निकलते समय बैकग्राउंड म्यूजिक प्लेयर बंद करें</string>
-    <string name="crossfade">क्रॉसफ़ेड (बीटा)</string>
     <string name="crossfade_enabled">सक्रिय (%1$ds)</string>
     <string name="crossfade_disabled">निष्क्रिय</string>
     <string name="crossfade_duration">क्रॉसफेड अवधि</string>

@@ -917,14 +917,12 @@ fun LocalPlaylistScreen(
             }
         }
         trackPagingItems.apply {
-            when {
-                loadState.refresh is LoadState.Loading || loadState.append is LoadState.Loading -> {
-                    item {
-                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Spacer(modifier = Modifier.height(15.dp))
-                            CenterLoadingBox(modifier = Modifier.size(80.dp))
-                            Spacer(modifier = Modifier.height(15.dp))
-                        }
+            item {
+                AnimatedVisibility(loadState.refresh is LoadState.Loading || loadState.append is LoadState.Loading) {
+                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(modifier = Modifier.height(15.dp))
+                        CenterLoadingBox(modifier = Modifier.size(80.dp))
+                        Spacer(modifier = Modifier.height(15.dp))
                     }
                 }
             }

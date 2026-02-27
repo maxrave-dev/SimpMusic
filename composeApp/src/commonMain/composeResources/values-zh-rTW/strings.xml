@@ -430,7 +430,6 @@
     <string name="download_this_song_video_file_to_your_device">下載此歌曲/影片檔案到您的裝置</string>
     <string name="kill_service_on_exit">離開時關閉服務</string>
     <string name="kill_service_on_exit_description">離開應用程式時停止背景音樂播放器</string>
-    <string name="crossfade">交叉淡入淡出（BETA）</string>
     <string name="crossfade_enabled">已啟用（%1$d 秒）</string>
     <string name="crossfade_disabled">已停用</string>
     <string name="crossfade_duration">交叉淡入淡出持續時間</string>
