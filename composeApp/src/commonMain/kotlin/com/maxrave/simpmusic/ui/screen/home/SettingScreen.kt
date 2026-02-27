@@ -2,6 +2,10 @@ package com.maxrave.simpmusic.ui.screen.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -646,32 +650,34 @@ fun SettingScreen(
                     smallSubtitle = true,
                     switch = (prefer320kbpsStream to { viewModel.setPrefer320kbpsStream(it) }),
                 )
-                SettingItem(
-                    title = stringResource(Res.string.your_320kbps_url),
-                    subtitle = your320kbpsUrl,
-                    isEnable = prefer320kbpsStream,
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.your_320kbps_url) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.your_320kbps_url) },
-                                        value = "",
-                                        verifyCodeBlock = {
-                                            (it.isNotEmpty()) to runBlocking { getString(Res.string.invalid) }
+                AnimatedVisibility(visible = prefer320kbpsStream, enter = slideInVertically() + fadeIn(), exit = slideOutVertically() + fadeOut()) {
+                    SettingItem(
+                        title = stringResource(Res.string.your_320kbps_url),
+                        subtitle = your320kbpsUrl,
+                        isEnable = prefer320kbpsStream,
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.your_320kbps_url) },
+                                    textField =
+                                        SettingAlertState.TextFieldData(
+                                            label = runBlocking { getString(Res.string.your_320kbps_url) },
+                                            value = "",
+                                            verifyCodeBlock = {
+                                                (it.isNotEmpty()) to runBlocking { getString(Res.string.invalid) }
+                                            },
+                                        ),
+                                    message = "",
+                                    confirm =
+                                        runBlocking { getString(Res.string.set) } to { state ->
+                                            viewModel.setYour320kbpsUrl(state.textField?.value ?: "")
                                         },
-                                    ),
-                                message = "",
-                                confirm =
-                                    runBlocking { getString(Res.string.set) } to { state ->
-                                        viewModel.setYour320kbpsUrl(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
-                    },
-                )
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.download_quality),
                     subtitle = downloadQuality ?: "",

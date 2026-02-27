@@ -2,6 +2,7 @@
 - Thêm nhà cung cấp lời bài hát BetterLyrics
 - Sửa và cải thiện hiệu ứng lời bài hát theo từng từ
 - Thêm SimpMusic Chart vào màn hình thư viện
+- Thêm tùy chọn luồng 320kbps
 - Sửa và cải thiện màn hình lời bài hát toàn màn hình
 - Sửa và cải thiện danh sách phát cục bộ
 - Sửa và cải thiện một số giao diện

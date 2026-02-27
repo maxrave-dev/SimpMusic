@@ -19,18 +19,22 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 > SimpMusic is available on Desktop now!
   
 ## Features ✨️    
-- Play music from YouTube Music or YouTube for free, without ads and in the background    
+- Play music from YouTube Music or YouTube for free, without ads and in the background
+- High quality up-to 320kbps stream (NEW)
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    
 - Search everything on YouTube    
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...    
 - Spotify Canvas supported    
+- Powered your experience with SimpMusic Chart (https://chart.simpmusic.org/)
 - Play 1080p video option with subtitle    
 - AI song suggestions    
 - Customize your playlist, synced with YouTube Music
 - Notifications from followed artists    
 - Caching and offline playback support    
+- Crossfade with DJ-style like Apple Music (NEW)
 - Synced lyrics from SimpMusic Lyrics, LRCLIB, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
 - Personalize data (\**) and multi-YouTube-account support    
+- Local "scrobble" like Last.fm (NEW)
 - Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer    
 - Android Auto with online content
@@ -94,7 +98,6 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 
 ### Before downloading the Desktop app, make sure your system installed 3 applications below:
 - [Gstreamer](https://gstreamer.freedesktop.org/download/): Required for playback audio.
-- [Yt-dlp](https://github.com/yt-dlp/yt-dlp): Required for getting streaming URL from YouTube (when using 256kps or higher quality).
 
 ### Which file should I download?
 - For Windows: Download the file with extension `.msi`.
