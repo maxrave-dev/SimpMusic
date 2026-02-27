@@ -794,6 +794,30 @@ class SharedViewModel(
                     dataStoreManager.setPlayerVolume(newVolume)
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.UpdateVolume(newVolume))
                 }
+
+                UIEvent.Forward5 -> {
+                    val current = timeline.value.current
+                    val total = timeline.value.total
+                    if (total > 0) {
+                        val newProgress = (current + 5000).coerceAtMost(total)
+                        val progressPercent = (newProgress.toFloat() / total.toFloat()) * 100f
+                        mediaPlayerHandler.onPlayerEvent(
+                            PlayerEvent.UpdateProgress(progressPercent),
+                        )
+                    }
+                }
+
+                UIEvent.Backward5 -> {
+                    val current = timeline.value.current
+                    val total = timeline.value.total
+                    if (total > 0) {
+                        val newProgress = (current - 5000).coerceAtLeast(0)
+                        val progressPercent = (newProgress.toFloat() / total.toFloat()) * 100f
+                        mediaPlayerHandler.onPlayerEvent(
+                            PlayerEvent.UpdateProgress(progressPercent),
+                        )
+                    }
+                }
             }
         }
 
@@ -1838,6 +1862,10 @@ sealed class UIEvent {
     ) : UIEvent()
 
     data object ToggleLike : UIEvent()
+
+    data object Forward5 : UIEvent()
+
+    data object Backward5 : UIEvent()
 }
 
 enum class LyricsProvider {
