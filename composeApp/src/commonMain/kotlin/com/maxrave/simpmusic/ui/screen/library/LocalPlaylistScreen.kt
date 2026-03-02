@@ -166,6 +166,7 @@ import simpmusic.composeapp.generated.resources.reload
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
 import simpmusic.composeapp.generated.resources.sync_playlist_warning
+import simpmusic.composeapp.generated.resources.synced_playlist_cannot_change_order
 import simpmusic.composeapp.generated.resources.unsync_playlist_warning
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.yes
@@ -799,59 +800,77 @@ fun LocalPlaylistScreen(
                                         Spacer(modifier = Modifier.size(8.dp))
                                     }
                                 }
-                                Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                                    ElevatedButton(
-                                        contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp),
-                                        modifier =
-                                            Modifier
-                                                .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
-                                        onClick = {
-                                            sortBottomSheetShow = true
-                                        },
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Sharp.Sort,
-                                                contentDescription = "Sort playlist",
-                                                tint = Color.White,
-                                                modifier = Modifier.size(24.dp),
-                                            )
-                                            Spacer(modifier = Modifier.size(4.dp))
-                                            Text(
-                                                text =
-                                                    stringResource(Res.string.sort_by) + ": " +
-                                                        stringResource(
-                                                            uiState.filterState.displayNameRes(),
-                                                        ),
-                                                style = typo().bodySmall,
-                                                color = Color.Gray,
-                                            )
+                                Column {
+                                    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                                        ElevatedButton(
+                                            contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp),
+                                            modifier =
+                                                Modifier
+                                                    .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
+                                            onClick = {
+                                                sortBottomSheetShow = true
+                                            },
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                                    contentDescription = "Sort playlist",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(24.dp),
+                                                )
+                                                Spacer(modifier = Modifier.size(4.dp))
+                                                Text(
+                                                    text =
+                                                        stringResource(Res.string.sort_by) + ": " +
+                                                            stringResource(
+                                                                uiState.filterState.displayNameRes(),
+                                                            ),
+                                                    style = typo().bodySmall,
+                                                    color = Color.Gray,
+                                                )
+                                            }
+                                        }
+                                        Spacer(Modifier.weight(1f))
+                                        AnimatedVisibility(
+                                            visible =
+                                                uiState.filterState == FilterState.CustomOrder &&
+                                                    uiState.syncState != LocalPlaylistEntity.YouTubeSyncState.Synced,
+                                            enter = fadeIn(),
+                                            exit = fadeOut(),
+                                        ) {
+                                            TextButton(
+                                                onClick = {
+                                                    changingOrder = !changingOrder
+                                                },
+                                            ) {
+                                                Text(
+                                                    text =
+                                                        if (changingOrder) {
+                                                            "Done"
+                                                        } else {
+                                                            "Change order"
+                                                        },
+                                                    style = typo().bodySmall,
+                                                    color = Color.Gray,
+                                                )
+                                            }
                                         }
                                     }
-                                    Spacer(Modifier.weight(1f))
                                     AnimatedVisibility(
                                         visible =
                                             uiState.filterState == FilterState.CustomOrder &&
-                                                uiState.syncState != LocalPlaylistEntity.YouTubeSyncState.Synced,
+                                                uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced,
                                         enter = fadeIn(),
                                         exit = fadeOut(),
                                     ) {
-                                        TextButton(
-                                            onClick = {
-                                                changingOrder = !changingOrder
-                                            },
-                                        ) {
-                                            Text(
-                                                text =
-                                                    if (changingOrder) {
-                                                        "Done"
-                                                    } else {
-                                                        "Change order"
-                                                    },
-                                                style = typo().bodySmall,
-                                                color = Color.Gray,
-                                            )
-                                        }
+                                        Text(
+                                            text = stringResource(Res.string.synced_playlist_cannot_change_order),
+                                            style = typo().bodySmall,
+                                            color = Color.Gray,
+                                            modifier =
+                                                Modifier
+                                                    .padding(all = 4.dp),
+                                        )
                                     }
                                 }
                             }

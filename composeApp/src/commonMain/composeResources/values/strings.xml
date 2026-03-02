@@ -538,4 +538,5 @@
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">Your 320kbps URL</string>
     <string name="search_for">Search for</string>
+    <string name="synced_playlist_cannot_change_order">Synced playlist cannot change order</string>
 </resources>
