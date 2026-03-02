@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,8 +48,11 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -1957,42 +1961,109 @@ fun PlaybackSpeedPitchBottomSheet(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 10.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                Spacer(modifier = Modifier.height(5.dp))
                 Card(
-                    modifier = Modifier.width(60.dp).height(4.dp),
+                    modifier = Modifier.width(40.dp).height(4.dp),
                     colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF474545)),
                     shape = RoundedCornerShape(50),
                 ) {}
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = stringResource(Res.string.playback_speed) + " ${playbackSpeed}x",
-                    style = typo().labelSmall,
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Slider(
-                    value = playbackSpeed,
-                    onValueChange = { onSet(it, pitch) },
-                    enabled = true,
-                    valueRange = 0.25f..2f,
-                    steps = 13,
-                    onValueChangeFinished = {},
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = stringResource(Res.string.pitch) + " $pitch",
-                    style = typo().labelSmall,
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Slider(
-                    value = pitch.toFloat(),
-                    onValueChange = { onSet(playbackSpeed, it.toInt()) },
-                    enabled = true,
-                    valueRange = -12f..12f,
-                    steps = 23,
-                    onValueChangeFinished = {},
-                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Playback Speed row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Image(
+                        painter = painterResource(Res.drawable.round_speed_24),
+                        contentDescription = stringResource(Res.string.playback_speed),
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = ColorFilter.tint(Color(0xFFB0B0A0)),
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(
+                        onClick = {
+                            val newSpeed = (kotlin.math.floor((playbackSpeed - 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
+                            onSet(
+                                newSpeed,
+                                pitch,
+                            )
+                        },
+                    ) {
+                        Icon(
+                            Icons.Rounded.Remove,
+                            contentDescription = "Decrease speed",
+                            tint = Color(0xFFB0B0A0),
+                        )
+                    }
+                    Text(
+                        text = "x${String.format("%.1f", playbackSpeed)}",
+                        style = typo().titleMedium,
+                        color = Color(0xFFD0D0C0),
+                        modifier = Modifier.widthIn(min = 60.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                    IconButton(
+                        onClick = {
+                            val newSpeed = (kotlin.math.floor((playbackSpeed + 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
+                            onSet(
+                                newSpeed,
+                                pitch,
+                            )
+                        },
+                    ) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = "Increase speed",
+                            tint = Color(0xFFB0B0A0),
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                // Pitch row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        Icons.Rounded.Tune,
+                        contentDescription = stringResource(Res.string.pitch),
+                        modifier = Modifier.size(24.dp),
+                        tint = Color(0xFFB0B0A0),
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(
+                        onClick = {
+                            val newPitch = (pitch - 1).coerceIn(-12, 12)
+                            onSet(playbackSpeed, newPitch)
+                        },
+                    ) {
+                        Icon(
+                            Icons.Rounded.Remove,
+                            contentDescription = "Decrease pitch",
+                            tint = Color(0xFFB0B0A0),
+                        )
+                    }
+                    Text(
+                        text = "$pitch",
+                        style = typo().titleMedium,
+                        color = Color(0xFFD0D0C0),
+                        modifier = Modifier.widthIn(min = 60.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                    IconButton(
+                        onClick = {
+                            val newPitch = (pitch + 1).coerceIn(-12, 12)
+                            onSet(playbackSpeed, newPitch)
+                        },
+                    ) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = "Increase pitch",
+                            tint = Color(0xFFB0B0A0),
+                        )
+                    }
+                }
                 EndOfModalBottomSheet()
             }
         }

@@ -184,8 +184,7 @@ fun LyricsView(
     }
     LaunchedEffect(key1 = currentLineIndex, key2 = currentLineHeight, key3 = current) {
         if (currentLineIndex > -1 && currentLineHeight > 0 &&
-            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED") &&
-            !current.isCrossfading
+            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
         ) {
             listState.animateScrollAndCentralizeItem(
                 index = currentLineIndex,

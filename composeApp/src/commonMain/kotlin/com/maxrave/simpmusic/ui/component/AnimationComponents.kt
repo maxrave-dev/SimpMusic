@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -8,7 +9,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -83,7 +83,7 @@ fun InfiniteBorderAnimationView(
                             )
                         }
                     }
-                },
+                }.animateContentSize(),
         color = backgroundColor,
         shape = shape,
     ) {
