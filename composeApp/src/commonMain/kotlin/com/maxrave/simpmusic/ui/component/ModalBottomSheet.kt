@@ -250,6 +250,7 @@ import simpmusic.composeapp.generated.resources.simpmusic_lyrics
 import simpmusic.composeapp.generated.resources.sleep_minutes
 import simpmusic.composeapp.generated.resources.sleep_timer
 import simpmusic.composeapp.generated.resources.sleep_timer_off
+import simpmusic.composeapp.generated.resources.sleep_timer_end_of_song
 import simpmusic.composeapp.generated.resources.sleep_timer_set_error
 import simpmusic.composeapp.generated.resources.sleep_timer_warning
 import simpmusic.composeapp.generated.resources.sort_by
@@ -1753,11 +1754,18 @@ fun NowPlayingBottomSheet(
                     Crossfade(targetState = setSleepTimerEnable) {
                         val sleepTimerState = uiState.sleepTimer
                         if (it) {
-                            Crossfade(targetState = sleepTimerState.timeRemaining > 0) { running ->
+                            // timeRemaining > 0 → countdown mode, -1 → end-of-song mode, 0 → off
+                            val isEndOfSong = sleepTimerState.timeRemaining == -1
+                            val isRunning = sleepTimerState.timeRemaining > 0 || isEndOfSong
+                            Crossfade(targetState = isRunning) { running ->
                                 if (running) {
                                     ActionButton(
                                         icon = painterResource(Res.drawable.baseline_access_alarm_24),
-                                        textString = stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString()),
+                                        textString = if (isEndOfSong) {
+                                            stringResource(Res.string.sleep_timer_end_of_song)
+                                        } else {
+                                            stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString())
+                                        },
                                         text = null,
                                         textColor = seed,
                                         iconColor = seed,

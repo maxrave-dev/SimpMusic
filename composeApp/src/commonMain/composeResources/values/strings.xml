@@ -215,6 +215,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Error information</string>
     <string name="no_update">Your version is the newest</string>
     <string name="sleep_timer">Sleep Timer - %1$s minute(s)</string>
+    <string name="sleep_timer_end_of_song">Sleep Timer - End of song</string>
     <string name="sleep_timer_off">Sleep Timer</string>
     <string name="sleep_minutes">Countdown time (minutes)</string>
     <string name="set">Set</string>
