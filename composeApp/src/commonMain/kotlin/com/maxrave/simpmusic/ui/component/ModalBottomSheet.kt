@@ -234,6 +234,7 @@ import simpmusic.composeapp.generated.resources.play_circle
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playback_speed
 import simpmusic.composeapp.generated.resources.playback_speed_pitch
+import simpmusic.composeapp.generated.resources.playback_speed_pitch_disabled
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
 import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
@@ -249,8 +250,8 @@ import simpmusic.composeapp.generated.resources.share_url
 import simpmusic.composeapp.generated.resources.simpmusic_lyrics
 import simpmusic.composeapp.generated.resources.sleep_minutes
 import simpmusic.composeapp.generated.resources.sleep_timer
-import simpmusic.composeapp.generated.resources.sleep_timer_off
 import simpmusic.composeapp.generated.resources.sleep_timer_end_of_song
+import simpmusic.composeapp.generated.resources.sleep_timer_off
 import simpmusic.composeapp.generated.resources.sleep_timer_set_error
 import simpmusic.composeapp.generated.resources.sleep_timer_warning
 import simpmusic.composeapp.generated.resources.sort_by
@@ -1350,6 +1351,7 @@ fun NowPlayingBottomSheet(
     var sleepTimerWarning by remember { mutableStateOf(false) }
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
     var changePlaybackSpeedPitch by remember { mutableStateOf(false) }
+    val crossfadeEnabled by dataStoreManager.crossfadeEnabled.collectAsState(DataStoreManager.FALSE)
 
     LaunchedEffect(uiState) {
         if (uiState.songUIState.videoId.isNotEmpty() && !isBottomSheetVisible) {
@@ -1761,11 +1763,12 @@ fun NowPlayingBottomSheet(
                                 if (running) {
                                     ActionButton(
                                         icon = painterResource(Res.drawable.baseline_access_alarm_24),
-                                        textString = if (isEndOfSong) {
-                                            stringResource(Res.string.sleep_timer_end_of_song)
-                                        } else {
-                                            stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString())
-                                        },
+                                        textString =
+                                            if (isEndOfSong) {
+                                                stringResource(Res.string.sleep_timer_end_of_song)
+                                            } else {
+                                                stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString())
+                                            },
                                         text = null,
                                         textColor = seed,
                                         iconColor = seed,
@@ -1787,7 +1790,13 @@ fun NowPlayingBottomSheet(
                         if (it) {
                             ActionButton(
                                 icon = painterResource(Res.drawable.round_speed_24),
-                                text = Res.string.playback_speed_pitch,
+                                text =
+                                    if (crossfadeEnabled != DataStoreManager.TRUE) {
+                                        Res.string.playback_speed_pitch
+                                    } else {
+                                        Res.string.playback_speed_pitch_disabled
+                                    },
+                                enable = crossfadeEnabled != DataStoreManager.TRUE,
                             ) {
                                 changePlaybackSpeedPitch = true
                             }

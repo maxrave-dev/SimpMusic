@@ -395,6 +395,7 @@
     <string name="blur_fullscreen_lyrics">Blur fullscreen lyrics effect</string>
     <string name="blur_fullscreen_lyrics_description">Blurring the background of the Fullscreen lyrics screen effect</string>
     <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Playback speed & pitch (disabled when crossfade is enabled)]]></string>
     <string name="playback_speed">Playback speed</string>
     <string name="pitch">Pitch</string>
     <string name="blur_player_background">Blur player background</string>
@@ -454,6 +455,8 @@
     <string name="crossfade_disabled">Disabled</string>
     <string name="crossfade_duration">Crossfade Duration</string>
     <string name="set_crossfade_duration">Set crossfade duration in seconds (%1$ds)</string>
+    <string name="crossfade_auto">Auto</string>
+    <string name="crossfade_auto_description">Automatically calculate duration based on BPM (requires 320kbps stream with BPM data)</string>
     <string name="crossfade_dj_mode">DJ-Style Transition</string>
     <string name="crossfade_dj_mode_description">Apply low-pass and high-pass filter sweeps during crossfade for a smoother, DJ-like transition (similar to Apple Music Automix).</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
