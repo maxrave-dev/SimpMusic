@@ -198,6 +198,8 @@ import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
+import simpmusic.composeapp.generated.resources.cloudflare_worker_url
+import simpmusic.composeapp.generated.resources.cloudflare_worker_url_message
 import simpmusic.composeapp.generated.resources.content
 import simpmusic.composeapp.generated.resources.content_country
 import simpmusic.composeapp.generated.resources.contributor_email
@@ -221,6 +223,8 @@ import simpmusic.composeapp.generated.resources.enable_canvas
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
 import simpmusic.composeapp.generated.resources.enable_rich_presence
+import simpmusic.composeapp.generated.resources.enable_spatial_audio
+import simpmusic.composeapp.generated.resources.enable_spatial_audio_description
 import simpmusic.composeapp.generated.resources.enable_sponsor_block
 import simpmusic.composeapp.generated.resources.enable_spotify_lyrics
 import simpmusic.composeapp.generated.resources.free_space
@@ -236,6 +240,7 @@ import simpmusic.composeapp.generated.resources.invalid_api_key
 import simpmusic.composeapp.generated.resources.invalid_host
 import simpmusic.composeapp.generated.resources.invalid_language_code
 import simpmusic.composeapp.generated.resources.invalid_port
+import simpmusic.composeapp.generated.resources.invalid_url
 import simpmusic.composeapp.generated.resources.keep_backups
 import simpmusic.composeapp.generated.resources.keep_backups_format
 import simpmusic.composeapp.generated.resources.keep_service_alive
@@ -264,6 +269,7 @@ import simpmusic.composeapp.generated.resources.monthly
 import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
+import simpmusic.composeapp.generated.resources.not_set
 import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
@@ -432,6 +438,8 @@ fun SettingScreen(
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
     val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
     val proxyPort by viewModel.proxyPort.collectAsStateWithLifecycle()
+    val cloudflareWorkerUrl by viewModel.cloudflareWorkerUrl.collectAsStateWithLifecycle()
+    val enableSpatialAudio by viewModel.enableSpatialAudio.collectAsStateWithLifecycle()
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
     val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
@@ -794,6 +802,31 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.proxy_description),
                     switch = (usingProxy to { viewModel.setUsingProxy(it) }),
                 )
+                SettingItem(
+                    title = stringResource(Res.string.cloudflare_worker_url),
+                    subtitle = cloudflareWorkerUrl.ifEmpty { stringResource(Res.string.not_set) },
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.cloudflare_worker_url) },
+                                message = runBlocking { getString(Res.string.cloudflare_worker_url_message) },
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = runBlocking { getString(Res.string.cloudflare_worker_url) },
+                                        value = cloudflareWorkerUrl,
+                                        verifyCodeBlock = {
+                                            (it.isNotEmpty() && !it.startsWith("http")) to runBlocking { getString(Res.string.invalid_url) }
+                                        },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.set) } to { state ->
+                                        viewModel.setCloudflareWorkerUrl(state.textField?.value ?: "")
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
             }
         }
         item(key = "proxy") {
@@ -912,6 +945,11 @@ fun SettingScreen(
                         style = typo().labelMedium,
                         color = white,
                         modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.enable_spatial_audio),
+                        subtitle = stringResource(Res.string.enable_spatial_audio_description),
+                        switch = (enableSpatialAudio to { viewModel.setEnableSpatialAudio(it) }),
                     )
                     SettingItem(
                         title = stringResource(Res.string.normalize_volume),

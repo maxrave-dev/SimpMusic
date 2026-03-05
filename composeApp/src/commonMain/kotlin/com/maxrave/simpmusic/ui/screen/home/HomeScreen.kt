@@ -222,6 +222,7 @@ fun HomeScreen(
     var accountShow by rememberSaveable {
         mutableStateOf(false)
     }
+    val welcomeBackStr = stringResource(Res.string.welcome_back)
     val regionChart by viewModel.regionCodeChart.collectAsStateWithLifecycle()
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -314,8 +315,17 @@ fun HomeScreen(
             }
         }
     }
-    LaunchedEffect(key1 = homeData) {
-        accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
+    LaunchedEffect(key1 = homeData, key2 = accountInfo) {
+        val userName = accountInfo?.first?.trim()
+        accountShow = if (userName.isNullOrEmpty()) {
+            false
+        } else {
+            homeData.find { 
+                it.subtitle?.trim()?.equals(userName, ignoreCase = true) == true ||
+                it.title.contains(userName, ignoreCase = true) ||
+                it.title.equals(welcomeBackStr, ignoreCase = true)
+            } == null
+        }
     }
     LaunchedEffect(openAppTime, shareLyricsPermissions) {
         Logger.w("HomeScreen", "openAppTime: $openAppTime, shareLyricsPermissions: $shareLyricsPermissions")

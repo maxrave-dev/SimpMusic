@@ -110,6 +110,8 @@ class SettingsViewModel(
     val proxyHost: StateFlow<String> = _proxyHost
     private var _proxyPort = MutableStateFlow(8000)
     val proxyPort: StateFlow<Int> = _proxyPort
+    private var _cloudflareWorkerUrl = MutableStateFlow("")
+    val cloudflareWorkerUrl: StateFlow<String> = _cloudflareWorkerUrl
     private var _autoCheckUpdate = MutableStateFlow(false)
     val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate
     private var _updateChannel: MutableStateFlow<String> = MutableStateFlow(DataStoreManager.GITHUB)
@@ -130,6 +132,8 @@ class SettingsViewModel(
     val customOpenAIBaseUrl: StateFlow<String> = _customOpenAIBaseUrl
     private val _customOpenAIHeaders = MutableStateFlow<String>("")
     val customOpenAIHeaders: StateFlow<String> = _customOpenAIHeaders
+    private val _enableSpatialAudio = MutableStateFlow<Boolean>(true)
+    val enableSpatialAudio: StateFlow<Boolean> = _enableSpatialAudio
     private val _crossfadeEnabled = MutableStateFlow<Boolean>(false)
     val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled
     private val _crossfadeDuration = MutableStateFlow<Int>(5000)
@@ -251,6 +255,7 @@ class SettingsViewModel(
         getSpotifyLyrics()
         getSpotifyCanvas()
         getUsingProxy()
+        getCloudflareWorkerUrl()
         getCanvasCache()
         getTranslucentBottomBar()
         getAutoCheckUpdate()
@@ -263,6 +268,7 @@ class SettingsViewModel(
         getCustomOpenAIBaseUrl()
         getCustomOpenAIHeaders()
         getKillServiceOnExit()
+        getEnableSpatialAudio()
         getCrossfadeEnabled()
         getCrossfadeDuration()
         getCrossfadeDjMode()
@@ -391,6 +397,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setKeepServiceAlive(keepServiceAlive)
             getKeepServiceAlive()
+        }
+    }
+
+    private fun getEnableSpatialAudio() {
+        viewModelScope.launch {
+            dataStoreManager.enableSpatialAudio.collect { enabled ->
+                _enableSpatialAudio.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setEnableSpatialAudio(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setEnableSpatialAudio(enabled)
+            getEnableSpatialAudio()
         }
     }
 
@@ -849,6 +870,21 @@ class SettingsViewModel(
             dataStoreManager.setProxyType(proxyType)
             dataStoreManager.setProxyHost(host)
             dataStoreManager.setProxyPort(port)
+        }
+    }
+
+    private fun getCloudflareWorkerUrl() {
+        viewModelScope.launch {
+            dataStoreManager.cloudflareWorkerUrl.collect { url ->
+                _cloudflareWorkerUrl.value = url
+            }
+        }
+    }
+
+    fun setCloudflareWorkerUrl(url: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCloudflareWorkerUrl(url)
+            getCloudflareWorkerUrl()
         }
     }
 
