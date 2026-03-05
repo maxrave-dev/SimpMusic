@@ -330,6 +330,7 @@ class SharedViewModel(
                         getFormat(now.mediaId)
                         _nowPlayingScreenData.update {
                             it.copy(
+                                thumbnailURL = now.metadata.artworkUri,
                                 isVideo = now.isVideo(),
                             )
                         }
@@ -338,7 +339,6 @@ class SharedViewModel(
                         _liked.value = song.liked == true
                         _nowPlayingScreenData.update {
                             it.copy(
-                                thumbnailURL = song.thumbnails,
                                 isExplicit = song.isExplicit,
                             )
                         }

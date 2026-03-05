@@ -560,7 +560,7 @@ private fun AnimatedWord(
                 animationSpec =
                     spring(
                         dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessLow,
+                        stiffness = Spring.StiffnessMedium,
                     ),
                 label = "charProgress",
             )
