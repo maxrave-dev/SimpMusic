@@ -14,12 +14,14 @@ import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.AnalyticsRepository
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,6 +39,7 @@ class AnalyticsViewModel(
     private val songRepository: SongRepository,
     private val artistRepository: ArtistRepository,
     private val albumRepository: AlbumRepository,
+    private val dataStoreManager: DataStoreManager,
 ) : BaseViewModel() {
     private val _analyticsUIState: MutableStateFlow<AnalyticsUiState> =
         MutableStateFlow(AnalyticsUiState())
@@ -47,7 +50,18 @@ class AnalyticsViewModel(
         getArtistCount()
         getTotalListenTime()
         getRecentlyRecord()
-        getDataForDayRange(analyticsUIState.value.dayRange)
+        viewModelScope.launch {
+            val saved = dataStoreManager.getString(ANALYTICS_DAY_RANGE_KEY).firstOrNull()
+            val dayRange = saved?.let {
+                runCatching { AnalyticsUiState.DayRange.valueOf(it) }.getOrNull()
+            } ?: AnalyticsUiState.DayRange.LAST_7_DAYS
+            _analyticsUIState.update { it.copy(dayRange = dayRange) }
+            getDataForDayRange(dayRange)
+        }
+    }
+
+    companion object {
+        private const val ANALYTICS_DAY_RANGE_KEY = "analytics_day_range"
     }
 
     private fun getDataForDayRange(dayRange: AnalyticsUiState.DayRange) {
@@ -420,6 +434,9 @@ class AnalyticsViewModel(
             )
         }
         getDataForDayRange(dayRange)
+        viewModelScope.launch {
+            dataStoreManager.putString(ANALYTICS_DAY_RANGE_KEY, dayRange.name)
+        }
     }
 }
 
