@@ -30,14 +30,17 @@
         <intent>
             <action android:name="android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL" />
         </intent>
-    </queries>
-    <queries>
         <package android:name="com.maxrave.simpmusic" />
-    </queries>
-    <queries>
         <intent>
             <action android:name="androidx.media3.session.MediaSessionService" />
         </intent>
+        <intent>
+            <action android:name="android.media.browse.MediaBrowserService" />
+        </intent>
+        <!-- Required for Android 11+ and extremely strict in Android 16 to allow the system Bluetooth module to query the service -->
+        <package android:name="com.android.bluetooth" />
+        <!-- Android Auto -->
+        <package android:name="com.google.android.projection.gearhead" />
     </queries>
 
     <application
