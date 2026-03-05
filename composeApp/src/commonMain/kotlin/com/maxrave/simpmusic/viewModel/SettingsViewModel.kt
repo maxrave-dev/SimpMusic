@@ -450,6 +450,10 @@ class SettingsViewModel(
     fun setPrefer320kbpsStream(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setPrefer320kbpsStream(enabled)
+            if (!enabled) {
+                dataStoreManager.setCrossfadeDjMode(false)
+                getCrossfadeDjMode()
+            }
             getPrefer320kbpsStream()
         }
     }

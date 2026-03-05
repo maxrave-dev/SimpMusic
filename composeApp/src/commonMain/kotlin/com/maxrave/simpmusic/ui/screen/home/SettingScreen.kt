@@ -1036,7 +1036,8 @@ fun SettingScreen(
                                 title = stringResource(Res.string.crossfade_dj_mode),
                                 subtitle = stringResource(Res.string.crossfade_dj_mode_description),
                                 smallSubtitle = true,
-                                switch = (crossfadeDjMode to { viewModel.setCrossfadeDjMode(it) }),
+                                isEnable = prefer320kbpsStream,
+                                switch = ((crossfadeDjMode && prefer320kbpsStream) to { viewModel.setCrossfadeDjMode(it) }),
                             )
                         }
                     }
