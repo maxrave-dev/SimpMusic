@@ -538,4 +538,10 @@
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">Your 320kbps URL</string>
     <string name="search_for">Search for</string>
+    <string name="cloudflare_worker_url">Cloudflare Worker Tunnel URL</string>
+    <string name="cloudflare_worker_url_message">Enter your Cloudflare Worker URL to proxy API requests and bypass restrictions without a proxy server.</string>
+    <string name="not_set">Not Configured</string>
+    <string name="invalid_url">Invalid URL format</string>
+    <string name="enable_spatial_audio">Dolby Atmos / Spatial Audio</string>
+    <string name="enable_spatial_audio_description">Enable Spatial Audio feature in ExoPlayer to support Dolby Atmos outputs when available.</string>
 </resources>
