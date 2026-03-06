@@ -320,10 +320,11 @@ fun HomeScreen(
         accountShow = if (userName.isNullOrEmpty()) {
             false
         } else {
-            homeData.find { 
+            homeData.find {
+                val title = it.title.trim()
                 it.subtitle?.trim()?.equals(userName, ignoreCase = true) == true ||
-                it.title.contains(userName, ignoreCase = true) ||
-                it.title.equals(welcomeBackStr, ignoreCase = true)
+                    it.title.contains(userName, ignoreCase = true) ||
+                    title.startsWith(welcomeBackStr, ignoreCase = true)
             } == null
         }
     }
