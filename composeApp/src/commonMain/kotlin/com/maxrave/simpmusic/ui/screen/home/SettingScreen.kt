@@ -824,7 +824,14 @@ fun SettingScreen(
                                                         uri.scheme?.lowercase() !in listOf("http", "https") ||
                                                         uri.host.isNullOrEmpty()
                                                 }
-                                            hasError to runBlocking { getString(Res.string.invalid_url) }
+                                            val isValid = !hasError
+                                            val message =
+                                                if (hasError) {
+                                                    runBlocking { getString(Res.string.invalid_url) }
+                                                } else {
+                                                    ""
+                                                }
+                                            isValid to message
                                         },
                                     ),
                                 confirm =
