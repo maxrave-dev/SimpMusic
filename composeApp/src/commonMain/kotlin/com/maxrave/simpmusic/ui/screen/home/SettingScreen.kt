@@ -814,8 +814,17 @@ fun SettingScreen(
                                     SettingAlertState.TextFieldData(
                                         label = runBlocking { getString(Res.string.cloudflare_worker_url) },
                                         value = cloudflareWorkerUrl,
-                                        verifyCodeBlock = {
-                                            (it.isNotEmpty() && !it.startsWith("http")) to runBlocking { getString(Res.string.invalid_url) }
+                                        verifyCodeBlock = { input ->
+                                            val hasError =
+                                                if (input.isEmpty()) {
+                                                    false
+                                                } else {
+                                                    val uri = runCatching { input.toKmpUri() }.getOrNull()
+                                                    uri == null ||
+                                                        uri.scheme?.lowercase() !in listOf("http", "https") ||
+                                                        uri.host.isNullOrEmpty()
+                                                }
+                                            hasError to runBlocking { getString(Res.string.invalid_url) }
                                         },
                                     ),
                                 confirm =
