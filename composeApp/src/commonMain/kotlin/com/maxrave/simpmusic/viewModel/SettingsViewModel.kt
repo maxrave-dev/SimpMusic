@@ -882,9 +882,15 @@ class SettingsViewModel(
     }
 
     fun setCloudflareWorkerUrl(url: String) {
+        val normalizedUrl = url
+            .trim()
+            .let { trimmed ->
+                // Remove trailing slashes for consistency, but keep empty string as-is
+                if (trimmed.isEmpty()) trimmed else trimmed.trimEnd('/')
+            }
+
         viewModelScope.launch {
-            dataStoreManager.setCloudflareWorkerUrl(url)
-            getCloudflareWorkerUrl()
+            dataStoreManager.setCloudflareWorkerUrl(normalizedUrl)
         }
     }
 
