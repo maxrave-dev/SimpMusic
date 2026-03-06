@@ -411,7 +411,6 @@ class SettingsViewModel(
     fun setEnableSpatialAudio(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setEnableSpatialAudio(enabled)
-            getEnableSpatialAudio()
         }
     }
 
