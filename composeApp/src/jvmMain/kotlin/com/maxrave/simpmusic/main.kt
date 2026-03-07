@@ -61,10 +61,36 @@ import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 
 @OptIn(ExperimentalMaterial3Api::class)
-fun main() {
+fun main(args: Array<String>) {
+    // Install crash dialog handler first — catches all uncaught exceptions
+    CrashDialog.install()
+
     System.setProperty("compose.swing.render.on.graphics", "true")
     System.setProperty("compose.interop.blending", "true")
     System.setProperty("compose.layers.type", "COMPONENT")
+
+    // Handle deep link URIs
+    // macOS: receives URI via Desktop open URI handler (app already running or launched via scheme)
+    // Windows/Linux: receives URI as command-line argument
+    val isMacOS = System.getProperty("os.name", "").contains("Mac", ignoreCase = true)
+    if (isMacOS && java.awt.Desktop.isDesktopSupported()) {
+        try {
+            java.awt.Desktop.getDesktop().setOpenURIHandler { event ->
+                DesktopDeepLinkHandler.onNewUri(event.uri.toString())
+            }
+        } catch (_: UnsupportedOperationException) {
+            // Shouldn't happen on macOS, but handle gracefully
+        }
+    }
+    // Handle URI passed as command-line argument (Windows/Linux, or explicit invocation)
+    // Note: macOS does NOT pass URI as args — it uses Apple Events via setOpenURIHandler
+    val deepLinkArg =
+        args.firstOrNull()?.takeIf { arg ->
+            arg.startsWith("simpmusic://") || arg.startsWith("http://") || arg.startsWith("https://")
+        }
+    if (!isMacOS) {
+        deepLinkArg?.let { DesktopDeepLinkHandler.onNewUri(it) }
+    }
 
     // Initialize Koin ONCE before application starts
     startKoin {
@@ -111,9 +137,17 @@ fun main() {
         }
     }
 
+    // Register simpmusic:// protocol handler on Windows (HKCU, no admin needed)
+    WindowsProtocolRegistrar.register()
+
     val sharedViewModel = getKoin().get<SharedViewModel>()
     if (sharedViewModel.shouldCheckForUpdate()) {
         sharedViewModel.checkForUpdate()
+    }
+
+    // Connect deep link handler to SharedViewModel
+    DesktopDeepLinkHandler.listener = { intent ->
+        sharedViewModel.setIntent(intent)
     }
 
     application {
@@ -129,10 +163,14 @@ fun main() {
                 onRestoreRequest = {
                     isVisible = true
                     windowState.isMinimized = false
+                    // Check if a second instance left a deep link URI for us
+                    DesktopDeepLinkHandler.consumePendingUri()
                 },
             )
 
         if (!isSingleInstance) {
+            // If launched with a deep link URI, write it for the running instance to pick up
+            deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
             exitApplication()
             return@application
         }
@@ -169,14 +207,28 @@ fun main() {
                 exitApplication()
             }
         }
+        // Detect virtual machines (Parallels, VirtualBox, VMware, etc.)
+        // Transparent windows don't render properly on VM GPU drivers
+        val isVM = remember {
+            val model = System.getProperty("os.name", "")
+            val vendor = try {
+                val process = ProcessBuilder("wmic", "computersystem", "get", "model")
+                    .redirectErrorStream(true).start()
+                process.inputStream.bufferedReader().readText()
+            } catch (_: Exception) { "" }
+            vendor.contains("Parallels", ignoreCase = true) ||
+                vendor.contains("VirtualBox", ignoreCase = true) ||
+                vendor.contains("VMware", ignoreCase = true) ||
+                System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
+        }
         Window(
             onCloseRequest = {
                 isVisible = false
             },
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = true,
-            transparent = true,
+            undecorated = !isVM,
+            transparent = !isVM,
             state = windowState,
             visible = isVisible,
         ) {
@@ -184,16 +236,21 @@ fun main() {
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp)),
+                        .then(
+                            if (!isVM) Modifier.clip(RoundedCornerShape(12.dp))
+                            else Modifier
+                        ),
             ) {
-                CustomTitleBar(
-                    title = stringResource(Res.string.app_name),
-                    windowState = windowState,
-                    window = window,
-                    onCloseRequest = {
-                        isVisible = false
-                    },
-                )
+                if (!isVM) {
+                    CustomTitleBar(
+                        title = stringResource(Res.string.app_name),
+                        windowState = windowState,
+                        window = window,
+                        onCloseRequest = {
+                            isVisible = false
+                        },
+                    )
+                }
 
                 val context = LocalPlatformContext.current
                 setSingletonImageLoaderFactory {

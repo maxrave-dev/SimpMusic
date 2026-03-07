@@ -2,8 +2,9 @@
 Type=Application
 Version=1.0
 Name=SimpMusic
-Exec=bin/SimpMusic
+Exec=bin/SimpMusic %u
 Icon=simpmusic
 Terminal=false
 Categories=Audio;AudioVideo;
 StartupWMClass=java-lang-Thread
+MimeType=x-scheme-handler/simpmusic;

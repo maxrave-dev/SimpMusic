@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SimpMusic
+Comment=A FOSS YouTube Music client
+Exec=simpmusic %u
+Icon=simpmusic
+Terminal=false
+Categories=Audio;AudioVideo;
+StartupWMClass=java-lang-Thread
+MimeType=x-scheme-handler/simpmusic;

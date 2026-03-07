@@ -213,6 +213,19 @@ compose.desktop {
                         <string>fetch</string>
                         <string>processing</string>
                     </array>
+                    <key>CFBundleURLTypes</key>
+                    <array>
+                        <dict>
+                            <key>CFBundleTypeRole</key>
+                            <string>Viewer</string>
+                            <key>CFBundleURLName</key>
+                            <string>com.maxrave.simpmusic.deeplink</string>
+                            <key>CFBundleURLSchemes</key>
+                            <array>
+                                <string>simpmusic</string>
+                            </array>
+                        </dict>
+                    </array>
                     """.trimIndent()
                 infoPlist {
                     extraKeysRawXml = macExtraPlistKeys
@@ -410,6 +423,24 @@ afterEvaluate {
 // This must be done outside afterEvaluate to work properly
 tasks.withType<AbstractJPackageTask>().configureEach {
     notCompatibleWithConfigurationCache("Compose Desktop JPackage tasks are not yet compatible with configuration cache")
+
+    // Copy custom .desktop file (with MimeType for simpmusic:// deep links) into JPackage resources
+    // so deb/rpm packages register the URL scheme handler on Linux
+    if (name.contains("Deb", ignoreCase = true) || name.contains("Rpm", ignoreCase = true)) {
+        val customDesktopFile = project.file("jpackage-resources/simpmusic.desktop")
+        if (customDesktopFile.exists()) {
+            doFirst {
+                val jpackageResourcesField = AbstractJPackageTask::class.java.getDeclaredField("jpackageResources")
+                jpackageResourcesField.isAccessible = true
+                @Suppress("UNCHECKED_CAST")
+                val jpackageResourcesProvider = jpackageResourcesField.get(this) as org.gradle.api.provider.Provider<org.gradle.api.file.Directory>
+                val resourcesDir = jpackageResourcesProvider.get().asFile
+                resourcesDir.mkdirs()
+                customDesktopFile.copyTo(File(resourcesDir, customDesktopFile.name), overwrite = true)
+                println("Copied custom .desktop file to JPackage resources: ${resourcesDir.absolutePath}")
+            }
+        }
+    }
 }
 
 private fun downloadFile(
