@@ -207,14 +207,28 @@ fun main(args: Array<String>) {
                 exitApplication()
             }
         }
+        // Detect virtual machines (Parallels, VirtualBox, VMware, etc.)
+        // Transparent windows don't render properly on VM GPU drivers
+        val isVM = remember {
+            val model = System.getProperty("os.name", "")
+            val vendor = try {
+                val process = ProcessBuilder("wmic", "computersystem", "get", "model")
+                    .redirectErrorStream(true).start()
+                process.inputStream.bufferedReader().readText()
+            } catch (_: Exception) { "" }
+            vendor.contains("Parallels", ignoreCase = true) ||
+                vendor.contains("VirtualBox", ignoreCase = true) ||
+                vendor.contains("VMware", ignoreCase = true) ||
+                System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
+        }
         Window(
             onCloseRequest = {
                 isVisible = false
             },
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = true,
-            transparent = true,
+            undecorated = !isVM,
+            transparent = !isVM,
             state = windowState,
             visible = isVisible,
         ) {
@@ -222,16 +236,21 @@ fun main(args: Array<String>) {
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp)),
+                        .then(
+                            if (!isVM) Modifier.clip(RoundedCornerShape(12.dp))
+                            else Modifier
+                        ),
             ) {
-                CustomTitleBar(
-                    title = stringResource(Res.string.app_name),
-                    windowState = windowState,
-                    window = window,
-                    onCloseRequest = {
-                        isVisible = false
-                    },
-                )
+                if (!isVM) {
+                    CustomTitleBar(
+                        title = stringResource(Res.string.app_name),
+                        windowState = windowState,
+                        window = window,
+                        onCloseRequest = {
+                            isVisible = false
+                        },
+                    )
+                }
 
                 val context = LocalPlatformContext.current
                 setSingletonImageLoaderFactory {

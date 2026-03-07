@@ -96,15 +96,13 @@ object WindowsProtocolRegistrar {
     }
 
     private fun regAdd(key: String, valueName: String?, data: String) {
-        val command = mutableListOf("reg", "add", key, "/f")
-        if (valueName != null) {
-            command.addAll(listOf("/v", valueName))
-        } else {
-            command.add("/ve") // default value
-        }
-        command.addAll(listOf("/t", "REG_SZ", "/d", data))
+        // Build command as a single string for cmd.exe to avoid
+        // ProcessBuilder double-escaping embedded quotes in data
+        val valueFlag = if (valueName != null) "/v \"$valueName\"" else "/ve"
+        val escapedData = data.replace("\"", "\\\"")
+        val cmdString = "reg add \"$key\" /f $valueFlag /t REG_SZ /d \"$escapedData\""
 
-        val process = ProcessBuilder(command)
+        val process = ProcessBuilder("cmd.exe", "/c", cmdString)
             .redirectErrorStream(true)
             .start()
         val exitCode = process.waitFor()
