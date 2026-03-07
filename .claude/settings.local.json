@@ -7,7 +7,11 @@
       "WebSearch",
       "WebFetch(domain:raw.githubusercontent.com)",
       "mcp__ide__getDiagnostics",
-      "mcp__jetbrains__get_file_problems"
+      "mcp__jetbrains__get_file_problems",
+      "mcp__sentry__find_organizations",
+      "mcp__sentry__search_issues",
+      "mcp__claude_ai_Sentry__search_issues",
+      "mcp__sentry__get_issue_details"
     ],
     "deny": [],
     "ask": []
