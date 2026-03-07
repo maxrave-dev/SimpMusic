@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Version=1.0
 Name=SimpMusic
-Exec=bin/SimpMusic %u
+Comment=A FOSS YouTube Music client
+Exec=simpmusic %u
 Icon=simpmusic
 Terminal=false
 Categories=Audio;AudioVideo;

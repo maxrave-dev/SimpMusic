@@ -127,6 +127,28 @@
                 <data android:scheme="vnd.youtube.launch" />
             </intent-filter>
 
+            <!-- SimpMusic deep link filter (https) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="simpmusic.org" />
+                <data android:pathPrefix="/app/" />
+            </intent-filter>
+
+            <!-- SimpMusic deep link filter (custom scheme) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="simpmusic" />
+            </intent-filter>
+
             <!-- Share filter -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

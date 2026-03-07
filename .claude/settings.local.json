@@ -11,7 +11,17 @@
       "mcp__sentry__find_organizations",
       "mcp__sentry__search_issues",
       "mcp__claude_ai_Sentry__search_issues",
-      "mcp__sentry__get_issue_details"
+      "mcp__sentry__get_issue_details",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(jar tf:*)",
+      "Bash(javap -p /Users/nguyenductuanminh/.gradle/caches/modules-2/files-2.1/io.github.kdroidfilter/composenativetray-jvm/1.1.0/2ae843d219d7abb910e829b9ef81e7b1da498f52/ComposeNativeTray-jvm.jar com.kdroid.composetray.utils.SingleInstanceManager)",
+      "Read(//private/tmp/**)",
+      "Bash(jar xf /Users/nguyenductuanminh/.gradle/caches/modules-2/files-2.1/io.github.kdroidfilter/composenativetray-jvm/1.1.0/2ae843d219d7abb910e829b9ef81e7b1da498f52/ComposeNativeTray-jvm.jar com/kdroid/composetray/utils/SingleInstanceManager.class)",
+      "Bash(javap -p com/kdroid/composetray/utils/SingleInstanceManager.class)",
+      "Bash(/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister:*)",
+      "Bash(jar xf:*)",
+      "Bash(javap:*)"
     ],
     "deny": [],
     "ask": []
