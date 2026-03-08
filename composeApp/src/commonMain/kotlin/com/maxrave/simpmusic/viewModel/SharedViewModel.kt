@@ -216,9 +216,6 @@ class SharedViewModel(
                 )
             }
             dataStoreManager.openApp()
-            if (getPlatform() == Platform.Desktop) {
-                dataStoreManager.setWatchVideoInsteadOfPlayingAudio(false)
-            }
             val timeLineJob =
                 launch {
                     nowPlayingState
@@ -374,6 +371,7 @@ class SharedViewModel(
                             }
 
                             is SimpleMediaState.Progress -> {
+                                Logger.w(tag, "Progress is ${mediaState.progress}")
                                 if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
                                     if (_timeline.value.total > 0L) {
                                         _timeline.update {
@@ -402,6 +400,7 @@ class SharedViewModel(
                             }
 
                             is SimpleMediaState.Loading -> {
+                                Logger.w(tag, "Loading")
                                 _timeline.update {
                                     it.copy(
                                         bufferedPercent = mediaState.bufferedPercentage,
@@ -412,6 +411,7 @@ class SharedViewModel(
                             }
 
                             is SimpleMediaState.Ready -> {
+                                Logger.w(tag, "Ready")
                                 _timeline.update {
                                     it.copy(
                                         current = mediaPlayerHandler.getProgress(),

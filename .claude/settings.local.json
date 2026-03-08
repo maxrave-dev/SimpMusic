@@ -21,7 +21,11 @@
       "Bash(javap -p com/kdroid/composetray/utils/SingleInstanceManager.class)",
       "Bash(/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister:*)",
       "Bash(jar xf:*)",
-      "Bash(javap:*)"
+      "Bash(javap:*)",
+      "mcp__jetbrains__list_directory_tree",
+      "mcp__jetbrains__get_file_text_by_path",
+      "Bash(read f:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

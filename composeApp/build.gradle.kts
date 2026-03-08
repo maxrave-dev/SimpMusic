@@ -30,6 +30,7 @@ plugins {
     alias(libs.plugins.build.config)
     alias(libs.plugins.osdetector)
     alias(libs.plugins.packagedeps)
+    alias(libs.plugins.vlc.setup)
 }
 
 kotlin {
@@ -171,11 +172,22 @@ kotlin {
     }
 }
 
+// VLC Setup - bundles VLC native libraries so users don't need to install VLC
+vlcSetup {
+    vlcVersion = "3.0.21"
+    shouldCompressVlcFiles = true
+    shouldIncludeAllVlcFiles = false
+    pathToCopyVlcLinuxFilesTo = rootDir.resolve("vlc-natives/linux/")
+    pathToCopyVlcMacosFilesTo = rootDir.resolve("vlc-natives/macos/")
+    pathToCopyVlcWindowsFilesTo = rootDir.resolve("vlc-natives/windows/")
+}
+
 compose.desktop {
     application {
         mainClass = "com.maxrave.simpmusic.MainKt"
 
         nativeDistributions {
+            appResourcesRootDir = rootDir.resolve("vlc-natives/")
             val listTarget = mutableListOf<TargetFormat>()
             if (org.gradle.internal.os.OperatingSystem
                     .current()
@@ -314,6 +326,7 @@ afterEvaluate {
     tasks.withType<JavaExec> {
         jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
+        jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
 
         if (System.getProperty("os.name").contains("Mac")) {
             jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")

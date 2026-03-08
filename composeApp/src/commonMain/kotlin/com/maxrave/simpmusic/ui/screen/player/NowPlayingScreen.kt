@@ -5,7 +5,6 @@ package com.maxrave.simpmusic.ui.screen.player
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -453,11 +452,7 @@ fun NowPlayingScreenContent(
         label = "rainbowHue",
     )
     val rainbowColor = hsvToColor(rainbowHue, 1f, 1f)
-    val sliderTrackColor by animateColorAsState(
-        targetValue = if (timelineState.isCrossfading) rainbowColor else Color.White,
-        animationSpec = tween(300),
-        label = "sliderCrossfadeColor",
-    )
+    val sliderTrackColor = if (timelineState.isCrossfading) rainbowColor else Color.White
 
     // Show ControlLayout Or Show Artist Badge
     var showHideControlLayout by rememberSaveable {

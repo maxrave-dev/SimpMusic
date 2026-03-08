@@ -26,12 +26,9 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 
-# Gstreamer
--keep class org.freedesktop.gstreamer.** { *; }
--keep class org.freedesktop.dbus.** { *; }
--keep class io.github.selemba1000.** { *; }
--dontwarn org.freedesktop.gstreamer.**
--dontwarn org.freedesktop.dbus.**
+# VLC (vlcj)
+-keep class uk.co.caprica.vlcj.** { *; }
+-dontwarn uk.co.caprica.vlcj.**
 
 # JavaFX
 -keep class javafx.** { *; }

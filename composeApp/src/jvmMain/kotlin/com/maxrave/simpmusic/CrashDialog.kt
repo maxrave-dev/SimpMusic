@@ -37,8 +37,13 @@ object CrashDialog {
 
             // Show crash dialog on EDT
             try {
-                SwingUtilities.invokeAndWait {
+                if (SwingUtilities.isEventDispatchThread()) {
+                    // Already on EDT — call directly
                     showCrashDialog(thread, throwable)
+                } else {
+                    SwingUtilities.invokeAndWait {
+                        showCrashDialog(thread, throwable)
+                    }
                 }
             } catch (_: Exception) {
                 // If EDT is broken too, print to stderr and exit
