@@ -31,6 +31,7 @@ sentry.properties
 /composeApp/cache/
 /composeApp/kcef-bundle/
 /.mcp.json
+/.claude/settings.local.json
 
 /androidApp/build/
 /androidApp/cache/
