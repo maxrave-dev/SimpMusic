@@ -51,6 +51,9 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
+      - name: Set up VLC
+        run: ./gradlew vlcSetup
+
       - name: Build desktop MSI package
         run: ./gradlew packageReleaseMsi
 

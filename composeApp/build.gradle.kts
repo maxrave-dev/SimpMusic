@@ -174,9 +174,9 @@ kotlin {
 
 // VLC Setup - bundles VLC native libraries so users don't need to install VLC
 vlcSetup {
-    vlcVersion = "3.0.21"
-    shouldCompressVlcFiles = true
-    shouldIncludeAllVlcFiles = false
+    vlcVersion = libs.versions.vlc.get()
+    shouldCompressVlcFiles = false
+    shouldIncludeAllVlcFiles = true
     pathToCopyVlcLinuxFilesTo = rootDir.resolve("vlc-natives/linux/")
     pathToCopyVlcMacosFilesTo = rootDir.resolve("vlc-natives/macos/")
     pathToCopyVlcWindowsFilesTo = rootDir.resolve("vlc-natives/windows/")
@@ -185,6 +185,7 @@ vlcSetup {
 compose.desktop {
     application {
         mainClass = "com.maxrave.simpmusic.MainKt"
+        jvmArgs += "--add-opens=java.base/java.nio=ALL-UNNAMED"
 
         nativeDistributions {
             appResourcesRootDir = rootDir.resolve("vlc-natives/")
@@ -327,6 +328,16 @@ afterEvaluate {
         jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
+
+        // Pass bundled VLC natives path to the runtime for development
+        val osSubDir =
+            when {
+                System.getProperty("os.name").contains("Mac") -> "macos"
+                System.getProperty("os.name").contains("Win") -> "windows"
+                else -> "linux"
+            }
+        val vlcNativesPath = rootDir.resolve("vlc-natives/$osSubDir").absolutePath
+        systemProperty("vlc.bundled.path", vlcNativesPath)
 
         if (System.getProperty("os.name").contains("Mac")) {
             jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
@@ -476,6 +487,14 @@ afterEvaluate {
 // This must be done outside afterEvaluate to work properly
 tasks.withType<AbstractJPackageTask>().configureEach {
     notCompatibleWithConfigurationCache("Compose Desktop JPackage tasks are not yet compatible with configuration cache")
+}
+
+// Mark vlc-setup tasks as not compatible with configuration cache
+// The plugin (v0.1.0) uses Task.project at execution time which is unsupported
+listOf("vlcExtract", "vlcFilterPlugins", "vlcSetup").forEach { taskName ->
+    tasks.findByName(taskName)?.let {
+        it.notCompatibleWithConfigurationCache("vlc-setup plugin tasks are not yet compatible with configuration cache")
+    }
 }
 
 private fun downloadFile(
