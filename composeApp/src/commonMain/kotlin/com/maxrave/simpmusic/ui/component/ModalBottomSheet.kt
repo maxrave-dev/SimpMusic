@@ -134,7 +134,9 @@ import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.copyToClipboard
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
@@ -1788,11 +1790,12 @@ fun NowPlayingBottomSheet(
                     }
                     Crossfade(targetState = setSleepTimerEnable) {
                         if (it) {
+                            val isDesktop = getPlatform() == Platform.Desktop
                             ActionButton(
                                 icon = painterResource(Res.drawable.round_speed_24),
                                 text =
                                     if (crossfadeEnabled != DataStoreManager.TRUE) {
-                                        Res.string.playback_speed_pitch
+                                        if (isDesktop) Res.string.playback_speed else Res.string.playback_speed_pitch
                                     } else {
                                         Res.string.playback_speed_pitch_disabled
                                     },
@@ -2036,49 +2039,51 @@ fun PlaybackSpeedPitchBottomSheet(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                // Pitch row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.Rounded.Tune,
-                        contentDescription = stringResource(Res.string.pitch),
-                        modifier = Modifier.size(24.dp),
-                        tint = Color(0xFFB0B0A0),
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(
-                        onClick = {
-                            val newPitch = (pitch - 1).coerceIn(-12, 12)
-                            onSet(playbackSpeed, newPitch)
-                        },
+                // Pitch row — hidden on Desktop (LibVLC doesn't support independent pitch control)
+                if (getPlatform() != Platform.Desktop) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Icons.Rounded.Remove,
-                            contentDescription = "Decrease pitch",
+                            Icons.Rounded.Tune,
+                            contentDescription = stringResource(Res.string.pitch),
+                            modifier = Modifier.size(24.dp),
                             tint = Color(0xFFB0B0A0),
                         )
-                    }
-                    Text(
-                        text = "$pitch",
-                        style = typo().titleMedium,
-                        color = Color(0xFFD0D0C0),
-                        modifier = Modifier.widthIn(min = 60.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                    IconButton(
-                        onClick = {
-                            val newPitch = (pitch + 1).coerceIn(-12, 12)
-                            onSet(playbackSpeed, newPitch)
-                        },
-                    ) {
-                        Icon(
-                            Icons.Rounded.Add,
-                            contentDescription = "Increase pitch",
-                            tint = Color(0xFFB0B0A0),
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = {
+                                val newPitch = (pitch - 1).coerceIn(-12, 12)
+                                onSet(playbackSpeed, newPitch)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Rounded.Remove,
+                                contentDescription = "Decrease pitch",
+                                tint = Color(0xFFB0B0A0),
+                            )
+                        }
+                        Text(
+                            text = "$pitch",
+                            style = typo().titleMedium,
+                            color = Color(0xFFD0D0C0),
+                            modifier = Modifier.widthIn(min = 60.dp),
+                            textAlign = TextAlign.Center,
                         )
+                        IconButton(
+                            onClick = {
+                                val newPitch = (pitch + 1).coerceIn(-12, 12)
+                                onSet(playbackSpeed, newPitch)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add,
+                                contentDescription = "Increase pitch",
+                                tint = Color(0xFFB0B0A0),
+                            )
+                        }
                     }
                 }
                 EndOfModalBottomSheet()
