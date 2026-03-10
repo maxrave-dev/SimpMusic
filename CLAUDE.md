@@ -91,9 +91,9 @@ Contains core modules organized by functionality:
 - Data mappers
 
 ##### **core/media/**
-- **media3/**: Media3 ExoPlayer integration
+- **media3/**: Media3 ExoPlayer integration (includes `CrossfadeExoPlayerAdapter` for DJ-style crossfade on Android)
 - **media3-ui/**: Media3 UI components
-- **media-jvm/**: JVM media playback (GStreamer)
+- **media-jvm/**: JVM media playback (VLCJ - replaced GStreamer post-1.0.4)
 - **media-jvm-ui/**: JVM media UI components
 
 ##### **core/service/**
@@ -102,14 +102,13 @@ Service modules:
 - **kotlinYtmusicScraper/**: YouTube Music API scraper
 - **spotify/**: Spotify Web API integration (Canvas, Lyrics)
 - **aiService/**: AI features (OpenAI, Gemini integration)
-- **lyricsService/**: Lyrics fetching (LRCLIB, SimpMusic Lyrics)
+- **lyricsService/**: Lyrics fetching (LRCLIB, SimpMusic Lyrics, BetterLyrics)
 - **kizzy/**: Discord Rich Presence
 - **ktorExt/**: Ktor extensions for networking
 
-#### 4. **MediaServiceCore/**
-- Core media service logic
-- Playback management
-- Queue handling
+#### 4. **MediaServiceCore/** (legacy, removed from settings.gradle.kts)
+- Was a git submodule for core media service logic
+- References removed post-1.0.4; functionality integrated into `core/media/` and `core/data/`
 
 #### 5. **crashlytics/** & **crashlytics-empty/**
 - **crashlytics/**: Full version with Sentry crash reporting
@@ -127,8 +126,8 @@ Service modules:
 
 ### Desktop
 - **Compose for Desktop**: UI
-- **GStreamer**: Audio playback (required)
-- **yt-dlp**: Streaming URL extraction (required)
+- **VLCJ**: Audio playback (replaced GStreamer since post-1.0.4)
+- VLC native libraries are bundled per platform via `vlc-setup` Gradle plugin
 
 ### Networking & APIs
 - **Ktor Client**: HTTP client
@@ -146,6 +145,7 @@ Service modules:
 - **SponsorBlock**: Skip sponsors
 - **ReturnYouTubeDislike**: Vote information
 - **LRCLIB**: Lyrics provider
+- **BetterLyrics**: Additional lyrics provider (added in v1.0.4)
 - **Sentry**: Crash reporting (Full version only)
 
 ## 📝 Development Guidelines
@@ -246,10 +246,10 @@ Before implementing code, researching code, or answering technical questions, th
 - Return Result/Flow
 
 ### 5. Work with Media Playback
-**Location**: `core/media/media3/` or `MediaServiceCore/`
-- Media3 for Android
-- GStreamer wrapper for Desktop
-- Queue management
+**Location**: `core/media/media3/` (Android) or `core/media/media-jvm/` (Desktop)
+- Media3/ExoPlayer + CrossfadeExoPlayerAdapter for Android
+- VLCJ (VlcPlayerAdapter) for Desktop
+- Queue management in `core/data/src/.../mediaservice/`
 - Playback controls
 
 ### 6. Add New Lyrics Provider
@@ -300,7 +300,7 @@ Before implementing code, researching code, or answering technical questions, th
 ### Desktop
 - **Windows**: `.msi` installer
 - **macOS**: `.dmg` (ARM and x86-64)
-- **Linux**: `.deb`, `.rpm`, `.AppImage`
+- **Linux**: `.AppImage` (DEB and RPM removed post-1.0.4)
 
 ## 🚨 Important Notes
 
@@ -319,12 +319,15 @@ Before implementing code, researching code, or answering technical questions, th
 
 #### Desktop
 - **Required Dependencies**:
-  - GStreamer: Audio playback
-  - yt-dlp: Stream URL extraction
+  - VLCJ: Audio playback (bundled via vlc-setup plugin)
+- **Features**:
+  - Deep link support (`simpmusic://` and `simpmusic.org`)
+  - Mini Player window (always-on-top, resizable, draggable)
+  - Crash dialog
+  - Custom title bar (disabled in VM environments)
 - **Limitations**:
   - No offline playback
   - No video playback
-  - Buggy on some Linux distributions
 
 ### External APIs
 - YouTube Music: Hidden/unofficial API (may change anytime)
@@ -335,40 +338,31 @@ Before implementing code, researching code, or answering technical questions, th
 
 ## 🎵 Media Playback Architecture
 
-### Desktop Player (GStreamer)
+### Desktop Player (VLCJ - replaced GStreamer post-1.0.4)
 
-#### Crossfade Transition
-The Desktop player supports **crossfade transition** for smooth track changes:
+**Location**: `core/media/media-jvm/src/main/java/com/simpmusic/media_jvm/VlcPlayerAdapter.kt`
 
-**Location**: `core/media/media-jvm/src/main/java/com/simpmusic/media_jvm/GstreamerPlayerAdapter.kt`
+- Uses **VLCJ** library for audio playback (GStreamer was removed)
+- VLC native libraries bundled per platform via `vlc-setup` Gradle plugin in `composeApp/build.gradle.kts`
+- Bundled natives stored in `vlc-natives/{linux,macos,windows}/`
+- Supports crossfade transition with dual-player approach
 
-**Key Features**:
-- Dual-player approach: Uses two GStreamer players simultaneously during crossfade
+#### Crossfade Transition (Desktop)
 - Configurable duration: 1-15 seconds (default: 5 seconds)
-- Desktop-only: Not available on Android (uses Media3/ExoPlayer)
 - Audio-only: Crossfade is skipped for video playback
-
-**How it works**:
-1. **Detection**: Position tracking detects when `crossfadeDurationMs` remains before track end
-2. **Trigger**: Loads next track into secondary player with volume = 0
-3. **Animation**: 50-step smooth transition
-   - Fade out current player: volume → 0
-   - Fade in secondary player: 0 → target volume
-4. **Metadata Update**: Track info (title, artist, thumbnail) updates **immediately** when crossfade starts
-5. **Finalize**: Swap players, cleanup, trigger next precache
-
-**Settings**:
-- Enable/disable toggle in Desktop Player settings
-- Duration selector: 1s, 2s, 3s, 5s, 8s, 10s, 12s, 15s
 - Settings persisted via DataStore
 
-**Edge Cases Handled**:
-- Video playback → skip crossfade (audio only)
-- Repeat one mode → no crossfade
-- Manual skip → cancel crossfade gracefully
-- Last track → no crossfade
-- Precache miss → load on-demand
-- Crossfade disabled → fallback to normal transition
+### Android Player (Media3/ExoPlayer)
+
+#### Crossfade & DJ-style Transition (added in v1.0.4)
+
+**Location**: `core/media/media3/src/main/java/com/maxrave/media3/exoplayer/CrossfadeExoPlayerAdapter.kt`
+
+- DJ-style crossfade with adjustable duration
+- Requires 320kbps stream preference to enable DJ mode
+- Auto crossfade mode (like AutoMix)
+- `CrossfadeFilterAudioProcessor` for audio processing
+- Edge cases: disabled for video, repeat one, last track
 
 ## 🤝 Contributing
 
@@ -401,7 +395,7 @@ See `CODE_OF_CONDUCT.md`
 - [Media3 (ExoPlayer)](https://developer.android.com/guide/topics/media/media3)
 - [Room Database](https://developer.android.com/training/data-storage/room)
 - [Ktor Client](https://ktor.io/docs/client.html)
-- [GStreamer](https://gstreamer.freedesktop.org/documentation/)
+- [VLCJ](https://github.com/caprica/vlcj)
 
 ### Community
 - Website: https://simpmusic.org
@@ -443,10 +437,60 @@ if (getPlatform() == Platform.Android) {
 }
 ```
 
+## 📜 Changelog Summary (post-1.0.4)
+
+### Architecture Changes
+- **Desktop: GStreamer → VLCJ**: Completely replaced GStreamer with VLCJ for desktop audio playback
+- **MediaServiceCore submodule removed**: Legacy submodule references cleaned up from settings.gradle.kts
+- **DEB/RPM builds removed**: Desktop Linux now only ships AppImage
+
+### New Features (v1.0.4)
+- **Android Crossfade & DJ-style transition**: `CrossfadeExoPlayerAdapter` with auto mode (like AutoMix)
+- **BetterLyrics provider**: Additional lyrics source integrated into lyricsService
+- **320kbps audio stream option**: Higher quality streaming preference
+- **Parallel download**: Improved download speed
+- **Character-level animated lyrics**: Word-by-word lyrics with spring animations
+- **SimpMusic Chart**: Chart playlists integrated into Library screen
+- **Favorites**: Liked songs feature with UI integration
+- **Custom OpenAI base URL**: Support for compatible API endpoints
+
+### New Features (v1.0.1 - v1.0.3)
+- **Desktop Mini Player**: Always-on-top, resizable, draggable mini player window with volume/like controls
+- **Analytics/Local Tracking**: Track top artists, albums, and tracks locally (no remote tracking)
+- **Auto Backup**: Automatic backup settings
+- **Custom Title Bar**: Desktop window control with transparency support
+- **SimpMusic Lyrics voting**: Vote functionality for community lyrics
+
+### New Features (post-1.0.4, dev branch)
+- **Deep link support**: `simpmusic://` and `simpmusic.org` URL schemes
+- **Desktop Crash dialog**: Error reporting UI for desktop
+- **Playback speed/pitch controls**: Redesigned UI with improved animations
+- **VM environment detection**: Disable transparency and custom titlebar in VMs
+
+## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
+
+After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
+
+1. **Architecture changes**: Module additions/removals, dependency changes (e.g., library swaps like GStreamer → VLCJ), build system changes
+2. **New major features**: New modules, new service integrations, new platform capabilities
+3. **API/Technology migrations**: Swapping core libraries, changing data flow patterns
+4. **Build/CI changes**: New build variants, changed packaging formats, CI workflow changes
+5. **Module structure changes**: Adding/removing modules in settings.gradle.kts
+
+**What to update**:
+- Relevant sections in this document (Module Structure, Key Technologies, etc.)
+- Add entry to Changelog Summary section with date/version context
+- Update "Last updated" date at the bottom
+
+**What NOT to update for**:
+- Bug fixes, minor UI tweaks, translation updates
+- Simple refactoring within existing patterns
+- Dependency version bumps without API changes
+
 ---
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-02-04
+**Last updated**: 2026-03-10
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
