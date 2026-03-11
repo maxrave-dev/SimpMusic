@@ -788,11 +788,11 @@ fun InfoPlayerBottomSheet(
                         buildAnnotatedString {
                             withLink(
                                 LinkAnnotation.Url(
-                                    "https://music.youtube.com/watch?v=${songEntity?.videoId}",
+                                    "https://simpmusic.org/app/watch?v=${songEntity?.videoId}",
                                     TextLinkStyles(style = SpanStyle(textDecoration = TextDecoration.Underline)),
                                 ),
                             ) {
-                                append("https://music.youtube.com/watch?v=${songEntity?.videoId}")
+                                append("https://simpmusic.org/app/watch?v=${songEntity?.videoId}")
                             }
                         },
                     modifier =
@@ -2783,7 +2783,7 @@ fun PlaylistBottomSheet(
                 }
                 val shareTitle = stringResource(Res.string.share)
                 ActionButton(icon = painterResource(Res.drawable.baseline_share_24), text = Res.string.share) {
-                    val url = "https://share.filmu.in/playlist?list=${playlistId.replaceFirst("VL", "")}"
+                    val url = "https://simpmusic.org/app/playlist?list=${playlistId.replaceFirst("VL", "")}"
                     shareUrl(shareTitle, url)
                 }
                 EndOfModalBottomSheet()
@@ -2946,7 +2946,7 @@ fun LocalPlaylistBottomSheet(
                         text = if (ytPlaylistId != null) Res.string.share else Res.string.sync_first,
                         enable = (ytPlaylistId != null),
                     ) {
-                        val url = "https://sharee.filmu.in/playlist?list=${ytPlaylistId?.replaceFirst("VL", "")}"
+                        val url = "https://simpmusic.org/app/playlist?list=${ytPlaylistId?.replaceFirst("VL", "")}"
                         shareUrl(shareTitle, url)
                     }
                     EndOfModalBottomSheet()
