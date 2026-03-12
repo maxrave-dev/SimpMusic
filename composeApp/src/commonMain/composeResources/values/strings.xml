@@ -543,4 +543,7 @@
     <string name="your_320kbps_url">Your 320kbps URL</string>
     <string name="search_for">Search for</string>
     <string name="synced_playlist_cannot_change_order">Synced playlist cannot change order</string>
+    <string name="bpm">BPM</string>
+    <string name="key">Key</string>
+    <string name="scale">Scale</string>
 </resources>
