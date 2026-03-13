@@ -70,7 +70,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -651,15 +651,14 @@ fun LocalPlaylistScreen(
                                                 Modifier
                                                     .size(36.dp)
                                                     .clip(CircleShape)
-                                                    .graphicsLayer {
+                                                    .clickable {
+                                                        shouldShowSuggestions = !shouldShowSuggestions
+                                                    }.graphicsLayer {
                                                         compositingStrategy =
                                                             CompositingStrategy.Offscreen
-                                                    }.clickable {
-                                                        shouldShowSuggestions = !shouldShowSuggestions
-                                                    }.drawWithCache {
+                                                    }.drawWithContent {
                                                         val width = size.width
                                                         val height = size.height
-
                                                         val offsetDraw = width * progressAnimated
                                                         val gradientColors =
                                                             listOf(
@@ -676,26 +675,22 @@ fun LocalPlaylistScreen(
                                                                         height,
                                                                     ),
                                                             )
-
-                                                        onDrawBehind {
-                                                            // Destination
-                                                            with(aiPainter) {
-                                                                translate(
-                                                                    left = (size.width - width / 1.5f) / 2,
-                                                                    top = (size.height - width / 1.5f) / 2,
-                                                                ) {
-                                                                    draw(
-                                                                        size = Size(width / 1.5f, width / 1.5f),
-                                                                    )
-                                                                }
+                                                        // Destination
+                                                        with(aiPainter) {
+                                                            translate(
+                                                                left = (size.width - width / 1.5f) / 2,
+                                                                top = (size.height - width / 1.5f) / 2,
+                                                            ) {
+                                                                draw(
+                                                                    size = Size(width / 1.5f, width / 1.5f),
+                                                                )
                                                             }
-
-                                                            // Source
-                                                            drawRect(
-                                                                brush = brush,
-                                                                blendMode = BlendMode.SrcIn,
-                                                            )
                                                         }
+                                                        // Source
+                                                        drawRect(
+                                                            brush = brush,
+                                                            blendMode = BlendMode.SrcIn,
+                                                        )
                                                     },
                                         )
                                     }

@@ -32,19 +32,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.DrawModifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.drawscope.ContentDrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -112,22 +110,6 @@ fun Modifier.shimmer(): Modifier =
         }
     }
 
-class GreyScaleModifier : DrawModifier {
-    override fun ContentDrawScope.draw() {
-        val saturationMatrix = ColorMatrix().apply { setToSaturation(0f) }
-        val saturationFilter = ColorFilter.colorMatrix(saturationMatrix)
-        val paint =
-            Paint().apply {
-                colorFilter = saturationFilter
-            }
-        drawIntoCanvas {
-            it.saveLayer(Rect(0f, 0f, size.width, size.height), paint)
-            drawContent()
-            it.restore()
-        }
-    }
-}
-
 fun LazyListState.visibilityPercent(info: LazyListItemInfo): Float {
     val cutTop = max(0, layoutInfo.viewportStartOffset - info.offset)
     val cutBottom = max(0, info.offset + info.size - layoutInfo.viewportEndOffset)
@@ -135,7 +117,16 @@ fun LazyListState.visibilityPercent(info: LazyListItemInfo): Float {
     return max(0f, 100f - (cutTop + cutBottom) * 100f / info.size)
 }
 
-fun Modifier.greyScale() = this.then(GreyScaleModifier())
+fun Modifier.greyScale() =
+    this
+        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            drawRect(
+                color = Color.Gray,
+                blendMode = BlendMode.Saturation,
+            )
+        }
 
 fun Modifier.angledGradientBackground(
     colors: List<Color>,

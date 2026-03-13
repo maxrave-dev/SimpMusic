@@ -27,7 +27,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.Dp
@@ -73,7 +75,9 @@ fun InfiniteBorderAnimationView(
                 .clip(
                     shape,
                 ).padding(borderWidth)
-                .drawBehind {
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }.drawBehind {
                     scale(scale = scaleAnimationValue) {
                         rotate(degrees = degrees) {
                             drawCircle(
@@ -147,7 +151,9 @@ fun LimitedBorderAnimationView(
                 .clip(
                     shape,
                 ).padding(borderWidth)
-                .drawBehind {
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }.drawBehind {
                     if (isAnimated) {
                         scale(
                             scale = scaleAnimationValue,
