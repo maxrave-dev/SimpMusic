@@ -1126,7 +1126,7 @@ fun SettingScreen(
                             ),
                         )
                     },
-                    isEnable = useAITranslation,
+                    isEnable = true,
                 )
                 SettingItem(
                     title = stringResource(Res.string.youtube_subtitle_language),
