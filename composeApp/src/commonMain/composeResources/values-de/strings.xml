@@ -73,6 +73,8 @@
     <string name="content_country">Inhaltsland</string>
     <string name="change">Ändern</string>
     <string name="quality">Qualität</string>
+    <string name="prefer_320kbps_stream">320kbps Stream bevorzugen</string>
+    <string name="prefer_320kbps_stream_description">Automatisch nach 320kbps Audiostream suchen, wenn dieser im Internet verfügbar ist. Sofern nicht verfügbar, wird die Standardqualität verwendet.</string>
     <string name="download_quality">Download-Qualität</string>
     <string name="video_download_quality">Video-Download-Qualität</string>
     <string name="clear_downloaded_cache">Download-Cache leeren</string>
@@ -212,6 +214,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Fehler-Information</string>
     <string name="no_update">Du hast die neueste Version</string>
     <string name="sleep_timer">Sleep-Timer - %1$s Minute(n)</string>
+    <string name="sleep_timer_end_of_song">Sleep-Timer - Ende des Liedes</string>
     <string name="sleep_timer_off">Sleep-Timer</string>
     <string name="sleep_minutes">Countdown-Zeit (Minuten)</string>
     <string name="set">Übernehmen</string>
@@ -257,6 +260,7 @@
     <string name="translation_language_message">Gebe den Sprachcode ein (z. B. de) (2 Buchstaben). Wenn du die Sprache SimpMusic nutzen möchtest, lasse dieses Feld leer.</string>
     <string name="invalid_language_code">Ungültiger Sprachcode</string>
     <string name="lyrics_provider_youtube">Songtexte von YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Liedtexte zur Verfügung gestellt von BetterLyrics</string>
     <string name="limit_player_cache">Player-Cache begrenzen</string>
     <string name="unlimited">Unbegrenzt</string>
     <string name="third_party_libraries">Bibliotheken von Drittanbietern</string>
@@ -385,6 +389,7 @@
     <string name="blur_fullscreen_lyrics">Verwischen Sie den Texteffekt im Vollbildmodus</string>
     <string name="blur_fullscreen_lyrics_description">Den Hintergrund des Vollbild-Textbildschirmeffekts unscharf machen</string>
     <string name="playback_speed_pitch"><![CDATA[Wiedergabegeschwindigkeit und Tonhöhe]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Wiedergabegeschwindigkeit & Tonhöhe (deaktiviert, wenn Crossfade aktiviert ist)]]></string>
     <string name="playback_speed">Wiedergabegeschwindigkeit</string>
     <string name="pitch">Tonhöhe</string>
     <string name="blur_player_background">Player Hintergrund verwischen</string>
@@ -419,6 +424,7 @@
     <string name="ai_provider">KI-Anbieter</string>
     <string name="openai">OpenKI</string>
     <string name="gemini">Gemini</string>
+    <string name="openai_api_compatible">Mit Custom OpenAI kompatibel</string>
     <string name="ai_api_key">Dein KI API Key</string>
     <string name="invalid_api_key">Ungültiger API-Schlüssel</string>
     <string name="custom_ai_model_id">Benutzerdefinierte KI-Model-ID</string>
@@ -436,10 +442,17 @@
     <string name="download_this_song_video_file_to_your_device">Lade diese Song/Videodatei auf dein Gerät herunter</string>
     <string name="kill_service_on_exit">Dienst beim Beenden beenden</string>
     <string name="kill_service_on_exit_description">Hintergrundmusikplayer beim Beenden der App stoppen</string>
+    <string name="desktop_player">Desktop Player</string>
+    <string name="crossfade">Crossfade(Überblendfunktion) (BETA)</string>
+    <string name="crossfade_description">Sanfter Übergang zwischen Liedern in dem das aktuelle Lied ausgeblendet, während das nächste eingeblendet wird.</string>
     <string name="crossfade_enabled">Aktiviert (%1$ds)</string>
     <string name="crossfade_disabled">Deaktiviert</string>
     <string name="crossfade_duration">Crossfade-Dauer</string>
     <string name="set_crossfade_duration">Überblendungsdauer in Sekunden festlegen (%1$ds)</string>
+    <string name="crossfade_auto">Automatisch</string>
+    <string name="crossfade_auto_description">Berechne die Spieldauer automatisch anhand der BPM (320kbps Stream mit BPM-Daten erforderlich)</string>
+    <string name="crossfade_dj_mode">Übergang im DJ-Style</string>
+    <string name="crossfade_dj_mode_description">Einen Tiefpass- und Hochpassfilter Sweep während des Crossfades für einen DJ-artigen Übergang (ähnlich dem Apple Music Automix) anwenden.</string>
     <string name="youtube_subtitle_language">YouTube Untertitelübersetzungssprache</string>
     <string name="youtube_subtitle_language_message">Sprachcode eingeben (z.Bsp.: de) (2 Buchstaben). Dies ist die bevorzugte Sprache für YouTube Untertitel.</string>
     <string name="use_anonymous">Anonymen Namen verwenden, um beizutragen</string>
@@ -476,6 +489,7 @@
     <string name="explicit_content_blocked">Expliziter Inhalt blockiert</string>
     <string name="mix_for_you">Mix für Dich</string>
     <string name="no_mixes_found">Keine Mixes gefunden</string>
+    <string name="no_charts_found">Keine Charts gefunden</string>
     <string name="desktop_webview_description">Aufgrund der Einschränkungen von Compose Multiplattform, kann ich WebView nicht auf dem Desktop implementieren.\nLies dies, um mehr zu erfahren, wie du dich im Desktop einloggst:\n</string>
     <string name="open_blog_post">Blog-Beitrag öffnen</string>
     <string name="discord_integration">Discord-Integration</string>
@@ -516,4 +530,14 @@
     <string name="close_miniplayer">Mini-Player schließen</string>
     <string name="open_miniplayer">Mini-Player öffnen</string>
     <string name="quit_app">App beenden</string>
+    <string name="local_tracking_title">Lokale Aufzeichnung der Wiedergabehistorie</string>
+    <string name="local_tracking_description">Zeichne die Wiedergabehistorie in der lokalen Datenbank auf</string>
+    <string name="simpmusic_charts">SimpMusic Charts</string>
+    <string name="crossfading">Crossfading (überblenden)</string>
+    <string name="your_320kbps_url">Deine 320kbps URL</string>
+    <string name="search_for">Suchen nach</string>
+    <string name="synced_playlist_cannot_change_order">Die Reihenfolge der synchronisierten Playlist kann nicht verändert werden</string>
+    <string name="bpm">BPM</string>
+    <string name="key">Tonart</string>
+    <string name="scale">Tonleiter</string>
 </resources>

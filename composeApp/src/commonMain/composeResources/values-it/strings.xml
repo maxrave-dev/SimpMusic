@@ -214,6 +214,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Informazioni sull'errore</string>
     <string name="no_update">La tua versione è la più recente</string>
     <string name="sleep_timer">Timer sospensione - %1$s minuto</string>
+    <string name="sleep_timer_end_of_song">Timer di spegnimento - fine canzone</string>
     <string name="sleep_timer_off">Timer sospensione</string>
     <string name="sleep_minutes">Tempo del conto alla rovescia (minuti)</string>
     <string name="set">Imposta</string>
@@ -388,6 +389,7 @@
     <string name="blur_fullscreen_lyrics">Sfoca effetto testo a schermo intero</string>
     <string name="blur_fullscreen_lyrics_description">Sfoca lo sfondo dell'effetto schermo intero del testo</string>
     <string name="playback_speed_pitch"><![CDATA[Velocità di riproduzione e tono]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Velocità e tono brano (disabilitato quando la dissolvenza è abilitata)]]></string>
     <string name="playback_speed">Velocità di riproduzione</string>
     <string name="pitch">Tono</string>
     <string name="blur_player_background">Sfoca lo sfondo del lettore</string>
@@ -447,6 +449,8 @@
     <string name="crossfade_disabled">Disabilitato</string>
     <string name="crossfade_duration">Durata Dissolvenza incrociata</string>
     <string name="set_crossfade_duration">Imposta la durata della dissolvenza incrociata in secondi (%1$d)</string>
+    <string name="crossfade_auto">Automatico</string>
+    <string name="crossfade_auto_description">Calcola automaticamente la durata in base ai BPM (richiede un flusso a 320kbps con dati BPM)</string>
     <string name="crossfade_dj_mode">Transizione in stile DJ</string>
     <string name="crossfade_dj_mode_description">Applica filtri passa-basso e passa-alto durante la dissolvenza incrociata per una transizione più fluida e simile a DJ (simile a Apple Music Automix).</string>
     <string name="youtube_subtitle_language">Lingua di traduzione dei sottotitoli di YouTube</string>
@@ -531,4 +535,6 @@
     <string name="simpmusic_charts">Classifica SimpMusic</string>
     <string name="crossfading">Dissolvenza incrociata</string>
     <string name="your_320kbps_url">Il tuo URL 320kbps</string>
+    <string name="search_for">Cerca per</string>
+    <string name="synced_playlist_cannot_change_order">La playlist sincronizzata non può cambiare ordine</string>
 </resources>

@@ -214,9 +214,10 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Información de error</string>
     <string name="no_update">La app está actualizada</string>
     <string name="sleep_timer">Temporizador de sueño - %1$s minuto(s)</string>
+    <string name="sleep_timer_end_of_song">Temporizador de sueño - Fin de la canción</string>
     <string name="sleep_timer_off">Temporizador de sueño</string>
     <string name="sleep_minutes">Temporizador (minutos)</string>
-    <string name="set">Fijar</string>
+    <string name="set">Establecer</string>
     <string name="sleep_timer_off_done">Detener temporizador de sueño</string>
     <string name="sleep_timer_set_error">Por favor, establece un formato de hora correcto</string>
     <string name="sleep_timer_warning">¿Eliminar temporizador de sueño?</string>
@@ -388,6 +389,7 @@
     <string name="blur_fullscreen_lyrics">Efecto de desenfoque de letra a pantalla completa</string>
     <string name="blur_fullscreen_lyrics_description">Efecto de desenfoque del fondo de la pantalla de letras en pantalla completa</string>
     <string name="playback_speed_pitch"><![CDATA[Velocidad de reproducción y tono]]></string>
+    <string name="playback_speed_pitch_disabled"></string>
     <string name="playback_speed">Velocidad de reproducción</string>
     <string name="pitch">Tono</string>
     <string name="blur_player_background">Desenfocar el fondo del reproductor</string>
@@ -531,4 +533,6 @@
     <string name="simpmusic_charts">Gráficos SimpMusic</string>
     <string name="crossfading">Crossfade</string>
     <string name="your_320kbps_url">Su URL de 320kbps</string>
+    <string name="search_for">Buscar por</string>
+    <string name="synced_playlist_cannot_change_order">No se puede cambiar el orden de la lista sincronizada</string>
 </resources>

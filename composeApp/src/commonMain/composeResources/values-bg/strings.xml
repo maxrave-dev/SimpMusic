@@ -60,6 +60,7 @@
     <string name="playlist_name_cannot_be_empty">Името на плейлиста не може да бъде празно</string>
     <string name="this_app_needs_to_access_your_notification">Приложението има нужда от достъп до известията ти</string>
     <string name="shared">Споделено</string>
+    <string name="rich_synced">Дума по дума</string>
     <string name="line_synced">Синхронизирано</string>
     <string name="unsynced">Десинхронизирано</string>
     <string name="playlist_is_empty">Плейлистът е празен</string>
@@ -72,6 +73,10 @@
     <string name="content_country">Държава на съдържанието</string>
     <string name="change">Промени</string>
     <string name="quality">Качество</string>
+    <string name="prefer_320kbps_stream">Препоръчан 320кб за секунда стрийм</string>
+    <string name="prefer_320kbps_stream_description">Автоматично търсене за 320кб за секунда аудио стрийм когато е достъпно в интернета. Пада на оригинално качество ако не е намерено.</string>
+    <string name="download_quality">Качесто на изтегляне</string>
+    <string name="video_download_quality">Качество на изтегляне на видео</string>
     <string name="clear_downloaded_cache">Изчисти кеша</string>
     <string name="clear_thumbnail_cache">Изчисти кеша на изображенията</string>
     <string name="add">Добави</string>
@@ -120,6 +125,7 @@
     <string name="buy_me_a_coffee">Buy me a coffee</string>
     <string name="paypal">PayPal</string>
     <string name="title">Заглавие</string>
+    <string name="custom_order">Персонализирана поръчка</string>
     <string name="album">Албум</string>
     <string name="youtube_url">YouTube адрес</string>
     <string name="download_url">Връзка за изтегляне</string>
@@ -143,6 +149,7 @@
     <string name="log_in_to_YouTube">Вход в YouTube</string>
     <string name="log_in_to_get_personally_data">Впиши се за да получиш персонализирани данни</string>
     <string name="login_success">Успешно вписване</string>
+    <string name="login_failed">Влизането неуспешно</string>
     <string name="log_out">Изход от YouTube</string>
     <string name="logged_in">Вписан</string>
     <string name="logged_out">Отписан</string>
@@ -168,9 +175,11 @@
     <string name="save_shuffle_and_repeat_mode">Запази режим разбъркване и повторение</string>
     <string name="skip_silent">Прескочи тишината</string>
     <string name="skip_no_music_part">Прескочи частта без музика</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Времето изтече, проверете интернет връзката си (%1$s)</string>
     <string name="save_last_played">Запази последното възпроизвеждане</string>
     <string name="save_last_played_track_and_queue">Запази последната изпълнена песен и опашката</string>
     <string name="update_available">Налична е нова актуализация</string>
+    <string name="update_message">Версия %1$s е достъпна\nИздание: %2$s\n</string>
     <string name="check_for_update">Проверка за актуализации</string>
     <string name="last_checked_at">Последна проверка на %1$s</string>
     <string name="checking">Проверява се</string>
@@ -194,6 +203,8 @@
     <string name="skip_sponsor_part_of_video">Прескачане на спонсорираната част</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Появи се непредвидена грешка. Извиняваме се за неудобството.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Рестартирай приложението</string>
+    <string name="help_build_lyrics_database">Помогнете на SimpMusic лирики да построи датабазата за лирики</string>
+    <string name="help_build_lyrics_database_description">Пратете вашите запазени лирики към датабазата на SimpMusic лирики</string>
     <string name="customactivityoncrash_error_activity_close_app">Затвори приложението</string>
     <string name="customactivityoncrash_error_activity_error_details">Подробности за грешката</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Подробности за грешката</string>
@@ -238,6 +249,8 @@
     <string name="backup_create_success">Създаването на резервно копие е успешно</string>
     <string name="backup_create_failed">Създаването на резервно копие е неуспешно</string>
     <string name="main_lyrics_provider">Основен доставчик на текстове</string>
+    <string name="use_ai_translation">Използвай AI (изкуствен интелект) лирически преводач</string>
+    <string name="use_ai_translation_description">Включи превеждане на лирики с AI (изкуствен интелект)</string>
     <string name="translation_language">Език на превода</string>
     <string name="follow_app_language">Следвай езика на приложението</string>
     <string name="email">Имейл</string>
@@ -246,6 +259,7 @@
     <string name="translation_language_message">Въведете код на език (Напр: bg) (2 букви). Оставете празно ако искате да използвате езика на SimpMusic.</string>
     <string name="invalid_language_code">Невалиден код на език</string>
     <string name="lyrics_provider_youtube">Текст предоставен от YouTube</string>
+    <string name="lyrics_provider_betterlyrics">Лирики придоставени от BetterLyrics</string>
     <string name="limit_player_cache">Ограничи кеша на плейъра</string>
     <string name="unlimited">Неограничен</string>
     <string name="third_party_libraries">Библиотеки на трети страни</string>
@@ -256,6 +270,10 @@
     <string name="free_space">Свободно пространство</string>
     <string name="suggest">Предложение</string>
     <string name="reload">Презареди</string>
+    <string name="sort_by">Сортирай по</string>
+    <string name="sort">Сортиране</string>
+    <string name="older_first">Най-стари</string>
+    <string name="newer_first">Най-нови</string>
     <string name="added_date">Дата на добавяне</string>
     <string name="credit_app">Опростено приложение за музика, което използва YouTube Music за бекенд \n\nSimpMusic е проект с отворен код, който стриймва музика от YouTube и YouTube Music без реклами и проследяване. SimpMusic идва с много функции:\n\n - Стрийминг \n - Текстове\n - Персонализиране на данните\n - и т. н… \n\nSimpMusic е безплатен и без реклами\n\nBuild с ❤️ от Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Тракър на задачи</string>
@@ -289,6 +307,7 @@
     <string name="codec">Кодек</string>
     <string name="plays">Изпълни/Виж броя</string>
     <string name="like_and_dislike">%1$d харесване(ия), %2$d нехаресване(ия)</string>
+    <string name="published_at">Публикувано на %1$s</string>
     <string name="less">По-малко</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Вход в Spotify</string>
@@ -397,4 +416,12 @@
     <string name="visitor_data_retrieved">Получени данни за посещения</string>
     <string name="data_sync_id_retrieved">Получен DataSyncId</string>
     <string name="retrieve_youtube_data">Получаване на данни от YouTube</string>
+    <string name="no_results_found">Не са намерени никакви резултати</string>
+    <string name="ai">Изкуствен интелект</string>
+    <string name="ai_provider">Придоставчик на изкуствен интелект</string>
+    <string name="openai">OpenAI</string>
+    <string name="gemini">Gemini</string>
+    <string name="openai_api_compatible">Персонализирана съвместимост с OpenAI</string>
+    <string name="ai_api_key">Вашият AI (изкуствен интелект) API ключ</string>
+    <string name="invalid_api_key">Невалиден API ключ</string>
 </resources>
