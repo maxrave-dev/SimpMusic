@@ -641,26 +641,42 @@ class SharedViewModel(
 
     fun loadSharedMediaItem(videoId: String) {
         viewModelScope.launch {
-            streamRepository.getFullMetadata(videoId).collectLatest { response ->
-                val track = response.data
-                when (response) {
-                    is Resource.Success if (track != null) -> {
-                        mediaPlayerHandler.setQueueData(
-                            QueueData.Data(
-                                listTracks = arrayListOf(track),
-                                firstPlayedTrack = track,
-                                playlistId = "RDAMVM$videoId",
-                                playlistName = getString(Res.string.shared),
-                                playlistType = PlaylistType.RADIO,
-                                continuation = null,
-                            ),
-                        )
-                        loadMediaItemFromTrack(track, SONG_CLICK)
-                    }
+            val localSong = songRepository.getSongById(videoId).firstOrNull()
+            if (localSong != null) {
+                val track = localSong.toTrack()
+                mediaPlayerHandler.setQueueData(
+                    QueueData.Data(
+                        listTracks = arrayListOf(track),
+                        firstPlayedTrack = track,
+                        playlistId = "RDAMVM$videoId",
+                        playlistName = getString(Res.string.shared),
+                        playlistType = PlaylistType.RADIO,
+                        continuation = null,
+                    ),
+                )
+                loadMediaItemFromTrack(track, SONG_CLICK)
+            } else {
+                streamRepository.getFullMetadata(videoId).collectLatest { response ->
+                    val track = response.data
+                    when (response) {
+                        is Resource.Success if (track != null) -> {
+                            mediaPlayerHandler.setQueueData(
+                                QueueData.Data(
+                                    listTracks = arrayListOf(track),
+                                    firstPlayedTrack = track,
+                                    playlistId = "RDAMVM$videoId",
+                                    playlistName = getString(Res.string.shared),
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = null,
+                                ),
+                            )
+                            loadMediaItemFromTrack(track, SONG_CLICK)
+                        }
 
-                    else -> {
-                        log("Load shared media item error: ${response.message}", LogLevel.WARN)
-                        makeToast("${getString(Res.string.error)}: ${response.message}")
+                        else -> {
+                            log("Load shared media item error: ${response.message}", LogLevel.WARN)
+                            makeToast("${getString(Res.string.error)}: ${response.message}")
+                        }
                     }
                 }
             }
