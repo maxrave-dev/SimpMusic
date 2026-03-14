@@ -106,11 +106,7 @@ Service modules:
 - **kizzy/**: Discord Rich Presence
 - **ktorExt/**: Ktor extensions for networking
 
-#### 4. **MediaServiceCore/** (legacy, removed from settings.gradle.kts)
-- Was a git submodule for core media service logic
-- References removed post-1.0.4; functionality integrated into `core/media/` and `core/data/`
-
-#### 5. **crashlytics/** & **crashlytics-empty/**
+#### 4. **crashlytics/** & **crashlytics-empty/**
 - **crashlytics/**: Full version with Sentry crash reporting
 - **crashlytics-empty/**: FOSS version without tracking
 
@@ -211,6 +207,10 @@ Before implementing code, researching code, or answering technical questions, th
 **This workflow applies to**: Adding new libraries, choosing architectural patterns, implementing new features with unfamiliar APIs, answering "how should we do X?" questions, and evaluating technical approaches.
 
 **This workflow does NOT apply to**: Simple bug fixes in existing code, minor refactoring, or tasks using libraries already well-established in the project.
+
+### Verification After Code Changes
+- **Do NOT build the app** to verify code changes. Instead, use **JetBrains MCP** tools (`get_file_problems`, `getDiagnostics`) to check for compile errors and warnings in real-time.
+- Only run Gradle build when explicitly requested by the user or for final release verification.
 
 ### Testing
 - Unit tests for Domain layer (Use cases)
@@ -441,7 +441,6 @@ if (getPlatform() == Platform.Android) {
 
 ### Architecture Changes
 - **Desktop: GStreamer → VLCJ**: Completely replaced GStreamer with VLCJ for desktop audio playback
-- **MediaServiceCore submodule removed**: Legacy submodule references cleaned up from settings.gradle.kts
 - **DEB/RPM builds removed**: Desktop Linux now only ships AppImage
 
 ### New Features (v1.0.4)
@@ -491,6 +490,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-03-10
+**Last updated**: 2026-03-14
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
