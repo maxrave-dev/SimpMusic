@@ -81,7 +81,7 @@ echo "===================="
 
 # Step 1: Clean the project
 echo "[Step 1] Cleaning the project..."
-./gradlew clean
+./gradlew clean --no-configuration-cache
 echo "Project cleaned successfully."
 
 # Step 2: Build the APK
