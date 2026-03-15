@@ -491,7 +491,8 @@ tasks.withType<AbstractJPackageTask>().configureEach {
 
 // Mark vlc-setup tasks as not compatible with configuration cache
 // The plugin (v0.1.0) uses Task.project at execution time which is unsupported
-listOf("vlcExtract", "vlcFilterPlugins", "vlcSetup").forEach { taskName ->
+// Also mark 'clean' because it captures a reference to VlcSetupTask during serialization
+listOf("vlcExtract", "vlcFilterPlugins", "vlcSetup", "clean").forEach { taskName ->
     tasks.findByName(taskName)?.let {
         it.notCompatibleWithConfigurationCache("vlc-setup plugin tasks are not yet compatible with configuration cache")
     }
