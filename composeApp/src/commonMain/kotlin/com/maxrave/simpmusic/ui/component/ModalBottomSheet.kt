@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,8 +48,11 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -130,11 +134,13 @@ import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
@@ -186,6 +192,7 @@ import simpmusic.composeapp.generated.resources.baseline_sync_disabled_24
 import simpmusic.composeapp.generated.resources.baseline_update_24
 import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.bitrate
+import simpmusic.composeapp.generated.resources.bpm
 import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.codec
@@ -208,6 +215,7 @@ import simpmusic.composeapp.generated.resources.endless_queue
 import simpmusic.composeapp.generated.resources.error_occurred
 import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.itag
+import simpmusic.composeapp.generated.resources.key
 import simpmusic.composeapp.generated.resources.like
 import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.liked
@@ -230,6 +238,7 @@ import simpmusic.composeapp.generated.resources.play_circle
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playback_speed
 import simpmusic.composeapp.generated.resources.playback_speed_pitch
+import simpmusic.composeapp.generated.resources.playback_speed_pitch_disabled
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
 import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
@@ -239,12 +248,14 @@ import simpmusic.composeapp.generated.resources.round_speed_24
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
+import simpmusic.composeapp.generated.resources.scale
 import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.share
 import simpmusic.composeapp.generated.resources.share_url
 import simpmusic.composeapp.generated.resources.simpmusic_lyrics
 import simpmusic.composeapp.generated.resources.sleep_minutes
 import simpmusic.composeapp.generated.resources.sleep_timer
+import simpmusic.composeapp.generated.resources.sleep_timer_end_of_song
 import simpmusic.composeapp.generated.resources.sleep_timer_off
 import simpmusic.composeapp.generated.resources.sleep_timer_set_error
 import simpmusic.composeapp.generated.resources.sleep_timer_warning
@@ -602,7 +613,7 @@ fun InfoPlayerBottomSheet(
                     color = white,
                 )
                 Text(
-                    text = (if (format?.itag == 0) "320kbps Hi-res" else format?.itag?.toString()) ?: stringResource(Res.string.unknown),
+                    text = (if (format?.itag == 0) "320kbps" else format?.itag?.toString()) ?: stringResource(Res.string.unknown),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -692,6 +703,82 @@ fun InfoPlayerBottomSheet(
                     textAlign = TextAlign.Center,
                 )
                 Text(
+                    text = stringResource(Res.string.bpm),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo().labelMedium,
+                    color = white,
+                )
+                Text(
+                    text = format?.bpm?.toString() ?: stringResource(Res.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo().bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(Res.string.key),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo().labelMedium,
+                    color = white,
+                )
+                Text(
+                    text = format?.musicKey ?: stringResource(Res.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo().bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = stringResource(Res.string.scale),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo().labelMedium,
+                    color = white,
+                )
+                Text(
+                    text = format?.keyScale ?: stringResource(Res.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo().bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+
+                Text(
                     text = stringResource(Res.string.plays),
                     modifier =
                         Modifier
@@ -780,11 +867,11 @@ fun InfoPlayerBottomSheet(
                         buildAnnotatedString {
                             withLink(
                                 LinkAnnotation.Url(
-                                    "https://music.youtube.com/watch?v=${songEntity?.videoId}",
+                                    "https://simpmusic.org/app/watch?v=${songEntity?.videoId}",
                                     TextLinkStyles(style = SpanStyle(textDecoration = TextDecoration.Underline)),
                                 ),
                             ) {
-                                append("https://music.youtube.com/watch?v=${songEntity?.videoId}")
+                                append("https://simpmusic.org/app/watch?v=${songEntity?.videoId}")
                             }
                         },
                     modifier =
@@ -1345,6 +1432,7 @@ fun NowPlayingBottomSheet(
     var sleepTimerWarning by remember { mutableStateOf(false) }
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
     var changePlaybackSpeedPitch by remember { mutableStateOf(false) }
+    val crossfadeEnabled by dataStoreManager.crossfadeEnabled.collectAsState(DataStoreManager.FALSE)
 
     LaunchedEffect(uiState) {
         if (uiState.songUIState.videoId.isNotEmpty() && !isBottomSheetVisible) {
@@ -1749,11 +1837,19 @@ fun NowPlayingBottomSheet(
                     Crossfade(targetState = setSleepTimerEnable) {
                         val sleepTimerState = uiState.sleepTimer
                         if (it) {
-                            Crossfade(targetState = sleepTimerState.timeRemaining > 0) { running ->
+                            // timeRemaining > 0 → countdown mode, -1 → end-of-song mode, 0 → off
+                            val isEndOfSong = sleepTimerState.timeRemaining == -1
+                            val isRunning = sleepTimerState.timeRemaining > 0 || isEndOfSong
+                            Crossfade(targetState = isRunning) { running ->
                                 if (running) {
                                     ActionButton(
                                         icon = painterResource(Res.drawable.baseline_access_alarm_24),
-                                        textString = stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString()),
+                                        textString =
+                                            if (isEndOfSong) {
+                                                stringResource(Res.string.sleep_timer_end_of_song)
+                                            } else {
+                                                stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString())
+                                            },
                                         text = null,
                                         textColor = seed,
                                         iconColor = seed,
@@ -1773,9 +1869,16 @@ fun NowPlayingBottomSheet(
                     }
                     Crossfade(targetState = setSleepTimerEnable) {
                         if (it) {
+                            val isDesktop = getPlatform() == Platform.Desktop
                             ActionButton(
                                 icon = painterResource(Res.drawable.round_speed_24),
-                                text = Res.string.playback_speed_pitch,
+                                text =
+                                    if (crossfadeEnabled != DataStoreManager.TRUE) {
+                                        if (isDesktop) Res.string.playback_speed else Res.string.playback_speed_pitch
+                                    } else {
+                                        Res.string.playback_speed_pitch_disabled
+                                    },
+                                enable = crossfadeEnabled != DataStoreManager.TRUE,
                             ) {
                                 changePlaybackSpeedPitch = true
                             }
@@ -1957,42 +2060,111 @@ fun PlaybackSpeedPitchBottomSheet(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 10.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                Spacer(modifier = Modifier.height(5.dp))
                 Card(
-                    modifier = Modifier.width(60.dp).height(4.dp),
+                    modifier = Modifier.width(40.dp).height(4.dp),
                     colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF474545)),
                     shape = RoundedCornerShape(50),
                 ) {}
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = stringResource(Res.string.playback_speed) + " ${playbackSpeed}x",
-                    style = typo().labelSmall,
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Slider(
-                    value = playbackSpeed,
-                    onValueChange = { onSet(it, pitch) },
-                    enabled = true,
-                    valueRange = 0.25f..2f,
-                    steps = 13,
-                    onValueChangeFinished = {},
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = stringResource(Res.string.pitch) + " $pitch",
-                    style = typo().labelSmall,
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Slider(
-                    value = pitch.toFloat(),
-                    onValueChange = { onSet(playbackSpeed, it.toInt()) },
-                    enabled = true,
-                    valueRange = -12f..12f,
-                    steps = 23,
-                    onValueChangeFinished = {},
-                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Playback Speed row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Image(
+                        painter = painterResource(Res.drawable.round_speed_24),
+                        contentDescription = stringResource(Res.string.playback_speed),
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = ColorFilter.tint(Color(0xFFB0B0A0)),
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(
+                        onClick = {
+                            val newSpeed = (kotlin.math.floor((playbackSpeed - 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
+                            onSet(
+                                newSpeed,
+                                pitch,
+                            )
+                        },
+                    ) {
+                        Icon(
+                            Icons.Rounded.Remove,
+                            contentDescription = "Decrease speed",
+                            tint = Color(0xFFB0B0A0),
+                        )
+                    }
+                    Text(
+                        text = "x${String.format("%.1f", playbackSpeed)}",
+                        style = typo().titleMedium,
+                        color = Color(0xFFD0D0C0),
+                        modifier = Modifier.widthIn(min = 60.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                    IconButton(
+                        onClick = {
+                            val newSpeed = (kotlin.math.floor((playbackSpeed + 0.1f) * 10f) / 10f).coerceIn(0.2f, 2f)
+                            onSet(
+                                newSpeed,
+                                pitch,
+                            )
+                        },
+                    ) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = "Increase speed",
+                            tint = Color(0xFFB0B0A0),
+                        )
+                    }
+                }
+                // Pitch row — hidden on Desktop (LibVLC doesn't support independent pitch control)
+                if (getPlatform() != Platform.Desktop) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Rounded.Tune,
+                            contentDescription = stringResource(Res.string.pitch),
+                            modifier = Modifier.size(24.dp),
+                            tint = Color(0xFFB0B0A0),
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = {
+                                val newPitch = (pitch - 1).coerceIn(-12, 12)
+                                onSet(playbackSpeed, newPitch)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Rounded.Remove,
+                                contentDescription = "Decrease pitch",
+                                tint = Color(0xFFB0B0A0),
+                            )
+                        }
+                        Text(
+                            text = "$pitch",
+                            style = typo().titleMedium,
+                            color = Color(0xFFD0D0C0),
+                            modifier = Modifier.widthIn(min = 60.dp),
+                            textAlign = TextAlign.Center,
+                        )
+                        IconButton(
+                            onClick = {
+                                val newPitch = (pitch + 1).coerceIn(-12, 12)
+                                onSet(playbackSpeed, newPitch)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add,
+                                contentDescription = "Increase pitch",
+                                tint = Color(0xFFB0B0A0),
+                            )
+                        }
+                    }
+                }
                 EndOfModalBottomSheet()
             }
         }
@@ -2690,7 +2862,7 @@ fun PlaylistBottomSheet(
                 }
                 val shareTitle = stringResource(Res.string.share)
                 ActionButton(icon = painterResource(Res.drawable.baseline_share_24), text = Res.string.share) {
-                    val url = "https://share.filmu.in/playlist?list=${playlistId.replaceFirst("VL", "")}"
+                    val url = "https://simpmusic.org/app/playlist?list=${playlistId.replaceFirst("VL", "")}"
                     shareUrl(shareTitle, url)
                 }
                 EndOfModalBottomSheet()
@@ -2853,7 +3025,7 @@ fun LocalPlaylistBottomSheet(
                         text = if (ytPlaylistId != null) Res.string.share else Res.string.sync_first,
                         enable = (ytPlaylistId != null),
                     ) {
-                        val url = "https://sharee.filmu.in/playlist?list=${ytPlaylistId?.replaceFirst("VL", "")}"
+                        val url = "https://simpmusic.org/app/playlist?list=${ytPlaylistId?.replaceFirst("VL", "")}"
                         shareUrl(shareTitle, url)
                     }
                     EndOfModalBottomSheet()

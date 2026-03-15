@@ -28,23 +28,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-
-
 // prepare for git submodules
-val mediaServiceCore =
-    if (File(rootDir, "../MediaServiceCore").exists()) {
-        File(rootDir, "../MediaServiceCore")
-    } else {
-        File(rootDir, "./MediaServiceCore")
-    }
-
-val sharedDir =
-    if (File(rootDir, "../MediaServiceCore/SharedModules").exists()) {
-        File(rootDir, "../MediaServiceCore/SharedModules")
-    } else {
-        File(rootDir, "./MediaServiceCore/SharedModules")
-    }
-
 val coreDir =
     if (File(rootDir, "../core").exists()) {
         File(rootDir, "../core")
@@ -78,11 +62,6 @@ include(
     ":spotify",
     ":aiService",
     ":lyricsService",
-    ":mediaserviceinterfaces",
-    ":youtubeapi",
-    ":googleapi",
-    ":sharedtests",
-    ":sharedutils",
     ":media-jvm",
     ":media-jvm-ui",
     ":media3",
@@ -91,11 +70,6 @@ include(
     ":crashlytics-empty",
     ":kizzy",
 )
-project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
-project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
-project(":googleapi").projectDir = File(mediaServiceCore, "googleapi")
-project(":sharedtests").projectDir = File(sharedDir, "sharedtests")
-project(":sharedutils").projectDir = File(sharedDir, "sharedutils")
 
 // core modules
 project(":common").projectDir = File(coreDir, "common")

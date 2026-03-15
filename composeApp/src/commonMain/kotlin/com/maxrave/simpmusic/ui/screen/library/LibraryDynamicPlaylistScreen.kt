@@ -107,17 +107,17 @@ fun LibraryDynamicPlaylistScreen(
     var query by rememberSaveable { mutableStateOf("") }
 
     val favorite by viewModel.listFavoriteSong.collectAsStateWithLifecycle()
-    var tempFavorite by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
+    var tempFavorite by remember { mutableStateOf(emptyList<SongEntity>()) }
     val followed by viewModel.listFollowedArtist.collectAsStateWithLifecycle()
-    var tempFollowed by rememberSaveable { mutableStateOf(emptyList<ArtistEntity>()) }
+    var tempFollowed by remember { mutableStateOf(emptyList<ArtistEntity>()) }
     val mostPlayed by viewModel.listMostPlayedSong.collectAsStateWithLifecycle()
-    var tempMostPlayed by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
+    var tempMostPlayed by remember { mutableStateOf(emptyList<SongEntity>()) }
     val downloaded by viewModel.listDownloadedSong.collectAsStateWithLifecycle()
-    var tempDownloaded by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
+    var tempDownloaded by remember { mutableStateOf(emptyList<SongEntity>()) }
     val analyticsUIState by analyticsViewModel.analyticsUIState.collectAsStateWithLifecycle()
-    var tempTopTracks by rememberSaveable { mutableStateOf(analyticsUIState.topTracks.data ?: emptyList()) }
-    var tempTopArtists by rememberSaveable { mutableStateOf(analyticsUIState.topArtists.data ?: emptyList()) }
-    var tempTopAlbums by rememberSaveable { mutableStateOf(analyticsUIState.topAlbums.data ?: emptyList()) }
+    var tempTopTracks by remember { mutableStateOf(analyticsUIState.topTracks.data ?: emptyList()) }
+    var tempTopArtists by remember { mutableStateOf(analyticsUIState.topArtists.data ?: emptyList()) }
+    var tempTopAlbums by remember { mutableStateOf(analyticsUIState.topAlbums.data ?: emptyList()) }
     val hazeState =
         rememberHazeState(
             blurEnabled = true,

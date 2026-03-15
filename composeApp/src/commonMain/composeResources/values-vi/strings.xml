@@ -214,6 +214,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Thông tin lỗi</string>
     <string name="no_update">Phiên bản hiện tại đang là mới nhất</string>
     <string name="sleep_timer">Hẹn giờ ngủ - %1$s phút</string>
+    <string name="sleep_timer_end_of_song">Hẹn giờ ngủ - Cuối bài hát</string>
     <string name="sleep_timer_off">Hẹn giờ ngủ</string>
     <string name="sleep_minutes">Thời gian đếm ngược (phút)</string>
     <string name="set">Cài</string>
@@ -387,6 +388,7 @@
     <string name="blur_fullscreen_lyrics">Làm mờ màn hình lời bài hát toàn màn hình</string>
     <string name="blur_fullscreen_lyrics_description">Hiệu ứng làm mờ nền màn hình lời bài hát toàn màn hình</string>
     <string name="playback_speed_pitch"><![CDATA[Tốc độ phát lại và cao độ]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Tốc độ phát lại và cao độ (bị vô hiệu hóa khi chuyển tiếp mượt mà được bật)]]></string>
     <string name="playback_speed">Tốc độ phát lại</string>
     <string name="pitch">Cao độ</string>
     <string name="blur_player_background">Làm mờ nền trình phát</string>
@@ -446,6 +448,8 @@
     <string name="crossfade_disabled">Vô hiệu hóa</string>
     <string name="crossfade_duration">Thời gian chuyển bài</string>
     <string name="set_crossfade_duration">Thiết lập thời gian chuyển bài, tính bằng giây (%1$ds)</string>
+    <string name="crossfade_auto">Tự động</string>
+    <string name="crossfade_auto_description">Tự động tính toán thời lượng dựa trên BPM</string>
     <string name="crossfade_dj_mode">Chuyển tiếp dạng DJ</string>
     <string name="crossfade_dj_mode_description">Áp dụng các bộ lọc thông thấp và thông cao trong quá trình chuyển tiếp mượt mà hơn, tạo hiệu ứng giống DJ (tương tự như tính năng Automix của Apple Music).</string>
     <string name="youtube_subtitle_language">Ngôn ngữ dịch cho phụ đề YouTube</string>
@@ -531,4 +535,8 @@
     <string name="crossfading">Đang chuyển bài mượt mà</string>
     <string name="your_320kbps_url">Đường dẫn link 320kbps của bạn</string>
     <string name="search_for">Tìm kiếm cho</string>
+    <string name="synced_playlist_cannot_change_order">Danh sách phát đã đồng bộ không thể thay đổi thứ tự</string>
+    <string name="bpm">Nhịp mỗi phút</string>
+    <string name="key">Khóa</string>
+    <string name="scale">Thang</string>
 </resources>

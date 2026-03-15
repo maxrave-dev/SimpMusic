@@ -530,4 +530,5 @@
     <string name="simpmusic_charts">ชาร์ต SimpMusic</string>
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">ลิงก์สตรีม 320 kbps ของคุณ</string>
+    <string name="search_for">ค้นหา</string>
 </resources>

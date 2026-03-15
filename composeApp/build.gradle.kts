@@ -30,6 +30,7 @@ plugins {
     alias(libs.plugins.build.config)
     alias(libs.plugins.osdetector)
     alias(libs.plugins.packagedeps)
+    alias(libs.plugins.vlc.setup)
 }
 
 kotlin {
@@ -171,22 +172,34 @@ kotlin {
     }
 }
 
+// VLC Setup - bundles VLC native libraries so users don't need to install VLC
+vlcSetup {
+    vlcVersion = libs.versions.vlc.get()
+    shouldCompressVlcFiles = false
+    shouldIncludeAllVlcFiles = true
+    pathToCopyVlcLinuxFilesTo = rootDir.resolve("vlc-natives/linux/")
+    pathToCopyVlcMacosFilesTo = rootDir.resolve("vlc-natives/macos/")
+    pathToCopyVlcWindowsFilesTo = rootDir.resolve("vlc-natives/windows/")
+}
+
 compose.desktop {
     application {
         mainClass = "com.maxrave.simpmusic.MainKt"
+        jvmArgs += "--add-opens=java.base/java.nio=ALL-UNNAMED"
 
         nativeDistributions {
+            appResourcesRootDir = rootDir.resolve("vlc-natives/")
             val listTarget = mutableListOf<TargetFormat>()
             if (org.gradle.internal.os.OperatingSystem
                     .current()
                     .isMacOsX
             ) {
                 listTarget.addAll(
-                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm),
+                    listOf(TargetFormat.Dmg, TargetFormat.Msi),
                 )
             } else {
                 listTarget.addAll(
-                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage),
+                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.AppImage),
                 )
             }
             targetFormats(*listTarget.toTypedArray())
@@ -212,6 +225,19 @@ compose.desktop {
                         <string>audio</string>
                         <string>fetch</string>
                         <string>processing</string>
+                    </array>
+                    <key>CFBundleURLTypes</key>
+                    <array>
+                        <dict>
+                            <key>CFBundleTypeRole</key>
+                            <string>Viewer</string>
+                            <key>CFBundleURLName</key>
+                            <string>com.maxrave.simpmusic.deeplink</string>
+                            <key>CFBundleURLSchemes</key>
+                            <array>
+                                <string>simpmusic</string>
+                            </array>
+                        </dict>
                     </array>
                     """.trimIndent()
                 infoPlist {
@@ -301,6 +327,17 @@ afterEvaluate {
     tasks.withType<JavaExec> {
         jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
+        jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
+
+        // Pass bundled VLC natives path to the runtime for development
+        val osSubDir =
+            when {
+                System.getProperty("os.name").contains("Mac") -> "macos"
+                System.getProperty("os.name").contains("Win") -> "windows"
+                else -> "linux"
+            }
+        val vlcNativesPath = rootDir.resolve("vlc-natives/$osSubDir").absolutePath
+        systemProperty("vlc.bundled.path", vlcNativesPath)
 
         if (System.getProperty("os.name").contains("Mac")) {
             jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
@@ -365,20 +402,60 @@ afterEvaluate {
         FileUtils.copyDirectory(appDirSrc, appDir)
         FileUtils.copyDirectory(packageOutput, appDir)
 
+        // Generate simpmusic.desktop dynamically
+        val versionName =
+            libs.versions.version.name
+                .get()
+        val desktopFile = appDir.resolve("simpmusic.desktop")
+        desktopFile.writeText(
+            """[Desktop Entry]
+            |Type=Application
+            |Version=1.0
+            |Name=SimpMusic
+            |Comment=SimpMusic v$versionName - FOSS YouTube Music Client
+            |Exec=bin/SimpMusic %u
+            |Icon=simpmusic
+            |Terminal=false
+            |Categories=Audio;AudioVideo;
+            |StartupWMClass=com-maxrave-simpmusic-MainKt
+            |MimeType=x-scheme-handler/simpmusic;
+            |
+            """.trimMargin(),
+        )
+
+        // Generate AppRun with icon and .desktop auto-install
+        val appRun = appDir.resolve("AppRun")
+        appRun.writeText(
+            """#!/bin/sh
+            |
+            |SELF=${'$'}(readlink -f "${'$'}0")
+            |HERE=${'$'}{SELF%/*}
+            |
+            |# Install icon to XDG icon directories for desktop integration
+            |ICON_DIR="${'$'}HOME/.local/share/icons/hicolor/256x256/apps"
+            |if [ ! -f "${'$'}ICON_DIR/simpmusic.png" ] || [ "${'$'}HERE/simpmusic.png" -nt "${'$'}ICON_DIR/simpmusic.png" ]; then
+            |    mkdir -p "${'$'}ICON_DIR"
+            |    cp "${'$'}HERE/simpmusic.png" "${'$'}ICON_DIR/simpmusic.png"
+            |    gtk-update-icon-cache -f -t "${'$'}HOME/.local/share/icons/hicolor" 2>/dev/null || true
+            |fi
+            |
+            |# Install .desktop file with WM_CLASS name so GNOME/KDE can match window to icon
+            |DESKTOP_DIR="${'$'}HOME/.local/share/applications"
+            |mkdir -p "${'$'}DESKTOP_DIR"
+            |APPIMAGE_PATH="${'$'}{APPIMAGE:-${'$'}SELF}"
+            |sed "s|Exec=bin/SimpMusic|Exec=${'$'}APPIMAGE_PATH|" "${'$'}HERE/simpmusic.desktop" > "${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
+            |update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
+            |
+            |cd "${'$'}HERE"
+            |exec bin/$appName "${'$'}@"
+            |
+            """.trimMargin(),
+        )
+        appRun.setExecutable(true, false)
+
         val appExecutable = appDir.resolve("bin/$appName")
         if (!appExecutable.canExecute()) {
-            appimagetool.setExecutable(true)
-        }
-
-        val appRun = appDir.resolve("AppRun")
-        if (!appRun.canExecute()) {
-            appRun.setReadable(true, false) // readable by all
-            appRun.setWritable(true, true) // writable only by owner
-            appRun.setExecutable(true, false)
-
-            println(
-                "Set AppRun executable permissions, readable: ${appRun.canRead()}, writable: ${appRun.canWrite()}, executable: ${appRun.canExecute()}",
-            )
+            appExecutable.setExecutable(true)
         }
 
         // Use ProcessBuilder instead of exec {} to avoid capturing project reference
@@ -410,6 +487,14 @@ afterEvaluate {
 // This must be done outside afterEvaluate to work properly
 tasks.withType<AbstractJPackageTask>().configureEach {
     notCompatibleWithConfigurationCache("Compose Desktop JPackage tasks are not yet compatible with configuration cache")
+}
+
+// Mark vlc-setup tasks as not compatible with configuration cache
+// The plugin (v0.1.0) uses Task.project at execution time which is unsupported
+listOf("vlcExtract", "vlcFilterPlugins", "vlcSetup").forEach { taskName ->
+    tasks.findByName(taskName)?.let {
+        it.notCompatibleWithConfigurationCache("vlc-setup plugin tasks are not yet compatible with configuration cache")
+    }
 }
 
 private fun downloadFile(

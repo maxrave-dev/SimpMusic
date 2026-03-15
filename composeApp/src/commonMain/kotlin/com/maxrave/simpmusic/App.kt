@@ -165,6 +165,69 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                 navController.navigate(
                     NotificationDestination,
                 )
+            } else if (data.host == "simpmusic.org" || data.scheme == "simpmusic") {
+                // https://simpmusic.org/app/watch?v=VIDEO_ID
+                // https://simpmusic.org/app/playlist?list=PLAYLIST_ID
+                // https://simpmusic.org/app/channel/CHANNEL_ID
+                // simpmusic://watch?v=VIDEO_ID  (host="watch", no path)
+                // simpmusic://playlist?list=PLAYLIST_ID
+                // simpmusic://channel/CHANNEL_ID
+                val segments = data.pathSegments
+                // For simpmusic.org: segments = ["app", "watch"] → appPath = segments[1]
+                // For simpmusic://: host IS the appPath (e.g. host="watch"), segments = []
+                val appPath = if (data.scheme == "simpmusic") {
+                    data.host
+                } else {
+                    segments.getOrNull(1)
+                }
+                Logger.d("MainActivity", "simpmusic.org deep link, appPath: $appPath")
+                viewModel.setIntent(null)
+                when (appPath) {
+                    "watch" -> {
+                        data.getQueryParameter("v")?.let { videoId ->
+                            viewModel.loadSharedMediaItem(videoId)
+                        }
+                    }
+
+                    "playlist" -> {
+                        data.getQueryParameter("list")?.let { playlistId ->
+                            if (playlistId.startsWith("OLAK5uy_")) {
+                                navController.navigate(AlbumDestination(browseId = playlistId))
+                            } else if (playlistId.startsWith("VL")) {
+                                navController.navigate(PlaylistDestination(playlistId = playlistId))
+                            } else {
+                                navController.navigate(PlaylistDestination(playlistId = "VL$playlistId"))
+                            }
+                        }
+                    }
+
+                    "channel", "c" -> {
+                        // simpmusic://channel/UCxxx → segments = ["UCxxx"]
+                        // simpmusic.org/app/channel/UCxxx → segments = ["app", "channel", "UCxxx"]
+                        val artistId = if (data.scheme == "simpmusic") {
+                            segments.firstOrNull()
+                        } else {
+                            segments.getOrNull(2)
+                        }
+                        artistId?.let {
+                            if (it.startsWith("UC")) {
+                                navController.navigate(ArtistDestination(channelId = it))
+                            } else {
+                                viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
+                            }
+                        }
+                    }
+
+                    "album" -> {
+                        data.getQueryParameter("id")?.let { albumId ->
+                            navController.navigate(AlbumDestination(browseId = albumId))
+                        }
+                    }
+
+                    else -> {
+                        viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
+                    }
+                }
             } else {
                 Logger.d("MainActivity", "onCreate: $data")
                 when (val path = data.pathSegments.firstOrNull()) {

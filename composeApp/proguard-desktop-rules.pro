@@ -26,12 +26,9 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 
-# Gstreamer
--keep class org.freedesktop.gstreamer.** { *; }
--keep class org.freedesktop.dbus.** { *; }
--keep class io.github.selemba1000.** { *; }
--dontwarn org.freedesktop.gstreamer.**
--dontwarn org.freedesktop.dbus.**
+# VLC (vlcj)
+-keep class uk.co.caprica.vlcj.** { *; }
+-dontwarn uk.co.caprica.vlcj.**
 
 # JavaFX
 -keep class javafx.** { *; }
@@ -250,7 +247,20 @@
 
 -keep class org.simpmusic.lyrics.parser.** { *; }
 -keep class org.simpmusic.lyrics.models.** { *; }
+-keep class org.simpmusic.nowplayingcenter.** { *; }
+-keep class io.github.selemba1000.** { *; }
 -keep class com.simpmusic.lyrics.parser.** { *; }
+
+# dbus-java (used by JMTC/NPYC for Linux MPRIS)
+-keep class org.freedesktop.dbus.** { *; }
+-keep class com.github.hypfvieh.** { *; }
+-dontwarn org.freedesktop.dbus.**
+-dontwarn com.github.hypfvieh.**
+# Keep ServiceLoader entries for dbus-java transport discovery
+-keepnames class org.freedesktop.dbus.spi.transport.ITransportProvider
+-keep class * implements org.freedesktop.dbus.spi.transport.ITransportProvider { *; }
+-adaptresourcefilecontents META-INF/services/**
+-keepnames class * implements java.util.ServiceLoader$Provider
 
 -keep class com.google.re2j.** { *; }
 -dontwarn com.google.re2j.Matcher

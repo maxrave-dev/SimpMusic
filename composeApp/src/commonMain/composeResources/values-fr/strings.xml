@@ -214,6 +214,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Informations sur l'erreur</string>
     <string name="no_update">Votre version est la plus récente</string>
     <string name="sleep_timer">Minuterie de mise en veille - %1$s minute(s)</string>
+    <string name="sleep_timer_end_of_song">Minuterie de mise en veille - Fin du titre</string>
     <string name="sleep_timer_off">Minuterie de mise en veille</string>
     <string name="sleep_minutes">Compte à rebours (minutes)</string>
     <string name="set">Définir</string>
@@ -388,6 +389,7 @@
     <string name="blur_fullscreen_lyrics">Effet de flou sur les paroles en plein écran</string>
     <string name="blur_fullscreen_lyrics_description">Flouter l'arrière-plan de l'effet d'écran des paroles en plein écran</string>
     <string name="playback_speed_pitch"><![CDATA[Vitesse et hauteur de lecture]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Vitesse et tonalité de lecture (désactivées lorsque le fondu enchaîné est activé)]]></string>
     <string name="playback_speed">Vitesse de lecture</string>
     <string name="pitch">Hauteur</string>
     <string name="blur_player_background">Flouter l'arrière-plan du lecteur</string>
@@ -447,6 +449,8 @@
     <string name="crossfade_disabled">Désactivé</string>
     <string name="crossfade_duration">Durée du fondu enchaîné</string>
     <string name="set_crossfade_duration">Définir la durée du fondu enchaîné en secondes (%1$ds)</string>
+    <string name="crossfade_auto">Auto</string>
+    <string name="crossfade_auto_description">Calcul automatique de la durée en fonction du BPM (nécessite un flux de 320 kbps avec des données BPM)</string>
     <string name="crossfade_dj_mode">Transition de style DJ</string>
     <string name="crossfade_dj_mode_description">Appliquez des balayages de filtre passe-bas et passe-haut pendant le fondu enchaîné pour obtenir une transition plus fluide, semblable à celle d'un DJ (similaire à Apple Music Automix).</string>
     <string name="youtube_subtitle_language">Langue de traduction des sous-titres YouTube</string>
@@ -532,4 +536,8 @@
     <string name="crossfading">Fondu enchaîné</string>
     <string name="your_320kbps_url">Votre URL 320 kbps</string>
     <string name="search_for">Rechercher</string>
+    <string name="synced_playlist_cannot_change_order">L'ordre des titres d'une playlist synchronisée ne peut pas être modifié.</string>
+    <string name="bpm">BPM</string>
+    <string name="key">Clé</string>
+    <string name="scale">Échelle</string>
 </resources>

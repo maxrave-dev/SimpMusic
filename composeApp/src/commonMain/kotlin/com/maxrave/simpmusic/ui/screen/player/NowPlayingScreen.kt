@@ -3,6 +3,7 @@
 package com.maxrave.simpmusic.ui.screen.player
 
 import androidx.compose.animation.Animatable
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -25,6 +26,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -222,6 +224,7 @@ import kotlin.math.abs
 import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
+private val RICH_SYNC_TIMESTAMP_REGEX = Regex("""<\d{2}:\d{2}\.\d{2,3}>\s*""")
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
@@ -526,10 +529,50 @@ fun NowPlayingScreenContent(
         mutableStateOf(false)
     }
 
+    var canvasSubtitleLineIndex by rememberSaveable {
+        mutableIntStateOf(-1)
+    }
+
     LaunchedEffect(key1 = showHideFullscreenOverlay) {
         if (showHideFullscreenOverlay) {
             delay(3000)
             showHideFullscreenOverlay = false
+        }
+    }
+
+    // Canvas subtitle sync
+    LaunchedEffect(timelineState, screenDataState.lyricsData?.lyrics) {
+        val lyrics = screenDataState.lyricsData?.lyrics
+        if (lyrics == null || lyrics.syncType == "UNSYNCED" || lyrics.syncType == null) {
+            canvasSubtitleLineIndex = -1
+            return@LaunchedEffect
+        }
+        val lines = lyrics.lines ?: return@LaunchedEffect
+        val translatedLines =
+            screenDataState.lyricsData
+                ?.translatedLyrics
+                ?.first
+                ?.lines
+        if (timelineState.current > 0L) {
+            lines.indices.forEach { i ->
+                val startTimeMs = lines[i].startTimeMs.toLongOrNull() ?: 0L
+                val endTimeMs =
+                    if (i < lines.size - 1) {
+                        lines[i + 1].startTimeMs.toLongOrNull() ?: 0L
+                    } else {
+                        startTimeMs + 60000
+                    }
+                if (timelineState.current in startTimeMs..endTimeMs) {
+                    canvasSubtitleLineIndex = i
+                }
+            }
+            if (lines.isNotEmpty() &&
+                timelineState.current in 0..(lines.getOrNull(0)?.startTimeMs?.toLongOrNull() ?: 0L)
+            ) {
+                canvasSubtitleLineIndex = -1
+            }
+        } else {
+            canvasSubtitleLineIndex = -1
         }
     }
 
@@ -1536,8 +1579,8 @@ fun NowPlayingScreenContent(
                                 }
                                 this@Column.AnimatedVisibility(
                                     visible = !showHideControlLayout,
-                                    enter = fadeIn() + slideInHorizontally(),
-                                    exit = fadeOut() + slideOutHorizontally(),
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
                                 ) {
                                     Box(
                                         modifier =
@@ -1546,8 +1589,9 @@ fun NowPlayingScreenContent(
                                                     infoLayoutHeightDp.dp,
                                                 ).fillMaxWidth()
                                                 .padding(
-                                                    vertical = 20.dp,
                                                     horizontal = 20.dp,
+                                                ).padding(
+                                                    bottom = 20.dp,
                                                 ).clickable(
                                                     onClick = {
                                                         if (mainScrollState.value == 0) {
@@ -1563,36 +1607,64 @@ fun NowPlayingScreenContent(
                                                 ),
                                         contentAlignment = Alignment.BottomStart,
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            val thumb = screenDataState.songInfoData?.authorThumbnail
-                                            AsyncImage(
-                                                model =
-                                                    ImageRequest
-                                                        .Builder(LocalPlatformContext.current)
-                                                        .data(thumb)
-                                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                                        .diskCacheKey(thumb)
-                                                        .crossfade(550)
-                                                        .build(),
-                                                placeholder = painterResource(Res.drawable.holder),
-                                                error = painterResource(Res.drawable.holder),
-                                                contentDescription = null,
-                                                contentScale = ContentScale.Crop,
-                                                modifier =
-                                                    Modifier
-                                                        .size(42.dp)
-                                                        .clip(
-                                                            CircleShape,
-                                                        ),
-                                            )
-                                            Spacer(modifier = Modifier.size(12.dp))
-                                            Text(
-                                                text = screenDataState.songInfoData?.author ?: "",
-                                                style = typo().labelMedium,
-                                                color = Color.White,
-                                            )
+                                        Column {
+                                            this@Column.AnimatedVisibility(canvasSubtitleLineIndex > -1) {
+                                                // Canvas subtitle - above artist
+                                                val lineText =
+                                                    screenDataState.lyricsData
+                                                        ?.lyrics
+                                                        ?.lines
+                                                        ?.getOrNull(canvasSubtitleLineIndex)
+                                                        ?.words
+                                                        ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
+                                                        ?.trim()
+                                                if (!lineText.isNullOrBlank()) {
+                                                    Text(
+                                                        modifier =
+                                                            Modifier
+                                                                .padding(bottom = 8.dp)
+                                                                .basicMarquee(
+                                                                    iterations = Int.MAX_VALUE,
+                                                                    animationMode = MarqueeAnimationMode.Immediately,
+                                                                ).focusable(),
+                                                        text = lineText,
+                                                        style = typo().bodyMedium,
+                                                        color = Color.White,
+                                                        maxLines = 1,
+                                                    )
+                                                }
+                                            }
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                val thumb = screenDataState.songInfoData?.authorThumbnail
+                                                AsyncImage(
+                                                    model =
+                                                        ImageRequest
+                                                            .Builder(LocalPlatformContext.current)
+                                                            .data(thumb)
+                                                            .diskCachePolicy(CachePolicy.ENABLED)
+                                                            .diskCacheKey(thumb)
+                                                            .crossfade(550)
+                                                            .build(),
+                                                    placeholder = painterResource(Res.drawable.holder),
+                                                    error = painterResource(Res.drawable.holder),
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier =
+                                                        Modifier
+                                                            .size(42.dp)
+                                                            .clip(
+                                                                CircleShape,
+                                                            ),
+                                                )
+                                                Spacer(modifier = Modifier.size(12.dp))
+                                                Text(
+                                                    text = screenDataState.songInfoData?.author ?: "",
+                                                    style = typo().labelMedium,
+                                                    color = Color.White,
+                                                )
+                                            }
                                         }
                                     }
                                 }

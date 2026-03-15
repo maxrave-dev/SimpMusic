@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -8,7 +9,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +27,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.Dp
@@ -73,7 +75,9 @@ fun InfiniteBorderAnimationView(
                 .clip(
                     shape,
                 ).padding(borderWidth)
-                .drawBehind {
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }.drawBehind {
                     scale(scale = scaleAnimationValue) {
                         rotate(degrees = degrees) {
                             drawCircle(
@@ -83,7 +87,7 @@ fun InfiniteBorderAnimationView(
                             )
                         }
                     }
-                },
+                }.animateContentSize(),
         color = backgroundColor,
         shape = shape,
     ) {
@@ -147,7 +151,9 @@ fun LimitedBorderAnimationView(
                 .clip(
                     shape,
                 ).padding(borderWidth)
-                .drawBehind {
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }.drawBehind {
                     if (isAnimated) {
                         scale(
                             scale = scaleAnimationValue,
