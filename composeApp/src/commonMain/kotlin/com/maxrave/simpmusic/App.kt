@@ -30,10 +30,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -107,6 +110,9 @@ import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.update_available
 import simpmusic.composeapp.generated.resources.update_message
 import simpmusic.composeapp.generated.resources.version_format
+import simpmusic.composeapp.generated.resources.do_not_show_again
+import simpmusic.composeapp.generated.resources.notification
+import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import simpmusic.composeapp.generated.resources.yes
 import kotlin.time.ExperimentalTime
 
@@ -120,6 +126,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
     val updateData by viewModel.updateResponse.collectAsStateWithLifecycle()
     val intent by viewModel.intent.collectAsStateWithLifecycle()
+    val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
     val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
@@ -665,6 +672,59 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                 ),
                                         ),
                                 )
+                            }
+                        },
+                    )
+                }
+
+                if (showNotificationPermissionDialog) {
+                    var doNotShowAgain by remember { mutableStateOf(false) }
+                    AlertDialog(
+                        onDismissRequest = {
+                            viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                                },
+                            ) {
+                                Text(
+                                    stringResource(Res.string.yes),
+                                    style = typo().bodySmall,
+                                )
+                            }
+                        },
+                        title = {
+                            Text(
+                                stringResource(Res.string.notification),
+                                style = typo().labelSmall,
+                            )
+                        },
+                        text = {
+                            Column {
+                                Text(
+                                    stringResource(Res.string.this_app_needs_to_access_your_notification),
+                                    style = typo().bodySmall,
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier =
+                                        Modifier
+                                            .clickable { doNotShowAgain = !doNotShowAgain }
+                                            .fillMaxWidth(),
+                                ) {
+                                    Checkbox(
+                                        checked = doNotShowAgain,
+                                        onCheckedChange = { doNotShowAgain = it },
+                                    )
+                                    Spacer(modifier = Modifier.width(5.dp))
+                                    Text(
+                                        stringResource(Res.string.do_not_show_again),
+                                        style = typo().bodySmall,
+                                    )
+                                }
                             }
                         },
                     )
