@@ -626,6 +626,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                         Res.string.update_message,
                                         response.tagName,
                                         formatted,
+                                        response.body ?: "",
                                     )
                                 }
                             Column(
