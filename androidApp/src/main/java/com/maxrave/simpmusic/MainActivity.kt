@@ -225,7 +225,11 @@ class MainActivity : AppCompatActivity() {
         if (shouldStopMusicService && shouldUnbind && isFinishing) {
             viewModel.isServiceRunning = false
         }
-        unloadKoinModules(viewModelModule)
+        // Do NOT unload viewModelModule here. The app widget (MainAppWidget) injects
+        // SharedViewModel via KoinComponent.inject(); unloading the module on every
+        // activity destruction caused NoDefinitionFoundException in the widget process
+        // (ANDROID-1FM). The module is re-created in onCreate() anyway, so there is no
+        // benefit to unloading it here.
         super.onDestroy()
         Logger.d("MainActivity", "onDestroy: ")
     }
