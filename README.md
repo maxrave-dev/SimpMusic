@@ -144,12 +144,7 @@ The software is provided "AS IS", without warranty of any kind. The developers o
 
 Because we do not host any media files, we cannot process DMCA takedown requests for audio or video content. However, if you represent a copyright holder or have legal concerns regarding the open-source code itself, please contact us via email at: **ndtminh2608@gmail.com**
 
-  ## Developer/Team    
-- [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer    
-- [Owen Connor](https://github.com/owencz1998): Discord Server Admin.    
-- [ilianoKokoro](https://github.com/ilianoKokoro): Discord Server Admin.
-- [CrazyWolf13](https://github.com/CrazyWolf13): Issues organizer/planner.
-
+  ## Contribute
 We're looking for more contributors, all contributions are welcome!
 See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
 

@@ -57,7 +57,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -299,13 +298,6 @@ fun InfoPlayerBottomSheet(
     val sheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
-            confirmValueChange = { targetValue ->
-                if (targetValue == SheetValue.Hidden) {
-                    scrollState.value == 0
-                } else {
-                    true
-                }
-            },
         )
 
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
