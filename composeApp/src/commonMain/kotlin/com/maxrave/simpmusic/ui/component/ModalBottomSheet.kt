@@ -57,6 +57,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -294,23 +295,18 @@ fun InfoPlayerBottomSheet(
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
     val windowInsets = WindowInsets.systemBars
-    var swipeEnabled by rememberSaveable { mutableStateOf(true) }
+    val scrollState = rememberScrollState()
     val sheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
-            confirmValueChange = {
-                swipeEnabled
+            confirmValueChange = { targetValue ->
+                if (targetValue == SheetValue.Hidden) {
+                    scrollState.value == 0
+                } else {
+                    true
+                }
             },
         )
-    val scrollState = rememberScrollState()
-
-    LaunchedEffect(true) {
-        snapshotFlow { scrollState.value }
-            .distinctUntilChanged()
-            .collectLatest {
-                swipeEnabled = scrollState.value == 0
-            }
-    }
 
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
