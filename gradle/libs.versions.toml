@@ -205,12 +205,12 @@ jmtc = { module = "org.simpmusic:jmtc", version = "0.0.1" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
-koin-core = { module = "io.insert-koin:koin-core" }
-koin-jvm = { module = "io.insert-koin:koin-core-jvm" }
-koin-compose = { module = "io.insert-koin:koin-compose" }
-koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
-koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
-koin-android = { module = "io.insert-koin:koin-android"}
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin-bom" }
+koin-jvm = { module = "io.insert-koin:koin-core-jvm", version.ref = "koin-bom" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin-bom" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin-bom" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin-bom" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin-bom" }
 
 #Sentry
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry-android"}

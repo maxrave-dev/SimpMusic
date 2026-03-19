@@ -223,3 +223,84 @@
 -dontwarn io.sentry.instrumentation.file.SentryFileOutputStream$Factory
 -dontwarn io.sentry.okhttp.SentryOkHttpEventListener
 -dontwarn io.sentry.okhttp.SentryOkHttpInterceptor
+
+########################################
+# Wear OS: Media3 artwork + crown volume
+########################################
+
+# --- Your forwarding player + adapter ---
+
+# DelegatingForwardingPlayer (implements custom listener dispatch, crown controls, etc.)
+-keep class com.maxrave.media3.exoplayer.DelegatingForwardingPlayer {
+    *;
+}
+
+# CrossfadeExoPlayerAdapter (includes coroutine / async artwork logic)
+-keep class com.maxrave.media3.exoplayer.CrossfadeExoPlayerAdapter {
+    *;
+}
+
+# --- Domain models used for metadata / artwork ---
+
+-keepclassmembers class com.maxrave.domain.data.player.GenericMediaMetadata {
+    *;
+}
+
+-keepclassmembers class com.maxrave.domain.data.player.GenericMediaItem {
+    *;
+}
+
+# --- ForwardingPlayer internals used by your delegating wrapper ---
+
+-keepclassmembers class androidx.media3.common.ForwardingPlayer {
+    androidx.media3.common.Player player;
+}
+
+# --- Player.Listener callbacks (transitions, metadata updates, volume via crown etc.) ---
+
+# Keep only the relevant listener methods on classes that implement Player.Listener,
+# so they are not removed as "unused" in release.
+-keepclassmembers class * implements androidx.media3.common.Player$Listener {
+    void onMediaItemTransition(androidx.media3.common.MediaItem, int);
+    void onMediaMetadataChanged(androidx.media3.common.MediaMetadata);
+    void onAvailableCommandsChanged(androidx.media3.common.Player$Commands);
+    void onVolumeChanged(float);
+}
+
+# --- MediaMetadata artwork fields (if accessed via reflection / dynamic APIs) ---
+
+-keepclassmembers class androidx.media3.common.MediaMetadata {
+    *** artworkData;
+    *** artworkUri;
+}
+
+# --- Media3 Session: for Wear OS controls + metadata propagation ---
+
+# Keep your own session/service layer that the framework instantiates indirectly
+# (replace package if your session lives elsewhere).
+-keep class com.maxrave.media3.session.** {
+    *;
+}
+
+# Keep callbacks used by Media3 session for transport controls, volume, etc.
+-keepclassmembers class * extends androidx.media3.session.MediaSession$Callback {
+    *;
+}
+-keepclassmembers class * implements androidx.media3.session.MediaLibraryService$MediaLibrarySession$Callback {
+    *;
+}
+
+########################################
+# Coroutines (runtime bits you rely on)
+########################################
+
+# Dispatcher discovery and exception handling used by async artwork loading.
+-keep class kotlinx.coroutines.internal.MainDispatcherFactory
+-keep class kotlinx.coroutines.CoroutineExceptionHandler
+
+########################################
+# Coil (image loading for artwork)
+########################################
+
+# Rely on Coil’s own consumer rules; only silence warnings if needed.
+-dontwarn coil.**
