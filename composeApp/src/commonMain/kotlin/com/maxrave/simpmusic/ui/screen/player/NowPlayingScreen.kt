@@ -235,18 +235,10 @@ fun NowPlayingScreen(
     onDismiss: () -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
-
-    var swipeEnabled by rememberSaveable { mutableStateOf(false) }
-
     val sheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
-            confirmValueChange = { swipeEnabled },
         )
-
-    LaunchedEffect(swipeEnabled) {
-        Logger.d(TAG, "Swipe Enabled: $swipeEnabled")
-    }
 
     val hideSheet: () -> Unit = {
         coroutineScope.launch {
@@ -262,7 +254,6 @@ fun NowPlayingScreen(
         onDismissRequest = {
             onDismiss()
         },
-        sheetGesturesEnabled = swipeEnabled,
         containerColor = Color.Black,
         dragHandle = {},
         scrimColor = Color.Black,
@@ -275,9 +266,6 @@ fun NowPlayingScreen(
             navController = navController,
             isExpanded = sheetState.currentValue == SheetValue.Expanded,
             dismissIcon = Icons.Rounded.KeyboardArrowDown,
-            onSwipeEnabledChange = {
-                swipeEnabled = it
-            },
             onDismiss = {
                 hideSheet()
             },
@@ -292,7 +280,6 @@ fun NowPlayingScreenContent(
     navController: NavController,
     isExpanded: Boolean,
     dismissIcon: ImageVector,
-    onSwipeEnabledChange: (Boolean) -> Unit = {},
     onDismiss: () -> Unit = {},
 ) {
     val screenInfo = getScreenSizeInfo()
@@ -519,8 +506,6 @@ fun NowPlayingScreenContent(
                 } else if (showHideControlLayout && it == 0 && screenDataState.canvasData != null) {
                     showHideJob = false
                 }
-
-                onSwipeEnabledChange(it == 0)
             }
     }
 
