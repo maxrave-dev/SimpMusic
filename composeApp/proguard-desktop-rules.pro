@@ -266,5 +266,10 @@
 -dontwarn com.google.re2j.Matcher
 -dontwarn com.google.re2j.Pattern
 
+# Wire (used by NewPipe extractor) - AndroidMessage references Android classes not available on Desktop
+-dontwarn android.os.Parcelable
+-dontwarn android.os.Parcelable$Creator
+-dontwarn android.os.Parcel
+
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
 -keep class androidx.datastore.preferences.** { *; }

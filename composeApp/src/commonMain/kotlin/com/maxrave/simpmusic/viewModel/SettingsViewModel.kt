@@ -110,6 +110,10 @@ class SettingsViewModel(
     val proxyHost: StateFlow<String> = _proxyHost
     private var _proxyPort = MutableStateFlow(8000)
     val proxyPort: StateFlow<Int> = _proxyPort
+    private var _proxyUsername = MutableStateFlow("")
+    val proxyUsername: StateFlow<String> = _proxyUsername
+    private var _proxyPassword = MutableStateFlow("")
+    val proxyPassword: StateFlow<String> = _proxyPassword
     private var _autoCheckUpdate = MutableStateFlow(false)
     val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate
     private var _updateChannel: MutableStateFlow<String> = MutableStateFlow(DataStoreManager.GITHUB)
@@ -837,9 +841,23 @@ class SettingsViewModel(
                         log("getProxy: $it")
                     }
                 }
+            val username =
+                launch {
+                    dataStoreManager.proxyUsername.collect {
+                        _proxyUsername.value = it
+                    }
+                }
+            val password =
+                launch {
+                    dataStoreManager.proxyPassword.collect {
+                        _proxyPassword.value = it
+                    }
+                }
             host.join()
             port.join()
             type.join()
+            username.join()
+            password.join()
         }
     }
 
@@ -853,6 +871,17 @@ class SettingsViewModel(
             dataStoreManager.setProxyType(proxyType)
             dataStoreManager.setProxyHost(host)
             dataStoreManager.setProxyPort(port)
+        }
+    }
+
+    fun setProxyCredentials(
+        username: String,
+        password: String,
+    ) {
+        log("setProxyCredentials: username=$username")
+        viewModelScope.launch {
+            dataStoreManager.setProxyUsername(username)
+            dataStoreManager.setProxyPassword(password)
         }
     }
 

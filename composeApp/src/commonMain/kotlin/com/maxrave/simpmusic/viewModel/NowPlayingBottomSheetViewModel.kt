@@ -119,6 +119,10 @@ class NowPlayingBottomSheetViewModel(
                                 _uiState.update { it.copy(mainLyricsProvider = LRCLIB) }
                             }
 
+                            BETTER_LYRICS -> {
+                                _uiState.update { it.copy(mainLyricsProvider = BETTER_LYRICS) }
+                            }
+
                             else -> {
                                 log("Unknown lyrics provider", LogLevel.ERROR)
                             }

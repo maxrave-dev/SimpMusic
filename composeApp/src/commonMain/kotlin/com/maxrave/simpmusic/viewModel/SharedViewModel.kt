@@ -145,6 +145,9 @@ class SharedViewModel(
     private val _intent: MutableStateFlow<GenericIntent?> = MutableStateFlow(null)
     val intent: StateFlow<GenericIntent?> = _intent
 
+    private val _showNotificationPermissionDialog = MutableStateFlow(false)
+    val showNotificationPermissionDialog: StateFlow<Boolean> = _showNotificationPermissionDialog
+
     private var getFormatFlowJob: Job? = null
 
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -459,6 +462,17 @@ class SharedViewModel(
 
     fun setIntent(intent: GenericIntent?) {
         _intent.value = intent
+    }
+
+    fun showNotificationPermissionDialog() {
+        _showNotificationPermissionDialog.value = true
+    }
+
+    fun dismissNotificationPermissionDialog(doNotShowAgain: Boolean) {
+        _showNotificationPermissionDialog.value = false
+        if (doNotShowAgain) {
+            putString("notification_permission_do_not_ask", "true")
+        }
     }
 
     fun blurFullscreenLyrics(): Boolean = runBlocking { dataStoreManager.blurFullscreenLyrics.first() == TRUE }

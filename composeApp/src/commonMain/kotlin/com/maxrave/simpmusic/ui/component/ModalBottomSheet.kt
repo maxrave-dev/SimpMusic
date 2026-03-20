@@ -294,23 +294,11 @@ fun InfoPlayerBottomSheet(
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
     val windowInsets = WindowInsets.systemBars
-    var swipeEnabled by rememberSaveable { mutableStateOf(true) }
+    val scrollState = rememberScrollState()
     val sheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
-            confirmValueChange = {
-                swipeEnabled
-            },
         )
-    val scrollState = rememberScrollState()
-
-    LaunchedEffect(true) {
-        snapshotFlow { scrollState.value }
-            .distinctUntilChanged()
-            .collectLatest {
-                swipeEnabled = scrollState.value == 0
-            }
-    }
 
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)

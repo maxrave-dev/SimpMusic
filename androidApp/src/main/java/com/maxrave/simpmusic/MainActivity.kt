@@ -202,12 +202,23 @@ class MainActivity : AppCompatActivity() {
 
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                EasyPermissions.requestPermissions(
-                    this,
-                    runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.NOTIFICATION_REQUEST) },
-                    1,
-                    Manifest.permission.POST_NOTIFICATIONS,
-                )
+                val doNotAsk = getString("notification_permission_do_not_ask")
+                if (doNotAsk != "true") {
+                    val wasAsked = getString("notification_permission_asked")
+                    if (wasAsked != "true") {
+                        // First time: request system permission
+                        EasyPermissions.requestPermissions(
+                            this,
+                            runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.NOTIFICATION_REQUEST) },
+                            1,
+                            Manifest.permission.POST_NOTIFICATIONS,
+                        )
+                        putString("notification_permission_asked", "true")
+                    } else {
+                        // Already asked before: show custom dialog with "Don't show again"
+                        viewModel.showNotificationPermissionDialog()
+                    }
+                }
             }
         }
         viewModel.getLocation()

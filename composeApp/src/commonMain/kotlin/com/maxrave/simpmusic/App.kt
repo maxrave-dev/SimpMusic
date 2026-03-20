@@ -8,6 +8,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -99,9 +102,12 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.do_not_show_again
 import simpmusic.composeapp.generated.resources.download
 import simpmusic.composeapp.generated.resources.good_night
+import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.sleep_timer_off
+import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import simpmusic.composeapp.generated.resources.this_link_is_not_supported
 import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.update_available
@@ -120,6 +126,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
     val updateData by viewModel.updateResponse.collectAsStateWithLifecycle()
     val intent by viewModel.intent.collectAsStateWithLifecycle()
+    val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
     val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
@@ -175,11 +182,12 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                 val segments = data.pathSegments
                 // For simpmusic.org: segments = ["app", "watch"] → appPath = segments[1]
                 // For simpmusic://: host IS the appPath (e.g. host="watch"), segments = []
-                val appPath = if (data.scheme == "simpmusic") {
-                    data.host
-                } else {
-                    segments.getOrNull(1)
-                }
+                val appPath =
+                    if (data.scheme == "simpmusic") {
+                        data.host
+                    } else {
+                        segments.getOrNull(1)
+                    }
                 Logger.d("MainActivity", "simpmusic.org deep link, appPath: $appPath")
                 viewModel.setIntent(null)
                 when (appPath) {
@@ -204,11 +212,12 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                     "channel", "c" -> {
                         // simpmusic://channel/UCxxx → segments = ["UCxxx"]
                         // simpmusic.org/app/channel/UCxxx → segments = ["app", "channel", "UCxxx"]
-                        val artistId = if (data.scheme == "simpmusic") {
-                            segments.firstOrNull()
-                        } else {
-                            segments.getOrNull(2)
-                        }
+                        val artistId =
+                            if (data.scheme == "simpmusic") {
+                                segments.firstOrNull()
+                            } else {
+                                segments.getOrNull(2)
+                            }
                         artistId?.let {
                             if (it.startsWith("UC")) {
                                 navController.navigate(ArtistDestination(channelId = it))
@@ -231,7 +240,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
             } else {
                 Logger.d("MainActivity", "onCreate: $data")
                 when (val path = data.pathSegments.firstOrNull()) {
-                    "playlist" ->
+                    "playlist" -> {
                         data
                             .getQueryParameter("list")
                             ?.let { playlistId ->
@@ -256,8 +265,9 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                     )
                                 }
                             }
+                    }
 
-                    "channel", "c" ->
+                    "channel", "c" -> {
                         data.lastPathSegment?.let { artistId ->
                             if (artistId.startsWith("UC")) {
                                 viewModel.setIntent(null)
@@ -274,8 +284,9 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                 )
                             }
                         }
+                    }
 
-                    else ->
+                    else -> {
                         when {
                             path == "watch" -> data.getQueryParameter("v")
                             data.host == "youtu.be" -> path
@@ -283,6 +294,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                         }?.let { videoId ->
                             viewModel.loadSharedMediaItem(videoId)
                         }
+                    }
                 }
             }
         }
@@ -494,7 +506,6 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                             sharedViewModel = viewModel,
                                             isExpanded = true,
                                             dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                            onSwipeEnabledChange = {},
                                         ) {
                                             isShowNowPlaylistScreen = false
                                         }
@@ -665,6 +676,59 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                 ),
                                         ),
                                 )
+                            }
+                        },
+                    )
+                }
+
+                if (showNotificationPermissionDialog) {
+                    var doNotShowAgain by remember { mutableStateOf(false) }
+                    AlertDialog(
+                        onDismissRequest = {
+                            viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                                },
+                            ) {
+                                Text(
+                                    stringResource(Res.string.yes),
+                                    style = typo().bodySmall,
+                                )
+                            }
+                        },
+                        title = {
+                            Text(
+                                stringResource(Res.string.notification),
+                                style = typo().labelSmall,
+                            )
+                        },
+                        text = {
+                            Column {
+                                Text(
+                                    stringResource(Res.string.this_app_needs_to_access_your_notification),
+                                    style = typo().bodySmall,
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier =
+                                        Modifier
+                                            .clickable { doNotShowAgain = !doNotShowAgain }
+                                            .fillMaxWidth(),
+                                ) {
+                                    Checkbox(
+                                        checked = doNotShowAgain,
+                                        onCheckedChange = { doNotShowAgain = it },
+                                    )
+                                    Spacer(modifier = Modifier.width(5.dp))
+                                    Text(
+                                        stringResource(Res.string.do_not_show_again),
+                                        style = typo().bodySmall,
+                                    )
+                                }
                             }
                         },
                     )

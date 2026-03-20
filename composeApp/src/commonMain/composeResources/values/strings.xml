@@ -383,6 +383,10 @@
     <string name="invalid_port">Invalid port</string>
     <string name="proxy_host_message">Please enter your Proxy host</string>
     <string name="proxy_port_message">Please enter your Proxy port</string>
+    <string name="proxy_username">Proxy username</string>
+    <string name="proxy_password">Proxy password</string>
+    <string name="proxy_username_message">Please enter your Proxy username (optional)</string>
+    <string name="proxy_password_message">Please enter your Proxy password (optional)</string>
     <string name="five_seconds">Five seconds</string>
     <string name="lrclib" translatable="false">LRCLIB</string>
     <string name="better_lyrics" translatable="false">BetterLyrics</string>

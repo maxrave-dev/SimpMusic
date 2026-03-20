@@ -21,6 +21,7 @@ dependencyResolutionManagement {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
         }
         maven("https://jogamp.org/deployment/maven")
+        maven(url = "https://raw.githubusercontent.com/bravepipeproject/maven-repo/master/repository")
     }
 }
 

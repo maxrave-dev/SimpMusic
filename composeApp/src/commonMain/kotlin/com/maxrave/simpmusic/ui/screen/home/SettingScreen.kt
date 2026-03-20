@@ -280,9 +280,13 @@ import simpmusic.composeapp.generated.resources.proxy
 import simpmusic.composeapp.generated.resources.proxy_description
 import simpmusic.composeapp.generated.resources.proxy_host
 import simpmusic.composeapp.generated.resources.proxy_host_message
+import simpmusic.composeapp.generated.resources.proxy_password
+import simpmusic.composeapp.generated.resources.proxy_password_message
 import simpmusic.composeapp.generated.resources.proxy_port
 import simpmusic.composeapp.generated.resources.proxy_port_message
 import simpmusic.composeapp.generated.resources.proxy_type
+import simpmusic.composeapp.generated.resources.proxy_username
+import simpmusic.composeapp.generated.resources.proxy_username_message
 import simpmusic.composeapp.generated.resources.quality
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
@@ -433,6 +437,8 @@ fun SettingScreen(
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
     val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
     val proxyPort by viewModel.proxyPort.collectAsStateWithLifecycle()
+    val proxyUsername by viewModel.proxyUsername.collectAsStateWithLifecycle()
+    val proxyPassword by viewModel.proxyPassword.collectAsStateWithLifecycle()
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
     val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
@@ -891,6 +897,61 @@ fun SettingScreen(
                                                     proxyType,
                                                     proxyHost,
                                                     state.textField?.value?.toIntOrNull() ?: 0,
+                                                )
+                                            },
+                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                    ),
+                                )
+                            },
+                        )
+                        SettingItem(
+                            title = stringResource(Res.string.proxy_username),
+                            subtitle = proxyUsername,
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = runBlocking { getString(Res.string.proxy_username) },
+                                        message = runBlocking { getString(Res.string.proxy_username_message) },
+                                        textField =
+                                            SettingAlertState.TextFieldData(
+                                                label = runBlocking { getString(Res.string.proxy_username) },
+                                                value = proxyUsername,
+                                            ),
+                                        confirm =
+                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                viewModel.setProxyCredentials(
+                                                    state.textField?.value ?: "",
+                                                    proxyPassword,
+                                                )
+                                            },
+                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                    ),
+                                )
+                            },
+                        )
+                        SettingItem(
+                            title = stringResource(Res.string.proxy_password),
+                            subtitle =
+                                if (proxyPassword.isEmpty()) {
+                                    ""
+                                } else {
+                                    "\u2022".repeat(proxyPassword.length)
+                                },
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = runBlocking { getString(Res.string.proxy_password) },
+                                        message = runBlocking { getString(Res.string.proxy_password_message) },
+                                        textField =
+                                            SettingAlertState.TextFieldData(
+                                                label = runBlocking { getString(Res.string.proxy_password) },
+                                                value = proxyPassword,
+                                            ),
+                                        confirm =
+                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                viewModel.setProxyCredentials(
+                                                    proxyUsername,
+                                                    state.textField?.value ?: "",
                                                 )
                                             },
                                         dismiss = runBlocking { getString(Res.string.cancel) },
