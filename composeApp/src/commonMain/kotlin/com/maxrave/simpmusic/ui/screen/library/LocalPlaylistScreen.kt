@@ -19,6 +19,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -104,7 +105,9 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -373,46 +376,61 @@ fun LocalPlaylistScreen(
             Modifier
                 .fillMaxWidth()
                 .background(Color.Black)
-                .pointerInput(Unit) {
-                    detectDragGesturesAfterLongPress(
-                        onDrag = { change, offset ->
+                .pointerInput(changingOrder) {
+                    if (!changingOrder) return@pointerInput
+                    val onDrag: (change: androidx.compose.ui.input.pointer.PointerInputChange, offset: Offset) -> Unit =
+                        { change, offset ->
                             Logger.d(TAG, "onDrag $offset")
                             change.consume()
                             dragDropState.onDrag(offset = offset)
 
-                            if (overscrollJob?.isActive == true) {
-                                return@detectDragGesturesAfterLongPress
+                            if (overscrollJob?.isActive != true) {
+                                dragDropState
+                                    .checkForOverScroll()
+                                    .takeIf { it != 0f }
+                                    ?.let {
+                                        overscrollJob =
+                                            coroutineScope.launch {
+                                                dragDropState.state.animateScrollBy(
+                                                    it * 1.3f,
+                                                    tween(easing = FastOutLinearInEasing),
+                                                )
+                                            }
+                                    }
+                                    ?: run { overscrollJob?.cancel() }
                             }
-
-                            dragDropState
-                                .checkForOverScroll()
-                                .takeIf { it != 0f }
-                                ?.let {
-                                    overscrollJob =
-                                        coroutineScope.launch {
-                                            dragDropState.state.animateScrollBy(
-                                                it * 1.3f,
-                                                tween(easing = FastOutLinearInEasing),
-                                            )
-                                        }
-                                }
-                                ?: run { overscrollJob?.cancel() }
-                        },
-                        onDragStart = { offset ->
-                            Logger.d(TAG, "onDragStart $offset")
-                            dragDropState.onDragStart(offset)
-                        },
-                        onDragEnd = {
-                            Logger.d(TAG, "onDragEnd")
-                            dragDropState.onDragInterrupted(true)
-                            overscrollJob?.cancel()
-                        },
-                        onDragCancel = {
-                            Logger.d(TAG, "onDragCancel")
-                            dragDropState.onDragInterrupted()
-                            overscrollJob?.cancel()
-                        },
-                    )
+                        }
+                    val onDragStart: (Offset) -> Unit = { offset ->
+                        Logger.d(TAG, "onDragStart $offset")
+                        dragDropState.onDragStart(offset)
+                    }
+                    val onDragEnd: () -> Unit = {
+                        Logger.d(TAG, "onDragEnd")
+                        dragDropState.onDragInterrupted(true)
+                        overscrollJob?.cancel()
+                    }
+                    val onDragCancel: () -> Unit = {
+                        Logger.d(TAG, "onDragCancel")
+                        dragDropState.onDragInterrupted()
+                        overscrollJob?.cancel()
+                    }
+                    if (getPlatform() == Platform.Desktop) {
+                        // Desktop: normal drag (click-and-drag), no long press needed
+                        detectDragGestures(
+                            onDrag = onDrag,
+                            onDragStart = onDragStart,
+                            onDragEnd = onDragEnd,
+                            onDragCancel = onDragCancel,
+                        )
+                    } else {
+                        // Android: long press then drag (touch-friendly)
+                        detectDragGesturesAfterLongPress(
+                            onDrag = onDrag,
+                            onDragStart = onDragStart,
+                            onDragEnd = onDragEnd,
+                            onDragCancel = onDragCancel,
+                        )
+                    }
                 },
         state = lazyState,
     ) {
@@ -828,8 +846,7 @@ fun LocalPlaylistScreen(
                                         Spacer(Modifier.weight(1f))
                                         AnimatedVisibility(
                                             visible =
-                                                uiState.filterState == FilterState.CustomOrder &&
-                                                    uiState.syncState != LocalPlaylistEntity.YouTubeSyncState.Synced,
+                                                uiState.filterState == FilterState.CustomOrder,
                                             enter = fadeIn(),
                                             exit = fadeOut(),
                                         ) {
@@ -850,22 +867,6 @@ fun LocalPlaylistScreen(
                                                 )
                                             }
                                         }
-                                    }
-                                    AnimatedVisibility(
-                                        visible =
-                                            uiState.filterState == FilterState.CustomOrder &&
-                                                uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced,
-                                        enter = fadeIn(),
-                                        exit = fadeOut(),
-                                    ) {
-                                        Text(
-                                            text = stringResource(Res.string.synced_playlist_cannot_change_order),
-                                            style = typo().bodySmall,
-                                            color = Color.Gray,
-                                            modifier =
-                                                Modifier
-                                                    .padding(all = 4.dp),
-                                        )
                                     }
                                 }
                             }

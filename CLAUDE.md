@@ -1,5 +1,12 @@
 # CLAUDE.md - SimpMusic Project Guide for AI Agents
 
+## 🌐 Language Rule
+
+**Response language**: Always respond in **English**, and after each sentence, add a **Vietnamese translation in parentheses**.
+Example: "Hello, how are you? (Xin chào, bạn khỏe không?)"
+
+This applies to all conversations in this project. The user is using Max plan so token cost is not a concern.
+
 ## 📋 Project Overview
 
 **SimpMusic** is a FOSS (Free and Open Source Software) YouTube Music client for Android and Desktop, built with Compose Multiplatform.
