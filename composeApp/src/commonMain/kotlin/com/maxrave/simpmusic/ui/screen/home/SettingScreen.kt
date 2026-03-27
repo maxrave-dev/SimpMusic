@@ -466,25 +466,33 @@ fun SettingScreen(
         rememberHazeState(
             blurEnabled = true,
         )
+    val changeText = stringResource(Res.string.change)
+    val cancelText = stringResource(Res.string.cancel)
+    val setText = stringResource(Res.string.set)
+    val warningText = stringResource(Res.string.warning)
+    val invalidText = stringResource(Res.string.invalid)
+    val languageText = stringResource(Res.string.language)
+    val contentCountryText = stringResource(Res.string.content_country)
+    val qualityText = stringResource(Res.string.quality)
+    val your320kbpsUrlText = stringResource(Res.string.your_320kbps_url)
+    val downloadQualityText = stringResource(Res.string.download_quality)
+    val videoQualityText = stringResource(Res.string.video_quality)
+    val videoDownloadQualityText = stringResource(Res.string.video_download_quality)
+    val changeLanguageWarningText = stringResource(Res.string.change_language_warning)
 
-    val checkForUpdateSubtitle by remember {
-        derivedStateOf {
-            if (isCheckingUpdate) {
-                return@derivedStateOf runBlocking { getString(Res.string.checking) }
-            } else {
-                val lastCheckLong = lastCheckUpdate?.toLong() ?: 0L
-                return@derivedStateOf runBlocking {
-                    getString(
-                        Res.string.last_checked_at,
-                        DateTimeFormatter
-                            .ofPattern("yyyy-MM-dd HH:mm:ss")
-                            .withZone(ZoneId.systemDefault())
-                            .format(Instant.ofEpochMilli(lastCheckLong)),
-                    )
-                }
-            }
+    val checkForUpdateSubtitle =
+        if (isCheckingUpdate) {
+            stringResource(Res.string.checking)
+        } else {
+            val lastCheckLong = lastCheckUpdate?.toLong() ?: 0L
+            stringResource(
+                Res.string.last_checked_at,
+                DateTimeFormatter
+                    .ofPattern("yyyy-MM-dd HH:mm:ss")
+                    .withZone(ZoneId.systemDefault())
+                    .format(Instant.ofEpochMilli(lastCheckLong)),
+            )
         }
-    }
     var showYouTubeAccountDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -566,7 +574,7 @@ fun SettingScreen(
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
-                                title = runBlocking { getString(Res.string.language) },
+                                title = languageText,
                                 selectOne =
                                     SettingAlertState.SelectData(
                                         listSelect =
@@ -575,23 +583,23 @@ fun SettingScreen(
                                             },
                                     ),
                                 confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
+                                    changeText to { state ->
                                         val code = SUPPORTED_LANGUAGE.getCodeFromLanguage(state.selectOne?.getSelected() ?: "English")
                                         viewModel.setBasicAlertData(
                                             SettingBasicAlertState(
-                                                title = runBlocking { getString(Res.string.warning) },
-                                                message = runBlocking { getString(Res.string.change_language_warning) },
+                                                title = warningText,
+                                                message = changeLanguageWarningText,
                                                 confirm =
-                                                    runBlocking { getString(Res.string.change) } to {
+                                                    changeText to {
                                                         sharedViewModel.activityRecreate()
                                                         viewModel.setBasicAlertData(null)
                                                         viewModel.changeLanguage(code)
                                                     },
-                                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                                dismiss = cancelText,
                                             ),
                                         )
                                     },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                dismiss = cancelText,
                             ),
                         )
                     },
@@ -602,7 +610,7 @@ fun SettingScreen(
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
-                                title = runBlocking { getString(Res.string.content_country) },
+                                title = contentCountryText,
                                 selectOne =
                                     SettingAlertState.SelectData(
                                         listSelect =
@@ -611,12 +619,12 @@ fun SettingScreen(
                                             },
                                     ),
                                 confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
+                                    changeText to { state ->
                                         viewModel.changeLocation(
                                             state.selectOne?.getSelected() ?: "US",
                                         )
                                     },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                dismiss = cancelText,
                             ),
                         )
                     },
@@ -628,7 +636,7 @@ fun SettingScreen(
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
-                                title = runBlocking { getString(Res.string.quality) },
+                                title = qualityText,
                                 selectOne =
                                     SettingAlertState.SelectData(
                                         listSelect =
@@ -637,10 +645,10 @@ fun SettingScreen(
                                             },
                                     ),
                                 confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
+                                    changeText to { state ->
                                         viewModel.changeQuality(state.selectOne?.getSelected())
                                     },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                dismiss = cancelText,
                             ),
                         )
                     },
@@ -659,21 +667,21 @@ fun SettingScreen(
                         onClick = {
                             viewModel.setAlertData(
                                 SettingAlertState(
-                                    title = runBlocking { getString(Res.string.your_320kbps_url) },
+                                    title = your320kbpsUrlText,
                                     textField =
                                         SettingAlertState.TextFieldData(
-                                            label = runBlocking { getString(Res.string.your_320kbps_url) },
+                                            label = your320kbpsUrlText,
                                             value = "",
                                             verifyCodeBlock = {
-                                                (it.isNotEmpty()) to runBlocking { getString(Res.string.invalid) }
+                                                (it.isNotEmpty()) to invalidText
                                             },
                                         ),
                                     message = "",
                                     confirm =
-                                        runBlocking { getString(Res.string.set) } to { state ->
+                                        setText to { state ->
                                             viewModel.setYour320kbpsUrl(state.textField?.value ?: "")
                                         },
-                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                    dismiss = cancelText,
                                 ),
                             )
                         },
@@ -686,7 +694,7 @@ fun SettingScreen(
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
-                                title = runBlocking { getString(Res.string.download_quality) },
+                                title = downloadQualityText,
                                 selectOne =
                                     SettingAlertState.SelectData(
                                         listSelect =
@@ -695,10 +703,10 @@ fun SettingScreen(
                                             },
                                     ),
                                 confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
+                                    changeText to { state ->
                                         state.selectOne?.getSelected()?.let { viewModel.setDownloadQuality(it) }
                                     },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                dismiss = cancelText,
                             ),
                         )
                     },
@@ -715,7 +723,7 @@ fun SettingScreen(
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
-                                title = runBlocking { getString(Res.string.video_quality) },
+                                title = videoQualityText,
                                 selectOne =
                                     SettingAlertState.SelectData(
                                         listSelect =
@@ -724,10 +732,10 @@ fun SettingScreen(
                                             },
                                     ),
                                 confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
+                                    changeText to { state ->
                                         viewModel.changeVideoQuality(state.selectOne?.getSelected() ?: "")
                                     },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                dismiss = cancelText,
                             ),
                         )
                     },
@@ -738,7 +746,7 @@ fun SettingScreen(
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
-                                title = runBlocking { getString(Res.string.video_download_quality) },
+                                title = videoDownloadQualityText,
                                 selectOne =
                                     SettingAlertState.SelectData(
                                         listSelect =
@@ -747,10 +755,10 @@ fun SettingScreen(
                                             },
                                     ),
                                 confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
+                                    changeText to { state ->
                                         viewModel.setVideoDownloadQuality(state.selectOne?.getSelected() ?: "")
                                     },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                                dismiss = cancelText,
                             ),
                         )
                     },
