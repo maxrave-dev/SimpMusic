@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Песня • %1$s</string>
     <string name="playlist_and_author">Плейлист • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">Информация</string>
     <string name="let_s_start_with_a_radio">ДАВАЙТЕ НАЧНЕМ С РАДИО</string>
     <string name="let_s_pick_a_playlist_for_you">ДАВАЙТЕ ВЫБЕРЕМ ПЛЕЙЛИСТ ДЛЯ ВАС</string>
-    <string name="moods_amp_moment"><![CDATA[Настроение и Моменты]]></string>
+    <string name="moods_amp_moment">Настроение и Моменты</string>
     <string name="genre">Жанр</string>
     <string name="what_is_best_choice_today">КАКОЙ ЛУЧШИЙ ВЫБОР СЕГОДНЯ</string>
     <string name="chart">Чарт</string>
@@ -389,7 +389,7 @@
     <string name="auto_check_for_update_description">Проверьте наличие обновлений при открытии приложения</string>
     <string name="blur_fullscreen_lyrics">Эффект размытия экрана текста песен</string>
     <string name="blur_fullscreen_lyrics_description">Размытие фона в полноэкранном просмотре текстов песен</string>
-    <string name="playback_speed_pitch"><![CDATA[Скорость и высота воспроизведения]]></string>
+    <string name="playback_speed_pitch">Скорость и высота воспроизведения</string>
     <string name="playback_speed">Скорость воспроизведения</string>
     <string name="pitch">Тон</string>
     <string name="blur_player_background">Размыть фон плеера</string>
@@ -534,4 +534,4 @@
     <string name="simpmusic_charts">Чарты SimpMusic</string>
     <string name="crossfading">Кроссфейд</string>
     <string name="your_320kbps_url">Ваш URL 320 кбит/с</string>
-</resources>
+<string name="better_lyrics">BetterLyrics</string><string name="bpm">BPM</string><string name="copyright">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string><string name="crossfade_auto">Автоматический</string><string name="crossfade_auto_description">Автоматически рассчитывайте продолжительность на основе BPM (требуется поток 320 кбит/с с данными BPM)</string><string name="key">Ключ</string><string name="lrclib">LRCLIB</string><string name="notification_channel_name">Уведомление воспроизведения SimpMusic</string><string name="podcasts">Подкасты</string><string name="proxy_password">Пароль прокси</string><string name="proxy_password_message">Пожалуйста, введите пароль прокси (необязательно)</string><string name="proxy_username">Имя пользователя прокси</string><string name="proxy_username_message">Пожалуйста, введите имя пользователя прокси (необязательно)</string><string name="scale">Масштаб</string><string name="search_for">Поиск</string><string name="sleep_timer_end_of_song">Таймер сна - Конец песни</string><string name="synced_playlist_cannot_change_order">Невозможно изменить порядок синхронизированного плейлиста</string><string name="version_format">v%1$s</string></resources>

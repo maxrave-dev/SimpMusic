@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Song • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">Über den Künstler</string>
     <string name="let_s_start_with_a_radio">STARTE MIT EINEM RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">WÄHLE EINE PLAYLIST FÜR DICH AUS</string>
-    <string name="moods_amp_moment"><![CDATA[Gefühle & Momente]]></string>
+    <string name="moods_amp_moment">Gefühle &amp; Momente</string>
     <string name="genre">Genre</string>
     <string name="what_is_best_choice_today">WAS HEUTE DIE BESTE WAHL IST</string>
     <string name="chart">Chart</string>
@@ -388,8 +388,8 @@
     <string name="auto_check_for_update_description">Überprüfung auf Updates beim App Start</string>
     <string name="blur_fullscreen_lyrics">Verwischen Sie den Texteffekt im Vollbildmodus</string>
     <string name="blur_fullscreen_lyrics_description">Den Hintergrund des Vollbild-Textbildschirmeffekts unscharf machen</string>
-    <string name="playback_speed_pitch"><![CDATA[Wiedergabegeschwindigkeit und Tonhöhe]]></string>
-    <string name="playback_speed_pitch_disabled"><![CDATA[Wiedergabegeschwindigkeit & Tonhöhe (deaktiviert, wenn Crossfade aktiviert ist)]]></string>
+    <string name="playback_speed_pitch">Wiedergabegeschwindigkeit und Tonhöhe</string>
+    <string name="playback_speed_pitch_disabled">Wiedergabegeschwindigkeit &amp; Tonhöhe (deaktiviert, wenn Crossfade aktiviert ist)</string>
     <string name="playback_speed">Wiedergabegeschwindigkeit</string>
     <string name="pitch">Tonhöhe</string>
     <string name="blur_player_background">Player Hintergrund verwischen</string>
@@ -540,4 +540,4 @@
     <string name="bpm">BPM</string>
     <string name="key">Tonart</string>
     <string name="scale">Tonleiter</string>
-</resources>
+<string name="better_lyrics">BetterLyrics</string><string name="copyright">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string><string name="lrclib">LRCLIB</string><string name="notification_channel_name">SimpMusic-Wiedergabebenachrichtigung</string><string name="podcasts">Podcasts</string><string name="proxy_password">Proxy-Passwort</string><string name="proxy_password_message">Geben Sie bitte Ihr Proxy-Passwort ein (optional)</string><string name="proxy_username">Proxy-Benutzername</string><string name="proxy_username_message">Geben Sie bitte Ihren Proxy-Benutzernamen ein (optional)</string><string name="version_format">v%1$s</string></resources>

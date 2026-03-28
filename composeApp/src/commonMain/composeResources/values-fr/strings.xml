@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Titre • %1$s</string>
     <string name="playlist_and_author">Liste de lecture • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">À propos</string>
     <string name="let_s_start_with_a_radio">COMMENÇONS PAR UNE RADIO !</string>
     <string name="let_s_pick_a_playlist_for_you">NOUS ALLONS SÉLECTIONNER UNE PLAYLIST POUR VOUS !</string>
-    <string name="moods_amp_moment"><![CDATA[Humeurs et Moments]]></string>
+    <string name="moods_amp_moment">Humeurs et Moments</string>
     <string name="genre">Genre</string>
     <string name="what_is_best_choice_today">QUEL EST LE MEILLEUR CHOIX AUJOURd'HUI ?</string>
     <string name="chart">Graphique</string>
@@ -388,8 +388,8 @@
     <string name="auto_check_for_update_description">Vérification des mises à jour lorsque vous ouvrez l'application</string>
     <string name="blur_fullscreen_lyrics">Effet de flou sur les paroles en plein écran</string>
     <string name="blur_fullscreen_lyrics_description">Flouter l'arrière-plan de l'effet d'écran des paroles en plein écran</string>
-    <string name="playback_speed_pitch"><![CDATA[Vitesse et hauteur de lecture]]></string>
-    <string name="playback_speed_pitch_disabled"><![CDATA[Vitesse et tonalité de lecture (désactivées lorsque le fondu enchaîné est activé)]]></string>
+    <string name="playback_speed_pitch">Vitesse et hauteur de lecture</string>
+    <string name="playback_speed_pitch_disabled">Vitesse et tonalité de lecture (désactivées lorsque le fondu enchaîné est activé)</string>
     <string name="playback_speed">Vitesse de lecture</string>
     <string name="pitch">Hauteur</string>
     <string name="blur_player_background">Flouter l'arrière-plan du lecteur</string>
@@ -540,4 +540,4 @@
     <string name="bpm">BPM</string>
     <string name="key">Clé</string>
     <string name="scale">Échelle</string>
-</resources>
+<string name="better_lyrics">BetterLyrics</string><string name="copyright">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string><string name="lrclib">LRCLIB</string><string name="notification_channel_name">Notification de lecture SimpMusic</string><string name="podcasts">Podcasts</string><string name="proxy_password">Mot de passe du proxy</string><string name="proxy_password_message">Veuillez entrer votre mot de passe proxy (facultatif)</string><string name="proxy_username">Nom d'utilisateur du proxy</string><string name="proxy_username_message">Veuillez entrer votre nom d'utilisateur proxy (facultatif)</string><string name="version_format">v%1$s</string></resources>
