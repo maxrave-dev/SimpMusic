@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Canción • %1$s</string>
     <string name="playlist_and_author">Lista de reproducción • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">Acerca de</string>
     <string name="let_s_start_with_a_radio">COMENCEMOS CON UNA RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">VAMOS A ELEGIR UNA LISTA DE REPRODUCCIÓN PARA TI</string>
-    <string name="moods_amp_moment"><![CDATA[Estados de ánimo y momentos]]></string>
+    <string name="moods_amp_moment">Estados de ánimo y momentos</string>
     <string name="genre">Género</string>
     <string name="what_is_best_choice_today">CUÁL ES LA MEJOR OPCIÓN HOY</string>
     <string name="chart">Lista</string>
@@ -388,8 +388,8 @@
     <string name="auto_check_for_update_description">Comprobando actualizaciones al abrir la aplicación</string>
     <string name="blur_fullscreen_lyrics">Efecto de desenfoque de letra a pantalla completa</string>
     <string name="blur_fullscreen_lyrics_description">Efecto de desenfoque del fondo de la pantalla de letras en pantalla completa</string>
-    <string name="playback_speed_pitch"><![CDATA[Velocidad de reproducción y tono]]></string>
-    <string name="playback_speed_pitch_disabled"></string>
+    <string name="playback_speed_pitch">Velocidad de reproducción y tono</string>
+    <string name="playback_speed_pitch_disabled" />
     <string name="playback_speed">Velocidad de reproducción</string>
     <string name="pitch">Tono</string>
     <string name="blur_player_background">Desenfocar el fondo del reproductor</string>
@@ -535,4 +535,4 @@
     <string name="your_320kbps_url">Su URL de 320kbps</string>
     <string name="search_for">Buscar por</string>
     <string name="synced_playlist_cannot_change_order">No se puede cambiar el orden de la lista sincronizada</string>
-</resources>
+<string name="better_lyrics">BetterLyrics</string><string name="bpm">BPM</string><string name="copyright">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string><string name="crossfade_auto">Automático</string><string name="crossfade_auto_description">Calcula automáticamente la duración según BPM (requiere transmisión de 320 kbps con datos de BPM)</string><string name="key">Clave</string><string name="lrclib">LRCLIB</string><string name="notification_channel_name">Notificación de reproducción de SimpMusic</string><string name="podcasts">Podcasts</string><string name="proxy_password">Contraseña del proxy</string><string name="proxy_password_message">Ingrese su contraseña de proxy (opcional)</string><string name="proxy_username">Nombre de usuario del proxy</string><string name="proxy_username_message">Ingrese su nombre de usuario de proxy (opcional)</string><string name="scale">Escala</string><string name="version_format">v%1$s</string></resources>

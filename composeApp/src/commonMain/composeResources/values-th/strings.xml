@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">เพลง • %1$s</string>
     <string name="playlist_and_author">เพลย์ลิสต์ • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">เกี่ยวกับ</string>
     <string name="let_s_start_with_a_radio">ฟังในโหมดวิทยุ</string>
     <string name="let_s_pick_a_playlist_for_you">มาเลือกเพลย์ลิสต์สำหรับคุณกันดีกว่า</string>
-    <string name="moods_amp_moment"><![CDATA[อารมณ์และช่วงเวลา]]></string>
+    <string name="moods_amp_moment">อารมณ์และช่วงเวลา</string>
     <string name="genre">ประเภท</string>
     <string name="what_is_best_choice_today">ทางเลือกที่ดีที่สุดของวันนี้คือ</string>
     <string name="chart">แผนภูมิ</string>
@@ -386,7 +386,7 @@
     <string name="auto_check_for_update_description">ตรวจสอบการอัปเดตทุกครั้งที่คุณเปิดแอป</string>
     <string name="blur_fullscreen_lyrics">เอฟเฟกต์เบลอในหน้าจอเนื้อเพลงเต็มจอ</string>
     <string name="blur_fullscreen_lyrics_description">เอฟเฟกต์เบลอพื้นหลังหน้าจอเมื่อเปิดเนื้อเพลงแบบเต็มจอ</string>
-    <string name="playback_speed_pitch"><![CDATA[ความเร็วในการเล่นและความสูง-ต่ำของเสียง]]></string>
+    <string name="playback_speed_pitch">ความเร็วในการเล่นและความสูง-ต่ำของเสียง</string>
     <string name="playback_speed">ความเร็วในการเล่น</string>
     <string name="pitch">ความสูง-ต่ำของเสียง</string>
     <string name="blur_player_background">เบลอพื้นหลังของตัวเล่น</string>
@@ -531,4 +531,4 @@
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">ลิงก์สตรีม 320 kbps ของคุณ</string>
     <string name="search_for">ค้นหา</string>
-</resources>
+<string name="crossfade_auto">ครอสเฟดอัตโนมัติ</string><string name="sleep_timer_description">หยุดเพลงหลังจากเวลาที่กำหนด</string><string name="sleep_timer_minutes">นาที</string><string name="remaining_time">เวลาคงเหลือ</string><string name="last_backup_time">ดำเนินการเมื่อ {0}</string><string name="backup_failed">การสำรองข้อมูลล้มเหลว</string><string name="restore_backup">คืนค่าจากสำรองข้อมูล</string><string name="restore_backup_description">คืนค่าข้อมูลจากการสำรองข้อมูลที่ผ่านมา</string><string name="select_backup">เลือกการสำรองข้อมูลที่จะคืนค่า</string><string name="restore">คืนค่า</string><string name="backup_restored">คืนค่าจากสำรองข้อมูลแล้ว</string><string name="select_lyrics">เลือกเนื้อร้อง</string><string name="discord_connect">เชื่อมต่อกับ Discord</string><string name="discord_disconnect">ยกเลิกการเชื่อมต่อจาก Discord</string><string name="connected_to_discord">เชื่อมต่อกับ Discord</string><string name="disconnected_from_discord">ยกเลิกการเชื่อมต่อจาก Discord</string><string name="export_playlist">ส่งออกรายการเพลง</string><string name="import_playlist">นำเข้ารายการเพลง</string><string name="playlist_exported">ส่งออกรายการเพลงแล้ว</string><string name="playlist_imported">นำเข้ารายการเพลงแล้ว</string><string name="lyrics_downloaded">ดาวน์โหลดเนื้อร้องแล้ว</string><string name="lyrics_not_found">ไม่พบเนื้อร้อง</string><string name="queue_clear">ล้างคิว</string><string name="queue_cleared">ล้างคิวแล้ว</string><string name="queue_shuffle">สุ่มคิว</string><string name="queue_repeat">ทำซ้ำคิว</string><string name="queue_repeat_one">ทำซ้ำหนึ่ง</string><string name="sort_by_name">เรียงตามชื่อ</string><string name="sort_by_date">เรียงตามวันที่</string><string name="sort_by_artist">เรียงตามศิลปิน</string><string name="sort_by_album">เรียงตามอัลบัม</string><string name="filter_all">ทั้งหมด</string><string name="filter_favorite">รายการโปรด</string><string name="filter_recently_played">เล่นเมื่อไม่นาน</string><string name="filter_most_played">เล่นมากที่สุด</string><string name="lyrics_sync">ซิงค์เนื้อร้อง</string><string name="lyrics_sync_description">แสดงเนื้อร้องตามเพลงที่กำลังเล่น</string><string name="enable_lyrics_sync">เปิดใช้การซิงค์เนื้อร้อง</string><string name="disable_lyrics_sync">ปิดใช้การซิงค์เนื้อร้อง</string><string name="lyrics_sync_enabled">การซิงค์เนื้อร้องเปิดอยู่</string><string name="lyrics_sync_disabled">การซิงค์เนื้อร้องปิดอยู่</string><string name="delete_cache">ลบแคช</string><string name="delete_cache_description">ล้างข้อมูลที่ดาวน์โหลด</string><string name="cache_deleted">ลบแคชแล้ว</string><string name="check_update">ตรวจสอบการอัปเดต</string><string name="update_not_available">คุณใช้รุ่นล่าสุด</string><string name="update_failed">การอัปเดตล้มเหลว</string><string name="build">การสร้าง</string><string name="changelog">บันทึกการเปลี่ยนแปลง</string><string name="open_source">โอเพนโซร์ส</string><string name="licenses">ใบอนุญาต</string></resources>

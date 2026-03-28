@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Brano • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">Informazioni</string>
     <string name="let_s_start_with_a_radio">COMINCIAMO CON UNA RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">SCEGLIAMO UNA PLAYLIST PER TE</string>
-    <string name="moods_amp_moment"><![CDATA[Mood e momenti]]></string>
+    <string name="moods_amp_moment">Mood e momenti</string>
     <string name="genre">Genere</string>
     <string name="what_is_best_choice_today">QUAL È LA SCELTA MIGLIORE OGGI</string>
     <string name="chart">Classifica</string>
@@ -388,8 +388,8 @@
     <string name="auto_check_for_update_description">Controllo degli aggiornamenti all'apertura dell'app</string>
     <string name="blur_fullscreen_lyrics">Sfoca effetto testo a schermo intero</string>
     <string name="blur_fullscreen_lyrics_description">Sfoca lo sfondo dell'effetto schermo intero del testo</string>
-    <string name="playback_speed_pitch"><![CDATA[Velocità di riproduzione e tono]]></string>
-    <string name="playback_speed_pitch_disabled"><![CDATA[Velocità e tono brano (disabilitato quando la dissolvenza è abilitata)]]></string>
+    <string name="playback_speed_pitch">Velocità di riproduzione e tono</string>
+    <string name="playback_speed_pitch_disabled">Velocità e tono brano (disabilitato quando la dissolvenza è abilitata)</string>
     <string name="playback_speed">Velocità di riproduzione</string>
     <string name="pitch">Tono</string>
     <string name="blur_player_background">Sfoca lo sfondo del lettore</string>
@@ -494,7 +494,7 @@
     <string name="open_blog_post">Apri post del blog</string>
     <string name="discord_integration">integrazione discord</string>
     <string name="log_in_to_discord">accedi su discord</string>
-    <string name="intro_login_to_discord"></string>
+    <string name="intro_login_to_discord" />
     <string name="enable_rich_presence">Abilita Rich Presence</string>
     <string name="rich_presence_info">Mostra le info della tua sessione nel tuo profilo di Discord</string>
     <string name="youtube_liked_music">Musica apprezzata su YouTube</string>
@@ -537,4 +537,4 @@
     <string name="your_320kbps_url">Il tuo URL 320kbps</string>
     <string name="search_for">Cerca per</string>
     <string name="synced_playlist_cannot_change_order">La playlist sincronizzata non può cambiare ordine</string>
-</resources>
+<string name="better_lyrics">BetterLyrics</string><string name="bpm">BPM</string><string name="copyright">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string><string name="key">Chiave</string><string name="lrclib">LRCLIB</string><string name="notification_channel_name">Notifica di riproduzione SimpMusic</string><string name="podcasts">Podcast</string><string name="proxy_password">Password proxy</string><string name="proxy_password_message">Inserisci la tua password proxy (facoltativo)</string><string name="proxy_username">Nome utente proxy</string><string name="proxy_username_message">Inserisci il tuo nome utente proxy (facoltativo)</string><string name="scale">Scala</string><string name="version_format">v%1$s</string></resources>

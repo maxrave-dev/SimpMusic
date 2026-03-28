@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Utwór • %1$s</string>
     <string name="playlist_and_author">Playlista • %1$s</string>
@@ -95,7 +95,7 @@
     <string name="about">O aplikacji</string>
     <string name="let_s_start_with_a_radio">ROZPOCZNIJ Z RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">WYBIERZ PLAYLISTĘ DLA CIEBIE</string>
-    <string name="moods_amp_moment"><![CDATA[Nastroje i klimaty]]></string>
+    <string name="moods_amp_moment">Nastroje i klimaty</string>
     <string name="genre">Gatunek</string>
     <string name="what_is_best_choice_today">JAKI JEST DZIŚ NAJLEPSZY WYBÓR</string>
     <string name="chart">Ranking</string>
@@ -386,7 +386,7 @@
     <string name="auto_check_for_update_description">Sprawdzanie aktualizacji po otwarciu aplikacji</string>
     <string name="blur_fullscreen_lyrics">Efekt rozmycia tekstu piosenki na pełnym ekranie</string>
     <string name="blur_fullscreen_lyrics_description">Rozmycie tła efektu pełnoekranowego ekranu tekstu</string>
-    <string name="playback_speed_pitch"><![CDATA[Prędkość odtwarzania i tonacja]]></string>
+    <string name="playback_speed_pitch">Prędkość odtwarzania i tonacja</string>
     <string name="playback_speed">Szybkość odtwarzania</string>
     <string name="pitch">Tonacja</string>
     <string name="blur_player_background">Rozmyj tło odtwarzacza</string>
@@ -514,4 +514,4 @@
     <string name="downvote">Głos przeciw</string>
     <string name="vote_submitted">Dziękujemy za głosowanie nad tym tekstem!</string>
     <string name="vote_error">Przesyłanie nie powiodło się</string>
-</resources>
+<string name="crossfade">Przejście</string><string name="crossfade_auto">Automatyczne przejście</string><string name="crossfade_description">Płynne przejście między utworami</string><string name="crossfade_dj_mode">Tryb DJ</string><string name="crossfading">Przejście aktywne</string><string name="sleep_timer_description">Zatrzymaj muzykę po określonym czasie</string><string name="sleep_timer_minutes">minut</string><string name="remaining_time">Pozostały czas</string><string name="last_backup_time">Uruchomiono {0}</string><string name="backup_failed">Kopia zapasowa nieudana</string><string name="restore_backup">Przywróć kopię zapasową</string><string name="restore_backup_description">Przywróć dane z poprzedniej kopii zapasowej</string><string name="select_backup">Wybierz kopię zapasową do przywrócenia</string><string name="restore">Przywróć</string><string name="backup_restored">Kopia zapasowa przywrócona</string><string name="select_lyrics">Wybierz tekst</string><string name="discord_connect">Połącz się z Discord</string><string name="discord_disconnect">Rozłącz się z Discord</string><string name="connected_to_discord">Połączono z Discord</string><string name="disconnected_from_discord">Rozłączono z Discord</string><string name="export_playlist">Eksportuj playlistę</string><string name="import_playlist">Importuj playlistę</string><string name="playlist_exported">Playlista wyeksportowana</string><string name="playlist_imported">Playlista zaimportowana</string><string name="lyrics_downloaded">Tekst pobrany</string><string name="lyrics_not_found">Tekst nie znaleziony</string><string name="queue_clear">Wyczyść kolejkę</string><string name="queue_cleared">Kolejka wyczyszczona</string><string name="queue_shuffle">Potasuj kolejkę</string><string name="queue_repeat">Powtórz kolejkę</string><string name="queue_repeat_one">Powtórz jeden</string><string name="sort_by_name">Sortuj po nazwie</string><string name="sort_by_date">Sortuj po dacie</string><string name="sort_by_artist">Sortuj po artyście</string><string name="sort_by_album">Sortuj po albumie</string><string name="filter_all">Wszystkie</string><string name="filter_favorite">Ulubione</string><string name="filter_recently_played">Niedawno odtwarzane</string><string name="filter_most_played">Najczęściej odtwarzane</string><string name="lyrics_sync">Synchronizuj tekst</string><string name="lyrics_sync_description">Wyświetlaj tekst w stosunku do odtwarzanego utworu</string><string name="enable_lyrics_sync">Włącz synchronizację tekstu</string><string name="disable_lyrics_sync">Wyłącz synchronizację tekstu</string><string name="lyrics_sync_enabled">Synchronizacja tekstu włączona</string><string name="lyrics_sync_disabled">Synchronizacja tekstu wyłączona</string><string name="delete_cache">Usuń pamięć podręczną</string><string name="delete_cache_description">Wyczyść pobrane dane</string><string name="cache_deleted">Pamięć podręczna usunięta</string><string name="check_update">Sprawdź aktualizacje</string><string name="update_not_available">Używasz najnowszej wersji</string><string name="update_failed">Aktualizacja nieudana</string><string name="build">Kompilacja</string><string name="changelog">Lista zmian</string><string name="open_source">Kod otwarty</string><string name="licenses">Licencje</string></resources>
