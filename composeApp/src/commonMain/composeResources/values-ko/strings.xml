@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">음악 • %1$s</string>
     <string name="playlist_and_author">재생목록 • %1$s</string>
@@ -95,7 +95,7 @@
     <string name="about">정보</string>
     <string name="let_s_start_with_a_radio">라디오로 시작</string>
     <string name="let_s_pick_a_playlist_for_you">날 위한 재생목록 고르기</string>
-    <string name="moods_amp_moment"><![CDATA[분위기]]></string>
+    <string name="moods_amp_moment">분위기</string>
     <string name="genre">장르</string>
     <string name="what_is_best_choice_today">오늘 최선의 선택은 무엇일까요</string>
     <string name="chart">차트</string>
@@ -383,7 +383,7 @@
     <string name="auto_check_for_update_description">앱을 열 때 업데이트 유무 확인</string>
     <string name="blur_fullscreen_lyrics">전체화면 가사 배경 흐리게</string>
     <string name="blur_fullscreen_lyrics_description">전체화면 가사의 배경을 흐리게 처리</string>
-    <string name="playback_speed_pitch"><![CDATA[재생 속도 & 음정]]></string>
+    <string name="playback_speed_pitch">재생 속도 &amp; 음정</string>
     <string name="playback_speed">재생 속도</string>
     <string name="pitch">음정</string>
     <string name="blur_player_background">플레이어 배경 흐리게</string>
@@ -516,4 +516,4 @@
     <string name="close_miniplayer">미니 플레이어 닫기</string>
     <string name="open_miniplayer">미니 플레이어 열기</string>
     <string name="quit_app">앱 종료</string>
-</resources>
+<string name="better_lyrics">BetterLyrics</string><string name="bpm">BPM</string><string name="copyright">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string><string name="crossfade_auto">자동</string><string name="crossfade_auto_description">BPM을 기반으로 지속 시간 자동 계산 (320kbps 스트림 및 BPM 데이터 필요)</string><string name="crossfade_description">현재 곡을 페이드아웃하면서 다음 곡을 페이드인하여 곡 사이에 부드러운 전환을 수행합니다.</string><string name="crossfade_dj_mode">DJ 스타일 전환</string><string name="crossfade_dj_mode_description">크로스페이드 중에 로우패스 및 하이패스 필터 스윕을 적용하여 더 부드러운 DJ 스타일 전환을 만듭니다</string><string name="crossfading">크로스페이드 진행 중</string><string name="desktop_player">데스크톱 플레이어</string><string name="key">키</string><string name="local_tracking_description">로컬 데이터베이스에 청취 기록 기록</string><string name="local_tracking_title">로컬 청취 기록 추적</string><string name="lrclib">LRCLIB</string><string name="lyrics_provider_betterlyrics">BetterLyrics에서 제공하는 가사</string><string name="no_charts_found">차트를 찾을 수 없습니다</string><string name="notification_channel_name">SimpMusic 재생 알림</string><string name="openai_api_compatible">사용자 정의 OpenAI 호환</string><string name="podcasts">팟캐스트</string><string name="prefer_320kbps_stream">320kbps 스트림 선호</string><string name="prefer_320kbps_stream_description">인터넷에서 사용 가능한 경우 자동으로 320kbps 오디오 스트림을 검색합니다</string><string name="proxy_password">프록시 비밀번호</string><string name="proxy_password_message">프록시 비밀번호를 입력하세요 (선택 사항)</string><string name="proxy_username">프록시 사용자 이름</string><string name="proxy_username_message">프록시 사용자 이름을 입력하세요 (선택 사항)</string><string name="scale">규모</string><string name="search_for">검색</string><string name="simpmusic_charts">SimpMusic 차트</string><string name="sleep_timer_end_of_song">수면 타이머 - 곡 끝</string><string name="synced_playlist_cannot_change_order">동기화된 재생목록의 순서를 변경할 수 없습니다</string><string name="version_format">v%1$s</string><string name="your_320kbps_url">당신의 320kbps URL</string></resources>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Композиція • %1$s</string>
     <string name="playlist_and_author">Список відтворення• %1$s</string>
@@ -95,7 +95,7 @@
     <string name="about">Про додаток</string>
     <string name="let_s_start_with_a_radio">ПОЧНІТЬ З РАДІО</string>
     <string name="let_s_pick_a_playlist_for_you">ОБЕРІТЬ ПЛЕЙЛИСТ ДЛЯ ВАС</string>
-    <string name="moods_amp_moment"><![CDATA[Настрій/Момент]]></string>
+    <string name="moods_amp_moment">Настрій/Момент</string>
     <string name="genre">Жанр</string>
     <string name="what_is_best_choice_today">ЯКИЙ НАЙКРАЩИЙ ВИБІР НА СЬОГОДНІ</string>
     <string name="chart">Чарт</string>
@@ -386,7 +386,7 @@
     <string name="auto_check_for_update_description">Перевірка наявності оновлень, коли ви відкриєте застосунок</string>
     <string name="blur_fullscreen_lyrics">Ефект розмиття екрана тексту пісень</string>
     <string name="blur_fullscreen_lyrics_description">Розмиття фону в повноекранному перегляді текстів пісень</string>
-    <string name="playback_speed_pitch"><![CDATA[Швидкість відтворення та висота тону]]></string>
+    <string name="playback_speed_pitch">Швидкість відтворення та висота тону</string>
     <string name="playback_speed">Швидкість відтворення</string>
     <string name="pitch">Тон</string>
     <string name="blur_player_background">Розмити фон плеєра</string>
@@ -518,4 +518,4 @@
     <string name="close_miniplayer">Закрити міні-плеєр</string>
     <string name="open_miniplayer">Відкрити міні-плеєр</string>
     <string name="quit_app">Вийти</string>
-</resources>
+<string name="crossfade">Плавний перехід</string><string name="crossfade_auto">Автоматичний плавний перехід</string><string name="crossfade_description">Плавна переходу між мелодіями</string><string name="crossfade_dj_mode">Режим диджея</string><string name="crossfading">Плавний перехід активний</string><string name="sleep_timer_description">Зупинити музику через задану часу</string><string name="sleep_timer_minutes">хвилин</string><string name="remaining_time">Залишилося часу</string><string name="last_backup_time">Виконано {0}</string><string name="backup_failed">Резервна копія невдала</string><string name="restore_backup">Відновити резервну копію</string><string name="restore_backup_description">Відновіть дані з попередньої резервної копії</string><string name="select_backup">Виберіть резервну копію для відновлення</string><string name="restore">Відновити</string><string name="backup_restored">Резервна копія відновлена</string><string name="select_lyrics">Вибрати текст</string><string name="discord_connect">Підключитися до Discord</string><string name="discord_disconnect">Відключитися від Discord</string><string name="connected_to_discord">Підключено до Discord</string><string name="disconnected_from_discord">Відключено від Discord</string><string name="export_playlist">Експортувати плейлист</string><string name="import_playlist">Імпортувати плейлист</string><string name="playlist_exported">Плейлист експортовано</string><string name="playlist_imported">Плейлист імпортовано</string><string name="lyrics_downloaded">Текст завантажено</string><string name="lyrics_not_found">Текст не знайдено</string><string name="queue_clear">Очистити чергу</string><string name="queue_cleared">Чергу очищено</string><string name="queue_shuffle">Перемішати чергу</string><string name="queue_repeat">Повторити чергу</string><string name="queue_repeat_one">Повторити один</string><string name="sort_by_name">Сортувати за назвою</string><string name="sort_by_date">Сортувати за датою</string><string name="sort_by_artist">Сортувати за виконавцем</string><string name="sort_by_album">Сортувати за альбомом</string><string name="filter_all">Усі</string><string name="filter_favorite">Вибране</string><string name="filter_recently_played">Недавно відтворені</string><string name="filter_most_played">Найбільше відтворені</string><string name="lyrics_sync">Синхронізувати текст</string><string name="lyrics_sync_description">Показувати текст відповідно до пісні, яка відтворюється</string><string name="enable_lyrics_sync">Увімкнути синхронізацію тексту</string><string name="disable_lyrics_sync">Вимкнути синхронізацію тексту</string><string name="lyrics_sync_enabled">Синхронізація тексту увімкнена</string><string name="lyrics_sync_disabled">Синхронізація тексту вимкнена</string><string name="delete_cache">Видалити кеш</string><string name="delete_cache_description">Очистити завантажені дані</string><string name="cache_deleted">Кеш видалено</string><string name="check_update">Перевірити оновлення</string><string name="update_not_available">Ви користуєтесь останньою версією</string><string name="update_failed">Оновлення невдало</string><string name="build">Збірка</string><string name="changelog">Журнал змін</string><string name="open_source">Відкритий код</string><string name="licenses">Ліцензії</string></resources>

@@ -1,0 +1,45 @@
+@Composable
+fun HomeNavGraph(
+    navController: NavHostController,
+    viewModel: HomeViewModel
+) {
+    NavHost(
+        navController = navController,
+        startDestination = HomeDestination.route,
+        builder = {
+            composable(HomeDestination.route) {
+                HomeScreen(viewModel)
+            }
+            composable(MoodDestination.route) {
+                MoodScreen(viewModel)
+            }
+            composable(LibraryDynamicPlaylistDestination.route) {
+                LibraryDynamicPlaylistScreen(viewModel)
+            }
+            composable(LibraryStaticPlaylistDestination.route) {
+                LibraryStaticPlaylistScreen(viewModel)
+            }
+            composable(LocalPlaylistDestination.route) {
+                LocalPlaylistScreen(viewModel)
+            }
+            composable(MoreAlbumsDestination.route) {
+                MoreAlbumsScreen(viewModel)
+            }
+            composable(PlaylistDestination.route) {
+                PlaylistScreen(viewModel)
+            }
+            composable(PodcastDestination.route) {
+                PodcastScreen(viewModel)
+            }
+            composable(SearchDestination.route) {
+                SearchScreen(viewModel)
+            }
+            composable(SettingsDestination.route) {
+                SettingsScreen(viewModel)
+            }
+            composable(AboutDestination.route) {
+                AboutScreen(viewModel)
+            }
+        }
+    )
+}

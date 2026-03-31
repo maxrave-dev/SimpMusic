@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Música • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">Sobre</string>
     <string name="let_s_start_with_a_radio">VAMOS INICIAR COM UM RÁDIO</string>
     <string name="let_s_pick_a_playlist_for_you">VAMOS ESCOLHER UMA PLAYLIST PARA VOCÊ</string>
-    <string name="moods_amp_moment"><![CDATA[Espírito & momentos]]></string>
+    <string name="moods_amp_moment">Espírito &amp; momentos</string>
     <string name="genre">Gênero</string>
     <string name="what_is_best_choice_today">QUAL A MELHOR ESCOLHA DE HOJE</string>
     <string name="chart">Gráfico</string>
@@ -179,7 +179,7 @@
     <string name="save_last_played">Salvar Última Reprodução</string>
     <string name="save_last_played_track_and_queue">Salvar a última faixa e fila reproduzidas</string>
     <string name="update_available">Nova atualização disponível</string>
-    <string name="update_message"></string>
+    <string name="update_message" />
     <string name="check_for_update">Verificar atualizações</string>
     <string name="last_checked_at">Última verificação: %1$s</string>
     <string name="checking">Verificando</string>
@@ -271,7 +271,7 @@
     <string name="free_space">Espaço livre</string>
     <string name="suggest">Sugestão</string>
     <string name="reload">Recarregar</string>
-    <string name="sort_by"></string>
+    <string name="sort_by" />
     <string name="sort">Ordenar</string>
     <string name="older_first">Mais Antigas Primeiro</string>
     <string name="newer_first">Mais Recentes Primeiro</string>
@@ -388,7 +388,7 @@
     <string name="auto_check_for_update_description">Procurar atualizações quando abre o aplicativo</string>
     <string name="blur_fullscreen_lyrics">Desfocar o efeito letras em tela cheia</string>
     <string name="blur_fullscreen_lyrics_description">Desfocando o fundo do efeito de tela em letras em tela cheia</string>
-    <string name="playback_speed_pitch"><![CDATA[Velocidade de reprodução e tom]]></string>
+    <string name="playback_speed_pitch">Velocidade de reprodução e tom</string>
     <string name="playback_speed">Velocidade de reprodução</string>
     <string name="pitch">Tonalidade</string>
     <string name="blur_player_background">Desfocar fundo do ‘player’</string>
@@ -493,7 +493,7 @@
     <string name="log_in_to_discord">Faça login no Discord</string>
     <string name="intro_login_to_discord">Faça login para ativar o Rich Presence do Discord</string>
     <string name="enable_rich_presence">Ativar rich presence</string>
-    <string name="rich_presence_info"></string>
+    <string name="rich_presence_info" />
     <string name="youtube_liked_music">Músicas curtidas do YouTube</string>
     <string name="keep_service_alive">Manter serviço ativo</string>
     <string name="keep_service_alive_description">Manter o serviço do player de música ativo para evitar que seja encerrado pelo sistema</string>
@@ -534,4 +534,4 @@
     <string name="your_320kbps_url">Sua URL de 320kbps</string>
     <string name="search_for">Pesquisar por</string>
     <string name="synced_playlist_cannot_change_order">Playlist sincronizada não pode mudar a ordem</string>
-</resources>
+<string name="better_lyrics">BetterLyrics</string><string name="bpm">BPM</string><string name="copyright">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string><string name="crossfade_auto">Automático</string><string name="crossfade_auto_description">Calcule automaticamente a duração com base no BPM (requer stream de 320 kbps com dados de BPM)</string><string name="key">Chave</string><string name="lrclib">LRCLIB</string><string name="notification_channel_name">Notificação de reprodução do SimpMusic</string><string name="podcasts">Podcasts</string><string name="proxy_password">Senha do proxy</string><string name="proxy_password_message">Digite sua senha de proxy (opcional)</string><string name="proxy_username">Nome de usuário do proxy</string><string name="proxy_username_message">Digite seu nome de usuário do proxy (opcional)</string><string name="scale">Escala</string><string name="version_format">v%1$s</string></resources>

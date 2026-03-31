@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="Song_and_artist_name">Bài hát • %1$s</string>
     <string name="playlist_and_author">Danh sách phát • %1$s</string>
@@ -97,7 +97,7 @@
     <string name="about">Giới thiệu</string>
     <string name="let_s_start_with_a_radio">BẮT ĐẦU MỘT ĐÀI PHÁT</string>
     <string name="let_s_pick_a_playlist_for_you">CHỌN MỘT DANH SÁCH PHÁT CHO BẠN</string>
-    <string name="moods_amp_moment"><![CDATA[Tâm trạng và khoảnh khắc]]></string>
+    <string name="moods_amp_moment">Tâm trạng và khoảnh khắc</string>
     <string name="genre">Thể loại</string>
     <string name="what_is_best_choice_today">LỰA CHỌN TỐT NHẤT HÔM NAY</string>
     <string name="chart">Bảng xếp hạng</string>
@@ -387,8 +387,8 @@
     <string name="auto_check_for_update_description">Kiểm tra cập nhật mỗi khi bạn mở ứng dụng</string>
     <string name="blur_fullscreen_lyrics">Làm mờ màn hình lời bài hát toàn màn hình</string>
     <string name="blur_fullscreen_lyrics_description">Hiệu ứng làm mờ nền màn hình lời bài hát toàn màn hình</string>
-    <string name="playback_speed_pitch"><![CDATA[Tốc độ phát lại và cao độ]]></string>
-    <string name="playback_speed_pitch_disabled"><![CDATA[Tốc độ phát lại và cao độ (bị vô hiệu hóa khi chuyển tiếp mượt mà được bật)]]></string>
+    <string name="playback_speed_pitch">Tốc độ phát lại và cao độ</string>
+    <string name="playback_speed_pitch_disabled">Tốc độ phát lại và cao độ (bị vô hiệu hóa khi chuyển tiếp mượt mà được bật)</string>
     <string name="playback_speed">Tốc độ phát lại</string>
     <string name="pitch">Cao độ</string>
     <string name="blur_player_background">Làm mờ nền trình phát</string>
@@ -539,4 +539,4 @@
     <string name="bpm">Nhịp mỗi phút</string>
     <string name="key">Khóa</string>
     <string name="scale">Thang</string>
-</resources>
+<string name="sleep_timer_description">Dừng nhạc sau thời gian được chỉ định</string><string name="sleep_timer_minutes">phút</string><string name="remaining_time">Thời gian còn lại</string><string name="last_backup_time">Chạy lúc {0}</string><string name="backup_failed">Sao lưu không thành công</string><string name="restore_backup">Khôi phục sao lưu</string><string name="restore_backup_description">Khôi phục dữ liệu từ sao lưu trước đó</string><string name="select_backup">Chọn sao lưu để khôi phục</string><string name="restore">Khôi phục</string><string name="backup_restored">Đã khôi phục sao lưu</string><string name="select_lyrics">Chọn lời bài hát</string><string name="discord_connect">Kết nối với Discord</string><string name="discord_disconnect">Ngắt kết nối từ Discord</string><string name="connected_to_discord">Đã kết nối với Discord</string><string name="disconnected_from_discord">Đã ngắt kết nối từ Discord</string><string name="export_playlist">Xuất danh sách phát</string><string name="import_playlist">Nhập danh sách phát</string><string name="playlist_exported">Đã xuất danh sách phát</string><string name="playlist_imported">Đã nhập danh sách phát</string><string name="lyrics_downloaded">Đã tải xuống lời bài hát</string><string name="lyrics_not_found">Không tìm thấy lời bài hát</string><string name="queue_clear">Xóa hàng đợi</string><string name="queue_cleared">Đã xóa hàng đợi</string><string name="queue_shuffle">Xáo trộn hàng đợi</string><string name="queue_repeat">Lặp lại hàng đợi</string><string name="queue_repeat_one">Lặp lại một</string><string name="sort_by_name">Sắp xếp theo tên</string><string name="sort_by_date">Sắp xếp theo ngày</string><string name="sort_by_artist">Sắp xếp theo nghệ sĩ</string><string name="sort_by_album">Sắp xếp theo album</string><string name="filter_all">Tất cả</string><string name="filter_favorite">Yêu thích</string><string name="filter_recently_played">Vừa phát</string><string name="filter_most_played">Phát nhiều nhất</string><string name="lyrics_sync">Đồng bộ hóa lời bài hát</string><string name="lyrics_sync_description">Hiển thị lời bài hát theo bài hát đang phát</string><string name="enable_lyrics_sync">Bật đồng bộ hóa lời bài hát</string><string name="disable_lyrics_sync">Tắt đồng bộ hóa lời bài hát</string><string name="lyrics_sync_enabled">Đồng bộ hóa lời bài hát đã bật</string><string name="lyrics_sync_disabled">Đồng bộ hóa lời bài hát đã tắt</string><string name="delete_cache">Xóa bộ nhớ đệm</string><string name="delete_cache_description">Xóa dữ liệu đã tải xuống</string><string name="cache_deleted">Đã xóa bộ nhớ đệm</string><string name="check_update">Kiểm tra cập nhật</string><string name="update_not_available">Bạn đang sử dụng phiên bản mới nhất</string><string name="update_failed">Cập nhật không thành công</string><string name="build">Bản dựng</string><string name="changelog">Nhật ký thay đổi</string><string name="open_source">Mã nguồn mở</string><string name="licenses">Giấy phép</string></resources>
