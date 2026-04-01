@@ -205,5 +205,8 @@ Crowdin and Sentry both have a free enterprise plan for Open-source projects. Fo
 
 Check out the Vercel open-source program:
 - https://vercel.com/open-source-program
+  
+This project is tested with BrowserStack
+- Checkout BrowserStack now: https://www.browserstack.com/
 
 *This project is a part of SimpMusic.org Open-source project by me [maxrave-dev](https://github.com/maxrave-dev)*
