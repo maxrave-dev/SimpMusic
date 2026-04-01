@@ -38,3 +38,4 @@ sentry.properties
 
 # VLC native libraries (downloaded by vlc-setup plugin)
 /vlc-natives/
+/.omc/

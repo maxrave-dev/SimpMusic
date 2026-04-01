@@ -56,6 +56,7 @@ import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toLyrics
 import com.maxrave.domain.utils.toLyricsEntity
 import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.domain.utils.toSyncedLyrics
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
@@ -1005,35 +1006,61 @@ class SharedViewModel(
                     },
             )
 
-        if (isTranslatedLyrics) {
+        if (isTranslatedLyrics && lyricsProvider != LyricsProvider.AI) {
+            // Skip sync validation for AI translations — timestamps are copied programmatically
             val originalLyrics = _nowPlayingScreenData.value.lyricsData?.lyrics
             val originalLines = originalLyrics?.lines
             val lyricsLines = lyrics.lines
             if (originalLyrics != null && originalLines != null && lyricsLines != null) {
-                var outOfSyncCount = 0
+                var timeSyncErrorCount = 0
+                val totalLines = originalLines.size
 
-                originalLines.forEach { originalLine ->
-                    val originalTime = originalLine.startTimeMs.toLongOrNull() ?: 0L
-                    val closestTranslatedLine =
-                        lyricsLines.minByOrNull {
-                            abs((it.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
-                        }
-
-                    if (closestTranslatedLine != null) {
-                        val translatedTime = closestTranslatedLine.startTimeMs.toLongOrNull() ?: 0L
+                if (originalLines.size == lyricsLines.size) {
+                    // Line counts match: compare by index (1:1 mapping)
+                    originalLines.forEachIndexed { index, originalLine ->
+                        val originalTime = originalLine.startTimeMs.toLongOrNull() ?: 0L
+                        val translatedLine = lyricsLines[index]
+                        val translatedTime = translatedLine.startTimeMs.toLongOrNull() ?: 0L
                         val timeDiff = abs(originalTime - translatedTime)
 
-                        if (timeDiff > 1000L) { // Lệch quá 1 giây
-                            outOfSyncCount++
+                        if (timeDiff > 1000L) {
+                            timeSyncErrorCount++
                         }
-                        if (closestTranslatedLine.words == originalLine.words) {
-                            outOfSyncCount++
+                    }
+                } else {
+                    // Line count mismatch: use timestamp-based matching with used-line tracking
+                    val usedIndices = mutableSetOf<Int>()
+                    originalLines.forEach { originalLine ->
+                        val originalTime = originalLine.startTimeMs.toLongOrNull() ?: 0L
+                        var bestIndex = -1
+                        var bestDiff = Long.MAX_VALUE
+                        lyricsLines.forEachIndexed { index, line ->
+                            if (index !in usedIndices) {
+                                val diff = abs((line.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
+                                if (diff < bestDiff) {
+                                    bestDiff = diff
+                                    bestIndex = index
+                                }
+                            }
+                        }
+                        if (bestIndex >= 0) {
+                            usedIndices.add(bestIndex)
+                            if (bestDiff > 1000L) {
+                                timeSyncErrorCount++
+                            }
+                        } else {
+                            timeSyncErrorCount++
                         }
                     }
                 }
 
-                if (outOfSyncCount > 5) {
-                    Logger.w(tag, "Translated lyrics out of sync: $outOfSyncCount lines with time diff > 1s")
+                // Use percentage-based threshold: reject if >25% of lines are out of sync
+                val syncErrorRatio = if (totalLines > 0) timeSyncErrorCount.toFloat() / totalLines else 0f
+                if (syncErrorRatio > 0.25f || (totalLines > 0 && timeSyncErrorCount > totalLines / 2)) {
+                    Logger.w(
+                        tag,
+                        "Translated lyrics out of sync: $timeSyncErrorCount/$totalLines lines with time diff > 1s (${(syncErrorRatio * 100).toInt()}%)",
+                    )
 
                     _nowPlayingScreenData.update {
                         it.copy(
@@ -1070,15 +1097,11 @@ class SharedViewModel(
                                     }
                             }
                         }
-                    }
-                    if (lyricsProvider != LyricsProvider.AI) {
-                        viewModelScope.launch {
-                            nowPlayingScreenData.value.lyricsData?.lyrics?.let {
-                                getAITranslationLyrics(
-                                    videoId,
-                                    it,
-                                )
-                            }
+                        nowPlayingScreenData.value.lyricsData?.lyrics?.let {
+                            getAITranslationLyrics(
+                                videoId,
+                                it,
+                            )
                         }
                     }
                     return
@@ -1448,14 +1471,35 @@ class SharedViewModel(
             val data = response.data
             when (response) {
                 is Resource.Success if (data != null) -> {
-                    Logger.d(tag, "Get SimpMusic Translated Lyrics Success")
-                    updateLyrics(
-                        videoId,
-                        0,
-                        data,
-                        true,
-                        LyricsProvider.SIMPMUSIC,
-                    )
+                    // If SimpMusic translated lyrics are RICH_SYNCED (word-by-word),
+                    // convert to LINE_SYNCED, downvote, and fallback to AI translation
+                    if (data.syncType == "RICH_SYNCED") {
+                        Logger.w(tag, "SimpMusic translated lyrics are RICH_SYNCED, downvoting and falling back to AI")
+                        val simpMusicLyricsId = data.simpMusicLyrics?.id
+                        if (!simpMusicLyricsId.isNullOrEmpty()) {
+                            viewModelScope.launch {
+                                lyricsCanvasRepository
+                                    .voteSimpMusicTranslatedLyrics(simpMusicLyricsId, false)
+                                    .collectLatest { voteResult ->
+                                        when (voteResult) {
+                                            is Resource.Error -> Logger.w(tag, "Downvote RICH_SYNCED translated lyrics error: ${voteResult.message}")
+                                            is Resource.Success -> Logger.d(tag, "Downvote RICH_SYNCED translated lyrics success")
+                                        }
+                                    }
+                            }
+                        }
+                        // Fallback to AI translation
+                        getAITranslationLyrics(videoId, lyrics)
+                    } else {
+                        Logger.d(tag, "Get SimpMusic Translated Lyrics Success")
+                        updateLyrics(
+                            videoId,
+                            0,
+                            data,
+                            true,
+                            LyricsProvider.SIMPMUSIC,
+                        )
+                    }
                 }
 
                 else -> {
@@ -1491,11 +1535,20 @@ class SharedViewModel(
                     0,
                     savedTranslatedLyrics.toLyrics(),
                     true,
+                    LyricsProvider.AI,
                 )
             } else {
+                // Convert RICH_SYNCED to LINE_SYNCED before sending to AI
+                // AI should only work with line-level or plain lyrics
+                val lyricsForAi =
+                    if (lyrics.syncType == "RICH_SYNCED") {
+                        lyrics.toSyncedLyrics()
+                    } else {
+                        lyrics
+                    }
                 lyricsCanvasRepository
                     .getAITranslationLyrics(
-                        lyrics,
+                        lyricsForAi,
                         dataStoreManager.translationLanguage.first(),
                     ).cancellable()
                     .collectLatest {
