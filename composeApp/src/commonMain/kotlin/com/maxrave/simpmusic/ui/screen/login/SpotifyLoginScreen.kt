@@ -172,7 +172,7 @@ fun SpotifyLoginScreen(
                         }
                     viewModel.setFullSpotifyCookies(cookies)
                 }
-                if (Regex("^https://accounts\\.spotify\\.com/[a-z]{2}(-[a-zA-Z]{2})?/status$").matches(url)) {
+                if (Regex("^https://accounts\\.spotify\\.com/([a-z]{2}(-[a-zA-Z]{2})?/)?status(\\?.*)?$").matches(url)) {
                     cookie
                         .takeIf {
                             it.isNotEmpty()
