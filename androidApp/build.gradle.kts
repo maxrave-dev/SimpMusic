@@ -10,7 +10,6 @@ val isFullBuild: Boolean =
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.sentry.gradle)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
 }
 
@@ -253,7 +252,7 @@ if (!isFullBuild) {
             val cleanSentryMetaTaskName = "cleanSentryMetaForRelease"
             val cleanSentryMetaTask =
                 tasks.register<CleanSentryMetaTask>(cleanSentryMetaTaskName) {
-                    assetDirectories.from(android.sourceSets.flatMap { it.assets.srcDirs })
+                    assetDirectories.from(android.sourceSets.flatMap { it.assets.directories })
                     buildDirectory.set(layout.buildDirectory)
                 }
             tasks.named(name).configure {

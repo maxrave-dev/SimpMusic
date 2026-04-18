@@ -52,7 +52,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
         android:enableOnBackInvokedCallback="true"
-        android:extractNativeLibs="true"
         android:requestLegacyExternalStorage="true"
         tools:replace="android:name"
         tools:targetApi="tiramisu">

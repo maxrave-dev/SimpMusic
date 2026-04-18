@@ -74,6 +74,7 @@ kotlin {
             implementation(libs.commons.io)
         }
         androidMain.dependencies {
+            api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.android)
             implementation(libs.koin.androidx.compose)
 
