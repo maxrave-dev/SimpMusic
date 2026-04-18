@@ -55,6 +55,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -219,9 +220,6 @@ fun HomeScreen(
     val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsStateWithLifecycle()
     val chartLoading by viewModel.loadingChart.collectAsStateWithLifecycle()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
-    var accountShow by rememberSaveable {
-        mutableStateOf(false)
-    }
     val regionChart by viewModel.regionCodeChart.collectAsStateWithLifecycle()
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -230,18 +228,49 @@ fun HomeScreen(
     val params by viewModel.params.collectAsStateWithLifecycle()
     val homeListState by viewModel.homeListState.collectAsStateWithLifecycle()
     val continuation by viewModel.continuation.collectAsStateWithLifecycle()
+    val quickPicksTitle = stringResource(Res.string.quick_picks)
+    val quickPicksItem by remember(homeData, quickPicksTitle) {
+        derivedStateOf {
+            homeData.find { it.title == quickPicksTitle }?.let { content ->
+                content.copy(
+                    contents =
+                        content.contents.mapNotNull { ct ->
+                            ct?.copy(
+                                artists =
+                                    ct.artists?.let { art ->
+                                        if (art.size > 1) {
+                                            art.dropLast(1)
+                                        } else {
+                                            art
+                                        }
+                                    },
+                            )
+                        },
+                )
+            }
+        }
+    }
 
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsStateWithLifecycle()
 
     val openAppTime by sharedViewModel.openAppTime.collectAsStateWithLifecycle()
     val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsStateWithLifecycle()
 
-    var topHeaderColor by remember {
-        mutableStateOf(md_theme_dark_background)
+    val accountShow by remember(homeData, accountInfo) {
+        derivedStateOf {
+            accountInfo == null || homeData.none { it.subtitle == accountInfo?.first }
+        }
     }
+    var topHeaderColor by remember { mutableStateOf(md_theme_dark_background) }
     val animatedColor by animateColorAsState(topHeaderColor, tween(500))
     val mainHomeThumbnail by viewModel.mainHomeThumbnail.collectAsStateWithLifecycle()
-    val networkLoader = rememberNetworkLoader(HttpClient(CIO))
+    val paletteClient = remember { HttpClient(CIO) }
+    DisposableEffect(paletteClient) {
+        onDispose {
+            paletteClient.close()
+        }
+    }
+    val networkLoader = rememberNetworkLoader(paletteClient)
     val dominantColorState =
         rememberDominantColorState(
             defaultColor = md_theme_dark_background,
@@ -313,9 +342,6 @@ fun HomeScreen(
                 pullToRefreshState.animateToHidden()
             }
         }
-    }
-    LaunchedEffect(key1 = homeData) {
-        accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
     LaunchedEffect(openAppTime, shareLyricsPermissions) {
         Logger.w("HomeScreen", "openAppTime: $openAppTime, shareLyricsPermissions: $shareLyricsPermissions")
@@ -479,9 +505,13 @@ fun HomeScreen(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(28.dp),
                     ) {
-                        itemsIndexed(homeData, key = { _, item ->
-                            item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
-                        }) { index, item ->
+                        itemsIndexed(
+                            items = homeData,
+                            key = { index, item ->
+                                "${item.title}-${item.subtitle ?: "nosub"}-${item.channelId ?: index}"
+                            },
+                            contentType = { _, item -> item.title },
+                        ) { index, item ->
                             Box {
                                 if (index == 0) {
                                     Box(
@@ -530,42 +560,12 @@ fun HomeScreen(
                                         )
                                         Spacer(Modifier.height(8.dp))
                                     }
-                                    if (item.title == stringResource(Res.string.quick_picks)) {
+                                    if (item.title == quickPicksTitle) {
                                         AnimatedVisibility(
-                                            visible =
-                                                homeData.find {
-                                                    it.title ==
-                                                        stringResource(
-                                                            Res.string.quick_picks,
-                                                        )
-                                                } != null,
+                                            visible = quickPicksItem != null,
                                         ) {
                                             QuickPicks(
-                                                homeItem =
-                                                    (
-                                                        homeData.find {
-                                                            it.title ==
-                                                                stringResource(
-                                                                    Res.string.quick_picks,
-                                                                )
-                                                        } ?: return@AnimatedVisibility
-                                                    ).let { content ->
-                                                        content.copy(
-                                                            contents =
-                                                                content.contents.mapNotNull { ct ->
-                                                                    ct?.copy(
-                                                                        artists =
-                                                                            ct.artists?.let { art ->
-                                                                                if (art.size > 1) {
-                                                                                    art.dropLast(1)
-                                                                                } else {
-                                                                                    art
-                                                                                }
-                                                                            },
-                                                                    )
-                                                                },
-                                                        )
-                                                    },
+                                                homeItem = quickPicksItem ?: return@AnimatedVisibility,
                                                 viewModel = viewModel,
                                             )
                                         }
@@ -593,7 +593,11 @@ fun HomeScreen(
                             }
                         }
                         if (homeListState == ListState.PAGINATION_EXHAUST) {
-                            items(newRelease, key = { it.hashCode() }) {
+                            items(
+                                items = newRelease,
+                                key = { "${it.title}-${it.subtitle ?: "nosub"}-${it.channelId ?: "new"}" },
+                                contentType = { it.title },
+                            ) {
                                 AnimatedVisibility(
                                     visible = newRelease.isNotEmpty(),
                                 ) {
