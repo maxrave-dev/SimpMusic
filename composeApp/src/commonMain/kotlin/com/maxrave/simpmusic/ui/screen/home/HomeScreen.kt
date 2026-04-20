@@ -102,6 +102,7 @@ import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItem
+import com.maxrave.simpmusic.ui.component.BlogPromoDialog
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
@@ -182,6 +183,9 @@ import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.welcome_back
 import simpmusic.composeapp.generated.resources.what_is_best_choice_today
 import simpmusic.composeapp.generated.resources.workout
+
+// DataStore key for blog-promo one-shot dialog. Bump the suffix (v2, v3, …) to re-promote.
+private const val BLOG_PROMO_KEY = "blog_promo_v1_seen"
 
 private val listOfHomeChip =
     listOf(
@@ -267,6 +271,9 @@ fun HomeScreen(
     var showRequestShareLyricsPermissions by rememberSaveable {
         mutableStateOf(false)
     }
+    var showBlogPromoDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     var topAppBarHeightPx by rememberSaveable {
         mutableIntStateOf(0)
@@ -323,6 +330,11 @@ fun HomeScreen(
             showReviewDialog = true
         } else if ((openAppTime == 1 || openAppTime % 15 == 0) && openAppTime <= 60 && !shareLyricsPermissions) {
             showRequestShareLyricsPermissions = true
+        } else if (openAppTime == 5) {
+            // Blog promo: one-shot after 5 app opens, bump key suffix to re-promote later
+            if (sharedViewModel.getString(BLOG_PROMO_KEY) != "true") {
+                showBlogPromoDialog = true
+            }
         } else {
             showReviewDialog = false
             showRequestShareLyricsPermissions = false
@@ -374,6 +386,19 @@ fun HomeScreen(
                     isDismissOnly = false,
                 )
                 showReviewDialog = false
+            },
+        )
+    }
+
+    if (showBlogPromoDialog) {
+        BlogPromoDialog(
+            onDismissRequest = {
+                sharedViewModel.putString(BLOG_PROMO_KEY, "true")
+                showBlogPromoDialog = false
+            },
+            onVisitBlog = {
+                sharedViewModel.putString(BLOG_PROMO_KEY, "true")
+                showBlogPromoDialog = false
             },
         )
     }

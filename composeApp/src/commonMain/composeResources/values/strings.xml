@@ -123,6 +123,11 @@
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">Buy me a coffee</string>
+    <string name="developer_blog">Developer Blog</string>
+    <string name="developer_blog_tagline">Read dev notes, tutorials &amp; behind-the-scenes</string>
+    <string name="blog_promo_title">Something new from the dev</string>
+    <string name="blog_promo_message">I just launched my personal blog at maxrave.dev — sharing the story behind SimpMusic, music-tech deep dives, and engineering notes. Give it a read if you're curious ✨</string>
+    <string name="visit_blog">Visit blog</string>
     <string name="paypal">PayPal</string>
     <string name="title">Title</string>
     <string name="custom_order">Custom order</string>
