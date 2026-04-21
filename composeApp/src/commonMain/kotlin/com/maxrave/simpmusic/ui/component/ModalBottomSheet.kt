@@ -155,7 +155,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastGravity
 import multiplatform.network.cmptoast.showToast
 import org.jetbrains.compose.resources.StringResource
@@ -1421,6 +1420,7 @@ fun NowPlayingBottomSheet(
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
     var changePlaybackSpeedPitch by remember { mutableStateOf(false) }
     val crossfadeEnabled by dataStoreManager.crossfadeEnabled.collectAsState(DataStoreManager.FALSE)
+    val radioLabel = stringResource(Res.string.radio)
 
     LaunchedEffect(uiState) {
         if (uiState.songUIState.videoId.isNotEmpty() && !isBottomSheetVisible) {
@@ -1807,7 +1807,7 @@ fun NowPlayingBottomSheet(
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.StartRadio(
                                 videoId = uiState.songUIState.videoId,
-                                name = "\"${uiState.songUIState.title}\" ${runBlocking { getString(Res.string.radio) }}",
+                                name = "\"${uiState.songUIState.title}\" $radioLabel",
                             ),
                         )
                         hideModalBottomSheet()
@@ -2173,6 +2173,7 @@ fun SleepTimerBottomSheet(
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sleepTimerError = stringResource(Res.string.sleep_timer_set_error)
 
     // -1 = nothing selected, Int.MAX_VALUE = End of Song, else = minutes
     var selectedPreset by rememberSaveable { mutableIntStateOf(-1) }
@@ -2411,7 +2412,7 @@ fun SleepTimerBottomSheet(
                                     }
                                 } else {
                                     showToast(
-                                        runBlocking { getString(Res.string.sleep_timer_set_error) },
+                                        sleepTimerError,
                                         ToastGravity.Bottom,
                                     )
                                 }
@@ -2425,7 +2426,7 @@ fun SleepTimerBottomSheet(
                             }
                             else -> {
                                 showToast(
-                                    runBlocking { getString(Res.string.sleep_timer_set_error) },
+                                    sleepTimerError,
                                     ToastGravity.Bottom,
                                 )
                             }
@@ -3123,6 +3124,9 @@ fun DevLogInBottomSheet(
 
     var value by rememberSaveable { mutableStateOf("") }
     var secondValue by rememberSaveable { mutableStateOf("") }
+    val title = stringResource(type.titleRes())
+    val processingMessage = stringResource(Res.string.processing)
+    val emptyErrorMessage = stringResource(Res.string.can_not_be_empty)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -3146,7 +3150,7 @@ fun DevLogInBottomSheet(
                     shape = RoundedCornerShape(50),
                 ) {}
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(text = runBlocking { type.getTitle() }, style = typo().labelSmall)
+                Text(text = title, style = typo().labelSmall)
                 Spacer(modifier = Modifier.height(5.dp))
                 OutlinedTextField(
                     value = value,
@@ -3171,11 +3175,11 @@ fun DevLogInBottomSheet(
                         if (value.isNotEmpty() && value.isNotBlank() &&
                             (type != DevLogInType.YouTube || (secondValue.isNotEmpty() && secondValue.isNotBlank()))
                         ) {
-                            showToast(runBlocking { getString(Res.string.processing) }, ToastGravity.Bottom)
+                            showToast(processingMessage, ToastGravity.Bottom)
                             onDismiss()
                             onDone(value, secondValue)
                         } else {
-                            showToast(runBlocking { getString(Res.string.can_not_be_empty) }, ToastGravity.Bottom)
+                            showToast(emptyErrorMessage, ToastGravity.Bottom)
                         }
                     },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
@@ -3276,10 +3280,10 @@ sealed class DevLogInType {
 
     data object Discord : DevLogInType()
 
-    suspend fun getTitle(): String =
+    fun titleRes(): StringResource =
         when (this) {
-            is Spotify -> getString(Res.string.your_sp_dc_param_of_spotify_cookie)
-            is YouTube -> getString(Res.string.your_youtube_cookie)
-            is Discord -> getString(Res.string.your_discord_token)
+            Spotify -> Res.string.your_sp_dc_param_of_spotify_cookie
+            YouTube -> Res.string.your_youtube_cookie
+            Discord -> Res.string.your_discord_token
         }
 }

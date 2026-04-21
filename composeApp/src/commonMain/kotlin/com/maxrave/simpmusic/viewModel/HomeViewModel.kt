@@ -1,8 +1,6 @@
 package com.maxrave.simpmusic.viewModel
 
 import androidx.lifecycle.viewModelScope
-import com.maxrave.common.SELECTED_LANGUAGE
-import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.home.HomeDataCombine
 import com.maxrave.domain.data.model.home.HomeItem
@@ -27,7 +25,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.music_video
 import simpmusic.composeapp.generated.resources.new_release
@@ -65,8 +62,6 @@ class HomeViewModel(
 
     val loading = MutableStateFlow<Boolean>(true)
     val loadingChart = MutableStateFlow<Boolean>(true)
-    private var regionCode: String = ""
-    private var language: String = ""
 
     private val _songEntity: MutableStateFlow<SongEntity?> = MutableStateFlow(null)
     val songEntity: StateFlow<SongEntity?> = _songEntity
@@ -87,86 +82,59 @@ class HomeViewModel(
     val mainHomeThumbnail: StateFlow<String?> = _mainHomeThumbnail
 
     init {
-        if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
-            runBlocking {
+        viewModelScope.launch {
+            if (dataStoreManager.cookie.first().isEmpty() &&
                 dataStoreManager.shouldShowLogInRequiredAlert.first() == TRUE
+            ) {
+                _showLogInAlert.update { true }
             }
-        ) {
-            _showLogInAlert.update { true }
         }
         homeJob = Job()
         viewModelScope.launch {
             regionCodeChart.value = dataStoreManager.chartKey.first()
             exploreChart(regionCodeChart.value ?: "ZZ")
-            language = dataStoreManager.getString(SELECTED_LANGUAGE).first()
-                ?: SUPPORTED_LANGUAGE.codes.first()
-            //  refresh when region change
-            val job1 =
-                launch {
-                    dataStoreManager.location.distinctUntilChanged().collect {
-                        regionCode = it
-                        getHomeItemList(params.value)
-                    }
+        }
+        viewModelScope.launch {
+            combine(
+                dataStoreManager.location.distinctUntilChanged(),
+                dataStoreManager.language.distinctUntilChanged(),
+                dataStoreManager.cookie.distinctUntilChanged(),
+                params,
+            ) { _, _, cookie, params ->
+                HomeRefreshInput(cookie, params)
+            }.collectLatest { input ->
+                if (input.cookie.isNotEmpty()) {
+                    Logger.w(tag, "Home refresh triggered with logged-in cookie")
+                    delay(1000)
                 }
-            //  refresh when language change
-            val job2 =
-                launch {
-                    dataStoreManager.language.distinctUntilChanged().collect {
-                        language = it
-                        getHomeItemList(params.value)
-                    }
-                }
-            val job3 =
-                launch {
-                    dataStoreManager.cookie.distinctUntilChanged().collect {
-                        getHomeItemList(params.value)
-                        _accountInfo.emit(
-                            Pair(
-                                dataStoreManager.getString("AccountName").first(),
-                                dataStoreManager.getString("AccountThumbUrl").first(),
-                            ),
+                getHomeItemList(input.params)
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.cookie.distinctUntilChanged().collectLatest { cookie ->
+                _accountInfo.emit(
+                    if (cookie.isEmpty()) {
+                        null
+                    } else {
+                        Pair(
+                            dataStoreManager.getString("AccountName").first(),
+                            dataStoreManager.getString("AccountThumbUrl").first(),
                         )
-                    }
-                }
-            val job4 =
-                launch {
-                    params.collectLatest {
-                        getHomeItemList(it)
-                    }
-                }
-            val job5 =
-                launch {
-                    dataStoreManager
-                        .cookie
-                        .distinctUntilChanged()
-                        .collectLatest {
-                            if (it.isNotEmpty()) {
-                                Logger.w(tag, "Cookie changed, refreshing home")
-                                loading.value = true
-                                delay(1000) // To wait for the cookie to be saved properly
-                                getHomeItemList(params.value)
-                            }
-                        }
-                }
-            val job6 =
-                launch {
-                    homeItemList.collectLatest { list ->
-                        _mainHomeThumbnail.value =
-                            list
-                                .firstOrNull()
-                                ?.contents
-                                ?.firstOrNull()
-                                ?.thumbnails
-                                ?.lastOrNull()
-                                ?.url
-                    }
-                }
-            job1.join()
-            job2.join()
-            job3.join()
-            job4.join()
-            job5.join()
-            job6.join()
+                    },
+                )
+            }
+        }
+        viewModelScope.launch {
+            homeItemList.collectLatest { list ->
+                _mainHomeThumbnail.value =
+                    list
+                        .firstOrNull()
+                        ?.contents
+                        ?.firstOrNull()
+                        ?.thumbnails
+                        ?.lastOrNull()
+                        ?.url
+            }
         }
     }
 
@@ -182,12 +150,6 @@ class HomeViewModel(
     fun getHomeItemList(params: String? = null) {
         loading.value = true
         _homeListState.value = ListState.LOADING
-        language =
-            runBlocking {
-                dataStoreManager.getString(SELECTED_LANGUAGE).first()
-                    ?: SUPPORTED_LANGUAGE.codes.first()
-            }
-        regionCode = runBlocking { dataStoreManager.location.first() }
         homeJob?.cancel()
         homeJob =
             viewModelScope.launch {
@@ -256,16 +218,6 @@ class HomeViewModel(
                     }
                     regionCodeChart.value = dataStoreManager.chartKey.first()
                     Logger.d("HomeViewModel", "getHomeItemList: $result")
-                    dataStoreManager.cookie.first().let {
-                        if (it != "") {
-                            _accountInfo.emit(
-                                Pair(
-                                    dataStoreManager.getString("AccountName").first(),
-                                    dataStoreManager.getString("AccountThumbUrl").first(),
-                                ),
-                            )
-                        }
-                    }
                     when {
                         home is Resource.Error -> home.message
                         exploreMoodItem is Resource.Error -> exploreMoodItem.message
@@ -366,3 +318,8 @@ class HomeViewModel(
         const val HOME_PARAMS_FOCUS = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAD"
     }
 }
+
+private data class HomeRefreshInput(
+    val cookie: String,
+    val params: String?,
+)
