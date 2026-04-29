@@ -550,6 +550,7 @@
     <string name="simpmusic_charts">SimpMusic Charts</string>
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">Your 320kbps URL</string>
+    <string name="your_320kbps_url_description">Leave empty to auto-choose a working URL from the uptime checker.</string>
     <string name="search_for">Search for</string>
     <string name="synced_playlist_cannot_change_order">Synced playlist cannot change order</string>
     <string name="bpm">BPM</string>

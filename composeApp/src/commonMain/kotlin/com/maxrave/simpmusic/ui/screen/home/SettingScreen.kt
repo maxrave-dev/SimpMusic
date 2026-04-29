@@ -336,6 +336,7 @@ import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
 import simpmusic.composeapp.generated.resources.you_can_see_the_content_below_the_bottom_bar
 import simpmusic.composeapp.generated.resources.your_320kbps_url
+import simpmusic.composeapp.generated.resources.your_320kbps_url_description
 import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
@@ -662,7 +663,15 @@ fun SettingScreen(
                 AnimatedVisibility(visible = prefer320kbpsStream, enter = slideInVertically() + fadeIn(), exit = slideOutVertically() + fadeOut()) {
                     SettingItem(
                         title = stringResource(Res.string.your_320kbps_url),
-                        subtitle = your320kbpsUrl,
+                        subtitle =
+                            if (your320kbpsUrl.isBlank()) {
+                                stringResource(Res.string.crossfade_auto) +
+                                    " — " +
+                                    stringResource(Res.string.your_320kbps_url_description)
+                            } else {
+                                your320kbpsUrl
+                            },
+                        smallSubtitle = your320kbpsUrl.isBlank(),
                         isEnable = prefer320kbpsStream,
                         onClick = {
                             viewModel.setAlertData(
@@ -671,12 +680,10 @@ fun SettingScreen(
                                     textField =
                                         SettingAlertState.TextFieldData(
                                             label = runBlocking { getString(Res.string.your_320kbps_url) },
-                                            value = "",
-                                            verifyCodeBlock = {
-                                                (it.isNotEmpty()) to runBlocking { getString(Res.string.invalid) }
-                                            },
+                                            value = your320kbpsUrl,
+                                            verifyCodeBlock = { _ -> true to "" },
                                         ),
-                                    message = "",
+                                    message = runBlocking { getString(Res.string.your_320kbps_url_description) },
                                     confirm =
                                         runBlocking { getString(Res.string.set) } to { state ->
                                             viewModel.setYour320kbpsUrl(state.textField?.value ?: "")
