@@ -7,12 +7,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -65,7 +62,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -73,15 +69,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -128,6 +124,121 @@ import kotlin.math.sin
 
 private const val TAG = "LyricsView"
 
+// Minimum wipe animation duration. Words shorter than this still wipe over MIN_WIPE_MS so the
+// motion stays perceivable; the snap-to-1f on isPast catches up at the actual word end.
+private const val MIN_WIPE_MS = 150
+
+// Repeated lyrics palette tokens hoisted to file scope: avoids re-allocating
+// the same Color() objects on every recomposition of every line item.
+private val DimOriginalColor = Color.LightGray.copy(alpha = 0.35f)
+private val DimTranslatedColor = Color(0xFF97971A).copy(alpha = 0.3f)
+private val DimRichPendingColor = Color.LightGray.copy(alpha = 0.6f)
+
+private data class TimedLineIndex(
+    val index: Int,
+    val startTimeMs: Long,
+)
+
+/**
+ * Returns the original line index of the last [TimedLineIndex] whose [TimedLineIndex.startTimeMs]
+ * is `<= nowMs`. Assumes the receiver is sorted ascending by [TimedLineIndex.startTimeMs].
+ *
+ * Rules:
+ *  - empty list -> -1
+ *  - nowMs strictly before the first start time -> -1
+ *  - nowMs after the last start time -> the last entry's original index (sticky last line)
+ */
+private fun List<TimedLineIndex>.activeIndexAt(nowMs: Long): Int {
+    if (isEmpty()) return -1
+    if (nowMs < first().startTimeMs) return -1
+    // Binary search for the last item whose startTimeMs <= nowMs.
+    var lo = 0
+    var hi = size - 1
+    var ans = -1
+    while (lo <= hi) {
+        val mid = (lo + hi) ushr 1
+        if (this[mid].startTimeMs <= nowMs) {
+            ans = mid
+            lo = mid + 1
+        } else {
+            hi = mid - 1
+        }
+    }
+    return if (ans >= 0) this[ans].index else -1
+}
+
+/**
+ * Builds a [Map] from each ORIGINAL line index to its closest synced translated `words`
+ * within [thresholdMs]. Two-pointer over both sorted lists; on ties an earlier translated
+ * line (smaller startTimeMs in the sorted list) wins for determinism.
+ *
+ * Lines with invalid `startTimeMs` on either side are skipped.
+ */
+private fun buildSyncedTranslatedWordsByLineIndex(
+    originalLines: List<com.maxrave.domain.data.model.metadata.Line>,
+    translatedLines: List<com.maxrave.domain.data.model.metadata.Line>,
+    thresholdMs: Long = 1000L,
+): Map<Int, String> {
+    if (originalLines.isEmpty() || translatedLines.isEmpty()) return emptyMap()
+
+    // Sort translated entries by start time. We keep the original list order as a
+    // tie-breaker via stable sort: the FIRST translated line in the SORTED list wins
+    // when the time delta is equal.
+    val sortedTranslated =
+        translatedLines
+            .mapNotNull { line ->
+                val ts = line.startTimeMs.toLongOrNull() ?: return@mapNotNull null
+                ts to line.words
+            }.sortedBy { it.first }
+
+    if (sortedTranslated.isEmpty()) return emptyMap()
+
+    // Original lines paired with their parsed timestamp + original index, sorted by time.
+    data class OriginalEntry(val index: Int, val ts: Long)
+
+    val sortedOriginal =
+        originalLines
+            .mapIndexedNotNull { index, line ->
+                val ts = line.startTimeMs.toLongOrNull() ?: return@mapIndexedNotNull null
+                OriginalEntry(index, ts)
+            }.sortedBy { it.ts }
+
+    if (sortedOriginal.isEmpty()) return emptyMap()
+
+    val result = HashMap<Int, String>(sortedOriginal.size)
+    var j = 0
+    for (orig in sortedOriginal) {
+        // Advance j so that sortedTranslated[j] is the first translated entry with ts >= orig.ts,
+        // or the last entry if everything is smaller.
+        while (j + 1 < sortedTranslated.size && sortedTranslated[j + 1].first <= orig.ts) {
+            j++
+        }
+        // Candidate window: j and j+1 (the next one), pick whichever is closer.
+        val candA = sortedTranslated[j]
+        val diffA = abs(candA.first - orig.ts)
+        var bestTs = candA.first
+        var bestWords = candA.second
+        var bestDiff = diffA
+        if (j + 1 < sortedTranslated.size) {
+            val candB = sortedTranslated[j + 1]
+            val diffB = abs(candB.first - orig.ts)
+            // Tie-break: prefer earlier (smaller startTimeMs) translated line.
+            if (diffB < bestDiff) {
+                bestTs = candB.first
+                bestWords = candB.second
+                bestDiff = diffB
+            }
+        }
+        if (bestDiff < thresholdMs) {
+            result[orig.index] = bestWords
+            // Suppress unused warning while keeping the chosen ts visible for future tweaks.
+            @Suppress("UNUSED_VARIABLE")
+            val _bt = bestTs
+        }
+    }
+    return result
+}
+
 @Composable
 fun LyricsView(
     lyricsData: NowPlayingScreenData.LyricsData,
@@ -138,78 +249,42 @@ fun LyricsView(
     backgroundColor: Color = Color(0xFF242424),
     hasBlurBackground: Boolean = false,
 ) {
-    var currentLineHeight by remember {
-        mutableIntStateOf(0)
-    }
     val listState = rememberLazyListState()
     val current by timeLine.collectAsStateWithLifecycle()
-    var currentLineIndex by rememberSaveable {
-        mutableIntStateOf(-1)
-    }
 
-    LaunchedEffect(key1 = current) {
-        val lines = lyricsData.lyrics.lines
-        if (current.current > 0L) {
-            lines?.indices?.forEach { i ->
-                val sentence = lines[i]
-                val startTimeMs = sentence.startTimeMs.toLong()
+    val timedLineIndexes =
+        remember(lyricsData.lyrics.lines) {
+            lyricsData.lyrics.lines
+                .orEmpty()
+                .mapIndexedNotNull { index, line ->
+                    line.startTimeMs.toLongOrNull()?.let { TimedLineIndex(index, it) }
+                }.sortedBy { it.startTimeMs }
+        }
 
-                // estimate the end time of the current sentence based on the start time of the next sentence
-                val endTimeMs =
-                    if (i < lines.size - 1) {
-                        lines[i + 1].startTimeMs.toLong()
-                    } else {
-                        // if this is the last sentence, set the end time to be some default value (e.g., 1 minute after the start time)
-                        startTimeMs + 60000
-                    }
-                if (current.current in startTimeMs..endTimeMs) {
-                    currentLineIndex = i
-                }
-            }
-            if (!lines.isNullOrEmpty() &&
-                (
-                    current.current in (
-                        0..(
-                            lines.getOrNull(0)?.startTimeMs
-                                ?: "0"
-                        ).toLong()
-                    )
-                )
-            ) {
-                currentLineIndex = -1
-            }
-        } else {
-            currentLineIndex = -1
+    val currentLineIndex by remember(timedLineIndexes) {
+        derivedStateOf {
+            val now = current.current
+            if (now <= 0L) -1 else timedLineIndexes.activeIndexAt(now)
         }
     }
-    LaunchedEffect(key1 = currentLineIndex, key2 = currentLineHeight, key3 = current) {
-        if (currentLineIndex > -1 && currentLineHeight > 0 &&
-            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
+
+    val syncedTranslatedWordsByLineIndex =
+        remember(
+            lyricsData.lyrics.lines,
+            lyricsData.translatedLyrics?.first?.lines,
         ) {
-            listState.animateScrollAndCentralizeItem(
-                index = currentLineIndex,
-                this,
+            buildSyncedTranslatedWordsByLineIndex(
+                originalLines = lyricsData.lyrics.lines.orEmpty(),
+                translatedLines = lyricsData.translatedLyrics?.first?.lines.orEmpty(),
+                thresholdMs = 1000L,
             )
         }
-    }
-
-    fun findClosestTranslatedLine(originalTimeMs: String): String? {
-        val translatedLines = lyricsData.translatedLyrics?.first?.lines ?: return null
-        if (translatedLines.isEmpty()) return null
-
-        val originalTime = originalTimeMs.toLongOrNull() ?: return null
-
-        return translatedLines
-            .minByOrNull {
-                abs((it.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
-            }?.let {
-                val abs = abs((it.startTimeMs.toLongOrNull() ?: 0L) - originalTime)
-                if (abs < 1000L) {
-                    it
-                } else {
-                    null
-                }
-            }?.words
+    LaunchedEffect(currentLineIndex, lyricsData.lyrics.syncType) {
+        if (currentLineIndex > -1 &&
+            (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
+        ) {
+            listState.animateScrollAndCentralizeItem(currentLineIndex)
+        }
     }
 
     Box(modifier = modifier) {
@@ -219,10 +294,10 @@ fun LyricsView(
         ) {
             items(lyricsData.lyrics.lines?.size ?: 0) { index ->
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
-                // Tìm translated lyrics phù hợp dựa vào thời gian
+                // Translated lyrics: synced -> precomputed map by line index, unsynced -> by index.
                 val translatedWords =
                     if (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED") {
-                        line?.startTimeMs?.let { findClosestTranslatedLine(it) }
+                        syncedTranslatedWordsByLineIndex[index]
                     } else {
                         lyricsData.translatedLyrics
                             ?.first
@@ -251,8 +326,6 @@ fun LyricsView(
                                         Modifier
                                             .clickable {
                                                 onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
-                                            }.onGloballyPositioned { c ->
-                                                currentLineHeight = c.size.height
                                             },
                                 )
                             } else {
@@ -266,8 +339,6 @@ fun LyricsView(
                                         Modifier
                                             .clickable {
                                                 onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
-                                            }.onGloballyPositioned { c ->
-                                                currentLineHeight = c.size.height
                                             },
                                 )
                             }
@@ -284,8 +355,6 @@ fun LyricsView(
                                     Modifier
                                         .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
                                             onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
-                                        }.onGloballyPositioned { c ->
-                                            currentLineHeight = c.size.height
                                         },
                             )
                         }
@@ -311,45 +380,15 @@ fun LyricsLineItem(
             ) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    modifier =
-                        Modifier.then(
-                            if (isCurrent) {
-                                Modifier
-                            } else {
-                                Modifier.blur(1.dp)
-                            },
-                        ),
                     text = originalWords,
                     style = typo().headlineLarge,
-                    color =
-                        if (isCurrent) {
-                            Color.White
-                        } else {
-                            Color.LightGray.copy(
-                                alpha = 0.35f,
-                            )
-                        },
+                    color = if (isCurrent) Color.White else DimOriginalColor,
                 )
                 if (translatedWords != null) {
                     Text(
-                        modifier =
-                            Modifier.then(
-                                if (isCurrent) {
-                                    Modifier
-                                } else {
-                                    Modifier.blur(1.dp)
-                                },
-                            ),
                         text = translatedWords,
                         style = typo().bodyMedium,
-                        color =
-                            if (isCurrent) {
-                                Color.Yellow
-                            } else {
-                                Color(0xFF97971A).copy(
-                                    alpha = 0.3f,
-                                )
-                            },
+                        color = if (isCurrent) Color.Yellow else DimTranslatedColor,
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -362,23 +401,15 @@ fun LyricsLineItem(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                modifier = Modifier.blur(1.dp),
                 text = originalWords,
                 style = typo().headlineMedium,
-                color =
-                    Color.LightGray.copy(
-                        alpha = 0.35f,
-                    ),
+                color = DimOriginalColor,
             )
             if (translatedWords != null) {
                 Text(
-                    modifier = Modifier.blur(1.dp),
                     text = translatedWords,
                     style = typo().bodyMedium,
-                    color =
-                        Color(0xFF97971A).copy(
-                            alpha = 0.3f,
-                        ),
+                    color = DimTranslatedColor,
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -397,12 +428,9 @@ fun RichSyncLyricsLineItem(
     customPadding: Dp = 12.dp,
     modifier: Modifier = Modifier,
 ) {
-    // Performance optimization: derive current word index based on timeline
     val currentWordIndex by remember(currentTimeMs, parsedLine.words) {
         derivedStateOf {
             if (!isCurrent) return@derivedStateOf -1
-
-            // Find the last word whose start time is <= current time
             parsedLine.words.indexOfLast { it.startTimeMs <= currentTimeMs }
         }
     }
@@ -414,14 +442,6 @@ fun RichSyncLyricsLineItem(
 
         // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
         FlowRow(
-            modifier =
-                Modifier.then(
-                    if (isCurrent) {
-                        Modifier
-                    } else {
-                        Modifier.blur(1.dp)
-                    },
-                ),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.Center,
         ) {
@@ -459,24 +479,9 @@ fun RichSyncLyricsLineItem(
         // Translated lyrics (line-level, no word sync)
         if (translatedWords != null) {
             Text(
-                modifier =
-                    Modifier.then(
-                        if (isCurrent) {
-                            Modifier
-                        } else {
-                            Modifier.blur(1.dp)
-                        },
-                    ),
                 text = translatedWords,
                 style = typo().bodyMedium,
-                color =
-                    if (isCurrent) {
-                        Color.Yellow
-                    } else {
-                        Color(0xFF97971A).copy(
-                            alpha = 0.3f,
-                        )
-                    },
+                color = if (isCurrent) Color.Yellow else DimTranslatedColor,
             )
         }
 
@@ -484,7 +489,6 @@ fun RichSyncLyricsLineItem(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AnimatedWord(
     word: String,
@@ -497,105 +501,69 @@ private fun AnimatedWord(
     isCurrent: Boolean,
     customFontSize: TextUnit? = null,
 ) {
-    // Non-current lines render simply with dimmed color
-    if (!isCurrent) {
-        Text(
-            text = word,
-            style =
-                typo().headlineLarge.copy(
-                    fontSize = customFontSize ?: typo().headlineLarge.fontSize,
-                ),
-            color = Color.LightGray.copy(alpha = 0.35f),
+    val style =
+        typo().headlineLarge.copy(
+            fontSize = customFontSize ?: typo().headlineLarge.fontSize,
         )
+
+    if (!isCurrent) {
+        Text(text = word, style = style, color = DimOriginalColor)
         return
     }
 
-    // Calculate word duration
-    val wordDuration = (wordEndTimeMs - wordStartTimeMs).coerceAtLeast(100L)
-
-    // Apple Music style: Character-level wipe effect
-    // Split word into individual characters and animate each one
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(0.dp),
-    ) {
-        word.forEachIndexed { charIndex, char ->
-            // Calculate timing for each character
-            // Characters are evenly spaced in time within the word
-            val charStartTimeMs = wordStartTimeMs + (wordDuration * charIndex / word.length)
-            val charEndTimeMs =
-                if (charIndex < word.length - 1) {
-                    wordStartTimeMs + (wordDuration * (charIndex + 1) / word.length)
-                } else {
-                    wordEndTimeMs
-                }
-
-            // Calculate character progress - optimized to avoid excessive recomposition
-            val isPastChar = currentTimeMs >= charEndTimeMs
-            val isFutureChar = currentTimeMs <= charStartTimeMs
-
-            // Use direct calculation for smoother performance
-            val rawProgress =
-                remember(currentTimeMs, charStartTimeMs, charEndTimeMs) {
-                    when {
-                        isPastChar -> {
-                            1f
-                        }
-
-                        isFutureChar -> {
-                            0f
-                        }
-
-                        else -> {
-                            (
-                                (currentTimeMs - charStartTimeMs).toFloat() /
-                                    (charEndTimeMs - charStartTimeMs).toFloat()
-                            ).coerceIn(0f, 1f)
-                        }
-                    }
-                }
-
-            // Animate character progress with smoother easing
-            val animatedCharProgress by animateFloatAsState(
-                targetValue = rawProgress,
-                animationSpec =
-                    spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium,
-                    ),
-                label = "charProgress",
-            )
-
-            // Determine color based on progress with smooth interpolation
-            val charColor =
-                when {
-                    animatedCharProgress >= 1f -> {
-                        Color.White
-                    }
-                    animatedCharProgress <= 0f -> {
-                        Color.LightGray.copy(alpha = 0.6f)
-                    }
-                    else -> {
-                        // Smooth interpolation
-                        val t = animatedCharProgress
-                        val gray = Color.LightGray.copy(alpha = 0.6f)
-                        Color(
-                            red = gray.red + (1f - gray.red) * t,
-                            green = gray.green + (1f - gray.green) * t,
-                            blue = gray.blue + (1f - gray.blue) * t,
-                            alpha = gray.alpha + (1f - gray.alpha) * t,
-                        )
-                    }
-                }
-
-            Text(
-                text = char.toString(),
-                style =
-                    typo().headlineLarge.copy(
-                        fontSize = customFontSize ?: typo().headlineLarge.fontSize,
-                    ),
-                color = charColor,
-            )
+    // Wall-clock wipe driven by an Animatable.
+    // - Future word (not active, not past): progress stays at 0.
+    // - Active word: snap to current % then animateTo(1f) over the remaining duration of the
+    //   word, in real wall-clock time. Independent of timeline emit rate, so wipe is smooth.
+    // - Past word: snap to 1f.
+    val wordDurationMs = (wordEndTimeMs - wordStartTimeMs).coerceAtLeast(100L)
+    val anim =
+        remember(wordStartTimeMs, wordEndTimeMs) {
+            val initial =
+                ((currentTimeMs - wordStartTimeMs).toFloat() / wordDurationMs.toFloat())
+                    .coerceIn(0f, 1f)
+            androidx.compose.animation.core.Animatable(initial)
         }
+
+    LaunchedEffect(wordStartTimeMs, wordEndTimeMs, isActive, isPast) {
+        when {
+            isPast -> anim.snapTo(1f)
+            isActive -> {
+                val now = currentTimeMs
+                val current =
+                    ((now - wordStartTimeMs).toFloat() / wordDurationMs.toFloat())
+                        .coerceIn(0f, 1f)
+                anim.snapTo(current)
+                // Ensure minimum visible wipe duration so very short words don't flash.
+                // Tradeoff: visual may finish ~MIN_WIPE_MS after the actual word end, but the
+                // next isPast=true transition will snap to 1f so it stays consistent.
+                val remainingMs =
+                    (wordEndTimeMs - now).coerceAtLeast(0L).toInt().coerceAtLeast(MIN_WIPE_MS)
+                anim.animateTo(1f, tween(remainingMs, easing = LinearEasing))
+            }
+            // Future word (not active, not past): keep current value.
+            // Don't snap to 0 — playback position can jitter backwards by a few ms,
+            // briefly flipping isActive false. Snapping would jerk the wipe back.
+        }
+    }
+
+    val progress = anim.value
+
+    Box {
+        // Bottom layer: dimmed pending color, drawn for the whole word.
+        Text(text = word, style = style, color = DimRichPendingColor)
+        // Top layer: white, clipped horizontally so only the wiped portion shows.
+        Text(
+            text = word,
+            style = style,
+            color = Color.White,
+            modifier =
+                Modifier.drawWithContent {
+                    clipRect(right = size.width * progress) {
+                        this@drawWithContent.drawContent()
+                    }
+                },
+        )
     }
 }
 
@@ -642,32 +610,55 @@ fun FullscreenLyricsSheet(
     val endColor = remember { Animatable(Color.Black) }
 
     // Dynamic gradient animation - MULTIPLE DIRECTIONS
-    var gradientAngle by remember { mutableFloatStateOf(0f) }
-    var gradientOffsetX by remember { mutableFloatStateOf(0f) }
-    var gradientOffsetY by remember { mutableFloatStateOf(0f) }
-
-    // Animate gradient in dynamic changing directions — only when haze is OFF
-    LaunchedEffect(Unit) {
-        if (!shouldHaze) {
-            var direction = 1f
-            var angleDirection = 1f
-            while (true) {
-                gradientAngle += angleDirection * 0.3f
-                if (gradientAngle > 45f || gradientAngle < -45f) {
-                    angleDirection *= -1f
-                }
-                gradientOffsetX += direction * 1.2f
-                gradientOffsetY += direction * 0.8f
-                if (gradientOffsetX > 1500f || gradientOffsetX < -1500f) {
-                    direction *= -1f
-                }
-                delay(16) // ~60fps smooth
-            }
-        }
+    // Replaces the previous `while(true) { delay(16) }` loop with a Compose
+    // infinite transition. When haze is ON the gradient is hidden, so we keep
+    // values at 0f and skip the transition entirely.
+    val gradientAngle: Float
+    val gradientOffsetX: Float
+    val gradientOffsetY: Float
+    if (!shouldHaze) {
+        val gradientTransition = rememberInfiniteTransition(label = "lyricsGradient")
+        val animatedAngle by gradientTransition.animateFloat(
+            initialValue = -45f,
+            targetValue = 45f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = 6000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+            label = "lyricsGradientAngle",
+        )
+        val animatedOffsetX by gradientTransition.animateFloat(
+            initialValue = -1500f,
+            targetValue = 1500f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = 8000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+            label = "lyricsGradientOffsetX",
+        )
+        val animatedOffsetY by gradientTransition.animateFloat(
+            initialValue = -1000f,
+            targetValue = 1000f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = 8000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+            label = "lyricsGradientOffsetY",
+        )
+        gradientAngle = animatedAngle
+        gradientOffsetX = animatedOffsetX
+        gradientOffsetY = animatedOffsetY
+    } else {
+        gradientAngle = 0f
+        gradientOffsetX = 0f
+        gradientOffsetY = 0f
     }
 
     // Smooth color animation based on lyrics color — only when haze is OFF
-    LaunchedEffect(color) {
+    LaunchedEffect(color, shouldHaze) {
         if (!shouldHaze) {
             launch {
                 startColor.animateTo(

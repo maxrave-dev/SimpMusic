@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -62,8 +63,6 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
 import com.maxrave.simpmusic.ui.theme.shimmerLine
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -357,20 +356,25 @@ fun NonLazyGrid(
     }
 }
 
-fun LazyListState.animateScrollAndCentralizeItem(
-    index: Int,
-    scope: CoroutineScope,
-) {
-    val itemInfo = this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
-    scope.launch {
-        if (itemInfo != null) {
-            val center = this@animateScrollAndCentralizeItem.layoutInfo.viewportEndOffset / 2
-            val childCenter = itemInfo.offset + itemInfo.size / 2
-            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center).toFloat(), tween(300, 0, LinearOutSlowInEasing))
-        } else {
-            this@animateScrollAndCentralizeItem.animateScrollToItem(index)
-        }
+suspend fun LazyListState.animateScrollAndCentralizeItem(index: Int) {
+    if (index < 0) return
+    // If target item is not currently visible, jump close to it first so layoutInfo updates next frame.
+    val initiallyVisible = this.layoutInfo.visibleItemsInfo.any { it.index == index }
+    if (!initiallyVisible) {
+        this.scrollToItem(index)
     }
+    // Wait for one frame so visibleItemsInfo reflects the latest layout pass.
+    withFrameNanos { }
+    val itemInfo =
+        this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index } ?: return
+    val viewportStart = this.layoutInfo.viewportStartOffset
+    val viewportEnd = this.layoutInfo.viewportEndOffset
+    val viewportCenter = (viewportStart + viewportEnd) / 2
+    val itemCenter = itemInfo.offset + itemInfo.size / 2
+    this.animateScrollBy(
+        value = (itemCenter - viewportCenter).toFloat(),
+        animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing),
+    )
 }
 
 @Composable
