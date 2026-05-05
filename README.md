@@ -100,7 +100,8 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 - For Windows: Download the file with extension `.msi`.
 - For macOS: Download the file with extension `.dmg`.
 - For Linux: Download the file with extension `.AppImage` (all Linux distributions)
-
+- For Arch Linux: Available in the [AUR](https://aur.archlinux.org/packages/simpmusic-bin). Install via an AUR helper: `yay -S simpmusic-bin`
+  
 ### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
 #### Discord login guide: https://gist.github.com/MarvNC/e601f3603df22f36ebd3102c501116c6
 
