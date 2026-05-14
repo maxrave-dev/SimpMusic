@@ -214,6 +214,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">ข้อมูลข้อผิดพลาด</string>
     <string name="no_update">เวอร์ชันของคุณเป็นเวอร์ชันใหม่ล่าสุด</string>
     <string name="sleep_timer">ตั้งเวลาปิดเครื่องเล่น - %1$s นาที</string>
+    <string name="sleep_timer_end_of_song">ตั้งเวลาปิดเพลง – เมื่อเพลงจบ</string>
     <string name="sleep_timer_off">ตั้งเวลาปิดเครื่องเล่น</string>
     <string name="sleep_minutes">เวลานับถอยหลัง (นาที)</string>
     <string name="set">ตั้งค่า</string>
@@ -387,6 +388,7 @@
     <string name="blur_fullscreen_lyrics">เอฟเฟกต์เบลอในหน้าจอเนื้อเพลงเต็มจอ</string>
     <string name="blur_fullscreen_lyrics_description">เอฟเฟกต์เบลอพื้นหลังหน้าจอเมื่อเปิดเนื้อเพลงแบบเต็มจอ</string>
     <string name="playback_speed_pitch"><![CDATA[ความเร็วในการเล่นและความสูง-ต่ำของเสียง]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[ความเร็วการเล่นและระดับเสียง (จะถูกปิดใช้งานเมื่อเปิด Crossfade)]]></string>
     <string name="playback_speed">ความเร็วในการเล่น</string>
     <string name="pitch">ความสูง-ต่ำของเสียง</string>
     <string name="blur_player_background">เบลอพื้นหลังของตัวเล่น</string>
@@ -446,6 +448,8 @@
     <string name="crossfade_disabled">ปิดใช้งาน</string>
     <string name="crossfade_duration">ระยะเวลาในการครอสเฟด</string>
     <string name="set_crossfade_duration">ตั้งค่าระยะเวลา Crossfade เป็นวินาที (%1$ds)</string>
+    <string name="crossfade_auto">อัตโนมัติ</string>
+    <string name="crossfade_auto_description">คำนวณระยะเวลาอัตโนมัติตาม BPM (ต้องใช้สตรีม 320 kbps ที่มีข้อมูล BPM)</string>
     <string name="crossfade_dj_mode">การเปลี่ยนเพลงสไตล์ DJ</string>
     <string name="crossfade_dj_mode_description">ใช้การไล่ปรับฟิลเตอร์ Low-pass และ High-pass ระหว่างช่วง Crossfade เพื่อให้การเปลี่ยนเพลงนุ่มนวลและลื่นไหลแบบ DJ (คล้ายฟีเจอร์ Automix ของ Apple Music)</string>
     <string name="youtube_subtitle_language">ภาษาการแปลคำบรรยายบน YouTube</string>
@@ -531,4 +535,8 @@
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">ลิงก์สตรีม 320 kbps ของคุณ</string>
     <string name="search_for">ค้นหา</string>
+    <string name="synced_playlist_cannot_change_order">เพลย์ลิสต์ที่ซิงก์แล้วไม่สามารถเปลี่ยนลำดับได้</string>
+    <string name="bpm">BPM</string>
+    <string name="key">คีย์</string>
+    <string name="scale">บันไดเสียง</string>
 </resources>

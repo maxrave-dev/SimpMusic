@@ -123,6 +123,11 @@
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">Купите мне кофе</string>
+    <string name="developer_blog">Блог разработчика</string>
+    <string name="developer_blog_tagline">Читайте заметки разработчика, руководства и информацию о процессе разработки.</string>
+    <string name="blog_promo_title">Что-то новое из разработки</string>
+    <string name="blog_promo_message">Я только что запустил свой персональный блог на maxrave.dev — поделитесь историей за SimpMusic, музыкальными погружениями и инженерными заметками. Читайте, если интересно ✨</string>
+    <string name="visit_blog">Посетить блог</string>
     <string name="paypal">PayPal</string>
     <string name="title">Название</string>
     <string name="custom_order">Свой порядок</string>
@@ -214,6 +219,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Информация об ошибке</string>
     <string name="no_update">У вас скачана последняя версия приложения</string>
     <string name="sleep_timer">Таймер сна - %1$s минут(ы)</string>
+    <string name="sleep_timer_end_of_song">Таймер сна - Конец песни</string>
     <string name="sleep_timer_off">Таймер сна</string>
     <string name="sleep_minutes">Время отсчета (минуты)</string>
     <string name="set">Установить</string>
@@ -380,6 +386,10 @@
     <string name="invalid_port">Некорректный порт</string>
     <string name="proxy_host_message">Пожалуйста, укажите хост прокси</string>
     <string name="proxy_port_message">Пожалуйста, укажите порт прокси</string>
+    <string name="proxy_username">Имя пользователя прокси</string>
+    <string name="proxy_password">Пароль прокси</string>
+    <string name="proxy_username_message">Введите имя пользователя вашего прокси-сервера (необязательно)</string>
+    <string name="proxy_password_message">Введите пароль от вашего прокси-сервера (необязательно)</string>
     <string name="five_seconds">Пять секунд</string>
     <string name="lyrics_provider_lrc">Источник текста LRCLIB</string>
     <string name="sync_first">Сначала синхронизируйте этот плейлист с YouTube Music</string>
@@ -390,6 +400,7 @@
     <string name="blur_fullscreen_lyrics">Эффект размытия экрана текста песен</string>
     <string name="blur_fullscreen_lyrics_description">Размытие фона в полноэкранном просмотре текстов песен</string>
     <string name="playback_speed_pitch"><![CDATA[Скорость и высота воспроизведения]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Скорость и высота тона воспроизведения (отключено при включенном кроссфейде)]]></string>
     <string name="playback_speed">Скорость воспроизведения</string>
     <string name="pitch">Тон</string>
     <string name="blur_player_background">Размыть фон плеера</string>
@@ -449,6 +460,8 @@
     <string name="crossfade_disabled">Отключено</string>
     <string name="crossfade_duration">Продолжительность кроссфейда</string>
     <string name="set_crossfade_duration">Задать длительность кроссфейда в секундах (%1$ds)</string>
+    <string name="crossfade_auto">Авто</string>
+    <string name="crossfade_auto_description">Автоматический расчет длительности на основе BPM (требуется потоковое видео 320 кбит/с с данными BPM)</string>
     <string name="crossfade_dj_mode">DJ-переход</string>
     <string name="crossfade_dj_mode_description">Применять фильтры низких и высоких частот во время кроссфейда для более плавного перехода в стиле DJ (аналогично Automix в Apple Music).</string>
     <string name="youtube_subtitle_language">Язык перевода субтитров YouTube</string>
@@ -534,4 +547,10 @@
     <string name="simpmusic_charts">Чарты SimpMusic</string>
     <string name="crossfading">Кроссфейд</string>
     <string name="your_320kbps_url">Ваш URL 320 кбит/с</string>
+    <string name="your_320kbps_url_description">Оставьте пустым для автоматического выбора рабочего URL-адреса из контроллера обновления.</string>
+    <string name="search_for">Поиск</string>
+    <string name="synced_playlist_cannot_change_order">Порядок синхронизированного плейлиста невозможно изменить</string>
+    <string name="bpm">BPM</string>
+    <string name="key">Ключ</string>
+    <string name="scale">Шкала</string>
 </resources>

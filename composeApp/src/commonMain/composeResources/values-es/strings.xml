@@ -123,6 +123,7 @@
     <string name="github">GitHub</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">Cómprame un café</string>
+    <string name="developer_blog"></string>
     <string name="paypal">PayPal</string>
     <string name="title">Título</string>
     <string name="custom_order">Orden personalizado</string>
@@ -379,6 +380,10 @@
     <string name="invalid_port">Puerto inválido</string>
     <string name="proxy_host_message">Por favor introduce tu host de Proxy</string>
     <string name="proxy_port_message">Por favor introduce tu puerto de Proxy</string>
+    <string name="proxy_username">Nombre de usuario proxy</string>
+    <string name="proxy_password">Contraseña proxy</string>
+    <string name="proxy_username_message">Por favor ingrese su nombre de usuario proxy (opcional)</string>
+    <string name="proxy_password_message">Introduzca su contraseña proxy (opcional)</string>
     <string name="five_seconds">Cinco segundos</string>
     <string name="lyrics_provider_lrc">Lyrics proporcionados por LRCLIB</string>
     <string name="sync_first">Primero sincroniza esta playlist a Youtube Music</string>
@@ -449,6 +454,8 @@
     <string name="crossfade_disabled">Desactivado</string>
     <string name="crossfade_duration">Duración del crossfade</string>
     <string name="set_crossfade_duration">Establecer la duración del crossfade en segundos (%1$ds)</string>
+    <string name="crossfade_auto">Automático</string>
+    <string name="crossfade_auto_description">Calcula automáticamente la duración basada en BPM (requiere flujo de 320kbps con datos BPM)</string>
     <string name="crossfade_dj_mode">Transición estilo DJ</string>
     <string name="crossfade_dj_mode_description">Aplica un filtro de barrido durante el efecto crossfade para una transición más suave (similar al Automix de Apple Music).</string>
     <string name="youtube_subtitle_language">Idioma de traducción de subtítulos de YouTube</string>
@@ -535,4 +542,7 @@
     <string name="your_320kbps_url">Su URL de 320kbps</string>
     <string name="search_for">Buscar por</string>
     <string name="synced_playlist_cannot_change_order">No se puede cambiar el orden de la lista sincronizada</string>
+    <string name="bpm">BPM</string>
+    <string name="key">Clave</string>
+    <string name="scale">Escala</string>
 </resources>
