@@ -3,9 +3,7 @@ package com.maxrave.simpmusic.ui.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
@@ -20,6 +18,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -54,7 +54,6 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.AlbumEntity
-import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
@@ -82,7 +81,6 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.extension.generateRandomColor
-import com.maxrave.simpmusic.extension.ifNullOrEmpty
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -95,19 +93,12 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.app_name
-import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.available_online
 import simpmusic.composeapp.generated.resources.description
-import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.holder_video
 import simpmusic.composeapp.generated.resources.playlist
-import simpmusic.composeapp.generated.resources.podcasts
-import simpmusic.composeapp.generated.resources.songs
 import simpmusic.composeapp.generated.resources.subscribers
-import simpmusic.composeapp.generated.resources.videos
 import simpmusic.composeapp.generated.resources.you
-import simpmusic.composeapp.generated.resources.your_youtube_playlists
 
 @Composable
 fun HomeItem(
@@ -319,7 +310,8 @@ fun HomeItemContentPlaylist(
         Column(
             modifier =
                 Modifier
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .heightIn(min = thumbSize + 84.dp),
         ) {
             val thumb =
                 when (data) {
@@ -421,16 +413,13 @@ fun HomeItemContentPlaylist(
                     },
                 style = typo().titleSmall,
                 color = Color.White,
-                maxLines = 1,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .width(thumbSize)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 8.dp)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .padding(top = 8.dp),
             )
             Text(
                 text =
@@ -505,47 +494,14 @@ fun HomeItemContentPlaylist(
                         }
                     },
                 style = typo().bodySmall,
+                minLines = 1,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .width(thumbSize)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .wrapContentHeight(align = Alignment.CenterVertically),
             )
-            if (data is com.maxrave.domain.data.type.PlaylistType && data !is AlbumsResult) {
-                val subtitle =
-                    if (data is LocalPlaylistEntity) {
-                        if (data.downloadState != DownloadState.STATE_DOWNLOADED) {
-                            stringResource(Res.string.available_online)
-                        } else {
-                            stringResource(Res.string.downloaded)
-                        }
-                    } else if (data is PlaylistEntity) {
-                        stringResource(Res.string.playlist)
-                    } else if (data is AlbumEntity) {
-                        stringResource(Res.string.album)
-                    } else if (data is PodcastsEntity) {
-                        stringResource(Res.string.podcasts)
-                    } else {
-                        stringResource(Res.string.your_youtube_playlists)
-                    }
-                Text(
-                    text = subtitle,
-                    style = typo().bodySmall,
-                    maxLines = 1,
-                    modifier =
-                        Modifier
-                            .width(thumbSize)
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
-                )
-            }
         }
     }
 }
@@ -603,16 +559,13 @@ fun QuickPicksItem(
                 Text(
                     text = data.title,
                     style = typo().titleSmall,
-                    maxLines = 1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     color = Color.White,
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
                             .padding(
                                 bottom = 3.dp,
                             ),
@@ -633,15 +586,13 @@ fun QuickPicksItem(
                         Text(
                             text = data.artists.toListName().connectArtists(),
                             style = typo().bodySmall,
+                            minLines = 1,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
+                                    .wrapContentHeight(align = Alignment.CenterVertically),
                         )
                     }
                 }
@@ -709,15 +660,12 @@ fun HomeItemSong(
                 style = typo().titleSmall,
                 color = Color.White,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 8.dp)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .padding(top = 8.dp),
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AnimatedVisibility(visible = data.isExplicit == true) {
@@ -732,30 +680,26 @@ fun HomeItemSong(
                 Text(
                     text = data.artists.toListName().connectArtists(),
                     style = typo().bodySmall,
+                    minLines = 1,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier =
                         Modifier
                             .width(160.dp)
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
                             .padding(vertical = 3.dp),
                 )
             }
             Text(
-                text = data.album?.name ?: stringResource(Res.string.songs),
+                text = data.album?.name?.takeIf { it.isNotBlank() }.orEmpty(),
                 style = typo().bodySmall,
+                minLines = 1,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .width(160.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .wrapContentHeight(align = Alignment.CenterVertically),
             )
         }
     }
@@ -813,42 +757,35 @@ fun HomeItemVideo(
                 style = typo().titleSmall,
                 color = Color.White,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 8.dp)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .padding(top = 8.dp),
             )
             Text(
                 text = data.artists.toListName().connectArtists(),
                 style = typo().bodySmall,
+                minLines = 1,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable()
                         .padding(vertical = 2.dp),
             )
             Text(
-                text = data.views ?: stringResource(Res.string.videos),
+                text = data.views?.takeIf { it.isNotBlank() }.orEmpty(),
                 style = typo().bodySmall,
+                minLines = 1,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .width(284.5.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .wrapContentHeight(align = Alignment.CenterVertically),
             )
         }
     }
@@ -871,7 +808,8 @@ fun HomeItemArtist(
         Column(
             modifier =
                 Modifier
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .heightIn(min = 244.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
             Logger.w("AsyncImage", "HomeItemSong: $thumb")
@@ -900,45 +838,26 @@ fun HomeItemArtist(
                 text = data.title,
                 style = typo().titleSmall,
                 color = Color.White,
-                maxLines = 1,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
                         .width(160.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .padding(top = 8.dp)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .padding(top = 8.dp),
             )
             Text(
-                text = data.description.ifNullOrEmpty { stringResource(Res.string.artists) },
+                text = data.description?.takeIf { it.isNotBlank() }.orEmpty(),
                 style = typo().bodySmall,
+                minLines = 1,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
                         .width(160.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
-            )
-            Text(
-                text = "",
-                style = typo().bodySmall,
-                maxLines = 1,
-                textAlign = TextAlign.Center,
-                modifier =
-                    Modifier
-                        .width(160.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable(),
+                        .wrapContentHeight(align = Alignment.CenterVertically),
             )
         }
     }
@@ -1036,52 +955,43 @@ fun ItemVideoChart(
                         Modifier
                             .width(40.dp)
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .align(Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
+                            .align(Alignment.CenterVertically),
                 )
                 Column(Modifier.padding(start = 10.dp)) {
                     Text(
                         text = data.title,
                         style = typo().titleMedium,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         color = Color.White,
                         modifier =
                             Modifier
                                 .width(210.dp)
                                 .wrapContentHeight(align = Alignment.CenterVertically)
-                                .padding(top = 10.dp)
-                                .basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                ).focusable(),
+                                .padding(top = 10.dp),
                     )
                     Text(
                         text = data.artists.toListName().connectArtists(),
                         style = typo().bodyMedium,
+                        minLines = 1,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier =
                             Modifier
                                 .width(210.dp)
                                 .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                ).focusable()
                                 .padding(vertical = 3.dp),
                     )
                     Text(
-                        text = data.views,
+                        text = data.views.takeIf { it.isNotBlank() }.orEmpty(),
                         style = typo().bodySmall,
+                        minLines = 1,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier =
                             Modifier
                                 .width(210.dp)
                                 .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                ).focusable()
                                 .padding(end = 10.dp),
                     )
                 }
@@ -1154,13 +1064,11 @@ fun ItemArtistChart(
                 Text(
                     text = data.title,
                     style = typo().titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     modifier =
                         Modifier
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
+                            .wrapContentHeight(align = Alignment.CenterVertically),
                 )
                 Text(
                     text =
@@ -1176,13 +1084,12 @@ fun ItemArtistChart(
                             )
                         },
                     style = typo().bodySmall,
+                    minLines = 1,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier =
                         Modifier
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
+                            .wrapContentHeight(align = Alignment.CenterVertically),
                 )
             }
         }
@@ -1219,15 +1126,12 @@ fun ItemTrackChart(
                             text = position.toString(),
                             style = typo().titleLarge,
                             textAlign = TextAlign.Center,
+                            maxLines = 1,
                             modifier =
                                 Modifier
                                     .width(40.dp)
                                     .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .align(Alignment.CenterVertically)
-                                    .basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
+                                    .align(Alignment.CenterVertically),
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                     }
@@ -1266,16 +1170,13 @@ fun ItemTrackChart(
                 Text(
                     text = data.title,
                     style = typo().titleSmall,
-                    maxLines = 1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     color = Color.White,
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable()
                             .padding(
                                 bottom = 3.dp,
                             ),
@@ -1284,15 +1185,13 @@ fun ItemTrackChart(
                 Text(
                     text = data.artists.toListName().connectArtists(),
                     style = typo().bodySmall,
+                    minLines = 1,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
+                            .wrapContentHeight(align = Alignment.CenterVertically),
                 )
             }
         }
