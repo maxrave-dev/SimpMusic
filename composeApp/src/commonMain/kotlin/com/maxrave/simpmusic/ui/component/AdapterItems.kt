@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
@@ -311,7 +312,7 @@ fun HomeItemContentPlaylist(
             modifier =
                 Modifier
                     .padding(10.dp)
-                    .heightIn(min = thumbSize + 84.dp),
+                    .heightIn(min = thumbSize + 76.dp),
         ) {
             val thumb =
                 when (data) {
@@ -500,7 +501,12 @@ fun HomeItemContentPlaylist(
                 modifier =
                     Modifier
                         .width(thumbSize)
-                        .wrapContentHeight(align = Alignment.CenterVertically),
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .basicMarquee(
+                            initialDelayMillis = 2000,
+                            repeatDelayMillis = 2000,
+                            velocity = 25.dp,
+                        ),
             )
         }
     }
@@ -592,7 +598,12 @@ fun QuickPicksItem(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .wrapContentHeight(align = Alignment.CenterVertically),
+                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                    .basicMarquee(
+                                        initialDelayMillis = 2000,
+                                        repeatDelayMillis = 2000,
+                                        velocity = 25.dp,
+                                    ),
                         )
                     }
                 }
@@ -623,7 +634,8 @@ fun HomeItemSong(
         Column(
             modifier =
                 Modifier
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .heightIn(min = 236.dp),
         ) {
             val thumb =
                 data.thumbnails.lastOrNull()?.url?.let {
@@ -659,7 +671,7 @@ fun HomeItemSong(
                 text = data.title,
                 style = typo().titleSmall,
                 color = Color.White,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
@@ -678,7 +690,11 @@ fun HomeItemSong(
                     )
                 }
                 Text(
-                    text = data.artists.toListName().connectArtists(),
+                    text =
+                        listOfNotNull(
+                            data.artists.toListName().connectArtists().takeIf { it.isNotBlank() },
+                            data.album?.name?.takeIf { it.isNotBlank() },
+                        ).joinToString(" • "),
                     style = typo().bodySmall,
                     minLines = 1,
                     maxLines = 1,
@@ -687,20 +703,14 @@ fun HomeItemSong(
                         Modifier
                             .width(160.dp)
                             .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                initialDelayMillis = 2000,
+                                repeatDelayMillis = 2000,
+                                velocity = 25.dp,
+                            )
                             .padding(vertical = 3.dp),
                 )
             }
-            Text(
-                text = data.album?.name?.takeIf { it.isNotBlank() }.orEmpty(),
-                style = typo().bodySmall,
-                minLines = 1,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier =
-                    Modifier
-                        .width(160.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically),
-            )
         }
     }
 }
@@ -726,7 +736,8 @@ fun HomeItemVideo(
         Column(
             modifier =
                 Modifier
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .heightIn(min = 236.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
             Logger.w("AsyncImage", "HomeItemSong: $thumb")
@@ -756,7 +767,7 @@ fun HomeItemVideo(
                 text = data.title,
                 style = typo().titleSmall,
                 color = Color.White,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
@@ -765,7 +776,11 @@ fun HomeItemVideo(
                         .padding(top = 8.dp),
             )
             Text(
-                text = data.artists.toListName().connectArtists(),
+                text =
+                    listOfNotNull(
+                        data.artists.toListName().connectArtists().takeIf { it.isNotBlank() },
+                        data.views?.takeIf { it.isNotBlank() },
+                    ).joinToString(" • "),
                 style = typo().bodySmall,
                 minLines = 1,
                 maxLines = 1,
@@ -774,18 +789,12 @@ fun HomeItemVideo(
                     Modifier
                         .width(284.5.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
+                        .basicMarquee(
+                            initialDelayMillis = 2000,
+                            repeatDelayMillis = 2000,
+                            velocity = 25.dp,
+                        )
                         .padding(vertical = 2.dp),
-            )
-            Text(
-                text = data.views?.takeIf { it.isNotBlank() }.orEmpty(),
-                style = typo().bodySmall,
-                minLines = 1,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier =
-                    Modifier
-                        .width(284.5.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically),
             )
         }
     }
@@ -809,7 +818,7 @@ fun HomeItemArtist(
             modifier =
                 Modifier
                     .padding(10.dp)
-                    .heightIn(min = 244.dp),
+                    .heightIn(min = 236.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
             Logger.w("AsyncImage", "HomeItemSong: $thumb")
@@ -857,7 +866,12 @@ fun HomeItemArtist(
                 modifier =
                     Modifier
                         .width(160.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically),
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .basicMarquee(
+                            initialDelayMillis = 2000,
+                            repeatDelayMillis = 2000,
+                            velocity = 25.dp,
+                        ),
             )
         }
     }
@@ -961,7 +975,7 @@ fun ItemVideoChart(
                     Text(
                         text = data.title,
                         style = typo().titleMedium,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         color = Color.White,
                         modifier =
@@ -971,7 +985,11 @@ fun ItemVideoChart(
                                 .padding(top = 10.dp),
                     )
                     Text(
-                        text = data.artists.toListName().connectArtists(),
+                        text =
+                            listOfNotNull(
+                                data.artists.toListName().connectArtists().takeIf { it.isNotBlank() },
+                                data.views.takeIf { it.isNotBlank() },
+                            ).joinToString(" • "),
                         style = typo().bodyMedium,
                         minLines = 1,
                         maxLines = 1,
@@ -980,19 +998,12 @@ fun ItemVideoChart(
                             Modifier
                                 .width(210.dp)
                                 .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    initialDelayMillis = 2000,
+                                    repeatDelayMillis = 2000,
+                                    velocity = 25.dp,
+                                )
                                 .padding(vertical = 3.dp),
-                    )
-                    Text(
-                        text = data.views.takeIf { it.isNotBlank() }.orEmpty(),
-                        style = typo().bodySmall,
-                        minLines = 1,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier =
-                            Modifier
-                                .width(210.dp)
-                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                .padding(end = 10.dp),
                     )
                 }
             }
@@ -1089,7 +1100,12 @@ fun ItemArtistChart(
                     overflow = TextOverflow.Ellipsis,
                     modifier =
                         Modifier
-                            .wrapContentHeight(align = Alignment.CenterVertically),
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                initialDelayMillis = 2000,
+                                repeatDelayMillis = 2000,
+                                velocity = 25.dp,
+                            ),
                 )
             }
         }
@@ -1191,7 +1207,12 @@ fun ItemTrackChart(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically),
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                initialDelayMillis = 2000,
+                                repeatDelayMillis = 2000,
+                                velocity = 25.dp,
+                            ),
                 )
             }
         }
