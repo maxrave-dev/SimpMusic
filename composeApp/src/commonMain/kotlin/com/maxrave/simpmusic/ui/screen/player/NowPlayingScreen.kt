@@ -112,6 +112,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -1093,7 +1094,7 @@ fun NowPlayingScreenContent(
                                                 sharedViewModel.setBitmap(
                                                     it.result.image
                                                         .toBitmap()
-                                                        .asImageBitmap(),
+                                                        .asComposeImageBitmap(),
                                                 )
                                             },
                                             contentScale = ContentScale.Crop,
@@ -1310,7 +1311,7 @@ fun NowPlayingScreenContent(
                                                     pagePaletteState.generate(
                                                         state.result.image
                                                             .toBitmap()
-                                                            .asImageBitmap(),
+                                                            .asComposeImageBitmap(),
                                                     )
                                                 }
                                             },

@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -50,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -243,7 +243,7 @@ private fun Header(
                 onImageLoaded(
                     it.result.image
                         .toBitmap()
-                        .asImageBitmap(),
+                        .asComposeImageBitmap(),
                 )
             },
             placeholder = painterResource(Res.drawable.holder_video),
@@ -270,8 +270,8 @@ private fun Header(
                                     Color.Black.copy(alpha = 0.85f),
                                     md_theme_dark_background,
                                 ),
-                            startY = headerHeightPx / 2,  // Start fade at middle of header
-                            endY = headerHeightPx,         // Complete at bottom of header
+                            startY = headerHeightPx / 2, // Start fade at middle of header
+                            endY = headerHeightPx, // Complete at bottom of header
                         ),
                 ),
         )
@@ -336,9 +336,10 @@ private fun Toolbar(
         exit = fadeOut(animationSpec = tween(300)),
     ) {
         TopAppBar(
-            windowInsets = TopAppBarDefaults.windowInsets.exclude(
-                TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start)
-            ),
+            windowInsets =
+                TopAppBarDefaults.windowInsets.exclude(
+                    TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start),
+                ),
             modifier =
                 Modifier.background(
                     Brush.verticalGradient(

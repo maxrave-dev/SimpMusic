@@ -12,11 +12,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -78,10 +79,6 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.domain.data.entities.DownloadState
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.Platform
@@ -109,6 +106,10 @@ import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
@@ -333,96 +334,96 @@ fun AlbumScreen(
                                         ) {
                                             // Inner Box — backdrop SOURCE (artwork + overlays only, NO glass)
                                             Box(modifier = Modifier.fillMaxSize().layerBackdrop(artworkBackdrop)) {
-                                            AsyncImage(
-                                                model =
-                                                    ImageRequest
-                                                        .Builder(LocalPlatformContext.current)
-                                                        .data(uiState.thumbnail)
-                                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                                        .memoryCachePolicy(CachePolicy.ENABLED)
-                                                        .diskCacheKey(uiState.thumbnail)
-                                                        .memoryCacheKey(uiState.thumbnail)
-                                                        .crossfade(false)
-                                                        .build(),
-                                                placeholder = painterResource(Res.drawable.holder),
-                                                error = painterResource(Res.drawable.holder),
-                                                contentDescription = null,
-                                                contentScale = ContentScale.Crop,
-                                                onSuccess = {
-                                                    bitmap =
-                                                        it.result.image
-                                                            .toBitmap()
-                                                            .asImageBitmap()
-                                                },
-                                                modifier = Modifier.fillMaxSize(),
-                                            )
-                                            // Subtle bottom gradient — keeps artwork visible behind
-                                            // the title text and blends artwork edge seamlessly into
-                                            // the muted palette page background (Apple Music style).
-                                            Box(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height(200.dp)
-                                                        .align(Alignment.BottomCenter)
-                                                        .background(
-                                                            Brush.verticalGradient(
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    Color.Transparent,
-                                                                    mutedPaletteBg.copy(alpha = 0.5f),
-                                                                    mutedPaletteBg,
+                                                AsyncImage(
+                                                    model =
+                                                        ImageRequest
+                                                            .Builder(LocalPlatformContext.current)
+                                                            .data(uiState.thumbnail)
+                                                            .diskCachePolicy(CachePolicy.ENABLED)
+                                                            .memoryCachePolicy(CachePolicy.ENABLED)
+                                                            .diskCacheKey(uiState.thumbnail)
+                                                            .memoryCacheKey(uiState.thumbnail)
+                                                            .crossfade(false)
+                                                            .build(),
+                                                    placeholder = painterResource(Res.drawable.holder),
+                                                    error = painterResource(Res.drawable.holder),
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    onSuccess = {
+                                                        bitmap =
+                                                            it.result.image
+                                                                .toBitmap()
+                                                                .asComposeImageBitmap()
+                                                    },
+                                                    modifier = Modifier.fillMaxSize(),
+                                                )
+                                                // Subtle bottom gradient — keeps artwork visible behind
+                                                // the title text and blends artwork edge seamlessly into
+                                                // the muted palette page background (Apple Music style).
+                                                Box(
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(200.dp)
+                                                            .align(Alignment.BottomCenter)
+                                                            .background(
+                                                                Brush.verticalGradient(
+                                                                    listOf(
+                                                                        Color.Transparent,
+                                                                        Color.Transparent,
+                                                                        mutedPaletteBg.copy(alpha = 0.5f),
+                                                                        mutedPaletteBg,
+                                                                    ),
                                                                 ),
                                                             ),
-                                                        ),
-                                            )
-                                            // Title/artist/year overlay (centered horizontally like Apple Music)
-                                            Column(
-                                                modifier =
-                                                    Modifier
-                                                        .align(Alignment.BottomCenter)
-                                                        .fillMaxWidth()
-                                                        .padding(horizontal = 20.dp)
-                                                        .padding(bottom = 16.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                            ) {
-                                                Text(
-                                                    text = uiState.title,
-                                                    style = typo().titleLarge,
-                                                    color = Color.White,
-                                                    maxLines = 2,
-                                                    textAlign = TextAlign.Center,
                                                 )
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Text(
-                                                    text = uiState.artist.name,
-                                                    style = typo().titleSmall,
-                                                    color = Color.White,
-                                                    textAlign = TextAlign.Center,
+                                                // Title/artist/year overlay (centered horizontally like Apple Music)
+                                                Column(
                                                     modifier =
-                                                        Modifier.clickable {
-                                                            uiState.artist.id?.let { channelId ->
-                                                                navController.navigate(
-                                                                    ArtistDestination(
-                                                                        channelId = channelId,
-                                                                    ),
-                                                                )
-                                                            }
-                                                        },
-                                                )
-                                                Spacer(modifier = Modifier.height(2.dp))
-                                                Text(
-                                                    text =
-                                                        stringResource(
-                                                            Res.string.year_and_category,
-                                                            uiState.year,
-                                                            stringResource(Res.string.album),
-                                                        ),
-                                                    style = typo().bodyMedium,
-                                                    color = Color(0xC4FFFFFF),
-                                                    textAlign = TextAlign.Center,
-                                                )
-                                            }
+                                                        Modifier
+                                                            .align(Alignment.BottomCenter)
+                                                            .fillMaxWidth()
+                                                            .padding(horizontal = 20.dp)
+                                                            .padding(bottom = 16.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                ) {
+                                                    Text(
+                                                        text = uiState.title,
+                                                        style = typo().titleLarge,
+                                                        color = Color.White,
+                                                        maxLines = 2,
+                                                        textAlign = TextAlign.Center,
+                                                    )
+                                                    Spacer(modifier = Modifier.height(4.dp))
+                                                    Text(
+                                                        text = uiState.artist.name,
+                                                        style = typo().titleSmall,
+                                                        color = Color.White,
+                                                        textAlign = TextAlign.Center,
+                                                        modifier =
+                                                            Modifier.clickable {
+                                                                uiState.artist.id?.let { channelId ->
+                                                                    navController.navigate(
+                                                                        ArtistDestination(
+                                                                            channelId = channelId,
+                                                                        ),
+                                                                    )
+                                                                }
+                                                            },
+                                                    )
+                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Text(
+                                                        text =
+                                                            stringResource(
+                                                                Res.string.year_and_category,
+                                                                uiState.year,
+                                                                stringResource(Res.string.album),
+                                                            ),
+                                                        style = typo().bodyMedium,
+                                                        color = Color(0xC4FFFFFF),
+                                                        textAlign = TextAlign.Center,
+                                                    )
+                                                }
                                             }
                                             // Back button — liquid glass effect (Kyant backdrop)
                                             Box(
@@ -489,7 +490,7 @@ fun AlbumScreen(
                                                 bitmap =
                                                     it.result.image
                                                         .toBitmap()
-                                                        .asImageBitmap()
+                                                        .asComposeImageBitmap()
                                             },
                                             modifier =
                                                 Modifier

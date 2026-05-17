@@ -146,7 +146,7 @@ class MainAppWidget :
                 }
 
                 LaunchedEffect(bitmap) {
-                    val bm = bitmap?.asImageBitmap()
+                    val bm = bitmap?.asComposeImageBitmap()
                     if (bm != null) {
                         paletteState.generate(bm)
                     }
