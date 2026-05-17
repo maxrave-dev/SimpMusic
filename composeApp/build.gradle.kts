@@ -347,6 +347,16 @@ afterEvaluate {
         }
     }
 
+    // Wire BuildKonfig output as input to AGP ArtProfile prepare tasks.
+    // Required by Gradle 9 strict task dependency validation.
+    // BuildKonfig 0.21.0 migrated to AGP 9.2.1 + Gradle 9.4.1 but does not
+    // auto-wire generateBuildKonfig output to AGP's prepare*ArtProfile tasks.
+    // Refs: moko-resources#421, AboutLibraries#936 — same pattern fix.
+    tasks.matching { it.name.startsWith("prepare") && it.name.endsWith("ArtProfile") }
+        .configureEach {
+            dependsOn("generateBuildKonfig")
+        }
+
     fun packAppImage(isRelease: Boolean) {
         val appName = "SimpMusic"
         val appDirSrc = project.file("appimage")

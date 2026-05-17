@@ -52,8 +52,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
@@ -239,10 +239,7 @@ fun PodcastScreen(
                                         contentDescription = null,
                                         contentScale = ContentScale.FillHeight,
                                         onSuccess = {
-                                            bitmap =
-                                                it.result.image
-                                                    .toBitmap()
-                                                    .asComposeImageBitmap()
+                                            bitmap = it.result.image.toImageBitmap()
                                         },
                                         modifier =
                                             Modifier

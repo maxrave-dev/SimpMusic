@@ -74,8 +74,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -489,10 +489,7 @@ fun PlaylistScreen(
                                                         contentDescription = null,
                                                         contentScale = ContentScale.Crop,
                                                         onSuccess = {
-                                                            bitmap =
-                                                                it.result.image
-                                                                    .toBitmap()
-                                                                    .asComposeImageBitmap()
+                                                            bitmap = it.result.image.toImageBitmap()
                                                         },
                                                         modifier = Modifier.fillMaxSize(),
                                                     )
@@ -661,10 +658,7 @@ fun PlaylistScreen(
                                                 contentDescription = null,
                                                 contentScale = ContentScale.FillHeight,
                                                 onSuccess = {
-                                                    bitmap =
-                                                        it.result.image
-                                                            .toBitmap()
-                                                            .asComposeImageBitmap()
+                                                    bitmap = it.result.image.toImageBitmap()
                                                 },
                                                 modifier =
                                                     Modifier

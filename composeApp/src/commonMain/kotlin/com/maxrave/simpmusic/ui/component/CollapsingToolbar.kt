@@ -49,8 +49,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -241,9 +241,7 @@ private fun Header(
                     .build(),
             onSuccess = {
                 onImageLoaded(
-                    it.result.image
-                        .toBitmap()
-                        .asComposeImageBitmap(),
+                    it.result.image.toImageBitmap(),
                 )
             },
             placeholder = painterResource(Res.drawable.holder_video),

@@ -301,3 +301,10 @@
 # cache2k references kotlin.annotations.jvm.* (compile-only) at annotation level
 -dontwarn kotlin.annotations.jvm.**
 -dontwarn org.cache2k.**
+
+# Compose MP 1.11.0 graphics API breaking change — Skiko Shader/Paint method
+# signatures changed. Haze 1.7.2 and Compottie 2.1.0 still reference the old
+# signatures (no newer versions available yet). Suppress so ProGuard does not
+# abort. Runtime risk: NoSuchMethodError if affected code paths are hit.
+-dontwarn dev.chrisbanes.haze.**
+-dontwarn io.github.alexzhirkevich.compottie.**

@@ -112,8 +112,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -1092,9 +1092,7 @@ fun NowPlayingScreenContent(
                                             contentDescription = "",
                                             onSuccess = {
                                                 sharedViewModel.setBitmap(
-                                                    it.result.image
-                                                        .toBitmap()
-                                                        .asComposeImageBitmap(),
+                                                    it.result.image.toImageBitmap(),
                                                 )
                                             },
                                             contentScale = ContentScale.Crop,
@@ -1309,9 +1307,7 @@ fun NowPlayingScreenContent(
                                             onSuccess = { state ->
                                                 palettePageScope.launch {
                                                     pagePaletteState.generate(
-                                                        state.result.image
-                                                            .toBitmap()
-                                                            .asComposeImageBitmap(),
+                                                        state.result.image.toImageBitmap(),
                                                     )
                                                 }
                                             },
