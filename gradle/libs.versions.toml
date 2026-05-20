@@ -85,6 +85,8 @@ osdetector = "1.7.3"
 tray = "1.3.0"
 commonsIo = "2.5"
 packagedeps = "0.2.5"
+conveyor = "2.0"
+vaqua = "13"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
@@ -96,6 +98,12 @@ compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "m
 compose-material-ripple = { group = "org.jetbrains.compose.material", name = "material-ripple", version.ref = "material-multiplatform" }
 compose-material-icons-core = { group = "org.jetbrains.compose.material", name = "material-icons-core", version.ref = "material-icons-multiplatform" }
 compose-material-icons-extended = { group = "org.jetbrains.compose.material", name = "material-icons-extended", version.ref = "material-icons-multiplatform" }
+compose-linux-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-arm64", version.ref = "composeMultiplatform" }
+compose-linux-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-x64", version.ref = "composeMultiplatform" }
+compose-macos-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-arm64", version.ref = "composeMultiplatform" }
+compose-macos-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-x64", version.ref = "composeMultiplatform" }
+compose-windows-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-arm64", version.ref = "composeMultiplatform" }
+compose-windows-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-x64", version.ref = "composeMultiplatform" }
 constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayout-compose" }
 foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "foundation" }
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
@@ -224,6 +232,7 @@ androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "w
 
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging-common" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+vaqua = { module = "org.violetlib:vaqua", version.ref = "vaqua" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }
@@ -250,3 +259,4 @@ packagedeps = { id = "io.github.kdroidfilter.compose.linux.packagedeps", version
 # JVM
 osdetector = { id = "com.google.osdetector", version.ref = "osdetector" }
 vlc-setup = { id = "ir.mahozad.vlc-setup", version = "0.1.0" }
+conveyor = { id = "dev.hydraulic.conveyor", version.ref = "conveyor" }

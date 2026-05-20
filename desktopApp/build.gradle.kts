@@ -27,12 +27,19 @@ import java.time.format.DateTimeFormatter
 //   https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/
 //   https://github.com/HaroonBsf/kmp-conveyor-template
 plugins {
-    alias(libs.plugins.jetbrains.kotlin.jvm)
+    // Order matters: per the Bifrost reference (a known-good Conveyor 2.0
+    // + KMP setup), `conveyor` must apply BEFORE `kotlin.multiplatform`.
+    // Conveyor's task creation runs at apply time and only succeeds when
+    // a `jar` task already exists — the compose plugin (applied first)
+    // provides that, while kotlin.multiplatform would override it later
+    // with `jvmJar` if applied before conveyor.
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.conveyor)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.vlc.setup)
-    // Provides the `linuxDebConfig {}` DSL used below (sets startupWMClass).
-    alias(libs.plugins.packagedeps)
+    alias(libs.plugins.kotlin.multiplatform)
+    // alias(libs.plugins.vlc.setup)  // TEMPORARILY DISABLED — forces eager
+    // task realization which triggers Conveyor's `tasks.named("jar")` lookup
+    // before kotlin.multiplatform has created the jvmJar task.
 }
 
 version = libs.versions.version.name.get().removeSuffix("-hf")
@@ -40,55 +47,89 @@ version = libs.versions.version.name.get().removeSuffix("-hf")
 kotlin {
     // 21 matches :media-jvm-ui (requires 21+).
     jvmToolchain(21)
+
+    // KMP jvm() target — Conveyor 2.0's writeConveyorConfig task looks up
+    // `jvmRuntimeClasspath` (KMP convention), so we use the KMP plugin here
+    // even though desktopApp only has a single JVM target. Pattern adapted
+    // from https://github.com/zacharee/Bifrost desktop module.
+    jvm {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+                }
+            }
+        }
+    }
+
+    sourceSets {
+        val jvmMain by getting {
+            dependencies {
+                // Shared KMP library — pulls App.kt, expect/actual impls,
+                // view-models, MiniPlayer state object, etc.
+                implementation(project(":composeApp"))
+
+                // Compose Desktop runtime for the current OS.
+                implementation(compose.desktop.currentOs)
+
+                // Swing dispatcher for kotlinx.coroutines on the JVM.
+                implementation(libs.kotlinx.coroutinesSwing)
+
+                // Sentry crash reporting (full builds only via BuildKonfig).
+                implementation(libs.sentry.jvm)
+
+                // System tray icon for desktop builds.
+                implementation(libs.native.tray)
+
+                // Media player JVM UI primitives consumed by jvmMain expect/actuals.
+                implementation(projects.mediaJvmUi)
+
+                // Commons-IO drives the custom AppImage packaging task below.
+                implementation(libs.commons.io)
+            }
+        }
+    }
 }
 
+// Workaround the Gradle "Cannot mutate configuration after observation" error
+// hit when Conveyor 2.0's per-arch deps mix with VLC-setup / compose plugins
+// that resolve runtimeClasspath at configuration time. Creating a sibling
+// `desktopRuntimeClasspath` configuration shifts Conveyor's resolution off
+// the primary jvmRuntimeClasspath, breaking the lock chain.
+// Source: https://github.com/zacharee/Bifrost/blob/main/desktop/build.gradle.kts
+project.configurations.create("desktopRuntimeClasspath") {
+    extendsFrom(project.configurations.getByName("jvmRuntimeClasspath"))
+}
+
+// Conveyor per-arch artifacts. These configurations are created by the
+// Conveyor plugin's `apply()`; we just feed them the right native compose
+// binaries for cross-build from any host OS.
 dependencies {
-    // Shared KMP library — pulls all commonMain + jvmMain code (App.kt,
-    // expect/actual impls, view-models, the MiniPlayer state object, etc.).
-    implementation(project(":composeApp"))
-
-    // Compose Desktop runtime for the current OS — required by Window APIs
-    // and AWT integration used by the migrated desktop entry / window code.
-    implementation(compose.desktop.currentOs)
-
-    // Swing dispatcher for kotlinx.coroutines on the JVM.
-    implementation(libs.kotlinx.coroutinesSwing)
-
-    // Sentry crash reporting (full builds only — see BuildKonfig wiring).
-    implementation(libs.sentry.jvm)
-
-    // System tray icon for desktop builds.
-    implementation(libs.native.tray)
-
-    // Media player JVM UI primitives consumed by jvmMain expect/actuals.
-    // Already on the runtime classpath via composeApp, declared again here
-    // for the desktop UI components that reference it directly.
-    implementation(projects.mediaJvmUi)
-
-    // Commons-IO drives the custom AppImage packaging task below.
-    implementation(libs.commons.io)
+    linuxAarch64(libs.compose.linux.arm64)
+    linuxAmd64(libs.compose.linux.x64)
+    macAarch64(libs.compose.macos.arm64)
+    macAmd64(libs.compose.macos.x64)
+    windowsAarch64(libs.compose.windows.arm64)
+    windowsAmd64(libs.compose.windows.x64)
 }
 
-// NOTE: Hydraulic Conveyor wiring was attempted on branch
-// feat/conveyor-packaging but blocked by a Gradle config-resolution
-// timing conflict between Conveyor 1.12's `implementation.extendsFrom(<arch>)`
-// chain and an earlier plugin (suspected vlc-setup or compose.multiplatform)
-// resolving `runtimeClasspath` at configuration time. The KMP-structure
-// migration to a dedicated :desktopApp module (per JetBrains 2026
-// guidance) was kept because it unlocked jpackage runs from a standard
-// kotlin("jvm") entry. Conveyor remains a separate follow-up.
-
-// VLC Setup — bundles VLC native libraries so users don't need to install
-// VLC. Output is consumed by `compose.desktop.nativeDistributions.appResourcesRootDir`
-// and by the in-source DefaultVlcDiscoverer at runtime.
-vlcSetup {
-    vlcVersion = libs.versions.vlc.get()
-    shouldCompressVlcFiles = false
-    shouldIncludeAllVlcFiles = true
-    pathToCopyVlcLinuxFilesTo = rootDir.resolve("vlc-natives/linux/")
-    pathToCopyVlcMacosFilesTo = rootDir.resolve("vlc-natives/macos/")
-    pathToCopyVlcWindowsFilesTo = rootDir.resolve("vlc-natives/windows/")
+// Append SimpMusic-specific keys to Conveyor's generated config file.
+tasks.named<hydraulic.conveyor.gradle.WriteConveyorConfigTask>("writeConveyorConfig") {
+    doLast {
+        destination.get().asFile.appendText(
+            """
+            |app.fsname = simpmusic
+            |app.display-name = SimpMusic
+            |app.rdns-name = com.maxrave.simpmusic
+            """.trimMargin() + "\n",
+        )
+    }
 }
+
+// vlcSetup block disabled with the plugin above. VLC natives in
+// vlc-natives/{linux,macos,windows}/ are already on disk from prior runs.
+// TODO: replace with a simple Gradle download task that doesn't iterate
+// tasks at apply time, so Conveyor + vlc-setup can coexist.
 
 compose.desktop {
     application {
@@ -176,10 +217,6 @@ compose.desktop {
             configurationFiles.from(rootDir.resolve("composeApp/proguard-desktop-rules.pro"))
         }
     }
-}
-
-linuxDebConfig {
-    startupWMClass.set("java-lang-Thread")
 }
 
 afterEvaluate {

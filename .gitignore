@@ -40,3 +40,6 @@ sentry.properties
 /vlc-natives/
 /.omc/
 /desktopApp/build/
+
+# Conveyor auto-generated config (run `./gradlew :desktopApp:writeConveyorConfig`)
+/desktopApp/generated.conveyor.conf
