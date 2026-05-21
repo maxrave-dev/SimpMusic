@@ -58,6 +58,31 @@
 # Default rules
 -keep class kotlinx.coroutines.CoroutineExceptionHandler
 -keep class kotlinx.coroutines.internal.MainDispatcherFactory
+
+# kotlinx.coroutines full keep — R8 `optimize` flattens the Job hierarchy
+# and emits illegal `invokespecial` for `Job.cancel()` reached via
+# Supervisor → JobSupport → ChildJob → Job (indirect superinterface).
+# JVM 21 strict verifier rejects this with VerifyError. Keep the whole
+# package plus its volatile fields (compiler-generated state machines).
+-keep class kotlinx.coroutines.** { *; }
+-keepclassmembernames class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+-keepclassmembers class kotlinx.coroutines.flow.internal.ChannelFlow* { <fields>; }
+-dontwarn kotlinx.coroutines.**
+
+# androidx.room — Room generates classes that delegate to coroutines.
+# Same R8 over-optimization risk hits Room's invalidation tracker (uses
+# CoroutineScope internally). Keep everything to be safe.
+-keep class androidx.room.** { *; }
+-keep interface androidx.room.** { *; }
+-keepclassmembers class androidx.room.** { *; }
+-dontwarn androidx.room.**
+
+# androidx.sqlite — Room depends on it; same precaution.
+-keep class androidx.sqlite.** { *; }
+-keep interface androidx.sqlite.** { *; }
+-dontwarn androidx.sqlite.**
 # Keep `Companion` object fields of serializable classes.
 # This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
 -if @kotlinx.serialization.Serializable class **
