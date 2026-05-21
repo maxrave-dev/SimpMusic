@@ -57,12 +57,22 @@ jobs:
       - name: Populate vlc-natives via vlcSetup
         run: ./gradlew :composeApp:vlcSetup --no-configuration-cache
 
+      - name: Download Conveyor (windows amd64)
+        shell: bash
+        run: |
+          curl -L -o conveyor.zip https://downloads.hydraulic.dev/conveyor/conveyor-22.0-windows-amd64.zip
+          7z x -y conveyor.zip > /dev/null
+          echo "$PWD/bin" >> "$GITHUB_PATH"
+
       - name: Run Conveyor (make windows-msix)
-        uses: hydraulic-software/conveyor/actions/build@v22.0
-        with:
-          command: -Kapp.machines=windows.amd64 make windows-msix
-          agree_to_license: 1
-          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+        shell: bash
+        env:
+          CONVEYOR_AGREE_TO_LICENSE: 1
+        run: |
+          conveyor.exe \
+            "-Kapp.signing-key=${{ secrets.CONVEYOR_SIGNING_KEY }}" \
+            -Kapp.machines=windows.amd64 \
+            make windows-msix
 
       - name: Upload .msix package
         uses: actions/upload-artifact@v4

@@ -57,12 +57,22 @@ jobs:
       - name: Populate vlc-natives via vlcSetup
         run: ./gradlew :composeApp:vlcSetup --no-configuration-cache
 
+      - name: Download Conveyor (mac aarch64)
+        shell: bash
+        run: |
+          wget -q https://downloads.hydraulic.dev/conveyor/conveyor-22.0-mac-aarch64.zip
+          unzip -q conveyor-22.0-mac-aarch64.zip
+
       - name: Run Conveyor (make unnotarized-mac-zip, aarch64)
-        uses: hydraulic-software/conveyor/actions/build@v22.0
-        with:
-          command: -Kapp.machines=mac.aarch64 make unnotarized-mac-zip
-          agree_to_license: 1
-          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+        shell: bash
+        env:
+          CONVEYOR_AGREE_TO_LICENSE: 1
+        run: |
+          export PATH="$PWD/Conveyor.app/Contents/MacOS:$PATH"
+          conveyor \
+            "-Kapp.signing-key=${{ secrets.CONVEYOR_SIGNING_KEY }}" \
+            -Kapp.machines=mac.aarch64 \
+            make unnotarized-mac-zip
 
       - name: Upload macOS .zip package
         uses: actions/upload-artifact@v4
@@ -107,12 +117,22 @@ jobs:
       - name: Populate vlc-natives via vlcSetup
         run: ./gradlew :composeApp:vlcSetup --no-configuration-cache
 
+      - name: Download Conveyor (mac amd64)
+        shell: bash
+        run: |
+          wget -q https://downloads.hydraulic.dev/conveyor/conveyor-22.0-mac-amd64.zip
+          unzip -q conveyor-22.0-mac-amd64.zip
+
       - name: Run Conveyor (make unnotarized-mac-zip, amd64)
-        uses: hydraulic-software/conveyor/actions/build@v22.0
-        with:
-          command: -Kapp.machines=mac.amd64 make unnotarized-mac-zip
-          agree_to_license: 1
-          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+        shell: bash
+        env:
+          CONVEYOR_AGREE_TO_LICENSE: 1
+        run: |
+          export PATH="$PWD/Conveyor.app/Contents/MacOS:$PATH"
+          conveyor \
+            "-Kapp.signing-key=${{ secrets.CONVEYOR_SIGNING_KEY }}" \
+            -Kapp.machines=mac.amd64 \
+            make unnotarized-mac-zip
 
       - name: Upload macOS .zip package
         uses: actions/upload-artifact@v4
