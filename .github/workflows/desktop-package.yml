@@ -102,6 +102,11 @@ jobs:
       - name: Wrap Linux app tree → AppImage
         run: ./gradlew :desktopApp:packageConveyorAppImage --no-configuration-cache
 
+      # Conveyor wipes output/ at the start of every `make`, so each Mac
+      # zip is staged into artifacts/mac/ before the next build clobbers it.
+      - name: Stage dir for collected artifacts
+        run: mkdir -p artifacts/mac
+
       - name: Run Conveyor (mac.aarch64 unnotarized-mac-zip)
         uses: hydraulic-software/conveyor/actions/build@v22.0
         with:
@@ -109,12 +114,18 @@ jobs:
           agree_to_license: 1
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
 
+      - name: Stage mac.aarch64 zip
+        run: cp output/*.zip artifacts/mac/
+
       - name: Run Conveyor (mac.amd64 unnotarized-mac-zip)
         uses: hydraulic-software/conveyor/actions/build@v22.0
         with:
           command: -Kapp.machines=mac.amd64 make unnotarized-mac-zip
           agree_to_license: 1
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+
+      - name: Stage mac.amd64 zip
+        run: cp output/*.zip artifacts/mac/
 
       - name: Run Conveyor (windows.amd64 windows-msix)
         uses: hydraulic-software/conveyor/actions/build@v22.0
@@ -133,7 +144,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: desktop-mac-zips
-          path: output/*.zip
+          path: artifacts/mac/*.zip
 
       - name: Upload Windows msix
         uses: actions/upload-artifact@v4
