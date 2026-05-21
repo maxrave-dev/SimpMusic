@@ -269,6 +269,14 @@ val vlcSetupLinuxCi by tasks.registering {
         project.copy {
             from(zipTree(jar))
             into(outputDir)
+            // Ship the full VLC plugin set (matches the v1.2.1 release).
+            // A curated subset based on upstream vlc-setup defaults turned
+            // out to be insufficient for SimpMusic — YT Music streaming
+            // depends on HTTP/HTTPS access + MP4/WebM demuxers that the
+            // upstream music-app preset doesn't cover. `**/` is needed
+            // because include() evaluates against the original jar paths
+            // (which include the `vlc-plugins-linux-<ver>/` top-level dir)
+            // before the eachFile drop(1) transformation kicks in.
             include("**/*.so", "**/*.so.*")
             // Strip the top-level dir inside the jar (matches upstream plugin).
             eachFile {
@@ -307,45 +315,82 @@ val vlcSetupMacCi by tasks.registering {
         )
         outputDir.walk().filter { it.extension == "dylib" }.forEach { it.delete() }
         outputDir.mkdirs()
-        val extractDir = cache.resolve("vlc-mac-$macVersion-extract")
-        extractDir.deleteRecursively()
-        extractDir.mkdirs()
-        // Use 7z to extract DMG cross-platform (hdiutil is macOS-only).
-        // ProcessBuilder rather than Gradle's exec{} so the closure runs
-        // in Task receiver context (Project.exec was removed in Gradle 9).
-        //
-        // 7z returns exit code 2 because the DMG contains a "VLC media
-        // player/Applications → /Applications" drag-to-install symlink
-        // that 7z refuses to extract (dangerous absolute link). The actual
-        // VLC.app payload extracts fine, so we verify by directory presence
-        // below rather than trusting the exit code.
-        val sevenZipExit = ProcessBuilder(
-            "7z", "x", "-y", "-bso0", "-bsp0",
-            "-o${extractDir.absolutePath}",
-            dmg.absolutePath,
-        ).inheritIO().start().waitFor()
-        val macOsDir = extractDir.walkTopDown()
-            .firstOrNull {
-                it.isDirectory &&
-                    it.name == "MacOS" &&
-                    it.parentFile?.name == "Contents" &&
-                    it.parentFile?.parentFile?.name == "VLC.app"
+        // Pick the extractor that's native to the host:
+        //   • macOS  → hdiutil (built-in, no install required for local dev)
+        //   • Linux/Windows CI → 7z (cross-platform HFS+ support, needs
+        //     p7zip-full / official 7-Zip 23+ installed on the runner)
+        // Both paths drop a directory containing the VLC.app payload at
+        // `macOsDir`, ready for the curated copy step below.
+        val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
+        val macOsDir: java.io.File
+        val cleanupMount: (() -> Unit)?
+        if (isMacHost) {
+            val mountPoint = cache.resolve("vlc-mount-$macVersion")
+            mountPoint.deleteRecursively()
+            mountPoint.mkdirs()
+            val attachExit = ProcessBuilder(
+                "hdiutil", "attach",
+                "-mountpoint", mountPoint.absolutePath,
+                "-nobrowse", "-quiet",
+                dmg.absolutePath,
+            ).inheritIO().start().waitFor()
+            check(attachExit == 0) {
+                "hdiutil attach failed with exit code $attachExit for $dmg"
             }
-            ?: error(
-                "VLC.app/Contents/MacOS/ not found inside extracted DMG at $extractDir " +
-                        "(7z exit code $sevenZipExit)",
-            )
-        project.copy {
-            from(macOsDir)
-            into(outputDir)
-            include("lib/libvlc.dylib", "lib/libvlccore.dylib", "plugins/**")
-            // Flatten lib/ → root (matches upstream Mac VlcSetupTask).
-            eachFile {
-                if (relativePath.segments.firstOrNull() == "lib") {
-                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+            macOsDir = mountPoint.resolve("VLC.app/Contents/MacOS")
+            cleanupMount = {
+                ProcessBuilder("hdiutil", "detach", "-quiet", mountPoint.absolutePath)
+                    .inheritIO().start().waitFor()
+            }
+        } else {
+            val extractDir = cache.resolve("vlc-mac-$macVersion-extract")
+            extractDir.deleteRecursively()
+            extractDir.mkdirs()
+            // 7z returns exit code 2 because the DMG contains a "VLC media
+            // player/Applications → /Applications" drag-to-install symlink
+            // that 7z refuses to extract (dangerous absolute link). The
+            // VLC.app payload extracts fine, so we verify by directory
+            // presence below rather than trusting the exit code.
+            val sevenZipExit = ProcessBuilder(
+                "7z", "x", "-y", "-bso0", "-bsp0",
+                "-o${extractDir.absolutePath}",
+                dmg.absolutePath,
+            ).inheritIO().start().waitFor()
+            macOsDir = extractDir.walkTopDown()
+                .firstOrNull {
+                    it.isDirectory &&
+                        it.name == "MacOS" &&
+                        it.parentFile?.name == "Contents" &&
+                        it.parentFile?.parentFile?.name == "VLC.app"
                 }
+                ?: error(
+                    "VLC.app/Contents/MacOS/ not found inside extracted DMG at $extractDir " +
+                            "(7z exit code $sevenZipExit)",
+                )
+            cleanupMount = null
+        }
+        check(macOsDir.isDirectory) {
+            "VLC.app/Contents/MacOS not found at ${macOsDir.absolutePath}"
+        }
+        try {
+            project.copy {
+                from(macOsDir)
+                into(outputDir)
+                // Ship the full VLC plugin set (matches v1.2.1 release).
+                // Curated music-app preset from upstream vlc-setup didn't
+                // include HTTP/HTTPS access + MP4/WebM demuxers needed for
+                // YT Music streaming.
+                include("lib/libvlc.dylib", "lib/libvlccore.dylib", "plugins/**")
+                // Flatten lib/ → root (matches upstream Mac VlcSetupTask).
+                eachFile {
+                    if (relativePath.segments.firstOrNull() == "lib") {
+                        relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                    }
+                }
+                includeEmptyDirs = false
             }
-            includeEmptyDirs = false
+        } finally {
+            cleanupMount?.invoke()
         }
     }
 }
@@ -367,6 +412,12 @@ val vlcSetupWindowsCi by tasks.registering {
         project.copy {
             from(zipTree(zip))
             into(outputDir)
+            // Ship the full VLC plugin set (matches v1.2.1 release). The
+            // music-app preset from upstream vlc-setup turned out to be
+            // missing HTTP/HTTPS access + MP4/WebM demuxers needed for YT
+            // Music streaming. `**/` is required because include() runs
+            // against the original `vlc-<ver>/...` paths inside the zip
+            // before the eachFile drop(1) transformation.
             include("**/*.dll")
             // Strip top-level `vlc-<ver>/` prefix dir.
             eachFile {

@@ -1,14 +1,21 @@
 name: Build desktop packages (cross-OS via Conveyor)
 
-# Single-runner pipeline: one ubuntu-22.04 worker produces AppImage,
-# Mac .zip (aarch64 + amd64), and Windows .msix in one workflow.
+# Two-job pipeline:
+#  1) build-desktop-packages (ubuntu-22.04) — Conveyor cross-builds
+#     AppImage, Mac .zip (aarch64 + amd64), Windows .msix from Linux.
+#  2) wrap-mac-dmg (macos-14, depends on job 1) — extracts each
+#     mac.zip and wraps it into a polished .dmg (background + drag-to-
+#     Applications + volume icon). This step needs macOS because
+#     `create-dmg` + `hdiutil` are macOS-only, but it's fast (~1-2 min
+#     per arch) since it does no compilation.
 #
-# Why one runner works:
-#  - `dev.hydraulic.conveyor` Gradle plugin resolves per-OS Skiko
-#    native jars from Maven on any host.
-#  - `composeApp:vlcSetupAll` (custom task) downloads + extracts VLC
-#    natives for all 3 OSes from Linux (uses 7z for the macOS DMG).
-#  - Conveyor itself cross-packages every target machine from Linux.
+# Why two jobs and not one:
+#  - Conveyor's `unnotarized-mac-zip` produces a `.zip`, which on macOS
+#    15 Sequoia gets a stricter quarantine flag than a `.dmg`-propagated
+#    `.app` does. End users see Gatekeeper's hard-block dialog with no
+#    right-click → Open shortcut. The v1.2.1 jpackage release shipped as
+#    `.dmg`, which Sequoia treats more leniently — that's the UX we want
+#    to preserve.
 
 on:
   workflow_dispatch:
@@ -92,6 +99,9 @@ jobs:
         # (which can contain plugin println output and break HOCON parsing).
         run: ./gradlew :desktopApp:writeConveyorConfig --no-configuration-cache
 
+      # Linux first: `make linux-app` emits the unpacked tree under output/
+      # that our packageConveyorAppImage task wraps into a portable AppImage.
+      # Conveyor 22.0 dropped native AppImage support, hence the wrap.
       - name: Run Conveyor (linux-app)
         uses: hydraulic-software/conveyor/actions/build@v22.0
         with:
@@ -102,52 +112,107 @@ jobs:
       - name: Wrap Linux app tree → AppImage
         run: ./gradlew :desktopApp:packageConveyorAppImage --no-configuration-cache
 
-      # Conveyor wipes output/ at the start of every `make`, so each Mac
-      # zip is staged into artifacts/mac/ before the next build clobbers it.
-      - name: Stage dir for collected artifacts
-        run: mkdir -p artifacts/mac
-
-      - name: Run Conveyor (mac.aarch64 unnotarized-mac-zip)
+      # `make site` builds every machine that has non-empty targets (mac.*
+      # + windows.*) plus the `.appinstaller`, `.exe` wrapper, and the
+      # download.html landing page. Conveyor wipes output/ at the start,
+      # so it does NOT clobber the AppImage we already wrapped (that lives
+      # under desktopApp/build/appimage/).
+      - name: Run Conveyor (make site)
         uses: hydraulic-software/conveyor/actions/build@v22.0
         with:
-          command: -Kapp.machines=mac.aarch64 make unnotarized-mac-zip
+          command: make site
           agree_to_license: 1
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
 
-      - name: Stage mac.aarch64 zip
-        run: cp output/*.zip artifacts/mac/
+      - name: Stage AppImage into output/ for upload
+        run: cp desktopApp/build/appimage/conveyor/SimpMusic-*.AppImage output/
 
-      - name: Run Conveyor (mac.amd64 unnotarized-mac-zip)
-        uses: hydraulic-software/conveyor/actions/build@v22.0
-        with:
-          command: -Kapp.machines=mac.amd64 make unnotarized-mac-zip
-          agree_to_license: 1
-          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+      - name: Show built artifacts
+        run: ls -lh output/
 
-      - name: Stage mac.amd64 zip
-        run: cp output/*.zip artifacts/mac/
-
-      - name: Run Conveyor (windows.amd64 windows-msix)
-        uses: hydraulic-software/conveyor/actions/build@v22.0
-        with:
-          command: -Kapp.machines=windows.amd64 make windows-msix
-          agree_to_license: 1
-          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
-
-      - name: Upload AppImage
+      - name: Upload AppImage to run artifacts
         uses: actions/upload-artifact@v4
         with:
           name: desktop-appimage
-          path: desktopApp/build/appimage/conveyor/SimpMusic-x86_64.AppImage
+          path: output/SimpMusic-*.AppImage
 
-      - name: Upload macOS zips
+      - name: Upload macOS zips to run artifacts
         uses: actions/upload-artifact@v4
         with:
           name: desktop-mac-zips
-          path: artifacts/mac/*.zip
+          path: output/*.zip
 
-      - name: Upload Windows msix
+      - name: Upload Windows installers to run artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-windows-msix
-          path: output/*.msix
+          name: desktop-windows
+          path: |
+            output/*.msix
+            output/*.appinstaller
+            output/*.exe
+
+  wrap-mac-dmg:
+    name: Wrap macOS .zip → .dmg (installer UX)
+    runs-on: macos-14
+    needs: build-desktop-packages
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install create-dmg + ImageMagick
+        # create-dmg = sindresorhus brew formula. ImageMagick is used to
+        # downscale the 2800x1600 source background to a sharp 1400x800
+        # bitmap using a Lanczos filter (matches the DMG window size).
+        run: brew install create-dmg imagemagick
+
+      - name: Read app version
+        id: version
+        run: |
+          VERSION=$(grep '^version-name' gradle/libs.versions.toml | head -1 | cut -d'"' -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "App version: $VERSION"
+
+      - name: Download Mac .zip artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-mac-zips
+          path: mac-zips
+
+      - name: Prepare background (Lanczos resize 2800x1600 → 1400x800)
+        run: |
+          mkdir -p build/dmg
+          magick composeApp/icon/dmg-background.png \
+            -filter Lanczos -resize 1400x800 \
+            build/dmg/dmg-bg-1400x800.png
+
+      - name: Wrap each Mac .zip into a polished .dmg
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          shopt -s nullglob
+          for zip in mac-zips/simpmusic-*-mac-*.zip; do
+            arch="$(basename "$zip" | sed -nE 's/.*-mac-([a-z0-9]+)\.zip/\1/p')"
+            [[ -z "$arch" ]] && { echo "Cannot infer arch from $zip" >&2; exit 1; }
+            workdir="$(mktemp -d)"
+            unzip -q "$zip" -d "$workdir"
+            app="$(find "$workdir" -maxdepth 2 -type d -name '*.app' | head -1)"
+            [[ -d "$app" ]] || { echo "No .app inside $zip" >&2; exit 1; }
+            out="dist/SimpMusic-${VERSION}-mac-${arch}.dmg"
+            scripts/wrap-mac-dmg.sh \
+              "$app" \
+              build/dmg/dmg-bg-1400x800.png \
+              composeApp/icon/circle_app_icon.icns \
+              "$out"
+            rm -rf "$workdir"
+          done
+          ls -lh dist/
+
+      - name: Upload Mac .dmg artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-mac-dmg
+          path: dist/*.dmg
