@@ -47,12 +47,19 @@ jobs:
           distribution: "microsoft"
           cache: 'gradle'
 
-      - name: Install p7zip + libfuse2
-        # p7zip extracts the macOS DMG cross-platform; libfuse2 is needed
-        # to run appimagetool when wrapping the Linux app tree.
+      - name: Install 7-Zip 24.x + libfuse2
+        # Ubuntu's p7zip-full (16.02) can't extract HFS+ DMG content fully —
+        # outer kolyDMG opens but the inner HFS+ partition stays opaque, so
+        # VLC.app never materializes. Use the official Igor Pavlov build,
+        # which has full HFS+ support like the modern Linux/macOS package.
+        # libfuse2 is needed by appimagetool when wrapping the Linux app.
         run: |
           sudo apt-get update
-          sudo apt-get install -y p7zip-full libfuse2
+          sudo apt-get install -y libfuse2
+          curl -fsSL https://github.com/ip7z/7zip/releases/download/26.01/7z2601-linux-x64.tar.xz -o /tmp/7zz.tar.xz
+          sudo tar -xf /tmp/7zz.tar.xz -C /usr/local/bin/ 7zz
+          sudo ln -sf /usr/local/bin/7zz /usr/local/bin/7z
+          7z i | head -3
 
       - name: Update build product flavor
         run: |
