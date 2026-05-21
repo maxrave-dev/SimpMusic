@@ -2,8 +2,10 @@
 
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import org.gradle.api.file.RelativePath
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URI
 import java.util.Properties
 
 val isFullBuild: Boolean =
@@ -214,6 +216,173 @@ tasks.named("vlcSetup").configure {
             }
         }
     }
+}
+
+// ============================================================================
+// Cross-OS VLC natives downloader (single-runner CI)
+// ============================================================================
+// The `vlc-setup` plugin above only registers `vlcSetup` for the HOST OS
+// (LinuxTasksConfigure / MacTasksConfigure / WindowsTasksConfigure each
+// gate on `getCurrentOs() == OS.X`). To package multi-OS artifacts from a
+// single CI runner (Linux), we replicate the plugin's download + filter +
+// copy logic for the OTHER two OSes here.
+//
+// Resulting layout matches the upstream plugin so VLCJ's
+// DefaultVlcDiscoverer keeps working unchanged.
+//
+// Local dev: keep using `./gradlew :composeApp:vlcSetup` (host-OS only).
+// Cross-OS CI: use `./gradlew :composeApp:vlcSetupAll`.
+//
+// Mac DMG extraction needs the 7z tool:
+//   Ubuntu CI:   sudo apt-get install -y p7zip-full
+//   macOS local: brew install p7zip
+val vlcCacheDir = layout.buildDirectory.dir("vlc-cache")
+
+fun downloadIfMissing(url: String, target: java.io.File) {
+    if (target.exists() && target.length() > 0) {
+        logger.lifecycle("[vlc-multi] Cached: ${target.name}")
+        return
+    }
+    logger.lifecycle("[vlc-multi] Downloading $url")
+    target.parentFile.mkdirs()
+    URI(url).toURL().openStream().use { input ->
+        target.outputStream().use { input.copyTo(it) }
+    }
+}
+
+val vlcSetupLinuxCi by tasks.registering {
+    group = "vlc-multi"
+    description = "Cross-OS: populate vlc-natives/linux/ with .so files."
+    val outputDir = rootDir.resolve("vlc-natives/linux/")
+    outputs.dir(outputDir)
+    doLast {
+        // Pinned upstream — Linux artifact is a custom Maven package whose
+        // version is independent of the desktop VLC release.
+        val linuxVersion = "3.0.20-2"
+        val cache = vlcCacheDir.get().asFile
+        val jar = cache.resolve("vlc-plugins-linux-$linuxVersion.jar")
+        downloadIfMissing(
+            "https://repo1.maven.org/maven2/ir/mahozad/vlc-plugins-linux/$linuxVersion/vlc-plugins-linux-$linuxVersion.jar",
+            jar,
+        )
+        outputDir.walk().filter { it.extension == "so" }.forEach { it.delete() }
+        project.copy {
+            from(zipTree(jar))
+            into(outputDir)
+            include("**/*.so", "**/*.so.*")
+            // Strip the top-level dir inside the jar (matches upstream plugin).
+            eachFile {
+                if (relativePath.segments.size > 1) {
+                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                }
+            }
+            includeEmptyDirs = false
+        }
+        // Flatten vlc-natives/linux/vlc/* → vlc-natives/linux/* (same as the
+        // host-OS flatten task above) so Conveyor doesn't duplicate plugins.
+        val nested = outputDir.resolve("vlc")
+        if (nested.isDirectory) {
+            nested.listFiles()?.forEach { child ->
+                val target = outputDir.resolve(child.name)
+                if (target.exists()) target.deleteRecursively()
+                child.renameTo(target)
+            }
+            nested.deleteRecursively()
+        }
+    }
+}
+
+val vlcSetupMacCi by tasks.registering {
+    group = "vlc-multi"
+    description = "Cross-OS: populate vlc-natives/macos/ with .dylib files (uses 7z)."
+    val outputDir = rootDir.resolve("vlc-natives/macos/")
+    outputs.dir(outputDir)
+    doLast {
+        val macVersion = libs.versions.vlc.get()
+        val cache = vlcCacheDir.get().asFile
+        val dmg = cache.resolve("vlc-$macVersion-universal.dmg")
+        downloadIfMissing(
+            "https://get.videolan.org/vlc/$macVersion/macosx/vlc-$macVersion-universal.dmg",
+            dmg,
+        )
+        outputDir.walk().filter { it.extension == "dylib" }.forEach { it.delete() }
+        outputDir.mkdirs()
+        val extractDir = cache.resolve("vlc-mac-$macVersion-extract")
+        extractDir.deleteRecursively()
+        extractDir.mkdirs()
+        // Use 7z to extract DMG cross-platform (hdiutil is macOS-only).
+        // ProcessBuilder rather than Gradle's exec{} so the closure runs
+        // in Task receiver context (Project.exec was removed in Gradle 9).
+        //
+        // 7z returns exit code 2 because the DMG contains a "VLC media
+        // player/Applications → /Applications" drag-to-install symlink
+        // that 7z refuses to extract (dangerous absolute link). The actual
+        // VLC.app payload extracts fine, so we verify by directory presence
+        // below rather than trusting the exit code.
+        val sevenZipExit = ProcessBuilder(
+            "7z", "x", "-y", "-bso0", "-bsp0",
+            "-o${extractDir.absolutePath}",
+            dmg.absolutePath,
+        ).inheritIO().start().waitFor()
+        val macOsDir = extractDir.walkTopDown()
+            .firstOrNull {
+                it.isDirectory &&
+                    it.name == "MacOS" &&
+                    it.parentFile?.name == "Contents" &&
+                    it.parentFile?.parentFile?.name == "VLC.app"
+            }
+            ?: error(
+                "VLC.app/Contents/MacOS/ not found inside extracted DMG at $extractDir " +
+                        "(7z exit code $sevenZipExit)",
+            )
+        project.copy {
+            from(macOsDir)
+            into(outputDir)
+            include("lib/libvlc.dylib", "lib/libvlccore.dylib", "plugins/**")
+            // Flatten lib/ → root (matches upstream Mac VlcSetupTask).
+            eachFile {
+                if (relativePath.segments.firstOrNull() == "lib") {
+                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                }
+            }
+            includeEmptyDirs = false
+        }
+    }
+}
+
+val vlcSetupWindowsCi by tasks.registering {
+    group = "vlc-multi"
+    description = "Cross-OS: populate vlc-natives/windows/ with .dll files."
+    val outputDir = rootDir.resolve("vlc-natives/windows/")
+    outputs.dir(outputDir)
+    doLast {
+        val winVersion = libs.versions.vlc.get()
+        val cache = vlcCacheDir.get().asFile
+        val zip = cache.resolve("vlc-$winVersion-win64.zip")
+        downloadIfMissing(
+            "https://get.videolan.org/vlc/$winVersion/win64/vlc-$winVersion-win64.zip",
+            zip,
+        )
+        outputDir.walk().filter { it.extension == "dll" }.forEach { it.delete() }
+        project.copy {
+            from(zipTree(zip))
+            into(outputDir)
+            include("**/*.dll")
+            // Strip top-level `vlc-<ver>/` prefix dir.
+            eachFile {
+                if (relativePath.segments.size > 1) {
+                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                }
+            }
+            includeEmptyDirs = false
+        }
+    }
+}
+
+val vlcSetupAll by tasks.registering {
+    group = "vlc-multi"
+    description = "Cross-OS: populate vlc-natives/{linux,macos,windows}/ from any host. Use in CI."
+    dependsOn(vlcSetupLinuxCi, vlcSetupMacCi, vlcSetupWindowsCi)
 }
 
 buildkonfig {
