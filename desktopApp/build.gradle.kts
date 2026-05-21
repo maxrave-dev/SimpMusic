@@ -37,9 +37,15 @@ plugins {
     alias(libs.plugins.conveyor)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
-    // alias(libs.plugins.vlc.setup)  // TEMPORARILY DISABLED — forces eager
-    // task realization which triggers Conveyor's `tasks.named("jar")` lookup
-    // before kotlin.multiplatform has created the jvmJar task.
+    // NOTE: `vlc.setup` lives in :composeApp (not here) because its eager
+    // task iteration at apply time triggers Conveyor's writeConveyorConfig
+    // creation, which then fails with "Task with name 'jar' not found" —
+    // jvmJar isn't created until after the script body's `kotlin {}` block
+    // runs. Plugin order tricks (vlc.setup last, Bifrost ordering) don't
+    // help because vlc.setup's iteration force-realizes EVERY existing
+    // task, including the lazily-registered Conveyor ones. Confirmed by
+    // retry on 2026-05-21: same error reproduced. Run vlcSetup via
+    // `./gradlew :composeApp:vlcSetup --no-configuration-cache`.
 }
 
 version = libs.versions.version.name.get().removeSuffix("-hf")
@@ -113,14 +119,29 @@ dependencies {
     windowsAmd64(libs.compose.windows.x64)
 }
 
-// Append SimpMusic-specific keys to Conveyor's generated config file.
+// Append SimpMusic-specific keys to Conveyor's generated config file and
+// — crucially — replace the auto-detected `app.inputs` classpath with
+// ProGuard's shrunk jar directory so the packaged AppImage carries
+// obfuscated + size-reduced bytecode instead of raw Gradle output.
+// `dependsOn(proguardReleaseJars)` builds the shrunk jars first.
 tasks.named<hydraulic.conveyor.gradle.WriteConveyorConfigTask>("writeConveyorConfig") {
+    dependsOn(tasks.named("proguardReleaseJars"))
+    val proguardJarsDir = layout.buildDirectory.dir("compose/tmp/main-release/proguard")
     doLast {
         destination.get().asFile.appendText(
             """
             |app.fsname = simpmusic
             |app.display-name = SimpMusic
             |app.rdns-name = com.maxrave.simpmusic
+            |
+            |// Override the Gradle-detected classpath with the ProGuard'd
+            |// jar directory. Conveyor expands a directory entry to every
+            |// file inside it — saves ~750 MB raw / ~100 MB compressed in
+            |// the resulting AppImage by replacing 221 raw jars with the
+            |// shrunk equivalents from compose.desktop's proguard task.
+            |app.inputs = [
+            |    "${proguardJarsDir.get().asFile.absolutePath}"
+            |]
             """.trimMargin() + "\n",
         )
     }
@@ -242,23 +263,57 @@ afterEvaluate {
         }
     }
 
-    fun packAppImage(isRelease: Boolean) {
+}
+
+// ---------------------------------------------------------------------------
+// packageConveyorAppImage — wraps Conveyor's `linux-app` directory tree
+// (project root /output) into a single-file .AppImage. Conveyor 2.0 dropped
+// native AppImage support (only .deb + .tar.gz remain), so we keep the
+// "one-for-all-distros" .AppImage by piping its output through appimagetool
+// — identical to the previous jpackage-based pipeline, just sourced from
+// Conveyor instead.
+//
+// Usage: run AFTER `conveyor -Kapp.machines=linux.amd64.glibc make linux-app`
+//        then `./gradlew :desktopApp:packageConveyorAppImage`
+// ---------------------------------------------------------------------------
+// Step 1 of the AppImage chain — invoke the external `conveyor` CLI to
+// produce ./output (the relocatable linux-app directory tree).
+// Conveyor 2.0 prompts once for a root-key passphrase on first run; press
+// Enter to use no passphrase. Subsequent runs are fully non-interactive.
+val conveyorMakeLinuxApp = tasks.register<Exec>("conveyorMakeLinuxApp") {
+    group = "distribution"
+    description = "Run `conveyor make linux-app` for Linux x86_64 (glibc)."
+    dependsOn(":composeApp:vlcSetup")
+    workingDir = rootDir
+    commandLine(
+        "conveyor",
+        "--agree-to-license=1",
+        "-Kapp.machines=linux.amd64.glibc",
+        "make", "linux-app",
+    )
+    standardInput = System.`in`
+}
+
+tasks.register("packageConveyorAppImage") {
+    group = "distribution"
+    description = "Wrap Conveyor's linux-app output (./output) into a portable .AppImage."
+    // Captures project references (rootDir, layout, libs catalog) inside
+    // doLast — necessary for the per-build paths, incompatible with the
+    // Gradle 9 configuration cache. This is a manual one-shot packaging
+    // task invoked after `conveyor make linux-app`, not part of the
+    // critical CI path, so opting out is acceptable.
+    notCompatibleWithConfigurationCache(
+        "Reads project/layout/libs from within doLast to compute appimage paths."
+    )
+
+    doLast {
         val appName = "SimpMusic"
-        val appDirSrc = rootDir.resolve("composeApp/appimage")
-        val packageOutput =
-            if (isRelease) {
-                layout.buildDirectory
-                    .dir("compose/binaries/main-release/app/$appName")
-                    .get()
-                    .asFile
-            } else {
-                layout.buildDirectory
-                    .dir("compose/binaries/main/app/$appName")
-                    .get()
-                    .asFile
-            }
-        if (!appDirSrc.exists() || !packageOutput.exists()) {
-            return
+        val conveyorOutput = rootDir.resolve("output")
+        if (!conveyorOutput.exists()) {
+            throw GradleException(
+                "Conveyor output (./output) not found. Run `conveyor " +
+                    "-Kapp.machines=linux.amd64.glibc make linux-app` first.",
+            )
         }
 
         val appimagetool =
@@ -267,40 +322,42 @@ afterEvaluate {
                 .get()
                 .asFile
                 .resolve("appimagetool-x86_64.AppImage")
-
         if (!appimagetool.exists()) {
             downloadFile(
                 "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage",
                 appimagetool,
             )
         }
-
         if (!appimagetool.canExecute()) {
             appimagetool.setExecutable(true)
         }
 
         val appDir =
-            if (isRelease) {
-                layout.buildDirectory
-                    .dir("appimage/main-release/$appName.AppDir")
-                    .get()
-                    .asFile
-            } else {
-                layout.buildDirectory
-                    .dir("appimage/main/$appName.AppDir")
-                    .get()
-                    .asFile
-            }
+            layout.buildDirectory
+                .dir("appimage/conveyor/$appName.AppDir")
+                .get()
+                .asFile
         if (appDir.exists()) {
             appDir.deleteRecursively()
         }
 
-        FileUtils.copyDirectory(appDirSrc, appDir)
-        FileUtils.copyDirectory(packageOutput, appDir)
+        // Stage scaffold (icon source) + Conveyor binary tree.
+        val appDirSrc = rootDir.resolve("composeApp/appimage")
+        if (appDirSrc.exists()) {
+            FileUtils.copyDirectory(appDirSrc, appDir)
+        } else {
+            appDir.mkdirs()
+        }
+        FileUtils.copyDirectory(conveyorOutput, appDir)
 
-        val versionName =
-            libs.versions.version.name
-                .get()
+        // Ensure top-level PNG icon expected by appimagetool exists.
+        val iconSrc = rootDir.resolve("composeApp/icon/circle_app_icon.png")
+        val iconDst = appDir.resolve("simpmusic.png")
+        if (!iconDst.exists() && iconSrc.exists()) {
+            FileUtils.copyFile(iconSrc, iconDst)
+        }
+
+        val versionName = libs.versions.version.name.get()
         val desktopFile = appDir.resolve("simpmusic.desktop")
         desktopFile.writeText(
             """[Desktop Entry]
@@ -308,7 +365,7 @@ afterEvaluate {
             |Version=1.0
             |Name=SimpMusic
             |Comment=SimpMusic v$versionName - FOSS YouTube Music Client
-            |Exec=bin/SimpMusic %u
+            |Exec=bin/simpmusic %u
             |Icon=simpmusic
             |Terminal=false
             |Categories=Audio;AudioVideo;
@@ -325,7 +382,7 @@ afterEvaluate {
             |SELF=${'$'}(readlink -f "${'$'}0")
             |HERE=${'$'}{SELF%/*}
             |
-            |# Install icon to XDG icon directories for desktop integration
+            |# Install icon into XDG dirs so GNOME/KDE pick it up the first time.
             |ICON_DIR="${'$'}HOME/.local/share/icons/hicolor/256x256/apps"
             |if [ ! -f "${'$'}ICON_DIR/simpmusic.png" ] || [ "${'$'}HERE/simpmusic.png" -nt "${'$'}ICON_DIR/simpmusic.png" ]; then
             |    mkdir -p "${'$'}ICON_DIR"
@@ -333,30 +390,32 @@ afterEvaluate {
             |    gtk-update-icon-cache -f -t "${'$'}HOME/.local/share/icons/hicolor" 2>/dev/null || true
             |fi
             |
-            |# Install .desktop file with WM_CLASS name so GNOME/KDE can match window to icon
+            |# Install .desktop file with absolute Exec path to the AppImage.
             |DESKTOP_DIR="${'$'}HOME/.local/share/applications"
             |mkdir -p "${'$'}DESKTOP_DIR"
             |APPIMAGE_PATH="${'$'}{APPIMAGE:-${'$'}SELF}"
-            |sed "s|Exec=bin/SimpMusic|Exec=${'$'}APPIMAGE_PATH|" "${'$'}HERE/simpmusic.desktop" > "${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
+            |sed "s|Exec=bin/simpmusic|Exec=${'$'}APPIMAGE_PATH|" "${'$'}HERE/simpmusic.desktop" > "${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
             |update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
             |
             |cd "${'$'}HERE"
-            |exec bin/$appName "${'$'}@"
+            |exec bin/simpmusic "${'$'}@"
             |
             """.trimMargin(),
         )
         appRun.setExecutable(true, false)
 
-        val appExecutable = appDir.resolve("bin/$appName")
-        if (!appExecutable.canExecute()) {
+        // Conveyor's launcher lives at output/bin/simpmusic (lowercase).
+        val appExecutable = appDir.resolve("bin/simpmusic")
+        if (appExecutable.exists() && !appExecutable.canExecute()) {
             appExecutable.setExecutable(true)
         }
 
+        val outputAppImage = appDir.parentFile.resolve("$appName-x86_64.AppImage")
         val process =
             ProcessBuilder(
                 appimagetool.canonicalPath,
                 "$appName.AppDir",
-                "$appName-x86_64.AppImage",
+                outputAppImage.name,
             ).directory(appDir.parentFile)
                 .apply { environment()["ARCH"] = "x86_64" }
                 .inheritIO()
@@ -366,14 +425,86 @@ afterEvaluate {
         if (exitCode != 0) {
             throw GradleException("appimagetool failed with exit code $exitCode")
         }
+        println("[AppImage] Built: ${outputAppImage.absolutePath}")
     }
+}
 
-    tasks.findByName("packageAppImage")?.doLast {
-        packAppImage(false)
-    }
-    tasks.findByName("packageReleaseAppImage")?.doLast {
-        packAppImage(true)
-    }
+// End-to-end: vlcSetup → conveyor make linux-app → wrap as .AppImage.
+// Single command for users: `./gradlew :desktopApp:buildLinuxAppImage --no-configuration-cache`
+tasks.register("buildLinuxAppImage") {
+    group = "distribution"
+    description = "Full SimpMusic Desktop Linux AppImage build pipeline (vlcSetup → conveyor → AppImage)."
+    dependsOn(conveyorMakeLinuxApp)
+    finalizedBy("packageConveyorAppImage")
+}
+
+// macOS — Conveyor 2.0 ships .zip wrapping the .app bundle (no native
+// .dmg target). Run on a macOS host for proper code signing; cross-build
+// from Linux works but the app won't be signed.
+//
+// Run via: `./gradlew :desktopApp:buildMacZipAmd64 --no-configuration-cache`
+val conveyorMakeMacZipAmd64 = tasks.register<Exec>("conveyorMakeMacZipAmd64") {
+    group = "distribution"
+    description = "Run `conveyor make unnotarized-mac-zip` for macOS Intel."
+    dependsOn(":composeApp:vlcSetup")
+    workingDir = rootDir
+    commandLine(
+        "conveyor",
+        "--agree-to-license=1",
+        "-Kapp.machines=mac.amd64",
+        "make", "unnotarized-mac-zip",
+    )
+    standardInput = System.`in`
+}
+
+val conveyorMakeMacZipAarch64 = tasks.register<Exec>("conveyorMakeMacZipAarch64") {
+    group = "distribution"
+    description = "Run `conveyor make unnotarized-mac-zip` for macOS Apple Silicon."
+    dependsOn(":composeApp:vlcSetup")
+    workingDir = rootDir
+    commandLine(
+        "conveyor",
+        "--agree-to-license=1",
+        "-Kapp.machines=mac.aarch64",
+        "make", "unnotarized-mac-zip",
+    )
+    standardInput = System.`in`
+}
+
+tasks.register("buildMacZipAmd64") {
+    group = "distribution"
+    description = "Full SimpMusic Desktop macOS Intel .zip pipeline (vlcSetup → conveyor)."
+    dependsOn(conveyorMakeMacZipAmd64)
+}
+
+tasks.register("buildMacZipAarch64") {
+    group = "distribution"
+    description = "Full SimpMusic Desktop macOS Apple Silicon .zip pipeline (vlcSetup → conveyor)."
+    dependsOn(conveyorMakeMacZipAarch64)
+}
+
+// Windows — Conveyor 2.0 ships .msix (modern Windows 10+ app package).
+// NOTE: Unsigned .msix has rough UX (users must enable sideloading +
+// install certificate). Recommended path long-term: code-sign with an
+// EV cert OR switch to Inno Setup `.exe` wrap if signing budget unavailable.
+val conveyorMakeWindowsMsix = tasks.register<Exec>("conveyorMakeWindowsMsix") {
+    group = "distribution"
+    description = "Run `conveyor make windows-msix` for Windows x86_64."
+    dependsOn(":composeApp:vlcSetup")
+    workingDir = rootDir
+    commandLine(
+        "conveyor",
+        "--agree-to-license=1",
+        "-Kapp.machines=windows.amd64",
+        "make", "windows-msix",
+    )
+    standardInput = System.`in`
+}
+
+tasks.register("buildWindowsMsix") {
+    group = "distribution"
+    description = "Full SimpMusic Desktop Windows .msix pipeline (vlcSetup → conveyor)."
+    dependsOn(conveyorMakeWindowsMsix)
 }
 
 tasks.withType<AbstractJPackageTask>().configureEach {

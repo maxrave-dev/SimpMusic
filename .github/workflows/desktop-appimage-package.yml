@@ -1,4 +1,4 @@
-name: Build desktop AppImage package
+name: Build desktop AppImage package (Conveyor)
 
 on:
   workflow_dispatch:
@@ -28,15 +28,15 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - name: set up JDK 17
+      - name: set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: "microsoft"
           cache: 'gradle'
 
-      - name: Install libfuse2
-        run: sudo apt install libfuse2
+      - name: Install libfuse2 (AppImage runtime)
+        run: sudo apt-get update && sudo apt-get install -y libfuse2
 
       - name: Update build product flavor
         run: |
@@ -54,14 +54,21 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Set up VLC
-        run: ./gradlew vlcSetup
+      - name: Populate vlc-natives via vlcSetup
+        run: ./gradlew :composeApp:vlcSetup --no-configuration-cache
 
-      - name: Build desktop AppImage package
-        run: ./gradlew composeApp:packageReleaseAppImage
+      - name: Run Conveyor (make linux-app)
+        uses: hydraulic-software/conveyor/actions/build@v22.0
+        with:
+          command: -Kapp.machines=linux.amd64.glibc make linux-app
+          agree_to_license: 1
+          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+
+      - name: Wrap output/ → SimpMusic-x86_64.AppImage
+        run: ./gradlew :desktopApp:packageConveyorAppImage --no-configuration-cache
 
       - name: Upload AppImage package
         uses: actions/upload-artifact@v4
         with:
           name: desktop-appimage-package
-          path: composeApp/build/appimage/main-release/SimpMusic-x86_64.AppImage
+          path: desktopApp/build/appimage/conveyor/SimpMusic-x86_64.AppImage

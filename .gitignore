@@ -24,7 +24,6 @@ crowdin.yml
 #dev files
 ign.md
 .docs
-
 # Sentry Config File
 sentry.properties
 /composeApp/build/
@@ -32,14 +31,13 @@ sentry.properties
 /composeApp/kcef-bundle/
 /.mcp.json
 /.claude/settings.local.json
-
 /androidApp/build/
 /androidApp/cache/
-
 # VLC native libraries (downloaded by vlc-setup plugin)
 /vlc-natives/
 /.omc/
 /desktopApp/build/
-
 # Conveyor auto-generated config (run `./gradlew :desktopApp:writeConveyorConfig`)
 /desktopApp/generated.conveyor.conf
+# Conveyor output directory
+/output/

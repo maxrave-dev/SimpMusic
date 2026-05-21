@@ -170,12 +170,51 @@ kotlin {
     }
 }
 
-// NOTE: vlcSetup{}, compose.desktop{} application block, ProGuard config,
+// NOTE: compose.desktop{} application block, ProGuard config,
 // linuxDebConfig{}, the custom AppImage tooling, and Conveyor packaging
-// now live in :desktopApp per the JetBrains 2026 KMP default structure
-// (https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/).
-// This module stays a pure KMP library; only the JVM expect/actual
-// implementations remain in src/jvmMain.
+// live in :desktopApp per the JetBrains 2026 KMP default structure.
+//
+// vlcSetup{} stays in :composeApp — moving it to :desktopApp fails
+// because vlc.setup eagerly iterates tasks at apply time, which force-
+// realizes Conveyor's lazily-registered writeConveyorConfig task before
+// kotlin.multiplatform has created jvmJar → "Task with name 'jar' not
+// found" (reproduced 2026-05-21 with vlc.setup placed last in the
+// plugins block — plugin order does not help). composeApp has no
+// Conveyor so the conflict cannot occur here.
+//
+// Run `./gradlew :composeApp:vlcSetup --no-configuration-cache` to
+// populate vlc-natives/{linux,macos,windows}/.
+vlcSetup {
+    vlcVersion = libs.versions.vlc.get()
+    shouldCompressVlcFiles = false
+    shouldIncludeAllVlcFiles = true
+    pathToCopyVlcLinuxFilesTo   = rootDir.resolve("vlc-natives/linux/")
+    pathToCopyVlcMacosFilesTo   = rootDir.resolve("vlc-natives/macos/")
+    pathToCopyVlcWindowsFilesTo = rootDir.resolve("vlc-natives/windows/")
+}
+
+// Flatten vlc-natives/<os>/vlc/plugins → vlc-natives/<os>/plugins after
+// vlc-setup copies files. The plugin ships a nested vlc/ subdir for VLC's
+// own path resolution, but Conveyor then copies both the nested tree AND
+// extracts the .so files flat at the parent → 2× duplication (~348 MB
+// extra) in the packaged AppImage. Flat layout keeps Conveyor lean while
+// VLCJ still resolves libs via DefaultVlcDiscoverer.
+tasks.named("vlcSetup").configure {
+    doLast {
+        listOf("linux", "macos", "windows").forEach { osDir ->
+            val root = rootDir.resolve("vlc-natives/$osDir")
+            val nested = root.resolve("vlc")
+            if (nested.isDirectory) {
+                nested.listFiles()?.forEach { child ->
+                    val target = root.resolve(child.name)
+                    if (target.exists()) target.deleteRecursively()
+                    child.renameTo(target)
+                }
+                nested.deleteRecursively()
+            }
+        }
+    }
+}
 
 buildkonfig {
     packageName = "com.maxrave.simpmusic"
