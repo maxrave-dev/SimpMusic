@@ -112,15 +112,23 @@ jobs:
       - name: Wrap Linux app tree → AppImage
         run: ./gradlew :desktopApp:packageConveyorAppImage --no-configuration-cache
 
-      # `make site` builds every machine that has non-empty targets (mac.*
-      # + windows.*) plus the `.appinstaller`, `.exe` wrapper, and the
-      # download.html landing page. Conveyor wipes output/ at the start,
-      # so it does NOT clobber the AppImage we already wrapped (that lives
-      # under desktopApp/build/appimage/).
-      - name: Run Conveyor (make site)
+      # `make site` builds every machine that has non-empty targets +
+      # `.appinstaller`, `.exe` wrapper, and the download.html landing
+      # page. Conveyor wipes output/ at the start, so it does NOT clobber
+      # the AppImage we already wrapped (that lives under
+      # desktopApp/build/appimage/).
+      #
+      # `-Kapp.machines=...` restricts the site build to Mac + Windows.
+      # Linux is excluded because we already produced the AppImage in
+      # the previous step. Without this restriction, `make site` re-
+      # enters Conveyor's Linux tarball pipeline as an intermediate even
+      # when `linux.amd64.targets = []`, and that intermediate fails the
+      # build with "Linux Tarball Contents for Intel" before the Mac /
+      # Windows artifacts get a chance to run.
+      - name: Run Conveyor (make site, Mac + Windows only)
         uses: hydraulic-software/conveyor/actions/build@v22.0
         with:
-          command: make site
+          command: -Kapp.machines=mac.amd64,mac.aarch64,windows.amd64,windows.aarch64 make site
           agree_to_license: 1
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
 
