@@ -150,14 +150,43 @@ jobs:
           name: desktop-mac-zips
           path: output/*.zip
 
-      - name: Upload Windows installers to run artifacts
+      # Bundle each Windows arch into a self-contained offline installer
+      # zip = install.bat + simpmusic.crt + simpmusic-<ver>-<arch>.msix.
+      # Conveyor's default .exe wrapper + .appinstaller fetch URLs from
+      # `site.base-url` (GitHub Releases /latest/download/) which 404 for
+      # unreleased builds, so we ship our own scripts/windows/install.bat
+      # that trusts the cert and sideloads the msix offline — no network
+      # round-trip, double-click works, UAC self-elevates.
+      - name: Bundle Windows offline installers per arch
+        run: |
+          set -euo pipefail
+          if [ ! -f output/simpmusic.crt ]; then
+            echo "::error::output/simpmusic.crt missing — Conveyor signing must have failed"
+            exit 1
+          fi
+          mkdir -p installers/
+          for arch in x64 arm64; do
+            msix=$(ls output/simpmusic-*."${arch}".msix 2>/dev/null | head -1)
+            if [ -z "$msix" ]; then
+              echo "::error::No simpmusic-*.${arch}.msix found in output/"
+              exit 1
+            fi
+            stage="$(mktemp -d)"
+            cp scripts/windows/install.bat "$stage/"
+            cp output/simpmusic.crt        "$stage/"
+            cp "$msix"                      "$stage/"
+            ( cd "$stage" && zip -q -j \
+              "${GITHUB_WORKSPACE}/installers/SimpMusic-Windows-${arch}-installer.zip" \
+              install.bat simpmusic.crt "$(basename "$msix")" )
+            rm -rf "$stage"
+          done
+          ls -lh installers/
+
+      - name: Upload Windows offline installers
         uses: actions/upload-artifact@v4
         with:
           name: desktop-windows
-          path: |
-            output/*.msix
-            output/*.appinstaller
-            output/*.exe
+          path: installers/SimpMusic-Windows-*-installer.zip
 
   wrap-mac-dmg:
     name: Wrap macOS .zip → .dmg (installer UX)
