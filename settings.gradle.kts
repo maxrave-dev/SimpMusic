@@ -55,6 +55,7 @@ rootProject.name = "SimpMusic"
 include(
     ":androidApp",
     ":composeApp",
+    ":desktopApp",
     ":common",
     ":data",
     ":domain",
