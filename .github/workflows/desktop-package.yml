@@ -22,8 +22,6 @@ on:
   push:
     branches:
       - 'dev'
-      # TODO: remove after Conveyor cross-OS pipeline verified end-to-end on CI
-      - 'feat/conveyor-packaging'
     paths-ignore:
       - 'README.md'
       - 'fastlane/**'
