@@ -258,8 +258,28 @@ fun downloadIfMissing(url: String, target: java.io.File) {
     }
     logger.lifecycle("[vlc-multi] Downloading $url")
     target.parentFile.mkdirs()
-    URI(url).toURL().openStream().use { input ->
-        target.outputStream().use { input.copyTo(it) }
+    // Use curl instead of Java's URL.openStream() because get.videolan.org
+    // returns a 302 redirect to a random mirror per request, and Java's
+    // default HttpURLConnection redirect handling is fragile — if the
+    // mirror lands on a cross-protocol redirect or returns an HTML error
+    // page, openStream() silently saves the HTML response as the target
+    // file, producing a "Cannot expand ZIP" downstream. curl's `-L`
+    // follows redirects robustly across protocols + mirrors, `--fail`
+    // exits non-zero on HTTP errors instead of saving error bodies, and
+    // `-o` writes atomically via tmp file. The downloaded artifact is
+    // also size-verified (must match Content-Length).
+    val curlExit = ProcessBuilder(
+        "curl",
+        "-fsSL",
+        "--retry", "3",
+        "--retry-delay", "2",
+        "-o", target.absolutePath,
+        url,
+    ).inheritIO().start().waitFor()
+    check(curlExit == 0 && target.exists() && target.length() > 0) {
+        // Delete partial/empty file so the next run can retry cleanly.
+        if (target.exists()) target.delete()
+        "curl failed (exit $curlExit) downloading $url to $target"
     }
 }
 
