@@ -1,11 +1,14 @@
 @echo off
-REM SimpMusic offline installer for Windows (x64 + ARM64).
+REM SimpMusic offline installer for Windows.
 REM Double-click this file. UAC will prompt for admin (needed for cert + sideload).
 REM
 REM Bundle requirement (same folder as this .bat):
 REM   - simpmusic.crt
-REM   - simpmusic-<version>.x64.msix    (for x64 hosts)
-REM   - simpmusic-<version>.arm64.msix  (for ARM64 hosts)
+REM   - simpmusic-<version>.msix     (any .msix matching simpmusic-*.msix)
+REM
+REM Only x64 MSIX is shipped — Windows 11 ARM64 hosts run it under Prism
+REM emulation. ARM64 native build is blocked upstream by a missing
+REM androidx.sqlite-bundled windows-arm64 native binary.
 
 setlocal EnableExtensions
 cd /d "%~dp0"
@@ -37,23 +40,18 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM --- 3. Detect arch and pick matching MSIX ---------------------------------
-set "ARCH_SUFFIX=x64"
-if /I "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "ARCH_SUFFIX=arm64"
-if /I "%PROCESSOR_ARCHITEW6432%"=="ARM64" set "ARCH_SUFFIX=arm64"
-
+REM --- 3. Find the bundled MSIX ----------------------------------------------
 set "MSIX="
-for %%f in ("%~dp0simpmusic-*.%ARCH_SUFFIX%.msix") do set "MSIX=%%f"
+for %%f in ("%~dp0simpmusic-*.msix") do set "MSIX=%%f"
 
 if not defined MSIX (
-    echo [ERROR] No simpmusic-*.%ARCH_SUFFIX%.msix found in this folder.
-    echo         Host arch detected: %ARCH_SUFFIX%
+    echo [ERROR] No simpmusic-*.msix found in this folder.
     pause
     exit /b 1
 )
 
 echo.
-echo [2/3] Installing MSIX for %ARCH_SUFFIX%: "%MSIX%"
+echo [2/3] Installing MSIX: "%MSIX%"
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "try { Add-AppxPackage -Path '%MSIX%' -ForceApplicationShutdown -ErrorAction Stop; exit 0 } catch { Write-Host $_; exit 1 }"
 
