@@ -207,24 +207,60 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 exitApplication()
             }
         }
-        // Detect virtual machines (Parallels, VirtualBox, VMware, etc.)
-        // Transparent windows don't render properly on VM GPU drivers
+        // Detect virtual machines (Parallels, VirtualBox, VMware, etc.).
+        // Transparent + undecorated Compose windows don't render on VM
+        // GPU drivers — the window stays invisible while the JVM keeps
+        // running, so we must detect the VM and fall back to a normal
+        // decorated window.
+        //
+        // We probe Manufacturer + Model because brand strings live in
+        // different fields per hypervisor (Parallels-on-ARM puts
+        // "Parallels Software International Inc." in Manufacturer and
+        // "Parallels ARM Virtual Machine" in Model; VirtualBox uses
+        // "innotek GmbH" + "VirtualBox"; etc).
+        //
+        // Microsoft removed `wmic` from Windows 11 (deprecated since
+        // 10 21H1), so on modern Windows it returns "command not
+        // recognized" and our previous detection always saw an empty
+        // vendor — Parallels Win 11 ARM users hit this and got an
+        // invisible window. PowerShell `Get-CimInstance` is the modern
+        // replacement; we try it first and fall back to wmic for older
+        // hosts.
         val isVM =
             remember {
-                val model = System.getProperty("os.name", "")
-                val vendor =
-                    try {
-                        val process =
-                            ProcessBuilder("wmic", "computersystem", "get", "model")
-                                .redirectErrorStream(true)
-                                .start()
-                        process.inputStream.bufferedReader().readText()
-                    } catch (_: Exception) {
-                        ""
-                    }
-                vendor.contains("Parallels", ignoreCase = true) ||
-                    vendor.contains("VirtualBox", ignoreCase = true) ||
-                    vendor.contains("VMware", ignoreCase = true) ||
+                val osName = System.getProperty("os.name", "")
+                if (!osName.contains("Windows", ignoreCase = true)) {
+                    return@remember false
+                }
+                val probes =
+                    listOf(
+                        listOf(
+                            "powershell",
+                            "-NoProfile",
+                            "-Command",
+                            "(Get-CimInstance Win32_ComputerSystem | " +
+                                "Select-Object Manufacturer,Model | " +
+                                "Format-List | Out-String).Trim()",
+                        ),
+                        listOf("wmic", "computersystem", "get", "manufacturer,model"),
+                    )
+                val sysInfo =
+                    probes
+                        .asSequence()
+                        .mapNotNull { cmd ->
+                            runCatching {
+                                val p =
+                                    ProcessBuilder(cmd)
+                                        .redirectErrorStream(true)
+                                        .start()
+                                val out = p.inputStream.bufferedReader().readText()
+                                if (p.waitFor() == 0 && out.isNotBlank()) out else null
+                            }.getOrNull()
+                        }
+                        .firstOrNull()
+                        .orEmpty()
+                val vmTokens = listOf("Parallels", "VirtualBox", "VMware", "QEMU", "KVM", "Xen", "Hyper-V")
+                vmTokens.any { sysInfo.contains(it, ignoreCase = true) } ||
                     System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
             }
         Window(
