@@ -128,7 +128,7 @@ jobs:
       - name: Run Conveyor (make site, Mac + Windows only)
         uses: hydraulic-software/conveyor/actions/build@v22.0
         with:
-          command: -Kapp.machines=mac.amd64,mac.aarch64,windows.amd64,windows.aarch64 make site
+          command: '-Kapp.machines=[mac.amd64,mac.aarch64,windows.amd64,windows.aarch64] make site'
           agree_to_license: 1
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
 
