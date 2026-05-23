@@ -113,7 +113,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
-import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -140,6 +139,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -1013,29 +1013,22 @@ fun NowPlayingScreenContent(
                                     // to parent offsets, so we reach MAX darkness early (at 0.85f) and
                                     // hold it through 1f to ensure the visible bottom edge is fully solid.
                                     Box(
+                                        contentAlignment = Alignment.BottomCenter,
                                         modifier =
                                             Modifier
-                                                .fillMaxSize()
+                                                .fillMaxSize(),
+                                    ) {
+                                        Box(
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(120.dp)
                                                 .background(
                                                     Brush.verticalGradient(
-                                                        colorStops =
-                                                            arrayOf(
-                                                                // Use Color.Black.copy(alpha = 0f) — Compose
-                                                                // premultiplies alpha so (0,0,0,0)→(0,0,0,255)
-                                                                // renders near-transparent. Keeping RGB=black
-                                                                // throughout fixes the interpolation bug.
-                                                                // Solid Black starts earlier (0.85f) so the
-                                                                // visible viewport bottom (which sits before
-                                                                // pager's 100% due to parent offset) is fully
-                                                                // covered.
-                                                                0f to Color.Black.copy(alpha = 0f),
-                                                                0.72f to Color.Black.copy(alpha = 0f),
-                                                                0.98f to Color.Black,
-                                                                1f to Color.Black,
-                                                            ),
+                                                        listOf(Color.Transparent, Color.Black),
                                                     ),
                                                 ),
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -1919,21 +1912,51 @@ fun NowPlayingScreenContent(
                                                         ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
                                                         ?.trim()
                                                 if (!lineText.isNullOrBlank()) {
-                                                    Text(
-                                                        modifier =
-                                                            Modifier
-                                                                .fillMaxWidth()
-                                                                .padding(horizontal = 20.dp)
-                                                                .padding(bottom = 8.dp)
-                                                                .basicMarquee(
-                                                                    iterations = Int.MAX_VALUE,
-                                                                    animationMode = MarqueeAnimationMode.Immediately,
-                                                                ).focusable(),
-                                                        text = lineText,
-                                                        style = typo().bodyMedium,
-                                                        color = Color.White,
-                                                        maxLines = 1,
-                                                    )
+                                                    Column(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                    ) {
+                                                        Text(
+                                                            modifier =
+                                                                Modifier
+                                                                    .fillMaxWidth()
+                                                                    .padding(horizontal = 20.dp)
+                                                                    .padding(bottom = 4.dp)
+                                                                    .basicMarquee(
+                                                                        iterations = Int.MAX_VALUE,
+                                                                        animationMode = MarqueeAnimationMode.Immediately,
+                                                                    ).focusable(),
+                                                            text = lineText,
+                                                            style = typo().bodyMedium,
+                                                            color = Color.White,
+                                                            maxLines = 1,
+                                                        )
+                                                        val translatedLineText =
+                                                            screenDataState.lyricsData
+                                                                ?.translatedLyrics
+                                                                ?.first
+                                                                ?.lines
+                                                                ?.getOrNull(canvasSubtitleLineIndex)
+                                                                ?.words
+                                                                ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
+                                                                ?.trim()
+                                                        if (!translatedLineText.isNullOrBlank()) {
+                                                            Text(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .fillMaxWidth()
+                                                                        .padding(horizontal = 20.dp)
+                                                                        .padding(bottom = 8.dp)
+                                                                        .basicMarquee(
+                                                                            iterations = Int.MAX_VALUE,
+                                                                            animationMode = MarqueeAnimationMode.Immediately,
+                                                                        ).focusable(),
+                                                                text = translatedLineText,
+                                                                style = typo().bodyMedium,
+                                                                color = Color.Yellow,
+                                                                maxLines = 1,
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                             }
                                             Row(

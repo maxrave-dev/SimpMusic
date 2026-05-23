@@ -107,6 +107,7 @@ import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
+import com.maxrave.simpmusic.ui.component.OfflineErrorState
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -116,7 +117,9 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
@@ -500,6 +503,19 @@ fun HomeScreen(
         ) {
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
+                    if (homeData.isEmpty()) {
+                        OfflineErrorState(
+                            onRetry = onRefresh,
+                            onOpenDownloaded = {
+                                navController.navigate(
+                                    LibraryDynamicPlaylistDestination(
+                                        type = LibraryDynamicPlaylistType.Downloaded.toStringParams(),
+                                    ),
+                                )
+                            },
+                        )
+                        return@Crossfade
+                    }
                     LazyColumn(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(28.dp),

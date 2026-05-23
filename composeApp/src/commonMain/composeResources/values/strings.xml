@@ -556,4 +556,7 @@
     <string name="bpm">BPM</string>
     <string name="key">Key</string>
     <string name="scale">Scale</string>
+    <string name="home_offline_title">Can't connect</string>
+    <string name="home_offline_subtitle">Check your internet connection and try again, or listen to your downloaded music.</string>
+    <string name="listen_to_downloaded">Listen to downloaded music</string>
 </resources>
