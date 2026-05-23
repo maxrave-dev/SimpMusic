@@ -123,6 +123,13 @@
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">เลี้ยงกาแฟให้ฉัน</string>
+    <string name="developer_blog">บล็อกนักพัฒนา</string>
+    <string name="developer_blog_tagline">อ่านบันทึกจากผู้พัฒนา บทแนะนำ &amp; เบื้องหลังการทำงาน</string>
+    <string name="blog_promo_title">สิ่งใหม่จากผู้พัฒนา</string>
+    <string name="blog_promo_message">ผมเพิ่งเปิดบล็อกส่วนตัวที่ maxrave.dev
+เอาไว้แชร์เรื่องราวเบื้องหลัง SimpMusic เจาะลึกด้าน music-tech และบันทึกด้านวิศวกรรมต่าง ๆ
+แวะเข้าไปอ่านกันได้ถ้าสนใจ ✨</string>
+    <string name="visit_blog">เยี่ยมชมบล็อก</string>
     <string name="paypal">PayPal</string>
     <string name="title">ชื่อ</string>
     <string name="custom_order">กำหนดลำดับเอง</string>
@@ -378,6 +385,10 @@
     <string name="invalid_port">พอร์ตไม่ถูกต้อง</string>
     <string name="proxy_host_message">กรุณาป้อนพร็อกซีโฮสต์ของคุณ</string>
     <string name="proxy_port_message">กรุณากรอกพอร์ตพร็อกซีของคุณ</string>
+    <string name="proxy_username">ชื่อผู้ใช้พร็อกซี</string>
+    <string name="proxy_password">รหัสผ่านพร็อกซี</string>
+    <string name="proxy_username_message">กรุณากรอกชื่อผู้ใช้พร็อกซี (ไม่บังคับ)</string>
+    <string name="proxy_password_message">กรุณากรอกรหัสผ่านพร็อกซี (ไม่บังคับ)</string>
     <string name="five_seconds">5 วินาที</string>
     <string name="lyrics_provider_lrc">เนื้อเพลงโดย LRCLIB</string>
     <string name="sync_first">ซิงค์เพลย์ลิสต์นี้กับ YouTube Music ก่อน</string>
@@ -507,7 +518,7 @@
     <string name="last_90_days">90 วันที่แล้ว</string>
     <string name="last_30_days">30 วันที่แล้ว</string>
     <string name="last_7_days">7 วันที่แล้ว</string>
-    <string name="lower_plays">กำลังเล่น</string>
+    <string name="lower_plays">ครั้ง</string>
     <string name="top_song">เพลงยอดนิยม</string>
     <string name="songs_played">เพลงที่เล่นแล้ว</string>
     <string name="total_listened_time">เวลาที่ฟังทั้งหมด</string>
@@ -534,6 +545,7 @@
     <string name="simpmusic_charts">ชาร์ต SimpMusic</string>
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">ลิงก์สตรีม 320 kbps ของคุณ</string>
+    <string name="your_320kbps_url_description">เว้นว่างไว้เพื่อให้ระบบเลือก URL ที่ใช้งานได้จากตัวตรวจสอบสถานะให้อัตโนมัติ</string>
     <string name="search_for">ค้นหา</string>
     <string name="synced_playlist_cannot_change_order">เพลย์ลิสต์ที่ซิงก์แล้วไม่สามารถเปลี่ยนลำดับได้</string>
     <string name="bpm">BPM</string>

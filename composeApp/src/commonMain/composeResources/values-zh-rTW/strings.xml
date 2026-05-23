@@ -123,6 +123,8 @@
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">求贊助QAQ</string>
+    <string name="developer_blog"></string>
+    <string name="visit_blog">訪問紀錄</string>
     <string name="paypal">Paypal</string>
     <string name="title">標題</string>
     <string name="custom_order">客製訂單</string>
@@ -538,6 +540,7 @@
     <string name="simpmusic_charts">SimpMusic排行榜</string>
     <string name="crossfading">交叉淡入淡出</string>
     <string name="your_320kbps_url">您的 320kbps URL</string>
+    <string name="your_320kbps_url_description">保持空白以自動選擇上一次工作中的URL</string>
     <string name="search_for">搜尋</string>
     <string name="synced_playlist_cannot_change_order">已同步的播放清單無法變更順序</string>
     <string name="bpm">鼓點/分鐘</string>
