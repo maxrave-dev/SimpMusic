@@ -1010,25 +1010,32 @@ fun NowPlayingScreenContent(
                                 } else {
                                     // Box fullscreen — gradient stops control where darkening starts.
                                     // Note: pager content can extend past visible viewport bottom due
-                                    // to parent offsets, so we reach MAX darkness early (at 0.85f) and
-                                    // hold it through 1f to ensure the visible bottom edge is fully solid.
+                                    // to parent offsets. We span the FULL pager height (instead of a
+                                    // fixed 120.dp BottomCenter Box) so the colorStops are anchored
+                                    // to pager height — guaranteeing the visible viewport bottom
+                                    // always falls inside the held-Black region (>=0.85f).
+                                    // Unfocused gradient — compact dark coverage at the very bottom only:
+                                    //   - 0%-92%: fully Transparent (canvas clear)
+                                    //   - 92%-97%: quick fade to Black
+                                    //   - 97%-100%: held solid Black (avoids canvas bleed-through
+                                    //     at visible viewport bottom — alpha must reach 0xFF before
+                                    //     the visible bottom, which sits at ~94-95% of pager).
                                     Box(
-                                        contentAlignment = Alignment.BottomCenter,
                                         modifier =
                                             Modifier
-                                                .fillMaxSize(),
-                                    ) {
-                                        Box(
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(120.dp)
+                                                .fillMaxSize()
                                                 .background(
                                                     Brush.verticalGradient(
-                                                        listOf(Color.Transparent, Color.Black),
+                                                        colorStops =
+                                                            arrayOf(
+                                                                0f to Color.Transparent,
+                                                                0.92f to Color.Transparent,
+                                                                0.97f to Color.Black,
+                                                                1f to Color.Black,
+                                                            ),
                                                     ),
                                                 ),
-                                        )
-                                    }
+                                    )
                                 }
                             }
                         }
