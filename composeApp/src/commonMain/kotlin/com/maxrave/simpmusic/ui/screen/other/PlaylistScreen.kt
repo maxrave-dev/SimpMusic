@@ -71,11 +71,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -100,6 +101,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.drawBackdropCustomShape
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -127,6 +129,8 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -161,7 +165,7 @@ import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.unlimited
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun PlaylistScreen(
     viewModel: PlaylistViewModel = koinViewModel(),
@@ -186,6 +190,7 @@ fun PlaylistScreen(
     val tracksListState by viewModel.tracksListState.collectAsStateWithLifecycle()
 
     var showSearchBar by rememberSaveable { mutableStateOf(false) }
+    var searchBarHeightPx by remember { mutableStateOf(0) }
 
     val lazyState = rememberLazyListState()
     val firstItemVisible by remember {
@@ -375,6 +380,10 @@ fun PlaylistScreen(
                 val data = state.data
                 Logger.d(tag, "data: $data")
                 if (data == null) return@Crossfade
+                val hazeState =
+                    rememberHazeState(
+                        blurEnabled = true,
+                    )
                 LazyColumn(
                     modifier =
                         Modifier
@@ -463,8 +472,7 @@ fun PlaylistScreen(
                                             // to avoid render feedback loop / RuntimeShader crash.
                                             val artworkBackdrop = rememberBackdrop()
                                             val backBtnLayer = rememberGraphicsLayer()
-                                            val heartBtnLayer = rememberGraphicsLayer()
-                                            val searchBtnLayer = rememberGraphicsLayer()
+                                            val rightGroupLayer = rememberGraphicsLayer()
                                             Box(
                                                 modifier =
                                                     Modifier
@@ -598,47 +606,47 @@ fun PlaylistScreen(
                                                         }
                                                     }
                                                     Spacer(Modifier.weight(1f))
-                                                    if (!data.isRadio) {
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .size(48.dp)
-                                                                    .drawBackdropCustomShape(
-                                                                        artworkBackdrop,
-                                                                        heartBtnLayer,
-                                                                        0.5f,
-                                                                        CircleShape,
-                                                                    ),
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            HeartCheckBox(
-                                                                size = 28,
-                                                                checked = liked,
-                                                                onStateChange = {
-                                                                    viewModel.onUIEvent(PlaylistUIEvent.Favorite)
-                                                                },
-                                                            )
-                                                        }
-                                                        Spacer(Modifier.width(8.dp))
-                                                    }
-                                                    Box(
+                                                    Row(
                                                         modifier =
                                                             Modifier
-                                                                .size(48.dp)
+                                                                .height(48.dp)
                                                                 .drawBackdropCustomShape(
                                                                     artworkBackdrop,
-                                                                    searchBtnLayer,
+                                                                    rightGroupLayer,
                                                                     0.5f,
-                                                                    CircleShape,
+                                                                    RoundedCornerShape(24.dp),
                                                                 ),
-                                                        contentAlignment = Alignment.Center,
+                                                        verticalAlignment = Alignment.CenterVertically,
                                                     ) {
+                                                        if (!data.isRadio) {
+                                                            Box(
+                                                                modifier = Modifier.size(48.dp),
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                HeartCheckBox(
+                                                                    size = 28,
+                                                                    checked = liked,
+                                                                    onStateChange = {
+                                                                        viewModel.onUIEvent(PlaylistUIEvent.Favorite)
+                                                                    },
+                                                                )
+                                                            }
+                                                        }
                                                         IconButton(
                                                             onClick = {
                                                                 showSearchBar = !showSearchBar
                                                             },
                                                         ) {
                                                             Icon(Icons.Rounded.Search, null, tint = Color.White)
+                                                        }
+                                                        IconButton(
+                                                            onClick = onPlaylistMoreClick,
+                                                        ) {
+                                                            Icon(
+                                                                painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                                                contentDescription = "More",
+                                                                tint = Color.White,
+                                                            )
                                                         }
                                                     }
                                                 }
@@ -789,16 +797,15 @@ fun PlaylistScreen(
                                                                 )
                                                             }
                                                         }
-                                                        // Download (or More for radio playlist) — matches Shuffle's 48dp style
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .size(48.dp)
-                                                                    .clip(CircleShape)
-                                                                    .background(Color.White.copy(alpha = 0.12f)),
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            if (!data.isRadio) {
+                                                        if (!data.isRadio) {
+                                                            Box(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(48.dp)
+                                                                        .clip(CircleShape)
+                                                                        .background(Color.White.copy(alpha = 0.12f)),
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
                                                                 Crossfade(targetState = downloadState) { state ->
                                                                     when (state) {
                                                                         DownloadState.STATE_DOWNLOADED -> {
@@ -869,21 +876,6 @@ fun PlaylistScreen(
                                                                             }
                                                                         }
                                                                     }
-                                                                }
-                                                            } else {
-                                                                Box(
-                                                                    modifier =
-                                                                        Modifier
-                                                                            .fillMaxSize()
-                                                                            .clickable { onPlaylistMoreClick() },
-                                                                    contentAlignment = Alignment.Center,
-                                                                ) {
-                                                                    Icon(
-                                                                        painter = painterResource(Res.drawable.baseline_more_vert_24),
-                                                                        contentDescription = "More",
-                                                                        tint = Color.White,
-                                                                        modifier = Modifier.size(22.dp),
-                                                                    )
                                                                 }
                                                             }
                                                         }
@@ -1058,61 +1050,13 @@ fun PlaylistScreen(
                             }
                         }
                     } else {
-                        stickyHeader {
-                            Box(Modifier.background(Color.Black)) {
-                                Row(
-                                    modifier =
-                                        Modifier
-                                            .wrapContentWidth()
-                                            .padding(16.dp)
-                                            .windowInsetsPadding(WindowInsets.statusBars),
-                                ) {
-                                    RippleIconButton(
-                                        resId = Res.drawable.baseline_arrow_back_ios_new_24,
-                                    ) {
-                                        navController.navigateUp()
-                                    }
-                                    SearchBar(
-                                        modifier =
-                                            Modifier
-                                                .height(50.dp)
-                                                .padding(horizontal = 12.dp)
-                                                .weight(1f),
-                                        colors =
-                                            SearchBarDefaults.colors().copy(
-                                                containerColor = Color.Transparent,
-                                            ),
-                                        inputField = {
-                                            CompositionLocalProvider(LocalTextStyle provides typo().bodySmall) {
-                                                SearchBarDefaults.InputField(
-                                                    query = query,
-                                                    onQueryChange = { query = it },
-                                                    onSearch = { showSearchBar = false },
-                                                    expanded = showSearchBar,
-                                                    onExpandedChange = { showSearchBar = it },
-                                                    placeholder = {
-                                                        Text(
-                                                            stringResource(Res.string.search),
-                                                            style = typo().bodyMedium,
-                                                        )
-                                                    },
-                                                )
-                                            }
-                                        },
-                                        expanded = false,
-                                        onExpandedChange = {},
-                                        windowInsets = WindowInsets(0, 0, 0, 0),
-                                    ) {
-                                    }
-                                    IconButton(
-                                        onClick = {
-                                            showSearchBar = !showSearchBar
-                                        },
-                                    ) {
-                                        Icon(Icons.Rounded.Close, null, tint = Color.White)
-                                    }
-                                }
-                            }
+                        item {
+                            val density = LocalDensity.current
+                            Spacer(
+                                Modifier.height(
+                                    with(density) { searchBarHeightPx.toDp() },
+                                ),
+                            )
                         }
                     }
                     items(count = filteredTrack.size, key = { index ->
@@ -1214,6 +1158,84 @@ fun PlaylistScreen(
                         ListState.PAGINATION_EXHAUST -> {
                             item {
                                 EndOfPage()
+                            }
+                        }
+                    }
+                }
+
+                AnimatedVisibility(
+                    visible = showSearchBar,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically(),
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .onGloballyPositioned { searchBarHeightPx = it.size.height }
+                            .then(
+                                if (isMobilePortrait) {
+                                    Modifier.hazeEffect(hazeState) {
+                                        blurEnabled = true
+                                        blurRadius = 24.dp
+                                        backgroundColor = mutedPaletteBg
+                                        tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
+                                    }
+                                } else {
+                                    Modifier.background(Color.Black)
+                                },
+                            ),
+                    ) {
+                        Row(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .windowInsetsPadding(WindowInsets.statusBars),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RippleIconButton(
+                                resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                            ) {
+                                navController.navigateUp()
+                            }
+                            SearchBar(
+                                modifier =
+                                    Modifier
+                                        .height(50.dp)
+                                        .padding(horizontal = 12.dp)
+                                        .weight(1f),
+                                colors =
+                                    SearchBarDefaults.colors().copy(
+                                        containerColor = Color.Transparent,
+                                    ),
+                                inputField = {
+                                    CompositionLocalProvider(LocalTextStyle provides typo().bodySmall) {
+                                        SearchBarDefaults.InputField(
+                                            query = query,
+                                            onQueryChange = { query = it },
+                                            onSearch = { showSearchBar = false },
+                                            expanded = showSearchBar,
+                                            onExpandedChange = { showSearchBar = it },
+                                            placeholder = {
+                                                Text(
+                                                    stringResource(Res.string.search),
+                                                    style = typo().bodyMedium,
+                                                )
+                                            },
+                                        )
+                                    }
+                                },
+                                expanded = false,
+                                onExpandedChange = {},
+                                windowInsets = WindowInsets(0, 0, 0, 0),
+                            ) {
+                            }
+                            IconButton(
+                                onClick = {
+                                    showSearchBar = !showSearchBar
+                                },
+                            ) {
+                                Icon(Icons.Rounded.Close, null, tint = Color.White)
                             }
                         }
                     }

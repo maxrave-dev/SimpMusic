@@ -97,7 +97,7 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 ## Desktop app
 
 ### Which file should I download?
-- For Windows: Download the file with extension `.msi`.
+- For Windows: Download the `.msix` package and run `install.bat` to install.
 - For macOS: Download the file with extension `.dmg`.
 - For Linux: Download the file with extension `.AppImage` (all Linux distributions)
 
@@ -106,6 +106,7 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 
 ### Some limitations on Desktop app:
 - Some Linux distributions may have stability issues (upstream JetBrains issue).
+- ARM64 on Windows and Linux: use the x64 build.
 
 Please report issues on our Discord server if you find any bugs.
  

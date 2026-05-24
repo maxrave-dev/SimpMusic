@@ -43,6 +43,7 @@ import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -62,7 +63,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -85,6 +85,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.drawBackdropCustomShape
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -95,6 +96,7 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
+import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -127,6 +129,7 @@ import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.album_length
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_downloaded
+import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
 import simpmusic.composeapp.generated.resources.baseline_play_circle_24
 import simpmusic.composeapp.generated.resources.baseline_shuffle_24
@@ -160,6 +163,7 @@ fun AlbumScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var albumBottomSheetShow by rememberSaveable { mutableStateOf(false) }
     var chosenSong: Track? by remember { mutableStateOf(null) }
 
     val composition by rememberLottieComposition {
@@ -325,7 +329,7 @@ fun AlbumScreen(
                                         // to avoid render feedback loop / RuntimeShader crash.
                                         val artworkBackdrop = rememberBackdrop()
                                         val backBtnLayer = rememberGraphicsLayer()
-                                        val heartBtnLayer = rememberGraphicsLayer()
+                                        val rightGroupLayer = rememberGraphicsLayer()
                                         Box(
                                             modifier =
                                                 Modifier
@@ -444,29 +448,43 @@ fun AlbumScreen(
                                                     navController.navigateUp()
                                                 }
                                             }
-                                            // Heart/Like button — liquid glass effect
-                                            Box(
+                                            // Heart + More — liquid glass pill
+                                            Row(
                                                 modifier =
                                                     Modifier
                                                         .align(Alignment.TopEnd)
                                                         .padding(12.dp)
                                                         .windowInsetsPadding(WindowInsets.statusBars)
-                                                        .size(48.dp)
+                                                        .height(48.dp)
                                                         .drawBackdropCustomShape(
                                                             artworkBackdrop,
-                                                            heartBtnLayer,
+                                                            rightGroupLayer,
                                                             0.5f,
-                                                            CircleShape,
+                                                            RoundedCornerShape(24.dp),
                                                         ),
-                                                contentAlignment = Alignment.Center,
+                                                verticalAlignment = Alignment.CenterVertically,
                                             ) {
-                                                HeartCheckBox(
-                                                    size = 28,
-                                                    checked = uiState.liked,
-                                                    onStateChange = {
-                                                        viewModel.setAlbumLike()
-                                                    },
-                                                )
+                                                Box(
+                                                    modifier = Modifier.size(48.dp),
+                                                    contentAlignment = Alignment.Center,
+                                                ) {
+                                                    HeartCheckBox(
+                                                        size = 28,
+                                                        checked = uiState.liked,
+                                                        onStateChange = {
+                                                            viewModel.setAlbumLike()
+                                                        },
+                                                    )
+                                                }
+                                                IconButton(
+                                                    onClick = { albumBottomSheetShow = true },
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                                        contentDescription = "More",
+                                                        tint = Color.White,
+                                                    )
+                                                }
                                             }
                                         }
                                     } else {
@@ -605,7 +623,6 @@ fun AlbumScreen(
                                                             )
                                                         }
                                                     }
-                                                    // Download — matches Shuffle's 48dp circular style
                                                     Box(
                                                         modifier =
                                                             Modifier
@@ -967,6 +984,20 @@ fun AlbumScreen(
                         },
                         navController = navController,
                         song = chosenSong?.toSongEntity(),
+                    )
+                }
+                if (albumBottomSheetShow) {
+                    PlaylistBottomSheet(
+                        onDismiss = { albumBottomSheetShow = false },
+                        playlistId = browseId,
+                        playlistName = uiState.title,
+                        isYourYouTubePlaylist = false,
+                        onSaveToLocal = {},
+                        onAddToQueue = {
+                            sharedViewModel.addListToQueue(
+                                uiState.listTrack.toCollection(arrayListOf()),
+                            )
+                        },
                     )
                 }
             }
