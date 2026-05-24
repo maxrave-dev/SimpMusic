@@ -60,6 +60,7 @@
     <string name="playlist_name_cannot_be_empty">प्लेलिस्ट का नाम खाली नहीं हो सकता</string>
     <string name="this_app_needs_to_access_your_notification">इस ऐप को आपकी सूचनाओं तक पहुंच की आवश्यकता है</string>
     <string name="shared">साझा किया गया</string>
+    <string name="rich_synced">एक-एक शब्द</string>
     <string name="line_synced">लाइन सिंक की गई</string>
     <string name="unsynced">असिंक</string>
     <string name="playlist_is_empty">प्लेलिस्ट खाली है</string>
@@ -72,6 +73,10 @@
     <string name="content_country">सामग्री देश</string>
     <string name="change">बदलें</string>
     <string name="quality">गुणवत्ता</string>
+    <string name="prefer_320kbps_stream">320kbps स्ट्रीम को प्राथमिकता दें</string>
+    <string name="prefer_320kbps_stream_description">उपलब्ध होने पर इंटरनेट पर स्वचालित रूप से 320kbps ऑडियो स्ट्रीम खोजें। न मिलने पर डिफ़ॉल्ट क्वालिटी पर वापस जाएँ।</string>
+    <string name="download_quality">डाउनलोड क्वालिटी</string>
+    <string name="video_download_quality">वीडियो डाउनलोड क्वालिटी</string>
     <string name="clear_downloaded_cache">डाउनलोड किया गया कैश साफ़ करें</string>
     <string name="clear_thumbnail_cache">थंबनेल कैश साफ़ करें</string>
     <string name="add">जोड़ें</string>
@@ -118,6 +123,7 @@
     <string name="github">गिट्हब</string>
     <string name="maxrave_dev">मैक्सरेव-देव</string>
     <string name="buy_me_a_coffee">मुझे एक कॉफी खरीदें</string>
+    <string name="developer_blog">डेवलपर ब्लॉग</string>
     <string name="paypal">पेयपाल</string>
     <string name="title">शीर्षक</string>
     <string name="album">एल्बम</string>

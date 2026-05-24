@@ -14,14 +14,17 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -136,6 +139,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -977,15 +981,18 @@ fun NowPlayingScreenContent(
                                     )
                                 }
                             }
-                            // Bottom gradient overlay so the controls layer below stays readable.
+                            // Bottom gradient overlay — different intensity per state:
+                            // - Focus: original full-height heavy gradient (controls readability)
+                            // - Unfocus: 50% height + 50% lighter colors (just enough for metadata,
+                            //   lets more canvas show through)
                             Crossfade(
                                 targetState = showHideControlLayout,
                                 modifier =
                                     Modifier
                                         .fillMaxSize()
                                         .align(Alignment.BottomCenter),
-                            ) {
-                                if (it) {
+                            ) { focused ->
+                                if (focused) {
                                     Box(
                                         modifier =
                                             Modifier
@@ -995,6 +1002,35 @@ fun NowPlayingScreenContent(
                                                         colorStops =
                                                             arrayOf(
                                                                 0.2f to overlay,
+                                                                1f to Color.Black,
+                                                            ),
+                                                    ),
+                                                ),
+                                    )
+                                } else {
+                                    // Box fullscreen — gradient stops control where darkening starts.
+                                    // Note: pager content can extend past visible viewport bottom due
+                                    // to parent offsets. We span the FULL pager height (instead of a
+                                    // fixed 120.dp BottomCenter Box) so the colorStops are anchored
+                                    // to pager height — guaranteeing the visible viewport bottom
+                                    // always falls inside the held-Black region (>=0.85f).
+                                    // Unfocused gradient — compact dark coverage at the very bottom only:
+                                    //   - 0%-92%: fully Transparent (canvas clear)
+                                    //   - 92%-97%: quick fade to Black
+                                    //   - 97%-100%: held solid Black (avoids canvas bleed-through
+                                    //     at visible viewport bottom — alpha must reach 0xFF before
+                                    //     the visible bottom, which sits at ~94-95% of pager).
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxSize()
+                                                .background(
+                                                    Brush.verticalGradient(
+                                                        colorStops =
+                                                            arrayOf(
+                                                                0f to Color.Transparent,
+                                                                0.92f to Color.Transparent,
+                                                                0.97f to Color.Black,
                                                                 1f to Color.Black,
                                                             ),
                                                     ),
@@ -1056,9 +1092,7 @@ fun NowPlayingScreenContent(
                                             contentDescription = "",
                                             onSuccess = {
                                                 sharedViewModel.setBitmap(
-                                                    it.result.image
-                                                        .toBitmap()
-                                                        .asImageBitmap(),
+                                                    it.result.image.toImageBitmap(),
                                                 )
                                             },
                                             contentScale = ContentScale.Crop,
@@ -1273,9 +1307,7 @@ fun NowPlayingScreenContent(
                                             onSuccess = { state ->
                                                 palettePageScope.launch {
                                                     pagePaletteState.generate(
-                                                        state.result.image
-                                                            .toBitmap()
-                                                            .asImageBitmap(),
+                                                        state.result.image.toImageBitmap(),
                                                     )
                                                 }
                                             },
@@ -1477,7 +1509,7 @@ fun NowPlayingScreenContent(
                                         Column(Modifier.weight(1f)) {
                                             Text(
                                                 text = screenDataState.nowPlayingTitle,
-                                                style = typo().headlineMedium,
+                                                style = typo().titleMedium,
                                                 maxLines = 1,
                                                 color = Color.White,
                                                 modifier =
@@ -1833,11 +1865,7 @@ fun NowPlayingScreenContent(
                                                 .height(
                                                     infoLayoutHeightDp.dp,
                                                 ).fillMaxWidth()
-                                                .padding(
-                                                    horizontal = 20.dp,
-                                                ).padding(
-                                                    bottom = 20.dp,
-                                                ).clickable(
+                                                .clickable(
                                                     onClick = {
                                                         if (mainScrollState.value == 0) {
                                                             showHideJob = true
@@ -1852,9 +1880,36 @@ fun NowPlayingScreenContent(
                                                 ),
                                         contentAlignment = Alignment.BottomStart,
                                     ) {
-                                        Column {
-                                            this@Column.AnimatedVisibility(canvasSubtitleLineIndex > -1) {
-                                                // Canvas subtitle - above artist
+                                        // Gradient backdrop — transparent at top so Canvas shows
+                                        // through, fading to dark at the bottom for a Spotify-like
+                                        // backdrop under the metadata row.
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .background(
+                                                        Brush.verticalGradient(
+                                                            colorStops =
+                                                                arrayOf(
+                                                                    0f to Color.Transparent,
+                                                                    1f to Color.Black.copy(alpha = 0.85f),
+                                                                ),
+                                                        ),
+                                                    ),
+                                        )
+
+                                        Column(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .animateContentSize(),
+                                        ) {
+                                            this@Column.AnimatedVisibility(
+                                                visible = canvasSubtitleLineIndex > -1,
+                                                enter = fadeIn() + expandVertically(),
+                                                exit = fadeOut() + shrinkVertically(),
+                                            ) {
+                                                // Canvas subtitle - Spotify-style: lyrics line above metadata row
                                                 val lineText =
                                                     screenDataState.lyricsData
                                                         ?.lyrics
@@ -1864,51 +1919,197 @@ fun NowPlayingScreenContent(
                                                         ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
                                                         ?.trim()
                                                 if (!lineText.isNullOrBlank()) {
-                                                    Text(
+                                                    Column(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                    ) {
+                                                        Text(
+                                                            modifier =
+                                                                Modifier
+                                                                    .fillMaxWidth()
+                                                                    .padding(horizontal = 20.dp)
+                                                                    .padding(bottom = 4.dp)
+                                                                    .basicMarquee(
+                                                                        iterations = Int.MAX_VALUE,
+                                                                        animationMode = MarqueeAnimationMode.Immediately,
+                                                                    ).focusable(),
+                                                            text = lineText,
+                                                            style = typo().bodyMedium,
+                                                            color = Color.White,
+                                                            maxLines = 1,
+                                                        )
+                                                        val translatedLineText =
+                                                            screenDataState.lyricsData
+                                                                ?.translatedLyrics
+                                                                ?.first
+                                                                ?.lines
+                                                                ?.getOrNull(canvasSubtitleLineIndex)
+                                                                ?.words
+                                                                ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
+                                                                ?.trim()
+                                                        if (!translatedLineText.isNullOrBlank()) {
+                                                            Text(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .fillMaxWidth()
+                                                                        .padding(horizontal = 20.dp)
+                                                                        .padding(bottom = 8.dp)
+                                                                        .basicMarquee(
+                                                                            iterations = Int.MAX_VALUE,
+                                                                            animationMode = MarqueeAnimationMode.Immediately,
+                                                                        ).focusable(),
+                                                                text = translatedLineText,
+                                                                style = typo().bodyMedium,
+                                                                color = Color.Yellow,
+                                                                maxLines = 1,
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            Row(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(horizontal = 20.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                AnimatedVisibility(screenDataState.canvasData != null) {
+                                                    AsyncImage(
+                                                        model =
+                                                            ImageRequest
+                                                                .Builder(LocalPlatformContext.current)
+                                                                .data(screenDataState.thumbnailURL)
+                                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                                .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
+                                                                .crossfade(true)
+                                                                .build(),
+                                                        placeholder = painterResource(Res.drawable.holder),
+                                                        error = painterResource(Res.drawable.holder),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.FillWidth,
                                                         modifier =
                                                             Modifier
-                                                                .padding(bottom = 8.dp)
+                                                                .heightIn(0.dp, 55.dp)
+                                                                .width(55.dp)
+                                                                .padding(end = 10.dp)
+                                                                .clip(
+                                                                    RoundedCornerShape(4.dp),
+                                                                ).align(Alignment.CenterVertically),
+                                                    )
+                                                }
+
+                                                Column(Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = screenDataState.nowPlayingTitle,
+                                                        style = typo().titleMedium,
+                                                        maxLines = 1,
+                                                        color = Color.White,
+                                                        modifier =
+                                                            Modifier
+                                                                .fillMaxWidth()
+                                                                .wrapContentHeight(align = Alignment.CenterVertically)
                                                                 .basicMarquee(
                                                                     iterations = Int.MAX_VALUE,
                                                                     animationMode = MarqueeAnimationMode.Immediately,
                                                                 ).focusable(),
-                                                        text = lineText,
-                                                        style = typo().bodyMedium,
-                                                        color = Color.White,
-                                                        maxLines = 1,
                                                     )
+                                                    Spacer(modifier = Modifier.height(3.dp))
+                                                    LazyRow(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                    ) {
+                                                        item(screenDataState.isExplicit) {
+                                                            AnimatedVisibility(visible = screenDataState.isExplicit) {
+                                                                ExplicitBadge(
+                                                                    modifier =
+                                                                        Modifier
+                                                                            .size(20.dp)
+                                                                            .padding(end = 4.dp)
+                                                                            .weight(1f),
+                                                                )
+                                                            }
+                                                        }
+                                                        item(screenDataState.artistName) {
+                                                            Text(
+                                                                text = screenDataState.artistName,
+                                                                style = typo().bodyMedium,
+                                                                maxLines = 1,
+                                                                modifier =
+                                                                    Modifier
+                                                                        .fillMaxWidth()
+                                                                        .wrapContentHeight(align = Alignment.CenterVertically)
+                                                                        .basicMarquee(
+                                                                            iterations = Int.MAX_VALUE,
+                                                                            animationMode = MarqueeAnimationMode.Immediately,
+                                                                        ).focusable()
+                                                                        .clickable {
+                                                                            val song = sharedViewModel.nowPlayingState.value?.songEntity
+                                                                            (
+                                                                                song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
+                                                                                    ?: screenDataState.songInfoData?.authorId
+                                                                            )?.let { channelId ->
+                                                                                onDismiss()
+                                                                                navController.navigate(
+                                                                                    ArtistDestination(
+                                                                                        channelId = channelId,
+                                                                                    ),
+                                                                                )
+                                                                            }
+                                                                        },
+                                                            )
+                                                        }
+                                                    }
                                                 }
-                                            }
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                val thumb = screenDataState.songInfoData?.authorThumbnail
-                                                AsyncImage(
-                                                    model =
-                                                        ImageRequest
-                                                            .Builder(LocalPlatformContext.current)
-                                                            .data(thumb)
-                                                            .diskCachePolicy(CachePolicy.ENABLED)
-                                                            .diskCacheKey(thumb)
-                                                            .crossfade(550)
-                                                            .build(),
-                                                    placeholder = painterResource(Res.drawable.holder),
-                                                    error = painterResource(Res.drawable.holder),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier =
-                                                        Modifier
-                                                            .size(42.dp)
-                                                            .clip(
-                                                                CircleShape,
-                                                            ),
-                                                )
+                                                if (sharedViewModel.isUserLoggedIn()) {
+                                                    Spacer(modifier = Modifier.size(16.dp))
+                                                    Crossfade(
+                                                        targetState = likeStatus,
+                                                    ) {
+                                                        if (it) {
+                                                            IconButton(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(24.dp)
+                                                                        .aspectRatio(1f)
+                                                                        .clip(
+                                                                            CircleShape,
+                                                                        ),
+                                                                onClick = {
+                                                                    sharedViewModel.addToYouTubeLiked()
+                                                                },
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Rounded.CheckCircle,
+                                                                    tint = Color.White,
+                                                                    contentDescription = "",
+                                                                )
+                                                            }
+                                                        } else {
+                                                            IconButton(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(24.dp)
+                                                                        .aspectRatio(1f)
+                                                                        .clip(
+                                                                            CircleShape,
+                                                                        ),
+                                                                onClick = {
+                                                                    sharedViewModel.addToYouTubeLiked()
+                                                                },
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Rounded.AddCircleOutline,
+                                                                    tint = Color.White,
+                                                                    contentDescription = "",
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                                 Spacer(modifier = Modifier.size(12.dp))
-                                                Text(
-                                                    text = screenDataState.songInfoData?.author ?: "",
-                                                    style = typo().labelMedium,
-                                                    color = Color.White,
-                                                )
+                                                HeartCheckBox(checked = controllerState.isLiked, size = 32) {
+                                                    sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                                                }
                                             }
                                         }
                                     }

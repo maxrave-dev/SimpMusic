@@ -80,6 +80,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -107,9 +108,9 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.angledGradientBackground
-import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -514,10 +515,7 @@ fun LocalPlaylistScreen(
                             contentDescription = null,
                             contentScale = ContentScale.FillHeight,
                             onSuccess = {
-                                bitmap =
-                                    it.result.image
-                                        .toBitmap()
-                                        .asImageBitmap()
+                                bitmap = it.result.image.toImageBitmap()
                             },
                             modifier =
                                 Modifier

@@ -1,0 +1,10 @@
+- Màn hình lỗi offline mới trên Trang chủ kèm nút Thử lại và mở nhanh nhạc đã tải xuống
+- Hiển thị lời dịch màu vàng dưới phụ đề Canvas trên màn hình Đang phát
+- AutoMix DJ-style mượt hơn: đường cong crossfade equal-power và ramp BPM front-loaded
+- Tăng thời lượng crossfade chế độ Tự động cho chuyển bài đầm hơn (20-45s, mặc định 30s)
+- Thiết kế lại Album, Playlist và Đang phát theo phong cách Apple Music
+- Layout trang chủ gọn hơn: tối đa 3 dòng với marquee dịu cho tiêu đề dài
+- Giữ đúng thứ tự track gốc khi tải bài hát trong album
+- Sửa mã ngôn ngữ Trung, Indonesia và Hebrew
+- Desktop: bản cài Windows chuyển sang MSIX kèm install.bat
+- Desktop: bản cài macOS chuyển sang DMG tùy chỉnh

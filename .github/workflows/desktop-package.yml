@@ -1,10 +1,27 @@
-name: Build APK for Release (Full & FOSS) && Desktop app release
+name: Build desktop packages (cross-OS via Conveyor)
+
+# Two-job pipeline:
+#  1) build-desktop-packages (ubuntu-22.04) — Conveyor cross-builds
+#     AppImage, Mac .zip (aarch64 + amd64), Windows .msix from Linux.
+#  2) wrap-mac-dmg (macos-14, depends on job 1) — extracts each
+#     mac.zip and wraps it into a polished .dmg (background + drag-to-
+#     Applications + volume icon). This step needs macOS because
+#     `create-dmg` + `hdiutil` are macOS-only, but it's fast (~1-2 min
+#     per arch) since it does no compilation.
+#
+# Why two jobs and not one:
+#  - Conveyor's `unnotarized-mac-zip` produces a `.zip`, which on macOS
+#    15 Sequoia gets a stricter quarantine flag than a `.dmg`-propagated
+#    `.app` does. End users see Gatekeeper's hard-block dialog with no
+#    right-click → Open shortcut. The v1.2.1 jpackage release shipped as
+#    `.dmg`, which Sequoia treats more leniently — that's the UX we want
+#    to preserve.
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - 'main'
+      - 'dev'
     paths-ignore:
       - 'README.md'
       - 'fastlane/**'
@@ -17,98 +34,6 @@ permissions:
   contents: write
 
 jobs:
-  build-full-release:
-    name: Build full release version
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: 'recursive'
-
-      - name: set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: 21
-          distribution: "microsoft"
-          cache: 'gradle'
-
-      - name: Update Sentry Secrets
-        env:
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
-          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
-
-      - name: Update environment variables
-        env:
-          BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
-        run:
-          echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
-
-      - name: Update build product flavor
-        run: |
-          echo "" >> ./gradle.properties
-          echo "isFullBuild=true" >> ./gradle.properties
-
-      - name: Build full release APK
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./build_and_sign_apk.sh --release --full
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-full-release
-          path: androidApp/build/outputs/apk/release/*.apk
-
-  build-foss-release:
-    name: Build foss release version
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: 'recursive'
-
-      - name: set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: 21
-          distribution: "microsoft"
-          cache: 'gradle'
-
-      - name: Update environment variables
-        env:
-          BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
-        run:
-          echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
-
-      - name: Update build product flavor
-        run: |
-          echo "" >> ./gradle.properties
-          echo "isFullBuild=false" >> ./gradle.properties
-
-      - name: Build foss release APK
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./build_and_sign_apk.sh --release --foss
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-foss-release
-          path: androidApp/build/outputs/apk/release/*.apk
-
   build-desktop-packages:
     name: Build desktop packages (AppImage + Mac zip + Windows msix)
     runs-on: ubuntu-22.04

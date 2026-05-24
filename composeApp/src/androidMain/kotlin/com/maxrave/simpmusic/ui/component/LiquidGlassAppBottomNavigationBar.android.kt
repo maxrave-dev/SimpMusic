@@ -145,7 +145,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                     0.2126 * r + 0.7152 * g + 0.0722 * b
                 } / 25
             luminanceAnimation.animateTo(
-                averageLuminance.coerceAtMost(0.8).toFloat(),
+                averageLuminance.coerceIn(0.3, 0.8).toFloat(),
                 tween(500),
             )
             delay(1.seconds)

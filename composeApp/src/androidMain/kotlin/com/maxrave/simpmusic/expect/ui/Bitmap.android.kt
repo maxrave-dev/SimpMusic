@@ -15,5 +15,4 @@ actual fun ImageBitmap.toByteArray(): ByteArray? {
     return bytesArray
 }
 
-actual fun Image.toImageBitmap(): ImageBitmap =
-    this.toBitmap().asImageBitmap()
+actual fun Image.toImageBitmap(): ImageBitmap = this.toBitmap().asImageBitmap()

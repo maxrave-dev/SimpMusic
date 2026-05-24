@@ -123,6 +123,11 @@
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">Hỗ trợ tôi</string>
+    <string name="developer_blog">Blog của nhà phát triển</string>
+    <string name="developer_blog_tagline">Đọc các ghi chép của nhà phát triển, hướng dẫn &amp; đằng sau các tính năng</string>
+    <string name="blog_promo_title">Một vài điều mới đến từ nhà phát triển</string>
+    <string name="blog_promo_message">Tôi vừa ra mắt blog cá nhân của mình tại maxrave.dev — nơi chia sẻ câu chuyện đằng sau SimpMusic, những phân tích chuyên sâu về công nghệ âm nhạc và những ghi chú kỹ thuật. Hãy ghé thăm nếu bạn tò mò nhé ✨</string>
+    <string name="visit_blog">Ghé thăm blog</string>
     <string name="paypal">PayPal</string>
     <string name="title">Tiêu đề</string>
     <string name="custom_order">Bộ lọc tuỳ chỉnh</string>
@@ -378,6 +383,10 @@
     <string name="invalid_port">Cổng không hợp lệ</string>
     <string name="proxy_host_message">Hãy nhập máy chủ Proxy của bạn</string>
     <string name="proxy_port_message">Hãy nhập cổng Proxy của bạn</string>
+    <string name="proxy_username">Tên người dùng proxy</string>
+    <string name="proxy_password">Mật khẩu proxy</string>
+    <string name="proxy_username_message">Hãy điền tên người dùng proxy của bạn (tùy chọn)</string>
+    <string name="proxy_password_message">Hãy điền tên mật khẩu proxy của bạn (tùy chọn)</string>
     <string name="five_seconds">5 giây</string>
     <string name="lyrics_provider_lrc">Lời bài hát được cung cấp bởi LRCLIB</string>
     <string name="sync_first">Đồng bộ danh sách phát này với YouTube Music trước</string>
@@ -534,9 +543,13 @@
     <string name="simpmusic_charts">SimpMusic Charts</string>
     <string name="crossfading">Đang chuyển bài mượt mà</string>
     <string name="your_320kbps_url">Đường dẫn link 320kbps của bạn</string>
+    <string name="your_320kbps_url_description">Để trống để tự động chọn một URL hoạt động từ hệ thống kiểm tra.</string>
     <string name="search_for">Tìm kiếm cho</string>
     <string name="synced_playlist_cannot_change_order">Danh sách phát đã đồng bộ không thể thay đổi thứ tự</string>
     <string name="bpm">Nhịp mỗi phút</string>
     <string name="key">Khóa</string>
     <string name="scale">Thang</string>
+    <string name="home_offline_title">Không thể kết nối</string>
+    <string name="home_offline_subtitle">Kiểm tra kết nối internet của bạn và thử lại, hoặc nghe những bài hát đã được tải xuống.</string>
+    <string name="listen_to_downloaded">Nghe những bài hát đã được tải xuống</string>
 </resources>
