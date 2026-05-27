@@ -247,11 +247,14 @@ afterEvaluate {
         jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
 
         // Pass bundled VLC natives path to the runtime for `./gradlew desktopApp:run`.
+        val osArch = System.getProperty("os.arch").lowercase()
         val osSubDir =
             when {
-                System.getProperty("os.name").contains("Mac") -> "macos"
-                System.getProperty("os.name").contains("Win") -> "windows"
-                else -> "linux"
+                System.getProperty("os.name").contains("Mac") ->
+                    if (osArch.contains("aarch64")) "macos-arm64" else "macos-x64"
+                System.getProperty("os.name").contains("Win") ->
+                    if (osArch.contains("aarch64")) "windows-arm64" else "windows-x64"
+                else -> "linux-x64"
             }
         val vlcNativesPath = rootDir.resolve("vlc-natives/$osSubDir").absolutePath
         systemProperty("vlc.bundled.path", vlcNativesPath)
