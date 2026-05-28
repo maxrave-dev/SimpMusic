@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
+import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
@@ -91,6 +93,29 @@ fun PlayerControlLayout(
                 modifier =
                     Modifier
                         .background(transparent)
+                        .size(smallIcon.second)
+                        .aspectRatio(1f)
+                        .clip(
+                            CircleShape,
+                        )
+                        .clickable {
+                            onUIEvent(UIEvent.Backward5)
+                        },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Replay5,
+                    tint = Color.White,
+                    contentDescription = "",
+                    modifier = Modifier.size(smallIcon.first),
+                )
+            }
+        }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            Box(
+                modifier =
+                    Modifier
+                        .background(transparent)
                         .size(mediumIcon.second)
                         .aspectRatio(1f)
                         .clip(
@@ -106,6 +131,29 @@ fun PlayerControlLayout(
                 Icon(
                     imageVector = Icons.Rounded.SkipPrevious,
                     tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                    contentDescription = "",
+                    modifier = Modifier.size(mediumIcon.first),
+                )
+            }
+        }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            Box(
+                modifier =
+                    Modifier
+                        .background(transparent)
+                        .size(mediumIcon.second)
+                        .aspectRatio(1f)
+                        .clip(
+                            CircleShape,
+                        )
+                        .clickable {
+                            onUIEvent(UIEvent.Backward)
+                        },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Replay10,
+                    tint = Color.White,
                     contentDescription = "",
                     modifier = Modifier.size(mediumIcon.first),
                 )
@@ -143,6 +191,29 @@ fun PlayerControlLayout(
                         )
                     }
                 }
+            }
+        }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            Box(
+                modifier =
+                    Modifier
+                        .background(transparent)
+                        .size(mediumIcon.second)
+                        .aspectRatio(1f)
+                        .clip(
+                            CircleShape,
+                        )
+                        .clickable {
+                            onUIEvent(UIEvent.Forward5)
+                        },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Forward5,
+                    tint = Color.White,
+                    contentDescription = "",
+                    modifier = Modifier.size(mediumIcon.first),
+                )
             }
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
