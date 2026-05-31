@@ -221,6 +221,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val display = windowManager.defaultDisplay
+            val modes = display.supportedModes
+            val maxRefreshRateMode = modes.maxByOrNull { it.refreshRate }
+            if (maxRefreshRateMode != null) {
+                val layoutParams = window.attributes
+                layoutParams.preferredDisplayModeId = maxRefreshRateMode.modeId
+                window.attributes = layoutParams
+            }
+        }
+
         viewModel.getLocation()
 
         setContent {
