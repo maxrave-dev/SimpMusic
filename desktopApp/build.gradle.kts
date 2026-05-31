@@ -125,7 +125,7 @@ dependencies {
 // obfuscated + size-reduced bytecode instead of raw Gradle output.
 // `dependsOn(proguardReleaseJars)` builds the shrunk jars first.
 tasks.named<hydraulic.conveyor.gradle.WriteConveyorConfigTask>("writeConveyorConfig") {
-    dependsOn(tasks.named("proguardReleaseJars"))
+    // dependsOn(tasks.named("proguardReleaseJars"))
     val proguardJarsDir = layout.buildDirectory.dir("compose/tmp/main-release/proguard")
     doLast {
         destination.get().asFile.appendText(
@@ -134,14 +134,6 @@ tasks.named<hydraulic.conveyor.gradle.WriteConveyorConfigTask>("writeConveyorCon
             |app.display-name = SimpMusic
             |app.rdns-name = com.maxrave.simpmusic
             |
-            |// Override the Gradle-detected classpath with the ProGuard'd
-            |// jar directory. Conveyor expands a directory entry to every
-            |// file inside it — saves ~750 MB raw / ~100 MB compressed in
-            |// the resulting AppImage by replacing 221 raw jars with the
-            |// shrunk equivalents from compose.desktop's proguard task.
-            |app.inputs = [
-            |    "${proguardJarsDir.get().asFile.absolutePath}"
-            |]
             """.trimMargin() + "\n",
         )
     }
@@ -288,7 +280,7 @@ val conveyorMakeLinuxApp = tasks.register<Exec>("conveyorMakeLinuxApp") {
     commandLine(
         "conveyor",
         "--agree-to-license=1",
-        "-Kapp.machines=linux.amd64.glibc",
+        "--key=app.machines=linux.amd64.glibc",
         "make", "linux-app",
     )
     standardInput = System.`in`
@@ -451,7 +443,7 @@ val conveyorMakeMacZipAmd64 = tasks.register<Exec>("conveyorMakeMacZipAmd64") {
     commandLine(
         "conveyor",
         "--agree-to-license=1",
-        "-Kapp.machines=mac.amd64",
+        "--key=app.machines=mac.amd64",
         "make", "unnotarized-mac-zip",
     )
     standardInput = System.`in`
@@ -465,7 +457,7 @@ val conveyorMakeMacZipAarch64 = tasks.register<Exec>("conveyorMakeMacZipAarch64"
     commandLine(
         "conveyor",
         "--agree-to-license=1",
-        "-Kapp.machines=mac.aarch64",
+        "--key=app.machines=mac.aarch64",
         "make", "unnotarized-mac-zip",
     )
     standardInput = System.`in`
@@ -490,12 +482,12 @@ tasks.register("buildMacZipAarch64") {
 val conveyorMakeWindowsMsix = tasks.register<Exec>("conveyorMakeWindowsMsix") {
     group = "distribution"
     description = "Run `conveyor make windows-msix` for Windows x86_64."
-    dependsOn(":composeApp:vlcSetup")
+    dependsOn(":composeApp:vlcSetup", "writeConveyorConfig")
     workingDir = rootDir
     commandLine(
         "conveyor",
         "--agree-to-license=1",
-        "-Kapp.machines=windows.amd64",
+        "--key=app.machines=windows.amd64",
         "make", "windows-msix",
     )
     standardInput = System.`in`

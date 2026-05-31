@@ -232,51 +232,15 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         // invisible window. PowerShell `Get-CimInstance` is the modern
         // replacement; we try it first and fall back to wmic for older
         // hosts.
-        val isVM =
-            remember {
-                val osName = System.getProperty("os.name", "")
-                if (!osName.contains("Windows", ignoreCase = true)) {
-                    return@remember false
-                }
-                val probes =
-                    listOf(
-                        listOf(
-                            "powershell",
-                            "-NoProfile",
-                            "-Command",
-                            "(Get-CimInstance Win32_ComputerSystem | " +
-                                "Select-Object Manufacturer,Model | " +
-                                "Format-List | Out-String).Trim()",
-                        ),
-                        listOf("wmic", "computersystem", "get", "manufacturer,model"),
-                    )
-                val sysInfo =
-                    probes
-                        .asSequence()
-                        .mapNotNull { cmd ->
-                            runCatching {
-                                val p =
-                                    ProcessBuilder(cmd)
-                                        .redirectErrorStream(true)
-                                        .start()
-                                val out = p.inputStream.bufferedReader().readText()
-                                if (p.waitFor() == 0 && out.isNotBlank()) out else null
-                            }.getOrNull()
-                        }
-                        .firstOrNull()
-                        .orEmpty()
-                val vmTokens = listOf("Parallels", "VirtualBox", "VMware", "QEMU", "KVM", "Xen", "Hyper-V")
-                vmTokens.any { sysInfo.contains(it, ignoreCase = true) } ||
-                    System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
-            }
+        val isVM = true
         Window(
             onCloseRequest = {
                 isVisible = false
             },
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = !isVM,
-            transparent = !isVM,
+            undecorated = false,
+            transparent = false,
             state = windowState,
             visible = isVisible,
         ) {
