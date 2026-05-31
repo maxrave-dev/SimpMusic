@@ -92,6 +92,23 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         deepLinkArg?.let { DesktopDeepLinkHandler.onNewUri(it) }
     }
 
+    // Check for single instance BEFORE initializing Koin and DataStore
+    var restoreRequest: (() -> Unit)? = null
+    val isSingleInstance =
+        SingleInstanceManager.isSingleInstance(
+            onRestoreRequest = {
+                restoreRequest?.invoke()
+                // Check if a second instance left a deep link URI for us
+                DesktopDeepLinkHandler.consumePendingUri()
+            },
+        )
+
+    if (!isSingleInstance) {
+        // If launched with a deep link URI, write it for the running instance to pick up
+        deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
+        return
+    }
+
     // Initialize Koin ONCE before application starts
     startKoin {
         loadAllModules()
@@ -157,23 +174,12 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 size = DpSize(1500.dp, 860.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
-        // Single management
-        val isSingleInstance =
-            SingleInstanceManager.isSingleInstance(
-                onRestoreRequest = {
-                    isVisible = true
-                    windowState.isMinimized = false
-                    // Check if a second instance left a deep link URI for us
-                    DesktopDeepLinkHandler.consumePendingUri()
-                },
-            )
 
-        if (!isSingleInstance) {
-            // If launched with a deep link URI, write it for the running instance to pick up
-            deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
-            exitApplication()
-            return@application
+        restoreRequest = {
+            isVisible = true
+            windowState.isMinimized = false
         }
+
         val openAppString = stringResource(Res.string.open_app)
         val quitAppString = stringResource(Res.string.quit_app)
         val openMiniPlayer = stringResource(Res.string.open_miniplayer)
