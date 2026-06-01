@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import io.sentry.Sentry
 import io.sentry.SentryLevel
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastHost
@@ -93,11 +95,16 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     }
 
     // Check for single instance BEFORE initializing Koin and DataStore
-    var restoreRequest: (() -> Unit)? = null
+    // Holds the action that brings the running window to the foreground.
+    // AtomicReference (not a plain var) because onRestoreRequest is invoked from
+    // the library's background watcher thread, while the value is published later
+    // from the Compose thread inside application{} — the atomic provides the
+    // cross-thread happens-before edge so the watcher never reads a stale null.
+    val restoreRequest = AtomicReference<(() -> Unit)?>(null)
     val isSingleInstance =
         SingleInstanceManager.isSingleInstance(
             onRestoreRequest = {
-                restoreRequest?.invoke()
+                restoreRequest.get()?.invoke()
                 // Check if a second instance left a deep link URI for us
                 DesktopDeepLinkHandler.consumePendingUri()
             },
@@ -175,9 +182,13 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             )
         var isVisible by remember { mutableStateOf(true) }
 
-        restoreRequest = {
-            isVisible = true
-            windowState.isMinimized = false
+        // Publish the restore action after a successful composition (single,
+        // well-defined publish point), so the watcher thread can invoke it.
+        SideEffect {
+            restoreRequest.set {
+                isVisible = true
+                windowState.isMinimized = false
+            }
         }
 
         val openAppString = stringResource(Res.string.open_app)
