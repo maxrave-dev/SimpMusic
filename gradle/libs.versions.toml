@@ -3,10 +3,10 @@
 version-name = "1.3.0"
 version-code = "51"
 
-android = "9.1.1"
+android = "9.2.1"
 kotlin = "2.3.21"
 serialization = "2.3.21"
-ksp = "2.3.6"
+ksp = "2.3.9"
 compose-bom = "2026.05.01"
 material3-expressive = "1.5.0-alpha20"
 constraintlayout-compose = "1.1.1"
@@ -46,9 +46,9 @@ common = "1.22.0"
 json = "1.11.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.42.0"
-sentry-gradle-android = "6.8.1"
-sentry-jvm = "8.42.0"
+sentry-android = "8.43.0"
+sentry-gradle-android = "6.9.0"
+sentry-jvm = "8.43.0"
 newpipe = "v0.26.1"
 brave-newpipe = "v0.26.2"
 pipepipe = "30ec94d6d3"
@@ -56,7 +56,7 @@ webkit = "1.16.0"
 kermit = "2.1.0"
 paging-common = "3.5.0"
 glance = "1.1.1"
-liquid-glass = "2.0.0-alpha03"
+liquid-glass = "2.0.0"
 liquid-glass-shapes = "1.2.0"
 ffmpeg-kit-audio = "6.0.1"
 composeHotReload = "1.1.1"
@@ -66,14 +66,11 @@ sqlite = "2.6.2"
 okio = "3.17.0"
 vlcj = "4.12.1"
 vlc = "3.0.23"
-material3-multiplatform = "1.10.0-alpha05"
+material3-multiplatform = "1.12.0-alpha01"
 adaptive = "1.2.0"
-material-multiplatform = "1.11.0"
 material-icons-multiplatform = "1.7.3"
 componentsResources = "1.11.0"
-foundation = "1.11.0"
-runtime = "1.11.0"
-compottie = "2.1.0"
+compottie = "2.1.0" # 2.2.0 buggy
 cmptoast = "1.0.71"
 uri = "0.0.21"
 buildkonfig = "0.21.2"
@@ -94,8 +91,8 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-expressive" }
 compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "material3-multiplatform" }
 compose-material3-adaptive = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive", version.ref = "adaptive" }
-compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "material-multiplatform" }
-compose-material-ripple = { group = "org.jetbrains.compose.material", name = "material-ripple", version.ref = "material-multiplatform" }
+compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "composeMultiplatform" }
+compose-material-ripple = { group = "org.jetbrains.compose.material", name = "material-ripple", version.ref = "composeMultiplatform" }
 compose-material-icons-core = { group = "org.jetbrains.compose.material", name = "material-icons-core", version.ref = "material-icons-multiplatform" }
 compose-material-icons-extended = { group = "org.jetbrains.compose.material", name = "material-icons-extended", version.ref = "material-icons-multiplatform" }
 compose-linux-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-arm64", version.ref = "composeMultiplatform" }
@@ -105,9 +102,9 @@ compose-macos-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-
 compose-windows-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-arm64", version.ref = "composeMultiplatform" }
 compose-windows-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-x64", version.ref = "composeMultiplatform" }
 constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayout-compose" }
-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "foundation" }
+foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }
+runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
 ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 jetbrains-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
