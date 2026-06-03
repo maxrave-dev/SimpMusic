@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +37,6 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import io.sentry.Sentry
 import io.sentry.SentryLevel
-import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastHost
@@ -92,28 +90,6 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         }
     if (!isMacOS) {
         deepLinkArg?.let { DesktopDeepLinkHandler.onNewUri(it) }
-    }
-
-    // Check for single instance BEFORE initializing Koin and DataStore
-    // Holds the action that brings the running window to the foreground.
-    // AtomicReference (not a plain var) because onRestoreRequest is invoked from
-    // the library's background watcher thread, while the value is published later
-    // from the Compose thread inside application{} — the atomic provides the
-    // cross-thread happens-before edge so the watcher never reads a stale null.
-    val restoreRequest = AtomicReference<(() -> Unit)?>(null)
-    val isSingleInstance =
-        SingleInstanceManager.isSingleInstance(
-            onRestoreRequest = {
-                restoreRequest.get()?.invoke()
-                // Check if a second instance left a deep link URI for us
-                DesktopDeepLinkHandler.consumePendingUri()
-            },
-        )
-
-    if (!isSingleInstance) {
-        // If launched with a deep link URI, write it for the running instance to pick up
-        deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
-        return
     }
 
     // Initialize Koin ONCE before application starts
@@ -181,16 +157,23 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 size = DpSize(1500.dp, 860.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
+        // Single management
+        val isSingleInstance =
+            SingleInstanceManager.isSingleInstance(
+                onRestoreRequest = {
+                    isVisible = true
+                    windowState.isMinimized = false
+                    // Check if a second instance left a deep link URI for us
+                    DesktopDeepLinkHandler.consumePendingUri()
+                },
+            )
 
-        // Publish the restore action after a successful composition (single,
-        // well-defined publish point), so the watcher thread can invoke it.
-        SideEffect {
-            restoreRequest.set {
-                isVisible = true
-                windowState.isMinimized = false
-            }
+        if (!isSingleInstance) {
+            // If launched with a deep link URI, write it for the running instance to pick up
+            deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
+            exitApplication()
+            return@application
         }
-
         val openAppString = stringResource(Res.string.open_app)
         val quitAppString = stringResource(Res.string.quit_app)
         val openMiniPlayer = stringResource(Res.string.open_miniplayer)
