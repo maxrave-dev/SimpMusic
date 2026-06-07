@@ -782,42 +782,30 @@ class SettingsViewModel(
 
     private fun getProxy() {
         viewModelScope.launch {
-            val host =
-                launch {
-                    dataStoreManager.proxyHost.collect {
-                        _proxyHost.value = it
-                    }
-                }
-            val port =
-                launch {
-                    dataStoreManager.proxyPort.collect {
-                        _proxyPort.value = it
-                    }
-                }
-            val type =
-                launch {
-                    dataStoreManager.proxyType.collect {
-                        _proxyType.value = it
-                        log("getProxy: $it")
-                    }
-                }
-            val username =
-                launch {
-                    dataStoreManager.proxyUsername.collect {
-                        _proxyUsername.value = it
-                    }
-                }
-            val password =
-                launch {
-                    dataStoreManager.proxyPassword.collect {
-                        _proxyPassword.value = it
-                    }
-                }
-            host.join()
-            port.join()
-            type.join()
-            username.join()
-            password.join()
+            dataStoreManager.proxyHost.collect {
+                _proxyHost.value = it
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.proxyPort.collect {
+                _proxyPort.value = it
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.proxyType.collect {
+                _proxyType.value = it
+                log("getProxy: $it")
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.proxyUsername.collect {
+                _proxyUsername.value = it
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.proxyPassword.collect {
+                _proxyPassword.value = it
+            }
         }
     }
 

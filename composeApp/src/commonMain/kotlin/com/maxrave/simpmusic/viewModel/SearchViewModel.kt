@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 import org.jetbrains.compose.resources.StringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.albums
@@ -175,78 +176,80 @@ class SearchViewModel(
             var podcast = ArrayList<PlaylistsResult>()
             val temp: ArrayList<SearchResultType> = ArrayList()
 
-            val job1 =
-                launch {
-                    searchRepository.getSearchDataSong(query).collect { values ->
-                        when (values) {
-                            is Resource.Success -> values.data?.let { song = it }
-                            is Resource.Error -> {}
-                        }
-                    }
-                }
-            val job2 =
-                launch {
-                    searchRepository.getSearchDataArtist(query).collect { values ->
-                        when (values) {
-                            is Resource.Success -> values.data?.let { artist = it }
-                            is Resource.Error -> {}
-                        }
-                    }
-                }
-            val job3 =
-                launch {
-                    searchRepository
-                        .getSearchDataAlbum(query)
-                        .collect { values ->
+            supervisorScope {
+                val job1 =
+                    launch {
+                        searchRepository.getSearchDataSong(query).collect { values ->
                             when (values) {
-                                is Resource.Success -> values.data?.let { album = it }
+                                is Resource.Success -> values.data?.let { song = it }
                                 is Resource.Error -> {}
                             }
                         }
-                }
-            val job4 =
-                launch {
-                    searchRepository.getSearchDataPlaylist(query).collect { values ->
-                        when (values) {
-                            is Resource.Success -> values.data?.let { playlist = it }
-                            is Resource.Error -> {}
+                    }
+                val job2 =
+                    launch {
+                        searchRepository.getSearchDataArtist(query).collect { values ->
+                            when (values) {
+                                is Resource.Success -> values.data?.let { artist = it }
+                                is Resource.Error -> {}
+                            }
                         }
                     }
-                }
-            val job5 =
-                launch {
-                    searchRepository.getSearchDataVideo(query).collect { values ->
-                        when (values) {
-                            is Resource.Success -> values.data?.let { video.addAll(it) }
-                            is Resource.Error -> {}
+                val job3 =
+                    launch {
+                        searchRepository
+                            .getSearchDataAlbum(query)
+                            .collect { values ->
+                                when (values) {
+                                    is Resource.Success -> values.data?.let { album = it }
+                                    is Resource.Error -> {}
+                                }
+                            }
+                    }
+                val job4 =
+                    launch {
+                        searchRepository.getSearchDataPlaylist(query).collect { values ->
+                            when (values) {
+                                is Resource.Success -> values.data?.let { playlist = it }
+                                is Resource.Error -> {}
+                            }
                         }
                     }
-                }
-            val job6 =
-                launch {
-                    searchRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
-                        when (values) {
-                            is Resource.Success -> values.data?.let { featuredPlaylist = it }
-                            is Resource.Error -> {}
+                val job5 =
+                    launch {
+                        searchRepository.getSearchDataVideo(query).collect { values ->
+                            when (values) {
+                                is Resource.Success -> values.data?.let { video.addAll(it) }
+                                is Resource.Error -> {}
+                            }
                         }
                     }
-                }
-            val job7 =
-                launch {
-                    searchRepository.getSearchDataPodcast(query).collect { values ->
-                        when (values) {
-                            is Resource.Success -> values.data?.let { podcast = it }
-                            is Resource.Error -> {}
+                val job6 =
+                    launch {
+                        searchRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
+                            when (values) {
+                                is Resource.Success -> values.data?.let { featuredPlaylist = it }
+                                is Resource.Error -> {}
+                            }
                         }
                     }
-                }
-            job1.join()
-            job2.join()
-            job3.join()
-            job4.join()
-            job5.join()
-            job6.join()
-            job7.join()
+                val job7 =
+                    launch {
+                        searchRepository.getSearchDataPodcast(query).collect { values ->
+                            when (values) {
+                                is Resource.Success -> values.data?.let { podcast = it }
+                                is Resource.Error -> {}
+                            }
+                        }
+                    }
+                job1.join()
+                job2.join()
+                job3.join()
+                job4.join()
+                job5.join()
+                job6.join()
+                job7.join()
+            }
 
             try {
                 if (artist.size >= 3) {

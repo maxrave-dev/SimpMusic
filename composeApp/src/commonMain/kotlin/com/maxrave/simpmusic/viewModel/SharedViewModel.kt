@@ -220,73 +220,54 @@ class SharedViewModel(
                 )
             }
             dataStoreManager.openApp()
-            val timeLineJob =
-                launch {
-                    nowPlayingState
-                        .filterNotNull()
-                        .flatMapLatest { nowPlayingState ->
-                            timeline.map { timeLine ->
-                                Pair(timeLine, nowPlayingState)
-                            }
-                        }.distinctUntilChanged { old, new ->
-                            (old.first.total.toString() + old.second.songEntity?.videoId).hashCode() ==
-                                (new.first.total.toString() + new.second.songEntity?.videoId).hashCode()
-                        }.collectLatest {
-                            log("Timeline job ${(it.first.total.toString() + it.second.songEntity?.videoId).hashCode()}")
-                            val nowPlaying = it.second
-                            val timeline = it.first
-                            if (timeline.total > 0 && nowPlaying.songEntity != null) {
-                                if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.canvasData == null) {
-                                    Logger.w(tag, "Duration is ${timeline.total}")
-                                    Logger.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
-                                    getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
-                                }
-                                nowPlaying.songEntity?.let { song ->
-                                    if (nowPlayingScreenData.value.lyricsData == null) {
-                                        Logger.w(tag, "Get lyrics from format")
-                                        getLyricsFromFormat(nowPlaying.mediaItem.isVideo(), song, (timeline.total / 1000).toInt())
-                                    }
-                                }
+        }
+        viewModelScope.launch {
+            nowPlayingState
+                .filterNotNull()
+                .flatMapLatest { nowPlayingState ->
+                    timeline.map { timeLine ->
+                        Pair(timeLine, nowPlayingState)
+                    }
+                }.distinctUntilChanged { old, new ->
+                    (old.first.total.toString() + old.second.songEntity?.videoId).hashCode() ==
+                        (new.first.total.toString() + new.second.songEntity?.videoId).hashCode()
+                }.collectLatest {
+                    log("Timeline job ${(it.first.total.toString() + it.second.songEntity?.videoId).hashCode()}")
+                    val nowPlaying = it.second
+                    val timeline = it.first
+                    if (timeline.total > 0 && nowPlaying.songEntity != null) {
+                        if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.canvasData == null) {
+                            Logger.w(tag, "Duration is ${timeline.total}")
+                            Logger.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
+                            getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
+                        }
+                        nowPlaying.songEntity?.let { song ->
+                            if (nowPlayingScreenData.value.lyricsData == null) {
+                                Logger.w(tag, "Get lyrics from format")
+                                getLyricsFromFormat(nowPlaying.mediaItem.isVideo(), song, (timeline.total / 1000).toInt())
                             }
                         }
-                }
-            val checkGetVideoJob =
-                launch {
-                    dataStoreManager.watchVideoInsteadOfPlayingAudio.collectLatest {
-                        Logger.w(tag, "GetVideo is $it")
-                        _getVideo.value = it == TRUE
                     }
                 }
-            val lyricsProviderJob =
-                launch {
-                    dataStoreManager.lyricsProvider.distinctUntilChanged().collectLatest {
-                        setLyricsProvider()
-                    }
-                }
-            val shareSavedLyricsJob =
-                launch {
-                    dataStoreManager.helpBuildLyricsDatabase.distinctUntilChanged().collectLatest {
-                        _shareSavedLyrics.value = it == TRUE
-                    }
-                }
-//            val controllerStateJob =
-//                launch {
-//                    controllerState.map { it.isLiked }.distinctUntilChanged().collectLatest {
-//                        if (dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE) {
-//                            nowPlayingState.value?.mediaItem?.mediaId?.let {
-//                                getLikeStatus(it)
-//                            }
-//                        }
-//                    }
-//                }
-            timeLineJob.join()
-            checkGetVideoJob.join()
-            lyricsProviderJob.join()
-            shareSavedLyricsJob.join()
-//            controllerStateJob.join()
+        }
+        viewModelScope.launch {
+            dataStoreManager.watchVideoInsteadOfPlayingAudio.collectLatest {
+                Logger.w(tag, "GetVideo is $it")
+                _getVideo.value = it == TRUE
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.lyricsProvider.distinctUntilChanged().collectLatest {
+                setLyricsProvider()
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.helpBuildLyricsDatabase.distinctUntilChanged().collectLatest {
+                _shareSavedLyrics.value = it == TRUE
+            }
         }
 
-        runBlocking {
+        viewModelScope.launch {
             dataStoreManager.getString("miniplayer_guide").first().let {
                 isFirstMiniplayer = it != STATUS_DONE
             }
@@ -347,113 +328,103 @@ class SharedViewModel(
                 }
         }
         viewModelScope.launch {
-            val job1 =
-                launch {
-                    mediaPlayerHandler.simpleMediaState.collect { mediaState ->
-                        when (mediaState) {
-                            is SimpleMediaState.Buffering -> {
+            mediaPlayerHandler.simpleMediaState.collect { mediaState ->
+                when (mediaState) {
+                    is SimpleMediaState.Buffering -> {
+                        _timeline.update {
+                            it.copy(
+                                loading = true,
+                            )
+                        }
+                    }
+
+                    SimpleMediaState.Initial -> {
+                        _timeline.update { it.copy(loading = true) }
+                    }
+
+                    SimpleMediaState.Ended -> {
+                        _timeline.update {
+                            it.copy(
+                                current = -1L,
+                                total = -1L,
+                                bufferedPercent = 0,
+                                loading = true,
+                            )
+                        }
+                    }
+
+                    is SimpleMediaState.Progress -> {
+                        if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
+                            if (_timeline.value.total > 0L) {
                                 _timeline.update {
                                     it.copy(
-                                        loading = true,
-                                    )
-                                }
-                            }
-
-                            SimpleMediaState.Initial -> {
-                                _timeline.update { it.copy(loading = true) }
-                            }
-
-                            SimpleMediaState.Ended -> {
-                                _timeline.update {
-                                    it.copy(
-                                        current = -1L,
-                                        total = -1L,
-                                        bufferedPercent = 0,
-                                        loading = true,
-                                    )
-                                }
-                            }
-
-                            is SimpleMediaState.Progress -> {
-                                if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
-                                    if (_timeline.value.total > 0L) {
-                                        _timeline.update {
-                                            it.copy(
-                                                total = mediaPlayerHandler.getPlayerDuration(),
-                                                current = mediaState.progress,
-                                                loading = false,
-                                            )
-                                        }
-                                    } else {
-                                        _timeline.update {
-                                            it.copy(
-                                                current = mediaState.progress,
-                                                loading = true,
-                                                total = mediaPlayerHandler.getPlayerDuration(),
-                                            )
-                                        }
-                                    }
-                                }
-                                // When progress hasn't changed (same value polled again) or is negative,
-                                // don't modify loading state. The loading flag is already managed by
-                                // Buffering/Ready/Loading state events. Setting loading=true here would
-                                // cause rapid flickering because the progress poll interval (100ms) is
-                                // shorter than the adapter's position cache update interval (200ms),
-                                // resulting in duplicate position values that incorrectly triggered loading.
-                            }
-
-                            is SimpleMediaState.Loading -> {
-                                _timeline.update {
-                                    it.copy(
-                                        bufferedPercent = mediaState.bufferedPercentage,
-                                        total = mediaState.duration,
-                                        loading = true,
-                                    )
-                                }
-                            }
-
-                            is SimpleMediaState.Ready -> {
-                                _timeline.update {
-                                    it.copy(
-                                        current = mediaPlayerHandler.getProgress(),
+                                        total = mediaPlayerHandler.getPlayerDuration(),
+                                        current = mediaState.progress,
                                         loading = false,
-                                        total = mediaState.duration,
+                                    )
+                                }
+                            } else {
+                                _timeline.update {
+                                    it.copy(
+                                        current = mediaState.progress,
+                                        loading = true,
+                                        total = mediaPlayerHandler.getPlayerDuration(),
                                     )
                                 }
                             }
                         }
+                        // When progress hasn't changed (same value polled again) or is negative,
+                        // don't modify loading state. The loading flag is already managed by
+                        // Buffering/Ready/Loading state events. Setting loading=true here would
+                        // cause rapid flickering because the progress poll interval (100ms) is
+                        // shorter than the adapter's position cache update interval (200ms),
+                        // resulting in duplicate position values that incorrectly triggered loading.
                     }
-                }
-            val controllerJob =
-                launch {
-                    Logger.w(tag, "ControllerJob is running")
-                    mediaPlayerHandler.controlState.collectLatest {
-                        Logger.w(tag, "ControlState is $it")
-                        _controllerState.value = it
-                        // Propagate crossfade state to timeline so UI can react
-                        _timeline.update { timeline ->
-                            timeline.copy(isCrossfading = it.isCrossfading)
+
+                    is SimpleMediaState.Loading -> {
+                        _timeline.update {
+                            it.copy(
+                                bufferedPercent = mediaState.bufferedPercentage,
+                                total = mediaState.duration,
+                                loading = true,
+                            )
+                        }
+                    }
+
+                    is SimpleMediaState.Ready -> {
+                        _timeline.update {
+                            it.copy(
+                                current = mediaPlayerHandler.getProgress(),
+                                loading = false,
+                                total = mediaState.duration,
+                            )
                         }
                     }
                 }
-            val sleepTimerJob =
-                launch {
-                    mediaPlayerHandler.sleepTimerState.collectLatest {
-                        _sleepTimerState.value = it
-                    }
+            }
+        }
+        viewModelScope.launch {
+            Logger.w(tag, "ControllerJob is running")
+            mediaPlayerHandler.controlState.collectLatest {
+                Logger.w(tag, "ControlState is $it")
+                _controllerState.value = it
+                // Propagate crossfade state to timeline so UI can react
+                _timeline.update { timeline ->
+                    timeline.copy(isCrossfading = it.isCrossfading)
                 }
-            val playlistNameJob =
-                launch {
-                    mediaPlayerHandler.queueData.collectLatest {
-                        _nowPlayingScreenData.update {
-                            it.copy(playlistName = it.playlistName)
-                        }
-                    }
+            }
+        }
+        viewModelScope.launch {
+            mediaPlayerHandler.sleepTimerState.collectLatest {
+                _sleepTimerState.value = it
+            }
+        }
+        viewModelScope.launch {
+            mediaPlayerHandler.queueData.collectLatest {
+                _nowPlayingScreenData.update {
+                    it.copy(playlistName = it.playlistName)
                 }
-            job1.join()
-            controllerJob.join()
-            sleepTimerJob.join()
-            playlistNameJob.join()
+            }
         }
         // Reset downloading songs & playlists to not downloaded
         checkAllDownloadingSongs()

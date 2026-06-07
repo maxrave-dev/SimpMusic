@@ -94,22 +94,16 @@ class LibraryViewModel(
 
     init {
         viewModelScope.launch {
-            val currentScreenJob =
-                launch {
-                    dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
-                        LibraryChipType.fromStringValue(chipType)?.let {
-                            _currentScreen.value = it
-                        }
-                    }
+            dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
+                LibraryChipType.fromStringValue(chipType)?.let {
+                    _currentScreen.value = it
                 }
-            val cookieJob =
-                launch {
-                    dataStoreManager.cookie.distinctUntilChanged().collect {
-                        _accountThumbnail.value = dataStoreManager.getString("AccountThumbUrl").first().takeIf { !it.isNullOrEmpty() }
-                    }
-                }
-            currentScreenJob.join()
-            cookieJob.join()
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.cookie.distinctUntilChanged().collect {
+                _accountThumbnail.value = dataStoreManager.getString("AccountThumbUrl").first().takeIf { !it.isNullOrEmpty() }
+            }
         }
     }
 

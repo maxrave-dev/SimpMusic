@@ -87,12 +87,12 @@ class HomeViewModel(
     val mainHomeThumbnail: StateFlow<String?> = _mainHomeThumbnail
 
     init {
-        if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
-            runBlocking {
+        viewModelScope.launch {
+            if (dataStoreManager.cookie.first().isEmpty() &&
                 dataStoreManager.shouldShowLogInRequiredAlert.first() == TRUE
+            ) {
+                _showLogInAlert.update { true }
             }
-        ) {
-            _showLogInAlert.update { true }
         }
         homeJob = Job()
         viewModelScope.launch {
@@ -100,73 +100,59 @@ class HomeViewModel(
             exploreChart(regionCodeChart.value ?: "ZZ")
             language = dataStoreManager.getString(SELECTED_LANGUAGE).first()
                 ?: SUPPORTED_LANGUAGE.codes.first()
-            //  refresh when region change
-            val job1 =
-                launch {
-                    dataStoreManager.location.distinctUntilChanged().collect {
-                        regionCode = it
+        }
+        viewModelScope.launch {
+            dataStoreManager.location.distinctUntilChanged().collect {
+                regionCode = it
+                getHomeItemList(params.value)
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.language.distinctUntilChanged().collect {
+                language = it
+                getHomeItemList(params.value)
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.cookie.distinctUntilChanged().collect {
+                getHomeItemList(params.value)
+                _accountInfo.emit(
+                    Pair(
+                        dataStoreManager.getString("AccountName").first(),
+                        dataStoreManager.getString("AccountThumbUrl").first(),
+                    ),
+                )
+            }
+        }
+        viewModelScope.launch {
+            params.collectLatest {
+                getHomeItemList(it)
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager
+                .cookie
+                .distinctUntilChanged()
+                .collectLatest {
+                    if (it.isNotEmpty()) {
+                        Logger.w(tag, "Cookie changed, refreshing home")
+                        loading.value = true
+                        delay(1000) // To wait for the cookie to be saved properly
                         getHomeItemList(params.value)
                     }
                 }
-            //  refresh when language change
-            val job2 =
-                launch {
-                    dataStoreManager.language.distinctUntilChanged().collect {
-                        language = it
-                        getHomeItemList(params.value)
-                    }
-                }
-            val job3 =
-                launch {
-                    dataStoreManager.cookie.distinctUntilChanged().collect {
-                        getHomeItemList(params.value)
-                        _accountInfo.emit(
-                            Pair(
-                                dataStoreManager.getString("AccountName").first(),
-                                dataStoreManager.getString("AccountThumbUrl").first(),
-                            ),
-                        )
-                    }
-                }
-            val job4 =
-                launch {
-                    params.collectLatest {
-                        getHomeItemList(it)
-                    }
-                }
-            val job5 =
-                launch {
-                    dataStoreManager
-                        .cookie
-                        .distinctUntilChanged()
-                        .collectLatest {
-                            if (it.isNotEmpty()) {
-                                Logger.w(tag, "Cookie changed, refreshing home")
-                                loading.value = true
-                                delay(1000) // To wait for the cookie to be saved properly
-                                getHomeItemList(params.value)
-                            }
-                        }
-                }
-            val job6 =
-                launch {
-                    homeItemList.collectLatest { list ->
-                        _mainHomeThumbnail.value =
-                            list
-                                .firstOrNull()
-                                ?.contents
-                                ?.firstOrNull()
-                                ?.thumbnails
-                                ?.lastOrNull()
-                                ?.url
-                    }
-                }
-            job1.join()
-            job2.join()
-            job3.join()
-            job4.join()
-            job5.join()
-            job6.join()
+        }
+        viewModelScope.launch {
+            homeItemList.collectLatest { list ->
+                _mainHomeThumbnail.value =
+                    list
+                        .firstOrNull()
+                        ?.contents
+                        ?.firstOrNull()
+                        ?.thumbnails
+                        ?.lastOrNull()
+                        ?.url
+            }
         }
     }
 

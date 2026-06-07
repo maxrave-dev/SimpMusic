@@ -78,61 +78,51 @@ class NowPlayingBottomSheetViewModel(
 
     init {
         viewModelScope.launch {
-            val sleepTimerJob =
-                launch {
-                    mediaPlayerHandler.sleepTimerState.collectLatest { sl ->
-                        _uiState.update { it.copy(sleepTimer = sl) }
+            mediaPlayerHandler.sleepTimerState.collectLatest { sl ->
+                _uiState.update { it.copy(sleepTimer = sl) }
+            }
+        }
+        viewModelScope.launch {
+            localPlaylistRepository.getAllLocalPlaylists().collectLatest { list ->
+                _uiState.update { it.copy(listLocalPlaylist = list) }
+            }
+        }
+        viewModelScope.launch {
+            playlistRepository.getLibraryPlaylist().collect { data ->
+                _uiState.update { state ->
+                    state.copy(
+                        listYouTubePlaylist =
+                            data?.filter {
+                                it.browseId != "VLLM"
+                            } ?: emptyList(),
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.lyricsProvider.collectLatest { lyricsProvider ->
+                when (lyricsProvider) {
+                    SIMPMUSIC -> {
+                        _uiState.update { it.copy(mainLyricsProvider = SIMPMUSIC) }
+                    }
+
+                    YOUTUBE -> {
+                        _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
+                    }
+
+                    LRCLIB -> {
+                        _uiState.update { it.copy(mainLyricsProvider = LRCLIB) }
+                    }
+
+                    BETTER_LYRICS -> {
+                        _uiState.update { it.copy(mainLyricsProvider = BETTER_LYRICS) }
+                    }
+
+                    else -> {
+                        log("Unknown lyrics provider", LogLevel.ERROR)
                     }
                 }
-            val listLocalPlaylistJob =
-                launch {
-                    localPlaylistRepository.getAllLocalPlaylists().collectLatest { list ->
-                        _uiState.update { it.copy(listLocalPlaylist = list) }
-                    }
-                }
-            val listYouTubePlaylistJob =
-                launch {
-                    playlistRepository.getLibraryPlaylist().collect { data ->
-                        _uiState.update { state ->
-                            state.copy(
-                                listYouTubePlaylist =
-                                    data?.filter {
-                                        it.browseId != "VLLM"
-                                    } ?: emptyList(),
-                            )
-                        }
-                    }
-                }
-            val mainLyricsProviderJob =
-                launch {
-                    dataStoreManager.lyricsProvider.collectLatest { lyricsProvider ->
-                        when (lyricsProvider) {
-                            SIMPMUSIC -> {
-                                _uiState.update { it.copy(mainLyricsProvider = SIMPMUSIC) }
-                            }
-
-                            YOUTUBE -> {
-                                _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
-                            }
-
-                            LRCLIB -> {
-                                _uiState.update { it.copy(mainLyricsProvider = LRCLIB) }
-                            }
-
-                            BETTER_LYRICS -> {
-                                _uiState.update { it.copy(mainLyricsProvider = BETTER_LYRICS) }
-                            }
-
-                            else -> {
-                                log("Unknown lyrics provider", LogLevel.ERROR)
-                            }
-                        }
-                    }
-                }
-            sleepTimerJob.join()
-            listLocalPlaylistJob.join()
-            listYouTubePlaylistJob.join()
-            mainLyricsProviderJob.join()
+            }
         }
     }
 

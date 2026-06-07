@@ -244,38 +244,32 @@ fun MiniPlayer(
     }
 
     LaunchedEffect(key1 = true) {
-        val job1 =
-            launch {
-                sharedViewModel.nowPlayingState.collect { item ->
-                    if (item != null) {
-                        setSongEntity(item.songEntity)
+        launch {
+            sharedViewModel.nowPlayingState.collect { item ->
+                if (item != null) {
+                    setSongEntity(item.songEntity)
+                }
+            }
+        }
+        launch {
+            sharedViewModel.controllerState.collectLatest { state ->
+                setLiked(state.isLiked)
+                setIsPlaying(state.isPlaying)
+                setIsCrossfading(state.isCrossfading)
+            }
+        }
+        launch {
+            sharedViewModel.timeline.collect { timeline ->
+                loading = timeline.loading
+                val prog =
+                    if (timeline.total > 0L && timeline.current >= 0L) {
+                        timeline.current.toFloat() / timeline.total
+                    } else {
+                        0f
                     }
-                }
+                setProgress(prog)
             }
-        val job2 =
-            launch {
-                sharedViewModel.controllerState.collectLatest { state ->
-                    setLiked(state.isLiked)
-                    setIsPlaying(state.isPlaying)
-                    setIsCrossfading(state.isCrossfading)
-                }
-            }
-        val job4 =
-            launch {
-                sharedViewModel.timeline.collect { timeline ->
-                    loading = timeline.loading
-                    val prog =
-                        if (timeline.total > 0L && timeline.current >= 0L) {
-                            timeline.current.toFloat() / timeline.total
-                        } else {
-                            0f
-                        }
-                    setProgress(prog)
-                }
-            }
-        job1.join()
-        job2.join()
-        job4.join()
+        }
     }
 
     if (getPlatform() == Platform.Android) {

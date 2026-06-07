@@ -94,54 +94,50 @@ class PlaylistViewModel(
     private var checkDownloadedPlaylist: Job? = null
 
     init {
-        viewModelScope.launch {
-            val listTrackStringJob =
-                launch(Dispatchers.IO) {
-                    downloadState
-                        .collectLatest { state ->
-                            newUpdateJob?.cancel()
-                            val id = playlistEntity.value?.id ?: return@collectLatest
-                            if (state == STATE_DOWNLOADING || state == STATE_DOWNLOADED) {
-                                getFullTracks { tracks ->
-                                    newUpdateJob =
-                                        launch {
-                                            val listSongs = songRepository.getSongsByListVideoId(tracks.toListVideoId()).firstOrNull() ?: emptyList()
-                                            if (state == STATE_DOWNLOADED && listSongs.isNotEmpty()) {
-                                                listSongs.filter { it.downloadState != STATE_DOWNLOADED }.let { notDownloaded ->
-                                                    if (notDownloaded.isNotEmpty()) {
-                                                        downloadTracks(notDownloaded.map { it.videoId })
-                                                        updatePlaylistDownloadState(id, STATE_DOWNLOADING)
-                                                    } else {
-                                                        updatePlaylistDownloadState(id, STATE_DOWNLOADED)
-                                                    }
-                                                }
-                                            }
-                                            downloadUtils.downloads.collectLatest { downloads ->
-                                                var count = 0
-                                                tracks.forEachIndexed { index, track ->
-                                                    val trackDownloadState = downloads[track.videoId]?.first?.state
-                                                    val videoDownloadState =
-                                                        downloads[track.videoId]?.second?.state ?: DownloadHandler.State.STATE_COMPLETED
-                                                    if (trackDownloadState == DownloadHandler.State.STATE_DOWNLOADING ||
-                                                        videoDownloadState == DownloadHandler.State.STATE_DOWNLOADING
-                                                    ) {
-                                                        updatePlaylistDownloadState(id, STATE_DOWNLOADING)
-                                                    } else if (trackDownloadState == DownloadHandler.State.STATE_COMPLETED &&
-                                                        videoDownloadState == DownloadHandler.State.STATE_COMPLETED
-                                                    ) {
-                                                        count++
-                                                    }
-                                                    if (count == tracks.size) {
-                                                        updatePlaylistDownloadState(id, STATE_DOWNLOADED)
-                                                    }
-                                                }
+        viewModelScope.launch(Dispatchers.IO) {
+            downloadState
+                .collectLatest { state ->
+                    newUpdateJob?.cancel()
+                    val id = playlistEntity.value?.id ?: return@collectLatest
+                    if (state == STATE_DOWNLOADING || state == STATE_DOWNLOADED) {
+                        getFullTracks { tracks ->
+                            newUpdateJob =
+                                launch {
+                                    val listSongs = songRepository.getSongsByListVideoId(tracks.toListVideoId()).firstOrNull() ?: emptyList()
+                                    if (state == STATE_DOWNLOADED && listSongs.isNotEmpty()) {
+                                        listSongs.filter { it.downloadState != STATE_DOWNLOADED }.let { notDownloaded ->
+                                            if (notDownloaded.isNotEmpty()) {
+                                                downloadTracks(notDownloaded.map { it.videoId })
+                                                updatePlaylistDownloadState(id, STATE_DOWNLOADING)
+                                            } else {
+                                                updatePlaylistDownloadState(id, STATE_DOWNLOADED)
                                             }
                                         }
+                                    }
+                                    downloadUtils.downloads.collectLatest { downloads ->
+                                        var count = 0
+                                        tracks.forEachIndexed { index, track ->
+                                            val trackDownloadState = downloads[track.videoId]?.first?.state
+                                            val videoDownloadState =
+                                                downloads[track.videoId]?.second?.state ?: DownloadHandler.State.STATE_COMPLETED
+                                            if (trackDownloadState == DownloadHandler.State.STATE_DOWNLOADING ||
+                                                videoDownloadState == DownloadHandler.State.STATE_DOWNLOADING
+                                            ) {
+                                                updatePlaylistDownloadState(id, STATE_DOWNLOADING)
+                                            } else if (trackDownloadState == DownloadHandler.State.STATE_COMPLETED &&
+                                                videoDownloadState == DownloadHandler.State.STATE_COMPLETED
+                                            ) {
+                                                count++
+                                            }
+                                            if (count == tracks.size) {
+                                                updatePlaylistDownloadState(id, STATE_DOWNLOADED)
+                                            }
+                                        }
+                                    }
                                 }
-                            }
                         }
+                    }
                 }
-            listTrackStringJob.join()
         }
     }
 
