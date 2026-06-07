@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,9 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import io.sentry.Sentry
 import io.sentry.SentryLevel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastHost
@@ -88,6 +92,23 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         args.firstOrNull()?.takeIf { arg ->
             arg.startsWith("simpmusic://") || arg.startsWith("http://") || arg.startsWith("https://")
         }
+    // Single-instance guard — MUST run before startKoin. The DataStore Koin
+    // singleton is `createdAtStart`, so a second Windows instance would touch
+    // ~/.simpmusic/settings.preferences_pb and crash with an "Unable to rename
+    // ...tmp" IOException (#2044) before it ever reached the old in-Compose check.
+    // Bail out here, before Koin/DataStore initialize.
+    val isSingleInstance =
+        SingleInstanceManager.isSingleInstance(
+            onRestoreRequest = { DesktopRestoreSignal.request() },
+        )
+    if (!isSingleInstance) {
+        // Second instance: forward the deep link (if any) to the running instance,
+        // then exit. Nothing has touched the DataStore file yet.
+        deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
+        return
+    }
+
+    // First instance only: deliver our own deep link (non-macOS passes URI via args).
     if (!isMacOS) {
         deepLinkArg?.let { DesktopDeepLinkHandler.onNewUri(it) }
     }
@@ -157,22 +178,16 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 size = DpSize(1500.dp, 860.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
-        // Single management
-        val isSingleInstance =
-            SingleInstanceManager.isSingleInstance(
-                onRestoreRequest = {
-                    isVisible = true
-                    windowState.isMinimized = false
-                    // Check if a second instance left a deep link URI for us
-                    DesktopDeepLinkHandler.consumePendingUri()
-                },
-            )
-
-        if (!isSingleInstance) {
-            // If launched with a deep link URI, write it for the running instance to pick up
-            deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
-            exitApplication()
-            return@application
+        // The single-instance guard now runs before startKoin (top of
+        // runDesktopApp). Here we only react to a restore request raised when a
+        // second instance launches: bring the window back to the foreground and
+        // consume any deep link the second instance forwarded.
+        LaunchedEffect(Unit) {
+            DesktopRestoreSignal.requests.collect {
+                isVisible = true
+                windowState.isMinimized = false
+                DesktopDeepLinkHandler.consumePendingUri()
+            }
         }
         val openAppString = stringResource(Res.string.open_app)
         val quitAppString = stringResource(Res.string.quit_app)
@@ -334,5 +349,20 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 },
             )
         }
+    }
+}
+
+/**
+ * Bridges a restore request from the single-instance guard (which runs outside
+ * Compose, at the top of [runDesktopApp]) into the running window's composition.
+ * The guard calls [request] when a second instance launches; the window collects
+ * [requests] to bring itself back to the foreground and pick up any deep link.
+ */
+private object DesktopRestoreSignal {
+    private val _requests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val requests: SharedFlow<Unit> = _requests.asSharedFlow()
+
+    fun request() {
+        _requests.tryEmit(Unit)
     }
 }

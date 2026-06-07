@@ -172,9 +172,8 @@ fun SpotifyLoginScreen(
                         }
                     viewModel.setFullSpotifyCookies(cookies)
                 }
-                val statusWithLocale = Regex("^https://accounts\\.spotify\\.com/[a-z]{2}(-[a-zA-Z]{2})?/status$")
-                val statusWithoutLocale = Regex("^https://accounts\\.spotify\\.com/status$")
-                if (statusWithLocale.matches(url) || statusWithoutLocale.matches(url)) {
+                val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status$")
+                if (statusUrl.matches(url)) {
                     cookie
                         .takeIf {
                             it.isNotEmpty()

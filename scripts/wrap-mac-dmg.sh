@@ -82,21 +82,47 @@ hdiutil convert "$TMP_DMG" -format UDRW -o "$RW_DMG" >/dev/null
 rm -f "$TMP_DMG"
 
 echo "[wrap-mac-dmg] mount + apply volume icon"
-hdiutil attach -nobrowse -quiet "$RW_DMG"
-cp "$VOL_ICNS" "/Volumes/SimpMusic/.VolumeIcon.icns"
+# Every arch mounts a volume named "SimpMusic". The previous arch's volume may not be
+# fully released yet, so a plain `hdiutil attach` on the same name fails with EBUSY (16)
+# or silently remounts as "/Volumes/SimpMusic 1". Detach any stale volume first, attach
+# with a retry, and use the REAL mount point hdiutil reports instead of a hardcoded path.
+detach_stale_volumes() {
+  for v in /Volumes/SimpMusic /Volumes/SimpMusic\ *; do
+    [[ -e "$v" ]] && hdiutil detach -force "$v" >/dev/null 2>&1 || true
+  done
+}
+
+detach_stale_volumes
+MOUNT_POINT=""
+for attempt in 1 2 3 4 5; do
+  MOUNT_POINT="$(hdiutil attach -nobrowse -noautoopen "$RW_DMG" 2>/dev/null \
+    | grep -Eo '/Volumes/.*$' | tail -1 || true)"
+  [[ -d "$MOUNT_POINT" ]] && break
+  echo "[wrap-mac-dmg] attach busy (EBUSY), retry $attempt…" >&2
+  detach_stale_volumes
+  sleep 3
+done
+[[ -d "$MOUNT_POINT" ]] || { echo "Could not mount $RW_DMG after retries" >&2; exit 1; }
+VOL_NAME="$(basename "$MOUNT_POINT")"
+
+cp "$VOL_ICNS" "$MOUNT_POINT/.VolumeIcon.icns"
 # Apple's Finder shows files with `chflags hidden` to users who have
 # the default "hide dotfiles" setting. For users who enabled "Show all
 # files" (Cmd+Shift+.), nudge the icon position outside the 1400x800
 # viewport so it still doesn't visually clutter the install window.
-"$SETFILE" -a V "/Volumes/SimpMusic/.VolumeIcon.icns"
+"$SETFILE" -a V "$MOUNT_POINT/.VolumeIcon.icns"
 osascript -e \
-  'tell application "Finder" to set position of file ".VolumeIcon.icns" of disk "SimpMusic" to {2000, 2000}' \
+  "tell application \"Finder\" to set position of file \".VolumeIcon.icns\" of disk \"$VOL_NAME\" to {2000, 2000}" \
   >/dev/null 2>&1 || true
-chflags hidden "/Volumes/SimpMusic/.VolumeIcon.icns"
-"$SETFILE" -a C "/Volumes/SimpMusic"
+chflags hidden "$MOUNT_POINT/.VolumeIcon.icns"
+"$SETFILE" -a C "$MOUNT_POINT"
 sync
 sleep 2
-hdiutil detach -quiet "/Volumes/SimpMusic"
+# Force + retry the detach so the next arch starts from a clean slate.
+for attempt in 1 2 3; do
+  hdiutil detach -force "$MOUNT_POINT" >/dev/null 2>&1 && break
+  sleep 2
+done
 
 echo "[wrap-mac-dmg] convert UDRW → UDZO → $OUT_DMG"
 rm -f "$OUT_DMG"

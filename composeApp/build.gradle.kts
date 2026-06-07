@@ -28,6 +28,14 @@ plugins {
     alias(libs.plugins.vlc.setup)
 }
 
+// composeApp uses the `android.kotlin.multiplatform.library` plugin, so with the
+// default `generateResClass = auto` Compose skips generating the `Res` class
+// (it treats a KMP *library* module as not owning the public resource class).
+// Force it to `always` so `Res` is generated for this app module.
+compose.resources {
+    generateResClass = always
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xwhen-guards")

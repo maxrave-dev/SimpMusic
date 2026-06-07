@@ -86,6 +86,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -216,6 +217,14 @@ fun HomeItem(
                                 navController.navigate(
                                     ArtistDestination(
                                         channelId = browseId,
+                                    ),
+                                )
+                            }, data = temp)
+                        } else if (browseId.startsWith("MPSP")) {
+                            HomeItemContentPlaylist(onClick = {
+                                navController.navigate(
+                                    PodcastDestination(
+                                        podcastId = browseId,
                                     ),
                                 )
                             }, data = temp)
@@ -352,7 +361,7 @@ fun HomeItemContentPlaylist(
 
                         is ChartItem -> {
                             painterPlaylistThumbnail(
-                                "Top 50 Weekly - ${data.country.name}",
+                                data.name,
                                 style = typo().bodySmall,
                                 thumbSize * 0.9f to thumbSize * 0.9f,
                             )
@@ -374,7 +383,7 @@ fun HomeItemContentPlaylist(
 
                         is ChartItem -> {
                             painterPlaylistThumbnail(
-                                "Top 50 Weekly - ${data.country.name}",
+                                data.name,
                                 style = typo().bodySmall,
                                 thumbSize * 0.9f to thumbSize * 0.9f,
                             )
@@ -401,7 +410,7 @@ fun HomeItemContentPlaylist(
                         is com.maxrave.domain.data.model.mood.genre.Content -> data.title.title
                         is com.maxrave.domain.data.model.mood.moodmoments.Content -> data.title
                         is LocalPlaylistEntity -> data.title
-                        is ChartItem -> "Top 50 Weekly - ${data.country.name}"
+                        is ChartItem -> data.name
                         is PlaylistsResult -> data.title
                         is AlbumEntity -> data.title
                         is PlaylistEntity -> data.title

@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -133,6 +135,14 @@ private const val MIN_WIPE_MS = 150
 private val DimOriginalColor = Color.LightGray.copy(alpha = 0.35f)
 private val DimTranslatedColor = Color(0xFF97971A).copy(alpha = 0.3f)
 private val DimRichPendingColor = Color.LightGray.copy(alpha = 0.6f)
+
+private fun String.isRtl(): Boolean {
+    return any { char ->
+        val dir = Character.getDirectionality(char)
+        dir == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
+            dir == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC
+    }
+}
 
 private data class TimedLineIndex(
     val index: Int,
@@ -373,10 +383,40 @@ fun LyricsLineItem(
     isCurrent: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Crossfade(targetState = isBold) {
-        if (it) {
+    // Detect if the line contains RTL characters
+    val isRtlLine = remember(originalWords) { originalWords.isRtl() }
+
+
+    // Force LTR or RTL globally for this specific line of text
+    CompositionLocalProvider(
+        LocalLayoutDirection provides if (isRtlLine) LayoutDirection.Rtl else LayoutDirection.Ltr
+    ) {
+        // We add fillMaxWidth() to the Columns so RTL text has room to push to the right side
+        Crossfade(targetState = isBold) {
+            if (it) {
+                Column(
+                    modifier = modifier.fillMaxWidth(),
+                ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = originalWords,
+                        style = typo().headlineLarge,
+                        color = if (isCurrent) Color.White else DimOriginalColor,
+                    )
+                    if (translatedWords != null) {
+                        Text(
+                            text = translatedWords,
+                            style = typo().bodyMedium,
+                            color = if (isCurrent) Color.Yellow else DimTranslatedColor,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+        }
+        if (!isBold) {
             Column(
-                modifier = modifier,
+                modifier = modifier.fillMaxWidth(),
             ) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
@@ -393,26 +433,6 @@ fun LyricsLineItem(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
-        }
-    }
-    if (!isBold) {
-        Column(
-            modifier = modifier,
-        ) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = originalWords,
-                style = typo().headlineMedium,
-                color = DimOriginalColor,
-            )
-            if (translatedWords != null) {
-                Text(
-                    text = translatedWords,
-                    style = typo().bodyMedium,
-                    color = DimTranslatedColor,
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
@@ -435,56 +455,63 @@ fun RichSyncLyricsLineItem(
         }
     }
 
+    val isRtlLine = remember(parsedLine.words) {
+        parsedLine.words.any { it.text.isRtl() }
+    }
+
     Column(
         modifier = modifier,
     ) {
         Spacer(modifier = Modifier.height(customPadding))
 
-        // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.Center,
+        // Dynamically apply RTL or LTR layout direction based on the specific line's text
+        CompositionLocalProvider(
+            LocalLayoutDirection provides if (isRtlLine) LayoutDirection.Rtl else LayoutDirection.Ltr
         ) {
-            parsedLine.words.forEachIndexed { index, wordTiming ->
-                // Calculate word end time (start time of next word or line end time)
-                // If last word and lineEndTimeMs is invalid (Long.MAX_VALUE), estimate based on previous word duration
-                val wordEndTimeMs =
-                    if (index < parsedLine.words.size - 1) {
-                        parsedLine.words[index + 1].startTimeMs
-                    } else if (parsedLine.lineEndTimeMs == Long.MAX_VALUE || parsedLine.lineEndTimeMs <= wordTiming.startTimeMs) {
-                        // Estimate: use previous word duration or default 500ms
-                        if (index > 0 && parsedLine.words[index - 1].startTimeMs < wordTiming.startTimeMs) {
-                            val prevWordDuration = wordTiming.startTimeMs - parsedLine.words[index - 1].startTimeMs
-                            wordTiming.startTimeMs + prevWordDuration
+            // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                parsedLine.words.forEachIndexed { index, wordTiming ->
+                    val wordEndTimeMs =
+                        if (index < parsedLine.words.size - 1) {
+                            parsedLine.words[index + 1].startTimeMs
+                        } else if (parsedLine.lineEndTimeMs == Long.MAX_VALUE || parsedLine.lineEndTimeMs <= wordTiming.startTimeMs) {
+                            if (index > 0 && parsedLine.words[index - 1].startTimeMs < wordTiming.startTimeMs) {
+                                val prevWordDuration = wordTiming.startTimeMs - parsedLine.words[index - 1].startTimeMs
+                                wordTiming.startTimeMs + prevWordDuration
+                            } else {
+                                wordTiming.startTimeMs + 500L
+                            }
                         } else {
-                            wordTiming.startTimeMs + 500L // Default 500ms if no reference
+                            parsedLine.lineEndTimeMs
                         }
-                    } else {
-                        parsedLine.lineEndTimeMs
-                    }
-                AnimatedWord(
-                    word = wordTiming.text,
-                    wordIndex = index,
-                    wordStartTimeMs = wordTiming.startTimeMs,
-                    wordEndTimeMs = wordEndTimeMs,
-                    currentTimeMs = currentTimeMs,
-                    isActive = isCurrent && index == currentWordIndex,
-                    isPast = isCurrent && index < currentWordIndex,
-                    isCurrent = isCurrent,
-                    customFontSize = customFontSize,
+
+                    AnimatedWord(
+                        word = wordTiming.text,
+                        wordIndex = index,
+                        wordStartTimeMs = wordTiming.startTimeMs,
+                        wordEndTimeMs = wordEndTimeMs,
+                        currentTimeMs = currentTimeMs,
+                        isActive = isCurrent && index == currentWordIndex,
+                        isPast = isCurrent && index < currentWordIndex,
+                        isCurrent = isCurrent,
+                        customFontSize = customFontSize,
+                    )
+                }
+            }
+            // Translated lyrics (line-level, no word sync)
+            if (translatedWords != null) {
+                Text(
+                    text = translatedWords,
+                    style = typo().bodyMedium,
+                    color = if (isCurrent) Color.Yellow else DimTranslatedColor,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
-
-        // Translated lyrics (line-level, no word sync)
-        if (translatedWords != null) {
-            Text(
-                text = translatedWords,
-                style = typo().bodyMedium,
-                color = if (isCurrent) Color.Yellow else DimTranslatedColor,
-            )
-        }
-
         Spacer(modifier = Modifier.height(customPadding))
     }
 }
@@ -548,6 +575,7 @@ private fun AnimatedWord(
     }
 
     val progress = anim.value
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     Box {
         // Bottom layer: dimmed pending color, drawn for the whole word.
@@ -557,12 +585,13 @@ private fun AnimatedWord(
             text = word,
             style = style,
             color = Color.White,
-            modifier =
-                Modifier.drawWithContent {
-                    clipRect(right = size.width * progress) {
-                        this@drawWithContent.drawContent()
-                    }
-                },
+            modifier = Modifier.drawWithContent {
+                val clipLeft = if (isRtl) size.width * (1f - progress) else 0f
+                val clipRight = if (isRtl) size.width else size.width * progress
+                clipRect(left = clipLeft, right = clipRight) {
+                    this@drawWithContent.drawContent()
+                }
+            },
         )
     }
 }
@@ -899,15 +928,15 @@ fun FullscreenLyricsSheet(
                                         (
                                             song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                                 ?: screenDataState.songInfoData?.authorId
-                                        )?.let { channelId ->
-                                            sheetState.hide()
-                                            onDismiss()
-                                            navController.navigate(
-                                                ArtistDestination(
-                                                    channelId = channelId,
-                                                ),
-                                            )
-                                        }
+                                            )?.let { channelId ->
+                                                sheetState.hide()
+                                                onDismiss()
+                                                navController.navigate(
+                                                    ArtistDestination(
+                                                        channelId = channelId,
+                                                    ),
+                                                )
+                                            }
                                     }
                                 },
                         ) {
@@ -1208,7 +1237,11 @@ fun FullscreenLyricsSheet(
                                             showControlButtons = true
                                         },
                                     ) {
-                                        Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                                        Icon(
+                                            imageVector = Icons.Outlined.Info,
+                                            tint = Color.White,
+                                            contentDescription = ""
+                                        )
                                     }
                                     Row(
                                         Modifier.align(Alignment.CenterEnd),

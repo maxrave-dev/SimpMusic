@@ -92,6 +92,9 @@ kotlin {
 
                 // Commons-IO drives the custom AppImage packaging task below.
                 implementation(libs.commons.io)
+                // org.json is bundled in the Android SDK but missing on JVM desktop; PipePipeExtractor
+                // references org.json.* so it must be provided explicitly here.
+                implementation(libs.org.json)
             }
         }
     }
@@ -233,6 +236,9 @@ compose.desktop {
         }
 
         buildTypes.release.proguard {
+            // ProGuard 7.7.0 (Compose's default) can't read Java 25 bytecode (class v69) now shipped
+            // by PipePipeExtractor, which broke :desktopApp:proguardReleaseJars. 7.8.x supports Java 25.
+            version.set("7.8.1")
             optimize.set(true)
             obfuscate.set(true)
             configurationFiles.from(rootDir.resolve("composeApp/proguard-desktop-rules.pro"))
@@ -247,11 +253,14 @@ afterEvaluate {
         jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
 
         // Pass bundled VLC natives path to the runtime for `./gradlew desktopApp:run`.
+        val osArch = System.getProperty("os.arch").lowercase()
         val osSubDir =
             when {
-                System.getProperty("os.name").contains("Mac") -> "macos"
-                System.getProperty("os.name").contains("Win") -> "windows"
-                else -> "linux"
+                System.getProperty("os.name").contains("Mac") ->
+                    if (osArch.contains("aarch64")) "macos-arm64" else "macos-x64"
+                System.getProperty("os.name").contains("Win") ->
+                    if (osArch.contains("aarch64")) "windows-arm64" else "windows-x64"
+                else -> "linux-x64"
             }
         val vlcNativesPath = rootDir.resolve("vlc-natives/$osSubDir").absolutePath
         systemProperty("vlc.bundled.path", vlcNativesPath)
