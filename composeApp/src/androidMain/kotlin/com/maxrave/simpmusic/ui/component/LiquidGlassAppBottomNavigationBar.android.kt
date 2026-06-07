@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -28,7 +27,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -37,7 +35,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.Visibility
-import androidx.core.graphics.scale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -51,13 +48,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestinatio
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
-import java.nio.IntBuffer
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "LiquidGlassAppBottomNavigationBar"
 
@@ -75,40 +66,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
     val layer = rememberGraphicsLayer()
     val toolbarInteraction = rememberGlassInteraction()
     val searchFabInteraction = rememberGlassInteraction()
-    val luminanceAnimation = remember { Animatable(0f) }
-
-    LaunchedEffect(layer) {
-        val buffer = IntBuffer.allocate(25)
-        while (isActive) {
-            try {
-                withContext(Dispatchers.IO) {
-                    val imageBitmap = layer.toImageBitmap()
-                    val thumbnail =
-                        imageBitmap
-                            .asAndroidBitmap()
-                            .scale(5, 5, false)
-                            .copy(Bitmap.Config.ARGB_8888, false)
-                    buffer.rewind()
-                    thumbnail.copyPixelsToBuffer(buffer)
-                }
-            } catch (e: Exception) {
-                Logger.e(TAG, "Error getting pixels from layer: ${e.localizedMessage}")
-            }
-            val averageLuminance =
-                (0 until 25).sumOf { index ->
-                    val color = buffer.get(index)
-                    val r = (color shr 16 and 0xFF) / 255f
-                    val g = (color shr 8 and 0xFF) / 255f
-                    val b = (color and 0xFF) / 255f
-                    0.2126 * r + 0.7152 * g + 0.0722 * b
-                } / 25
-            luminanceAnimation.animateTo(
-                averageLuminance.coerceIn(0.3, 0.8).toFloat(),
-                tween(500),
-            )
-            delay(1.seconds)
-        }
-    }
+    val luminanceAnimation = remember { Animatable(0.35f) }
 
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
     // MiniPlayer visibility logic

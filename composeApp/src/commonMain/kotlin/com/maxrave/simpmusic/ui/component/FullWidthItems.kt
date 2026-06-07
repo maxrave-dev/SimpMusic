@@ -476,6 +476,7 @@ fun PlaylistFullWidthItems(
         var thirdRowSubtitle: String? = null
 
         var shouldPin = false
+        var isDownloaded = false
 
         firstSubtitle =
             when (data.playlistType()) {
@@ -491,6 +492,7 @@ fun PlaylistFullWidthItems(
                 thumb = data.thumbnails ?: ""
                 secondSubtitle = data.artistName?.connectArtists() ?: ""
                 thirdRowSubtitle = data.year
+                isDownloaded = data.downloadState == DownloadState.STATE_DOWNLOADED
             }
 
             is PlaylistEntity -> {
@@ -500,12 +502,14 @@ fun PlaylistFullWidthItems(
                 if (data.description == "PIN") { // LIKED MUSIC
                     shouldPin = true
                 }
+                isDownloaded = data.downloadState == DownloadState.STATE_DOWNLOADED
             }
 
             is LocalPlaylistEntity -> {
                 title = data.title
                 thumb = data.thumbnail ?: ""
                 secondSubtitle = stringResource(Res.string.you)
+                isDownloaded = data.downloadState == DownloadState.STATE_DOWNLOADED
             }
 
             is PlaylistsResult -> {
@@ -586,6 +590,14 @@ fun PlaylistFullWidthItems(
                                 Modifier
                                     .rotate(30f)
                                     .size(16.dp),
+                        )
+                    }
+                    if (isDownloaded) {
+                        Icon(
+                            painter = painterResource(Res.drawable.download_for_offline_white),
+                            tint = Color.White,
+                            contentDescription = "",
+                            modifier = Modifier.size(16.dp).padding(2.dp),
                         )
                     }
                     Text(

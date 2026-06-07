@@ -103,7 +103,6 @@ import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.toResizedBitmap
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -114,20 +113,15 @@ import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.holder
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "MiniPlayer"
 
@@ -145,41 +139,13 @@ fun MiniPlayer(
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
 
     val layer = rememberGraphicsLayer()
-    val luminanceAnimation = remember { Animatable(0f) }
+    val luminanceAnimation = remember { Animatable(0.35f) }
 
     val textColor by animateColorAsState(
         targetValue = if (luminanceAnimation.value > 0.6f) Color.Black else Color.White,
         label = "MiniPlayerTextColor",
         animationSpec = tween(500),
     )
-
-    LaunchedEffect(layer, isLiquidGlassEnabled) {
-        val buffer = IntArray(25)
-        while (isActive && isLiquidGlassEnabled == DataStoreManager.TRUE) {
-            try {
-                withContext(Dispatchers.Main) {
-                    val imageBitmap = layer.toImageBitmap()
-                    val thumbnail = imageBitmap.toResizedBitmap(5, 5)
-                    thumbnail.readPixels(buffer)
-                }
-            } catch (e: Exception) {
-                Logger.e(TAG, "Error getting pixels from layer: ${e.message}")
-            }
-            val averageLuminance =
-                (0 until 25).sumOf { index ->
-                    val color = buffer.get(index)
-                    val r = (color shr 16 and 0xFF) / 255f
-                    val g = (color shr 8 and 0xFF) / 255f
-                    val b = (color and 0xFF) / 255f
-                    0.2126 * r + 0.7152 * g + 0.0722 * b
-                } / 25
-            luminanceAnimation.animateTo(
-                averageLuminance.coerceIn(0.3, 0.8).toFloat(),
-                tween(500),
-            )
-            delay(1.seconds)
-        }
-    }
 
     val (songEntity, setSongEntity) =
         remember {
@@ -238,8 +204,22 @@ fun MiniPlayer(
     LaunchedEffect(Unit) {
         snapshotFlow { paletteState.palette }
             .distinctUntilChanged()
-            .collectLatest {
-                background.animateTo(it.getColorFromPalette())
+            .collectLatest { palette ->
+                val targetColor = palette.getColorFromPalette()
+                val r = targetColor.red
+                val g = targetColor.green
+                val b = targetColor.blue
+                val targetLuminance = 0.2126f * r + 0.7152f * g + 0.0722f * b
+
+                launch {
+                    background.animateTo(targetColor)
+                }
+                launch {
+                    luminanceAnimation.animateTo(
+                        targetLuminance.coerceIn(0.3f, 0.8f),
+                        tween(500),
+                    )
+                }
             }
     }
 
