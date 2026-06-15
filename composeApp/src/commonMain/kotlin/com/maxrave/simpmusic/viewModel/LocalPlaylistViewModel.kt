@@ -200,6 +200,15 @@ class LocalPlaylistViewModel(
     val tracksPagingState: StateFlow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>> get() = _tracksPagingState
     private val lazyTrackPagingItems: MutableStateFlow<LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>?> = MutableStateFlow(null)
 
+    // Search/filter query for the local playlist track list. Applied to the paging flow
+    // (see getTracksPagingState) so filtering works without re-querying the database.
+    private val _searchQuery: MutableStateFlow<String> = MutableStateFlow("")
+    val searchQuery: StateFlow<String> get() = _searchQuery
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
     fun setLazyTrackPagingItems(lazyPagingItems: LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>) {
         lazyTrackPagingItems.value = lazyPagingItems
         Logger.d(tag, "setLazyTrackPagingItems: ${lazyTrackPagingItems.value?.itemCount}")
@@ -223,6 +232,17 @@ class LocalPlaylistViewModel(
                 .combine(modifications) { pagingData, modifications ->
                     modifications.fold(pagingData) { data, actions ->
                         applyActions(data, actions)
+                    }
+                }.combine(_searchQuery) { pagingData, query ->
+                    if (query.isBlank()) {
+                        pagingData
+                    } else {
+                        pagingData.filter { (song, _) ->
+                            song.title.contains(query, ignoreCase = true) ||
+                                song.artistName
+                                    ?.joinToString(", ")
+                                    ?.contains(query, ignoreCase = true) == true
+                        }
                     }
                 }.collect {
                     _tracksPagingState.value = it

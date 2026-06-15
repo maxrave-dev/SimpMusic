@@ -49,8 +49,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.Sort
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
@@ -58,11 +60,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -92,6 +98,8 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -186,6 +194,7 @@ import simpmusic.composeapp.generated.resources.download_button
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.reload
+import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
 import simpmusic.composeapp.generated.resources.sync_playlist_warning
@@ -253,6 +262,10 @@ fun LocalPlaylistScreen(
         initial = DownloadState.STATE_NOT_DOWNLOADED,
     )
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
+    var showSearchBar by rememberSaveable { mutableStateOf(false) }
+    var searchBarHeightPx by remember { mutableStateOf(0) }
+    var query by rememberSaveable { mutableStateOf("") }
+    val density = LocalDensity.current
     var shouldShowSuggestions by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestButton by rememberSaveable { mutableStateOf(false) }
 
@@ -352,6 +365,18 @@ fun LocalPlaylistScreen(
     }
     LaunchedEffect(key1 = firstItemVisible) {
         shouldHideTopBar = !firstItemVisible
+    }
+    // Drive the paging filter in the ViewModel from the search query.
+    LaunchedEffect(query) {
+        viewModel.setSearchQuery(query)
+    }
+    // Reset the query when the search bar is closed, and jump to the top when opened.
+    LaunchedEffect(showSearchBar) {
+        if (showSearchBar) {
+            lazyState.animateScrollToItem(0)
+        } else {
+            query = ""
+        }
     }
     val paletteState = rememberPaletteState()
     val hazeState = rememberHazeState(blurEnabled = true)
@@ -491,6 +516,11 @@ fun LocalPlaylistScreen(
                 },
         state = lazyState,
     ) {
+        if (showSearchBar) {
+            item(contentType = "searchBarSpacer") {
+                Spacer(modifier = Modifier.height(with(density) { searchBarHeightPx.toDp() }))
+            }
+        }
         item(contentType = "header") {
             Box(
                 modifier =
@@ -1265,6 +1295,17 @@ fun LocalPlaylistScreen(
                                             }
                                         }
                                         Spacer(Modifier.weight(1f))
+                                        IconButton(
+                                            onClick = { showSearchBar = !showSearchBar },
+                                            modifier = Modifier.size(36.dp),
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Search,
+                                                contentDescription = "Search in playlist",
+                                                tint = if (isMobilePortrait) Color.White else Color.Gray,
+                                                modifier = Modifier.size(22.dp),
+                                            )
+                                        }
                                         AnimatedVisibility(
                                             visible =
                                                 uiState.filterState == FilterState.CustomOrder,
@@ -1477,7 +1518,84 @@ fun LocalPlaylistScreen(
         )
     }
     AnimatedVisibility(
-        visible = shouldHideTopBar,
+        visible = showSearchBar,
+        enter = fadeIn() + slideInVertically(),
+        exit = fadeOut() + slideOutVertically(),
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { searchBarHeightPx = it.size.height }
+                .then(
+                    if (isMobilePortrait) {
+                        Modifier.hazeEffect(hazeState) {
+                            blurEnabled = true
+                            blurRadius = 24.dp
+                            backgroundColor = mutedPaletteBg
+                            tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
+                        }
+                    } else {
+                        Modifier.background(Color.Black)
+                    },
+                ),
+        ) {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .windowInsetsPadding(WindowInsets.statusBars),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RippleIconButton(
+                    resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                ) {
+                    navController.navigateUp()
+                }
+                SearchBar(
+                    modifier =
+                        Modifier
+                            .height(50.dp)
+                            .padding(horizontal = 12.dp)
+                            .weight(1f),
+                    colors =
+                        SearchBarDefaults.colors().copy(
+                            containerColor = Color.Transparent,
+                        ),
+                    inputField = {
+                        CompositionLocalProvider(LocalTextStyle provides typo().bodySmall) {
+                            SearchBarDefaults.InputField(
+                                query = query,
+                                onQueryChange = { query = it },
+                                onSearch = { showSearchBar = false },
+                                expanded = showSearchBar,
+                                onExpandedChange = { showSearchBar = it },
+                                placeholder = {
+                                    Text(
+                                        stringResource(Res.string.search),
+                                        style = typo().bodyMedium,
+                                    )
+                                },
+                            )
+                        }
+                    },
+                    expanded = false,
+                    onExpandedChange = {},
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                ) {
+                }
+                IconButton(
+                    onClick = {
+                        showSearchBar = !showSearchBar
+                    },
+                ) {
+                    Icon(Icons.Rounded.Close, null, tint = Color.White)
+                }
+            }
+        }
+    }
+    AnimatedVisibility(
+        visible = shouldHideTopBar && !showSearchBar,
         enter = fadeIn() + slideInVertically(),
         exit = fadeOut() + slideOutVertically(),
     ) {
