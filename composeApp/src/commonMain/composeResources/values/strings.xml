@@ -172,6 +172,8 @@
     <string name="playback">Playback</string>
     <string name="save_playback_state">Save Playback State</string>
     <string name="save_shuffle_and_repeat_mode">Save shuffle and repeat mode</string>
+    <string name="double_press_to_seek">Double press on image to ±5sec</string>
+    <string name="double_press_to_seek_description">Double tap on left/right of the image to seek back/forward 5 seconds</string>
     <string name="skip_silent">Skip Silent</string>
     <string name="skip_no_music_part">Skip no music part</string>
     <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection (%1$s)</string>

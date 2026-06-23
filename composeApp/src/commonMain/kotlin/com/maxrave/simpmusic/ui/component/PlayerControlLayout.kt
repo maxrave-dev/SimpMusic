@@ -93,29 +93,6 @@ fun PlayerControlLayout(
                 modifier =
                     Modifier
                         .background(transparent)
-                        .size(smallIcon.second)
-                        .aspectRatio(1f)
-                        .clip(
-                            CircleShape,
-                        )
-                        .clickable {
-                            onUIEvent(UIEvent.Backward5)
-                        },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Replay5,
-                    tint = Color.White,
-                    contentDescription = "",
-                    modifier = Modifier.size(smallIcon.first),
-                )
-            }
-        }
-        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            Box(
-                modifier =
-                    Modifier
-                        .background(transparent)
                         .size(mediumIcon.second)
                         .aspectRatio(1f)
                         .clip(
@@ -141,21 +118,21 @@ fun PlayerControlLayout(
                 modifier =
                     Modifier
                         .background(transparent)
-                        .size(mediumIcon.second)
+                        .size(smallIcon.second)
                         .aspectRatio(1f)
                         .clip(
                             CircleShape,
                         )
                         .clickable {
-                            onUIEvent(UIEvent.Backward)
+                            onUIEvent(UIEvent.Backward5)
                         },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Replay10,
+                    imageVector = Icons.Rounded.Replay5,
                     tint = Color.White,
                     contentDescription = "",
-                    modifier = Modifier.size(mediumIcon.first),
+                    modifier = Modifier.size(smallIcon.first),
                 )
             }
         }

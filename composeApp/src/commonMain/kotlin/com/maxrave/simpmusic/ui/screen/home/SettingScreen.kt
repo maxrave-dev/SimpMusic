@@ -267,6 +267,8 @@ import simpmusic.composeapp.generated.resources.save_all_your_playlist_data
 import simpmusic.composeapp.generated.resources.save_last_played
 import simpmusic.composeapp.generated.resources.save_last_played_track_and_queue
 import simpmusic.composeapp.generated.resources.save_playback_state
+import simpmusic.composeapp.generated.resources.double_press_to_seek
+import simpmusic.composeapp.generated.resources.double_press_to_seek_description
 import simpmusic.composeapp.generated.resources.save_shuffle_and_repeat_mode
 import simpmusic.composeapp.generated.resources.send_back_listening_data_to_google
 import simpmusic.composeapp.generated.resources.set
@@ -382,6 +384,7 @@ fun SettingScreen(
     val normalizeVolume by viewModel.normalizeVolume.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val skipSilent by viewModel.skipSilent.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val savePlaybackState by viewModel.savedPlaybackState.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val doublePressToSeek by viewModel.doublePressToSeek.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val saveLastPlayed by viewModel.saveRecentSongAndQueue.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
     val killServiceOnExit by viewModel.killServiceOnExit.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = true)
     val mainLyricsProvider by viewModel.mainLyricsProvider.collectAsStateWithLifecycle()
@@ -869,6 +872,11 @@ fun SettingScreen(
                     title = stringResource(Res.string.save_playback_state),
                     subtitle = stringResource(Res.string.save_shuffle_and_repeat_mode),
                     switch = (savePlaybackState to { viewModel.setSavedPlaybackState(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.double_press_to_seek),
+                    subtitle = stringResource(Res.string.double_press_to_seek_description),
+                    switch = (doublePressToSeek to { viewModel.setDoublePressToSeek(it) }),
                 )
                 SettingItem(
                     title = stringResource(Res.string.save_last_played),

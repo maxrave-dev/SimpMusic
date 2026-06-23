@@ -22,7 +22,11 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.material3.ripple
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -264,6 +268,7 @@ fun NowPlayingScreenContent(
     onSwipeEnabledChange: (Boolean) -> Unit = {},
     onDismiss: () -> Unit = {},
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val screenInfo = getScreenSizeInfo()
 
     val localDensity = LocalDensity.current
@@ -278,6 +283,27 @@ fun NowPlayingScreenContent(
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
     // State
     val isInPipMode = rememberIsInPipMode()
+
+    val doublePressToSeek by sharedViewModel.doublePressToSeek.collectAsStateWithLifecycle()
+
+    val interactionSourceBackward = remember { MutableInteractionSource() }
+    val interactionSourceForward = remember { MutableInteractionSource() }
+
+    var showBackwardText by remember { mutableStateOf(false) }
+    var showForwardText by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = showBackwardText) {
+        if (showBackwardText) {
+            delay(1000)
+            showBackwardText = false
+        }
+    }
+    LaunchedEffect(key1 = showForwardText) {
+        if (showForwardText) {
+            delay(1000)
+            showForwardText = false
+        }
+    }
 
     val mainScrollState = rememberScrollState()
 
@@ -831,6 +857,99 @@ fun NowPlayingScreenContent(
                                                     if (!screenDataState.isVideo || !shouldShowVideo) 1f else 0f,
                                                 ),
                                     )
+                                    if (doublePressToSeek && (!screenDataState.isVideo || !shouldShowVideo)) {
+                                        Row(
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                                .padding(3.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                        ) {
+                                            // Left side (Seek backward)
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .weight(1f)
+                                                    .indication(
+                                                        interactionSource = interactionSourceBackward,
+                                                        indication = ripple(),
+                                                    )
+                                                    .pointerInput(Unit) {
+                                                        detectTapGestures(
+                                                            onDoubleTap = { offset ->
+                                                                coroutineScope.launch {
+                                                                    val press = PressInteraction.Press(offset)
+                                                                    interactionSourceBackward.emit(press)
+                                                                    sharedViewModel.onUIEvent(UIEvent.Backward5)
+                                                                    showBackwardText = true
+                                                                    interactionSourceBackward.emit(PressInteraction.Release(press))
+                                                                }
+                                                            }
+                                                        )
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Crossfade(showBackwardText) {
+                                                    if (it) {
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            modifier = Modifier
+                                                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.Replay5,
+                                                                "",
+                                                                tint = Color.White,
+                                                                modifier = Modifier.size(36.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            // Right side (Seek forward)
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .weight(1f)
+                                                    .indication(
+                                                        interactionSource = interactionSourceForward,
+                                                        indication = ripple(),
+                                                    )
+                                                    .pointerInput(Unit) {
+                                                        detectTapGestures(
+                                                            onDoubleTap = { offset ->
+                                                                coroutineScope.launch {
+                                                                    val press = PressInteraction.Press(offset)
+                                                                    interactionSourceForward.emit(press)
+                                                                    sharedViewModel.onUIEvent(UIEvent.Forward5)
+                                                                    showForwardText = true
+                                                                    interactionSourceForward.emit(PressInteraction.Release(press))
+                                                                }
+                                                            }
+                                                        )
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Crossfade(showForwardText) {
+                                                    if (it) {
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            modifier = Modifier
+                                                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.Forward5,
+                                                                "",
+                                                                tint = Color.White,
+                                                                modifier = Modifier.size(36.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
 
                                 // IS VIDEO => Show Video

@@ -70,6 +70,8 @@ class SettingsViewModel(
     val normalizeVolume: StateFlow<String?> = _normalizeVolume
     private var _skipSilent: MutableStateFlow<String?> = MutableStateFlow(null)
     val skipSilent: StateFlow<String?> = _skipSilent
+    private var _doublePressToSeek: MutableStateFlow<String?> = MutableStateFlow(null)
+    val doublePressToSeek: StateFlow<String?> = _doublePressToSeek
     private var _savedPlaybackState: MutableStateFlow<String?> = MutableStateFlow(null)
     val savedPlaybackState: StateFlow<String?> = _savedPlaybackState
     private var _saveRecentSongAndQueue: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -209,6 +211,7 @@ class SettingsViewModel(
         getLoggedIn()
         getNormalizeVolume()
         getSkipSilent()
+        getDoublePressToSeek()
         getSavedPlaybackState()
         getSendBackToGoogle()
         getSaveRecentSongAndQueue()
@@ -1007,6 +1010,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setSkipSilent(skip)
             getSkipSilent()
+        }
+    }
+
+    fun getDoublePressToSeek() {
+        viewModelScope.launch {
+            dataStoreManager.doublePressToSeek.collect { doublePressToSeek ->
+                _doublePressToSeek.emit(doublePressToSeek)
+            }
+        }
+    }
+
+    fun setDoublePressToSeek(enable: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setDoublePressToSeek(enable)
+            getDoublePressToSeek()
         }
     }
 
