@@ -13,6 +13,8 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.domain.repository.CacheRepository
@@ -49,6 +51,8 @@ import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
+
+private const val DOUBLE_PRESS_TO_SEEK_KEY = "double_press_to_seek"
 
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -1015,7 +1019,7 @@ class SettingsViewModel(
 
     fun getDoublePressToSeek() {
         viewModelScope.launch {
-            dataStoreManager.doublePressToSeek.collect { doublePressToSeek ->
+            dataStoreManager.getString(DOUBLE_PRESS_TO_SEEK_KEY).collect { doublePressToSeek ->
                 _doublePressToSeek.emit(doublePressToSeek)
             }
         }
@@ -1023,7 +1027,7 @@ class SettingsViewModel(
 
     fun setDoublePressToSeek(enable: Boolean) {
         viewModelScope.launch {
-            dataStoreManager.setDoublePressToSeek(enable)
+            dataStoreManager.putString(DOUBLE_PRESS_TO_SEEK_KEY, if (enable) TRUE else FALSE)
             getDoublePressToSeek()
         }
     }
