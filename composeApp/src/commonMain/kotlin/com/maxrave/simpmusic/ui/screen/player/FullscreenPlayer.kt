@@ -31,8 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay5
@@ -91,7 +89,6 @@ import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.five_seconds
 import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,6 +118,7 @@ fun FullscreenPlayer(
     val nowPlayingState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val doublePressToSeek by sharedViewModel.doublePressToSeek.collectAsStateWithLifecycle()
 
     var showBottom by rememberSaveable { mutableStateOf(false) }
     var isSliding by rememberSaveable {
@@ -154,10 +152,8 @@ fun FullscreenPlayer(
     // For double tap effect
     val coroutineScope = rememberCoroutineScope()
 
-    var doubleBackwardTapped by remember { mutableStateOf(false) }
     val interactionSourceBackward = remember { MutableInteractionSource() }
 
-    var doubleForwardTapped by remember { mutableStateOf(false) }
     val interactionSourceForward = remember { MutableInteractionSource() }
 
     var showBackwardText by remember { mutableStateOf(false) }
@@ -216,14 +212,14 @@ fun FullscreenPlayer(
                                     showHideFullscreenOverlay = !showHideFullscreenOverlay
                                 },
                                 onDoubleTap = { offset ->
-                                    coroutineScope.launch {
-                                        doubleBackwardTapped = true
-                                        val press = PressInteraction.Press(offset)
-                                        interactionSourceBackward.emit(press)
-                                        sharedViewModel.onUIEvent(UIEvent.Backward)
-                                        showBackwardText = true
-                                        interactionSourceBackward.emit(PressInteraction.Release(press))
-                                        doubleBackwardTapped = false
+                                    if (doublePressToSeek) {
+                                        coroutineScope.launch {
+                                            val press = PressInteraction.Press(offset)
+                                            interactionSourceBackward.emit(press)
+                                            sharedViewModel.onUIEvent(UIEvent.Backward5)
+                                            showBackwardText = true
+                                            interactionSourceBackward.emit(PressInteraction.Release(press))
+                                        }
                                     }
                                 },
                             )
@@ -234,17 +230,16 @@ fun FullscreenPlayer(
                         if (it) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
+                                modifier =
+                                    Modifier
+                                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                        .padding(horizontal = 14.dp, vertical = 8.dp),
                             ) {
                                 Icon(
-                                    Icons.Filled.KeyboardDoubleArrowLeft,
+                                    Icons.Filled.Replay5,
                                     "",
                                     tint = Color.White,
-                                )
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    stringResource(Res.string.five_seconds),
-                                    color = Color.White,
-                                    style = typo().bodyMedium,
+                                    modifier = Modifier.size(36.dp),
                                 )
                             }
                         }
@@ -268,14 +263,14 @@ fun FullscreenPlayer(
                                     showHideFullscreenOverlay = !showHideFullscreenOverlay
                                 },
                                 onDoubleTap = { offset ->
-                                    coroutineScope.launch {
-                                        doubleForwardTapped = true
-                                        val press = PressInteraction.Press(offset)
-                                        interactionSourceForward.emit(press)
-                                        sharedViewModel.onUIEvent(UIEvent.Forward)
-                                        showForwardText = true
-                                        interactionSourceForward.emit(PressInteraction.Release(press))
-                                        doubleForwardTapped = false
+                                    if (doublePressToSeek) {
+                                        coroutineScope.launch {
+                                            val press = PressInteraction.Press(offset)
+                                            interactionSourceForward.emit(press)
+                                            sharedViewModel.onUIEvent(UIEvent.Forward5)
+                                            showForwardText = true
+                                            interactionSourceForward.emit(PressInteraction.Release(press))
+                                        }
                                     }
                                 },
                             )
@@ -286,17 +281,16 @@ fun FullscreenPlayer(
                         if (it) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
+                                modifier =
+                                    Modifier
+                                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                        .padding(horizontal = 14.dp, vertical = 8.dp),
                             ) {
-                                Text(
-                                    stringResource(Res.string.five_seconds),
-                                    color = Color.White,
-                                    style = typo().bodyMedium,
-                                )
-                                Spacer(Modifier.width(4.dp))
                                 Icon(
-                                    Icons.Filled.KeyboardDoubleArrowRight,
+                                    Icons.Filled.Forward5,
                                     "",
                                     tint = Color.White,
+                                    modifier = Modifier.size(36.dp),
                                 )
                             }
                         }

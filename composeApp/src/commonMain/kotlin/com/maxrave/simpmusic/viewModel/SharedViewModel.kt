@@ -103,6 +103,8 @@ import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.reflect.KClass
 
+private const val DOUBLE_PRESS_TO_SEEK_KEY = "double_press_to_seek"
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class SharedViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -207,6 +209,11 @@ class SharedViewModel(
     val likeStatus: StateFlow<Boolean> = _likeStatus
 
     val openAppTime: StateFlow<Int> = dataStoreManager.openAppTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
+    val doublePressToSeek: StateFlow<Boolean> =
+        dataStoreManager
+            .getString(DOUBLE_PRESS_TO_SEEK_KEY)
+            .map { it == TRUE }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), false)
     private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(true)
     val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
@@ -827,6 +834,30 @@ class SharedViewModel(
                     val newVolume = uiEvent.newVolume
                     dataStoreManager.setPlayerVolume(newVolume)
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.UpdateVolume(newVolume))
+                }
+
+                UIEvent.Forward5 -> {
+                    val current = timeline.value.current
+                    val total = timeline.value.total
+                    if (total > 0) {
+                        val newProgress = (current + 5000).coerceAtMost(total)
+                        val progressPercent = (newProgress.toFloat() / total.toFloat()) * 100f
+                        mediaPlayerHandler.onPlayerEvent(
+                            PlayerEvent.UpdateProgress(progressPercent),
+                        )
+                    }
+                }
+
+                UIEvent.Backward5 -> {
+                    val current = timeline.value.current
+                    val total = timeline.value.total
+                    if (total > 0) {
+                        val newProgress = (current - 5000).coerceAtLeast(0)
+                        val progressPercent = (newProgress.toFloat() / total.toFloat()) * 100f
+                        mediaPlayerHandler.onPlayerEvent(
+                            PlayerEvent.UpdateProgress(progressPercent),
+                        )
+                    }
                 }
             }
         }
@@ -1931,6 +1962,10 @@ sealed class UIEvent {
     ) : UIEvent()
 
     data object ToggleLike : UIEvent()
+
+    data object Forward5 : UIEvent()
+
+    data object Backward5 : UIEvent()
 }
 
 enum class LyricsProvider {
@@ -1979,24 +2014,4 @@ data class NowPlayingScreenData(
                 playlistName = "",
             )
     }
-}
-
-data class VoteData(
-    val id: String,
-    val vote: Int,
-    val state: VoteState,
-)
-
-sealed class VoteState {
-    data object Idle : VoteState()
-
-    data object Loading : VoteState()
-
-    data class Success(
-        val upvote: Boolean,
-    ) : VoteState()
-
-    data class Error(
-        val message: String,
-    ) : VoteState()
 }

@@ -46,17 +46,13 @@ common = "1.22.0"
 json = "1.11.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.43.1"
-sentry-gradle-android = "6.10.0"
-sentry-jvm = "8.43.1"
-newpipe = "v0.26.1"
-brave-newpipe = "v0.26.3"
-# org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
-org-json = "20231013"
-pipepipe = "c3139c584d"
-webkit = "1.16.0"
-kermit = "2.1.0"
-paging-common = "3.5.0"
+sentry-android = "8.28.0"
+sentry-gradle-android = "5.12.2"
+sentry-jvm = "8.28.0"
+newpipe = "0.24.8"
+webkit = "1.14.0"
+kermit = "2.0.8"
+paging-common = "3.3.6"
 glance = "1.1.1"
 liquid-glass = "2.0.0"
 liquid-glass-shapes = "1.2.0"
@@ -256,5 +252,3 @@ packagedeps = { id = "io.github.kdroidfilter.compose.linux.packagedeps", version
 
 # JVM
 osdetector = { id = "com.google.osdetector", version.ref = "osdetector" }
-vlc-setup = { id = "ir.mahozad.vlc-setup", version = "0.1.0" }
-conveyor = { id = "dev.hydraulic.conveyor", version.ref = "conveyor" }

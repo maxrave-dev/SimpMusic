@@ -13,6 +13,8 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
+import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.domain.repository.CacheRepository
@@ -50,6 +52,8 @@ import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
 
+private const val DOUBLE_PRESS_TO_SEEK_KEY = "double_press_to_seek"
+
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
     private val commonRepository: CommonRepository,
@@ -70,6 +74,8 @@ class SettingsViewModel(
     val normalizeVolume: StateFlow<String?> = _normalizeVolume
     private var _skipSilent: MutableStateFlow<String?> = MutableStateFlow(null)
     val skipSilent: StateFlow<String?> = _skipSilent
+    private var _doublePressToSeek: MutableStateFlow<String?> = MutableStateFlow(null)
+    val doublePressToSeek: StateFlow<String?> = _doublePressToSeek
     private var _savedPlaybackState: MutableStateFlow<String?> = MutableStateFlow(null)
     val savedPlaybackState: StateFlow<String?> = _savedPlaybackState
     private var _saveRecentSongAndQueue: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -235,6 +241,7 @@ class SettingsViewModel(
         getLoggedIn()
         getNormalizeVolume()
         getSkipSilent()
+        getDoublePressToSeek()
         getSavedPlaybackState()
         getSendBackToGoogle()
         getSaveRecentSongAndQueue()
@@ -1189,6 +1196,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setSkipSilent(skip)
             getSkipSilent()
+        }
+    }
+
+    fun getDoublePressToSeek() {
+        viewModelScope.launch {
+            dataStoreManager.getString(DOUBLE_PRESS_TO_SEEK_KEY).collect { doublePressToSeek ->
+                _doublePressToSeek.emit(doublePressToSeek)
+            }
+        }
+    }
+
+    fun setDoublePressToSeek(enable: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(DOUBLE_PRESS_TO_SEEK_KEY, if (enable) TRUE else FALSE)
+            getDoublePressToSeek()
         }
     }
 

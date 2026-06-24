@@ -27,7 +27,12 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.material3.ripple
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -276,6 +281,7 @@ fun NowPlayingScreenContent(
     dismissIcon: ImageVector,
     onDismiss: () -> Unit = {},
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val screenInfo = getScreenSizeInfo()
 
     val localDensity = LocalDensity.current
@@ -391,6 +397,27 @@ fun NowPlayingScreenContent(
 
     // State
     val isInPipMode = rememberIsInPipMode()
+
+    val doublePressToSeek by sharedViewModel.doublePressToSeek.collectAsStateWithLifecycle()
+
+    val interactionSourceBackward = remember { MutableInteractionSource() }
+    val interactionSourceForward = remember { MutableInteractionSource() }
+
+    var showBackwardText by remember { mutableStateOf(false) }
+    var showForwardText by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = showBackwardText) {
+        if (showBackwardText) {
+            delay(1000)
+            showBackwardText = false
+        }
+    }
+    LaunchedEffect(key1 = showForwardText) {
+        if (showForwardText) {
+            delay(1000)
+            showForwardText = false
+        }
+    }
 
     val mainScrollState = rememberScrollState()
 
@@ -1447,8 +1474,316 @@ fun NowPlayingScreenContent(
                                                         .value
                                                         .toInt()
                                                 }
-                                        }.aspectRatio(1f),
-                            )
+                                        }.alpha(
+                                            if (showHideMiddleLayout) 1f else 0f,
+                                        ).aspectRatio(1f),
+                            ) {
+                                // IS SONG => Show Artwork
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier =
+                                        Modifier
+                                            .align(Alignment.Center)
+                                            .background(Color.Transparent)
+                                            .shadow(
+                                                elevation = 3.dp,
+                                                shape = RoundedCornerShape(8.dp),
+                                                spotColor =
+                                                    spotShadowColor.copy(
+                                                        alpha = 0.6f,
+                                                    ),
+                                                ambientColor = Color.Transparent,
+                                            ),
+                                ) {
+                                    AsyncImage(
+                                        model =
+                                            ImageRequest
+                                                .Builder(LocalPlatformContext.current)
+                                                .data(screenDataState.thumbnailURL)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
+                                                .crossfade(550)
+                                                .build(),
+                                        contentDescription = "",
+                                        onSuccess = {
+                                            sharedViewModel.setBitmap(
+                                                it.result.image
+                                                    .toBitmap()
+                                                    .asImageBitmap(),
+                                            )
+                                        },
+                                        contentScale = ContentScale.Crop,
+                                        placeholder = painterResource(Res.drawable.holder),
+                                        modifier =
+                                            Modifier
+                                                .align(Alignment.Center)
+                                                .padding(3.dp)
+                                                .fillMaxWidth()
+                                                .background(Color.Transparent)
+                                                .aspectRatio(
+                                                    if (!screenDataState.isVideo) 1f else 16f / 9,
+                                                ).clip(
+                                                    RoundedCornerShape(8.dp),
+                                                ).alpha(
+                                                    if (!screenDataState.isVideo || !shouldShowVideo) 1f else 0f,
+                                                ),
+                                    )
+                                    if (doublePressToSeek && (!screenDataState.isVideo || !shouldShowVideo)) {
+                                        Row(
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                                .padding(3.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                        ) {
+                                            // Left side (Seek backward)
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .weight(1f)
+                                                    .indication(
+                                                        interactionSource = interactionSourceBackward,
+                                                        indication = ripple(),
+                                                    )
+                                                    .pointerInput(Unit) {
+                                                        detectTapGestures(
+                                                            onDoubleTap = { offset ->
+                                                                coroutineScope.launch {
+                                                                    val press = PressInteraction.Press(offset)
+                                                                    interactionSourceBackward.emit(press)
+                                                                    sharedViewModel.onUIEvent(UIEvent.Backward5)
+                                                                    showBackwardText = true
+                                                                    interactionSourceBackward.emit(PressInteraction.Release(press))
+                                                                }
+                                                            }
+                                                        )
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Crossfade(showBackwardText) {
+                                                    if (it) {
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            modifier = Modifier
+                                                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.Replay5,
+                                                                "",
+                                                                tint = Color.White,
+                                                                modifier = Modifier.size(36.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            // Right side (Seek forward)
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .weight(1f)
+                                                    .indication(
+                                                        interactionSource = interactionSourceForward,
+                                                        indication = ripple(),
+                                                    )
+                                                    .pointerInput(Unit) {
+                                                        detectTapGestures(
+                                                            onDoubleTap = { offset ->
+                                                                coroutineScope.launch {
+                                                                    val press = PressInteraction.Press(offset)
+                                                                    interactionSourceForward.emit(press)
+                                                                    sharedViewModel.onUIEvent(UIEvent.Forward5)
+                                                                    showForwardText = true
+                                                                    interactionSourceForward.emit(PressInteraction.Release(press))
+                                                                }
+                                                            }
+                                                        )
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Crossfade(showForwardText) {
+                                                    if (it) {
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            modifier = Modifier
+                                                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.Forward5,
+                                                                "",
+                                                                tint = Color.White,
+                                                                modifier = Modifier.size(36.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // IS VIDEO => Show Video
+                                androidx.compose.animation.AnimatedVisibility(
+                                    visible = screenDataState.isVideo && shouldShowVideo,
+                                    modifier = Modifier.align(Alignment.Center),
+                                ) {
+                                    var internalShowSubtitle by rememberSaveable {
+                                        mutableStateOf(true)
+                                    }
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .aspectRatio(16f / 9)
+                                                .clip(
+                                                    RoundedCornerShape(8.dp),
+                                                ).background(
+                                                    md_theme_dark_background,
+                                                ),
+                                    ) {
+                                        // Player
+                                        Box(Modifier.fillMaxSize()) {
+                                            MediaPlayerViewWithSubtitle(
+                                                playerName = MAIN_PLAYER,
+                                                modifier = Modifier.align(Alignment.Center),
+                                                shouldShowSubtitle = internalShowSubtitle,
+                                                shouldPip = false,
+                                                shouldScaleDownSubtitle = true,
+                                                timelineState = timelineState,
+                                                lyricsData = screenDataState.lyricsData?.lyrics,
+                                                translatedLyricsData = screenDataState.lyricsData?.translatedLyrics?.first,
+                                                isInPipMode = isInPipMode,
+                                                mainTextStyle = typo().bodyLarge,
+                                                translatedTextStyle = typo().bodyMedium,
+                                            )
+                                        }
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .clickable(
+                                                        onClick = { showHideFullscreenOverlay = !showHideFullscreenOverlay },
+                                                        indication = null,
+                                                        interactionSource =
+                                                            remember {
+                                                                MutableInteractionSource()
+                                                            },
+                                                    ),
+                                        ) {
+                                            Crossfade(
+                                                targetState = showHideFullscreenOverlay,
+                                            ) {
+                                                if (it) {
+                                                    Box(
+                                                        modifier =
+                                                            Modifier
+                                                                .fillMaxSize()
+                                                                .background(
+                                                                    Brush.verticalGradient(
+                                                                        colorStops =
+                                                                            arrayOf(
+                                                                                0.03f to blackMoreOverlay,
+                                                                                0.15f to overlay,
+                                                                                0.8f to Color.Transparent,
+                                                                            ),
+                                                                    ),
+                                                                ),
+                                                    ) {
+                                                        IconButton(onClick = {
+                                                            onDismiss()
+                                                            navController.navigate(
+                                                                FullscreenDestination,
+                                                            )
+                                                        }, Modifier.align(Alignment.TopEnd)) {
+                                                            Icon(
+                                                                painter = painterResource(Res.drawable.baseline_fullscreen_24),
+                                                                contentDescription = "",
+                                                                tint = Color.White,
+                                                            )
+                                                        }
+                                                        Row(
+                                                            Modifier
+                                                                .align(Alignment.Center)
+                                                                .fillMaxWidth(),
+                                                            horizontalArrangement = Arrangement.SpaceEvenly,
+                                                        ) {
+                                                            FilledTonalIconButton(
+                                                                colors =
+                                                                    IconButtonDefaults.iconButtonColors().copy(
+                                                                        containerColor = Color.Transparent,
+                                                                    ),
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(48.dp)
+                                                                        .aspectRatio(1f)
+                                                                        .clip(
+                                                                            CircleShape,
+                                                                        ),
+                                                                onClick = {
+                                                                    sharedViewModel.onUIEvent(UIEvent.Backward)
+                                                                },
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Rounded.Replay5,
+                                                                    tint = Color.White,
+                                                                    contentDescription = "",
+                                                                    modifier =
+                                                                        Modifier
+                                                                            .size(36.dp)
+                                                                            .alpha(0.8f),
+                                                                )
+                                                            }
+                                                            FilledTonalIconButton(
+                                                                colors =
+                                                                    IconButtonDefaults.iconButtonColors().copy(
+                                                                        containerColor = Color.Transparent,
+                                                                    ),
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(48.dp)
+                                                                        .aspectRatio(1f)
+                                                                        .clip(
+                                                                            CircleShape,
+                                                                        ),
+                                                                onClick = {
+                                                                    sharedViewModel.onUIEvent(UIEvent.Forward)
+                                                                },
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Rounded.Forward5,
+                                                                    tint = Color.White,
+                                                                    contentDescription = "",
+                                                                    modifier =
+                                                                        Modifier
+                                                                            .size(36.dp)
+                                                                            .alpha(0.8f),
+                                                                )
+                                                            }
+                                                        }
+                                                        if (screenDataState.lyricsData != null) {
+                                                            IconButton(onClick = {
+                                                                internalShowSubtitle = !internalShowSubtitle
+                                                            }, Modifier.align(Alignment.BottomEnd)) {
+                                                                Icon(
+                                                                    imageVector =
+                                                                        if (internalShowSubtitle) {
+                                                                            Icons.Filled.SubtitlesOff
+                                                                        } else {
+                                                                            Icons.Filled.Subtitles
+                                                                        },
+                                                                    contentDescription = "",
+                                                                    tint = Color.White,
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
                             Spacer(
                                 modifier =
