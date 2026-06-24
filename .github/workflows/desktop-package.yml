@@ -1,0 +1,255 @@
+name: Build desktop packages (cross-OS via Conveyor)
+
+# Two-job pipeline:
+#  1) build-desktop-packages (ubuntu-22.04) — Conveyor cross-builds
+#     AppImage, Mac .zip (aarch64 + amd64), Windows .msix from Linux.
+#  2) wrap-mac-dmg (macos-14, depends on job 1) — extracts each
+#     mac.zip and wraps it into a polished .dmg (background + drag-to-
+#     Applications + volume icon). This step needs macOS because
+#     `create-dmg` + `hdiutil` are macOS-only, but it's fast (~1-2 min
+#     per arch) since it does no compilation.
+#
+# Why two jobs and not one:
+#  - Conveyor's `unnotarized-mac-zip` produces a `.zip`, which on macOS
+#    15 Sequoia gets a stricter quarantine flag than a `.dmg`-propagated
+#    `.app` does. End users see Gatekeeper's hard-block dialog with no
+#    right-click → Open shortcut. The v1.2.1 jpackage release shipped as
+#    `.dmg`, which Sequoia treats more leniently — that's the UX we want
+#    to preserve.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'dev'
+    paths-ignore:
+      - 'README.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/**/*.md'
+      - '.github/FUNDING.yml'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop-packages:
+    name: Build desktop packages (AppImage + Mac zip + Windows msix)
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "microsoft"
+          cache: 'gradle'
+
+      - name: Install 7-Zip 24.x + libfuse2
+        # Ubuntu's p7zip-full (16.02) can't extract HFS+ DMG content fully —
+        # outer kolyDMG opens but the inner HFS+ partition stays opaque, so
+        # VLC.app never materializes. Use the official Igor Pavlov build,
+        # which has full HFS+ support like the modern Linux/macOS package.
+        # libfuse2 is needed by appimagetool when wrapping the Linux app.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+          curl -fsSL https://github.com/ip7z/7zip/releases/download/26.01/7z2601-linux-x64.tar.xz -o /tmp/7zz.tar.xz
+          sudo tar -xf /tmp/7zz.tar.xz -C /usr/local/bin/ 7zz
+          sudo ln -sf /usr/local/bin/7zz /usr/local/bin/7z
+          7z i | head -3
+
+      - name: Update build product flavor
+        run: |
+          echo "" >> ./gradle.properties
+          echo "isFullBuild=true" >> ./gradle.properties
+
+      - name: Update Sentry Secrets
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_JVM }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN_JVM }}' > ./local.properties
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
+
+      - name: Generate aboutLibraries.json
+        run: ./gradlew exportLibraryDefinitions
+
+      - name: Cache vlc-natives
+        uses: actions/cache@v4
+        with:
+          path: vlc-natives
+          key: vlc-natives-${{ hashFiles('gradle/libs.versions.toml') }}
+
+      - name: Populate vlc-natives for all OSes
+        run: ./gradlew :composeApp:vlcSetupAll --no-configuration-cache
+
+      - name: Generate Conveyor config
+        # Run writeConveyorConfig BEFORE Conveyor so the parser only reads
+        # the static generated.conveyor.conf and never tastes Gradle stdout
+        # (which can contain plugin println output and break HOCON parsing).
+        run: ./gradlew :desktopApp:writeConveyorConfig --no-configuration-cache
+
+      # Linux first: `make linux-app` emits the unpacked tree under output/
+      # that our packageConveyorAppImage task wraps into a portable AppImage.
+      # Conveyor 22.0 dropped native AppImage support, hence the wrap.
+      - name: Run Conveyor (linux-app)
+        uses: hydraulic-software/conveyor/actions/build@v22.0
+        with:
+          command: -Kapp.machines=linux.amd64.glibc make linux-app
+          agree_to_license: 1
+          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+
+      - name: Wrap Linux app tree → AppImage
+        run: ./gradlew :desktopApp:packageConveyorAppImage --no-configuration-cache
+
+      # `make site` builds every machine that has non-empty targets +
+      # `.appinstaller`, `.exe` wrapper, and the download.html landing
+      # page. Conveyor wipes output/ at the start, so it does NOT clobber
+      # the AppImage we already wrapped (that lives under
+      # desktopApp/build/appimage/).
+      #
+      # `-Kapp.machines=...` restricts the site build to Mac + Windows.
+      # Linux is excluded because we already produced the AppImage in
+      # the previous step. Without this restriction, `make site` re-
+      # enters Conveyor's Linux tarball pipeline as an intermediate even
+      # when `linux.amd64.targets = []`, and that intermediate fails the
+      # build with "Linux Tarball Contents for Intel" before the Mac /
+      # Windows artifacts get a chance to run.
+      - name: Run Conveyor (make site, Mac + Windows only)
+        uses: hydraulic-software/conveyor/actions/build@v22.0
+        with:
+          command: '-Kapp.machines=[mac.amd64,mac.aarch64,windows.amd64] make site'
+          agree_to_license: 1
+          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+
+      - name: Stage AppImage into output/ for upload
+        run: cp desktopApp/build/appimage/conveyor/SimpMusic-*.AppImage output/
+
+      - name: Show built artifacts
+        run: ls -lh output/
+
+      - name: Upload AppImage to run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-appimage
+          path: output/SimpMusic-*.AppImage
+
+      - name: Upload macOS zips to run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-mac-zips
+          path: output/*.zip
+
+      # Bundle Windows installer = install.bat + simpmusic.crt + msix.
+      # Conveyor's default .exe wrapper + .appinstaller fetch URLs from
+      # `site.base-url` (GitHub Releases /latest/download/) which 404 for
+      # unreleased builds, so we ship our own scripts/windows/install.bat
+      # that trusts the cert and sideloads the msix offline — no network
+      # round-trip, double-click works, UAC self-elevates.
+      #
+      # Only x64 is shipped — windows.aarch64 is dropped because
+      # androidx.sqlite-bundled lacks a Windows ARM64 native (see
+      # conveyor.conf for full context). ARM Windows users get the x64
+      # msix running under Prism emulation, which works correctly.
+      - name: Bundle Windows offline installer
+        run: |
+          set -euo pipefail
+          if [ ! -f output/simpmusic.crt ]; then
+            echo "::error::output/simpmusic.crt missing — Conveyor signing must have failed"
+            exit 1
+          fi
+          msix=$(ls output/simpmusic-*.x64.msix 2>/dev/null | head -1)
+          if [ -z "$msix" ]; then
+            echo "::error::No simpmusic-*.x64.msix found in output/"
+            exit 1
+          fi
+          mkdir -p installers/
+          stage="$(mktemp -d)"
+          cp scripts/windows/install.bat "$stage/"
+          cp output/simpmusic.crt        "$stage/"
+          cp "$msix"                      "$stage/"
+          ( cd "$stage" && zip -q -j \
+            "${GITHUB_WORKSPACE}/installers/SimpMusic-Windows-installer.zip" \
+            install.bat simpmusic.crt "$(basename "$msix")" )
+          rm -rf "$stage"
+          ls -lh installers/
+
+      - name: Upload Windows offline installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: installers/SimpMusic-Windows-installer.zip
+
+  wrap-mac-dmg:
+    name: Wrap macOS .zip → .dmg (installer UX)
+    runs-on: macos-14
+    needs: build-desktop-packages
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install create-dmg + ImageMagick
+        # create-dmg = sindresorhus brew formula. ImageMagick is used to
+        # downscale the 2800x1600 source background to a sharp 1400x800
+        # bitmap using a Lanczos filter (matches the DMG window size).
+        run: brew install create-dmg imagemagick
+
+      - name: Read app version
+        id: version
+        run: |
+          VERSION=$(grep '^version-name' gradle/libs.versions.toml | head -1 | cut -d'"' -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "App version: $VERSION"
+
+      - name: Download Mac .zip artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-mac-zips
+          path: mac-zips
+
+      - name: Prepare background (Lanczos resize 2800x1600 → 1400x800)
+        run: |
+          mkdir -p build/dmg
+          magick composeApp/icon/dmg-background.png \
+            -filter Lanczos -resize 1400x800 \
+            build/dmg/dmg-bg-1400x800.png
+
+      - name: Wrap each Mac .zip into a polished .dmg
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          shopt -s nullglob
+          for zip in mac-zips/simpmusic-*-mac-*.zip; do
+            arch="$(basename "$zip" | sed -nE 's/.*-mac-([a-z0-9]+)\.zip/\1/p')"
+            [[ -z "$arch" ]] && { echo "Cannot infer arch from $zip" >&2; exit 1; }
+            workdir="$(mktemp -d)"
+            unzip -q "$zip" -d "$workdir"
+            app="$(find "$workdir" -maxdepth 2 -type d -name '*.app' | head -1)"
+            [[ -d "$app" ]] || { echo "No .app inside $zip" >&2; exit 1; }
+            out="dist/SimpMusic-${VERSION}-mac-${arch}.dmg"
+            scripts/wrap-mac-dmg.sh \
+              "$app" \
+              build/dmg/dmg-bg-1400x800.png \
+              composeApp/icon/circle_app_icon.icns \
+              "$out"
+            rm -rf "$workdir"
+          done
+          ls -lh dist/
+
+      - name: Upload Mac .dmg artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-mac-dmg
+          path: dist/*.dmg

@@ -83,6 +83,9 @@ class HomeViewModel(
             .dataSyncId
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
+    private val _mainHomeThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
+    val mainHomeThumbnail: StateFlow<String?> = _mainHomeThumbnail
+
     init {
         if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
             runBlocking {
@@ -145,11 +148,25 @@ class HomeViewModel(
                             }
                         }
                 }
+            val job6 =
+                launch {
+                    homeItemList.collectLatest { list ->
+                        _mainHomeThumbnail.value =
+                            list
+                                .firstOrNull()
+                                ?.contents
+                                ?.firstOrNull()
+                                ?.thumbnails
+                                ?.lastOrNull()
+                                ?.url
+                    }
+                }
             job1.join()
             job2.join()
             job3.join()
             job4.join()
             job5.join()
+            job6.join()
         }
     }
 
@@ -205,10 +222,11 @@ class HomeViewModel(
                             _homeItemList.value = listOf()
                         }
                     }
-                    if (continuation.value.isNullOrEmpty())
+                    if (continuation.value.isNullOrEmpty()) {
                         _homeListState.value = ListState.PAGINATION_EXHAUST
-                    else
+                    } else {
                         _homeListState.value = ListState.IDLE
+                    }
                     when (chart) {
                         is Resource.Success -> {
                             _chart.value = chart.data
@@ -264,9 +282,7 @@ class HomeViewModel(
             }
     }
 
-    fun getContinueHomeItem(
-        continuation: String?,
-    ) {
+    fun getContinueHomeItem(continuation: String?) {
         viewModelScope.launch {
             if (continuation.isNullOrEmpty()) {
                 _homeListState.value = ListState.PAGINATION_EXHAUST
@@ -274,31 +290,32 @@ class HomeViewModel(
             } else {
                 log("Get more home item with continuation: $continuation")
                 _homeListState.value = ListState.PAGINATING
-                homeRepository.getHomeDataContinue(
-                    continuation,
-                    getString(Res.string.view_count),
-                    getString(Res.string.song),
-                ).collect { home ->
-                    when (home) {
-                        is Resource.Success -> {
-                            _continuation.value = home.data?.first
-                            val newItems = home.data?.second ?: listOf()
-                            _homeItemList.update { it + newItems }
-                            if (home.data?.first.isNullOrEmpty()) {
+                homeRepository
+                    .getHomeDataContinue(
+                        continuation,
+                        getString(Res.string.view_count),
+                        getString(Res.string.song),
+                    ).collect { home ->
+                        when (home) {
+                            is Resource.Success -> {
+                                _continuation.value = home.data?.first
+                                val newItems = home.data?.second ?: listOf()
+                                _homeItemList.update { it + newItems }
+                                if (home.data?.first.isNullOrEmpty()) {
+                                    _homeListState.value = ListState.PAGINATION_EXHAUST
+                                } else {
+                                    _homeListState.value = ListState.IDLE
+                                }
+                            }
+
+                            is Resource.Error -> {
+                                _continuation.value = null
+                                Logger.w(tag, "getContinueHomeItem: ${home.message}")
+                                showSnackBarErrorState.emit(home.message ?: "Unknown error")
                                 _homeListState.value = ListState.PAGINATION_EXHAUST
-                            } else {
-                                _homeListState.value = ListState.IDLE
                             }
                         }
-
-                        is Resource.Error -> {
-                            _continuation.value = null
-                            Logger.w(tag, "getContinueHomeItem: ${home.message}")
-                            showSnackBarErrorState.emit(home.message ?: "Unknown error")
-                            _homeListState.value = ListState.PAGINATION_EXHAUST
-                        }
                     }
-                }
             }
         }
     }

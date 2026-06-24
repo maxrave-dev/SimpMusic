@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.screen.other
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,10 +95,15 @@ fun CreditScreen(
             fontSize = 13.sp,
         )
 
-        // Developer
+        // Developer - clickable, opens dev blog
         Text(
             text = stringResource(Res.string.maxrave_dev),
             style = typo().bodyMedium,
+            textDecoration = TextDecoration.Underline,
+            modifier =
+                Modifier.clickable {
+                    openUrl("https://maxrave.dev")
+                },
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -115,7 +122,7 @@ fun CreditScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            // GitHub button
+            // Website button
             TextButton(
                 onClick = {
                     openUrl("https://simpmusic.org")
@@ -127,6 +134,26 @@ fun CreditScreen(
                         .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
             ) {
                 Text(text = stringResource(Res.string.website))
+            }
+
+            // Developer blog button
+            TextButton(
+                onClick = {
+                    openUrl("https://maxrave.dev")
+                },
+                modifier =
+                    Modifier
+                        .align(Alignment.Start)
+                        .padding(horizontal = 25.dp)
+                        .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp),
+            ) {
+                Column {
+                    Text(text = stringResource(Res.string.developer_blog))
+                    Text(
+                        text = stringResource(Res.string.developer_blog_tagline),
+                        style = typo().bodySmall,
+                    )
+                }
             }
 
             // GitHub button

@@ -21,6 +21,7 @@ dependencyResolutionManagement {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
         }
         maven("https://jogamp.org/deployment/maven")
+        maven(url = "https://raw.githubusercontent.com/bravepipeproject/maven-repo/master/repository")
     }
 }
 
@@ -29,20 +30,6 @@ plugins {
 }
 
 // prepare for git submodules
-val mediaServiceCore =
-    if (File(rootDir, "../MediaServiceCore").exists()) {
-        File(rootDir, "../MediaServiceCore")
-    } else {
-        File(rootDir, "./MediaServiceCore")
-    }
-
-val sharedDir =
-    if (File(rootDir, "../MediaServiceCore/SharedModules").exists()) {
-        File(rootDir, "../MediaServiceCore/SharedModules")
-    } else {
-        File(rootDir, "./MediaServiceCore/SharedModules")
-    }
-
 val coreDir =
     if (File(rootDir, "../core").exists()) {
         File(rootDir, "../core")
@@ -66,7 +53,9 @@ val mediaDir =
 
 rootProject.name = "SimpMusic"
 include(
-    "composeApp",
+    ":androidApp",
+    ":composeApp",
+    ":desktopApp",
     ":common",
     ":data",
     ":domain",
@@ -75,11 +64,6 @@ include(
     ":spotify",
     ":aiService",
     ":lyricsService",
-    ":mediaserviceinterfaces",
-    ":youtubeapi",
-    ":googleapi",
-    ":sharedtests",
-    ":sharedutils",
     ":media-jvm",
     ":media-jvm-ui",
     ":media3",
@@ -88,11 +72,6 @@ include(
     ":crashlytics-empty",
     ":kizzy",
 )
-project(":mediaserviceinterfaces").projectDir = File(mediaServiceCore, "mediaserviceinterfaces")
-project(":youtubeapi").projectDir = File(mediaServiceCore, "youtubeapi")
-project(":googleapi").projectDir = File(mediaServiceCore, "googleapi")
-project(":sharedtests").projectDir = File(sharedDir, "sharedtests")
-project(":sharedutils").projectDir = File(sharedDir, "sharedutils")
 
 // core modules
 project(":common").projectDir = File(coreDir, "common")

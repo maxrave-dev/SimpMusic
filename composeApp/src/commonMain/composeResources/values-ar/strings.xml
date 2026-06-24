@@ -303,7 +303,6 @@
     <string name="codec">الترميز</string>
     <string name="plays">عدد تشغيل/عرض</string>
     <string name="like_and_dislike">%1$d إعجابـ(ات), %2$d عدم إعجابـ(ات)</string>
-    <string name="published_at">تم النشر في %1$s</string>
     <string name="less">أقل</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">تسجيل الدخول إلى Spotify</string>
@@ -356,5 +355,6 @@
     <string name="loading">جاري التحميل</string>
     <string name="updating">جاري التحديث</string>
     <string name="go_to_log_in_page">الذهاب إلى صفحة تسجيل الدخول</string>
+    <string name="proxy_host"></string>
     <string name="download_speed">سرعة التحميل %1$s </string>
 </resources>

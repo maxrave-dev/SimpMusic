@@ -1,0 +1,10 @@
+- New offline error screen on Home with Retry and quick access to your downloaded music
+- Show translated lyrics in yellow under the Canvas subtitle on the Now Playing screen
+- Smoother DJ-style AutoMix: equal-power crossfade curve and front-loaded BPM ramp
+- Longer Auto mode crossfade for more deliberate transitions (20-45s, fallback 30s)
+- Apple Music-inspired redesign for Album, Playlist and Now Playing screens
+- Cleaner home item layout: enforced 3-line max with subtle marquee on long titles
+- Preserve original track order when loading album songs
+- Fix language codes for Chinese, Indonesian and Hebrew
+- Desktop: Windows installer switched to MSIX with install.bat helper
+- Desktop: macOS installer switched to a custom DMG

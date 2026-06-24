@@ -36,7 +36,7 @@ abstract class BaseViewModel :
     /**
      * Tag for logging
      */
-    protected val tag: String = javaClass.simpleName
+    protected val tag: String = this::class.simpleName ?: "BaseViewModel"
 
     /**
      * Log with viewModel tag
@@ -67,7 +67,6 @@ abstract class BaseViewModel :
     }
 
     fun makeToast(message: String?) {
-        Res.string.loading
         showToast(
             message = message ?: "NO MESSAGE",
             duration = ToastDuration.Short,

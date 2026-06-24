@@ -80,6 +80,13 @@ private fun generateGradientFromTitle(title: String): List<Color> {
     return listOf(color1, color2)
 }
 
+/**
+ * Deterministic placeholder gradient colors for a playlist title — matches the
+ * [PlaylistThumbnail] / [painterPlaylistThumbnail] placeholder, so a screen can tint
+ * its background to match a local playlist that has no real artwork.
+ */
+fun playlistTitleGradient(title: String): List<Color> = generateGradientFromTitle(title)
+
 // HSV to RGB conversion
 private fun hsvToColor(hue: Float, saturation: Float, value: Float): Color {
     val h = hue / 60f

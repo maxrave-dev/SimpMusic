@@ -114,6 +114,7 @@ fun SongFullWidthItems(
     onClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
     modifier: Modifier,
+    rightView: @Composable (() -> Unit)? = null,
 ) {
     val maxOffset = 360f
     val coroutineScope = rememberCoroutineScope()
@@ -317,6 +318,9 @@ fun SongFullWidthItems(
                         )
                     }
                 }
+                if (rightView != null) {
+                    rightView()
+                }
                 if (onMoreClickListener != null) {
                     RippleIconButton(resId = Res.drawable.baseline_more_vert_24, fillMaxSize = false) {
                         val videoId = track?.videoId ?: songEntity?.videoId
@@ -455,6 +459,7 @@ fun SuggestItems(
 fun PlaylistFullWidthItems(
     data: PlaylistType,
     onClickListener: (() -> Unit)? = null,
+    rightView: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -616,6 +621,9 @@ fun PlaylistFullWidthItems(
                     )
                 }
             }
+            if (rightView != null) {
+                rightView()
+            }
         }
     }
 }
@@ -624,6 +632,7 @@ fun PlaylistFullWidthItems(
 fun ArtistFullWidthItems(
     data: ArtistType,
     onClickListener: (() -> Unit)? = null,
+    rightView: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val (name: String, thumbnails: String?) =
@@ -700,6 +709,9 @@ fun ArtistFullWidthItems(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable(),
                 )
+            }
+            if (rightView != null) {
+                rightView()
             }
         }
     }

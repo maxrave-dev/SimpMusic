@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -51,6 +50,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -104,7 +104,9 @@ fun CollapsingToolbarParallaxEffect(
         TopAppBarDefaults.TopAppBarExpandedHeight + with(density) { WindowInsets.statusBars.getTop(this).toDp() * 2 }
 
     val scroll: ScrollState = rememberScrollState(0)
-    val headerHeight = (getScreenSizeInfo().hDP.dp * 2 / 6).coerceAtLeast(200.dp)
+
+    // Increased from 2/6 to 2/4 (50% of screen height) for a bigger, more prominent artist image
+    val headerHeight = (getScreenSizeInfo().hDP.dp * 2 / 4).coerceAtLeast(250.dp)
 
     val headerHeightPx = with(density) { headerHeight.toPx() }
     val toolbarHeightPx = with(density) { toolbarHeight.toPx() }
@@ -239,9 +241,7 @@ private fun Header(
                     .build(),
             onSuccess = {
                 onImageLoaded(
-                    it.result.image
-                        .toBitmap()
-                        .asImageBitmap(),
+                    it.result.image.toImageBitmap(),
                 )
             },
             placeholder = painterResource(Res.drawable.holder_video),
@@ -252,6 +252,7 @@ private fun Header(
                 Modifier
                     .fillMaxSize(),
         )
+        // YouTube Music style gradient - smooth fade from image to content
         Box(
             Modifier
                 .fillMaxSize()
@@ -261,11 +262,14 @@ private fun Header(
                             colors =
                                 listOf(
                                     Color.Transparent,
-                                    Color.Black.copy(
-                                        alpha = 0.8f,
-                                    ),
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Black.copy(alpha = 0.6f),
+                                    Color.Black.copy(alpha = 0.85f),
+                                    md_theme_dark_background,
                                 ),
-                            startY = headerHeightPx * 3 / 4, // Gradient applied to wrap the title only
+                            startY = headerHeightPx / 2, // Start fade at middle of header
+                            endY = headerHeightPx, // Complete at bottom of header
                         ),
                 ),
         )
@@ -330,9 +334,10 @@ private fun Toolbar(
         exit = fadeOut(animationSpec = tween(300)),
     ) {
         TopAppBar(
-            windowInsets = TopAppBarDefaults.windowInsets.exclude(
-                TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start)
-            ),
+            windowInsets =
+                TopAppBarDefaults.windowInsets.exclude(
+                    TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start),
+                ),
             modifier =
                 Modifier.background(
                     Brush.verticalGradient(
@@ -383,7 +388,7 @@ private fun Title(
 
     Text(
         text = title,
-        fontSize = 48.sp,
+        fontSize = 30.sp, // Reduced from 48.sp — still bold and prominent, fits longer names
         fontWeight = FontWeight.Bold,
         color = Color.White,
         maxLines = 1,

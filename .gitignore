@@ -21,10 +21,23 @@ crowdin.yml
 /simpmusic.jks
 /ffmpeg-kit/build/
 
+#dev files
+ign.md
+.docs
 # Sentry Config File
 sentry.properties
-/.claude/
 /composeApp/build/
 /composeApp/cache/
 /composeApp/kcef-bundle/
 /.mcp.json
+/.claude/settings.local.json
+/androidApp/build/
+/androidApp/cache/
+# VLC native libraries (downloaded by vlc-setup plugin)
+/vlc-natives/
+/.omc/
+/desktopApp/build/
+# Conveyor auto-generated config (run `./gradlew :desktopApp:writeConveyorConfig`)
+/desktopApp/generated.conveyor.conf
+# Conveyor output directory
+/output/

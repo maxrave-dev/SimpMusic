@@ -341,7 +341,7 @@ class PodcastViewModel(
             }
 
             is PodcastUIEvent.Share -> {
-                val url = "https://youtube.com/playlist?list=${event.podcastId}"
+                val url = "https://simpmusic.org/app/playlist?list=${event.podcastId}"
                 shareUrl(
                     title = getString(Res.string.share_url),
                     url = url,

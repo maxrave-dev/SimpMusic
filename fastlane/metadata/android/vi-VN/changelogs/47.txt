@@ -1,0 +1,21 @@
+- Thêm hiển thị phụ đề Canvas đồng bộ cho lời bài hát
+- Thêm hiển thị BPM, khóa và thang âm vào bảng thông tin trình phát
+- Thêm hỗ trợ deep link simpmusic:// và simpmusic.org
+- Thêm chế độ Crossfade Tự động (giống AutoMix)
+- Thiết kế lại điều khiển tốc độ phát/cao độ với hiệu ứng cải thiện
+- Chuẩn hóa URL chia sẻ sử dụng simpmusic.org
+- Tối ưu hiệu suất rendering và API vẽ giao diện
+- Cải thiện kiểm tra bộ nhớ đệm bài hát cục bộ trước khi tải từ API
+- Sửa lỗi phát nhạc và streaming trên nhiều nền tảng
+- Sửa lỗi trình phát với cơ chế thử lại
+- Sửa lỗi tải video
+- Sửa lỗi hẹn giờ ngủ (chế độ hết bài hát)
+- Sửa lỗi thumbnail hình chữ nhật
+- Sửa lỗi điều khiển cao độ và tốc độ phát
+- Sửa lỗi tùy chọn khoảng ngày trong thống kê playlist
+# Máy tính để bàn:
+ - Thay thế GStreamer bằng VLCJ cho phát nhạc
+ - Thêm hộp thoại báo lỗi cho máy tính để bàn
+ - Sửa lỗi phát gapless khi thay đổi cài đặt
+ - Tắt hiệu ứng trong suốt và thanh tiêu đề tùy chỉnh trong môi trường máy ảo
+ - Cải thiện tích hợp AppImage cho máy tính để bàn

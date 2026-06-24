@@ -9,6 +9,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,9 +25,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoGraph
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -49,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -67,6 +73,7 @@ import com.maxrave.simpmusic.ui.component.LibraryItem
 import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
@@ -83,6 +90,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_people_alt_24
+import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.create
 import simpmusic.composeapp.generated.resources.downloaded_playlists
 import simpmusic.composeapp.generated.resources.favorite_playlists
@@ -90,6 +98,7 @@ import simpmusic.composeapp.generated.resources.favorite_podcasts
 import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.mix_for_you
 import simpmusic.composeapp.generated.resources.no_YouTube_playlists
+import simpmusic.composeapp.generated.resources.no_charts_found
 import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_podcasts
 import simpmusic.composeapp.generated.resources.no_mixes_found
@@ -97,6 +106,7 @@ import simpmusic.composeapp.generated.resources.no_playlists_added
 import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlist_name
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
+import simpmusic.composeapp.generated.resources.simpmusic_charts
 import simpmusic.composeapp.generated.resources.your_library
 import simpmusic.composeapp.generated.resources.your_playlists
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
@@ -120,6 +130,7 @@ fun LibraryScreen(
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
     val downloadedPlaylist by viewModel.downloadedPlaylist.collectAsStateWithLifecycle()
     val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
+    val chartPlaylists by viewModel.chartPlaylists.collectAsStateWithLifecycle()
     val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
     val accountThumbnail by viewModel.accountThumbnail.collectAsStateWithLifecycle()
     val hazeState =
@@ -173,6 +184,12 @@ fun LibraryScreen(
 
             LibraryChipType.FAVORITE_PODCAST -> {
                 viewModel.getFavoritePodcasts()
+            }
+
+            LibraryChipType.CHART -> {
+                if (chartPlaylists.data.isNullOrEmpty()) {
+                    viewModel.getChartPlaylists()
+                }
             }
         }
     }
@@ -314,6 +331,18 @@ fun LibraryScreen(
                     viewModel.getFavoritePodcasts()
                 }
             }
+
+            LibraryChipType.CHART -> {
+                GridLibraryPlaylist(
+                    navController,
+                    innerPadding.copy(top = topAppBarHeight),
+                    chartPlaylists,
+                    emptyText = Res.string.no_charts_found,
+                    onScrolling = onScrolling,
+                ) {
+                    viewModel.getChartPlaylists()
+                }
+            }
         }
     }
     val coroutineScope = rememberCoroutineScope()
@@ -415,12 +444,31 @@ fun LibraryScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                 ),
+            actions = {
+                IconButton(
+                    onClick = {
+                        navController.navigate(AnalyticsDestination)
+                    },
+                ) {
+                    Box {
+                        Icon(Icons.Rounded.AutoGraph, "Analytics", tint = Color.White)
+                        Text(
+                            "NEW",
+                            Modifier.align(Alignment.BottomEnd),
+                            style =
+                                typo().bodySmall.copy(
+                                    fontSize = 5.sp,
+                                ),
+                        )
+                    }
+                }
+            },
             navigationIcon = {
                 AnimatedVisibility(
                     !accountThumbnail.isNullOrEmpty(),
                     modifier = Modifier.padding(horizontal = 12.dp),
                     enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkVertically()
+                    exit = fadeOut() + shrinkVertically(),
                 ) {
                     AsyncImage(
                         model =
@@ -438,7 +486,7 @@ fun LibraryScreen(
                                 .clip(CircleShape),
                     )
                 }
-            }
+            },
         )
         Row(
             modifier =
@@ -465,6 +513,7 @@ fun LibraryScreen(
                             LibraryChipType.FAVORITE_PLAYLIST -> stringResource(Res.string.favorite_playlists)
                             LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
+                            LibraryChipType.CHART -> stringResource(Res.string.simpmusic_charts)
                         },
                 ) {
                     viewModel.setCurrentScreen(type)

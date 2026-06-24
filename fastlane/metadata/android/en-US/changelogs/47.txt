@@ -1,0 +1,21 @@
+- Add Canvas subtitle sync display for lyrics
+- Add BPM, key, and scale display to player bottom sheet
+- Add simpmusic:// and simpmusic.org deep link support
+- Add Auto Crossfade mode (like AutoMix)
+- Redesign playback speed/pitch controls with improved animations
+- Standardize share URL to use simpmusic.org
+- Optimize rendering performance and UI drawing APIs
+- Improve local song cache checking before fetching from API
+- Fix media playback and streaming issues across platforms
+- Fix player errors with retry logic
+- Fix video download
+- Fix sleep timer (end of song mode)
+- Fix rectangle thumbnail
+- Fix pitch and playback speed controls
+- Fix analytics day range preference in playlists
+# Desktop app:
+ - Replace GStreamer with VLCJ for audio playback
+ - Add Crash dialog for desktop
+ - Fix gapless playing when changing settings
+ - Disable transparency and custom titlebar in VM environments
+ - Improve AppImage desktop integration

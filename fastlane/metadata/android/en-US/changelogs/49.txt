@@ -1,0 +1,11 @@
+- Spotify-style horizontal pager for Now Playing screen with per-page palette backdrop
+- Swipe to skip to previous track on Now Playing pager
+- Add 256kbps stream option in settings for YouTube Music Premium user (replaces 320kbps preference)
+- Auto mode for Tidal 320kbps URL
+- Optimize lyrics word-wipe animation (wall-clock based, smoother multi-step)
+- Optimize AI client and fix AI translation
+- Optimize Discord Rich Presence
+- Show placeholder and error state for failed artwork on Now Playing screen
+- Remove Netscape cookie input from Dev YouTube login
+- Fix YouTube extractor
+- Bump target SDK to 37 (Android 17)

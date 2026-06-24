@@ -1,0 +1,7 @@
+- Sửa lỗi nhạc tự động tạm dừng hoặc dừng hẳn giữa các bài hát (lỗi đơ phát nhạc nền tồn tại từ phiên bản 1.0.4)
+- Thanh điều hướng dưới cùng liquid glass mới trên Android, với hiệu ứng nhấn-phình
+- Giao diện mới kiểu Apple Music cho màn hình Local Playlist
+- Tối ưu hóa đăng nhập Spotify
+- Khám phá các chương trình podcast ở màn hình Home và mở chúng trong màn hình podcast riêng
+- Sửa lỗi các kệ (shelf) trống ở Home và tìm kiếm, cùng lỗi phát nhạc, sau khi YouTube thay đổi API
+- Desktop: sửa lỗi crash khi khởi động và cài đặt lại bản cập nhật Windows tại chỗ mà không cần gỡ cài đặt

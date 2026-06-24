@@ -45,7 +45,7 @@ actual fun getScreenSizeInfo(): ScreenSizeInfo {
             Logger.w("getScreenSizeInfo", "WindowMetrics: ${windowMetrics?.bounds?.height()}")
             ScreenSizeInfo(
                 hDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
-                wDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
+                wDP = with(localDensity) { (windowMetrics?.bounds?.width())?.toDp()?.value?.toInt() ?: 0 },
                 hPX = windowMetrics?.bounds?.height() ?: 0,
                 wPX = windowMetrics?.bounds?.width() ?: 0,
             )

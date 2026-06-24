@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.library
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,8 +9,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -34,19 +37,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.LocalResource
+import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
+import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.haze.hazeEffect
@@ -61,12 +74,19 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_close_24
+import simpmusic.composeapp.generated.resources.baseline_play_circle_24
 import simpmusic.composeapp.generated.resources.baseline_search_24
+import simpmusic.composeapp.generated.resources.baseline_shuffle_24
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
+import simpmusic.composeapp.generated.resources.lower_plays
 import simpmusic.composeapp.generated.resources.most_played
 import simpmusic.composeapp.generated.resources.search
+import simpmusic.composeapp.generated.resources.seconds
+import simpmusic.composeapp.generated.resources.your_top_albums
+import simpmusic.composeapp.generated.resources.your_top_artists
+import simpmusic.composeapp.generated.resources.your_top_tracks
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -76,6 +96,7 @@ fun LibraryDynamicPlaylistScreen(
     navController: NavController,
     type: String,
     viewModel: LibraryDynamicPlaylistViewModel = koinViewModel(),
+    analyticsViewModel: AnalyticsViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val nowPlayingVideoId by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
@@ -86,13 +107,17 @@ fun LibraryDynamicPlaylistScreen(
     var query by rememberSaveable { mutableStateOf("") }
 
     val favorite by viewModel.listFavoriteSong.collectAsStateWithLifecycle()
-    var tempFavorite by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
+    var tempFavorite by remember { mutableStateOf(emptyList<SongEntity>()) }
     val followed by viewModel.listFollowedArtist.collectAsStateWithLifecycle()
-    var tempFollowed by rememberSaveable { mutableStateOf(emptyList<ArtistEntity>()) }
+    var tempFollowed by remember { mutableStateOf(emptyList<ArtistEntity>()) }
     val mostPlayed by viewModel.listMostPlayedSong.collectAsStateWithLifecycle()
-    var tempMostPlayed by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
+    var tempMostPlayed by remember { mutableStateOf(emptyList<SongEntity>()) }
     val downloaded by viewModel.listDownloadedSong.collectAsStateWithLifecycle()
-    var tempDownloaded by rememberSaveable { mutableStateOf(emptyList<SongEntity>()) }
+    var tempDownloaded by remember { mutableStateOf(emptyList<SongEntity>()) }
+    val analyticsUIState by analyticsViewModel.analyticsUIState.collectAsStateWithLifecycle()
+    var tempTopTracks by remember { mutableStateOf(analyticsUIState.topTracks.data ?: emptyList()) }
+    var tempTopArtists by remember { mutableStateOf(analyticsUIState.topArtists.data ?: emptyList()) }
+    var tempTopAlbums by remember { mutableStateOf(analyticsUIState.topAlbums.data ?: emptyList()) }
     val hazeState =
         rememberHazeState(
             blurEnabled = true,
@@ -108,6 +133,21 @@ fun LibraryDynamicPlaylistScreen(
         Logger.w("LibraryDynamicPlaylistScreen", "Check tempMostPlayed: $tempMostPlayed")
         tempDownloaded = downloaded.filter { it.title.contains(query, ignoreCase = true) }
         Logger.w("LibraryDynamicPlaylistScreen", "Check tempDownloaded: $tempDownloaded")
+        tempTopTracks =
+            analyticsUIState.topTracks.data
+                ?.filter { it.second.title.contains(query, ignoreCase = true) }
+                ?: emptyList()
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempTopTracks: $tempTopTracks")
+        tempTopArtists =
+            analyticsUIState.topArtists.data
+                ?.filter { it.second.name.contains(query, ignoreCase = true) }
+                ?: emptyList()
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempTopArtists: $tempTopArtists")
+        tempTopAlbums =
+            analyticsUIState.topAlbums.data
+                ?.filter { it.second.title.contains(query, ignoreCase = true) }
+                ?: emptyList()
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempTopAlbums: $tempTopAlbums")
     }
 
     LazyColumn(
@@ -143,31 +183,169 @@ fun LibraryDynamicPlaylistScreen(
                     },
                 )
             }
+        } else if (type == LibraryDynamicPlaylistType.TopArtists) {
+            when (analyticsUIState.topArtists) {
+                is LocalResource.Success if (!analyticsUIState.topArtists.data.isNullOrEmpty()) -> {
+                    val data = analyticsUIState.topArtists.data ?: emptyList()
+                    items(
+                        if (query.isNotEmpty() && showSearchBar) {
+                            tempTopArtists
+                        } else {
+                            data
+                        },
+                        key = { it.first.hashCode() },
+                    ) { artist ->
+                        ArtistFullWidthItems(
+                            artist.second,
+                            rightView = {
+                                Box(Modifier.padding(horizontal = 8.dp)) {
+                                    Text(
+                                        text = "${artist.first.playCount} ${stringResource(Res.string.lower_plays)}",
+                                        style = typo().bodySmall,
+                                    )
+                                }
+                            },
+                            onClickListener = {
+                                navController.navigate(
+                                    ArtistDestination(
+                                        channelId = artist.second.channelId,
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                }
+
+                else -> {}
+            }
+        } else if (type == LibraryDynamicPlaylistType.TopAlbums) {
+            when (analyticsUIState.topAlbums) {
+                is LocalResource.Success if (!analyticsUIState.topAlbums.data.isNullOrEmpty()) -> {
+                    val data = analyticsUIState.topAlbums.data ?: emptyList()
+                    items(
+                        if (query.isNotEmpty() && showSearchBar) {
+                            tempTopAlbums
+                        } else {
+                            data
+                        },
+                        key = { it.first.hashCode() },
+                    ) { album ->
+                        PlaylistFullWidthItems(
+                            album.second,
+                            rightView = {
+                                Box(Modifier.padding(horizontal = 8.dp)) {
+                                    Text(
+                                        text = "${album.first.playCount} ${stringResource(Res.string.lower_plays)}",
+                                        style = typo().bodySmall,
+                                    )
+                                }
+                            },
+                            onClickListener = {
+                                navController.navigate(
+                                    AlbumDestination(
+                                        browseId = album.second.browseId,
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                }
+
+                else -> {}
+            }
+        } else if (type == LibraryDynamicPlaylistType.TopTracks) {
+            when (analyticsUIState.topTracks) {
+                is LocalResource.Success if (!analyticsUIState.topTracks.data.isNullOrEmpty()) -> {
+                    val data = analyticsUIState.topTracks.data ?: emptyList()
+                    items(
+                        if (query.isNotEmpty() && showSearchBar) {
+                            tempTopTracks
+                        } else {
+                            data
+                        },
+                        key = { it.hashCode() },
+                    ) { song ->
+                        SongFullWidthItems(
+                            songEntity = song.second,
+                            isPlaying = song.second.videoId == nowPlayingVideoId,
+                            modifier = Modifier.fillMaxWidth(),
+                            onMoreClickListener = {
+                                chosenSong = song.second
+                                showBottomSheet = true
+                            },
+                            onClickListener = { videoId ->
+                                val targetList = data.map { it.second }
+                                val playTrack = song.second
+                                with(sharedViewModel) {
+                                    setQueueData(
+                                        QueueData.Data(
+                                            listTracks = targetList.toArrayListTrack(),
+                                            firstPlayedTrack = playTrack.toTrack(),
+                                            playlistId = null,
+                                            playlistName = getStringBlocking(Res.string.your_top_tracks),
+                                            playlistType = PlaylistType.RADIO,
+                                            continuation = null,
+                                        ),
+                                    )
+                                    loadMediaItem(
+                                        playTrack.toTrack(),
+                                        Config.PLAYLIST_CLICK,
+                                        targetList.indexOf(playTrack).coerceAtLeast(0),
+                                    )
+                                }
+                            },
+                            onAddToQueue = {
+                                sharedViewModel.addListToQueue(
+                                    arrayListOf(song.second.toTrack()),
+                                )
+                            },
+                            rightView = {
+                                Column(
+                                    modifier = Modifier.wrapContentWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    Text(
+                                        text = "${song.first.totalListeningTime} ${stringResource(Res.string.seconds)}",
+                                        style = typo().bodySmall,
+                                    )
+                                    Text(
+                                        text = "${song.first.playCount} ${stringResource(Res.string.lower_plays)}",
+                                        style = typo().bodySmall,
+                                    )
+                                }
+                            },
+                        )
+                    }
+                }
+
+                else -> {}
+            }
         } else {
             items(
                 when (type) {
-                    LibraryDynamicPlaylistType.Downloaded ->
+                    LibraryDynamicPlaylistType.Downloaded -> {
                         if (query.isNotEmpty() && showSearchBar) {
                             tempDownloaded
                         } else {
                             downloaded
                         }
+                    }
 
-                    LibraryDynamicPlaylistType.Favorite ->
+                    LibraryDynamicPlaylistType.Favorite -> {
                         if (query.isNotEmpty() && showSearchBar) {
                             tempFavorite
                         } else {
                             favorite
                         }
+                    }
 
-                    LibraryDynamicPlaylistType.MostPlayed ->
+                    LibraryDynamicPlaylistType.MostPlayed -> {
                         if (query.isNotEmpty() && showSearchBar) {
                             tempMostPlayed
                         } else {
                             mostPlayed
                         }
-
-                    else -> emptyList()
+                    }
                 },
                 key = { it.hashCode() },
             ) { song ->
@@ -208,50 +386,118 @@ fun LibraryDynamicPlaylistScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val type = LibraryDynamicPlaylistType.toType(type)
-        TopAppBar(
-            title = {
-                Text(
-                    text =
-                        stringResource(
-                            type.name(),
-                        ),
-                    style = typo().titleMedium,
-                )
-            },
-            navigationIcon = {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    RippleIconButton(
-                        Res.drawable.baseline_arrow_back_ios_new_24,
-                        Modifier
-                            .size(32.dp),
-                        true,
-                    ) {
-                        navController.navigateUp()
+        val isSongType =
+            type != LibraryDynamicPlaylistType.Followed &&
+                type != LibraryDynamicPlaylistType.TopArtists &&
+                type != LibraryDynamicPlaylistType.TopAlbums
+        Box {
+            TopAppBar(
+                title = {
+                    Text(
+                        text =
+                            stringResource(
+                                type.name(),
+                            ),
+                        style = typo().titleMedium,
+                    )
+                },
+                navigationIcon = {
+                    Box(Modifier.padding(horizontal = 5.dp)) {
+                        RippleIconButton(
+                            Res.drawable.baseline_arrow_back_ios_new_24,
+                            Modifier
+                                .size(32.dp),
+                            true,
+                        ) {
+                            navController.navigateUp()
+                        }
                     }
-                }
-            },
-            actions = {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    RippleIconButton(
-                        if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,
-                        Modifier
-                            .size(32.dp),
-                        true,
-                    ) {
-                        showSearchBar = !showSearchBar
+                },
+                actions = {
+                    if (isSongType) {
+                        RippleIconButton(
+                            Res.drawable.baseline_play_circle_24,
+                            Modifier
+                                .size(48.dp),
+                            fillMaxSize = true,
+                        ) {
+                            if (type == LibraryDynamicPlaylistType.TopTracks) {
+                                val data = analyticsUIState.topTracks.data
+                                if (!data.isNullOrEmpty()) {
+                                    val first = data.first().second
+                                    sharedViewModel.setQueueData(
+                                        QueueData.Data(
+                                            listTracks = data.map { it.second }.toArrayListTrack(),
+                                            firstPlayedTrack = first.toTrack(),
+                                            playlistId = null,
+                                            playlistName = getStringBlocking(Res.string.your_top_tracks),
+                                            playlistType = PlaylistType.RADIO,
+                                            continuation = null,
+                                        ),
+                                    )
+                                    sharedViewModel.loadMediaItem(
+                                        first.toTrack(),
+                                        Config.PLAYLIST_CLICK,
+                                        0,
+                                    )
+                                }
+                            } else {
+                                viewModel.playAll(type)
+                            }
+                        }
+                        RippleIconButton(
+                            Res.drawable.baseline_shuffle_24,
+                            Modifier.size(32.dp),
+                            true,
+                        ) {
+                            if (type == LibraryDynamicPlaylistType.TopTracks) {
+                                val data = analyticsUIState.topTracks.data
+                                if (!data.isNullOrEmpty()) {
+                                    val shuffled = data.shuffled()
+                                    val first = shuffled.first().second
+                                    sharedViewModel.setQueueData(
+                                        QueueData.Data(
+                                            listTracks = shuffled.map { it.second }.toArrayListTrack(),
+                                            firstPlayedTrack = first.toTrack(),
+                                            playlistId = null,
+                                            playlistName = getStringBlocking(Res.string.your_top_tracks),
+                                            playlistType = PlaylistType.RADIO,
+                                            continuation = null,
+                                        ),
+                                    )
+                                    sharedViewModel.loadMediaItem(
+                                        first.toTrack(),
+                                        Config.PLAYLIST_CLICK,
+                                        0,
+                                    )
+                                }
+                            } else {
+                                viewModel.shuffle(type)
+                            }
+                        }
                     }
-                }
-            },
-            modifier =
-                Modifier
-                    .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                        blurEnabled = true
-                    },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
-        )
+                    Box(Modifier.padding(horizontal = 5.dp)) {
+                        RippleIconButton(
+                            if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,
+                            Modifier
+                                .size(32.dp),
+                            true,
+                        ) {
+                            showSearchBar = !showSearchBar
+                        }
+                    }
+                },
+                modifier =
+                    Modifier
+                        .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
+                            blurEnabled = true
+                        },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                    ),
+            )
+        }
         androidx.compose.animation.AnimatedVisibility(visible = showSearchBar) {
             SearchBar(
                 modifier =
@@ -295,12 +541,21 @@ sealed class LibraryDynamicPlaylistType {
 
     data object Downloaded : LibraryDynamicPlaylistType()
 
+    data object TopTracks : LibraryDynamicPlaylistType()
+
+    data object TopArtists : LibraryDynamicPlaylistType()
+
+    data object TopAlbums : LibraryDynamicPlaylistType()
+
     fun name(): StringResource =
         when (this) {
             Favorite -> Res.string.favorite
             Followed -> Res.string.followed
             MostPlayed -> Res.string.most_played
             Downloaded -> Res.string.downloaded
+            TopAlbums -> Res.string.your_top_albums
+            TopArtists -> Res.string.your_top_artists
+            TopTracks -> Res.string.your_top_tracks
         }
 
     // For serialization and navigation
@@ -310,6 +565,9 @@ sealed class LibraryDynamicPlaylistType {
             Followed -> "followed"
             MostPlayed -> "most_played"
             Downloaded -> "downloaded"
+            TopAlbums -> "top_albums"
+            TopArtists -> "top_artists"
+            TopTracks -> "top_tracks"
         }
 
     companion object {
@@ -319,6 +577,9 @@ sealed class LibraryDynamicPlaylistType {
                 "followed" -> Followed
                 "most_played" -> MostPlayed
                 "downloaded" -> Downloaded
+                "top_albums" -> TopAlbums
+                "top_artists" -> TopArtists
+                "top_tracks" -> TopTracks
                 else -> throw IllegalArgumentException("Unknown type: $this")
             }
     }

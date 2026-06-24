@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -13,10 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,11 +27,14 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import kotlinx.coroutines.delay
 
 /**
@@ -71,7 +75,9 @@ fun InfiniteBorderAnimationView(
                 .clip(
                     shape,
                 ).padding(borderWidth)
-                .drawBehind {
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }.drawBehind {
                     scale(scale = scaleAnimationValue) {
                         rotate(degrees = degrees) {
                             drawCircle(
@@ -81,14 +87,15 @@ fun InfiniteBorderAnimationView(
                             )
                         }
                     }
-                },
+                }.animateContentSize(),
+        color = backgroundColor,
         shape = shape,
     ) {
         Box(
             modifier =
                 Modifier
                     .background(
-                        color = backgroundColor,
+                        color = if (isAnimated) md_theme_dark_background else backgroundColor,
                     ).padding(
                         contentPadding,
                     ),
@@ -144,7 +151,9 @@ fun LimitedBorderAnimationView(
                 .clip(
                     shape,
                 ).padding(borderWidth)
-                .drawBehind {
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }.drawBehind {
                     if (isAnimated) {
                         scale(
                             scale = scaleAnimationValue,

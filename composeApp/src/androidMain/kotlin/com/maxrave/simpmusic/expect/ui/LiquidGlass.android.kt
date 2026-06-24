@@ -39,18 +39,10 @@ actual fun Modifier.drawBackdropCustomShape(
             val l = (luminanceAnimation * 2f - 1f).let { sign(it) * it * it }
             vibrancy()
             colorControls(
-                brightness =
-                    if (l > 0f) {
-                        lerp(0.1f, 0.5f, l)
-                    } else {
-                        lerp(0.1f, -0.2f, -l)
-                    },
-                contrast =
-                    if (l > 0f) {
-                        lerp(1f, 0f, l)
-                    } else {
-                        1f
-                    },
+                // Neutral brightness/contrast: the old curve washed the glass out to white on bright
+                // backgrounds ("đục trắng"). Darkening is done in onDrawSurface (keeps "đục đen").
+                brightness = 0.05f,
+                contrast = 1f,
                 saturation = 1.5f,
             )
             blur(
@@ -67,6 +59,9 @@ actual fun Modifier.drawBackdropCustomShape(
             layer.record { drawBackdrop() }
         },
         shape = { shape },
-        onDrawSurface = { drawRect(Color.Black.copy(alpha = 0.1f)) }
+        onDrawSurface = {
+            val darken = lerp(0.12f, 0.5f, ((luminanceAnimation - 0.3f) / 0.5f).coerceIn(0f, 1f))
+            drawRect(Color.Black.copy(alpha = darken))
+        },
     )
 }

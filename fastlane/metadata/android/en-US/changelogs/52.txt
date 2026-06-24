@@ -1,0 +1,7 @@
+- Fix music pausing or stopping on its own between tracks (the background-playback freeze present since 1.0.4)
+- New liquid glass bottom navigation on Android, with a press-to-bulge interaction
+- New Apple Music-style in Local Playlist screen
+- Optimize Spotify login
+- Discover podcast shows on Home and open them in a dedicated podcast screen
+- Fix empty Home and search shelves, and broken playback, after YouTube API changes
+- Desktop: fix a startup crash and reinstall Windows updates in place without uninstalling

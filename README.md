@@ -19,18 +19,22 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 > SimpMusic is available on Desktop now!
   
 ## Features ✨️    
-- Play music from YouTube Music or YouTube for free, without ads and in the background    
+- Play music from YouTube Music or YouTube for free, without ads and in the background
+- High quality up-to 256kbps stream for YouTube Music Premium users (NEW)
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    
 - Search everything on YouTube    
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...    
 - Spotify Canvas supported    
+- Power your experience with SimpMusic Chart (https://chart.simpmusic.org/)
 - Play 1080p video option with subtitle    
 - AI song suggestions    
 - Customize your playlist, synced with YouTube Music
 - Notifications from followed artists    
 - Caching and offline playback support    
+- Crossfade with DJ-style like Apple Music (NEW)
 - Synced lyrics from SimpMusic Lyrics, LRCLIB, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
 - Personalize data (\**) and multi-YouTube-account support    
+- Local "scrobble" like Last.fm (NEW)
 - Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer    
 - Android Auto with online content
@@ -82,7 +86,7 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
  SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
 logged-in users enable "Send back to Google" feature, SimpMusic only uses YouTube Music Tracking API to send listening history and listening record of video to Google for better recommendations and      
 supporting artist or YouTube Creator (For API reference,      
-see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
+see [this](https://github.com/maxrave-dev/SimpMusic/blob/main/core/service/kotlinYtmusicScraper/src/commonMain/kotlin/com/maxrave/kotlinytmusicscraper/Ytmusic.kt)).
 
 We collect crash data in the Full version to improve the app.
    
@@ -92,21 +96,17 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
  
 ## Desktop app
 
-### Before downloading the Desktop app, make sure your system installed 3 applications below:
-- [Gstreamer](https://gstreamer.freedesktop.org/download/): Required for playback audio.
-- [Yt-dlp](https://github.com/yt-dlp/yt-dlp): Required for getting streaming URL from YouTube (when using 256kps or higher quality).
-
 ### Which file should I download?
-- For Windows: Download the file with extension `.msi`.
+- For Windows: Download the `.msix` package and run `install.bat` to install.
 - For macOS: Download the file with extension `.dmg`.
-- For Linux: Download the file with extension `.deb`.
+- For Linux: Download the file with extension `.AppImage` (all Linux distributions)
 
 ### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
+#### Discord login guide: https://gist.github.com/MarvNC/e601f3603df22f36ebd3102c501116c6
 
 ### Some limitations on Desktop app:
-- No offline playback support.
-- No video playback support.
-- Very buggy on some Linux distributions (because of Jetbrains not fix).
+- Some Linux distributions may have stability issues (upstream JetBrains issue).
+- ARM64 on Windows and Linux: use the x64 build.
 
 Please report issues on our Discord server if you find any bugs.
  
@@ -117,22 +117,41 @@ You can help me translate this app into your language by using Crowdin [SimpMusi
  #### Special thanks to all translators on Crowdin ❤️    
  ## FAQ    
  #### 1. Wrong Lyrics?    
- Lyrics are provided by LRCLIB and other sources. Sometimes lyrics may not match perfectly with YouTube"      
-videoId" parameter. So I need to use some "String Matcher" and "Duration" for search lyrics. So      
-sometimes, some songs or videos get the wrong lyrics    
+ Lyrics are provided by LRCLIB and other sources. Sometimes lyrics may not match perfectly with the YouTube `videoId` parameter. So I need to use some "String Matcher" and "Duration" to search lyrics. So sometimes, some songs or videos get the wrong lyrics.    
     
 #### 2. Why the name or brand is "SimpMusic"?    
  Simply, because I love the name. It's a combination of 'Simple' and 'Music'. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.    
   
 #### More FAQ, join [my Discord channel](https://discord.com/channels/1136988323819298856/1349800418745778196)  
-  ## Developer/Team    
-- [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer    
-- [Owen Connor](https://github.com/owencz1998): Discord Server Admin.    
-- [ilianoKokoro](https://github.com/ilianoKokoro): Discord Server Admin.
-- [CrazyWolf13](https://github.com/CrazyWolf13): Issues organizer/planner.
 
+## Legal Disclaimer & Terms of Use
+
+### 1. 100% Free, Open-Source & Strictly Non-Commercial
+SimpMusic is a fully open-source project (FOSS) created purely for educational purposes and personal use. **We do not sell this application, nor do we monetize it in any way.** There are no advertisements, no premium features, no subscriptions, and no hidden fees within the app. This project has absolutely no commercial value or financial intent. 
+
+### 2. A Custom Browser with Content Filtering
+SimpMusic acts strictly as a specialized, third-party web browser and client. It simply parses the publicly available website content and APIs of YouTube and YouTube Music, rendering them in a custom user interface. The ad-free experience it provides is fundamentally no different from using a standard web browser (like Chrome, Firefox, or Brave) equipped with a common ad-blocking extension (such as uBlock Origin). 
+
+### 3. Support Content Creators
+We deeply respect the hard work of artists, musicians, and content creators. **We strongly encourage all users to subscribe to [YouTube Premium](https://www.youtube.com/premium).** Purchasing a Premium subscription is the best way to financially support the creators you listen to and ensure the continued growth of the platform. SimpMusic is built as a proof-of-concept for developers and enthusiasts, not to harm creators' revenues.
+
+### 4. No Hosting of Copyrighted Material
+We do not host, upload, distribute, or store any audio, video, or copyrighted media files on our own servers. All content accessed through this application is stored entirely on Google's/YouTube's servers and remains the property of their respective copyright owners. The app merely acts as a conduit to stream publicly accessible links.
+
+### 5. User Responsibility & Legal Contact
+The software is provided "AS IS", without warranty of any kind. The developers of SimpMusic do not encourage or condone piracy. Users are solely responsible for ensuring their usage of this app complies with their local copyright laws and the Terms of Service of the platforms they access. 
+
+Because we do not host any media files, we cannot process DMCA takedown requests for audio or video content. However, if you represent a copyright holder or have legal concerns regarding the open-source code itself, please contact us via email at: **ndtminh2608@gmail.com**
+
+  ## Contribute
 We're looking for more contributors, all contributions are welcome!
 See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
+
+Thanks for all my contributors:
+
+<a href="https://github.com/maxrave-dev/SimpMusic/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=maxrave-dev/SimpMusic" />
+</a>
 
  ## Showcase
 This project is following clean architecture and MVVM pattern (in UI, app module).
@@ -185,5 +204,10 @@ Crowdin and Sentry both have a free enterprise plan for Open-source projects. Fo
 
 Check out the Vercel open-source program:
 - https://vercel.com/open-source-program
+  
+This project is tested with BrowserStack
+- Checkout BrowserStack now: https://www.browserstack.com/
 
 *This project is a part of SimpMusic.org Open-source project by me [maxrave-dev](https://github.com/maxrave-dev)*
+
+<!-- GitAds-Verify: 9788276LHF131ESPL12SWLJ8LACOJE89 -->

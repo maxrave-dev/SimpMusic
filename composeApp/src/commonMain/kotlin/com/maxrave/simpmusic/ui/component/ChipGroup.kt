@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -46,7 +47,7 @@ fun Chip(
                     ),
                 onClick = { onClick.invoke() },
                 label = {
-                    Text(text)
+                    Text(text, maxLines = 1)
                 },
                 border =
                     FilterChipDefaults.filterChipBorder(
@@ -56,18 +57,17 @@ fun Chip(
                         borderColor = Color.Gray.copy(alpha = 0.8f),
                     ),
                 selected = isSelected,
-                leadingIcon =
-                    if (isSelected) {
-                        {
+                leadingIcon = {
+                    AnimatedContent(isSelected) {
+                        if (it) {
                             Icon(
                                 imageVector = Icons.Filled.Done,
                                 contentDescription = "Done icon",
                                 modifier = Modifier.size(FilterChipDefaults.IconSize),
                             )
                         }
-                    } else {
-                        null
-                    },
+                    }
+                },
             )
         }
     }

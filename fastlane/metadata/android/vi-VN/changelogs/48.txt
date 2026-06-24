@@ -1,0 +1,9 @@
+- Sửa lỗi UI
+- Sửa lỗi phát nhạc và điều khiển Android Auto
+- Sửa lỗi chặn chạm màn hình ở modal bottom sheet
+- Sửa lỗi lệnh trộn bài từ thông báo
+- Sửa lỗi kết nối
+- Cập nhật thư viện phụ thuộc
+# Máy tính để bàn:
+ - Sửa lỗi crash khi mở file đã tải không tồn tại
+ - Thêm bản build DMG cho Intel Mac

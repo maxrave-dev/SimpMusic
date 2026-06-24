@@ -1,0 +1,7 @@
+- Trình phát nổi nhỏ trong ứng dụng máy tính để bàn
+- Gói AppImage mới cho ứng dụng máy tính để bàn Linux
+- Theo dõi lịch sử nghe và phân tích cục bộ
+- Sao lưu tự động (Chỉ Android)
+- Bình chọn cho SimpMusic Lyrics
+- Sửa lỗi tải xuống danh sách phát
+- Sửa lỗi Spotify Canvas

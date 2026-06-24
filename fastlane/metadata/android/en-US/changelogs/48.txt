@@ -1,0 +1,9 @@
+- Fix some UI bugs
+- Fix Android Auto playback and controls
+- Fix modal bottom sheet touch screen blocking
+- Fix shuffle command routing from notification
+- Fix Timeout check your internet connection
+- Update dependencies
+# Desktop app:
+ - Fix crash when opening non-existent downloaded file
+ - Add Intel Mac DMG build

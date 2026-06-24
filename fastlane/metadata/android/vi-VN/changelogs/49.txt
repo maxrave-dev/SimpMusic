@@ -1,0 +1,11 @@
+- Giao diện Đang phát kiểu Spotify: vuốt ngang để chuyển bài, nền palette riêng từng trang
+- Vuốt để quay lại bài trước trên màn hình Đang phát
+- Thêm tuỳ chọn stream 256kbps trong cài đặt cho nguoi dung YouTube Premium (thay cho tuỳ chọn 320kbps cũ)
+- Chế độ tự động cho URL Tidal 320kbps
+- Tối ưu hiệu ứng chạy chữ lời bài hát (mượt hơn, chuẩn theo wall-clock)
+- Tối ưu AI client và sửa lỗi dịch bằng AI
+- Tối ưu Discord Rich Presence
+- Hiển thị ảnh placeholder và trạng thái lỗi khi ảnh bìa không tải được
+- Bỏ ô nhập cookie Netscape ở phần đăng nhập YouTube Dev
+- Sửa lỗi extractor YouTube
+- Nâng target SDK lên 37 (Android 17)

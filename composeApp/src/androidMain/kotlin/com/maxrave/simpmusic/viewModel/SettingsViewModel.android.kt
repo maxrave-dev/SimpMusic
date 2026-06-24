@@ -36,6 +36,7 @@ import simpmusic.composeapp.generated.resources.restore_success
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -328,18 +329,12 @@ actual fun getFileDir(): String {
 }
 
 actual fun changeLanguageNative(code: String) {
-    val localeList =
-        LocaleListCompat.forLanguageTags(
-            if (code == "id-ID") {
-                if (Build.VERSION.SDK_INT >= 35) {
-                    "id-ID"
-                } else {
-                    "in-ID"
-                }
-            } else {
-                code
-            },
-        )
-    Logger.d("Language", localeList.toString())
-    AppCompatDelegate.setApplicationLocales(localeList)
+    try {
+        val localeList =
+            LocaleListCompat.forLanguageTags(code)
+        Logger.d("Language", localeList.toString())
+        AppCompatDelegate.setApplicationLocales(localeList)
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }

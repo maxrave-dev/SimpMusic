@@ -84,7 +84,7 @@ fun DiscordLoginScreen(
                             onDismiss = {
                                 devLoginSheet = false
                             },
-                            onDone = { token, _ ->
+                            onDone = { token ->
                                 devLoginSheet = false
                                 viewModel.saveDiscordToken(token)
                                 viewModel.makeToast(getStringBlocking(Res.string.login_success))

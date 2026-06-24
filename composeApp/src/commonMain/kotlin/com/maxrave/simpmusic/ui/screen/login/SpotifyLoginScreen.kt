@@ -100,6 +100,7 @@ fun SpotifyLoginScreen(
     }
 
     val state = rememberWebViewState()
+    val cookieManager = createWebViewCookieManager()
 
     Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
         Column {
@@ -138,7 +139,7 @@ fun SpotifyLoginScreen(
                             onDismiss = {
                                 devLoginSheet = false
                             },
-                            onDone = { spdc, _ ->
+                            onDone = { spdc ->
                                 devLoginSheet = false
                                 val spdcText = "sp_dc=$spdc"
                                 viewModel.saveSpotifySpdc(spdcText)
@@ -160,27 +161,26 @@ fun SpotifyLoginScreen(
                     }
                 },
             ) { url ->
-                createWebViewCookieManager()
-                    .getCookie(url)
-                    .takeIf {
-                        it.isNotEmpty()
-                    }?.let { cookie ->
-                        val cookies =
-                            cookie.split("; ").map {
-                                val (key, value) = it.split("=")
-                                key to value
-                            }
-                        viewModel.setFullSpotifyCookies(cookies)
-                    }
-                if (url == Config.SPOTIFY_ACCOUNT_URL) {
-                    createWebViewCookieManager()
-                        .getCookie(url)
+                val cookie = cookieManager.getCookie(url)
+                cookie.takeIf {
+                    it.isNotEmpty()
+                }?.let { cookie ->
+                    val cookies =
+                        cookie.split("; ").map {
+                            val (key, value) = it.split("=")
+                            key to value
+                        }
+                    viewModel.setFullSpotifyCookies(cookies)
+                }
+                val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status$")
+                if (statusUrl.matches(url)) {
+                    cookie
                         .takeIf {
                             it.isNotEmpty()
                         }?.let {
                             viewModel.saveSpotifySpdc(it)
                         }
-                    createWebViewCookieManager().removeAllCookies()
+                    cookieManager.removeAllCookies()
                 }
             }
         }

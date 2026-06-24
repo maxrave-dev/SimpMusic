@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.di
 
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
+import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
@@ -134,6 +135,15 @@ val viewModelModule =
         }
         viewModel {
             MoodViewModel(
+                get(),
+                get(),
+            )
+        }
+        viewModel {
+            AnalyticsViewModel(
+                get(),
+                get(),
+                get(),
                 get(),
                 get(),
             )

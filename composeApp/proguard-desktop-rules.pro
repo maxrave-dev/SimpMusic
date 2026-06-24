@@ -26,12 +26,9 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 
-# Gstreamer
--keep class org.freedesktop.gstreamer.** { *; }
--keep class org.freedesktop.dbus.** { *; }
--keep class io.github.selemba1000.** { *; }
--dontwarn org.freedesktop.gstreamer.**
--dontwarn org.freedesktop.dbus.**
+# VLC (vlcj)
+-keep class uk.co.caprica.vlcj.** { *; }
+-dontwarn uk.co.caprica.vlcj.**
 
 # JavaFX
 -keep class javafx.** { *; }
@@ -52,6 +49,7 @@
 -keep class com.maxrave.domain.data.model.** { *; }
 -keep class com.mohamedrejeb.ksoup.html.** { *; }
 -keep class org.schabi.newpipe.extractor.downloader.** { *; }
+-keep class dev.maxrave.pipepipe.extractor.downloader.** { *; }
 
 # Koin
 -keep class org.koin.core.** { *; }
@@ -60,6 +58,31 @@
 # Default rules
 -keep class kotlinx.coroutines.CoroutineExceptionHandler
 -keep class kotlinx.coroutines.internal.MainDispatcherFactory
+
+# kotlinx.coroutines full keep — R8 `optimize` flattens the Job hierarchy
+# and emits illegal `invokespecial` for `Job.cancel()` reached via
+# Supervisor → JobSupport → ChildJob → Job (indirect superinterface).
+# JVM 21 strict verifier rejects this with VerifyError. Keep the whole
+# package plus its volatile fields (compiler-generated state machines).
+-keep class kotlinx.coroutines.** { *; }
+-keepclassmembernames class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+-keepclassmembers class kotlinx.coroutines.flow.internal.ChannelFlow* { <fields>; }
+-dontwarn kotlinx.coroutines.**
+
+# androidx.room — Room generates classes that delegate to coroutines.
+# Same R8 over-optimization risk hits Room's invalidation tracker (uses
+# CoroutineScope internally). Keep everything to be safe.
+-keep class androidx.room.** { *; }
+-keep interface androidx.room.** { *; }
+-keepclassmembers class androidx.room.** { *; }
+-dontwarn androidx.room.**
+
+# androidx.sqlite — Room depends on it; same precaution.
+-keep class androidx.sqlite.** { *; }
+-keep interface androidx.sqlite.** { *; }
+-dontwarn androidx.sqlite.**
 # Keep `Companion` object fields of serializable classes.
 # This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
 -if @kotlinx.serialization.Serializable class **
@@ -112,6 +135,7 @@
 #}
 ## Rules for NewPipeExtractor
 -keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class dev.maxrave.pipepipe.extractor.timeago.patterns.** { *; }
 -keep class org.mozilla.javascript.** { *; }
 -dontwarn org.mozilla.javascript.tools.**
 # Please add these rules to your existing keep rules in order to suppress warning
@@ -225,7 +249,10 @@
 -keepattributes SourceFile
 
 ## Rules for NewPipeExtractor
+-keep class org.schabi.newpipe.extractor.** { *; }
 -keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class dev.maxrave.pipepipe.extractor.** { *; }
+-keep class dev.maxrave.pipepipe.extractor.timeago.patterns.** { *; }
 -keep class org.mozilla.javascript.** { *; }
 -keep class org.mozilla.classfile.ClassFileWriter
 -dontwarn org.mozilla.javascript.tools.**
@@ -249,7 +276,71 @@
 
 -keep class org.simpmusic.lyrics.parser.** { *; }
 -keep class org.simpmusic.lyrics.models.** { *; }
+-keep class org.simpmusic.nowplayingcenter.** { *; }
+-keep class io.github.selemba1000.** { *; }
 -keep class com.simpmusic.lyrics.parser.** { *; }
+
+# dbus-java (used by JMTC/NPYC for Linux MPRIS)
+-keep class org.freedesktop.dbus.** { *; }
+-keep class com.github.hypfvieh.** { *; }
+-dontwarn org.freedesktop.dbus.**
+-dontwarn com.github.hypfvieh.**
+# Keep ServiceLoader entries for dbus-java transport discovery
+-keepnames class org.freedesktop.dbus.spi.transport.ITransportProvider
+-keep class * implements org.freedesktop.dbus.spi.transport.ITransportProvider { *; }
+-adaptresourcefilecontents META-INF/services/**
+-keepnames class * implements java.util.ServiceLoader$Provider
+
+-keep class com.google.re2j.** { *; }
+-dontwarn com.google.re2j.Matcher
+-dontwarn com.google.re2j.Pattern
+
+# Wire (used by NewPipe extractor) - AndroidMessage references Android classes not available on Desktop
+-dontwarn android.os.Parcelable
+-dontwarn android.os.Parcelable$Creator
+-dontwarn android.os.Parcel
+
+# Wire/nanojson descriptor classes referenced by Brave extractor's generated proto adapters and
+# YoutubeStreamExtractor helpers. Keep so proguard can resolve method signatures.
+-keep class com.squareup.wire.** { *; }
+-keep interface com.squareup.wire.** { *; }
+-dontwarn com.squareup.wire.**
+-keep class com.grack.nanojson.** { *; }
+-dontwarn com.grack.nanojson.**
+
+# org.json (JSON-Java): Android-provided, added as an explicit JVM-desktop dependency because
+# PipePipeExtractor references org.json.* (comment/stream extractors). Keep it.
+-keep class org.json.** { *; }
+
+# Brave bundles BitChute / json2java4nanojson model classes referenced by extractor constructors
+# kept via `-keep class org.schabi.newpipe.extractor.** { *; }`. Without explicit keeps, proguard
+# can't resolve the descriptor types and aborts with "unresolved reference" warnings.
+-keep class com.github.bravenewpipe.** { *; }
+-dontwarn com.github.bravenewpipe.**
+
+# PipePipe was compiled against Rhino 1.7.13 (which had org.mozilla.javascript.ObjToIntMap), but
+# Brave brings Rhino 1.8.1 where that class was removed. Gradle picks the higher version, leaving
+# PipePipe's TokenStream with a stale reference. The code path is unused for our YouTube usage,
+# so suppress the warning instead of pinning Rhino back.
+-dontwarn org.mozilla.javascript.ObjToIntMap
 
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
 -keep class androidx.datastore.preferences.** { *; }
+
+# cache2k references kotlin.annotations.jvm.* (compile-only) at annotation level
+-dontwarn kotlin.annotations.jvm.**
+-dontwarn org.cache2k.**
+
+# Compose MP 1.11.0 graphics API breaking change — Skiko Shader/Paint method
+# signatures changed. Haze 1.7.2 and Compottie 2.1.0 still reference the old
+# signatures (no newer versions available yet). Suppress so ProGuard does not
+# abort. Runtime risk: NoSuchMethodError if affected code paths are hit.
+-dontwarn dev.chrisbanes.haze.**
+-keep class io.github.alexzhirkevich.compottie.**  { *; }
+# Compottie's skiko shader helper references org.jetbrains.skia.GradientStyle, removed in the current
+# Skiko. Class is gone (can't be kept/added), so suppress the unresolved-reference warning.
+-dontwarn io.github.alexzhirkevich.compottie.**
+
+# JNA references the signature-polymorphic java.lang.invoke.MethodHandle.invoke(...) overloads, which
+# ProGuard can't resolve as concrete methods. JNA itself is kept above; suppress these warnings.
+-dontwarn com.sun.jna.**
