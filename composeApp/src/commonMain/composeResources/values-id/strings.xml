@@ -540,6 +540,8 @@
     <string name="quit_app">Keluar aplikasi</string>
     <string name="local_tracking_title">Riwayat mendengarkan pelacakan lokal</string>
     <string name="local_tracking_description">Catat riwayat mendengarkan Anda ke basis data lokal</string>
+    <string name="blog_notification_title">Pemberitahuan postingan blog</string>
+    <string name="blog_notification_description">Dapatkan pemberitahuan saat ada postingan blog baru yang diterbitkan</string>
     <string name="simpmusic_charts">Tangga lagu SimpMusic</string>
     <string name="crossfading">Memudar</string>
     <string name="your_320kbps_url">URL 320kbps Anda</string>
@@ -549,4 +551,7 @@
     <string name="bpm">BPM</string>
     <string name="key">Kunci</string>
     <string name="scale">Skala</string>
+    <string name="home_offline_title">Tidak dapat tersambung</string>
+    <string name="home_offline_subtitle">Periksa sambungan internet Anda dan coba lagi, atau dengarkan musik yang sudah Anda unduh.</string>
+    <string name="listen_to_downloaded">Dengarkan musik yang sudah diunduh</string>
 </resources>

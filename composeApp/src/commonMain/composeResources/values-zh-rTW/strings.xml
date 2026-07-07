@@ -75,8 +75,8 @@
     <string name="quality">音質</string>
     <string name="prefer_320kbps_stream">建議使用 320kbps 碼率的音訊串流</string>
     <string name="prefer_320kbps_stream_description">自動搜尋網路上可用的 320kbps 音訊串流。如果找不到，則回退到預設音質。</string>
-    <string name="download_quality"></string>
-    <string name="video_download_quality"></string>
+    <string name="download_quality">下載音質</string>
+    <string name="video_download_quality">影片下載畫質</string>
     <string name="clear_downloaded_cache">清除下載快取</string>
     <string name="clear_thumbnail_cache">清除縮圖快取</string>
     <string name="add">加入</string>
@@ -123,7 +123,10 @@
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">求贊助QAQ</string>
-    <string name="developer_blog"></string>
+    <string name="developer_blog">部落格</string>
+    <string name="developer_blog_tagline">閱讀開發日誌、教學及幕後花絮</string>
+    <string name="blog_promo_title">來自開發者的最新動態</string>
+    <string name="blog_promo_message">我剛剛上線了個人部落格 maxrave.dev，內容涵蓋 SimpMusic 背後的故事、音樂科技深度解析以及工程技術筆記。如果你有興趣，歡迎去看看 ✨</string>
     <string name="visit_blog">訪問紀錄</string>
     <string name="paypal">Paypal</string>
     <string name="title">標題</string>
@@ -177,7 +180,7 @@
     <string name="save_shuffle_and_repeat_mode">儲存隨機播放和重複模式</string>
     <string name="skip_silent">跳過靜音部份</string>
     <string name="skip_no_music_part">跳過無音樂部分</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings"></string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">連線逾時，請檢查網路連線(%1$s)</string>
     <string name="save_last_played">儲存上次播放</string>
     <string name="save_last_played_track_and_queue">儲存上次播放的歌曲和佇列</string>
     <string name="update_available">有可用的更新</string>
@@ -537,13 +540,18 @@
     <string name="quit_app">退出app</string>
     <string name="local_tracking_title">本地追蹤收聽歷史記錄</string>
     <string name="local_tracking_description">將您的收聽歷史記錄到本機資料庫</string>
+    <string name="blog_notification_title">部落格文章通知</string>
+    <string name="blog_notification_description">在新文章發佈時接收通知</string>
     <string name="simpmusic_charts">SimpMusic排行榜</string>
     <string name="crossfading">交叉淡入淡出</string>
     <string name="your_320kbps_url">您的 320kbps URL</string>
-    <string name="your_320kbps_url_description">保持空白以自動選擇上一次工作中的URL</string>
+    <string name="your_320kbps_url_description">保持空白以自動選擇上一次工作中的URL。</string>
     <string name="search_for">搜尋</string>
     <string name="synced_playlist_cannot_change_order">已同步的播放清單無法變更順序</string>
     <string name="bpm">鼓點/分鐘</string>
     <string name="key">索引</string>
     <string name="scale">規模</string>
+    <string name="home_offline_title">離線</string>
+    <string name="home_offline_subtitle">請檢查您的網路連線並重試，或聆聽您已下載的音樂。</string>
+    <string name="listen_to_downloaded">聆聽已下載的音樂</string>
 </resources>

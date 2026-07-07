@@ -2,9 +2,11 @@ package com.maxrave.simpmusic.ui.screen.home
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -31,7 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -56,6 +61,7 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.holder
+import simpmusic.composeapp.generated.resources.ic_rss_feed_24
 import simpmusic.composeapp.generated.resources.new_release
 import simpmusic.composeapp.generated.resources.no_notification
 import simpmusic.composeapp.generated.resources.notification
@@ -90,7 +96,10 @@ fun NotificationScreen(
                     CenterLoadingBox(modifier = Modifier.align(Alignment.Center))
                 }
             } else if (it.isNotEmpty()) {
-                LazyColumn(modifier = Modifier.padding(15.dp)) {
+                LazyColumn(
+                    modifier = Modifier.padding(15.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
                     items(it) { notification ->
                         NotificationItem(
                             notification = notification,
@@ -122,6 +131,10 @@ fun NotificationItem(
     notification: NotificationEntity,
     navController: NavController,
 ) {
+    if (notification.type == NotificationEntity.TYPE_BLOG) {
+        BlogNotificationItem(notification)
+        return
+    }
     Box(
         modifier =
             Modifier
@@ -190,6 +203,66 @@ fun NotificationItem(
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
+        }
+        Text(
+            text = notification.time.formatTimeAgo(),
+            style = typo().titleSmall,
+            modifier =
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = 15.dp),
+        )
+    }
+}
+
+@Composable
+fun BlogNotificationItem(notification: NotificationEntity) {
+    val uriHandler = LocalUriHandler.current
+    val link = notification.link
+    Box(
+        modifier =
+            Modifier
+                .padding(5.dp)
+                .fillMaxWidth(),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(enabled = !link.isNullOrEmpty()) {
+                    link?.let { uriHandler.openUri(it) }
+                },
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .align(Alignment.Top)
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.08f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_rss_feed_24),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(26.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(Modifier.padding(end = 56.dp)) {
+                Text(text = "New blog post", style = typo().titleSmall)
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(text = notification.name, style = typo().titleMedium)
+                notification.description?.takeIf { it.isNotBlank() }?.let { desc ->
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = desc,
+                        style = typo().bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
         Text(
             text = notification.time.formatTimeAgo(),

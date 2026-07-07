@@ -1,0 +1,8 @@
+- Trang nghệ sĩ mới: header tràn viền với logo tên nghệ sĩ, nút Theo dõi và Radio màu nhấn, làm mờ phần đáy
+- Nhận thông báo khi có bài blog mới, hiển thị chung với thông báo nhạc mới của nghệ sĩ
+- Cập nhật nhân trích xuất YouTube (extractor core) để phát và tải nhạc ổn định hơn
+- Sửa lỗi nóng máy và hao pin do Discord Rich Presence liên tục thử đăng nhập ở nền
+- Sửa lỗi toggle lời bài hát / canvas của Spotify bị kẹt sau khi đăng xuất
+- Sửa thanh điều hướng liquid glass không chuyển màn khi chạm
+- Giữ đúng bài khi crossfade lúc tạm dừng / chuyển tới / lùi lại giữa chừng
+- Desktop: sửa lỗi crash khi chuyển bài

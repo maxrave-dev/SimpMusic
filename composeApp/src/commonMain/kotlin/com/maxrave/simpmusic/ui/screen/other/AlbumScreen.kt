@@ -87,6 +87,7 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -222,24 +223,8 @@ fun AlbumScreen(
     val screenInfo = getScreenSizeInfo()
     val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
     val dominantColor = uiState.colors.firstOrNull() ?: md_theme_dark_background
-    // Apple Music-style page background: derived from palette's Muted swatch (medium-bright,
-    // unlike getColorFromPalette which prefers DarkVibrant/DarkMuted and turns near-black for
-    // B&W artwork). Slight darkening for white-text readability.
-    val mutedPaletteBg =
-        run {
-            val p = paletteState.palette
-            val rgb =
-                p
-                    ?.getMutedColor(0)
-                    ?.takeIf { it != 0 }
-                    ?: p?.getDarkMutedColor(0)?.takeIf { it != 0 }
-                    ?: p?.getDominantColor(0)?.takeIf { it != 0 }
-            if (rgb != null) {
-                lerp(Color(rgb), md_theme_dark_background, 0.45f)
-            } else {
-                md_theme_dark_background
-            }
-        }
+    // Apple Music-style page background from the artwork's dominant tone (see UIExt.toImmersiveBackground).
+    val mutedPaletteBg = paletteState.palette.toImmersiveBackground()
     val artworkSizeDp =
         if (isMobilePortrait) {
             (screenInfo.wDP * 0.85f).coerceIn(280f, 380f).toInt()

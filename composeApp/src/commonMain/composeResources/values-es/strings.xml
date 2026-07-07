@@ -124,6 +124,10 @@
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">Cómprame un café</string>
     <string name="developer_blog"></string>
+    <string name="developer_blog_tagline">Leer notas de desarrollo, tutoriales &amp; detrás de la escena</string>
+    <string name="blog_promo_title">Algo nuevo del desarrollador</string>
+    <string name="blog_promo_message">Acabo de lanzar mi blog personal en maxrave.dev — compartiendo la historia detrás de SimpMusic, inmersiones profundas de tecnología musical y notas de ingeniería. Dale un vistazo si eres curioso ✨</string>
+    <string name="visit_blog">Visita el blog</string>
     <string name="paypal">PayPal</string>
     <string name="title">Título</string>
     <string name="custom_order">Orden personalizado</string>
@@ -540,9 +544,13 @@
     <string name="simpmusic_charts">Gráficos SimpMusic</string>
     <string name="crossfading">Crossfade</string>
     <string name="your_320kbps_url">Su URL de 320kbps</string>
+    <string name="your_320kbps_url_description">Dejar en blanco para elegir automáticamente una URL funcional desde la comprobación de tiempo de activación.</string>
     <string name="search_for">Buscar por</string>
     <string name="synced_playlist_cannot_change_order">No se puede cambiar el orden de la lista sincronizada</string>
     <string name="bpm">BPM</string>
     <string name="key">Clave</string>
     <string name="scale">Escala</string>
+    <string name="home_offline_title">No se puede conectar</string>
+    <string name="home_offline_subtitle">Compruebe su conexión a Internet e inténtelo de nuevo, o escuche su música descargada.</string>
+    <string name="listen_to_downloaded">Escucha la música descargada</string>
 </resources>

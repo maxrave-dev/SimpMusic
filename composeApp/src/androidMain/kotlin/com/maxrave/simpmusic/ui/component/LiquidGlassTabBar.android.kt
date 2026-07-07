@@ -151,7 +151,9 @@ fun LiquidGlassTabBar(
             .drop(1)
             .collectLatest { index ->
                 dampedDrag.animateToValue(index.toFloat())
-                onTabSelected(index)
+                // Taps already navigate directly from onClick; only drag-snap navigates here
+                // (prevents a double onTabSelected and avoids the dropped-tap race).
+                if (draggedFlag[0]) onTabSelected(index)
             }
     }
 
@@ -248,7 +250,11 @@ fun LiquidGlassTabBar(
                         // so call onTabSelected directly to keep the reload / scroll-to-top behaviour.
                         onTabSelected(position)
                     } else {
+                        // Navigate immediately on tap. Don't route this through snapshotFlow: a
+                        // concurrent drag-stop on the same Row can reset currentIndex back before the
+                        // flow emits, which silently drops the tap (observed: currentIndex stuck at 0).
                         currentIndex = position
+                        onTabSelected(position)
                     }
                 }
             }

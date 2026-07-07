@@ -181,6 +181,9 @@ class SettingsViewModel(
     private val _localTrackingEnabled = MutableStateFlow<Boolean>(false)
     val localTrackingEnabled: StateFlow<Boolean> = _localTrackingEnabled
 
+    private val _blogNotificationEnabled = MutableStateFlow(true)
+    val blogNotificationEnabled: StateFlow<Boolean> = _blogNotificationEnabled
+
     // Auto Backup
     private val _autoBackupEnabled = MutableStateFlow<Boolean>(false)
     val autoBackupEnabled: StateFlow<Boolean> = _autoBackupEnabled
@@ -279,6 +282,7 @@ class SettingsViewModel(
         getDownloadQuality()
         getVideoDownloadQuality()
         getLocalTrackingEnabled()
+        getBlogNotificationEnabled()
         getAutoBackupEnabled()
         getAutoBackupFrequency()
         getAutoBackupMaxFiles()
@@ -304,6 +308,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setLocalTrackingEnabled(enabled)
             getLocalTrackingEnabled()
+        }
+    }
+
+    private fun getBlogNotificationEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.blogNotificationEnabled.collect { enabled ->
+                _blogNotificationEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setBlogNotificationEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setBlogNotificationEnabled(enabled)
+            getBlogNotificationEnabled()
         }
     }
 
@@ -448,6 +467,10 @@ class SettingsViewModel(
     fun logOutDiscord() {
         viewModelScope.launch {
             dataStoreManager.setDiscordToken("")
+            // Turn Rich Presence off on logout: without a token it can't run, and leaving the flag on
+            // would both strand the user (the toggle greys out when logged out) and let the player keep
+            // a dead RPC alive (issue #2157). The existing richPresenceEnabled collector refreshes the UI.
+            dataStoreManager.setRichPresenceEnabled(false)
             delay(100)
             getDiscordLoggedIn()
         }
@@ -1471,6 +1494,15 @@ class SettingsViewModel(
             _spotifyLogIn.emit(loggedIn)
             if (!loggedIn) {
                 dataStoreManager.setSpdc("")
+                // Logging out of Spotify must also tear down everything gated behind it. Otherwise the
+                // lyrics/canvas flags stay stuck ON with no way to switch them off (the toggles grey out
+                // when logged out) and stale tokens linger — issue #2064, same family as Discord #2157.
+                dataStoreManager.setSpotifyLyrics(false)
+                dataStoreManager.setSpotifyCanvas(false)
+                dataStoreManager.setSpotifyClientToken("")
+                dataStoreManager.setSpotifyClientTokenExpires(0)
+                dataStoreManager.setSpotifyPersonalToken("")
+                dataStoreManager.setSpotifyPersonalTokenExpires(0)
                 delay(500)
             }
             getSpotifyLogIn()

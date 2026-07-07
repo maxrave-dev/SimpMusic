@@ -471,6 +471,29 @@ fun Palette?.getColorFromPalette(): Color {
     return Color(startColor)
 }
 
+/**
+ * Apple-Music-style immersive page background derived from the artwork.
+ * Uses the DOMINANT swatch (overall tone of the image, by pixel area) instead of a vivid Muted
+ * swatch — so a light image yields a light-ish tone rather than a small saturated patch (e.g. a
+ * bright portrait no longer turns brick-red from the hair/skin). Then darkens adaptively: the
+ * lighter the source, the harder it is pulled toward black, so white text stays readable on any
+ * artwork.
+ */
+fun Palette?.toImmersiveBackground(): Color {
+    val p = this ?: return md_theme_dark_background
+    val rgb =
+        p.getDominantColor(0).takeIf { it != 0 }
+            ?: p.getMutedColor(0).takeIf { it != 0 }
+            ?: p.getVibrantColor(0).takeIf { it != 0 }
+            ?: return md_theme_dark_background
+    val base = Color(rgb)
+    // Perceived luminance (0 dark .. 1 light) of the source swatch.
+    val luminance = 0.299f * base.red + 0.587f * base.green + 0.114f * base.blue
+    // Darken more for lighter artwork so the page stays dark enough for white text.
+    val darkenFactor = 0.35f + 0.45f * luminance
+    return androidx.compose.ui.graphics.lerp(base, md_theme_dark_background, darkenFactor)
+}
+
 fun Modifier.isElementVisible(onVisibilityChanged: (Boolean) -> Unit) =
     composed {
         val isVisible by remember { derivedStateOf { mutableStateOf(false) } }
@@ -490,6 +513,22 @@ fun Color.rgbFactor(factor: Float): Color {
     val b = min(blue * factor, 255f)
     return Color(r, g, b, alpha)
 }
+
+/**
+ * Parse a hex color string ("ad1e5d", "#ad1e5d", or 8-digit "aarrggbb") into a Compose [Color].
+ * Returns null on malformed input.
+ */
+fun String.hexToColorOrNull(): Color? =
+    runCatching {
+        val clean = removePrefix("#")
+        val argb =
+            when (clean.length) {
+                6 -> 0xFF000000L or clean.toLong(16)
+                8 -> clean.toLong(16)
+                else -> return null
+            }
+        Color(argb)
+    }.getOrNull()
 
 fun TextStyle.greyScale(): TextStyle =
     this.copy(

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Song_and_artist_name">Композиція • %1$s</string>
-    <string name="playlist_and_author">Список відтворення• %1$s</string>
+    <string name="Song_and_artist_name">Трек • %1$s</string>
+    <string name="playlist_and_author">Плейлист • %1$s</string>
     <string name="album_and_artist_name">Альбом • %1$s</string>
-    <string name="subscribers">%1$s Підписників</string>
+    <string name="subscribers">%1$s підписників</string>
     <string name="year_and_category">%1$s • %2$s</string>
-    <string name="album_length">%1$s Треків  %2$s</string>
-    <string name="view_count">%1$s Переглядів</string>
+    <string name="album_length">%1$s треків  %2$s</string>
+    <string name="view_count">%s переглядів</string>
     <string name="clear_search_history">Очистити історію пошуку</string>
     <string name="liked">Вподобано</string>
     <string name="like">Вподобати</string>
@@ -552,4 +552,7 @@
     <string name="bpm">BPM</string>
     <string name="key">Ключ</string>
     <string name="scale">Масштаб</string>
+    <string name="home_offline_title">Помилка підключення</string>
+    <string name="home_offline_subtitle">Перевірте підключення до Інтернету і повторіть спробу, або слухайте вашу завантажену музику.</string>
+    <string name="listen_to_downloaded">Слухати завантажену музику</string>
 </resources>

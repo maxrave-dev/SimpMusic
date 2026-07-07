@@ -121,6 +121,7 @@ import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DraggableItem
@@ -394,18 +395,18 @@ fun LocalPlaylistScreen(
     val mutedPaletteBg =
         run {
             val palette = paletteState.palette
-            val base =
-                if (palette != null) {
-                    palette.getColorFromPalette()
-                } else {
-                    val titleColors = playlistTitleGradient(uiState.title)
+            if (palette != null) {
+                palette.toImmersiveBackground()
+            } else {
+                val titleColors = playlistTitleGradient(uiState.title)
+                val base =
                     if (titleColors.size >= 2) {
                         lerp(titleColors[0], titleColors[1], 0.5f)
                     } else {
                         titleColors.firstOrNull() ?: md_theme_dark_background
                     }
-                }
-            lerp(base, md_theme_dark_background, 0.3f)
+                lerp(base, md_theme_dark_background, 0.3f)
+            }
         }
 
     // Loading dialog

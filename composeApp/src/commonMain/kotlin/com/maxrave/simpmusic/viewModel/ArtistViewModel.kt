@@ -7,6 +7,7 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.artist.Albums
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
+import com.maxrave.domain.data.model.browse.artist.ArtistLogo
 import com.maxrave.domain.data.model.browse.artist.Related
 import com.maxrave.domain.data.model.browse.artist.ResultPlaylist
 import com.maxrave.domain.data.model.browse.artist.Singles
@@ -15,6 +16,7 @@ import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.ArtistRepository
+import com.maxrave.domain.repository.LyricsCanvasRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.simpmusic.extension.toArtistScreenData
@@ -35,10 +37,15 @@ import simpmusic.composeapp.generated.resources.shuffle
 class ArtistViewModel(
     private val artistRepository: ArtistRepository,
     private val songRepository: SongRepository,
+    private val lyricsCanvasRepository: LyricsCanvasRepository,
 ) : BaseViewModel() {
     // It is dynamic and can be changed by the user, so separate it from the ArtistScreenData
     private var _canvasUrl: MutableStateFlow<Pair<String, SongEntity>?> = MutableStateFlow(null)
     var canvasUrl: StateFlow<Pair<String, SongEntity>?> = _canvasUrl
+
+    // Artist name-logo image + accent color from the hidden catalog (immersive header).
+    private val _artistLogo: MutableStateFlow<ArtistLogo?> = MutableStateFlow(null)
+    val artistLogo: StateFlow<ArtistLogo?> = _artistLogo
 
     private var _followed: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var followed: StateFlow<Boolean> = _followed
@@ -49,6 +56,7 @@ class ArtistViewModel(
     fun browseArtist(channelId: String) {
         _artistScreenState.value = Loading
         _canvasUrl.value = null
+        _artistLogo.value = null
         _followed.value = false
         viewModelScope.launch {
             artistRepository.getArtistData(channelId).collect { browse ->
@@ -68,14 +76,15 @@ class ArtistViewModel(
                         }
                         _artistScreenState.value =
                             Success(data.toArtistScreenData())
-                        data.songs?.results?.forEach { song ->
-                            songRepository.getSongById(song.videoId).firstOrNull()?.let { entity ->
-                                val canvasUrl = entity.canvasUrl
-                                if (canvasUrl != null) {
-                                    _canvasUrl.value = Pair(canvasUrl, entity)
-                                    log("CanvasUrl: $canvasUrl")
-                                    return@forEach
-                                }
+                        // Canvas comes ONLY from the single most-popular song: take the first
+                        // popular result and use its canvas if it has one. If it doesn't,
+                        // leave canvas null (already reset above) — no fallback to other songs.
+                        data.songs?.results?.firstOrNull()?.let { topSong ->
+                            val entity = songRepository.getSongById(topSong.videoId).firstOrNull()
+                            val canvasUrl = entity?.canvasUrl
+                            if (entity != null && canvasUrl != null) {
+                                _canvasUrl.value = Pair(canvasUrl, entity)
+                                log("CanvasUrl: $canvasUrl")
                             }
                         }
                     }
@@ -87,6 +96,19 @@ class ArtistViewModel(
                         _artistScreenState.value = Error("Error")
                     }
                 }
+            }
+        }
+    }
+
+    private suspend fun fetchAndCacheArtistLogo(
+        channelId: String,
+        artistName: String,
+    ) {
+        lyricsCanvasRepository.getArtistLogo(artistName).collectLatest { res ->
+            if (res is Resource.Success) {
+                val logo = res.data ?: return@collectLatest
+                _artistLogo.value = logo
+                artistRepository.updateArtistNameLogo(channelId, logo.logoUrl, logo.bgColorHex)
             }
         }
     }
@@ -103,6 +125,19 @@ class ArtistViewModel(
                     }
                     _followed.value = artistEntity.followed
                     log("insertArtist: ${artistEntity.followed}")
+                    // Name-logo: reuse the cached one if present, else fetch + persist it.
+                    val cachedLogoUrl = artistEntity.nameLogoUrl
+                    if (cachedLogoUrl != null) {
+                        _artistLogo.value =
+                            ArtistLogo(
+                                logoUrl = cachedLogoUrl,
+                                bgColorHex = artistEntity.nameLogoColor,
+                                width = 0,
+                                height = 0,
+                            )
+                    } else {
+                        launch { fetchAndCacheArtistLogo(artist.channelId, artist.name) }
+                    }
                 }
             }
         }

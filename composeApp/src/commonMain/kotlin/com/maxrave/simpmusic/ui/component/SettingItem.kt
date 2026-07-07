@@ -32,7 +32,10 @@ fun SettingItem(
     onDisable: (() -> Unit)? = null, // Callback when the item is disabled, switch off settings
     otherView: @Composable (() -> Unit)? = null,
 ) {
-    LaunchedEffect(Unit) {
+    // Key on isEnable (not Unit) so the auto-disable fires whenever the gate flips to false mid-session
+    // (e.g. the user logs out while Settings is open), not only on first composition. Without this, any
+    // child flag gated behind a login stays stuck ON until Settings is reopened (issues #2157, #2064).
+    LaunchedEffect(isEnable) {
         if (!isEnable && onDisable != null) {
             onDisable.invoke()
         }

@@ -279,8 +279,13 @@ fun downloadIfMissing(url: String, target: java.io.File) {
     val curlExit = ProcessBuilder(
         "curl",
         "-fsSL",
-        "--retry", "3",
-        "--retry-delay", "2",
+        // `--retry` alone does NOT retry curl exit 56 (mid-transfer receive failure) — it only
+        // retries HTTP 5xx/408/429 and connection errors. The get.videolan.org mirrors flake with
+        // exit 56 mid-download, so `--retry-all-errors` is required to retry those too. Count/delay
+        // bumped a bit for the occasionally-slow mirror.
+        "--retry", "5",
+        "--retry-delay", "5",
+        "--retry-all-errors",
         "-o", target.absolutePath,
         url,
     ).inheritIO().start().waitFor()

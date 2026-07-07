@@ -7,7 +7,7 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s แทร็ค %2$s</string>
     <string name="view_count">การเข้าชม %1$s</string>
-    <string name="clear_search_history">เคลียร์ประวัติการค้นหา</string>
+    <string name="clear_search_history">ล้างประวัติการค้นหา</string>
     <string name="liked">ถูกใจแล้ว</string>
     <string name="like">ถูกใจ</string>
     <string name="hello_blank_fragment">สวัสดี blank fragment</string>
@@ -29,7 +29,7 @@
     <string name="no_playlists_downloaded">ยังไม่มีการดาวน์โหลดเพลย์ลิสต์</string>
     <string name="your_playlists">เพลย์ลิสต์ในอุปกรณ์</string>
     <string name="no_playlists_added">ยังไม่มีการเพิ่มเพลย์ลิสต์</string>
-    <string name="recently_added">เพิ่มเมื่อล่าสุด</string>
+    <string name="recently_added">เพิ่มล่าสุด</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">ค้นหา เพลง ศิลปิน อัลบั้ม เพลย์ลิสต์ และอื่นๆ</string>
     <string name="everything_you_need">อะไรก็ตามที่คุณต้องการ</string>
     <string name="restore_failed">การกู้คืนล้มเหลว</string>
@@ -551,4 +551,7 @@
     <string name="bpm">BPM</string>
     <string name="key">คีย์</string>
     <string name="scale">บันไดเสียง</string>
+    <string name="home_offline_title">ไม่สามารถเชื่อมต่อได้</string>
+    <string name="home_offline_subtitle">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณแล้วลองใหม่อีกครั้ง หรือฟังเพลงที่คุณดาวน์โหลดไว้</string>
+    <string name="listen_to_downloaded">ฟังเพลงที่ดาวน์โหลด</string>
 </resources>

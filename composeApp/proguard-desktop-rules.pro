@@ -1,3 +1,11 @@
+# ProGuard's return-type specialization narrows ActualParagraph()'s declared return type
+# from the Paragraph interface down to its only impl (SkiaParagraph). The bytecode still
+# pushes a Paragraph-typed value, so JVM 21's verifier rejects it at runtime with
+# "VerifyError: Bad return type" the moment any Text() renders (androidx.compose.ui.text).
+# Disable only method type-specialization; shrinking, obfuscation, class-merging,
+# inlining and every other optimization stay on.
+-optimizations !method/specialization/*
+
 -keepclasseswithmembers class * {
     native <methods>;
 }
@@ -19,6 +27,22 @@
 -dontnote io.ktor.**
 -dontnote org.slf4j.**
 -dontnote kotlinx.serialization.**
+
+# Skiko / Skia + Compose AWT interop. ProGuard obfuscation renames these classes, which
+# breaks compose.interop.blending on the transparent desktop window — Canvas/video then
+# render see-through (you can see the desktop behind them). Keep them un-obfuscated.
+-keep class org.jetbrains.skiko.** { *; }
+-keep class org.jetbrains.skia.** { *; }
+-keep class androidx.compose.ui.awt.** { *; }
+-keep class androidx.compose.ui.interop.** { *; }
+-dontwarn org.jetbrains.skiko.**
+-dontwarn org.jetbrains.skia.**
+
+# compottie (Lottie renderer) draws via skiko (PlatformShader.skiko, SkikoPathBuilder).
+# On release, proguard obfuscation mangles its internal classes so the renderer runs but
+# paints nothing — the animation stays blank with no crash. Keep them un-obfuscated.
+-keep class io.github.alexzhirkevich.compottie.** { *; }
+-dontwarn io.github.alexzhirkevich.compottie.**
 
 # Okhttp3
 -keep class okhttp3.** { *; }
@@ -340,6 +364,13 @@
 # Compottie's skiko shader helper references org.jetbrains.skia.GradientStyle, removed in the current
 # Skiko. Class is gone (can't be kept/added), so suppress the unresolved-reference warning.
 -dontwarn io.github.alexzhirkevich.compottie.**
+
+# com.kyant.backdrop (liquid glass) was compiled against Skiko 0.144.x and references
+# RuntimeShaderBuilder.makeShader$default, whose signature changed in Skiko 0.148.2 (pulled by
+# compose-bom 2026.06 / coil3 3.5.0 / compottie 2.2.4). The method is gone, so ProGuard can't
+# resolve it and aborts. Liquid glass is not rendered on desktop, so the code path is never hit —
+# suppress the unresolved-reference warning. (Same approach as compottie/haze above.)
+-dontwarn com.kyant.backdrop.**
 
 # JNA references the signature-polymorphic java.lang.invoke.MethodHandle.invoke(...) overloads, which
 # ProGuard can't resolve as concrete methods. JNA itself is kept above; suppress these warnings.

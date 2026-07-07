@@ -30,11 +30,11 @@
     <string name="your_playlists">Ваши локальные плейлисты</string>
     <string name="no_playlists_added">Плейлисты не добавлены</string>
     <string name="recently_added">Недавно добавленные</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Поиск песен, исполнителей, альбомов, плейлистов и многое другое</string>
+    <string name="search_for_songs_artists_albums_playlists_and_more">Искать песни, исполнителей, альбомы, плейлисты, и многое другое</string>
     <string name="everything_you_need">Все что вам нужно</string>
     <string name="restore_failed">Ошибка восстановления</string>
     <string name="restore_success">Восстановление прошло успешно</string>
-    <string name="search">Искать</string>
+    <string name="search">Поиск</string>
     <string name="songs">Песни</string>
     <string name="albums">Альбомы</string>
     <string name="playlists">Плейлисты</string>
@@ -553,4 +553,7 @@
     <string name="bpm">BPM</string>
     <string name="key">Ключ</string>
     <string name="scale">Шкала</string>
+    <string name="home_offline_title">Ошибка подключения</string>
+    <string name="home_offline_subtitle">Проверьте подключение к Интернету и повторите попытку, или прослушивайте скачанную музыку.</string>
+    <string name="listen_to_downloaded">Слушать скачанную музыку</string>
 </resources>

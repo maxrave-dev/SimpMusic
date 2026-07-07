@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -69,9 +68,11 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rgbFactor
+import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -105,8 +106,18 @@ fun CollapsingToolbarParallaxEffect(
 
     val scroll: ScrollState = rememberScrollState(0)
 
-    // Increased from 2/6 to 2/4 (50% of screen height) for a bigger, more prominent artist image
-    val headerHeight = (getScreenSizeInfo().hDP.dp * 2 / 4).coerceAtLeast(250.dp)
+    // Portrait: square header (= screen width) so a squared artist image fills it exactly,
+    // with no crop. Landscape: keep the original wide header (half screen height) and the
+    // original (un-squared) image, which fits the wide frame better.
+    val screenSize = getScreenSizeInfo()
+    val isPortraitHeader = screenSize.hDP >= screenSize.wDP
+    val headerHeight =
+        if (isPortraitHeader) {
+            screenSize.wDP.dp.coerceAtLeast(250.dp)
+        } else {
+            (screenSize.hDP.dp * 2 / 4).coerceAtLeast(250.dp)
+        }
+    val headerImageUrl = if (isPortraitHeader) imageUrl?.toSquareThumbnailUrl() else imageUrl
 
     val headerHeightPx = with(density) { headerHeight.toPx() }
     val toolbarHeightPx = with(density) { toolbarHeight.toPx() }
@@ -141,7 +152,7 @@ fun CollapsingToolbarParallaxEffect(
         Header(
             scroll = scroll,
             headerHeightPx = headerHeightPx,
-            imageUrl = imageUrl,
+            imageUrl = headerImageUrl,
             backgroundColor = color,
             modifier =
                 Modifier
@@ -247,7 +258,7 @@ private fun Header(
             placeholder = painterResource(Res.drawable.holder_video),
             error = painterResource(Res.drawable.holder_video),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.FillWidth,
             modifier =
                 Modifier
                     .fillMaxSize(),

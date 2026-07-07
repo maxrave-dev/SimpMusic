@@ -123,6 +123,11 @@
     <string name="github">GitHub</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">Compre-me um café</string>
+    <string name="developer_blog">Blog do Desenvolvedor</string>
+    <string name="developer_blog_tagline">Leia notas de desenvolvimento, tutoriais &amp; nos bastidores</string>
+    <string name="blog_promo_title">Algo novo do desenvolvimento</string>
+    <string name="blog_promo_message">Acabei de lançar meu blog pessoal no maxrave. ev — compartilhando a história por trás da SimpMusic, mergulhos profundos na música e notas de engenharia. Dê uma lida se você estiver curioso ✨</string>
+    <string name="visit_blog">Visite o Blog</string>
     <string name="paypal">PayPal</string>
     <string name="title">Título</string>
     <string name="custom_order">Manual</string>
@@ -379,6 +384,10 @@
     <string name="invalid_port">Porta inválida</string>
     <string name="proxy_host_message">Favor insira o seu servidor Proxy</string>
     <string name="proxy_port_message">Favor insira a sua porta Proxy</string>
+    <string name="proxy_username">Usuário do Proxy</string>
+    <string name="proxy_password">Senha do proxy</string>
+    <string name="proxy_username_message">Por favor, insira seu nome de usuário do Proxy (opcional)</string>
+    <string name="proxy_password_message">Por favor, insira sua senha do Proxy (opcional)</string>
     <string name="five_seconds">Cinco segundos</string>
     <string name="lyrics_provider_lrc">Letras fornecidas pelo YouTube</string>
     <string name="sync_first">Sincronize esta lista de reprodução com o YouTube Music primeiro</string>
@@ -389,6 +398,7 @@
     <string name="blur_fullscreen_lyrics">Desfocar o efeito letras em tela cheia</string>
     <string name="blur_fullscreen_lyrics_description">Desfocando o fundo do efeito de tela em letras em tela cheia</string>
     <string name="playback_speed_pitch"><![CDATA[Velocidade de reprodução e tom]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Velocidade e tom de reprodução (desativado quando o crossfade está habilitado)]]></string>
     <string name="playback_speed">Velocidade de reprodução</string>
     <string name="pitch">Tonalidade</string>
     <string name="blur_player_background">Desfocar fundo do ‘player’</string>
@@ -448,6 +458,8 @@
     <string name="crossfade_disabled">Desativado</string>
     <string name="crossfade_duration">Duração da Transição</string>
     <string name="set_crossfade_duration">Defina a duração da transição em segundos (%1$ds)</string>
+    <string name="crossfade_auto">Auto</string>
+    <string name="crossfade_auto_description">Calcular a duração automaticamente com base no BPM (requer o stream de 320kbps com dados BPM)</string>
     <string name="crossfade_dj_mode">Transição estilo DJ</string>
     <string name="crossfade_dj_mode_description">Aplica filtros passa-baixa e passa-alta durante o crossfade para uma transição mais suave, estilo DJ (semelhante ao Automix do Apple Music).</string>
     <string name="youtube_subtitle_language">Idioma da Tradução das Legendas do YouTube</string>
@@ -532,6 +544,13 @@
     <string name="simpmusic_charts">Paradas SimpMusic</string>
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">Sua URL de 320kbps</string>
+    <string name="your_320kbps_url_description">Deixe vazio para escolher automaticamente uma URL de trabalho do verificador.</string>
     <string name="search_for">Pesquisar por</string>
     <string name="synced_playlist_cannot_change_order">Playlist sincronizada não pode mudar a ordem</string>
+    <string name="bpm">BPM</string>
+    <string name="key">Tom</string>
+    <string name="scale">Escala</string>
+    <string name="home_offline_title">Falha na conexão</string>
+    <string name="home_offline_subtitle">Verifique sua conexão com a internet e tente novamente mais tarde ou ouça suas músicas baixadas.</string>
+    <string name="listen_to_downloaded">Ouvir músicas baixadas</string>
 </resources>

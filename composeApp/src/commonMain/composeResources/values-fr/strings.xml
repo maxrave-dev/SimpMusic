@@ -97,7 +97,7 @@
     <string name="about">À propos</string>
     <string name="let_s_start_with_a_radio">COMMENÇONS PAR UNE RADIO !</string>
     <string name="let_s_pick_a_playlist_for_you">NOUS ALLONS SÉLECTIONNER UNE PLAYLIST POUR VOUS !</string>
-    <string name="moods_amp_moment"><![CDATA[Humeurs et Moments]]></string>
+    <string name="moods_amp_moment"><![CDATA[Ambiances et Moments]]></string>
     <string name="genre">Genre</string>
     <string name="what_is_best_choice_today">QUEL EST LE MEILLEUR CHOIX AUJOURd'HUI ?</string>
     <string name="chart">Graphique</string>
@@ -541,6 +541,8 @@
     <string name="quit_app">Quitter l'application</string>
     <string name="local_tracking_title">Historique d'écoute local</string>
     <string name="local_tracking_description">Enregistrez votre historique d'écoute dans une base de données locale</string>
+    <string name="blog_notification_title">Notifications relatives aux articles de blog</string>
+    <string name="blog_notification_description">Recevez une notification dès qu'un nouvel article de blog est publié</string>
     <string name="simpmusic_charts">Classements SimpMusic</string>
     <string name="crossfading">Fondu enchaîné</string>
     <string name="your_320kbps_url">Votre URL 320 kbps</string>

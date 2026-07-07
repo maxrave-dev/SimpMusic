@@ -378,7 +378,7 @@ tasks.register("packageConveyorAppImage") {
             |Icon=simpmusic
             |Terminal=false
             |Categories=Audio;AudioVideo;
-            |StartupWMClass=com-maxrave-simpmusic-MainKt
+            |StartupWMClass=SimpMusic
             |MimeType=x-scheme-handler/simpmusic;
             |
             """.trimMargin(),
