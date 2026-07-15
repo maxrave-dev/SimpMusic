@@ -513,6 +513,13 @@ fun HomeScreen(
                                     ),
                                 )
                             },
+                            onOpenOfflinePlaylist = {
+                                navController.navigate(
+                                    LibraryDynamicPlaylistDestination(
+                                        type = LibraryDynamicPlaylistType.CachedSongs.toStringParams(),
+                                    ),
+                                )
+                            }
                         )
                         return@Crossfade
                     }

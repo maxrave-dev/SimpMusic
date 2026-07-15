@@ -16,6 +16,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -47,6 +48,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Speaker
+import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -137,9 +139,13 @@ fun MiniPlayer(
     modifier: Modifier,
     backdrop: PlatformBackdrop,
     sharedViewModel: SharedViewModel = koinInject(),
+    jamViewModel: com.marki19.simpmusic.viewModel.jam.JamViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
+    onJamClick: () -> Unit = {},
 ) {
+    val jamSessionState by jamViewModel.sessionState.collectAsStateWithLifecycle()
+    val isJamActive = jamSessionState != null
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
@@ -495,6 +501,29 @@ fun MiniPlayer(
                     Spacer(modifier = Modifier.width(15.dp))
                     HeartCheckBox(checked = liked, size = 30) {
                         sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                    }
+                    Spacer(modifier = Modifier.width(15.dp))
+                    IconButton(
+                        onClick = onJamClick, 
+                        modifier = Modifier
+                            .size(30.dp)
+                            .drawBehind {
+                                if (isJamActive) {
+                                    drawCircle(
+                                        brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                                            colors = listOf(Color(0xFF87CEEB).copy(alpha = 0.6f), Color.Transparent),
+                                            center = center,
+                                            radius = size.width / 1.2f
+                                        )
+                                    )
+                                }
+                            }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Podcasts,
+                            contentDescription = "Jam Session",
+                            tint = if (isJamActive) Color(0xFF87CEEB) else textColor
+                        )
                     }
                     Spacer(modifier = Modifier.width(15.dp))
                     Crossfade(targetState = loading, label = "") {

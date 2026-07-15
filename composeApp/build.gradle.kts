@@ -162,6 +162,9 @@ kotlin {
             // Liquid glass
             implementation(libs.liquid.glass)
             implementation(libs.liquid.glass.shape)
+
+            // Jam drag-and-drop queue reordering
+            implementation(libs.reorderable)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

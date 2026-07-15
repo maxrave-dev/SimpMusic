@@ -1407,6 +1407,12 @@ fun LocalPlaylistScreen(
             onAddToQueue = {
                 viewModel.addAllToQueue()
             },
+            onStartJam = {
+                viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick)
+                navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamHostDestination) {
+                    launchSingleTop = true
+                }
+            },
             onSync = {
                 if (uiState.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
                     showUnsyncAlertDialog = true

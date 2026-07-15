@@ -83,6 +83,7 @@ import simpmusic.composeapp.generated.resources.followed
 import simpmusic.composeapp.generated.resources.lower_plays
 import simpmusic.composeapp.generated.resources.most_played
 import simpmusic.composeapp.generated.resources.search
+import simpmusic.composeapp.generated.resources.cached_songs
 import simpmusic.composeapp.generated.resources.seconds
 import simpmusic.composeapp.generated.resources.your_top_albums
 import simpmusic.composeapp.generated.resources.your_top_artists
@@ -114,6 +115,8 @@ fun LibraryDynamicPlaylistScreen(
     var tempMostPlayed by remember { mutableStateOf(emptyList<SongEntity>()) }
     val downloaded by viewModel.listDownloadedSong.collectAsStateWithLifecycle()
     var tempDownloaded by remember { mutableStateOf(emptyList<SongEntity>()) }
+    val cachedSongs by viewModel.listCachedSong.collectAsStateWithLifecycle()
+    var tempCachedSongs by remember { mutableStateOf(emptyList<SongEntity>()) }
     val analyticsUIState by analyticsViewModel.analyticsUIState.collectAsStateWithLifecycle()
     var tempTopTracks by remember { mutableStateOf(analyticsUIState.topTracks.data ?: emptyList()) }
     var tempTopArtists by remember { mutableStateOf(analyticsUIState.topArtists.data ?: emptyList()) }
@@ -133,6 +136,8 @@ fun LibraryDynamicPlaylistScreen(
         Logger.w("LibraryDynamicPlaylistScreen", "Check tempMostPlayed: $tempMostPlayed")
         tempDownloaded = downloaded.filter { it.title.contains(query, ignoreCase = true) }
         Logger.w("LibraryDynamicPlaylistScreen", "Check tempDownloaded: $tempDownloaded")
+        tempCachedSongs = cachedSongs.filter { it.title.contains(query, ignoreCase = true) }
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempCachedSongs: $tempCachedSongs")
         tempTopTracks =
             analyticsUIState.topTracks.data
                 ?.filter { it.second.title.contains(query, ignoreCase = true) }
@@ -336,6 +341,14 @@ fun LibraryDynamicPlaylistScreen(
                             tempFavorite
                         } else {
                             favorite
+                        }
+                    }
+
+                    LibraryDynamicPlaylistType.CachedSongs -> {
+                        if (query.isNotEmpty() && showSearchBar) {
+                            tempCachedSongs
+                        } else {
+                            cachedSongs
                         }
                     }
 
@@ -547,6 +560,8 @@ sealed class LibraryDynamicPlaylistType {
 
     data object TopAlbums : LibraryDynamicPlaylistType()
 
+    data object CachedSongs : LibraryDynamicPlaylistType()
+
     fun name(): StringResource =
         when (this) {
             Favorite -> Res.string.favorite
@@ -556,6 +571,7 @@ sealed class LibraryDynamicPlaylistType {
             TopAlbums -> Res.string.your_top_albums
             TopArtists -> Res.string.your_top_artists
             TopTracks -> Res.string.your_top_tracks
+            CachedSongs -> Res.string.cached_songs
         }
 
     // For serialization and navigation
@@ -568,6 +584,7 @@ sealed class LibraryDynamicPlaylistType {
             TopAlbums -> "top_albums"
             TopArtists -> "top_artists"
             TopTracks -> "top_tracks"
+            CachedSongs -> "cached_songs"
         }
 
     companion object {
@@ -580,7 +597,8 @@ sealed class LibraryDynamicPlaylistType {
                 "top_albums" -> TopAlbums
                 "top_artists" -> TopArtists
                 "top_tracks" -> TopTracks
-                else -> throw IllegalArgumentException("Unknown type: $this")
+                "cached_songs" -> CachedSongs
+                else -> throw IllegalArgumentException("Unknown type: $input")
             }
     }
 }

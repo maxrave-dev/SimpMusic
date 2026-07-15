@@ -1,0 +1,7 @@
+﻿gradlew.bat : Error: could not open `C:\Program Files\Android\Android Studio\jbr\lib\jvm.cfg'
+At line:1 char:109
++ ... $env:PATH"; & ".\gradlew.bat" ":composeApp:compileDebugKotlinAndroid" ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error: could no...br\lib\jvm.cfg':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

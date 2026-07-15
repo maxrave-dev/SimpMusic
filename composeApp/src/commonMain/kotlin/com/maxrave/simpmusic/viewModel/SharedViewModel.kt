@@ -114,6 +114,7 @@ class SharedViewModel(
     private val playlistRepository: PlaylistRepository,
     private val lyricsCanvasRepository: LyricsCanvasRepository,
     private val cacheRepository: CacheRepository,
+    private val jamRepository: com.marki19.domain.jam.JamRepository,
 ) : BaseViewModel() {
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
@@ -1654,6 +1655,13 @@ class SharedViewModel(
 
     fun addListToQueue(listTrack: ArrayList<Track>) {
         viewModelScope.launch {
+            // If a jam session is active, broadcast each track to the jam room
+            val jamSession = jamRepository.sessionState.value
+            if (jamSession != null) {
+                listTrack.forEach { track ->
+                    jamRepository.sendCommand(com.marki19.domain.jam.JamCommand.AddToQueue(track.videoId))
+                }
+            }
             if (listTrack.size == 1 && dataStoreManager.endlessQueue.first() == TRUE) {
                 mediaPlayerHandler.playNext(listTrack.first())
                 makeToast(getString(Res.string.play_next))

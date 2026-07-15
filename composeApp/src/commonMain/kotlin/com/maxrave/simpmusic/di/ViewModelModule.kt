@@ -34,6 +34,7 @@ val viewModelModule =
                 get(),
                 get(),
                 get(),
+                get(), // JamRepository
             )
         }
         single {
@@ -63,6 +64,7 @@ val viewModelModule =
         }
         viewModel {
             LibraryDynamicPlaylistViewModel(
+                get(),
                 get(),
                 get(),
             )
@@ -147,6 +149,13 @@ val viewModelModule =
                 get(),
                 get(),
                 get(),
+            )
+        }
+        viewModel {
+            com.marki19.simpmusic.viewModel.jam.JamViewModel(
+                get(),
+                get(),
+                get()
             )
         }
     }

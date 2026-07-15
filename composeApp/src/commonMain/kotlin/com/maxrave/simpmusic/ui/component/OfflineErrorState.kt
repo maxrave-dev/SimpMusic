@@ -34,6 +34,9 @@ import simpmusic.composeapp.generated.resources.home_offline_subtitle
 import simpmusic.composeapp.generated.resources.home_offline_title
 import simpmusic.composeapp.generated.resources.listen_to_downloaded
 import simpmusic.composeapp.generated.resources.retry
+import simpmusic.composeapp.generated.resources.downloaded
+import simpmusic.composeapp.generated.resources.cached_songs
+import androidx.compose.material.icons.filled.Cached
 
 /**
  * Spotify-style minimal offline / error state shown on the Home tab when
@@ -51,6 +54,7 @@ fun OfflineErrorState(
     contentPadding: PaddingValues = PaddingValues(),
     onRetry: () -> Unit,
     onOpenDownloaded: () -> Unit,
+    onOpenOfflinePlaylist: () -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -87,6 +91,66 @@ fun OfflineErrorState(
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(28.dp))
+            
+            // 2-box row for offline listening options
+            androidx.compose.foundation.layout.Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                androidx.compose.material3.ElevatedCard(
+                    modifier = Modifier.weight(1f).height(60.dp),
+                    onClick = onOpenDownloaded,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = androidx.compose.material3.CardDefaults.elevatedCardColors().copy(
+                        containerColor = Color(0xff4CAF50),
+                    ),
+                ) {
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.Download,
+                            contentDescription = null,
+                            modifier = Modifier.padding(10.dp).size(30.dp),
+                            tint = Color.Black
+                        )
+                        Text(
+                            text = stringResource(Res.string.downloaded),
+                            style = typo().titleSmall,
+                            color = Color.Black
+                        )
+                    }
+                }
+                
+                androidx.compose.material3.ElevatedCard(
+                    modifier = Modifier.weight(1f).height(60.dp),
+                    onClick = onOpenOfflinePlaylist,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = androidx.compose.material3.CardDefaults.elevatedCardColors().copy(
+                        containerColor = Color(0xffdcd3ff),
+                    ),
+                ) {
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            androidx.compose.material.icons.Icons.Default.Cached,
+                            contentDescription = null,
+                            modifier = Modifier.padding(10.dp).size(30.dp),
+                            tint = Color.Black
+                        )
+                        Text(
+                            text = stringResource(Res.string.cached_songs),
+                            style = typo().titleSmall,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onRetry,
                 modifier = Modifier.fillMaxWidth(),
@@ -99,26 +163,6 @@ fun OfflineErrorState(
                 Text(
                     text = stringResource(Res.string.retry),
                     color = Color.Black,
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            TextButton(
-                onClick = onOpenDownloaded,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color.White,
-                ),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Download,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(Res.string.listen_to_downloaded),
-                    color = Color.White,
                 )
             }
         }

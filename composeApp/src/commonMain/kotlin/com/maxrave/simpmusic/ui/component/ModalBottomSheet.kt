@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import com.maxrave.domain.utils.toTrack
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -165,6 +166,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.baseline_people_alt_24
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
@@ -1397,9 +1399,12 @@ fun NowPlayingBottomSheet(
     onNavigateToOtherScreen: () -> Unit = {},
     onDelete: (() -> Unit)? = null,
     onLibraryDelete: (() -> Unit)? = null,
+    jamViewModel: com.marki19.simpmusic.viewModel.jam.JamViewModel = org.koin.compose.viewmodel.koinViewModel(),
+    sharedViewModel: com.maxrave.simpmusic.viewModel.SharedViewModel = org.koin.compose.koinInject(),
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val jamSessionState by jamViewModel.sessionState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(
@@ -1782,6 +1787,35 @@ fun NowPlayingBottomSheet(
                         text = Res.string.add_to_queue,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToQueue)
+                    }
+                    if (jamSessionState != null) {
+                        ActionButton(
+                            icon = painterResource(Res.drawable.baseline_queue_music_24),
+                            text = null,
+                            textString = "Add to Jam Queue"
+                        ) {
+                            song?.toTrack()?.let { track ->
+                                sharedViewModel.addListToQueue(arrayListOf(track))
+                            }
+                            hideModalBottomSheet()
+                        }
+                    } else {
+                        ActionButton(
+                            icon = painterResource(Res.drawable.baseline_queue_music_24),
+                            text = null,
+                            textString = "Start a Jam"
+                        ) {
+                            viewModel.onUIEvent(
+                                NowPlayingBottomSheetUIEvent.StartRadio(
+                                    videoId = uiState.songUIState.videoId,
+                                    name = "\"${uiState.songUIState.title}\" Jam",
+                                    limit = 5
+                                )
+                            )
+                            onNavigateToOtherScreen()
+                            navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamHostDestination)
+                            hideModalBottomSheet()
+                        }
                     }
                     ActionButton(
                         icon = painterResource(Res.drawable.baseline_people_alt_24),
@@ -2713,6 +2747,7 @@ fun PlaylistBottomSheet(
     onEditTitle: (newTitle: String) -> Unit = {},
     onSaveToLocal: () -> Unit,
     onAddToQueue: (() -> Unit)? = null,
+    onStartJam: (() -> Unit)? = null,
     localPlaylistRepository: LocalPlaylistRepository = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -2816,6 +2851,18 @@ fun PlaylistBottomSheet(
                     shape = RoundedCornerShape(50),
                 ) {}
                 Spacer(modifier = Modifier.height(5.dp))
+                
+                if (onStartJam != null) {
+                    ActionButton(
+                        icon = painterResource(Res.drawable.baseline_people_alt_24),
+                        text = null,
+                        textString = "Start a Jam",
+                    ) {
+                        onStartJam()
+                        hideModalBottomSheet()
+                    }
+                }
+                
                 if (onAddToQueue != null) {
                     ActionButton(
                         icon = painterResource(Res.drawable.baseline_queue_music_24),
@@ -2869,6 +2916,7 @@ fun LocalPlaylistBottomSheet(
     onEditTitle: (newTitle: String) -> Unit,
     onEditThumbnail: (newThumbnailUri: String) -> Unit,
     onAddToQueue: () -> Unit,
+    onStartJam: (() -> Unit)? = null,
     onSync: () -> Unit,
     onUpdatePlaylist: () -> Unit,
     onDelete: () -> Unit,
@@ -2971,6 +3019,18 @@ fun LocalPlaylistBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
+                    
+                    if (onStartJam != null) {
+                        ActionButton(
+                            icon = painterResource(Res.drawable.baseline_people_alt_24),
+                            text = null,
+                            textString = "Start a Jam",
+                        ) {
+                            onStartJam()
+                            hideModalBottomSheet()
+                        }
+                    }
+                    
                     ActionButton(icon = painterResource(Res.drawable.baseline_edit_24), text = Res.string.edit_title) {
                         showEditTitle = true
                     }

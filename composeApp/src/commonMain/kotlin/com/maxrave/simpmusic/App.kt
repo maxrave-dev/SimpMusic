@@ -77,6 +77,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
+import com.marki19.simpmusic.ui.navigation.destination.jam.JamMenuDestination
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
@@ -115,12 +116,18 @@ import simpmusic.composeapp.generated.resources.update_message
 import simpmusic.composeapp.generated.resources.version_format
 import simpmusic.composeapp.generated.resources.yes
 import kotlin.time.ExperimentalTime
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class, ExperimentalFoundationApi::class)
 @Composable
 fun App(viewModel: SharedViewModel = koinInject()) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
+    val coroutineScope = rememberCoroutineScope()
+    val jamViewModel: com.marki19.simpmusic.viewModel.jam.JamViewModel = koinInject()
+    val jamSessionState by jamViewModel.sessionState.collectAsStateWithLifecycle()
+    val isJamActive = jamSessionState != null
 
     val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
@@ -355,6 +362,23 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                     onClick = {
                                         isShowNowPlaylistScreen = true
                                     },
+                                    onJamClick = {
+                                        coroutineScope.launch {
+                                            if (com.maxrave.simpmusic.utils.isNetworkAvailable()) {
+                                                if (isJamActive) {
+                                                    navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamSessionDestination(roomCode = jamSessionState?.roomId ?: "")) { launchSingleTop = true }
+                                                } else {
+                                                    navController.navigate(JamMenuDestination) { launchSingleTop = true }
+                                                }
+                                            } else {
+                                                multiplatform.network.cmptoast.showToast(
+                                                    "You are offline",
+                                                    gravity = multiplatform.network.cmptoast.ToastGravity.Bottom,
+                                                    duration = multiplatform.network.cmptoast.ToastDuration.Short
+                                                )
+                                            }
+                                        }
+                                    },
                                     onClose = {
                                         viewModel.stopPlayer()
                                         viewModel.isServiceRunning = false
@@ -470,10 +494,27 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                     onClick = {
                                         isShowNowPlaylistScreen = true
                                     },
+                                    onJamClick = {
+                                        coroutineScope.launch {
+                                            if (com.maxrave.simpmusic.utils.isNetworkAvailable()) {
+                                                if (isJamActive) {
+                                                    navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamSessionDestination(roomCode = jamSessionState?.roomId ?: "")) { launchSingleTop = true }
+                                                } else {
+                                                    navController.navigate(JamMenuDestination) { launchSingleTop = true }
+                                                }
+                                            } else {
+                                                multiplatform.network.cmptoast.showToast(
+                                                    "You are offline",
+                                                    gravity = multiplatform.network.cmptoast.ToastGravity.Bottom,
+                                                    duration = multiplatform.network.cmptoast.ToastDuration.Short
+                                                )
+                                            }
+                                        }
+                                    },
                                     onClose = {
                                         viewModel.stopPlayer()
                                         viewModel.isServiceRunning = false
-                                    },
+                                    }
                                 )
                             }
                         }

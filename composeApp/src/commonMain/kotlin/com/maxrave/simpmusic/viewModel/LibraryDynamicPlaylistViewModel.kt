@@ -23,6 +23,7 @@ import simpmusic.composeapp.generated.resources.playlist
 class LibraryDynamicPlaylistViewModel(
     private val songRepository: SongRepository,
     private val artistRepository: ArtistRepository,
+    private val cachedSongsRepository: com.maxrave.domain.repository.CachedSongsRepository,
 ) : BaseViewModel() {
     private val _listFavoriteSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
     val listFavoriteSong: StateFlow<List<SongEntity>> get() = _listFavoriteSong
@@ -35,12 +36,24 @@ class LibraryDynamicPlaylistViewModel(
 
     private val _listDownloadedSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
     val listDownloadedSong: StateFlow<List<SongEntity>> get() = _listDownloadedSong
+    
+    private val _listCachedSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
+    val listCachedSong: StateFlow<List<SongEntity>> get() = _listCachedSong
 
     init {
         getFavoriteSong()
         getFollowedArtist()
         getMostPlayedSong()
         getDownloadedSong()
+        getCachedSong()
+    }
+
+    private fun getCachedSong() {
+        viewModelScope.launch {
+            cachedSongsRepository.getCachedSongs().collectLatest { cachedSongs ->
+                _listCachedSong.value = cachedSongs
+            }
+        }
     }
 
     private fun getFavoriteSong() {
@@ -92,6 +105,7 @@ class LibraryDynamicPlaylistViewModel(
             when (type) {
                 LibraryDynamicPlaylistType.Favorite -> listFavoriteSong.value to listFavoriteSong.value.find { it.videoId == videoId }
                 LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value to listDownloadedSong.value.find { it.videoId == videoId }
+                LibraryDynamicPlaylistType.CachedSongs -> listCachedSong.value to listCachedSong.value.find { it.videoId == videoId }
                 LibraryDynamicPlaylistType.Followed -> return
                 LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value to listMostPlayedSong.value.find { it.videoId == videoId }
                 else -> return
@@ -122,6 +136,7 @@ class LibraryDynamicPlaylistViewModel(
         when (type) {
             LibraryDynamicPlaylistType.Favorite -> listFavoriteSong.value
             LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value
+            LibraryDynamicPlaylistType.CachedSongs -> listCachedSong.value
             LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value
             else -> emptyList()
         }

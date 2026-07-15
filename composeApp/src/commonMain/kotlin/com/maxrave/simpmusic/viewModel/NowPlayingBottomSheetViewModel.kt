@@ -376,10 +376,11 @@ class NowPlayingBottomSheetViewModel(
                             val data = res.data
                             when (res) {
                                 is Resource.Success if (data != null && data.first.isNotEmpty()) -> {
+                                    val tracks = if (ev.limit != null) data.first.take(ev.limit) else data.first
                                     setQueueData(
                                         QueueData.Data(
-                                            listTracks = data.first,
-                                            firstPlayedTrack = data.first.first(),
+                                            listTracks = tracks,
+                                            firstPlayedTrack = tracks.first(),
                                             playlistId = "RDAMVM${ev.videoId}",
                                             playlistName = ev.name,
                                             playlistType = PlaylistType.RADIO,
@@ -387,7 +388,7 @@ class NowPlayingBottomSheetViewModel(
                                         ),
                                     )
                                     loadMediaItem(
-                                        data.first.first(),
+                                        tracks.first(),
                                         Config.PLAYLIST_CLICK,
                                         0,
                                     )
@@ -462,6 +463,7 @@ sealed class NowPlayingBottomSheetUIEvent {
     data class StartRadio(
         val videoId: String,
         val name: String,
+        val limit: Int? = null,
     ) : NowPlayingBottomSheetUIEvent()
 
     data object Share : NowPlayingBottomSheetUIEvent()

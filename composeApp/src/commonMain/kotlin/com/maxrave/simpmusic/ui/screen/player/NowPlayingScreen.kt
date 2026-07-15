@@ -23,6 +23,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -59,6 +60,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Podcasts
+import com.marki19.simpmusic.ui.navigation.destination.jam.JamMenuDestination
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Subtitles
@@ -224,10 +227,14 @@ private val RICH_SYNC_TIMESTAMP_REGEX = Regex("""<\d{2}:\d{2}\.\d{2,3}>\s*""")
 @Composable
 fun NowPlayingScreen(
     sharedViewModel: SharedViewModel = koinInject(),
+    jamViewModel: com.marki19.simpmusic.viewModel.jam.JamViewModel = koinInject(),
     navController: NavController,
     onDismiss: () -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val jamSessionState by jamViewModel.sessionState.collectAsStateWithLifecycle()
+    val isJamActive = jamSessionState != null
+    val jamIconTint = if (isJamActive) Color(0xFF87CEEB) else Color.White
     val sheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
@@ -271,12 +278,18 @@ fun NowPlayingScreen(
 fun NowPlayingScreenContent(
     sharedViewModel: SharedViewModel = koinInject(),
     mediaPlayerHandler: MediaPlayerHandler = koinInject(),
+    jamViewModel: com.marki19.simpmusic.viewModel.jam.JamViewModel = koinInject(),
     navController: NavController,
     isExpanded: Boolean,
     dismissIcon: ImageVector,
     onDismiss: () -> Unit = {},
 ) {
     val screenInfo = getScreenSizeInfo()
+    val coroutineScope = rememberCoroutineScope()
+
+    val jamSessionState by jamViewModel.sessionState.collectAsStateWithLifecycle()
+    val isJamActive = jamSessionState != null
+    val jamIconTint = if (isJamActive) Color(0xFF87CEEB) else Color.White
 
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
@@ -1614,6 +1627,44 @@ fun NowPlayingScreenContent(
                                         HeartCheckBox(checked = controllerState.isLiked, size = 32) {
                                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                                         }
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        IconButton(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    if (com.maxrave.simpmusic.utils.isNetworkAvailable()) {
+                                                        onDismiss()
+                                                        if (isJamActive) {
+                                                            navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamSessionDestination(roomCode = jamSessionState?.roomId ?: "")) { launchSingleTop = true }
+                                                        } else {
+                                                            navController.navigate(JamMenuDestination) { launchSingleTop = true }
+                                                        }
+                                                    } else {
+                                                        multiplatform.network.cmptoast.showToast(
+                                                            "You are offline",
+                                                            gravity = multiplatform.network.cmptoast.ToastGravity.Bottom,
+                                                            duration = multiplatform.network.cmptoast.ToastDuration.Short
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                            modifier = Modifier.drawBehind {
+                                            if (isJamActive) {
+                                                drawCircle(
+                                                    brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                                                        colors = listOf(Color(0xFF87CEEB).copy(alpha = 0.6f), Color.Transparent),
+                                                        center = center,
+                                                        radius = size.width / 1.2f
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Podcasts,
+                                                contentDescription = "Jam Session",
+                                                tint = jamIconTint
+                                            )
+                                        }
                                     }
                                     if (getPlatform() == Platform.Android) {
                                         // Real Slider
@@ -1904,7 +1955,7 @@ fun NowPlayingScreenContent(
                                                     .fillMaxWidth()
                                                     .animateContentSize(),
                                         ) {
-                                            this@Column.AnimatedVisibility(
+                                            AnimatedVisibility(
                                                 visible = canvasSubtitleLineIndex > -1,
                                                 enter = fadeIn() + expandVertically(),
                                                 exit = fadeOut() + shrinkVertically(),
@@ -2109,6 +2160,44 @@ fun NowPlayingScreenContent(
                                                 Spacer(modifier = Modifier.size(12.dp))
                                                 HeartCheckBox(checked = controllerState.isLiked, size = 32) {
                                                     sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                                                }
+                                                Spacer(modifier = Modifier.size(4.dp))
+                                                IconButton(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            if (com.maxrave.simpmusic.utils.isNetworkAvailable()) {
+                                                                onDismiss()
+                                                                if (isJamActive) {
+                                                                    navController?.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamSessionDestination(roomCode = jamSessionState?.roomId ?: "")) { launchSingleTop = true }
+                                                                } else {
+                                                                    navController?.navigate(JamMenuDestination) { launchSingleTop = true }
+                                                                }
+                                                            } else {
+                                                                multiplatform.network.cmptoast.showToast(
+                                                                    "You are offline",
+                                                                    gravity = multiplatform.network.cmptoast.ToastGravity.Bottom,
+                                                                    duration = multiplatform.network.cmptoast.ToastDuration.Short
+                                                                )
+                                                            }
+                                                        }
+                                                    },
+                                                    modifier = Modifier.drawBehind {
+                                                        if (isJamActive) {
+                                                            drawCircle(
+                                                                brush = Brush.radialGradient(
+                                                                    colors = listOf(Color(0xFF87CEEB).copy(alpha = 0.6f), Color.Transparent),
+                                                                    center = center,
+                                                                    radius = size.width / 1.2f
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.Podcasts,
+                                                        contentDescription = "Jam Session",
+                                                        tint = jamIconTint
+                                                    )
                                                 }
                                             }
                                         }
@@ -2527,6 +2616,44 @@ fun NowPlayingScreenContent(
                         Spacer(modifier = Modifier.width(15.dp))
                         HeartCheckBox(checked = controllerState.isLiked, size = 30) {
                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        IconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    if (com.maxrave.simpmusic.utils.isNetworkAvailable()) {
+                                        onDismiss()
+                                        if (isJamActive) {
+                                            navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamSessionDestination(roomCode = jamSessionState?.roomId ?: "")) { launchSingleTop = true }
+                                        } else {
+                                            navController.navigate(JamMenuDestination) { launchSingleTop = true }
+                                        }
+                                    } else {
+                                        multiplatform.network.cmptoast.showToast(
+                                            "You are offline",
+                                            gravity = multiplatform.network.cmptoast.ToastGravity.Bottom,
+                                            duration = multiplatform.network.cmptoast.ToastDuration.Short
+                                        )
+                                    }
+                                }
+                            },
+                            modifier = Modifier.drawBehind {
+                                if (isJamActive) {
+                                    drawCircle(
+                                        brush = Brush.radialGradient(
+                                            colors = listOf(Color(0xFF87CEEB).copy(alpha = 0.6f), Color.Transparent),
+                                            center = center,
+                                            radius = size.width / 1.2f
+                                        )
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Podcasts,
+                                contentDescription = "Jam Session",
+                                tint = jamIconTint
+                            )
                         }
                         Spacer(modifier = Modifier.width(15.dp))
                         Crossfade(targetState = timelineState.loading, label = "") {

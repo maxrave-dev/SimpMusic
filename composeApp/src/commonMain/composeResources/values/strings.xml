@@ -13,6 +13,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
+    <string name="cached_songs">Offline Playlist</string>
     <string name="downloading">Downloading</string>
     <string name="preparing">Preparing</string>
     <string name="hide">Hide</string>

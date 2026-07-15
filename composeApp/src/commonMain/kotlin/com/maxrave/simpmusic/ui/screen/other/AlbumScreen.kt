@@ -962,6 +962,12 @@ fun AlbumScreen(
                         playlistName = uiState.title,
                         isYourYouTubePlaylist = false,
                         onSaveToLocal = {},
+                        onStartJam = {
+                            uiState.listTrack.firstOrNull()?.let { viewModel.playTrack(it) }
+                            navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamHostDestination) {
+                                launchSingleTop = true
+                            }
+                        },
                         onAddToQueue = {
                             sharedViewModel.addListToQueue(
                                 uiState.listTrack.toCollection(arrayListOf()),

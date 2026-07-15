@@ -1240,6 +1240,12 @@ fun PlaylistScreen(
                                 viewModel.saveToLocal(track)
                             }
                         },
+                        onStartJam = {
+                            viewModel.onUIEvent(PlaylistUIEvent.PlayAll)
+                            navController.navigate(com.marki19.simpmusic.ui.navigation.destination.jam.JamHostDestination) {
+                                launchSingleTop = true
+                            }
+                        },
                         onEditTitle = { newTitle ->
                             viewModel.updatePlaylistTitle(newTitle, data.id)
                         },

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Insights
@@ -34,6 +35,7 @@ import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
 import simpmusic.composeapp.generated.resources.most_played
+import simpmusic.composeapp.generated.resources.cached_songs
 
 @Composable
 fun LibraryTilingBox(navController: NavController) {
@@ -170,6 +172,13 @@ data class LibraryTilingState(
                 title = Res.string.downloaded,
                 containerColor = Color(0xff4CAF50),
                 icon = Icons.Default.Downloading,
+                iconColor = Color.Black,
+            )
+        val CachedSongs =
+            LibraryTilingState(
+                title = Res.string.cached_songs,
+                containerColor = Color(0xffdcd3ff),
+                icon = Icons.Default.Cached,
                 iconColor = Color.Black,
             )
     }
