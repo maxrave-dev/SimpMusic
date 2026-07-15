@@ -15,6 +15,10 @@
 local.properties
 /app/release/
 crowdin.yml
+
+# Jetpack Compose
+**/build/
+
 # Kotlin 2.0
 .kotlin/
 .idea
