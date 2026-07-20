@@ -123,6 +123,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestina
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
+import com.maxrave.simpmusic.ui.theme.ThemeColorPreset
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SettingAlertState
@@ -575,18 +576,18 @@ fun SettingScreen(
                 )
                 val colorSourceLabels =
                     buildList {
-                        add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))
+                        add(ThemeColorPreset.DEFAULT to stringResource(Res.string.theme_color_default))
                         if (isWallpaperDynamicColorSupported()) {
-                            add(DataStoreManager.THEME_COLOR_WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
+                            add(ThemeColorPreset.WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
                         }
-                        add(DataStoreManager.THEME_COLOR_CUSTOM to stringResource(Res.string.theme_color_custom))
-                        add(DataStoreManager.THEME_COLOR_SAKURA to stringResource(Res.string.theme_color_sakura))
-                        add(DataStoreManager.THEME_COLOR_CYBERPUNK to stringResource(Res.string.theme_color_cyberpunk))
-                        add(DataStoreManager.THEME_COLOR_EMERALD to stringResource(Res.string.theme_color_emerald))
-                        add(DataStoreManager.THEME_COLOR_SUNSET to stringResource(Res.string.theme_color_sunset))
-                        add(DataStoreManager.THEME_COLOR_OCEAN to stringResource(Res.string.theme_color_ocean))
-                        add(DataStoreManager.THEME_COLOR_RUBY to stringResource(Res.string.theme_color_ruby))
-                        add(DataStoreManager.THEME_COLOR_MONOCHROME to stringResource(Res.string.theme_color_monochrome))
+                        add(ThemeColorPreset.CUSTOM to stringResource(Res.string.theme_color_custom))
+                        add(ThemeColorPreset.SAKURA to stringResource(Res.string.theme_color_sakura))
+                        add(ThemeColorPreset.CYBERPUNK to stringResource(Res.string.theme_color_cyberpunk))
+                        add(ThemeColorPreset.EMERALD to stringResource(Res.string.theme_color_emerald))
+                        add(ThemeColorPreset.SUNSET to stringResource(Res.string.theme_color_sunset))
+                        add(ThemeColorPreset.OCEAN to stringResource(Res.string.theme_color_ocean))
+                        add(ThemeColorPreset.RUBY to stringResource(Res.string.theme_color_ruby))
+                        add(ThemeColorPreset.MONOCHROME to stringResource(Res.string.theme_color_monochrome))
                     }
                 SettingItem(
                     title = stringResource(Res.string.theme_color),
@@ -604,7 +605,7 @@ fun SettingScreen(
                                         val selected = state.selectOne?.getSelected()
                                         colorSourceLabels.firstOrNull { it.second == selected }?.first?.let {
                                             sharedViewModel.setThemeColorSource(it)
-                                            if (it == DataStoreManager.THEME_COLOR_CUSTOM) {
+                                            if (it == ThemeColorPreset.CUSTOM) {
                                                 showColorPickerDialog = true
                                             }
                                         }
@@ -614,7 +615,7 @@ fun SettingScreen(
                         )
                     },
                 )
-                if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
+                if (themeColorSource == ThemeColorPreset.CUSTOM) {
                     SettingItem(
                         title = stringResource(Res.string.custom_color),
                         subtitle = "#${customThemeColorHex.takeLast(6)}",
@@ -2347,7 +2348,7 @@ fun SettingScreen(
                         parsedColor?.let {
                             val argb = "FF${pendingHex.takeLast(6).uppercase()}"
                             sharedViewModel.setCustomThemeColor(argb)
-                            sharedViewModel.setThemeColorSource(DataStoreManager.THEME_COLOR_CUSTOM)
+                            sharedViewModel.setThemeColorSource(ThemeColorPreset.CUSTOM)
                         }
                         showColorPickerDialog = false
                     },

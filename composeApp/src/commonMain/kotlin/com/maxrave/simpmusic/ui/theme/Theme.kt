@@ -91,6 +91,20 @@ private fun ColorScheme.withNeutralLightSurfaces(): ColorScheme =
         inverseOnSurface = Color(0xFFF1F1F1),
     )
 
+/** Theme color presets supported by SimpMusic UI. */
+object ThemeColorPreset {
+    const val DEFAULT = DataStoreManager.THEME_COLOR_DEFAULT
+    const val WALLPAPER = DataStoreManager.THEME_COLOR_WALLPAPER
+    const val CUSTOM = DataStoreManager.THEME_COLOR_CUSTOM
+    const val SAKURA = "SAKURA"
+    const val CYBERPUNK = "CYBERPUNK"
+    const val EMERALD = "EMERALD"
+    const val SUNSET = "SUNSET"
+    const val OCEAN = "OCEAN"
+    const val RUBY = "RUBY"
+    const val MONOCHROME = "MONOCHROME"
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppTheme(
@@ -108,27 +122,27 @@ fun AppTheme(
             else -> true
         }
     val wallpaperScheme =
-        if (themeColorSource == DataStoreManager.THEME_COLOR_WALLPAPER) {
+        if (themeColorSource == ThemeColorPreset.WALLPAPER) {
             platformDynamicColorScheme(isDark)
         } else {
             null
         }
     val seedColor =
         when (themeColorSource) {
-            DataStoreManager.THEME_COLOR_CUSTOM -> customThemeColor ?: seed
-            DataStoreManager.THEME_COLOR_SAKURA -> Color(0xFFFF80AB)
-            DataStoreManager.THEME_COLOR_CYBERPUNK -> Color(0xFFB388FF)
-            DataStoreManager.THEME_COLOR_EMERALD -> Color(0xFF00E676)
-            DataStoreManager.THEME_COLOR_SUNSET -> Color(0xFFFFAB00)
-            DataStoreManager.THEME_COLOR_OCEAN -> Color(0xFF448AFF)
-            DataStoreManager.THEME_COLOR_RUBY -> Color(0xFFFF5252)
-            DataStoreManager.THEME_COLOR_MONOCHROME -> Color(0xFF9E9E9E)
+            ThemeColorPreset.CUSTOM -> customThemeColor ?: seed
+            ThemeColorPreset.SAKURA -> Color(0xFFFF80AB)
+            ThemeColorPreset.CYBERPUNK -> Color(0xFFB388FF)
+            ThemeColorPreset.EMERALD -> Color(0xFF00E676)
+            ThemeColorPreset.SUNSET -> Color(0xFFFFAB00)
+            ThemeColorPreset.OCEAN -> Color(0xFF448AFF)
+            ThemeColorPreset.RUBY -> Color(0xFFFF5252)
+            ThemeColorPreset.MONOCHROME -> Color(0xFF9E9E9E)
             else -> seed
         }
     val paletteStyle =
         when (themeColorSource) {
-            DataStoreManager.THEME_COLOR_MONOCHROME -> PaletteStyle.Monochrome
-            DataStoreManager.THEME_COLOR_CYBERPUNK -> PaletteStyle.Vibrant
+            ThemeColorPreset.MONOCHROME -> PaletteStyle.Monochrome
+            ThemeColorPreset.CYBERPUNK -> PaletteStyle.Vibrant
             else -> PaletteStyle.TonalSpot
         }
     // Symmetric base: dark pins background/surface to pure black via isAmoled; light pins them to
