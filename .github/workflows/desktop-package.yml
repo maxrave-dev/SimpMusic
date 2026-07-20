@@ -179,31 +179,14 @@ jobs:
           ( cd "$stage" && zip -q -j \
             "${GITHUB_WORKSPACE}/installers/SimpMusic-Windows-installer.zip" \
             install.bat simpmusic.crt "$(basename "$msix")" )
-          
-          # Generate self-extracting Windows .EXE setup installer using 7-Zip SFX
-          VERSION=$(grep '^version-name' gradle/libs.versions.toml | head -1 | cut -d'"' -f2)
-          curl -fsSL https://github.com/ip7z/7zip/releases/download/26.01/7z2601-extra.7z -o /tmp/7z-extra.7z
-          7z e -y /tmp/7z-extra.7z -o/tmp/sfx 7zSD.sfx >/dev/null 2>&1 || true
-          if [ -f /tmp/sfx/7zSD.sfx ]; then
-            ( cd "$stage" && 7z a -t7z -mx=9 setup.7z install.bat simpmusic.crt "$(basename "$msix")" >/dev/null )
-            cat << 'EOF' > "$stage/config.txt"
-;!@Install@!UTF-8!
-Title="SimpMusic Setup"
-BeginPrompt="Do you want to install SimpMusic?"
-RunProgram="install.bat"
-;!@InstallEnd@!
-EOF
-            cat /tmp/sfx/7zSD.sfx "$stage/config.txt" "$stage/setup.7z" > "${GITHUB_WORKSPACE}/installers/SimpMusic-Setup-${VERSION}-windows-x64.exe"
-            chmod +x "${GITHUB_WORKSPACE}/installers/SimpMusic-Setup-${VERSION}-windows-x64.exe"
-          fi
           rm -rf "$stage"
           ls -lh installers/
 
-      - name: Upload Windows offline installer (.zip & .exe)
+      - name: Upload Windows offline installer
         uses: actions/upload-artifact@v4
         with:
           name: desktop-windows
-          path: installers/*
+          path: installers/SimpMusic-Windows-installer.zip
 
   wrap-mac-dmg:
     name: Wrap macOS .zip → .dmg (installer UX)
