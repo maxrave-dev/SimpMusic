@@ -170,9 +170,16 @@ compose.desktop {
                 listTarget.addAll(
                     listOf(TargetFormat.Dmg, TargetFormat.Msi),
                 )
+            } else if (org.gradle.internal.os.OperatingSystem
+                    .current()
+                    .isWindows
+            ) {
+                listTarget.addAll(
+                    listOf(TargetFormat.Exe, TargetFormat.Msi),
+                )
             } else {
                 listTarget.addAll(
-                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.AppImage),
+                    listOf(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Exe, TargetFormat.AppImage),
                 )
             }
             targetFormats(*listTarget.toTypedArray())

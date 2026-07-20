@@ -321,7 +321,14 @@ import simpmusic.composeapp.generated.resources.such_as_music_video_lyrics_video
 import simpmusic.composeapp.generated.resources.theme
 import simpmusic.composeapp.generated.resources.theme_color
 import simpmusic.composeapp.generated.resources.theme_color_custom
+import simpmusic.composeapp.generated.resources.theme_color_cyberpunk
 import simpmusic.composeapp.generated.resources.theme_color_default
+import simpmusic.composeapp.generated.resources.theme_color_emerald
+import simpmusic.composeapp.generated.resources.theme_color_monochrome
+import simpmusic.composeapp.generated.resources.theme_color_ocean
+import simpmusic.composeapp.generated.resources.theme_color_ruby
+import simpmusic.composeapp.generated.resources.theme_color_sakura
+import simpmusic.composeapp.generated.resources.theme_color_sunset
 import simpmusic.composeapp.generated.resources.theme_color_wallpaper
 import simpmusic.composeapp.generated.resources.theme_mode_dark
 import simpmusic.composeapp.generated.resources.theme_mode_light
@@ -573,6 +580,13 @@ fun SettingScreen(
                             add(DataStoreManager.THEME_COLOR_WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
                         }
                         add(DataStoreManager.THEME_COLOR_CUSTOM to stringResource(Res.string.theme_color_custom))
+                        add(DataStoreManager.THEME_COLOR_SAKURA to stringResource(Res.string.theme_color_sakura))
+                        add(DataStoreManager.THEME_COLOR_CYBERPUNK to stringResource(Res.string.theme_color_cyberpunk))
+                        add(DataStoreManager.THEME_COLOR_EMERALD to stringResource(Res.string.theme_color_emerald))
+                        add(DataStoreManager.THEME_COLOR_SUNSET to stringResource(Res.string.theme_color_sunset))
+                        add(DataStoreManager.THEME_COLOR_OCEAN to stringResource(Res.string.theme_color_ocean))
+                        add(DataStoreManager.THEME_COLOR_RUBY to stringResource(Res.string.theme_color_ruby))
+                        add(DataStoreManager.THEME_COLOR_MONOCHROME to stringResource(Res.string.theme_color_monochrome))
                     }
                 SettingItem(
                     title = stringResource(Res.string.theme_color),
@@ -2283,6 +2297,8 @@ fun SettingScreen(
             listOf(
                 "FF8ECAE6", "FF4C82EF", "FF9B72CF", "FFEF6C9B", "FFEF5350",
                 "FFF4A340", "FFFFCA28", "FF66BB6A", "FF26A69A", "FFBDBDBD",
+                "FFFF80AB", "FFB388FF", "FF00E676", "FFFFAB00", "FF448AFF",
+                "FFFF5252", "FF9E9E9E", "FF00BCD4", "FF8D6E63", "FF607D8B",
             )
         var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
         val parsedColor = parseThemeColorHex(pendingHex)

@@ -311,7 +311,7 @@ Before implementing code, researching code, or answering technical questions, th
 - **FOSS**: No tracking (module: `crashlytics-empty`)
 
 ### Desktop
-- **Windows**: `.msi` installer
+- **Windows**: `.exe` (Inno Setup / self-extracting SFX installer & Compose `TargetFormat.Exe`) and `.msix` / `.msi` installers
 - **macOS**: `.dmg` (ARM and x86-64)
 - **Linux**: `.AppImage` (DEB and RPM removed post-1.0.4)
 
@@ -480,6 +480,7 @@ if (getPlatform() == Platform.Android) {
 - **VM environment detection**: Disable transparency and custom titlebar in VMs
 - **Google Cast (2026-07, Full build only)**: `cast`/`cast-empty` module pair gated by `isFullBuild`; unified Media3 `CastPlayer` wraps the session `ForwardingPlayer`; `CastHandoffManager` pushes resolved-URL queue windows to the receiver with 403/expiry retry; Cast button in Now Playing top bar, "Playing on <device>" pill, crossfade/DJ/EQ settings gray out while casting; FOSS build stays GMS-free
 - **Windows SMTC (2026-07)**: System Media Transport Controls on Windows via `jmtc`/`nowplayingcenter` 0.0.3 (forked JMTC). The native `SMTCAdapter.dll` was hardened against the 1.0.x crash (Sentry SIMPMUSIC-DESKTOP-7, ~95k events): COM apartment tolerates `RPC_E_CHANGED_MODE`, `MediaPlayer` kept alive process-wide, and every exported call is exception-guarded so nothing crosses the JNA boundary as "Invalid memory access". JMTC is confined to a dedicated thread (off the AWT EDT), and `MediaType.Music` is set before display properties so title/artist render (not just the app name). Enabled in `JvmMediaPlayerHandlerImpl` for `Platform.Windows` (Linux MPRIS unchanged; macOS uses NowPlayingCenter). DLL built by GitHub Actions (`windows-latest`) in the NowPlayingCenter repo.
+- **v1.6.1 Themes & Windows .EXE Installer (2026-07)**: Added 7 new curated theme palettes (`SAKURA`, `CYBERPUNK`, `EMERALD`, `SUNSET`, `OCEAN`, `RUBY`, `MONOCHROME`) alongside Default, Wallpaper, and Custom options with custom `PaletteStyle` support (`PaletteStyle.Monochrome`, `PaletteStyle.Vibrant`, `PaletteStyle.TonalSpot`). Expanded the Custom color dialog preset swatches from 10 to 20 curated colors. Added `TargetFormat.Exe` to `desktopApp/build.gradle.kts` for native Windows `.exe` packaging (`jpackage`), and created an offline Windows `.exe` installer setup suite (`scripts/windows/SimpMusic.iss`, `generate_sfx_exe.ps1`) integrated into `.github/workflows/desktop-package.yml` to produce self-extracting `SimpMusic-Setup-<version>-windows-x64.exe` installer artifacts alongside MSIX.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
@@ -505,6 +506,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-07-18
+**Last updated**: 2026-07-19
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

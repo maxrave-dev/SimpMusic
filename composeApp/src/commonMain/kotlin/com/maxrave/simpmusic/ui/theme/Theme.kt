@@ -114,10 +114,22 @@ fun AppTheme(
             null
         }
     val seedColor =
-        if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
-            customThemeColor ?: seed
-        } else {
-            seed
+        when (themeColorSource) {
+            DataStoreManager.THEME_COLOR_CUSTOM -> customThemeColor ?: seed
+            DataStoreManager.THEME_COLOR_SAKURA -> Color(0xFFFF80AB)
+            DataStoreManager.THEME_COLOR_CYBERPUNK -> Color(0xFFB388FF)
+            DataStoreManager.THEME_COLOR_EMERALD -> Color(0xFF00E676)
+            DataStoreManager.THEME_COLOR_SUNSET -> Color(0xFFFFAB00)
+            DataStoreManager.THEME_COLOR_OCEAN -> Color(0xFF448AFF)
+            DataStoreManager.THEME_COLOR_RUBY -> Color(0xFFFF5252)
+            DataStoreManager.THEME_COLOR_MONOCHROME -> Color(0xFF9E9E9E)
+            else -> seed
+        }
+    val paletteStyle =
+        when (themeColorSource) {
+            DataStoreManager.THEME_COLOR_MONOCHROME -> PaletteStyle.Monochrome
+            DataStoreManager.THEME_COLOR_CYBERPUNK -> PaletteStyle.Vibrant
+            else -> PaletteStyle.TonalSpot
         }
     // Symmetric base: dark pins background/surface to pure black via isAmoled; light pins them to
     // pure white with a neutral-grey ramp (the seed otherwise tints the light neutrals warm/cream).
@@ -127,7 +139,7 @@ fun AppTheme(
                 seedColor = seedColor,
                 isDark = isDark,
                 isAmoled = isDark,
-                style = PaletteStyle.TonalSpot,
+                style = paletteStyle,
                 modifyColorScheme = { cs -> if (isDark) cs else cs.withNeutralLightSurfaces() },
             )
     SystemBarAppearanceEffect(isDark)

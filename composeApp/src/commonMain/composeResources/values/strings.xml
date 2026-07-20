@@ -362,6 +362,13 @@
     <string name="theme_color_default">Default</string>
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Custom</string>
+    <string name="theme_color_sakura">Sakura (Cherry Blossom)</string>
+    <string name="theme_color_cyberpunk">Cyberpunk (Neon Purple)</string>
+    <string name="theme_color_emerald">Emerald (Forest Green)</string>
+    <string name="theme_color_sunset">Sunset (Warm Gold)</string>
+    <string name="theme_color_ocean">Ocean (Deep Sapphire)</string>
+    <string name="theme_color_ruby">Ruby (Bold Crimson)</string>
+    <string name="theme_color_monochrome">Monochrome (Slate Silver)</string>
     <string name="custom_color">Custom color</string>
     <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
