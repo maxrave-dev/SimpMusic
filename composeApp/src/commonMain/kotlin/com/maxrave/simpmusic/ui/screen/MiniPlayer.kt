@@ -846,14 +846,9 @@ fun MiniPlayer(
                         Spacer(Modifier.width(4.dp))
                         // Queue Button
                         IconButton(
-                            modifier =
-                                Modifier
-                                    .width(32.dp)
-                                    .aspectRatio(1f)
-                                    .clip(CircleShape),
                             onClick = {
                                 showQueueBottomSheet = true
-                            },
+                            }
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
