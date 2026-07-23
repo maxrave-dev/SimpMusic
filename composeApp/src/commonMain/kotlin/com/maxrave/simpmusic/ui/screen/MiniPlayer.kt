@@ -855,8 +855,7 @@ fun MiniPlayer(
                                 if (controllerState.volume > 0f) {
                                     previousVolumeValue = controllerState.volume
                                     sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
-                                }
-                                else {
+                                } else {
                                     sharedViewModel.onUIEvent(UIEvent.UpdateVolume(previousVolumeValue.coerceAtLeast(0.1f)))
                                 }
                             },
