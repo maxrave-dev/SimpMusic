@@ -841,11 +841,24 @@ fun MiniPlayer(
                                 )
                             }
                         }
+                        var previousVolumeValue by rememberSaveable {
+                            mutableFloatStateOf(1f)
+                        }
+                        LaunchedEffect(controllerState.volume) {
+                            if (controllerState.volume > 0f) {
+                                previousVolumeValue = controllerState.volume
+                            }
+                        }
                         IconButton(
                             onClick = {
                                 // Toggle mute/unmute
-                                val newVolume = if (controllerState.volume > 0f) 0f else 1f
-                                sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                if (controllerState.volume > 0f) {
+                                    previousVolumeValue = controllerState.volume
+                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
+                                }
+                                else {
+                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(previousVolumeValue.coerceAtLeast(0.1f)))
+                                }
                             },
                         ) {
                             Icon(
@@ -882,6 +895,7 @@ fun MiniPlayer(
                                 onValueChange = {
                                     isVolumeSliding = true
                                     volumeValue = it
+                                    if (it > 0f) previousVolumeValue = it
                                 },
                                 valueRange = 0f..1f,
                                 modifier =
