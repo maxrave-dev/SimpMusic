@@ -219,7 +219,6 @@ fun MiniPlayer(
             mutableStateOf(false)
         }
 
-
     val coroutineScope = rememberCoroutineScope()
 
     val animatedProgress by animateFloatAsState(
