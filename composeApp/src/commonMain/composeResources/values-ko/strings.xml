@@ -394,14 +394,10 @@
     <string name="do_not_show_again">다시 보지 않기</string>
     <string name="auto_check_for_update">업데이트 자동 확인</string>
     <string name="auto_check_for_update_description">앱을 열 때 업데이트 유무 확인</string>
-    <string name="blur_fullscreen_lyrics">전체화면 가사 배경 흐리게</string>
-    <string name="blur_fullscreen_lyrics_description">전체화면 가사의 배경을 흐리게 처리</string>
     <string name="playback_speed_pitch"><![CDATA[재생 속도 & 음정]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[재생 속도 및 피치(크로스페이드 활성화 시 비활성화됨)]]></string>
     <string name="playback_speed">재생 속도</string>
     <string name="pitch">음정</string>
-    <string name="blur_player_background">플레이어 배경 흐리게</string>
-    <string name="blur_player_background_description">재생 화면의 배경을 흐리게 처리</string>
     <string name="merging_audio_and_video">오디오와 동영상 병합 중</string>
     <string name="error_occurred">오류 발생함</string>
     <string name="downloading_audio">오디오 다운로드 중: %1$s </string>

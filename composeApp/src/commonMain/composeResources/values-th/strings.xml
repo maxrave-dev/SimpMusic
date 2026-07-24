@@ -396,14 +396,10 @@
     <string name="do_not_show_again">อย่าแสดงอีก</string>
     <string name="auto_check_for_update">ตรวจสอบการอัปเดตอัตโนมัติ</string>
     <string name="auto_check_for_update_description">ตรวจสอบการอัปเดตทุกครั้งที่คุณเปิดแอป</string>
-    <string name="blur_fullscreen_lyrics">เอฟเฟกต์เบลอในหน้าจอเนื้อเพลงเต็มจอ</string>
-    <string name="blur_fullscreen_lyrics_description">เอฟเฟกต์เบลอพื้นหลังหน้าจอเมื่อเปิดเนื้อเพลงแบบเต็มจอ</string>
     <string name="playback_speed_pitch"><![CDATA[ความเร็วในการเล่นและความสูง-ต่ำของเสียง]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[ความเร็วการเล่นและระดับเสียง (จะถูกปิดใช้งานเมื่อเปิด Crossfade)]]></string>
     <string name="playback_speed">ความเร็วในการเล่น</string>
     <string name="pitch">ความสูง-ต่ำของเสียง</string>
-    <string name="blur_player_background">เบลอพื้นหลังของตัวเล่น</string>
-    <string name="blur_player_background_description">การเบลอพื้นหลังของเอฟเฟกต์หน้าจอขณะเล่น</string>
     <string name="merging_audio_and_video">รวมเสียงและวิดีโอ</string>
     <string name="error_occurred">เกิดข้อผิดพลาด</string>
     <string name="downloading_audio">กำลังดาวน์โหลดเสียง:%1$s </string>

@@ -386,14 +386,10 @@
     <string name="do_not_show_again">Nicht erneut anzeigen</string>
     <string name="auto_check_for_update">Automatisches Überprüfen auf Updates</string>
     <string name="auto_check_for_update_description">Überprüfung auf Updates beim App Start</string>
-    <string name="blur_fullscreen_lyrics">Verwischen Sie den Texteffekt im Vollbildmodus</string>
-    <string name="blur_fullscreen_lyrics_description">Den Hintergrund des Vollbild-Textbildschirmeffekts unscharf machen</string>
     <string name="playback_speed_pitch"><![CDATA[Wiedergabegeschwindigkeit und Tonhöhe]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Wiedergabegeschwindigkeit & Tonhöhe (deaktiviert, wenn Crossfade aktiviert ist)]]></string>
     <string name="playback_speed">Wiedergabegeschwindigkeit</string>
     <string name="pitch">Tonhöhe</string>
-    <string name="blur_player_background">Player Hintergrund verwischen</string>
-    <string name="blur_player_background_description">Verwischt den Hintergrund des ''spielt gerade'' Bildschirmeffekts</string>
     <string name="merging_audio_and_video">Audio und Video zusammenfügen</string>
     <string name="error_occurred">Es ist ein Fehler aufgetreten</string>
     <string name="downloading_audio">Audio wird heruntergeladen: %1$s </string>

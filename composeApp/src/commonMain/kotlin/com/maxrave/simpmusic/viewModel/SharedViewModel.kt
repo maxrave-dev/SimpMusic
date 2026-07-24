@@ -163,15 +163,6 @@ class SharedViewModel(
 
     val castState: StateFlow<GenericCastState> get() = mediaPlayerHandler.castState
 
-    val blurBg: StateFlow<Boolean> =
-        dataStoreManager.blurPlayerBackground
-            .map { it == TRUE }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(500L),
-                initialValue = false,
-            )
-
     private var _controllerState =
         MutableStateFlow<ControlState>(
             ControlState(
@@ -478,8 +469,6 @@ class SharedViewModel(
             putString("notification_permission_do_not_ask", "true")
         }
     }
-
-    fun blurFullscreenLyrics(): Boolean = runBlocking { dataStoreManager.blurFullscreenLyrics.first() == TRUE }
 
     private fun getLikeStatus(videoId: String?) {
         viewModelScope.launch {

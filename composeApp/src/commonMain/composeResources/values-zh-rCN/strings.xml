@@ -394,14 +394,10 @@
     <string name="do_not_show_again">不再显示</string>
     <string name="auto_check_for_update">自动检查更新</string>
     <string name="auto_check_for_update_description">当您打开应用程序时检查更新</string>
-    <string name="blur_fullscreen_lyrics">模糊全屏歌词特效</string>
-    <string name="blur_fullscreen_lyrics_description">模糊全屏歌词界面的背景效果</string>
     <string name="playback_speed_pitch"><![CDATA[播放速度与音调]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[播放速度和音调 (启用交叉淡入淡出时禁用)]]></string>
     <string name="playback_speed">播放速度</string>
     <string name="pitch">音调</string>
-    <string name="blur_player_background">播放界面背景模糊</string>
-    <string name="blur_player_background_description">“正在播放”界面的背景模糊效果</string>
     <string name="merging_audio_and_video">正在合并音频和视频</string>
     <string name="error_occurred">出错了</string>
     <string name="downloading_audio">正在下载音频： %1$s </string>

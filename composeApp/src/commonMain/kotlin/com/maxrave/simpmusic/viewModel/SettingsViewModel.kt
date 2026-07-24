@@ -121,10 +121,6 @@ class SettingsViewModel(
     val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate
     private var _updateChannel: MutableStateFlow<String> = MutableStateFlow(DataStoreManager.GITHUB)
     val updateChannel: StateFlow<String> = _updateChannel
-    private var _blurFullscreenLyrics = MutableStateFlow(false)
-    val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
-    private var _blurPlayerBackground = MutableStateFlow(false)
-    val blurPlayerBackground: StateFlow<Boolean> = _blurPlayerBackground
     private val _aiProvider = MutableStateFlow<String>(DataStoreManager.AI_PROVIDER_OPENAI)
     val aiProvider: StateFlow<String> = _aiProvider
     private val _isHasApiKey = MutableStateFlow<Boolean>(false)
@@ -260,8 +256,6 @@ class SettingsViewModel(
         getCanvasCache()
         getTranslucentBottomBar()
         getAutoCheckUpdate()
-        getBlurFullscreenLyrics()
-        getBlurPlayerBackground()
         getAIProvider()
         getAIApiKey()
         getAITranslation()
@@ -725,36 +719,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setAIApiKey(apiKey)
             getAIApiKey()
-        }
-    }
-
-    private fun getBlurFullscreenLyrics() {
-        viewModelScope.launch {
-            dataStoreManager.blurFullscreenLyrics.collect { blurFullscreenLyrics ->
-                _blurFullscreenLyrics.value = blurFullscreenLyrics == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setBlurFullscreenLyrics(blurFullscreenLyrics: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setBlurFullscreenLyrics(blurFullscreenLyrics)
-            getBlurFullscreenLyrics()
-        }
-    }
-
-    private fun getBlurPlayerBackground() {
-        viewModelScope.launch {
-            dataStoreManager.blurPlayerBackground.collect { blurPlayerBackground ->
-                _blurPlayerBackground.value = blurPlayerBackground == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setBlurPlayerBackground(blurPlayerBackground: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setBlurPlayerBackground(blurPlayerBackground)
-            getBlurPlayerBackground()
         }
     }
 

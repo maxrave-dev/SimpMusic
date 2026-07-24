@@ -379,13 +379,9 @@
     <string name="do_not_show_again">再び表示しない</string>
     <string name="auto_check_for_update">最新版を自動で確認</string>
     <string name="auto_check_for_update_description">アプリを開いた時に更新を確認します</string>
-    <string name="blur_fullscreen_lyrics">全画面の歌詞でぼかす効果</string>
-    <string name="blur_fullscreen_lyrics_description">全画面の歌詞画面の背景をぼかす</string>
     <string name="playback_speed_pitch"><![CDATA[再生速度とピッチ]]></string>
     <string name="playback_speed">再生速度</string>
     <string name="pitch">ピッチ</string>
-    <string name="blur_player_background">プレーヤーの背景をぼかす</string>
-    <string name="blur_player_background_description">再生中の画面の背景をぼかす</string>
     <string name="merging_audio_and_video">音声と動画を統合中</string>
     <string name="error_occurred">エラーが発生しました</string>
     <string name="downloading_audio">音声をダウンロード中: %1$s </string>

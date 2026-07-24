@@ -410,14 +410,10 @@
     <string name="do_not_show_again">Do not show again</string>
     <string name="auto_check_for_update">Automatic check for update</string>
     <string name="auto_check_for_update_description">Checking for update when you open app</string>
-    <string name="blur_fullscreen_lyrics">Blur fullscreen lyrics effect</string>
-    <string name="blur_fullscreen_lyrics_description">Blurring the background of the Fullscreen lyrics screen effect</string>
     <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Playback speed & pitch (disabled when crossfade is enabled)]]></string>
     <string name="playback_speed">Playback speed</string>
     <string name="pitch">Pitch</string>
-    <string name="blur_player_background">Blur player background</string>
-    <string name="blur_player_background_description">Blurring the background of the now playing screen effect</string>
     <string name="merging_audio_and_video">Merging audio and video</string>
     <string name="error_occurred">Error occurred</string>
     <string name="downloading_audio">Downloading audio: %1$s </string>

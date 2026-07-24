@@ -103,12 +103,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.CupertinoMaterials
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -248,7 +242,6 @@ fun LyricsView(
     modifier: Modifier = Modifier,
     showScrollShadows: Boolean = false,
     backgroundColor: Color = Color(0xFF242424),
-    hasBlurBackground: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val current by timeLine.collectAsStateWithLifecycle()
@@ -568,7 +561,6 @@ private fun AnimatedWord(
     }
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
 @Composable
@@ -576,7 +568,6 @@ fun FullscreenLyricsSheet(
     sharedViewModel: SharedViewModel,
     navController: NavController,
     color: Color = Color(0xFF242424),
-    shouldHaze: Boolean,
     onDismiss: () -> Unit,
 ) {
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
@@ -612,79 +603,67 @@ fun FullscreenLyricsSheet(
 
     // Dynamic gradient animation - MULTIPLE DIRECTIONS
     // Replaces the previous `while(true) { delay(16) }` loop with a Compose
-    // infinite transition. When haze is ON the gradient is hidden, so we keep
-    // values at 0f and skip the transition entirely.
-    val gradientAngle: Float
-    val gradientOffsetX: Float
-    val gradientOffsetY: Float
-    if (!shouldHaze) {
-        val gradientTransition = rememberInfiniteTransition(label = "lyricsGradient")
-        val animatedAngle by gradientTransition.animateFloat(
-            initialValue = -45f,
-            targetValue = 45f,
-            animationSpec =
-                infiniteRepeatable(
-                    animation = tween(durationMillis = 6000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-            label = "lyricsGradientAngle",
-        )
-        val animatedOffsetX by gradientTransition.animateFloat(
-            initialValue = -1500f,
-            targetValue = 1500f,
-            animationSpec =
-                infiniteRepeatable(
-                    animation = tween(durationMillis = 8000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-            label = "lyricsGradientOffsetX",
-        )
-        val animatedOffsetY by gradientTransition.animateFloat(
-            initialValue = -1000f,
-            targetValue = 1000f,
-            animationSpec =
-                infiniteRepeatable(
-                    animation = tween(durationMillis = 8000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-            label = "lyricsGradientOffsetY",
-        )
-        gradientAngle = animatedAngle
-        gradientOffsetX = animatedOffsetX
-        gradientOffsetY = animatedOffsetY
-    } else {
-        gradientAngle = 0f
-        gradientOffsetX = 0f
-        gradientOffsetY = 0f
-    }
+    // infinite transition.
+    val gradientTransition = rememberInfiniteTransition(label = "lyricsGradient")
+    val animatedAngle by gradientTransition.animateFloat(
+        initialValue = -45f,
+        targetValue = 45f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 6000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "lyricsGradientAngle",
+    )
+    val animatedOffsetX by gradientTransition.animateFloat(
+        initialValue = -1500f,
+        targetValue = 1500f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 8000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "lyricsGradientOffsetX",
+    )
+    val animatedOffsetY by gradientTransition.animateFloat(
+        initialValue = -1000f,
+        targetValue = 1000f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 8000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "lyricsGradientOffsetY",
+    )
+    val gradientAngle = animatedAngle
+    val gradientOffsetX = animatedOffsetX
+    val gradientOffsetY = animatedOffsetY
 
-    // Smooth color animation based on lyrics color — only when haze is OFF
-    LaunchedEffect(color, shouldHaze) {
-        if (!shouldHaze) {
-            launch {
-                startColor.animateTo(
-                    targetValue = color,
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
-                )
-            }
-            launch {
-                midColor1.animateTo(
-                    targetValue = color.copy(alpha = 0.95f),
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
-                )
-            }
-            launch {
-                midColor2.animateTo(
-                    targetValue = color.copy(alpha = 0.85f),
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
-                )
-            }
-            launch {
-                endColor.animateTo(
-                    targetValue = Color.Black,
-                    animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
-                )
-            }
+    // Smooth color animation based on lyrics color
+    LaunchedEffect(color) {
+        launch {
+            startColor.animateTo(
+                targetValue = color,
+                animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+            )
+        }
+        launch {
+            midColor1.animateTo(
+                targetValue = color.copy(alpha = 0.95f),
+                animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+            )
+        }
+        launch {
+            midColor2.animateTo(
+                targetValue = color.copy(alpha = 0.85f),
+                animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+            )
+        }
+        launch {
+            endColor.animateTo(
+                targetValue = Color.Black,
+                animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+            )
         }
     }
 
@@ -758,83 +737,41 @@ fun FullscreenLyricsSheet(
             label = "sliderCrossfadeColor",
         )
         Box(modifier = Modifier.fillMaxSize()) {
-            // ── Haze state (used only when shouldHaze = true) ─────────────────
-            val hazeState = rememberHazeState(blurEnabled = true)
-
-            if (shouldHaze) {
-                // Full-screen album art as haze SOURCE — blurred poster background
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .hazeSource(hazeState),
-                ) {
-                    AsyncImage(
-                        model =
-                            ImageRequest
-                                .Builder(LocalPlatformContext.current)
-                                .data(screenDataState.thumbnailURL)
-                                .crossfade(300)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .diskCacheKey(screenDataState.thumbnailURL)
-                                .build(),
-                        contentDescription = null,
-                        contentScale = ContentScale.FillHeight,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            } else {
-                // Animated gradient background — only shown when haze is OFF
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.linearGradient(
-                                    colors =
-                                        listOf(
-                                            startColor.value,
-                                            midColor1.value,
-                                            midColor2.value,
-                                            endColor.value.copy(alpha = 0.9f),
-                                            endColor.value,
-                                        ),
-                                    start =
-                                        Offset(
-                                            x = gradientOffsetX + (cos(gradientAngle * PI.toFloat() / 180f) * 800f),
-                                            y = gradientOffsetY + (sin(gradientAngle * PI.toFloat() / 180f) * 800f),
-                                        ),
-                                    end =
-                                        Offset(
-                                            x = gradientOffsetX + 2500f + (cos((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
-                                            y = gradientOffsetY + 2500f + (sin((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
-                                        ),
-                                ),
+            // Animated gradient background
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.linearGradient(
+                                colors =
+                                    listOf(
+                                        startColor.value,
+                                        midColor1.value,
+                                        midColor2.value,
+                                        endColor.value.copy(alpha = 0.9f),
+                                        endColor.value,
+                                    ),
+                                start =
+                                    Offset(
+                                        x = gradientOffsetX + (cos(gradientAngle * PI.toFloat() / 180f) * 800f),
+                                        y = gradientOffsetY + (sin(gradientAngle * PI.toFloat() / 180f) * 800f),
+                                    ),
+                                end =
+                                    Offset(
+                                        x = gradientOffsetX + 2500f + (cos((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
+                                        y = gradientOffsetY + 2500f + (sin((gradientAngle + 180f) * PI.toFloat() / 180f) * 800f),
+                                    ),
                             ),
-                )
-            }
+                        ),
+            )
 
             // ── Foreground content column ─────────────────────────────────────
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        // Apply frosted glass haze effect over the poster when enabled
-                        .then(
-                            if (shouldHaze) {
-                                Modifier.hazeEffect(
-                                    hazeState,
-                                    style = CupertinoMaterials.regular(),
-                                ) {
-                                    blurEnabled = true
-                                    // Force-dark: the poster artwork can be bright, so pin a dark tint over
-                                    // the blur so the white lyrics stay readable in every app theme.
-                                    tints = listOf(HazeTint(Color.Black.copy(alpha = 0.5f)))
-                                }
-                            } else {
-                                Modifier
-                            },
-                        ).padding(
+                        .padding(
                             bottom =
                                 with(localDensity) {
                                     windowInsets.getBottom(localDensity).toDp()
@@ -985,7 +922,6 @@ fun FullscreenLyricsSheet(
                                     modifier = Modifier.fillMaxSize(),
                                     showScrollShadows = true,
                                     backgroundColor = startColor.value,
-                                    hasBlurBackground = shouldHaze,
                                 )
                             }
                         } else {

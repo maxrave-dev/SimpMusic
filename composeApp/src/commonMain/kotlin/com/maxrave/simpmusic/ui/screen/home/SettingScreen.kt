@@ -184,10 +184,6 @@ import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
 import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.blog_notification_description
 import simpmusic.composeapp.generated.resources.blog_notification_title
-import simpmusic.composeapp.generated.resources.blur_fullscreen_lyrics
-import simpmusic.composeapp.generated.resources.blur_fullscreen_lyrics_description
-import simpmusic.composeapp.generated.resources.blur_player_background
-import simpmusic.composeapp.generated.resources.blur_player_background_description
 import simpmusic.composeapp.generated.resources.buy_me_a_coffee
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.canvas_info
@@ -451,8 +447,6 @@ fun SettingScreen(
     val proxyUsername by viewModel.proxyUsername.collectAsStateWithLifecycle()
     val proxyPassword by viewModel.proxyPassword.collectAsStateWithLifecycle()
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
-    val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
-    val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
@@ -613,18 +607,6 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.you_can_see_the_content_below_the_bottom_bar),
                     smallSubtitle = true,
                     switch = (enableTranslucentNavBar to { viewModel.setTranslucentBottomBar(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.blur_fullscreen_lyrics),
-                    subtitle = stringResource(Res.string.blur_fullscreen_lyrics_description),
-                    smallSubtitle = true,
-                    switch = (blurFullscreenLyrics to { viewModel.setBlurFullscreenLyrics(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.blur_player_background),
-                    subtitle = stringResource(Res.string.blur_player_background_description),
-                    smallSubtitle = true,
-                    switch = (blurPlayerBackground to { viewModel.setBlurPlayerBackground(it) }),
                 )
                 if (getPlatform() == Platform.Android) {
                     SettingItem(
@@ -2723,7 +2705,7 @@ fun SettingScreen(
             },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = {},
-            scrimColor = Color.Black,
+            scrimColor = Color.Black.copy(alpha = .5f),
             sheetState = sheetState,
             contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
             shape = RectangleShape,

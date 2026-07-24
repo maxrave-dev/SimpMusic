@@ -394,14 +394,10 @@
     <string name="do_not_show_again">Jangan tampilkan lagi</string>
     <string name="auto_check_for_update">Pemeriksaan pembaruan otomatis</string>
     <string name="auto_check_for_update_description">Memeriksa pembaruan saat Anda membuka aplikasi</string>
-    <string name="blur_fullscreen_lyrics">Buramkan efek lirik layar penuh</string>
-    <string name="blur_fullscreen_lyrics_description">Efek memburamkan latar belakang layar lirik Layar Penuh</string>
     <string name="playback_speed_pitch"><![CDATA[Kecepatan pemutaran & nada]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Kecepatan pemutaran & nada (dinonaktifkan saat pemudaran diaktifkan)]]></string>
     <string name="playback_speed">Kecepatan pemutaran</string>
     <string name="pitch">Nada</string>
-    <string name="blur_player_background">Buramkan latar belakang pemutar</string>
-    <string name="blur_player_background_description">Efek memburamkan latar belakang layar yang sedang diputar</string>
     <string name="merging_audio_and_video">Menggabungkan audio dan video</string>
     <string name="error_occurred">Terjadi kesalahan</string>
     <string name="downloading_audio">Mengunduh audio: %1$s </string>
