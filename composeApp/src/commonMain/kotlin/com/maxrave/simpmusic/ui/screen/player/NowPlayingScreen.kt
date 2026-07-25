@@ -106,7 +106,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -221,6 +223,12 @@ private fun String.stripRichSyncTimestamps(): String =
     replace(RICH_SYNC_TIMESTAMP_REGEX, " ")
         .replace(WHITESPACE_REGEX, " ")
         .trim()
+
+// Backdrop behind the player. A dark surface rather than pure black: #000000 reads as a hole
+// next to the artwork-tinted gradient and cards, which is why Spotify sits its player on a
+// near-black surface instead. Used for the gradient's end colour, the fade-to target and the
+// area below the gradient so all three match exactly and leave no seam.
+private val PlayerBackdropColor = Color(0xFF121212)
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -466,7 +474,9 @@ fun NowPlayingScreenContent(
             .collectLatest {
                 spotShadowColor = it.getColorFromPalette()
                 startColor.animateTo(it.getColorFromPalette())
-                endColor.animateTo(Color.Black)
+                // Lands on the same backdrop colour the fade and the area below the gradient
+                // use, so the palette ramp resolves into the surface instead of a black patch.
+                endColor.animateTo(PlayerBackdropColor)
             }
     }
 
@@ -771,17 +781,44 @@ fun NowPlayingScreenContent(
                 .then(
                     if (showHideMiddleLayout) {
                         Modifier
-                            .background(
-                                Brush.linearGradient(
-                                    colors =
-                                        listOf(
-                                            startColor.value,
-                                            endColor.value,
+                            // The backdrop fills the whole scrollable content, then the gradient
+                            // is drawn over just the first screen height. Using background() for
+                            // the gradient instead would stretch it across the entire content,
+                            // which is what made it run on forever while scrolling.
+                            .background(PlayerBackdropColor)
+                            .drawBehind {
+                                val gradientHeight = screenInfo.hPX.toFloat()
+                                val area = Size(size.width, gradientHeight)
+                                // Palette gradient, keeping its diagonal angle.
+                                drawRect(
+                                    brush =
+                                        Brush.linearGradient(
+                                            colors =
+                                                listOf(
+                                                    startColor.value,
+                                                    endColor.value,
+                                                ),
+                                            start = gradientOffset.start,
+                                            end = gradientOffset.end,
                                         ),
-                                    start = gradientOffset.start,
-                                    end = gradientOffset.end,
-                                ),
-                            )
+                                    size = area,
+                                )
+                                // Vertical fade to the backdrop colour, fully opaque from 90%
+                                // down, so the bottom edge meets the area underneath seamlessly
+                                // across the whole width. Adding the same colour as a stop to
+                                // the diagonal gradient above could not do that — it would only
+                                // arrive in one corner and leave a visible diagonal seam.
+                                drawRect(
+                                    brush =
+                                        Brush.verticalGradient(
+                                            0f to Color.Transparent,
+                                            0.95f to PlayerBackdropColor,
+                                            startY = 0f,
+                                            endY = gradientHeight,
+                                        ),
+                                    size = area,
+                                )
+                            }
                     } else {
                         Modifier.background(Color.Black)
                     },
@@ -2298,65 +2335,79 @@ fun NowPlayingScreenContent(
                                 shape = RoundedCornerShape(8.dp),
                                 colors =
                                     CardDefaults.elevatedCardColors().copy(
-                                        containerColor = startColor.value,
+                                        containerColor = Color(0xFF212121),
                                     ),
                             ) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(250.dp),
-                                ) {
-                                    val thumb = screenDataState.songInfoData?.authorThumbnail
-                                    AsyncImage(
-                                        model =
-                                            ImageRequest
-                                                .Builder(LocalPlatformContext.current)
-                                                .data(thumb)
-                                                .diskCachePolicy(CachePolicy.ENABLED)
-                                                .diskCacheKey(thumb)
-                                                .crossfade(550)
-                                                .build(),
-                                        placeholder = rememberHolderPainter(isVideo = true),
-                                        error = rememberHolderPainter(isVideo = true),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxSize()
-                                                .alpha(0.8f)
-                                                .clip(
-                                                    RoundedCornerShape(8.dp),
-                                                ),
-                                    )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    // Artwork occupies the top of the card; only the section
+                                    // label sits on top of it. Name and subscriber count moved
+                                    // below onto the solid card surface so they stay readable
+                                    // regardless of how bright the artist photo is.
                                     Box(
                                         modifier =
                                             Modifier
-                                                .padding(15.dp)
-                                                .fillMaxSize(),
+                                                .fillMaxWidth()
+                                                .height(250.dp),
                                     ) {
-                                        Column(Modifier.align(Alignment.TopStart)) {
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                            Text(
-                                                text = stringResource(Res.string.artists),
-                                                style = typo().labelMedium,
-                                                color = Color.White,
-                                            )
-                                        }
-                                        Column(Modifier.align(Alignment.BottomStart)) {
-                                            Text(
-                                                text = screenDataState.songInfoData?.author ?: "",
-                                                style = typo().labelMedium,
-                                                color = Color.White,
-                                            )
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                            Text(
-                                                text = screenDataState.songInfoData?.subscribers ?: "",
-                                                style = typo().bodySmall,
-                                                textAlign = TextAlign.End,
-                                            )
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                        }
+                                        val thumb = screenDataState.songInfoData?.authorThumbnail
+                                        AsyncImage(
+                                            model =
+                                                ImageRequest
+                                                    .Builder(LocalPlatformContext.current)
+                                                    .data(thumb)
+                                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                                    .diskCacheKey(thumb)
+                                                    .crossfade(550)
+                                                    .build(),
+                                            placeholder = rememberHolderPainter(isVideo = true),
+                                            error = rememberHolderPainter(isVideo = true),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            // No explicit clip: the ElevatedCard already clips to
+                                            // its 8.dp shape, so only the card's top corners round
+                                            // and the image meets the panel below flush.
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                        // Scrim behind the label: artist photos are often bright
+                                        // at the top, which swallowed the white text.
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .matchParentSize()
+                                                    .background(
+                                                        Brush.verticalGradient(
+                                                            0f to Color.Black.copy(alpha = 0.6f),
+                                                            0.4f to Color.Transparent,
+                                                        ),
+                                                    ),
+                                        )
+                                        Text(
+                                            text = stringResource(Res.string.artists),
+                                            style = typo().labelMedium,
+                                            color = Color.White,
+                                            modifier =
+                                                Modifier
+                                                    .align(Alignment.TopStart)
+                                                    .padding(15.dp),
+                                        )
+                                    }
+                                    Column(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 15.dp, vertical = 12.dp),
+                                    ) {
+                                        Text(
+                                            text = screenDataState.songInfoData?.author ?: "",
+                                            style = typo().titleMedium,
+                                            color = Color.White,
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = screenDataState.songInfoData?.subscribers ?: "",
+                                            style = typo().bodySmall,
+                                            color = Color.White.copy(alpha = 0.7f),
+                                        )
                                     }
                                 }
                             }
