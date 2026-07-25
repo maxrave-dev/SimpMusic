@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -111,6 +112,7 @@ import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
+import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
@@ -566,6 +568,9 @@ fun MiniPlayer(
         var sliderValue by rememberSaveable {
             mutableFloatStateOf(0f)
         }
+        var showQueueBottomSheet by rememberSaveable {
+            mutableStateOf(false)
+        }
         LaunchedEffect(key1 = timelineState, key2 = isSliding) {
             if (!isSliding) {
                 sliderValue =
@@ -575,6 +580,13 @@ fun MiniPlayer(
                         0f
                     }
             }
+        }
+        if (showQueueBottomSheet) {
+            QueueBottomSheet(
+                onDismiss = {
+                    showQueueBottomSheet = false
+                },
+            )
         }
         Box(
             modifier.then(
@@ -832,6 +844,19 @@ fun MiniPlayer(
                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                         }
                         Spacer(Modifier.width(4.dp))
+                        // Queue Button
+                        IconButton(
+                            onClick = {
+                                showQueueBottomSheet = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                tint = Color.White,
+                                contentDescription = "",
+                            )
+                        }
+                        Spacer(Modifier.width(2.dp))
                         // Desktop mini player button (JVM only)
                         if (getPlatform() == Platform.Desktop) {
                             IconButton(onClick = { toggleMiniPlayer() }) {
