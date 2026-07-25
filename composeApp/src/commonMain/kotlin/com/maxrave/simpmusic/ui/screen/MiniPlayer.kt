@@ -841,9 +841,9 @@ fun MiniPlayer(
                                 )
                             }
                         }
-                        var previousVolumeValue by rememberSaveable {
-                            mutableFloatStateOf(1f)
-                        }
+var previousVolumeValue by rememberSaveable {
+    mutableFloatStateOf(controllerState.volume.coerceAtLeast(0.1f))
+}
                         LaunchedEffect(controllerState.volume) {
                             if (controllerState.volume > 0f) {
                                 previousVolumeValue = controllerState.volume
