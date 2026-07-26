@@ -1211,6 +1211,7 @@ private enum class QueueItemAction {
     UP,
     DOWN,
     DELETE,
+    PLAYNEXT,
 }
 
 @Composable
@@ -1236,6 +1237,7 @@ fun QueueItemBottomSheet(
         listOf(
             QueueItemAction.UP,
             QueueItemAction.DOWN,
+            QueueItemAction.PLAYNEXT,
             QueueItemAction.DELETE,
         )
     ModalBottomSheet(
@@ -1293,6 +1295,7 @@ fun QueueItemBottomSheet(
                             when (action) {
                                 QueueItemAction.UP -> !canMoveUp
                                 QueueItemAction.DOWN -> !canMoveDown
+                                QueueItemAction.PLAYNEXT -> false
                                 QueueItemAction.DELETE -> false
                             }
                         if (disable) return@items
@@ -1312,6 +1315,19 @@ fun QueueItemBottomSheet(
                                             QueueItemAction.DOWN -> {
                                                 coroutineScope.launch {
                                                     musicServiceHandler.moveItemDown(index)
+                                                }
+                                            }
+
+                                            QueueItemAction.PLAYNEXT ->{
+                                                val track =
+                                                    musicServiceHandler.queueData.value
+                                                        ?.data
+                                                        ?.listTracks
+                                                        ?.getOrNull(index)
+                                                if (track != null) {
+                                                    coroutineScope.launch {
+                                                        musicServiceHandler.playNext(track)
+                                                    }
                                                 }
                                             }
 
@@ -1349,6 +1365,16 @@ fun QueueItemBottomSheet(
                                         )
                                     }
 
+                                    QueueItemAction.PLAYNEXT -> {
+                                        Image(
+                                            painter =
+                                                painterResource(
+                                                    Res.drawable.play_circle,
+                                                ),
+                                            contentDescription = "Play next"
+                                        )
+                                    }
+
                                     QueueItemAction.DELETE -> {
                                         Image(
                                             painter =
@@ -1366,6 +1392,7 @@ fun QueueItemBottomSheet(
                                             when (action) {
                                                 QueueItemAction.UP -> Res.string.move_up
                                                 QueueItemAction.DOWN -> Res.string.move_down
+                                                QueueItemAction.PLAYNEXT -> Res.string.play_next
                                                 QueueItemAction.DELETE -> Res.string.delete
                                             },
                                         ),
