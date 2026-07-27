@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter
 //   * the JVM main() entry
 //   * compose.desktop.application packaging (jpackage path, still used
 //     until Conveyor cutover lands in Task 14)
-//   * VLC native bundling (vlc-setup)
+//   * desktop packaging pipelines (Conveyor, AppImage wrapping)
 //   * desktop-only UI (CustomTitleBar, MiniPlayerWindow, CrashDialog, etc.)
 //
 // composeApp remains a pure KMP library — its src/jvmMain only carries the
@@ -37,15 +37,6 @@ plugins {
     alias(libs.plugins.conveyor)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
-    // NOTE: `vlc.setup` lives in :composeApp (not here) because its eager
-    // task iteration at apply time triggers Conveyor's writeConveyorConfig
-    // creation, which then fails with "Task with name 'jar' not found" —
-    // jvmJar isn't created until after the script body's `kotlin {}` block
-    // runs. Plugin order tricks (vlc.setup last, Bifrost ordering) don't
-    // help because vlc.setup's iteration force-realizes EVERY existing
-    // task, including the lazily-registered Conveyor ones. Confirmed by
-    // retry on 2026-05-21: same error reproduced. Run vlcSetup via
-    // `./gradlew :composeApp:vlcSetup --no-configuration-cache`.
 }
 
 version = libs.versions.version.name.get().removeSuffix("-hf")
@@ -101,7 +92,7 @@ kotlin {
 }
 
 // Workaround the Gradle "Cannot mutate configuration after observation" error
-// hit when Conveyor 2.0's per-arch deps mix with VLC-setup / compose plugins
+// hit when Conveyor 2.0's per-arch deps mix with Conveyor / compose plugins
 // that resolve runtimeClasspath at configuration time. Creating a sibling
 // `desktopRuntimeClasspath` configuration shifts Conveyor's resolution off
 // the primary jvmRuntimeClasspath, breaking the lock chain.
@@ -150,18 +141,13 @@ tasks.named<hydraulic.conveyor.gradle.WriteConveyorConfigTask>("writeConveyorCon
     }
 }
 
-// vlcSetup block disabled with the plugin above. VLC natives in
-// vlc-natives/{linux,macos,windows}/ are already on disk from prior runs.
-// TODO: replace with a simple Gradle download task that doesn't iterate
-// tasks at apply time, so Conveyor + vlc-setup can coexist.
-
 compose.desktop {
     application {
         mainClass = "com.maxrave.simpmusic.MainKt"
         jvmArgs += "--add-opens=java.base/java.nio=ALL-UNNAMED"
 
         nativeDistributions {
-            appResourcesRootDir = rootDir.resolve("vlc-natives/")
+            appResourcesRootDir = rootDir.resolve("mpv-natives/")
             val listTarget = mutableListOf<TargetFormat>()
             if (org.gradle.internal.os.OperatingSystem
                     .current()
@@ -252,7 +238,7 @@ afterEvaluate {
         jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
 
-        // Pass bundled VLC natives path to the runtime for `./gradlew desktopApp:run`.
+        // Pass the bundled natives path to the runtime for `./gradlew desktopApp:run`.
         val osArch = System.getProperty("os.arch").lowercase()
         val osSubDir =
             when {
@@ -262,8 +248,24 @@ afterEvaluate {
                     if (osArch.contains("aarch64")) "windows-arm64" else "windows-x64"
                 else -> "linux-x64"
             }
-        val vlcNativesPath = rootDir.resolve("vlc-natives/$osSubDir").absolutePath
-        systemProperty("vlc.bundled.path", vlcNativesPath)
+        // libmpv is staged by `./gradlew :composeApp:mpvSetupAll`.
+        // MpvLibrary reads this property and feeds it to jna.library.path.
+        //
+        // Without it, JNA cannot find a system libmpv on macOS either: its
+        // default search list is /usr/lib + /lib, and dyld's leaf-name
+        // fallback is /usr/local/lib + /usr/lib, so a Homebrew install under
+        // /opt/homebrew/lib is invisible to both. The bundled path avoids the
+        // question entirely; `brew install mpv` is only a fallback for a
+        // checkout that hasn't run mpvSetup yet.
+        val mpvNativesPath = rootDir.resolve("mpv-natives/$osSubDir")
+        if (mpvNativesPath.isDirectory) {
+            systemProperty("mpv.bundled.path", mpvNativesPath.absolutePath)
+        } else {
+            logger.info(
+                "[mpv] ${mpvNativesPath.name} not staged yet — run " +
+                    "`./gradlew :composeApp:mpvSetupAll`. Falling back to a system libmpv.",
+            )
+        }
 
         if (System.getProperty("os.name").contains("Mac")) {
             jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
@@ -292,7 +294,7 @@ afterEvaluate {
 val conveyorMakeLinuxApp = tasks.register<Exec>("conveyorMakeLinuxApp") {
     group = "distribution"
     description = "Run `conveyor make linux-app` for Linux x86_64 (glibc)."
-    dependsOn(":composeApp:vlcSetup")
+    dependsOn(":composeApp:mpvSetupAll")
     workingDir = rootDir
     commandLine(
         "conveyor",
@@ -438,11 +440,11 @@ tasks.register("packageConveyorAppImage") {
     }
 }
 
-// End-to-end: vlcSetup → conveyor make linux-app → wrap as .AppImage.
+// End-to-end: mpvSetupAll → conveyor make linux-app → wrap as .AppImage.
 // Single command for users: `./gradlew :desktopApp:buildLinuxAppImage --no-configuration-cache`
 tasks.register("buildLinuxAppImage") {
     group = "distribution"
-    description = "Full SimpMusic Desktop Linux AppImage build pipeline (vlcSetup → conveyor → AppImage)."
+    description = "Full SimpMusic Desktop Linux AppImage build pipeline (mpvSetupAll → conveyor → AppImage)."
     dependsOn(conveyorMakeLinuxApp)
     finalizedBy("packageConveyorAppImage")
 }
@@ -455,7 +457,7 @@ tasks.register("buildLinuxAppImage") {
 val conveyorMakeMacZipAmd64 = tasks.register<Exec>("conveyorMakeMacZipAmd64") {
     group = "distribution"
     description = "Run `conveyor make unnotarized-mac-zip` for macOS Intel."
-    dependsOn(":composeApp:vlcSetup")
+    dependsOn(":composeApp:mpvSetupAll")
     workingDir = rootDir
     commandLine(
         "conveyor",
@@ -469,7 +471,7 @@ val conveyorMakeMacZipAmd64 = tasks.register<Exec>("conveyorMakeMacZipAmd64") {
 val conveyorMakeMacZipAarch64 = tasks.register<Exec>("conveyorMakeMacZipAarch64") {
     group = "distribution"
     description = "Run `conveyor make unnotarized-mac-zip` for macOS Apple Silicon."
-    dependsOn(":composeApp:vlcSetup")
+    dependsOn(":composeApp:mpvSetupAll")
     workingDir = rootDir
     commandLine(
         "conveyor",
@@ -482,13 +484,13 @@ val conveyorMakeMacZipAarch64 = tasks.register<Exec>("conveyorMakeMacZipAarch64"
 
 tasks.register("buildMacZipAmd64") {
     group = "distribution"
-    description = "Full SimpMusic Desktop macOS Intel .zip pipeline (vlcSetup → conveyor)."
+    description = "Full SimpMusic Desktop macOS Intel .zip pipeline (mpvSetupAll → conveyor)."
     dependsOn(conveyorMakeMacZipAmd64)
 }
 
 tasks.register("buildMacZipAarch64") {
     group = "distribution"
-    description = "Full SimpMusic Desktop macOS Apple Silicon .zip pipeline (vlcSetup → conveyor)."
+    description = "Full SimpMusic Desktop macOS Apple Silicon .zip pipeline (mpvSetupAll → conveyor)."
     dependsOn(conveyorMakeMacZipAarch64)
 }
 
@@ -499,7 +501,7 @@ tasks.register("buildMacZipAarch64") {
 val conveyorMakeWindowsMsix = tasks.register<Exec>("conveyorMakeWindowsMsix") {
     group = "distribution"
     description = "Run `conveyor make windows-msix` for Windows x86_64."
-    dependsOn(":composeApp:vlcSetup")
+    dependsOn(":composeApp:mpvSetupAll")
     workingDir = rootDir
     commandLine(
         "conveyor",
@@ -512,18 +514,12 @@ val conveyorMakeWindowsMsix = tasks.register<Exec>("conveyorMakeWindowsMsix") {
 
 tasks.register("buildWindowsMsix") {
     group = "distribution"
-    description = "Full SimpMusic Desktop Windows .msix pipeline (vlcSetup → conveyor)."
+    description = "Full SimpMusic Desktop Windows .msix pipeline (mpvSetupAll → conveyor)."
     dependsOn(conveyorMakeWindowsMsix)
 }
 
 tasks.withType<AbstractJPackageTask>().configureEach {
     notCompatibleWithConfigurationCache("Compose Desktop JPackage tasks are not yet compatible with configuration cache")
-}
-
-listOf("vlcExtract", "vlcFilterPlugins", "vlcSetup", "clean").forEach { taskName ->
-    tasks.findByName(taskName)?.let {
-        it.notCompatibleWithConfigurationCache("vlc-setup plugin tasks are not yet compatible with configuration cache")
-    }
 }
 
 private fun downloadFile(

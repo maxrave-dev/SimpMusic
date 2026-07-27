@@ -25,7 +25,6 @@ plugins {
     alias(libs.plugins.build.config)
     alias(libs.plugins.osdetector)
     alias(libs.plugins.packagedeps)
-    alias(libs.plugins.vlc.setup)
 }
 
 // composeApp uses the `android.kotlin.multiplatform.library` plugin, so with the
@@ -175,7 +174,7 @@ kotlin {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
-            // Desktop app entry (main.kt), VLC setup, jpackage/Conveyor
+            // Desktop app entry (main.kt), jpackage/Conveyor
             // packaging, and tray icon live in :desktopApp per the
             // JetBrains 2026 KMP default structure. This module keeps the
             // shared JVM UI + expect/actuals and their direct dependencies.
@@ -192,94 +191,22 @@ kotlin {
 // linuxDebConfig{}, the custom AppImage tooling, and Conveyor packaging
 // live in :desktopApp per the JetBrains 2026 KMP default structure.
 //
-// vlcSetup{} stays in :composeApp — moving it to :desktopApp fails
-// because vlc.setup eagerly iterates tasks at apply time, which force-
-// realizes Conveyor's lazily-registered writeConveyorConfig task before
-// kotlin.multiplatform has created jvmJar → "Task with name 'jar' not
-// found" (reproduced 2026-05-21 with vlc.setup placed last in the
-// plugins block — plugin order does not help). composeApp has no
-// Conveyor so the conflict cannot occur here.
-//
-// Run `./gradlew :composeApp:vlcSetup --no-configuration-cache` to
-// populate vlc-natives/{linux-x64,macos-<hostArch>,windows-x64}/. Layout
-// is per-arch so Conveyor can bundle the right native slice into each
-// per-machine installer (universal Mac dylibs almost doubled artifact
-// size pre-split — see commit message for context).
-val hostMacArchDir = if (System.getProperty("os.arch").lowercase().contains("aarch64")) {
-    "macos-arm64"
-} else {
-    "macos-x64"
-}
-val hostWinArchDir = if (System.getProperty("os.arch").lowercase().contains("aarch64")) {
-    "windows-arm64"
-} else {
-    "windows-x64"
-}
-vlcSetup {
-    vlcVersion = libs.versions.vlc.get()
-    shouldCompressVlcFiles = false
-    shouldIncludeAllVlcFiles = true
-    pathToCopyVlcLinuxFilesTo   = rootDir.resolve("vlc-natives/linux-x64/")
-    pathToCopyVlcMacosFilesTo   = rootDir.resolve("vlc-natives/$hostMacArchDir/")
-    pathToCopyVlcWindowsFilesTo = rootDir.resolve("vlc-natives/$hostWinArchDir/")
-}
+// Native-library staging (libmpv) lives here in :composeApp — see the
+// mpv-natives block below. The layout is per-arch so Conveyor bundles only
+// the slice each per-machine installer actually needs.
 
-// Flatten vlc-natives/<arch>/vlc/plugins → vlc-natives/<arch>/plugins after
-// vlc-setup copies files. The plugin ships a nested vlc/ subdir for VLC's
-// own path resolution, but Conveyor then copies both the nested tree AND
-// extracts the .so files flat at the parent → 2× duplication (~348 MB
-// extra) in the packaged AppImage. Flat layout keeps Conveyor lean while
-// VLCJ still resolves libs via DefaultVlcDiscoverer.
-tasks.named("vlcSetup").configure {
-    doLast {
-        listOf("linux-x64", hostMacArchDir, hostWinArchDir).forEach { archDir ->
-            val root = rootDir.resolve("vlc-natives/$archDir")
-            val nested = root.resolve("vlc")
-            if (nested.isDirectory) {
-                nested.listFiles()?.forEach { child ->
-                    val target = root.resolve(child.name)
-                    if (target.exists()) target.deleteRecursively()
-                    child.renameTo(target)
-                }
-                nested.deleteRecursively()
-            }
-        }
-    }
-}
-
-// ============================================================================
-// Cross-OS VLC natives downloader (single-runner CI)
-// ============================================================================
-// The `vlc-setup` plugin above only registers `vlcSetup` for the HOST OS
-// (LinuxTasksConfigure / MacTasksConfigure / WindowsTasksConfigure each
-// gate on `getCurrentOs() == OS.X`). To package multi-OS artifacts from a
-// single CI runner (Linux), we replicate the plugin's download + filter +
-// copy logic for the OTHER two OSes here.
-//
-// Resulting layout matches the upstream plugin so VLCJ's
-// DefaultVlcDiscoverer keeps working unchanged.
-//
-// Local dev: keep using `./gradlew :composeApp:vlcSetup` (host-OS only).
-// Cross-OS CI: use `./gradlew :composeApp:vlcSetupAll`.
-//
-// Mac DMG extraction needs the 7z tool:
-//   Ubuntu CI:   sudo apt-get install -y p7zip-full
-//   macOS local: brew install p7zip
-val vlcCacheDir = layout.buildDirectory.dir("vlc-cache")
-
-fun downloadIfMissing(url: String, target: java.io.File) {
+fun downloadIfMissing(url: String, target: java.io.File, logPrefix: String = "mpv-multi") {
     if (target.exists() && target.length() > 0) {
-        logger.lifecycle("[vlc-multi] Cached: ${target.name}")
+        logger.lifecycle("[$logPrefix] Cached: ${target.name}")
         return
     }
-    logger.lifecycle("[vlc-multi] Downloading $url")
+    logger.lifecycle("[$logPrefix] Downloading $url")
     target.parentFile.mkdirs()
-    // Use curl instead of Java's URL.openStream() because get.videolan.org
-    // returns a 302 redirect to a random mirror per request, and Java's
-    // default HttpURLConnection redirect handling is fragile — if the
-    // mirror lands on a cross-protocol redirect or returns an HTML error
-    // page, openStream() silently saves the HTML response as the target
-    // file, producing a "Cannot expand ZIP" downstream. curl's `-L`
+    // Use curl instead of Java's URL.openStream(): release downloads answer
+    // with a redirect to a CDN, and Java's default HttpURLConnection redirect
+    // handling is fragile — on a cross-protocol redirect or an HTML error
+    // page, openStream() silently saves the error body as the target file,
+    // which only surfaces as a corrupt-archive failure later. curl's `-L`
     // follows redirects robustly across protocols + mirrors, `--fail`
     // exits non-zero on HTTP errors instead of saving error bodies, and
     // `-o` writes atomically via tmp file. The downloaded artifact is
@@ -304,237 +231,611 @@ fun downloadIfMissing(url: String, target: java.io.File) {
     }
 }
 
-val vlcSetupLinuxCi by tasks.registering {
-    group = "vlc-multi"
-    description = "Cross-OS: populate vlc-natives/linux-x64/ with .so files."
-    val outputDir = rootDir.resolve("vlc-natives/linux-x64/")
-    outputs.dir(outputDir)
-    doLast {
-        // Pinned upstream — Linux artifact is a custom Maven package whose
-        // version is independent of the desktop VLC release.
-        val linuxVersion = "3.0.20-2"
-        val cache = vlcCacheDir.get().asFile
-        val jar = cache.resolve("vlc-plugins-linux-$linuxVersion.jar")
-        downloadIfMissing(
-            "https://repo1.maven.org/maven2/ir/mahozad/vlc-plugins-linux/$linuxVersion/vlc-plugins-linux-$linuxVersion.jar",
-            jar,
-        )
-        outputDir.walk().filter { it.extension == "so" }.forEach { it.delete() }
-        project.copy {
-            from(zipTree(jar))
-            into(outputDir)
-            // Ship the full VLC plugin set (matches the v1.2.1 release).
-            // A curated subset based on upstream vlc-setup defaults turned
-            // out to be insufficient for SimpMusic — YT Music streaming
-            // depends on HTTP/HTTPS access + MP4/WebM demuxers that the
-            // upstream music-app preset doesn't cover. `**/` is needed
-            // because include() evaluates against the original jar paths
-            // (which include the `vlc-plugins-linux-<ver>/` top-level dir)
-            // before the eachFile drop(1) transformation kicks in.
-            include("**/*.so", "**/*.so.*")
-            // Strip the top-level dir inside the jar (matches upstream plugin).
-            eachFile {
-                if (relativePath.segments.size > 1) {
-                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-                }
-            }
-            includeEmptyDirs = false
-        }
-        // Flatten vlc-natives/linux-x64/vlc/* → vlc-natives/linux-x64/* (same
-        // as the host-OS flatten task above) so Conveyor doesn't duplicate
-        // plugins.
-        val nested = outputDir.resolve("vlc")
-        if (nested.isDirectory) {
-            nested.listFiles()?.forEach { child ->
-                val target = outputDir.resolve(child.name)
-                if (target.exists()) target.deleteRecursively()
-                child.renameTo(target)
-            }
-            nested.deleteRecursively()
-        }
-    }
-}
+// ===========================================================================
+// mpv natives (libmpv) — staged into mpv-natives/<os>-<arch>/ for packaging.
+//
+// mpv publishes no portable libmpv of its own and there is no Gradle plugin
+// that fetches one, so each OS lifts libmpv out of a prebuilt artifact that
+// ALREADY ships a relocatable dependency closure. That is what keeps this
+// cheap: gathering ffmpeg / libplacebo / libass / luajit by hand and
+// rewriting their install names is precisely the work these upstreams have
+// already done and keep doing on every release.
+//
+//   Windows  shinchiro/mpv-winbuild-cmake `mpv-dev-<arch>.7z`
+//            → libmpv-2.dll with ffmpeg linked in. Nothing to patch.
+//   Linux    pkgforge-dev/mpv-AppImage
+//            → libmpv.so.2 + closure under shared/lib with RPATH=$ORIGIN
+//              (sharun), so nothing to patch there either.
+//   macOS    Homebrew's mpv + dylibbundler, run on a macOS host.
+//
+// macOS is the odd one out and deliberately so. The obvious shortcut — lifting
+// IINA.app/Contents/Frameworks straight out of IINA's .dmg — DOES NOT WORK,
+// and fails in a way worth recording so nobody retries it. In IINA 1.4.4 the
+// bundled pair is version-skewed:
+//
+//   nm -u  libmpv.2.dylib        → _pl_log_create_349   (libplacebo API 349)
+//   nm -gU libplacebo.338.dylib  → _pl_log_create_338
+//
+// on BOTH slices of the fat binaries, with only one libplacebo in the bundle
+// and the reference not weak ("(undefined) external ... (from libplacebo.338)").
+// dlopen() of that libmpv fails outright — verified with RTLD_NOW *and*
+// RTLD_LAZY — and libmpv has 136 undefined _pl_* symbols riding on it. Whatever
+// makes IINA itself work, that closure is not self-sufficient, and MpvLibrary
+// loads with RTLD_NOW by design, so there is no flag to hide behind.
+//
+// Homebrew resolves mpv and libplacebo as one dependency graph, so its closure
+// is self-consistent by construction. dylibbundler then copies that closure and
+// rewrites every dependency to @loader_path/... in one pass. The dylibs must be
+// re-signed ad-hoc afterwards: mutating a Mach-O invalidates its signature and
+// macOS refuses to load an invalidly-signed dylib (hard failure on Apple
+// Silicon). Cost of this route: the macOS slice needs a macOS runner, one per
+// architecture — it cannot be produced from the Linux runner that builds
+// every other slice.
+//
+// Conveyor stages one slice per machine — see the mpv-natives inputs in
+// conveyor.conf.
+// ===========================================================================
+val mpvCacheDir = layout.buildDirectory.dir("mpv-cache")
 
-// Shared Mac DMG download + extraction logic. Each per-arch task calls
-// this with its slice's DMG suffix ("arm64" or "intel64") and output
-// folder. We pull per-arch DMGs (48-55 MB each) instead of the universal
-// DMG (84.9 MB = arm64 + intel64 fat binary), so each per-machine zip
-// only ships its own slice — saves ~25-40 MB per user download.
-fun extractMacVlcSlice(
-    archSuffix: String,
-    outputDir: java.io.File,
-) {
-    val macVersion = libs.versions.vlc.get()
-    val cache = vlcCacheDir.get().asFile
-    val dmg = cache.resolve("vlc-$macVersion-$archSuffix.dmg")
-    downloadIfMissing(
-        "https://get.videolan.org/vlc/$macVersion/macosx/vlc-$macVersion-$archSuffix.dmg",
-        dmg,
-    )
-    outputDir.walk().filter { it.extension == "dylib" }.forEach { it.delete() }
-    outputDir.mkdirs()
-    // Pick the extractor that's native to the host:
-    //   • macOS  → hdiutil (built-in, no install required for local dev)
-    //   • Linux/Windows CI → 7z (cross-platform HFS+ support, needs
-    //     p7zip-full / official 7-Zip 23+ installed on the runner)
-    // Both paths drop a directory containing the VLC.app payload at
-    // `macOsDir`, ready for the curated copy step below.
-    val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
-    val macOsDir: java.io.File
-    val cleanupMount: (() -> Unit)?
-    if (isMacHost) {
-        val mountPoint = cache.resolve("vlc-mount-$macVersion-$archSuffix")
-        mountPoint.deleteRecursively()
-        mountPoint.mkdirs()
-        val attachExit = ProcessBuilder(
-            "hdiutil", "attach",
-            "-mountpoint", mountPoint.absolutePath,
-            "-nobrowse", "-quiet",
-            dmg.absolutePath,
-        ).inheritIO().start().waitFor()
-        check(attachExit == 0) {
-            "hdiutil attach failed with exit code $attachExit for $dmg"
-        }
-        macOsDir = mountPoint.resolve("VLC.app/Contents/MacOS")
-        cleanupMount = {
-            ProcessBuilder("hdiutil", "detach", "-quiet", mountPoint.absolutePath)
-                .inheritIO().start().waitFor()
-        }
-    } else {
-        val extractDir = cache.resolve("vlc-mac-$macVersion-$archSuffix-extract")
-        extractDir.deleteRecursively()
-        extractDir.mkdirs()
-        // 7z returns exit code 2 because the DMG contains a "VLC media
-        // player/Applications → /Applications" drag-to-install symlink
-        // that 7z refuses to extract (dangerous absolute link). The
-        // VLC.app payload extracts fine, so we verify by directory
-        // presence below rather than trusting the exit code.
-        val sevenZipExit = ProcessBuilder(
-            "7z", "x", "-y", "-bso0", "-bsp0",
-            "-o${extractDir.absolutePath}",
-            dmg.absolutePath,
-        ).inheritIO().start().waitFor()
-        macOsDir = extractDir.walkTopDown()
-            .firstOrNull {
-                it.isDirectory &&
-                    it.name == "MacOS" &&
-                    it.parentFile?.name == "Contents" &&
-                    it.parentFile?.parentFile?.name == "VLC.app"
-            }
-            ?: error(
-                "VLC.app/Contents/MacOS/ not found inside extracted DMG at $extractDir " +
-                        "(7z exit code $sevenZipExit)",
-            )
-        cleanupMount = null
-    }
-    check(macOsDir.isDirectory) {
-        "VLC.app/Contents/MacOS not found at ${macOsDir.absolutePath}"
-    }
+// Pinned upstream artifacts. Bump deliberately: MpvLibrary.kt hand-maps the
+// libmpv struct layouts by raw offset, so a client-API MAJOR bump means the
+// structs must be re-verified before these pins move. mpv 0.41.x is client
+// API 2.5; MpvLibrary.kt was written against 2.2 and only guards the major.
+// mpv's own tagged release — the source of the macOS slices.
+val mpvVersion = "0.41.0"
+val mpvWinBuildTag = "20260610"
+val mpvWinBuildSuffix = "20260610-git-304426c"
+// Percent-encoded because the release tag embeds an '@'. Kept as a literal rather than
+// URLEncoder.encode(): in a build script `java` resolves to the JavaPluginExtension
+// accessor, so `java.net.URLEncoder` is unresolvable in expression position.
+val mpvAppImageTagEncoded = "v0.41.0%402026-07-01_1782914175"
+val mpvAppImageVersion = "v0.41.0"
+// Reads the AppImage's DwarFS payload. 0.15.6 handles DwarFS v2.5, which is what this
+// AppImage carries; an older dwarfs reports "unsupported major version".
+val dwarfsVersion = "0.15.6"
+
+// Every extractor below finds the directory that actually holds the libmpv
+// artifact and copies its whole sibling set, rather than hard-coding upstream
+// tree shapes. Those layouts drift between releases; "the folder libmpv lives
+// in" does not.
+fun findDirContaining(root: java.io.File, namePredicate: (String) -> Boolean): java.io.File? =
+    root.walkTopDown()
+        .firstOrNull { it.isFile && namePredicate(it.name) }
+        ?.parentFile
+
+/** True when [tool] can be executed at all (i.e. it exists on PATH). */
+fun toolAvailable(tool: String): Boolean =
     try {
-        project.copy {
-            from(macOsDir)
-            into(outputDir)
-            // Ship the full VLC plugin set (matches v1.2.1 release).
-            // Curated music-app preset from upstream vlc-setup didn't
-            // include HTTP/HTTPS access + MP4/WebM demuxers needed for
-            // YT Music streaming.
-            include("lib/libvlc.dylib", "lib/libvlccore.dylib", "plugins/**")
-            // Flatten lib/ → root (matches upstream Mac VlcSetupTask).
-            eachFile {
-                if (relativePath.segments.firstOrNull() == "lib") {
-                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-                }
-            }
-            includeEmptyDirs = false
-        }
-    } finally {
-        cleanupMount?.invoke()
+        ProcessBuilder(tool)
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start()
+            .waitFor()
+        true
+    } catch (e: java.io.IOException) {
+        false
     }
+
+fun runChecked(vararg command: String) {
+    val exit = ProcessBuilder(*command).inheritIO().start().waitFor()
+    check(exit == 0) { "Command failed (exit $exit): ${command.joinToString(" ")}" }
 }
 
-val vlcSetupMacArmCi by tasks.registering {
-    group = "vlc-multi"
-    description = "Cross-OS: populate vlc-natives/macos-arm64/ with Apple Silicon .dylib files."
-    val outputDir = rootDir.resolve("vlc-natives/macos-arm64/")
-    outputs.dir(outputDir)
-    doLast { extractMacVlcSlice("arm64", outputDir) }
+// ---------------------------------------------------------------------------
+// macOS
+// ---------------------------------------------------------------------------
+
+/**
+ * Rewrite every `@executable_path/lib/<name>` load-command entry to [prefix]`<name>`.
+ *
+ * Patches bytes instead of shelling out to `install_name_tool`, which is what keeps the macOS
+ * slice buildable on ANY host — the whole point, since every other slice comes off the same
+ * Linux runner.
+ *
+ * Safe because the replacement is always SHORTER than what it replaces (`@executable_path/lib/`
+ * is 21 chars; `@loader_path/lib/` is 17 and `@loader_path/` is 13), so the tail is NUL-padded:
+ * a Mach-O dylib path is a C string inside a load command of fixed `cmdsize`, and it ends at the
+ * first NUL. Growing a path would need the command resized, which this deliberately never does.
+ *
+ * @return how many entries were rewritten.
+ */
+fun rewriteExecutablePathRefs(file: java.io.File, prefix: String): Int {
+    val needle = "@executable_path/lib/".toByteArray(Charsets.US_ASCII)
+    val prefixBytes = prefix.toByteArray(Charsets.US_ASCII)
+    check(prefixBytes.size <= needle.size) {
+        "prefix '$prefix' is longer than '@executable_path/lib/' — paths can only be shortened in place"
+    }
+    val data = file.readBytes()
+    var rewritten = 0
+    var i = 0
+    outer@ while (i <= data.size - needle.size) {
+        for (j in needle.indices) {
+            if (data[i + j] != needle[j]) {
+                i++
+                continue@outer
+            }
+        }
+        // The entry runs from the match to its terminating NUL.
+        var end = i + needle.size
+        while (end < data.size && data[end] != 0.toByte()) end++
+        val name = data.copyOfRange(i + needle.size, end)
+        val replacement = prefixBytes + name
+        check(replacement.size <= end - i)
+        replacement.copyInto(data, i)
+        for (k in i + replacement.size until end) data[k] = 0
+        rewritten++
+        i = end
+    }
+    if (rewritten > 0) file.writeBytes(data)
+    return rewritten
 }
 
-val vlcSetupMacX64Ci by tasks.registering {
-    group = "vlc-multi"
-    description = "Cross-OS: populate vlc-natives/macos-x64/ with Intel .dylib files."
-    val outputDir = rootDir.resolve("vlc-natives/macos-x64/")
-    outputs.dir(outputDir)
-    doLast { extractMacVlcSlice("intel64", outputDir) }
+/**
+ * Re-sign every Mach-O under [dir] ad-hoc, recursively.
+ *
+ * Rewriting load commands invalidates the signature mpv's CI applied, and macOS refuses to load
+ * an invalidly-signed Mach-O (a hard failure on Apple Silicon). `codesign` only exists on macOS,
+ * so on a Linux runner this warns instead: Conveyor signs the macOS bundle it produces, which is
+ * what makes the staged slice loadable in the shipped app. A locally staged slice built on Linux
+ * and run directly, without going through Conveyor, would not load.
+ */
+fun codesignAdhoc(dir: java.io.File) {
+    val machO = dir.walkTopDown().filter { it.isFile && (it.name.endsWith(".dylib") || it.extension.isEmpty()) }.toList()
+    check(machO.isNotEmpty()) { "Nothing to sign in ${dir.absolutePath}" }
+
+    // Patching load commands invalidates mpv's own signature and macOS refuses to load an
+    // invalidly-signed Mach-O, so re-signing is mandatory. `codesign` is macOS-only, which is
+    // fine: these tasks build the published archives and are run on a Mac, not in CI.
+    check(toolAvailable("codesign")) {
+        "codesign is required to re-sign the patched macOS slice — run this task on a Mac. " +
+            "CI does not: it downloads the prebuilt archives instead."
+    }
+    logger.lifecycle("[mpv-multi] Ad-hoc signing ${machO.size} Mach-O files in ${dir.name}")
+    machO.forEach { runChecked("codesign", "--force", "--sign", "-", it.absolutePath) }
 }
 
-// Shared Windows VLC zip extraction. VideoLAN ships separate per-arch
-// zips (win64/ for x64, winarm64/ for ARM64) — we mirror that layout
-// in vlc-natives/ so Conveyor bundles the right slice per msix.
-fun extractWindowsVlcSlice(
-    archSuffix: String,
-    outputDir: java.io.File,
-) {
-    val winVersion = libs.versions.vlc.get()
-    val cache = vlcCacheDir.get().asFile
-    // VideoLAN URL layout for Windows:
-    //   x64: /vlc/<ver>/win64/vlc-<ver>-win64.zip
-    //   arm: /vlc/<ver>/winarm64/vlc-<ver>-winarm64.zip
-    // Both zips share the same internal tree shape, so once downloaded
-    // the rest of the pipeline is identical.
-    val subDir = if (archSuffix == "winarm64") "winarm64" else "win64"
-    val zip = cache.resolve("vlc-$winVersion-$archSuffix.zip")
+/**
+ * Stage one macOS slice straight out of mpv's own release build.
+ *
+ * mpv's macOS artifacts are app bundles that link libmpv STATICALLY into
+ * `mpv.app/Contents/MacOS/mpv`, so there is no libmpv.dylib to copy — but that binary is a PIE
+ * Mach-O exporting the whole client API (54 `_mpv_*` symbols, checked with `nm -gU`), and macOS
+ * `dlopen()` accepts a PIE executable. Renaming it to `libmpv.dylib` is what lets JNA find it:
+ * `Native.load("mpv")` maps to exactly that filename on macOS (NativeLibrary.mapSharedLibraryName).
+ *
+ * Its dependency closure ships alongside in `Contents/MacOS/lib/` already relocatable via
+ * `@executable_path/lib/...`; only the anchor has to change, because the loading process here is
+ * the JVM rather than mpv itself. Two different prefixes are needed: libmpv sits one level above
+ * `lib/`, while the closure sits inside it.
+ *
+ * Do NOT swap this for IINA's .dmg. IINA 1.4.4 ships a libmpv that needs libplacebo API 349 next
+ * to a libplacebo.338 exporting only 338, on both slices and not weakly referenced, so its libmpv
+ * fails dlopen under RTLD_NOW *and* RTLD_LAZY.
+ */
+fun extractMacMpvSlice(assetArch: String, outputDir: java.io.File) {
+    val cache = mpvCacheDir.get().asFile
+    val zip = cache.resolve("mpv-$mpvVersion-$assetArch.zip")
     downloadIfMissing(
-        "https://get.videolan.org/vlc/$winVersion/$subDir/vlc-$winVersion-$archSuffix.zip",
+        "https://github.com/mpv-player/mpv/releases/download/v$mpvVersion/mpv-v$mpvVersion-$assetArch.zip",
         zip,
+        logPrefix = "mpv-multi",
     )
-    outputDir.walk().filter { it.extension == "dll" }.forEach { it.delete() }
+
+    // The published .zip wraps a .tar.gz, so this unpacks twice. Both steps are plain Gradle file
+    // operations — no 7z, no hdiutil, nothing host-specific.
+    val stage = cache.resolve("mac-$assetArch-extract")
+    stage.deleteRecursively()
+    stage.mkdirs()
     project.copy {
         from(zipTree(zip))
+        into(stage)
+    }
+    val innerTar = stage.walkTopDown().firstOrNull { it.isFile && it.name.endsWith(".tar.gz") }
+        ?: error("No inner tarball inside ${zip.name}")
+    project.copy {
+        from(tarTree(resources.gzip(innerTar)))
+        into(stage)
+    }
+    val macOsDir = stage.walkTopDown().firstOrNull {
+        it.isDirectory && it.name == "MacOS" && it.parentFile?.name == "Contents"
+    } ?: error("mpv.app/Contents/MacOS not found inside ${zip.name}")
+    val binary = macOsDir.resolve("mpv")
+    check(binary.isFile) { "mpv binary missing from ${macOsDir.absolutePath}" }
+
+    outputDir.deleteRecursively()
+    outputDir.mkdirs()
+    project.copy {
+        from(macOsDir.resolve("lib"))
+        into(outputDir.resolve("lib"))
+    }
+    val staged = outputDir.resolve("libmpv.dylib")
+    binary.copyTo(staged, overwrite = true)
+    staged.setWritable(true)
+
+    var rewritten = rewriteExecutablePathRefs(staged, "@loader_path/lib/")
+    outputDir.resolve("lib").listFiles()?.filter { it.isFile && it.name.endsWith(".dylib") }?.forEach { dylib ->
+        dylib.setWritable(true)
+        rewritten += rewriteExecutablePathRefs(dylib, "@loader_path/")
+    }
+    logger.lifecycle("[mpv-multi] $assetArch: rewrote $rewritten install-name entries")
+    codesignAdhoc(outputDir)
+}
+
+val mpvSetupMacArmCi by tasks.registering {
+    group = "mpv-multi"
+    description = "Cross-OS: populate mpv-natives/macos-arm64/ with libmpv + its dylib closure."
+    val outputDir = rootDir.resolve("mpv-natives/macos-arm64/")
+    outputs.dir(outputDir)
+    doLast { extractMacMpvSlice("macos-15-arm", outputDir) }
+}
+
+val mpvSetupMacX64Ci by tasks.registering {
+    group = "mpv-multi"
+    description = "Cross-OS: populate mpv-natives/macos-x64/ with Intel libmpv + its dylib closure."
+    val outputDir = rootDir.resolve("mpv-natives/macos-x64/")
+    outputs.dir(outputDir)
+    doLast { extractMacMpvSlice("macos-15-intel", outputDir) }
+}
+
+// ---------------------------------------------------------------------------
+// Windows
+// ---------------------------------------------------------------------------
+
+fun extractWindowsMpvSlice(arch: String, outputDir: java.io.File) {
+    // `7zz` (the official 7-Zip binary) is preferred over `7z`, which on many machines is p7zip
+    // — a fork last released in 2017. shinchiro's aarch64 archive uses the ARM64 BCJ filter that
+    // 7-Zip only gained in 21.07, so p7zip fails it with "Unsupported Method : libmpv-2.dll"
+    // while extracting the x86_64 one just fine. The CI image installs 7-Zip 26.x for the same
+    // reason.
+    val sevenZip = listOf("7zz", "7z").firstOrNull(::toolAvailable)
+        ?: error(
+            "7-Zip is required to unpack shinchiro's .7z builds and must be 21.07 or newer. " +
+                "macOS: `brew install sevenzip` (provides 7zz). Ubuntu: install the official " +
+                "7-Zip build — distro p7zip is too old for the ARM64 archive.",
+        )
+    val cache = mpvCacheDir.get().asFile
+    val archive = cache.resolve("mpv-dev-$arch-$mpvWinBuildSuffix.7z")
+    downloadIfMissing(
+        "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/" +
+            "$mpvWinBuildTag/mpv-dev-$arch-$mpvWinBuildSuffix.7z",
+        archive,
+        logPrefix = "mpv-multi",
+    )
+    val extractDir = cache.resolve("mpv-dev-$arch-extract")
+    extractDir.deleteRecursively()
+    extractDir.mkdirs()
+    // Output is left visible: when the extractor is too old it fails with "Unsupported Method",
+    // and silencing that turns a one-line diagnosis into a bare non-zero exit code.
+    runChecked(sevenZip, "x", "-y", "-o${extractDir.absolutePath}", archive.absolutePath)
+
+    // The dev package is headers + import lib + the runtime DLL. Only the DLL
+    // is shipped; JNA resolves it by name ("libmpv-2" is in MpvLibrary's
+    // CANDIDATE_NAMES), and ffmpeg is linked into it, so it stands alone.
+    val dllDir = findDirContaining(extractDir) { it.startsWith("libmpv") && it.endsWith(".dll") }
+        ?: error("No libmpv*.dll inside ${archive.name}")
+    outputDir.deleteRecursively()
+    outputDir.mkdirs()
+    project.copy {
+        from(dllDir)
         into(outputDir)
-        // Ship the full VLC plugin set (matches v1.2.1 release). The
-        // music-app preset from upstream vlc-setup turned out to be
-        // missing HTTP/HTTPS access + MP4/WebM demuxers needed for YT
-        // Music streaming. `**/` is required because include() runs
-        // against the original `vlc-<ver>/...` paths inside the zip
-        // before the eachFile drop(1) transformation.
-        include("**/*.dll")
-        // Strip top-level `vlc-<ver>/` prefix dir.
-        eachFile {
-            if (relativePath.segments.size > 1) {
-                relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-            }
-        }
+        include("*.dll")
         includeEmptyDirs = false
     }
 }
 
-val vlcSetupWindowsX64Ci by tasks.registering {
-    group = "vlc-multi"
-    description = "Cross-OS: populate vlc-natives/windows-x64/ with .dll files."
-    val outputDir = rootDir.resolve("vlc-natives/windows-x64/")
+val mpvSetupWindowsX64Ci by tasks.registering {
+    group = "mpv-multi"
+    description = "Cross-OS: populate mpv-natives/windows-x64/ with libmpv-2.dll."
+    val outputDir = rootDir.resolve("mpv-natives/windows-x64/")
     outputs.dir(outputDir)
-    doLast { extractWindowsVlcSlice("win64", outputDir) }
+    doLast { extractWindowsMpvSlice("x86_64", outputDir) }
 }
 
-val vlcSetupWindowsArmCi by tasks.registering {
-    group = "vlc-multi"
-    description = "Cross-OS: populate vlc-natives/windows-arm64/ with ARM64 .dll files."
-    val outputDir = rootDir.resolve("vlc-natives/windows-arm64/")
+val mpvSetupWindowsArmCi by tasks.registering {
+    group = "mpv-multi"
+    description = "Cross-OS: populate mpv-natives/windows-arm64/ with ARM64 libmpv-2.dll."
+    val outputDir = rootDir.resolve("mpv-natives/windows-arm64/")
     outputs.dir(outputDir)
-    doLast { extractWindowsVlcSlice("winarm64", outputDir) }
+    doLast { extractWindowsMpvSlice("aarch64", outputDir) }
 }
 
-val vlcSetupAll by tasks.registering {
-    group = "vlc-multi"
-    description = "Cross-OS: populate vlc-natives/{linux-x64,macos-arm64,macos-x64,windows-x64,windows-arm64}/ from any host. Use in CI."
-    dependsOn(
-        vlcSetupLinuxCi,
-        vlcSetupMacArmCi,
-        vlcSetupMacX64Ci,
-        vlcSetupWindowsX64Ci,
-        vlcSetupWindowsArmCi,
+// ---------------------------------------------------------------------------
+// Linux
+// ---------------------------------------------------------------------------
+
+/**
+ * Offset of the payload appended after an ELF file, i.e. the end of the ELF proper.
+ *
+ * AppImages are an ELF runtime with a filesystem image concatenated onto it, and the image starts
+ * exactly where the section-header table ends: `e_shoff + e_shnum * e_shentsize`.
+ *
+ * Do NOT try to find the payload by scanning for its magic instead. This runtime embeds the
+ * strings `DWARFS_BLOCK_SIZE`, `DWARFS_CACHE_SIZE` and friends as environment-variable names, so
+ * the first `DWARFS` hit lands ~1.1 MB before the real image and every extractor then reports
+ * "unsupported major version".
+ */
+fun elfPayloadOffset(file: java.io.File): Long {
+    val header = ByteArray(64)
+    file.inputStream().use { check(it.read(header) == 64) { "${file.name} is too small to be an ELF" } }
+    check(header[0] == 0x7f.toByte() && header[1] == 'E'.code.toByte()) { "${file.name} is not an ELF file" }
+    // Hand-rolled little-endian reads rather than java.nio.ByteBuffer: inside a build script
+    // `java` resolves to the JavaPluginExtension accessor, so java.* only works in type position.
+    fun le(offset: Int, size: Int): Long {
+        var value = 0L
+        for (i in size - 1 downTo 0) value = (value shl 8) or (header[offset + i].toLong() and 0xff)
+        return value
+    }
+    val shoff = le(0x28, 8)
+    val shentsize = le(0x3a, 2)
+    val shnum = le(0x3c, 2)
+    return shoff + shentsize * shnum
+}
+
+/**
+ * `DT_NEEDED` entries of an ELF file, i.e. the shared objects it links against directly.
+ *
+ * Enough of a parser to walk a dependency closure: section headers → `.dynamic` → `.dynstr`.
+ * Returns empty for anything that isn't an ELF with section headers.
+ */
+fun elfNeeded(file: java.io.File): List<String> {
+    val d = file.readBytes()
+    if (d.size < 64 || d[0] != 0x7f.toByte() || d[1] != 'E'.code.toByte()) return emptyList()
+    fun le(off: Int, size: Int): Long {
+        var v = 0L
+        for (i in size - 1 downTo 0) v = (v shl 8) or (d[off + i].toLong() and 0xff)
+        return v
+    }
+    val shoff = le(0x28, 8).toInt()
+    val shentsize = le(0x3a, 2).toInt()
+    val shnum = le(0x3c, 2).toInt()
+    val shstrndx = le(0x3e, 2).toInt()
+    if (shnum == 0 || shoff == 0) return emptyList()
+    fun sectionName(i: Int) = le(shoff + i * shentsize, 4).toInt()
+    fun sectionOff(i: Int) = le(shoff + i * shentsize + 0x18, 8).toInt()
+    fun sectionSize(i: Int) = le(shoff + i * shentsize + 0x20, 8).toInt()
+    fun cstr(base: Int, offset: Int): String {
+        var e = base + offset
+        while (e < d.size && d[e] != 0.toByte()) e++
+        return String(d, base + offset, e - (base + offset), Charsets.US_ASCII)
+    }
+    val shstrBase = sectionOff(shstrndx)
+    var dynamicIdx = -1
+    var dynstrIdx = -1
+    for (i in 0 until shnum) {
+        when (cstr(shstrBase, sectionName(i))) {
+            ".dynamic" -> dynamicIdx = i
+            ".dynstr" -> dynstrIdx = i
+        }
+    }
+    if (dynamicIdx < 0 || dynstrIdx < 0) return emptyList()
+    val dynOff = sectionOff(dynamicIdx)
+    val strBase = sectionOff(dynstrIdx)
+    val result = mutableListOf<String>()
+    for (i in 0 until sectionSize(dynamicIdx) / 16) {
+        val tag = le(dynOff + i * 16, 8)
+        val value = le(dynOff + i * 16 + 8, 8).toInt()
+        if (tag == 0L) break
+        if (tag == 1L) result += cstr(strBase, value) // DT_NEEDED
+    }
+    return result
+}
+
+/**
+ * Delete everything in `lib/` that [root] does not actually reach.
+ *
+ * sharun bundles whatever the mpv *player* needs — X11, wayland, pulse, GTK and more — which is
+ * 350 shared objects / 373 MB. libmpv's own closure is 91 of them / 54 MB, and the rest would be
+ * dead weight in every Linux installer.
+ */
+fun pruneUnreachableSharedObjects(root: java.io.File, libDir: java.io.File) {
+    val present = libDir.listFiles()?.filter { it.isFile }?.associateBy { it.name }.orEmpty()
+    val reachable = mutableSetOf<String>()
+    val queue = ArrayDeque<java.io.File>()
+    queue += root
+    while (queue.isNotEmpty()) {
+        elfNeeded(queue.removeFirst()).forEach { name ->
+            if (reachable.add(name)) present[name]?.let { queue += it }
+        }
+    }
+    var freed = 0L
+    present.forEach { (name, file) ->
+        if (name !in reachable) {
+            freed += file.length()
+            file.delete()
+        }
+    }
+    logger.lifecycle(
+        "[mpv-multi] Pruned ${present.size - reachable.size} unreachable shared objects " +
+            "(${freed / 1048576} MB); kept ${reachable.size}",
     )
+}
+
+val mpvSetupLinuxCi by tasks.registering {
+    group = "mpv-multi"
+    description = "Cross-OS: populate mpv-natives/linux-x64/ with libmpv + its .so closure."
+    val outputDir = rootDir.resolve("mpv-natives/linux-x64/")
+    outputs.dir(outputDir)
+    doLast {
+        // patchelf is the one genuinely host-specific step. The binary carries NO
+        // DT_RPATH/DT_RUNPATH at all — inside the AppImage a sharun wrapper sets
+        // LD_LIBRARY_PATH instead — so an rpath must be added before it can be dlopen()ed
+        // straight out of the staged folder.
+        //
+        // Skip rather than fail when it is missing: `mpvSetupAll` is normally run on a dev's
+        // own machine to get the app running, and a hard failure there would take the macOS
+        // and Windows slices down with it for a slice that machine cannot use anyway. CI runs
+        // on Linux, where patchelf is one apt package away.
+        if (!toolAvailable("patchelf")) {
+            logger.warn(
+                "[mpv-multi] Skipping the Linux slice: patchelf is not on PATH " +
+                    "(`sudo apt-get install -y patchelf`, or `brew install patchelf` locally). " +
+                    "The other slices are unaffected.",
+            )
+            return@doLast
+        }
+        val cache = mpvCacheDir.get().asFile
+        val appImage = cache.resolve("mpv-$mpvAppImageVersion-x86_64.AppImage")
+        downloadIfMissing(
+            "https://github.com/pkgforge-dev/mpv-AppImage/releases/download/" +
+                "$mpvAppImageTagEncoded/mpv-$mpvAppImageVersion-anylinux-x86_64.AppImage",
+            appImage,
+            logPrefix = "mpv-multi",
+        )
+
+        // The payload is DwarFS, not SquashFS, and this runtime does not implement the classic
+        // `--appimage-extract` flag (no `--appimage-*` string appears anywhere in the binary), so
+        // neither unsquashfs nor self-extraction works. dwarfsextract reads it directly, and its
+        // upstream Linux build is a self-contained tarball — no apt package needed.
+        // On the Linux runner, fetch upstream's self-contained build so no distro package is
+        // needed. Anywhere else that binary cannot execute, so fall back to a dwarfsextract
+        // already on PATH (`brew install dwarfs`) and skip the slice if there is none.
+        val isLinuxHost = System.getProperty("os.name").lowercase().contains("linux")
+        val dwarfsExtract: String =
+            if (isLinuxHost) {
+                val dwarfsTar = cache.resolve("dwarfs-$dwarfsVersion-Linux-x86_64.tar.xz")
+                downloadIfMissing(
+                    "https://github.com/mhx/dwarfs/releases/download/v$dwarfsVersion/" +
+                        "dwarfs-$dwarfsVersion-Linux-x86_64.tar.xz",
+                    dwarfsTar,
+                    logPrefix = "mpv-multi",
+                )
+                val toolsDir = cache.resolve("dwarfs-tools")
+                val binary =
+                    toolsDir.walkTopDown().firstOrNull { it.isFile && it.name == "dwarfsextract" } ?: run {
+                        toolsDir.deleteRecursively()
+                        toolsDir.mkdirs()
+                        runChecked("tar", "-xf", dwarfsTar.absolutePath, "-C", toolsDir.absolutePath)
+                        toolsDir.walkTopDown().firstOrNull { it.isFile && it.name == "dwarfsextract" }
+                            ?: error("dwarfsextract not found inside ${dwarfsTar.name}")
+                    }
+                binary.setExecutable(true)
+                binary.absolutePath
+            } else {
+                if (!toolAvailable("dwarfsextract")) {
+                    logger.warn(
+                        "[mpv-multi] Skipping the Linux slice: dwarfsextract is not on PATH " +
+                            "(`brew install dwarfs`). The other slices are unaffected.",
+                    )
+                    return@doLast
+                }
+                "dwarfsextract"
+            }
+
+        val extractDir = cache.resolve("mpv-appimage-extract")
+        extractDir.deleteRecursively()
+        extractDir.mkdirs()
+        val offset = elfPayloadOffset(appImage)
+        logger.lifecycle("[mpv-multi] DwarFS payload starts at offset $offset")
+        runChecked(
+            dwarfsExtract,
+            "-i", appImage.absolutePath,
+            "-O", offset.toString(),
+            "-o", extractDir.absolutePath,
+        )
+
+        // sharun keeps the real binary in shared/bin and the closure in shared/lib; shared/bin/mpv
+        // is the 24 MB PIE that statically links libmpv and exports the full client API (54
+        // `mpv_*` dynamic symbols), while bin/mpv is only the ~230 KB sharun launcher.
+        val sharedDir = extractDir.walkTopDown().firstOrNull {
+            it.isDirectory && it.name == "shared" && it.resolve("bin/mpv").isFile
+        } ?: error("shared/bin/mpv not found inside the extracted AppImage")
+
+        outputDir.deleteRecursively()
+        outputDir.mkdirs()
+        project.copy {
+            from(sharedDir.resolve("lib"))
+            into(outputDir.resolve("lib"))
+        }
+        // Named libmpv.so.2 because that is one of MpvLibrary's CANDIDATE_NAMES; JNA passes a
+        // versioned .so name through unchanged on Linux.
+        val staged = outputDir.resolve("libmpv.so.2")
+        sharedDir.resolve("bin/mpv").copyTo(staged, overwrite = true)
+        staged.setWritable(true)
+        staged.setExecutable(true)
+        runChecked("patchelf", "--set-rpath", "\$ORIGIN/lib", staged.absolutePath)
+        pruneUnreachableSharedObjects(staged, outputDir.resolve("lib"))
+        logger.lifecycle(
+            "[mpv-multi] linux-x64: staged libmpv.so.2 + " +
+                "${outputDir.resolve("lib").listFiles()?.size ?: 0} shared objects",
+        )
+    }
+}
+
+// ===========================================================================
+// Two entry points, deliberately split.
+//
+// Everything above turns upstream mpv builds into loadable native slices, and it needs a Mac
+// (codesign) plus 7-Zip 21.07+, patchelf and dwarfsextract. Running that in CI would drag all
+// of it onto the Ubuntu runner for artifacts that never change between commits.
+//
+// So it runs ONCE per mpv bump, on a Mac, via `mpvBundleAll` — which also packs the result into
+// per-slice tarballs that get attached to a GitHub release. CI then calls `mpvSetupAll`, which
+// only downloads and unpacks them: no toolchain, no host requirements, same shape as the old
+// vlcSetupAll.
+// ===========================================================================
+// Kept in a repo of its own rather than SimpMusic's own releases: these archives are ~196 MB per
+// mpv bump and would otherwise sit in the release list users browse for the app itself.
+val mpvNativesRepo = "maxrave-dev/simpmusic-files"
+val mpvNativesTag = "abc"
+val mpvSlices = listOf("linux-x64", "macos-arm64", "macos-x64", "windows-x64", "windows-arm64")
+
+val mpvBundleAll by tasks.registering {
+    group = "mpv-bundle"
+    description = "Mac only: build every native slice and pack them into build/mpv-dist/ for a GitHub release."
+    dependsOn(
+        mpvSetupLinuxCi,
+        mpvSetupMacArmCi,
+        mpvSetupMacX64Ci,
+        mpvSetupWindowsX64Ci,
+        mpvSetupWindowsArmCi,
+    )
+    val distDir = layout.buildDirectory.dir("mpv-dist")
+    outputs.dir(distDir)
+    doLast {
+        val dist = distDir.get().asFile
+        dist.deleteRecursively()
+        dist.mkdirs()
+        mpvSlices.forEach { slice ->
+            val sliceDir = rootDir.resolve("mpv-natives/$slice")
+            check(sliceDir.isDirectory && sliceDir.listFiles()?.isNotEmpty() == true) {
+                "mpv-natives/$slice is missing or empty — cannot pack an incomplete set"
+            }
+            runChecked(
+                "tar", "-czf", dist.resolve("mpv-natives-$slice.tar.gz").absolutePath,
+                "-C", rootDir.resolve("mpv-natives").absolutePath, slice,
+            )
+        }
+        logger.lifecycle("[mpv-bundle] Packed ${mpvSlices.size} slices into ${dist.absolutePath}")
+        logger.lifecycle("[mpv-bundle] Publish with:")
+        logger.lifecycle(
+            "  gh release create $mpvNativesTag ${dist.absolutePath}/*.tar.gz " +
+                "--repo $mpvNativesRepo --title \"Desktop natives (mpv $mpvVersion)\" --notes \"...\"",
+        )
+    }
+}
+
+val mpvSetupAll by tasks.registering {
+    group = "mpv-multi"
+    description = "Populate mpv-natives/ from the prebuilt release tarballs. Runs anywhere; this is what CI uses."
+    val outputRoot = rootDir.resolve("mpv-natives")
+    outputs.dir(outputRoot)
+    doLast {
+        val cache = mpvCacheDir.get().asFile
+        mpvSlices.forEach { slice ->
+            val archive = cache.resolve("mpv-natives-$slice-$mpvVersion.tar.gz")
+            downloadIfMissing(
+                "https://github.com/$mpvNativesRepo/releases/download/$mpvNativesTag/mpv-natives-$slice.tar.gz",
+                archive,
+                logPrefix = "mpv-multi",
+            )
+            val target = outputRoot.resolve(slice)
+            target.deleteRecursively()
+            outputRoot.mkdirs()
+            runChecked("tar", "-xzf", archive.absolutePath, "-C", outputRoot.absolutePath)
+            check(target.isDirectory) { "$slice missing after unpacking ${archive.name}" }
+        }
+        logger.lifecycle("[mpv-multi] Unpacked ${mpvSlices.size} native slices into mpv-natives/")
+    }
 }
 
 buildkonfig {

@@ -105,6 +105,7 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
+import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
@@ -121,7 +122,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestina
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
-import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
@@ -207,8 +207,8 @@ import simpmusic.composeapp.generated.resources.crossfade_description
 import simpmusic.composeapp.generated.resources.crossfade_dj_mode
 import simpmusic.composeapp.generated.resources.crossfade_dj_mode_description
 import simpmusic.composeapp.generated.resources.crossfade_duration
-import simpmusic.composeapp.generated.resources.custom_color
 import simpmusic.composeapp.generated.resources.custom_ai_model_id
+import simpmusic.composeapp.generated.resources.custom_color
 import simpmusic.composeapp.generated.resources.custom_model_id_messages
 import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
@@ -1146,20 +1146,20 @@ fun SettingScreen(
                                 )
                             },
                         )
-                        if (getPlatform() == Platform.Android) {
-                            SettingItem(
-                                title = stringResource(Res.string.crossfade_dj_mode),
-                                subtitle =
-                                    if (castState.isRemote) {
-                                        stringResource(Res.string.not_available_while_casting)
-                                    } else {
-                                        stringResource(Res.string.crossfade_dj_mode_description)
-                                    },
-                                smallSubtitle = true,
-                                switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
-                                isEnable = !castState.isRemote,
-                            )
-                        }
+//                        if (getPlatform() == Platform.Android) {
+                        SettingItem(
+                            title = stringResource(Res.string.crossfade_dj_mode),
+                            subtitle =
+                                if (castState.isRemote) {
+                                    stringResource(Res.string.not_available_while_casting)
+                                } else {
+                                    stringResource(Res.string.crossfade_dj_mode_description)
+                                },
+                            smallSubtitle = true,
+                            switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
+                            isEnable = !castState.isRemote,
+                        )
+//                        }
                     }
                 }
             }
@@ -1332,7 +1332,12 @@ fun SettingScreen(
         }
         item(key = "AI") {
             Column {
-                Text(text = stringResource(Res.string.ai), style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = stringResource(Res.string.ai),
+                    style = typo().labelMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
                 SettingItem(
                     title = stringResource(Res.string.ai_provider),
                     subtitle =
@@ -2263,8 +2268,16 @@ fun SettingScreen(
     if (showColorPickerDialog) {
         val presetColors =
             listOf(
-                "FF8ECAE6", "FF4C82EF", "FF9B72CF", "FFEF6C9B", "FFEF5350",
-                "FFF4A340", "FFFFCA28", "FF66BB6A", "FF26A69A", "FFBDBDBD",
+                "FF8ECAE6",
+                "FF4C82EF",
+                "FF9B72CF",
+                "FFEF6C9B",
+                "FFEF5350",
+                "FFF4A340",
+                "FFFFCA28",
+                "FF66BB6A",
+                "FF26A69A",
+                "FFBDBDBD",
             )
         var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
         val parsedColor = parseThemeColorHex(pendingHex)

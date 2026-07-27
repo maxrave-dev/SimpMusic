@@ -100,7 +100,7 @@ Contains core modules organized by functionality:
 ##### **core/media/**
 - **media3/**: Media3 ExoPlayer integration (includes `CrossfadeExoPlayerAdapter` for DJ-style crossfade on Android)
 - **media3-ui/**: Media3 UI components
-- **media-jvm/**: JVM media playback (VLCJ - replaced GStreamer post-1.0.4)
+- **media-jvm/**: JVM media playback (libmpv via JNA — replaced VLCJ, which replaced GStreamer post-1.0.4)
 - **media-jvm-ui/**: JVM media UI components
 
 ##### **core/service/**
@@ -135,8 +135,8 @@ Service modules:
 
 ### Desktop
 - **Compose for Desktop**: UI
-- **VLCJ**: Audio playback (replaced GStreamer since post-1.0.4)
-- VLC native libraries are bundled per platform via `vlc-setup` Gradle plugin
+- **libmpv** (mpv's C client API, bound with JNA): audio + video playback. Replaced VLCJ, which had replaced GStreamer post-1.0.4
+- libmpv natives are bundled per platform via `./gradlew :composeApp:mpvSetupAll` into `mpv-natives/<os>-<arch>/`
 
 ### Networking & APIs
 - **Ktor Client**: HTTP client
@@ -261,7 +261,7 @@ Before implementing code, researching code, or answering technical questions, th
 ### 5. Work with Media Playback
 **Location**: `core/media/media3/` (Android) or `core/media/media-jvm/` (Desktop)
 - Media3/ExoPlayer + CrossfadeExoPlayerAdapter for Android
-- VLCJ (VlcPlayerAdapter) for Desktop
+- libmpv (MpvPlayerAdapter / MpvPlayer / MpvLibrary) for Desktop
 - Queue management in `core/data/src/.../mediaservice/`
 - Playback controls
 
@@ -332,7 +332,7 @@ Before implementing code, researching code, or answering technical questions, th
 
 #### Desktop
 - **Required Dependencies**:
-  - VLCJ: Audio playback (bundled via vlc-setup plugin)
+  - libmpv: audio + video playback (bundled via `mpvSetupAll`; falls back to a system-wide libmpv when `mpv-natives/` has not been staged)
 - **Features**:
   - Deep link support (`simpmusic://` and `simpmusic.org`)
   - Mini Player window (always-on-top, resizable, draggable)
@@ -351,13 +351,15 @@ Before implementing code, researching code, or answering technical questions, th
 
 ## 🎵 Media Playback Architecture
 
-### Desktop Player (VLCJ - replaced GStreamer post-1.0.4)
+### Desktop Player (libmpv — replaced VLCJ 2026-07-27)
 
-**Location**: `core/media/media-jvm/src/main/java/com/simpmusic/media_jvm/VlcPlayerAdapter.kt`
+**Location**: `core/media/media-jvm/src/main/java/com/simpmusic/media_jvm/mpv/`
 
-- Uses **VLCJ** library for audio playback (GStreamer was removed)
-- VLC native libraries bundled per platform via `vlc-setup` Gradle plugin in `composeApp/build.gradle.kts`
-- Bundled natives stored in `vlc-natives/{linux,macos,windows}/`
+- `MpvLibrary.kt` — JNA binding for libmpv's C client API, hand-mapped against client API 2.x. Struct layouts are read by raw offset, so a MAJOR client-API bump needs them re-verified
+- `MpvPlayer.kt` — one handle per media item; `vo=libmpv` + software render context
+- `MpvVideoSurfacePanel.kt` — mpv SW render API → `BufferedImage` → Swing, embedded in Compose via `SwingPanel`
+- `MpvPlayerAdapter.kt` — the `MediaPlayerInterface` implementation; separate YouTube audio/video URLs are merged into ONE source with an `edl://...;!new_stream;...` URL (mpv's equivalent of Android's `MergingMediaSource`)
+- Natives bundled per platform in `mpv-natives/<os>-<arch>/`, staged by `mpvSetupAll`
 - Supports crossfade transition with dual-player approach
 
 #### Crossfade Transition (Desktop)
@@ -408,7 +410,8 @@ See `CODE_OF_CONDUCT.md`
 - [Media3 (ExoPlayer)](https://developer.android.com/guide/topics/media/media3)
 - [Room Database](https://developer.android.com/training/data-storage/room)
 - [Ktor Client](https://ktor.io/docs/client.html)
-- [VLCJ](https://github.com/caprica/vlcj)
+- [libmpv client API](https://github.com/mpv-player/mpv/blob/master/include/mpv/client.h)
+- [mpv EDL format](https://github.com/mpv-player/mpv/blob/master/DOCS/edl-mpv.rst)
 
 ### Community
 - Website: https://simpmusic.org
@@ -480,6 +483,8 @@ if (getPlatform() == Platform.Android) {
 - **VM environment detection**: Disable transparency and custom titlebar in VMs
 - **Google Cast (2026-07, Full build only)**: `cast`/`cast-empty` module pair gated by `isFullBuild`; unified Media3 `CastPlayer` wraps the session `ForwardingPlayer`; `CastHandoffManager` pushes resolved-URL queue windows to the receiver with 403/expiry retry; Cast button in Now Playing top bar, "Playing on <device>" pill, crossfade/DJ/EQ settings gray out while casting; FOSS build stays GMS-free
 - **Windows SMTC (2026-07)**: System Media Transport Controls on Windows via `jmtc`/`nowplayingcenter` 0.0.3 (forked JMTC). The native `SMTCAdapter.dll` was hardened against the 1.0.x crash (Sentry SIMPMUSIC-DESKTOP-7, ~95k events): COM apartment tolerates `RPC_E_CHANGED_MODE`, `MediaPlayer` kept alive process-wide, and every exported call is exception-guarded so nothing crosses the JNA boundary as "Invalid memory access". JMTC is confined to a dedicated thread (off the AWT EDT), and `MediaType.Music` is set before display properties so title/artist render (not just the app name). Enabled in `JvmMediaPlayerHandlerImpl` for `Platform.Windows` (Linux MPRIS unchanged; macOS uses NowPlayingCenter). DLL built by GitHub Actions (`windows-latest`) in the NowPlayingCenter repo.
+- **VLC removed entirely (2026-07-27)**: `VlcPlayerAdapter`, `DefaultVlcDiscoverer`, `MacOsVlcDiscoverer` and `VlcModule` are deleted; `VlcModule.kt` became `DesktopPlayerModule.kt` (`loadVlcModule()` → `loadDesktopPlayerModule()`). The `vlcj` dependency, the `vlc-setup` Gradle plugin, every `vlcSetup*` task, the `vlc-natives/` tree and the VLC Conveyor inputs are all gone. `appResourcesRootDir` now points at `mpv-natives/`. libmpv is the only desktop backend.
+- **Bundled libmpv (2026-07-27)**: `./gradlew :composeApp:mpvSetupAll` stages libmpv + its dependency closure into `mpv-natives/{linux-x64,macos-arm64,macos-x64,windows-x64,windows-arm64}/`, wired into installers via `mpv-natives` inputs in `conveyor.conf` (`to = "mpv"`). Sources: shinchiro `mpv-dev-*.7z` (Windows, self-contained), pkgforge-dev mpv-AppImage (Linux, sharun `$ORIGIN`), Homebrew + `dylibbundler` (macOS). **The macOS slice needs a macOS runner** — one per architecture — because the closure is gathered from a Homebrew install; `mpvSetupMacCi` skips itself on other hosts. Do NOT try to lift `IINA.app/Contents/Frameworks` instead: IINA 1.4.4 ships a version-skewed pair (libmpv needs `_pl_log_create_349`, bundled `libplacebo.338.dylib` exports `_pl_log_create_338`) and that libmpv fails `dlopen` under both RTLD_NOW and RTLD_LAZY. `MpvLibrary.bundledLibraryDirs()` resolves the staged folder (`mpv.bundled.path` → `compose.application.resources.dir` → `mpv/` found by walking up from the JAR → `mpv-natives/<os>-<arch>`), mirroring `DefaultVlcDiscoverer`.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 

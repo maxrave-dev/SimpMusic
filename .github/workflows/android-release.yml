@@ -157,15 +157,6 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Cache vlc-natives
-        uses: actions/cache@v4
-        with:
-          path: vlc-natives
-          key: vlc-natives-${{ hashFiles('gradle/libs.versions.toml') }}
-
-      - name: Populate vlc-natives for all OSes
-        run: ./gradlew :composeApp:vlcSetupAll --no-configuration-cache
-
       - name: Generate Conveyor config
         # Run writeConveyorConfig BEFORE Conveyor so the parser only reads
         # the static generated.conveyor.conf and never tastes Gradle stdout

@@ -71,8 +71,6 @@ composeMultiplatform = "1.11.1"
 datetime = "0.8.0"
 sqlite = "2.6.2"
 okio = "3.17.0"
-vlcj = "4.12.1"
-vlc = "3.0.23"
 material3-multiplatform = "1.12.0-alpha01" # alpha01 = skiko 0.148.1 (has Matrix33.makeTranslate) to match compottie 1.12 snapshot; alpha02 bumps skiko 0.148.2 which removed it → compottie crash
 adaptive = "1.2.0"
 material-icons-multiplatform = "1.7.3"
@@ -219,7 +217,6 @@ file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref =
 native-tray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "tray" }
 
 #JVM
-vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jnaPlatform" }
 nowplaying = { module = "org.simpmusic:nowplayingcenter", version = "0.0.3" }
@@ -271,5 +268,4 @@ packagedeps = { id = "io.github.kdroidfilter.compose.linux.packagedeps", version
 
 # JVM
 osdetector = { id = "com.google.osdetector", version.ref = "osdetector" }
-vlc-setup = { id = "ir.mahozad.vlc-setup", version = "0.1.0" }
 conveyor = { id = "dev.hydraulic.conveyor", version.ref = "conveyor" }
