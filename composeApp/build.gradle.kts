@@ -6,6 +6,7 @@ import org.gradle.api.file.RelativePath
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.net.URI
+import java.security.MessageDigest
 import java.util.Properties
 
 val isFullBuild: Boolean =
@@ -244,9 +245,18 @@ fun downloadIfMissing(url: String, target: java.io.File, logPrefix: String = "mp
 //   Windows  shinchiro/mpv-winbuild-cmake `mpv-dev-<arch>.7z`
 //            → libmpv-2.dll with ffmpeg linked in. Nothing to patch.
 //   Linux    pkgforge-dev/mpv-AppImage
-//            → libmpv.so.2 + closure under shared/lib with RPATH=$ORIGIN
-//              (sharun), so nothing to patch there either.
-//   macOS    Homebrew's mpv + dylibbundler, run on a macOS host.
+//            → no libmpv.so either; shared/bin/mpv is a PIE exporting the API,
+//              renamed to libmpv.so.2 and given an $ORIGIN/lib rpath.
+//   macOS    mpv's own tagged release .zip (macos-15-arm / macos-15-intel)
+//            → Contents/MacOS/mpv renamed to libmpv.dylib, its
+//              @executable_path/lib/... load commands rewritten to
+//              @loader_path, then re-signed ad-hoc.
+//
+// On macOS and Linux mpv links libmpv STATICALLY into the `mpv` executable, so
+// there is no shared library to copy. Those executables are PIE and export the
+// full client API (54 `mpv_*` symbols), which is why renaming them works at
+// all — and why the rename matters: JNA maps Native.load("mpv") to
+// libmpv.dylib / libmpv.so. Only Windows publishes a real `mpv-dev` package.
 //
 // macOS is the odd one out and deliberately so. The obvious shortcut — lifting
 // IINA.app/Contents/Frameworks straight out of IINA's .dmg — DOES NOT WORK,
@@ -263,14 +273,12 @@ fun downloadIfMissing(url: String, target: java.io.File, logPrefix: String = "mp
 // makes IINA itself work, that closure is not self-sufficient, and MpvLibrary
 // loads with RTLD_NOW by design, so there is no flag to hide behind.
 //
-// Homebrew resolves mpv and libplacebo as one dependency graph, so its closure
-// is self-consistent by construction. dylibbundler then copies that closure and
-// rewrites every dependency to @loader_path/... in one pass. The dylibs must be
-// re-signed ad-hoc afterwards: mutating a Mach-O invalidates its signature and
-// macOS refuses to load an invalidly-signed dylib (hard failure on Apple
-// Silicon). Cost of this route: the macOS slice needs a macOS runner, one per
-// architecture — it cannot be produced from the Linux runner that builds
-// every other slice.
+// mpv's own release zip avoids that entirely: libmpv and its closure come out
+// of one build, so they cannot be version-skewed against each other. The
+// dylibs must be re-signed ad-hoc after patching — mutating a Mach-O
+// invalidates its signature and macOS refuses to load an invalidly-signed
+// dylib (a hard failure on Apple Silicon). That signing step is the only
+// reason these tasks need a Mac.
 //
 // Conveyor stages one slice per machine — see the mpv-natives inputs in
 // conveyor.conf.
@@ -319,6 +327,19 @@ fun toolAvailable(tool: String): Boolean =
 fun runChecked(vararg command: String) {
     val exit = ProcessBuilder(*command).inheritIO().start().waitFor()
     check(exit == 0) { "Command failed (exit $exit): ${command.joinToString(" ")}" }
+}
+
+fun sha256(file: java.io.File): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    file.inputStream().use { stream ->
+        val buffer = ByteArray(1 shl 16)
+        while (true) {
+            val read = stream.read(buffer)
+            if (read <= 0) break
+            digest.update(buffer, 0, read)
+        }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
 }
 
 // ---------------------------------------------------------------------------
@@ -457,6 +478,13 @@ fun extractMacMpvSlice(assetArch: String, outputDir: java.io.File) {
         dylib.setWritable(true)
         rewritten += rewriteExecutablePathRefs(dylib, "@loader_path/")
     }
+    // Assert rather than just log: if upstream ever switches to @rpath/ or @loader_path/ install
+    // names this silently rewrites nothing, signs the result, and publishes a slice whose dylibs
+    // resolve against an @executable_path that means nothing under the JVM.
+    check(rewritten > 0) {
+        "No @executable_path/lib/ entries found in $assetArch — mpv's macOS layout changed, " +
+            "rewriteExecutablePathRefs() needs updating before this slice can be published."
+    }
     logger.lifecycle("[mpv-multi] $assetArch: rewrote $rewritten install-name entries")
     codesignAdhoc(outputDir)
 }
@@ -465,6 +493,7 @@ val mpvSetupMacArmCi by tasks.registering {
     group = "mpv-multi"
     description = "Cross-OS: populate mpv-natives/macos-arm64/ with libmpv + its dylib closure."
     val outputDir = rootDir.resolve("mpv-natives/macos-arm64/")
+    inputs.property("mpvVersion", mpvVersion)
     outputs.dir(outputDir)
     doLast { extractMacMpvSlice("macos-15-arm", outputDir) }
 }
@@ -473,6 +502,7 @@ val mpvSetupMacX64Ci by tasks.registering {
     group = "mpv-multi"
     description = "Cross-OS: populate mpv-natives/macos-x64/ with Intel libmpv + its dylib closure."
     val outputDir = rootDir.resolve("mpv-natives/macos-x64/")
+    inputs.property("mpvVersion", mpvVersion)
     outputs.dir(outputDir)
     doLast { extractMacMpvSlice("macos-15-intel", outputDir) }
 }
@@ -527,6 +557,7 @@ val mpvSetupWindowsX64Ci by tasks.registering {
     group = "mpv-multi"
     description = "Cross-OS: populate mpv-natives/windows-x64/ with libmpv-2.dll."
     val outputDir = rootDir.resolve("mpv-natives/windows-x64/")
+    inputs.property("mpvWinBuildSuffix", mpvWinBuildSuffix)
     outputs.dir(outputDir)
     doLast { extractWindowsMpvSlice("x86_64", outputDir) }
 }
@@ -535,6 +566,7 @@ val mpvSetupWindowsArmCi by tasks.registering {
     group = "mpv-multi"
     description = "Cross-OS: populate mpv-natives/windows-arm64/ with ARM64 libmpv-2.dll."
     val outputDir = rootDir.resolve("mpv-natives/windows-arm64/")
+    inputs.property("mpvWinBuildSuffix", mpvWinBuildSuffix)
     outputs.dir(outputDir)
     doLast { extractWindowsMpvSlice("aarch64", outputDir) }
 }
@@ -627,33 +659,113 @@ fun elfNeeded(file: java.io.File): List<String> {
  * 350 shared objects / 373 MB. libmpv's own closure is 91 of them / 54 MB, and the rest would be
  * dead weight in every Linux installer.
  */
+/**
+ * Shared objects the host always provides, so a `DT_NEEDED` naming one is not a missing bundle
+ * entry. Deliberately short: anything outside the glibc/libgcc core is expected to ship with us.
+ */
+val systemProvidedSharedObjects =
+    setOf(
+        "libc.so.6", "libm.so.6", "libdl.so.2", "libpthread.so.0", "librt.so.1",
+        "libresolv.so.2", "libutil.so.1", "libnsl.so.1", "libcrypt.so.1",
+        "libgcc_s.so.1", "ld-linux-x86-64.so.2", "ld-linux-aarch64.so.1",
+    )
+
+/**
+ * Give every shared object in [libDir] an rpath that reaches the rest of the bundle.
+ *
+ * sharun's tree is not flat: plugin hosts keep their real implementation in a subdirectory
+ * (`lib/pulseaudio/libpulsecommon-*.so`, `lib/alsa-lib/`, `lib/pipewire-0.3/`, `lib/spa-0.2/`,
+ * `lib/gbm/`). On a normal system those are found through each library's own RUNPATH; the copies
+ * here have none, so without this `libpulse.so.0` cannot see `libpulsecommon` even though both
+ * are in the bundle.
+ */
+fun setBundleRpaths(libDir: java.io.File) {
+    val subDirs = libDir.listFiles()?.filter { it.isDirectory }?.map { it.name }.orEmpty().sorted()
+    val topRpath = (listOf("\$ORIGIN") + subDirs.map { "\$ORIGIN/$it" }).joinToString(":")
+    libDir.walkTopDown().filter { it.isFile && it.name.contains(".so") }.forEach { so ->
+        val rpath = if (so.parentFile == libDir) topRpath else "\$ORIGIN:\$ORIGIN/.."
+        so.setWritable(true)
+        // Objects that are not ELF (stray data files) make patchelf fail; skip them quietly
+        // rather than aborting the whole slice.
+        ProcessBuilder("patchelf", "--set-rpath", rpath, so.absolutePath)
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start()
+            .waitFor()
+    }
+}
+
+/**
+ * Delete top-level shared objects in [libDir] that nothing in the bundle links against.
+ *
+ * sharun bundles whatever the mpv *player* needs — X11, wayland, pulse, GTK and more — which is
+ * 350 shared objects / 373 MB. libmpv's own closure is a fraction of that, and the rest would be
+ * dead weight in every Linux installer.
+ *
+ * Two things this must get right, both learned the hard way:
+ *
+ *  - The walk seeds from [root] **and from every shared object in a subdirectory**. Those
+ *    subdirectory objects are plugins loaded with `dlopen` at runtime, so nothing names them in a
+ *    `DT_NEEDED` — but their own dependencies are very much needed. Seeding only from [root]
+ *    deleted `libsndfile.so.1` and `libasyncns.so.0`, which `libpulsecommon-17.0.so` needs, and
+ *    shipped a `libmpv.so.2` that failed to load.
+ *  - It asserts afterwards that every retained object resolves. A pruner that guesses wrong
+ *    should fail here, on the machine building the bundle, not on a user's machine.
+ */
 fun pruneUnreachableSharedObjects(root: java.io.File, libDir: java.io.File) {
-    val present = libDir.listFiles()?.filter { it.isFile }?.associateBy { it.name }.orEmpty()
+    val allObjects = libDir.walkTopDown().filter { it.isFile && it.name.contains(".so") }.toList()
+    val byName = allObjects.associateBy { it.name }
+    val topLevel = allObjects.filter { it.parentFile == libDir }
+
     val reachable = mutableSetOf<String>()
     val queue = ArrayDeque<java.io.File>()
     queue += root
+    // Plugins in subdirectories are dlopen'ed, never named in a DT_NEEDED — seed them explicitly
+    // so their dependencies survive the prune.
+    allObjects.filter { it.parentFile != libDir }.forEach {
+        reachable += it.name
+        queue += it
+    }
     while (queue.isNotEmpty()) {
         elfNeeded(queue.removeFirst()).forEach { name ->
-            if (reachable.add(name)) present[name]?.let { queue += it }
+            if (reachable.add(name)) byName[name]?.let { queue += it }
         }
     }
+
     var freed = 0L
-    present.forEach { (name, file) ->
-        if (name !in reachable) {
+    var deleted = 0
+    topLevel.forEach { file ->
+        if (file.name !in reachable) {
             freed += file.length()
+            deleted++
             file.delete()
         }
     }
     logger.lifecycle(
-        "[mpv-multi] Pruned ${present.size - reachable.size} unreachable shared objects " +
-            "(${freed / 1048576} MB); kept ${reachable.size}",
+        "[mpv-multi] Pruned $deleted unreachable shared objects (${freed / 1048576} MB); " +
+            "kept ${allObjects.size - deleted}",
     )
+
+    // Post-condition: nothing left behind may reference something that is no longer here.
+    val remaining = libDir.walkTopDown().filter { it.isFile && it.name.contains(".so") }.toList() + root
+    val remainingNames = remaining.map { it.name }.toSet()
+    val dangling =
+        remaining.flatMap { obj ->
+            elfNeeded(obj)
+                .filter { it !in remainingNames && it !in systemProvidedSharedObjects }
+                .map { "${obj.name} → $it" }
+        }
+    check(dangling.isEmpty()) {
+        "Pruning left unresolvable dependencies — the slice would fail to load at runtime:\n" +
+            dangling.joinToString("\n") { "  $it" }
+    }
 }
 
 val mpvSetupLinuxCi by tasks.registering {
     group = "mpv-multi"
     description = "Cross-OS: populate mpv-natives/linux-x64/ with libmpv + its .so closure."
     val outputDir = rootDir.resolve("mpv-natives/linux-x64/")
+    inputs.property("mpvAppImageTag", mpvAppImageTagEncoded)
     outputs.dir(outputDir)
     doLast {
         // patchelf is the one genuinely host-specific step. The binary carries NO
@@ -754,6 +866,7 @@ val mpvSetupLinuxCi by tasks.registering {
         staged.setExecutable(true)
         runChecked("patchelf", "--set-rpath", "\$ORIGIN/lib", staged.absolutePath)
         pruneUnreachableSharedObjects(staged, outputDir.resolve("lib"))
+        setBundleRpaths(outputDir.resolve("lib"))
         logger.lifecycle(
             "[mpv-multi] linux-x64: staged libmpv.so.2 + " +
                 "${outputDir.resolve("lib").listFiles()?.size ?: 0} shared objects",
@@ -806,6 +919,10 @@ val mpvBundleAll by tasks.registering {
             )
         }
         logger.lifecycle("[mpv-bundle] Packed ${mpvSlices.size} slices into ${dist.absolutePath}")
+        logger.lifecycle("[mpv-bundle] Paste these into mpvNativesChecksums:")
+        mpvSlices.forEach { slice ->
+            logger.lifecycle("        \"$slice\" to \"${sha256(dist.resolve("mpv-natives-$slice.tar.gz"))}\",")
+        }
         logger.lifecycle("[mpv-bundle] Publish with:")
         logger.lifecycle(
             "  gh release create $mpvNativesTag ${dist.absolutePath}/*.tar.gz " +
@@ -814,27 +931,62 @@ val mpvBundleAll by tasks.registering {
     }
 }
 
+/**
+ * SHA-256 of every published tarball, filled in by `mpvBundleAll` after a bump.
+ *
+ * Pinned in the build script on purpose, rather than read from the release's own `SHA256SUMS`
+ * asset: a checksum served from the same place as the artifact catches corruption but not anyone
+ * able to replace release assets — and these files are unpacked straight into the tree Conveyor
+ * signs. The release tag is mutable, so this is the only thing actually pinning what gets shipped.
+ */
+val mpvNativesChecksums =
+    mapOf(
+        "linux-x64" to "ec64ce2c75c134b4283968a3f9993e40bb05589f406206a0e1d4536e08f62570",
+        "macos-arm64" to "9a44626c14526ed92ef913e876c2f2ef6fa640d946ab5e1b2bb4041d32893006",
+        "macos-x64" to "df4e0cc5f80b261a6e616febbca49c20f15f66f0c197dc1e3996f4e28dd5ac8f",
+        "windows-x64" to "7a3da0d920261d016a07ffed119e8f604084c7c0b4610301a8ec45445abe21f9",
+        "windows-arm64" to "1b4762a10e7aecfe3c12669df2e2ff7e19d374dd99c193b80889cfaf36cbe93d",
+    )
+
+
 val mpvSetupAll by tasks.registering {
     group = "mpv-multi"
     description = "Populate mpv-natives/ from the prebuilt release tarballs. Runs anywhere; this is what CI uses."
     val outputRoot = rootDir.resolve("mpv-natives")
+    // Without declared inputs Gradle treats an existing output directory as up to date, so bumping
+    // the tag or the mpv version would silently keep shipping the previous natives.
+    inputs.property("mpvNativesTag", mpvNativesTag)
+    inputs.property("mpvNativesChecksums", mpvNativesChecksums)
     outputs.dir(outputRoot)
     doLast {
         val cache = mpvCacheDir.get().asFile
         mpvSlices.forEach { slice ->
-            val archive = cache.resolve("mpv-natives-$slice-$mpvVersion.tar.gz")
+            // Cache key includes the tag, not just the version: re-publishing corrected natives
+            // under a new tag at the same mpv version must not reuse the stale download.
+            val archive = cache.resolve("mpv-natives-$slice-$mpvNativesTag.tar.gz")
             downloadIfMissing(
                 "https://github.com/$mpvNativesRepo/releases/download/$mpvNativesTag/mpv-natives-$slice.tar.gz",
                 archive,
                 logPrefix = "mpv-multi",
             )
+            val expected = mpvNativesChecksums.getValue(slice)
+            val actual = sha256(archive)
+            check(expected != "PENDING") {
+                "No checksum pinned for $slice. Run `:composeApp:mpvBundleAll`, publish the " +
+                    "archives, then paste the printed digests into mpvNativesChecksums."
+            }
+            check(actual == expected) {
+                // Delete it so a genuinely corrupt download can be retried rather than cached.
+                archive.delete()
+                "Checksum mismatch for mpv-natives-$slice.tar.gz\n  expected $expected\n  actual   $actual"
+            }
             val target = outputRoot.resolve(slice)
             target.deleteRecursively()
             outputRoot.mkdirs()
             runChecked("tar", "-xzf", archive.absolutePath, "-C", outputRoot.absolutePath)
             check(target.isDirectory) { "$slice missing after unpacking ${archive.name}" }
         }
-        logger.lifecycle("[mpv-multi] Unpacked ${mpvSlices.size} native slices into mpv-natives/")
+        logger.lifecycle("[mpv-multi] Unpacked ${mpvSlices.size} verified native slices into mpv-natives/")
     }
 }
 
