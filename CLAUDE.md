@@ -333,6 +333,7 @@ Before implementing code, researching code, or answering technical questions, th
 #### Desktop
 - **Required Dependencies**:
   - libmpv: audio + video playback (bundled via `mpvSetupAll`; falls back to a system-wide libmpv when `mpv-natives/` has not been staged)
+- **Minimum macOS: 15.0** — raised from 11.0 when VLC was replaced by mpv. mpv's macOS release builds target macOS 15 (96/98 arm64 dylibs declare `minos 15.0`; on Intel `libmpv` itself does), and Conveyor rejects a lower `LSMinimumSystemVersion`. No mpv artifact covers both architectures below 15.
 - **Features**:
   - Deep link support (`simpmusic://` and `simpmusic.org`)
   - Mini Player window (always-on-top, resizable, draggable)
