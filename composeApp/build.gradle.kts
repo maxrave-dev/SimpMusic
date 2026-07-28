@@ -244,9 +244,16 @@ fun downloadIfMissing(url: String, target: java.io.File, logPrefix: String = "mp
 //
 //   Windows  shinchiro/mpv-winbuild-cmake `mpv-dev-<arch>.7z`
 //            → libmpv-2.dll with ffmpeg linked in. Nothing to patch.
-//   Linux    pkgforge-dev/mpv-AppImage
-//            → no libmpv.so either; shared/bin/mpv is a PIE exporting the API,
-//              renamed to libmpv.so.2 and given an $ORIGIN/lib rpath.
+//   Linux    built from source in a container — see scripts/mpv-linux/.
+//            → the ONE platform with no usable upstream. Every prebuilt Linux
+//              mpv targets "run mpv as its own process": the AppImage ships its
+//              own glibc + loader and exports the API from a PIE *executable*,
+//              which glibc flatly refuses to dlopen, and whose glibc would
+//              collide with the one the JVM has already mapped. Distro packages
+//              trade that for a version floor set by the distro. Building
+//              against Ubuntu 22.04 gives a real libmpv.so.2 that needs only
+//              glibc 2.34, so it loads in-process from Ubuntu 22.04 / Debian 11
+//              upwards.
 //   macOS    mpv's own tagged release .zip (macos-15-arm / macos-15-intel)
 //            → Contents/MacOS/mpv renamed to libmpv.dylib, its
 //              @executable_path/lib/... load commands rewritten to
@@ -293,14 +300,8 @@ val mpvCacheDir = layout.buildDirectory.dir("mpv-cache")
 val mpvVersion = "0.41.0"
 val mpvWinBuildTag = "20260610"
 val mpvWinBuildSuffix = "20260610-git-304426c"
-// Percent-encoded because the release tag embeds an '@'. Kept as a literal rather than
-// URLEncoder.encode(): in a build script `java` resolves to the JavaPluginExtension
-// accessor, so `java.net.URLEncoder` is unresolvable in expression position.
-val mpvAppImageTagEncoded = "v0.41.0%402026-07-01_1782914175"
-val mpvAppImageVersion = "v0.41.0"
-// Reads the AppImage's DwarFS payload. 0.15.6 handles DwarFS v2.5, which is what this
-// AppImage carries; an older dwarfs reports "unsupported major version".
-val dwarfsVersion = "0.15.6"
+// Linux has no upstream pin: that slice is compiled from source by
+// scripts/mpv-linux/Dockerfile, which pins mpv, FFmpeg and libplacebo itself.
 
 // Every extractor below finds the directory that actually holds the libmpv
 // artifact and copies its whole sibling set, rather than hard-coding upstream
@@ -327,6 +328,15 @@ fun toolAvailable(tool: String): Boolean =
 fun runChecked(vararg command: String) {
     val exit = ProcessBuilder(*command).inheritIO().start().waitFor()
     check(exit == 0) { "Command failed (exit $exit): ${command.joinToString(" ")}" }
+}
+
+/** Like [runChecked], but returns the command's trimmed stdout instead of forwarding it. */
+fun runCapturing(vararg command: String): String {
+    val process = ProcessBuilder(*command).redirectErrorStream(false).start()
+    val output = process.inputStream.bufferedReader().readText()
+    val exit = process.waitFor()
+    check(exit == 0) { "Command failed (exit $exit): ${command.joinToString(" ")}" }
+    return output.trim()
 }
 
 fun sha256(file: java.io.File): String {
@@ -575,301 +585,64 @@ val mpvSetupWindowsArmCi by tasks.registering {
 // Linux
 // ---------------------------------------------------------------------------
 
-/**
- * Offset of the payload appended after an ELF file, i.e. the end of the ELF proper.
- *
- * AppImages are an ELF runtime with a filesystem image concatenated onto it, and the image starts
- * exactly where the section-header table ends: `e_shoff + e_shnum * e_shentsize`.
- *
- * Do NOT try to find the payload by scanning for its magic instead. This runtime embeds the
- * strings `DWARFS_BLOCK_SIZE`, `DWARFS_CACHE_SIZE` and friends as environment-variable names, so
- * the first `DWARFS` hit lands ~1.1 MB before the real image and every extractor then reports
- * "unsupported major version".
- */
-fun elfPayloadOffset(file: java.io.File): Long {
-    val header = ByteArray(64)
-    file.inputStream().use { check(it.read(header) == 64) { "${file.name} is too small to be an ELF" } }
-    check(header[0] == 0x7f.toByte() && header[1] == 'E'.code.toByte()) { "${file.name} is not an ELF file" }
-    // Hand-rolled little-endian reads rather than java.nio.ByteBuffer: inside a build script
-    // `java` resolves to the JavaPluginExtension accessor, so java.* only works in type position.
-    fun le(offset: Int, size: Int): Long {
-        var value = 0L
-        for (i in size - 1 downTo 0) value = (value shl 8) or (header[offset + i].toLong() and 0xff)
-        return value
-    }
-    val shoff = le(0x28, 8)
-    val shentsize = le(0x3a, 2)
-    val shnum = le(0x3c, 2)
-    return shoff + shentsize * shnum
-}
-
-/**
- * `DT_NEEDED` entries of an ELF file, i.e. the shared objects it links against directly.
- *
- * Enough of a parser to walk a dependency closure: section headers → `.dynamic` → `.dynstr`.
- * Returns empty for anything that isn't an ELF with section headers.
- */
-fun elfNeeded(file: java.io.File): List<String> {
-    val d = file.readBytes()
-    if (d.size < 64 || d[0] != 0x7f.toByte() || d[1] != 'E'.code.toByte()) return emptyList()
-    fun le(off: Int, size: Int): Long {
-        var v = 0L
-        for (i in size - 1 downTo 0) v = (v shl 8) or (d[off + i].toLong() and 0xff)
-        return v
-    }
-    val shoff = le(0x28, 8).toInt()
-    val shentsize = le(0x3a, 2).toInt()
-    val shnum = le(0x3c, 2).toInt()
-    val shstrndx = le(0x3e, 2).toInt()
-    if (shnum == 0 || shoff == 0) return emptyList()
-    fun sectionName(i: Int) = le(shoff + i * shentsize, 4).toInt()
-    fun sectionOff(i: Int) = le(shoff + i * shentsize + 0x18, 8).toInt()
-    fun sectionSize(i: Int) = le(shoff + i * shentsize + 0x20, 8).toInt()
-    fun cstr(base: Int, offset: Int): String {
-        var e = base + offset
-        while (e < d.size && d[e] != 0.toByte()) e++
-        return String(d, base + offset, e - (base + offset), Charsets.US_ASCII)
-    }
-    val shstrBase = sectionOff(shstrndx)
-    var dynamicIdx = -1
-    var dynstrIdx = -1
-    for (i in 0 until shnum) {
-        when (cstr(shstrBase, sectionName(i))) {
-            ".dynamic" -> dynamicIdx = i
-            ".dynstr" -> dynstrIdx = i
-        }
-    }
-    if (dynamicIdx < 0 || dynstrIdx < 0) return emptyList()
-    val dynOff = sectionOff(dynamicIdx)
-    val strBase = sectionOff(dynstrIdx)
-    val result = mutableListOf<String>()
-    for (i in 0 until sectionSize(dynamicIdx) / 16) {
-        val tag = le(dynOff + i * 16, 8)
-        val value = le(dynOff + i * 16 + 8, 8).toInt()
-        if (tag == 0L) break
-        if (tag == 1L) result += cstr(strBase, value) // DT_NEEDED
-    }
-    return result
-}
-
-/**
- * Delete everything in `lib/` that [root] does not actually reach.
- *
- * sharun bundles whatever the mpv *player* needs — X11, wayland, pulse, GTK and more — which is
- * 350 shared objects / 373 MB. libmpv's own closure is 91 of them / 54 MB, and the rest would be
- * dead weight in every Linux installer.
- */
-/**
- * Shared objects the host always provides, so a `DT_NEEDED` naming one is not a missing bundle
- * entry. Deliberately short: anything outside the glibc/libgcc core is expected to ship with us.
- */
-val systemProvidedSharedObjects =
-    setOf(
-        "libc.so.6", "libm.so.6", "libdl.so.2", "libpthread.so.0", "librt.so.1",
-        "libresolv.so.2", "libutil.so.1", "libnsl.so.1", "libcrypt.so.1",
-        "libgcc_s.so.1", "ld-linux-x86-64.so.2", "ld-linux-aarch64.so.1",
-    )
-
-/**
- * Give every shared object in [libDir] an rpath that reaches the rest of the bundle.
- *
- * sharun's tree is not flat: plugin hosts keep their real implementation in a subdirectory
- * (`lib/pulseaudio/libpulsecommon-*.so`, `lib/alsa-lib/`, `lib/pipewire-0.3/`, `lib/spa-0.2/`,
- * `lib/gbm/`). On a normal system those are found through each library's own RUNPATH; the copies
- * here have none, so without this `libpulse.so.0` cannot see `libpulsecommon` even though both
- * are in the bundle.
- */
-fun setBundleRpaths(libDir: java.io.File) {
-    val subDirs = libDir.listFiles()?.filter { it.isDirectory }?.map { it.name }.orEmpty().sorted()
-    val topRpath = (listOf("\$ORIGIN") + subDirs.map { "\$ORIGIN/$it" }).joinToString(":")
-    libDir.walkTopDown().filter { it.isFile && it.name.contains(".so") }.forEach { so ->
-        val rpath = if (so.parentFile == libDir) topRpath else "\$ORIGIN:\$ORIGIN/.."
-        so.setWritable(true)
-        // Objects that are not ELF (stray data files) make patchelf fail; skip them quietly
-        // rather than aborting the whole slice.
-        ProcessBuilder("patchelf", "--set-rpath", rpath, so.absolutePath)
-            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-            .redirectError(ProcessBuilder.Redirect.DISCARD)
-            .start()
-            .waitFor()
-    }
-}
-
-/**
- * Delete top-level shared objects in [libDir] that nothing in the bundle links against.
- *
- * sharun bundles whatever the mpv *player* needs — X11, wayland, pulse, GTK and more — which is
- * 350 shared objects / 373 MB. libmpv's own closure is a fraction of that, and the rest would be
- * dead weight in every Linux installer.
- *
- * Two things this must get right, both learned the hard way:
- *
- *  - The walk seeds from [root] **and from every shared object in a subdirectory**. Those
- *    subdirectory objects are plugins loaded with `dlopen` at runtime, so nothing names them in a
- *    `DT_NEEDED` — but their own dependencies are very much needed. Seeding only from [root]
- *    deleted `libsndfile.so.1` and `libasyncns.so.0`, which `libpulsecommon-17.0.so` needs, and
- *    shipped a `libmpv.so.2` that failed to load.
- *  - It asserts afterwards that every retained object resolves. A pruner that guesses wrong
- *    should fail here, on the machine building the bundle, not on a user's machine.
- */
-fun pruneUnreachableSharedObjects(root: java.io.File, libDir: java.io.File) {
-    val allObjects = libDir.walkTopDown().filter { it.isFile && it.name.contains(".so") }.toList()
-    val byName = allObjects.associateBy { it.name }
-    val topLevel = allObjects.filter { it.parentFile == libDir }
-
-    val reachable = mutableSetOf<String>()
-    val queue = ArrayDeque<java.io.File>()
-    queue += root
-    // Plugins in subdirectories are dlopen'ed, never named in a DT_NEEDED — seed them explicitly
-    // so their dependencies survive the prune.
-    allObjects.filter { it.parentFile != libDir }.forEach {
-        reachable += it.name
-        queue += it
-    }
-    while (queue.isNotEmpty()) {
-        elfNeeded(queue.removeFirst()).forEach { name ->
-            if (reachable.add(name)) byName[name]?.let { queue += it }
-        }
-    }
-
-    var freed = 0L
-    var deleted = 0
-    topLevel.forEach { file ->
-        if (file.name !in reachable) {
-            freed += file.length()
-            deleted++
-            file.delete()
-        }
-    }
-    logger.lifecycle(
-        "[mpv-multi] Pruned $deleted unreachable shared objects (${freed / 1048576} MB); " +
-            "kept ${allObjects.size - deleted}",
-    )
-
-    // Post-condition: nothing left behind may reference something that is no longer here.
-    val remaining = libDir.walkTopDown().filter { it.isFile && it.name.contains(".so") }.toList() + root
-    val remainingNames = remaining.map { it.name }.toSet()
-    val dangling =
-        remaining.flatMap { obj ->
-            elfNeeded(obj)
-                .filter { it !in remainingNames && it !in systemProvidedSharedObjects }
-                .map { "${obj.name} → $it" }
-        }
-    check(dangling.isEmpty()) {
-        "Pruning left unresolvable dependencies — the slice would fail to load at runtime:\n" +
-            dangling.joinToString("\n") { "  $it" }
-    }
-}
-
 val mpvSetupLinuxCi by tasks.registering {
     group = "mpv-multi"
-    description = "Cross-OS: populate mpv-natives/linux-x64/ with libmpv + its .so closure."
+    description = "Cross-OS: build a real libmpv.so.2 in a container and stage it with its .so closure."
     val outputDir = rootDir.resolve("mpv-natives/linux-x64/")
-    inputs.property("mpvAppImageTag", mpvAppImageTagEncoded)
+    val dockerDir = rootDir.resolve("scripts/mpv-linux")
+    inputs.dir(dockerDir)
+    inputs.property("mpvVersion", mpvVersion)
     outputs.dir(outputDir)
     doLast {
-        // patchelf is the one genuinely host-specific step. The binary carries NO
-        // DT_RPATH/DT_RUNPATH at all — inside the AppImage a sharun wrapper sets
-        // LD_LIBRARY_PATH instead — so an rpath must be added before it can be dlopen()ed
-        // straight out of the staged folder.
-        //
-        // Skip rather than fail when it is missing: `mpvSetupAll` is normally run on a dev's
-        // own machine to get the app running, and a hard failure there would take the macOS
-        // and Windows slices down with it for a slice that machine cannot use anyway. CI runs
-        // on Linux, where patchelf is one apt package away.
-        if (!toolAvailable("patchelf")) {
+        // Docker, not a host toolchain. The point of the container is the OLD base image:
+        // linking against Ubuntu 22.04 pins the glibc floor at 2.34 no matter how new the
+        // machine running this is. Building on the host would silently bake in that host's
+        // glibc and produce a slice that only runs on equally-new systems — the exact trap
+        // the upstream AppImage fell into.
+        if (!toolAvailable("docker")) {
             logger.warn(
-                "[mpv-multi] Skipping the Linux slice: patchelf is not on PATH " +
-                    "(`sudo apt-get install -y patchelf`, or `brew install patchelf` locally). " +
+                "[mpv-multi] Skipping the Linux slice: docker is not on PATH. " +
                     "The other slices are unaffected.",
             )
             return@doLast
         }
-        val cache = mpvCacheDir.get().asFile
-        val appImage = cache.resolve("mpv-$mpvAppImageVersion-x86_64.AppImage")
-        downloadIfMissing(
-            "https://github.com/pkgforge-dev/mpv-AppImage/releases/download/" +
-                "$mpvAppImageTagEncoded/mpv-$mpvAppImageVersion-anylinux-x86_64.AppImage",
-            appImage,
-            logPrefix = "mpv-multi",
-        )
 
-        // The payload is DwarFS, not SquashFS, and this runtime does not implement the classic
-        // `--appimage-extract` flag (no `--appimage-*` string appears anywhere in the binary), so
-        // neither unsquashfs nor self-extraction works. dwarfsextract reads it directly, and its
-        // upstream Linux build is a self-contained tarball — no apt package needed.
-        // On the Linux runner, fetch upstream's self-contained build so no distro package is
-        // needed. Anywhere else that binary cannot execute, so fall back to a dwarfsextract
-        // already on PATH (`brew install dwarfs`) and skip the slice if there is none.
-        val isLinuxHost = System.getProperty("os.name").lowercase().contains("linux")
-        val dwarfsExtract: String =
-            if (isLinuxHost) {
-                val dwarfsTar = cache.resolve("dwarfs-$dwarfsVersion-Linux-x86_64.tar.xz")
-                downloadIfMissing(
-                    "https://github.com/mhx/dwarfs/releases/download/v$dwarfsVersion/" +
-                        "dwarfs-$dwarfsVersion-Linux-x86_64.tar.xz",
-                    dwarfsTar,
-                    logPrefix = "mpv-multi",
-                )
-                val toolsDir = cache.resolve("dwarfs-tools")
-                val binary =
-                    toolsDir.walkTopDown().firstOrNull { it.isFile && it.name == "dwarfsextract" } ?: run {
-                        toolsDir.deleteRecursively()
-                        toolsDir.mkdirs()
-                        runChecked("tar", "-xf", dwarfsTar.absolutePath, "-C", toolsDir.absolutePath)
-                        toolsDir.walkTopDown().firstOrNull { it.isFile && it.name == "dwarfsextract" }
-                            ?: error("dwarfsextract not found inside ${dwarfsTar.name}")
-                    }
-                binary.setExecutable(true)
-                binary.absolutePath
-            } else {
-                if (!toolAvailable("dwarfsextract")) {
-                    logger.warn(
-                        "[mpv-multi] Skipping the Linux slice: dwarfsextract is not on PATH " +
-                            "(`brew install dwarfs`). The other slices are unaffected.",
-                    )
-                    return@doLast
-                }
-                "dwarfsextract"
-            }
+        val tag = "simpmusic-libmpv:$mpvVersion"
+        logger.lifecycle("[mpv-multi] Building $tag (libplacebo + FFmpeg + mpv from source, ~20-40 min cold)")
+        runChecked("docker", "build", "-t", tag, dockerDir.absolutePath)
 
-        val extractDir = cache.resolve("mpv-appimage-extract")
-        extractDir.deleteRecursively()
-        extractDir.mkdirs()
-        val offset = elfPayloadOffset(appImage)
-        logger.lifecycle("[mpv-multi] DwarFS payload starts at offset $offset")
-        runChecked(
-            dwarfsExtract,
-            "-i", appImage.absolutePath,
-            "-O", offset.toString(),
-            "-o", extractDir.absolutePath,
-        )
-
-        // sharun keeps the real binary in shared/bin and the closure in shared/lib; shared/bin/mpv
-        // is the 24 MB PIE that statically links libmpv and exports the full client API (54
-        // `mpv_*` dynamic symbols), while bin/mpv is only the ~230 KB sharun launcher.
-        val sharedDir = extractDir.walkTopDown().firstOrNull {
-            it.isDirectory && it.name == "shared" && it.resolve("bin/mpv").isFile
-        } ?: error("shared/bin/mpv not found inside the extracted AppImage")
-
-        outputDir.deleteRecursively()
-        outputDir.mkdirs()
-        project.copy {
-            from(sharedDir.resolve("lib"))
-            into(outputDir.resolve("lib"))
+        // `docker create` + `cp` rather than `run`: nothing needs to execute, and this works
+        // the same whether or not the daemon can run x86-64 images interactively.
+        val container = runCapturing("docker", "create", tag)
+        check(container.isNotEmpty()) { "docker create returned no container id" }
+        try {
+            outputDir.deleteRecursively()
+            outputDir.mkdirs()
+            runChecked("docker", "cp", "$container:/out/.", outputDir.absolutePath)
+        } finally {
+            runChecked("docker", "rm", container)
         }
-        // Named libmpv.so.2 because that is one of MpvLibrary's CANDIDATE_NAMES; JNA passes a
-        // versioned .so name through unchanged on Linux.
+
+        // The container already proved the slice loads (stage.sh runs a dlopen +
+        // mpv_initialize smoke test and fails the build otherwise). What it cannot prove is
+        // the file type, and that is the one thing the previous approach got wrong: it
+        // staged a PIE executable that no glibc will ever dlopen. Cheap to assert, so assert.
         val staged = outputDir.resolve("libmpv.so.2")
-        sharedDir.resolve("bin/mpv").copyTo(staged, overwrite = true)
-        staged.setWritable(true)
-        staged.setExecutable(true)
-        runChecked("patchelf", "--set-rpath", "\$ORIGIN/lib", staged.absolutePath)
-        pruneUnreachableSharedObjects(staged, outputDir.resolve("lib"))
-        setBundleRpaths(outputDir.resolve("lib"))
+        check(staged.isFile) { "libmpv.so.2 missing from the container output" }
+        val elfType = staged.inputStream().use { stream ->
+            val header = ByteArray(18)
+            check(stream.read(header) == header.size) { "libmpv.so.2 is truncated" }
+            // e_type is a little-endian u16 at offset 0x10. ET_DYN (3) covers both shared
+            // objects and PIE executables; PIE additionally carries a PT_INTERP segment,
+            // which is what dlopen rejects. A shared object has none.
+            (header[0x10].toInt() and 0xFF) or ((header[0x11].toInt() and 0xFF) shl 8)
+        }
+        check(elfType == 3) { "libmpv.so.2 is not ET_DYN (e_type=$elfType) — it cannot be dlopen()ed" }
+
+        val libs = outputDir.resolve("lib").listFiles()?.size ?: 0
         logger.lifecycle(
-            "[mpv-multi] linux-x64: staged libmpv.so.2 + " +
-                "${outputDir.resolve("lib").listFiles()?.size ?: 0} shared objects",
+            "[mpv-multi] linux-x64: staged libmpv.so.2 + $libs shared objects " +
+                "(${outputDir.walkTopDown().filter { it.isFile }.sumOf { it.length() } / 1048576} MB)",
         )
     }
 }
@@ -941,11 +714,11 @@ val mpvBundleAll by tasks.registering {
  */
 val mpvNativesChecksums =
     mapOf(
-        "linux-x64" to "ec64ce2c75c134b4283968a3f9993e40bb05589f406206a0e1d4536e08f62570",
-        "macos-arm64" to "9a44626c14526ed92ef913e876c2f2ef6fa640d946ab5e1b2bb4041d32893006",
-        "macos-x64" to "df4e0cc5f80b261a6e616febbca49c20f15f66f0c197dc1e3996f4e28dd5ac8f",
-        "windows-x64" to "7a3da0d920261d016a07ffed119e8f604084c7c0b4610301a8ec45445abe21f9",
-        "windows-arm64" to "1b4762a10e7aecfe3c12669df2e2ff7e19d374dd99c193b80889cfaf36cbe93d",
+        "linux-x64" to "55e8118a8c4ef201a3b72a71eb20e8854b04c3793d0c9ea0cd7b17ac77aaeee7",
+        "macos-arm64" to "e527daac8f6cc196324ea6f0ce54d119d04450af9795ff2856c1891806c1d5e0",
+        "macos-x64" to "95170ea54e1f637fdee148a9efd97993c305a92e233b8478d3764fbecce3eb02",
+        "windows-x64" to "256f17cf402c7583b8684d5a7cf585ad1b59695469219671f4887b9d8d272a99",
+        "windows-arm64" to "30e04a117de0b7d6abc5f86d4231e9b4bffa3637f282ff9efe3dc66e6cc4fcba",
     )
 
 
