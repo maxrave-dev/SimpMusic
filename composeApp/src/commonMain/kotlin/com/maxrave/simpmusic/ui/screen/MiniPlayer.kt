@@ -2,14 +2,22 @@ package com.maxrave.simpmusic.ui.screen
 
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -99,13 +107,13 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.toResizedBitmap
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
@@ -114,6 +122,7 @@ import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -562,6 +571,31 @@ fun MiniPlayer(
         // Desktop bottom bar surface follows the theme (haze over content), so text and controls
         // use the theme foreground token instead of the artwork-luminance colour.
         val textColor = MaterialTheme.colorScheme.onBackground
+
+        // Crossfade: RGB rainbow color cycling while transitioning between tracks, mirroring the
+        // Now Playing screen so the desktop bar signals a crossfade the same way.
+        val crossfadeTransition = rememberInfiniteTransition(label = "miniPlayerCrossfadeRainbow")
+        val rainbowHue by crossfadeTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+            label = "miniPlayerRainbowHue",
+        )
+        val progressColor by animateColorAsState(
+            targetValue =
+                if (timelineState.isCrossfading) {
+                    hsvToColor(rainbowHue, 1f, 1f)
+                } else {
+                    textColor
+                },
+            animationSpec = tween(300),
+            label = "miniPlayerCrossfadeColor",
+        )
+
         var isSliding by rememberSaveable {
             mutableStateOf(false)
         }
@@ -798,8 +832,8 @@ fun MiniPlayer(
                                                 sliderState = sliderState,
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = textColor,
-                                                        activeTrackColor = textColor,
+                                                        thumbColor = progressColor,
+                                                        activeTrackColor = progressColor,
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 thumbTrackGapSize = 0.dp,
@@ -823,8 +857,8 @@ fun MiniPlayer(
                                                     },
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = textColor,
-                                                        activeTrackColor = textColor,
+                                                        thumbColor = progressColor,
+                                                        activeTrackColor = progressColor,
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 enabled = true,
