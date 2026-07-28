@@ -180,6 +180,21 @@ class SettingsViewModel(
     private val _localTrackingEnabled = MutableStateFlow<Boolean>(false)
     val localTrackingEnabled: StateFlow<Boolean> = _localTrackingEnabled
 
+    private val _lastFmEnabled = MutableStateFlow<Boolean>(false)
+    val lastFmEnabled: StateFlow<Boolean> = _lastFmEnabled
+
+    private val _lastFmUsername = MutableStateFlow<String>("")
+    val lastFmUsername: StateFlow<String> = _lastFmUsername
+
+    private val _lastFmApiKey = MutableStateFlow<String>("")
+    val lastFmApiKey: StateFlow<String> = _lastFmApiKey
+
+    private val _lastFmSecret = MutableStateFlow<String>("")
+    val lastFmSecret: StateFlow<String> = _lastFmSecret
+
+    private val _lastFmSessionKey = MutableStateFlow<String>("")
+    val lastFmSessionKey: StateFlow<String> = _lastFmSessionKey
+
     private val _blogNotificationEnabled = MutableStateFlow(true)
     val blogNotificationEnabled: StateFlow<Boolean> = _blogNotificationEnabled
 
@@ -279,6 +294,8 @@ class SettingsViewModel(
         getDownloadQuality()
         getVideoDownloadQuality()
         getLocalTrackingEnabled()
+        getLastFmEnabled()
+        getLastFmAccount()
         getBlogNotificationEnabled()
         getAutoBackupEnabled()
         getAutoBackupFrequency()
@@ -305,6 +322,117 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setLocalTrackingEnabled(enabled)
             getLocalTrackingEnabled()
+        getLastFmEnabled()
+        getLastFmAccount()
+        }
+    }
+
+    private fun getLastFmEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.lastFmEnabled.collect { enabled ->
+                _lastFmEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setLastFmEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setLastFmEnabled(enabled)
+            getLastFmEnabled()
+        getLastFmAccount()
+        }
+    }
+
+    private fun getLastFmAccount() {
+        viewModelScope.launch {
+            dataStoreManager.lastFmUsername.collect { _lastFmUsername.value = it }
+        }
+        viewModelScope.launch {
+            dataStoreManager.lastFmApiKey.collect { _lastFmApiKey.value = it }
+        }
+        viewModelScope.launch {
+            dataStoreManager.lastFmSecret.collect { _lastFmSecret.value = it }
+        }
+        viewModelScope.launch {
+            dataStoreManager.lastFmSessionKey.collect { _lastFmSessionKey.value = it }
+        }
+    }
+
+    private val _isLastFmAuthenticating = MutableStateFlow<Boolean>(false)
+    val isLastFmAuthenticating: StateFlow<Boolean> = _isLastFmAuthenticating
+
+    fun loginLastFm(openUrl: (String) -> Unit) {
+        viewModelScope.launch {
+            _isLastFmAuthenticating.value = true
+            val token = com.maxrave.data.scrobbler.LastFmScrobbler.fetchAuthToken()
+            if (token != null) {
+                openUrl("https://www.last.fm/api/auth/?api_key=${com.maxrave.data.scrobbler.LastFmScrobbler.DEFAULT_API_KEY}&token=$token")
+                for (i in 1..30) {
+                    kotlinx.coroutines.delay(2000)
+                    val result = com.maxrave.data.scrobbler.LastFmScrobbler.fetchSession(token)
+                    if (result != null) {
+                        val (username, sessionKey) = result
+                        dataStoreManager.setLastFmUsername(username)
+                        dataStoreManager.setLastFmSessionKey(sessionKey)
+                        dataStoreManager.setLastFmApiKey(com.maxrave.data.scrobbler.LastFmScrobbler.DEFAULT_API_KEY)
+                        dataStoreManager.setLastFmSecret(com.maxrave.data.scrobbler.LastFmScrobbler.DEFAULT_API_SECRET)
+                        dataStoreManager.setLastFmEnabled(true)
+                        getLastFmAccount()
+                        getLastFmEnabled()
+                        break
+                    }
+                }
+            }
+            _isLastFmAuthenticating.value = false
+        }
+    }
+
+    fun loginLastFmCustom(username: String, apiKey: String, secret: String, openUrl: (String) -> Unit) {
+        viewModelScope.launch {
+            _isLastFmAuthenticating.value = true
+            val effectiveKey = apiKey.ifBlank { com.maxrave.data.scrobbler.LastFmScrobbler.DEFAULT_API_KEY }
+            val effectiveSecret = secret.ifBlank { com.maxrave.data.scrobbler.LastFmScrobbler.DEFAULT_API_SECRET }
+            val token = com.maxrave.data.scrobbler.LastFmScrobbler.fetchAuthToken(effectiveKey)
+            if (token != null) {
+                openUrl("https://www.last.fm/api/auth/?api_key=${effectiveKey}&token=$token")
+                for (i in 1..30) {
+                    kotlinx.coroutines.delay(2000)
+                    val result = com.maxrave.data.scrobbler.LastFmScrobbler.fetchSession(token, effectiveKey, effectiveSecret)
+                    if (result != null) {
+                        val (fetchedUser, sessionKey) = result
+                        val finalUser = fetchedUser.ifBlank { username }
+                        dataStoreManager.setLastFmUsername(finalUser)
+                        dataStoreManager.setLastFmSessionKey(sessionKey)
+                        dataStoreManager.setLastFmApiKey(effectiveKey)
+                        dataStoreManager.setLastFmSecret(effectiveSecret)
+                        dataStoreManager.setLastFmEnabled(true)
+                        getLastFmAccount()
+                        getLastFmEnabled()
+                        break
+                    }
+                }
+            }
+            _isLastFmAuthenticating.value = false
+        }
+    }
+
+    fun logoutLastFm() {
+        viewModelScope.launch {
+            dataStoreManager.setLastFmUsername("")
+            dataStoreManager.setLastFmSessionKey("")
+            dataStoreManager.setLastFmEnabled(false)
+            getLastFmAccount()
+            getLastFmEnabled()
+        }
+    }
+
+    fun saveLastFmCredentials(username: String, apiKey: String, secret: String, sessionKey: String) {
+        viewModelScope.launch {
+            dataStoreManager.setLastFmUsername(username)
+            dataStoreManager.setLastFmApiKey(apiKey)
+            dataStoreManager.setLastFmSecret(secret)
+            dataStoreManager.setLastFmSessionKey(sessionKey)
+            getLastFmAccount()
         }
     }
 

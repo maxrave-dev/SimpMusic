@@ -501,6 +501,12 @@ fun SettingScreen(
             }
         }
     }
+    var showLastFmDialog by rememberSaveable { mutableStateOf(false) }
+    val lastFmUsername by viewModel.lastFmUsername.collectAsStateWithLifecycle()
+    val lastFmApiKey by viewModel.lastFmApiKey.collectAsStateWithLifecycle()
+    val lastFmSecret by viewModel.lastFmSecret.collectAsStateWithLifecycle()
+    val lastFmSessionKey by viewModel.lastFmSessionKey.collectAsStateWithLifecycle()
+    val lastFmEnabled by viewModel.lastFmEnabled.collectAsStateWithLifecycle()
     var showYouTubeAccountDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -634,6 +640,13 @@ fun SettingScreen(
                         viewModel.getAllGoogleAccount()
                         showYouTubeAccountDialog = true
                     },
+                )
+                val isLastFmAuth by viewModel.isLastFmAuthenticating.collectAsStateWithLifecycle()
+                SettingItem(
+                    title = "Last.fm Scrobbling",
+                    subtitle = if (lastFmUsername.isNotBlank()) "Connected as $lastFmUsername" else if (isLastFmAuth) "Waiting for browser approval..." else "Tap to log in with your Last.fm account",
+                    switch = if (lastFmUsername.isNotBlank()) (lastFmEnabled to { viewModel.setLastFmEnabled(it) }) else null,
+                    onClick = { showLastFmDialog = true },
                 )
                 SettingItem(
                     title = stringResource(Res.string.language),
@@ -2339,6 +2352,89 @@ fun SettingScreen(
             },
         )
     }
+    if (showLastFmDialog) {
+        var inputUser by rememberSaveable { mutableStateOf(lastFmUsername) }
+        var inputKey by rememberSaveable { mutableStateOf(lastFmApiKey) }
+        var inputSecret by rememberSaveable { mutableStateOf(lastFmSecret) }
+        var inputSessionKey by rememberSaveable { mutableStateOf(lastFmSessionKey) }
+        val isLastFmAuth by viewModel.isLastFmAuthenticating.collectAsStateWithLifecycle()
+        val uriHandler = LocalUriHandler.current
+
+        AlertDialog(
+            onDismissRequest = { showLastFmDialog = false },
+            title = { Text(text = "Last.fm Account Integration", style = typo().titleMedium) },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    Text(
+                        text = "Enter your Last.fm Username, API Key, and Secret from last.fm/api/account/create:",
+                        style = typo().bodySmall,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    androidx.compose.material3.OutlinedTextField(
+                        value = inputUser,
+                        onValueChange = { inputUser = it },
+                        label = { Text("Last.fm Username") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    )
+                    androidx.compose.material3.OutlinedTextField(
+                        value = inputKey,
+                        onValueChange = { inputKey = it },
+                        label = { Text("Last.fm API Key") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    )
+                    androidx.compose.material3.OutlinedTextField(
+                        value = inputSecret,
+                        onValueChange = { inputSecret = it },
+                        label = { Text("Last.fm Shared Secret") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    )
+
+                    if (lastFmSessionKey.isNotBlank()) {
+                        Text(
+                            text = "Authenticated Session Key Active ✅",
+                            style = typo().bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.loginLastFmCustom(inputUser, inputKey, inputSecret) { url ->
+                            try {
+                                uriHandler.openUri(url)
+                            } catch (e: Exception) {
+                                try {
+                                    val os = System.getProperty("os.name").lowercase()
+                                    if (os.contains("win")) {
+                                        Runtime.getRuntime().exec(arrayOf("cmd.exe", "/c", "start", url))
+                                    } else if (os.contains("mac")) {
+                                        Runtime.getRuntime().exec(arrayOf("open", url))
+                                    } else {
+                                        Runtime.getRuntime().exec(arrayOf("xdg-open", url))
+                                    }
+                                } catch (_: Exception) {}
+                            }
+                        }
+                    },
+                    enabled = !isLastFmAuth
+                ) {
+                    Text(if (isLastFmAuth) "Waiting for browser approval..." else "Save & Authenticate")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLastFmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     if (showYouTubeAccountDialog) {
         BasicAlertDialog(
             onDismissRequest = { },
