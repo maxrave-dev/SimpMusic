@@ -29,7 +29,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -906,24 +908,6 @@ fun MiniPlayer(
                                 )
                             }
                         }
-                        IconButton(
-                            onClick = {
-                                // Toggle mute/unmute
-                                val newVolume = if (controllerState.volume > 0f) 0f else 1f
-                                sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
-                            },
-                        ) {
-                            Icon(
-                                imageVector =
-                                    if (controllerState.volume > 0f) {
-                                        Icons.AutoMirrored.Filled.VolumeUp
-                                    } else {
-                                        Icons.AutoMirrored.Filled.VolumeOff
-                                    },
-                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                            )
-                        }
-                        Spacer(Modifier.width(2.dp))
                         var isVolumeSliding by rememberSaveable {
                             mutableStateOf(false)
                         }
@@ -935,66 +919,103 @@ fun MiniPlayer(
                                 volumeValue = controllerState.volume
                             }
                         }
-                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                            Slider(
-                                value = volumeValue,
-                                onValueChangeFinished = {
-                                    isVolumeSliding = false
-                                    sharedViewModel.onUIEvent(
-                                        UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
-                                    )
+                        // The slider only claims space while the pointer is over the volume cluster.
+                        // `hoverable` sits on the Row wrapping both the icon and the slider so moving
+                        // between them never drops the hover, and an in-progress drag keeps it open
+                        // even when the pointer slips outside.
+                        val volumeInteractionSource = remember { MutableInteractionSource() }
+                        val isVolumeHovered by volumeInteractionSource.collectIsHoveredAsState()
+                        Row(
+                            modifier = Modifier.hoverable(volumeInteractionSource),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    // Toggle mute/unmute
+                                    val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
                                 },
-                                onValueChange = {
-                                    isVolumeSliding = true
-                                    volumeValue = it
-                                },
-                                valueRange = 0f..1f,
-                                modifier =
-                                    Modifier
-                                        .padding(top = 3.dp)
-                                        .width(64.dp),
-                                track = { sliderState ->
-                                    SliderDefaults.Track(
-                                        modifier =
-                                            Modifier
-                                                .height(5.dp),
-                                        enabled = true,
-                                        sliderState = sliderState,
-                                        colors =
-                                            SliderDefaults.colors().copy(
-                                                thumbColor = textColor,
-                                                activeTrackColor = textColor,
-                                                inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                                            ),
-                                        thumbTrackGapSize = 0.dp,
-                                        drawTick = { _, _ -> },
-                                        drawStopIndicator = null,
-                                    )
-                                },
-                                thumb = {
-                                    SliderDefaults.Thumb(
-                                        modifier =
-                                            Modifier
-                                                .height(18.dp)
-                                                .width(8.dp)
-                                                .padding(
-                                                    vertical = 4.dp,
-                                                ),
-                                        thumbSize = DpSize(8.dp, 8.dp),
-                                        interactionSource =
-                                            remember {
-                                                MutableInteractionSource()
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (controllerState.volume > 0f) {
+                                            Icons.AutoMirrored.Filled.VolumeUp
+                                        } else {
+                                            Icons.AutoMirrored.Filled.VolumeOff
+                                        },
+                                    contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = isVolumeHovered || isVolumeSliding,
+                                enter = expandHorizontally() + fadeIn(),
+                                exit = shrinkHorizontally() + fadeOut(),
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Spacer(Modifier.width(2.dp))
+                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                        Slider(
+                                            value = volumeValue,
+                                            onValueChangeFinished = {
+                                                isVolumeSliding = false
+                                                sharedViewModel.onUIEvent(
+                                                    UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
+                                                )
                                             },
-                                        colors =
-                                            SliderDefaults.colors().copy(
-                                                thumbColor = textColor,
-                                                activeTrackColor = textColor,
-                                                inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                                            ),
-                                        enabled = true,
-                                    )
-                                },
-                            )
+                                            onValueChange = {
+                                                isVolumeSliding = true
+                                                volumeValue = it
+                                            },
+                                            valueRange = 0f..1f,
+                                            modifier =
+                                                Modifier
+                                                    .padding(top = 3.dp)
+                                                    .width(64.dp),
+                                            track = { sliderState ->
+                                                SliderDefaults.Track(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(5.dp),
+                                                    enabled = true,
+                                                    sliderState = sliderState,
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = textColor,
+                                                            activeTrackColor = textColor,
+                                                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
+                                                        ),
+                                                    thumbTrackGapSize = 0.dp,
+                                                    drawTick = { _, _ -> },
+                                                    drawStopIndicator = null,
+                                                )
+                                            },
+                                            thumb = {
+                                                SliderDefaults.Thumb(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(18.dp)
+                                                            .width(8.dp)
+                                                            .padding(
+                                                                vertical = 4.dp,
+                                                            ),
+                                                    thumbSize = DpSize(8.dp, 8.dp),
+                                                    interactionSource =
+                                                        remember {
+                                                            MutableInteractionSource()
+                                                        },
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = textColor,
+                                                            activeTrackColor = textColor,
+                                                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
+                                                        ),
+                                                    enabled = true,
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
+                            }
                         }
                         Spacer(Modifier.width(4.dp))
                         IconButton(onClick = { onClose() }) {
