@@ -750,10 +750,16 @@ fun MiniPlayer(
                                                             ).clip(
                                                                 RoundedCornerShape(8.dp),
                                                             ),
-                                                    color = textColor,
+                                                    // Three levels have to stay apart on one bar: the
+                                                    // slider above draws played position solid, so
+                                                    // buffered-but-unplayed must be dimmed and the
+                                                    // unbuffered remainder dimmer still. At full
+                                                    // buffer a solid colour here would blend into the
+                                                    // played part and the bar would look uniform.
+                                                    color = textColor.copy(alpha = 0.35f),
                                                     trackColor =
                                                         textColor.copy(
-                                                            alpha = 0.4f,
+                                                            alpha = 0.15f,
                                                         ),
                                                     strokeCap = StrokeCap.Round,
                                                     drawStopIndicator = {},
