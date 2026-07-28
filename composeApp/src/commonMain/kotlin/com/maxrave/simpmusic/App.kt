@@ -34,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,7 +82,7 @@ import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
-import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
+import com.maxrave.simpmusic.ui.theme.ForceDarkContent
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
@@ -518,13 +517,15 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                 RoundedCornerShape(12.dp),
                                             ),
                                     ) {
-                                        NowPlayingScreenContent(
-                                            navController = navController,
-                                            sharedViewModel = viewModel,
-                                            isExpanded = true,
-                                            dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                        ) {
-                                            isShowNowPlaylistScreen = false
+                                        ForceDarkContent {
+                                            NowPlayingScreenContent(
+                                                navController = navController,
+                                                sharedViewModel = viewModel,
+                                                isExpanded = true,
+                                                dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                            ) {
+                                                isShowNowPlaylistScreen = false
+                                            }
                                         }
                                     }
                                 }
@@ -534,7 +535,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                 }
 
                 if (isShowNowPlaylistScreen && !isTabletLandscape) {
-                    CompositionLocalProvider(LocalForceDarkText provides true) {
+                    ForceDarkContent {
                         NowPlayingScreen(
                             navController = navController,
                         ) {

@@ -8,12 +8,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
-import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
+import com.maxrave.simpmusic.ui.theme.ForceDarkContent
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
@@ -70,7 +69,7 @@ fun AppNavigationGraph(
             )
         }
         composable<FullscreenDestination> {
-            CompositionLocalProvider(LocalForceDarkText provides true) {
+            ForceDarkContent {
                 FullscreenPlayer(
                     navController,
                     hideNavBar = hideNavBar,
