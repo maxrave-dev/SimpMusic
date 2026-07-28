@@ -127,19 +127,13 @@ jobs:
           distribution: "microsoft"
           cache: 'gradle'
 
-      - name: Install 7-Zip 24.x + libfuse2
-        # Ubuntu's p7zip-full (16.02) can't extract HFS+ DMG content fully —
-        # outer kolyDMG opens but the inner HFS+ partition stays opaque, so
-        # VLC.app never materializes. Use the official Igor Pavlov build,
-        # which has full HFS+ support like the modern Linux/macOS package.
-        # libfuse2 is needed by appimagetool when wrapping the Linux app.
+      - name: Install libfuse2
+        # Needed by appimagetool when wrapping the Linux app. Nothing else is
+        # required here: mpvSetupAll only downloads and untars the prebuilt
+        # native slices, so no 7-Zip, patchelf or dwarfs toolchain on the runner.
         run: |
           sudo apt-get update
           sudo apt-get install -y libfuse2
-          curl -fsSL https://github.com/ip7z/7zip/releases/download/26.01/7z2601-linux-x64.tar.xz -o /tmp/7zz.tar.xz
-          sudo tar -xf /tmp/7zz.tar.xz -C /usr/local/bin/ 7zz
-          sudo ln -sf /usr/local/bin/7zz /usr/local/bin/7z
-          7z i | head -3
 
       - name: Update build product flavor
         run: |
@@ -157,14 +151,18 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Cache vlc-natives
+      - name: Cache mpv-natives
         uses: actions/cache@v4
         with:
-          path: vlc-natives
-          key: vlc-natives-${{ hashFiles('gradle/libs.versions.toml') }}
+          path: mpv-natives
+          key: mpv-natives-${{ hashFiles('composeApp/build.gradle.kts') }}
 
-      - name: Populate vlc-natives for all OSes
-        run: ./gradlew :composeApp:vlcSetupAll --no-configuration-cache
+      - name: Populate mpv-natives for all OSes
+        # Conveyor is invoked by its own action further down, NOT through Gradle,
+        # so the dependsOn(":composeApp:mpvSetupAll") wired into the conveyor*
+        # tasks never fires on this path — the natives have to be staged here
+        # explicitly or the installers ship without libmpv.
+        run: ./gradlew :composeApp:mpvSetupAll --no-configuration-cache
 
       - name: Generate Conveyor config
         # Run writeConveyorConfig BEFORE Conveyor so the parser only reads
