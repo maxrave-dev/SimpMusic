@@ -1363,16 +1363,6 @@ fun NowPlayingScreenContent(
                         }
                     },
                     actions = {
-                        // Desktop mini player button (JVM only)
-                        if (getPlatform() == Platform.Desktop) {
-                            IconButton(onClick = { toggleMiniPlayer() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                                    contentDescription = "Mini Player",
-                                    tint = Color.White,
-                                )
-                            }
-                        }
                         IconButton(onClick = {
                             showSheet = true
                         }) {
