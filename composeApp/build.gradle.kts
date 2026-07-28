@@ -758,6 +758,24 @@ val mpvSetupAll by tasks.registering {
             outputRoot.mkdirs()
             runChecked("tar", "-xzf", archive.absolutePath, "-C", outputRoot.absolutePath)
             check(target.isDirectory) { "$slice missing after unpacking ${archive.name}" }
+
+            // Drop AppleDouble sidecars — this is a correctness fix, not tidiness.
+            //
+            // Tarring a slice on macOS writes each file's xattrs out as a companion "._name"
+            // entry. Conveyor then signs them as ordinary bundle members and lists all of them
+            // in _CodeSignature/CodeResources. But when the user unzips the .app, macOS folds
+            // every "._name" back into the xattrs of "name" and deletes the sidecar — so the
+            // bundle that gets launched is missing 200 files the seal still expects, and
+            // Gatekeeper reports the app as "damaged and can't be opened".
+            //
+            // Only the macOS slices are ever affected in practice, but strip unconditionally:
+            // these files carry nothing but com.apple.provenance, and any slice can pick them
+            // up the moment it is packed on a Mac.
+            val appleDouble = target.walkTopDown().filter { it.isFile && it.name.startsWith("._") }.toList()
+            appleDouble.forEach { it.delete() }
+            if (appleDouble.isNotEmpty()) {
+                logger.lifecycle("[mpv-multi] $slice: stripped ${appleDouble.size} AppleDouble sidecars")
+            }
         }
         logger.lifecycle("[mpv-multi] Unpacked ${mpvSlices.size} verified native slices into mpv-natives/")
     }
