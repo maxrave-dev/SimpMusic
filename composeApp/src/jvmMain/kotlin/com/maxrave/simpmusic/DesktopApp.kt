@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -193,14 +194,35 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         val quitAppString = stringResource(Res.string.quit_app)
         val openMiniPlayer = stringResource(Res.string.open_miniplayer)
         val closeMiniPlayer = stringResource(Res.string.close_miniplayer)
+        val appName = stringResource(Res.string.app_name)
+        val nowPlayingData by sharedViewModel.nowPlayingScreenData.collectAsState()
+        val nowPlayingTitle = nowPlayingData.nowPlayingTitle
+        val nowPlayingArtist = nowPlayingData.artistName
+        val hasTrack = nowPlayingTitle.isNotBlank()
+        // Tray menus are narrow, so long titles would stretch the popup.
+        val trayLabel: (String) -> String = { if (it.length > 40) it.take(39).trimEnd() + "…" else it }
         Tray(
             icon = painterResource(Res.drawable.circle_app_icon),
-            tooltip = stringResource(Res.string.app_name),
+            tooltip =
+                when {
+                    hasTrack && nowPlayingArtist.isNotBlank() -> "$nowPlayingTitle — $nowPlayingArtist"
+                    hasTrack -> nowPlayingTitle
+                    else -> appName
+                },
             primaryAction = {
                 isVisible = true
                 windowState.isMinimized = false
             },
         ) {
+            // Disabled entries: while the window is hidden the tray is the only place showing what
+            // is playing.
+            if (hasTrack) {
+                Item(trayLabel(nowPlayingTitle), isEnabled = false)
+                if (nowPlayingArtist.isNotBlank()) {
+                    Item(trayLabel(nowPlayingArtist), isEnabled = false)
+                }
+                Divider()
+            }
             if (!isVisible) {
                 Item(openAppString) {
                     isVisible = true
