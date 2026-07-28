@@ -210,16 +210,7 @@ class MainActivity : AppCompatActivity() {
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
         }
 
-        enableEdgeToEdge(
-            navigationBarStyle =
-                SystemBarStyle.dark(
-                    scrim = Color.Transparent.toArgb(),
-                ),
-            statusBarStyle =
-                SystemBarStyle.dark(
-                    scrim = Color.Transparent.toArgb(),
-                ),
-        )
+        enableEdgeToEdge()
 
         viewModel.checkIsRestoring()
 

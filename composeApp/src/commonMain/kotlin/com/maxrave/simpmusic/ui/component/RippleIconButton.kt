@@ -40,6 +40,7 @@ fun RippleIconButton(
 fun PlayPauseButton(
     isPlaying: Boolean,
     modifier: Modifier = Modifier,
+    tint: Color = Color.White,
     onClick: () -> Unit,
 ) {
     RippleIconButton(
@@ -49,6 +50,7 @@ fun PlayPauseButton(
             Res.drawable.baseline_pause_24
         },
         modifier = modifier,
+        tint = tint,
         onClick = onClick,
     )
 }

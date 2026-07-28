@@ -14,16 +14,18 @@ import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.colorControls
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
+import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import kotlin.math.sign
 import com.kyant.backdrop.backdrops.layerBackdrop as nativeBackdrop
 
 actual typealias PlatformBackdrop = LayerBackdrop
 
 @Composable
-actual fun rememberBackdrop(): PlatformBackdrop = rememberLayerBackdrop {
-    drawRect(Color.Black)
-    drawContent()
-}
+actual fun rememberBackdrop(color: Color): PlatformBackdrop =
+    rememberLayerBackdrop {
+        drawRect(color)
+        drawContent()
+    }
 
 actual fun Modifier.layerBackdrop(backdrop: PlatformBackdrop): Modifier = this.nativeBackdrop(backdrop)
 
@@ -31,9 +33,9 @@ actual fun Modifier.drawBackdropCustomShape(
     backdrop: PlatformBackdrop,
     layer: GraphicsLayer,
     luminanceAnimation: Float,
-    shape: Shape
-): Modifier {
-    return this.drawBackdrop(
+    shape: Shape,
+): Modifier =
+    this.drawBackdrop(
         backdrop = backdrop,
         effects = {
             val l = (luminanceAnimation * 2f - 1f).let { sign(it) * it * it }
@@ -64,4 +66,3 @@ actual fun Modifier.drawBackdropCustomShape(
             drawRect(Color.Black.copy(alpha = darken))
         },
     )
-}

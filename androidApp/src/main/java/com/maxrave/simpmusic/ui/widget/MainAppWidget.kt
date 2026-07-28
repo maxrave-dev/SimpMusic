@@ -65,10 +65,7 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.MainActivity
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.seed
-import com.maxrave.simpmusic.ui.theme.transparent
-import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.CoroutineScope
@@ -118,7 +115,7 @@ class MainAppWidget :
 
                 var bitmap by remember { mutableStateOf<Bitmap?>(null) }
                 var bgColor by remember {
-                    mutableStateOf(md_theme_dark_background)
+                    mutableStateOf(Color.Black)
                 }
 
                 val thumbUrl by remember {
@@ -219,7 +216,7 @@ class MainAppWidget :
                                 )
                             } ?: CircularProgressIndicator(
                                 GlanceModifier.size(24.dp),
-                                color = ColorProvider(white),
+                                color = ColorProvider(Color.White),
                             )
                         }
                         Column(
@@ -233,7 +230,7 @@ class MainAppWidget :
                                 text = title,
                                 style =
                                     TextStyle(
-                                        color = ColorProvider(white),
+                                        color = ColorProvider(Color.White),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Start,
@@ -271,12 +268,12 @@ class MainAppWidget :
                                 CircleIconButton(
                                     modifier =
                                         GlanceModifier
-                                            .background(transparent)
+                                            .background(Color.Transparent)
                                             .size(32.dp),
                                     imageProvider = ImageProvider(R.drawable.baseline_shuffle_24),
                                     contentDescription = "Shuffle",
-                                    contentColor = if (controllerState.isShuffle) ColorProvider(seed) else ColorProvider(white),
-                                    backgroundColor = ColorProvider(transparent),
+                                    contentColor = if (controllerState.isShuffle) ColorProvider(seed) else ColorProvider(Color.White),
+                                    backgroundColor = ColorProvider(Color.Transparent),
                                     onClick = {
                                         sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                     },
@@ -288,8 +285,8 @@ class MainAppWidget :
                                             .size(32.dp),
                                     imageProvider = ImageProvider(R.drawable.baseline_skip_previous_24),
                                     contentDescription = "Previous",
-                                    contentColor = ColorProvider(if (controllerState.isPreviousAvailable) white else Color.Gray),
-                                    backgroundColor = ColorProvider(transparent),
+                                    contentColor = ColorProvider(if (controllerState.isPreviousAvailable) Color.White else Color.Gray),
+                                    backgroundColor = ColorProvider(Color.Transparent),
                                     enabled = controllerState.isPreviousAvailable,
                                     onClick = {
                                         sharedViewModel.onUIEvent(UIEvent.Previous)
@@ -307,8 +304,8 @@ class MainAppWidget :
                                             ImageProvider(R.drawable.baseline_play_circle_24)
                                         },
                                     contentDescription = if (controllerState.isPlaying) "Pause" else "Play",
-                                    contentColor = ColorProvider(white),
-                                    backgroundColor = ColorProvider(transparent),
+                                    contentColor = ColorProvider(Color.White),
+                                    backgroundColor = ColorProvider(Color.Transparent),
                                     onClick = {
                                         sharedViewModel.onUIEvent(UIEvent.PlayPause)
                                     },
@@ -320,8 +317,8 @@ class MainAppWidget :
                                             .size(32.dp),
                                     imageProvider = ImageProvider(R.drawable.baseline_skip_next_24),
                                     contentDescription = "Next",
-                                    contentColor = ColorProvider(if (controllerState.isNextAvailable) white else Color.Gray),
-                                    backgroundColor = ColorProvider(transparent),
+                                    contentColor = ColorProvider(if (controllerState.isNextAvailable) Color.White else Color.Gray),
+                                    backgroundColor = ColorProvider(Color.Transparent),
                                     enabled = controllerState.isNextAvailable,
                                     onClick = {
                                         sharedViewModel.onUIEvent(UIEvent.Next)
@@ -341,11 +338,11 @@ class MainAppWidget :
                                     contentDescription = "REPEAT",
                                     contentColor =
                                         if (controllerState.repeatState is RepeatState.None) {
-                                            ColorProvider(white)
+                                            ColorProvider(Color.White)
                                         } else {
                                             ColorProvider(seed)
                                         },
-                                    backgroundColor = ColorProvider(transparent),
+                                    backgroundColor = ColorProvider(Color.Transparent),
                                     onClick = {
                                         sharedViewModel.onUIEvent(UIEvent.Repeat)
                                     },

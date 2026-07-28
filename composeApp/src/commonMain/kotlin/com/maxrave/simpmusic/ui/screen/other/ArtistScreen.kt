@@ -108,6 +108,7 @@ import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.CollapsingToolbarParallaxEffect
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItemArtist
@@ -145,7 +146,6 @@ import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.featured_inArtist
 import simpmusic.composeapp.generated.resources.follow
 import simpmusic.composeapp.generated.resources.followed
-import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.more
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.popular
@@ -257,7 +257,7 @@ fun ArtistScreen(
                                     // Edge-to-edge artwork (canvas plays on top of it when available).
                                     // Glass back button MUST be a sibling of the backdrop source
                                     // (not a child) to avoid render feedback loop / RuntimeShader crash.
-                                    val artworkBackdrop = rememberBackdrop()
+                                    val artworkBackdrop = rememberBackdrop(Color.Black)
                                     // Haze state for the bottom progressive-blur fade (source = media layer).
                                     val headerHaze = rememberHazeState(blurEnabled = true)
                                     // Clamp the artist thumbnail URL to a square size (logic from
@@ -284,12 +284,8 @@ fun ArtistScreen(
                                                             .memoryCacheKey(headerImageUrl)
                                                             .crossfade(false)
                                                             .build(),
-                                                    placeholder =
-                                                        org.jetbrains.compose.resources
-                                                            .painterResource(Res.drawable.holder),
-                                                    error =
-                                                        org.jetbrains.compose.resources
-                                                            .painterResource(Res.drawable.holder),
+                                                    placeholder = rememberHolderPainter(),
+                                                    error = rememberHolderPainter(),
                                                     contentDescription = null,
                                                     contentScale = ContentScale.FillWidth,
                                                     // Always decoded so the page background color can be extracted
@@ -812,7 +808,7 @@ private fun ArtistSections(
                 }
                 state.data.popularSongs.forEach { song ->
                     SongFullWidthItems(
-                        track = song,
+                                              track = song,
                         isPlaying = song.videoId == playingTrack,
                         modifier = Modifier.fillMaxWidth(),
                         onMoreClickListener = {

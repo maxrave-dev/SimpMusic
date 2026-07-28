@@ -382,7 +382,8 @@ fun SettingScreen(
 
     val resultLauncher = openEqResult(viewModel.getAudioSessionId())
 
-    val autoNightMode by viewModel.autoNightMode.collectAsStateWithLifecycle(initialValue = true)
+    val followSystemTheme by viewModel.followSystemTheme.collectAsStateWithLifecycle(initialValue = true)
+    val forceLightTheme by viewModel.forceLightTheme.collectAsStateWithLifecycle(initialValue = false)
 
     val translucentBottomBarState by viewModel.translucentBottomBar.collectAsStateWithLifecycle(initialValue = null)
     val enableTranslucentNavBar = translucentBottomBarState == TRUE
@@ -518,10 +519,18 @@ fun SettingScreen(
                 Text(text = stringResource(Res.string.user_interface), style = typo().labelMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
 
                 SettingItem(
-                    title = "Forzar Modo Oscuro",
-                    subtitle = "Mantiene la aplicación siempre en tema oscuro. Si lo apagas, se adaptará automáticamente a tu horario (6:30 AM a 6:30 PM modo claro).",
+                    title = "Adaptarse al sistema",
+                    subtitle = "Sigue el tema de tu dispositivo automáticamente e ignora la opción de abajo.",
                     smallSubtitle = true,
-                    switch = (autoNightMode to { viewModel.setAutoNightMode(it) }),
+                    switch = (followSystemTheme to { viewModel.setFollowSystemTheme(it) }),
+                )
+
+                SettingItem(
+                    title = "Forzar Modo Día",
+                    subtitle = "Al activarlo fuerza el color blanco, al desactivarlo fuerza el oscuro. (Requiere apagar 'Adaptarse al sistema')",
+                    smallSubtitle = true,
+                    switch = (forceLightTheme to { viewModel.setForceLightTheme(it) }),
+                    isEnable = !followSystemTheme,
                 )
 
                 SettingItem(

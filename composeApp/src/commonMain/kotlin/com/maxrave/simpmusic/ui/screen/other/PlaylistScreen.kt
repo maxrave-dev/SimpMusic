@@ -429,8 +429,8 @@ fun PlaylistScreen(
                                             },
                                         ) {
                                             Icon(Icons.Rounded.Search, null, tint = MaterialTheme.colorScheme.onBackground)
-                                            }
                                         }
+                                    }
                                     }
                                     Column(
                                         horizontalAlignment = Alignment.Start,
@@ -439,7 +439,7 @@ fun PlaylistScreen(
                                             // Apple Music-style: edge-to-edge artwork + liquid glass buttons.
                                             // Glass buttons MUST be siblings of the backdrop source (not children)
                                             // to avoid render feedback loop / RuntimeShader crash.
-                                            val artworkBackdrop = rememberBackdrop()
+                                            val artworkBackdrop = rememberBackdrop(Color.Black)
                                             Box(
                                                 modifier =
                                                     Modifier
@@ -559,7 +559,7 @@ fun PlaylistScreen(
                                                         resId = Res.drawable.baseline_arrow_back_ios_new_24,
                                                         modifier =
                                                             Modifier
-                                                            .size(48.dp),
+                                                                .size(48.dp),
                                                     ) {
                                                         navController.navigateUp()
                                                     }
@@ -670,21 +670,21 @@ fun PlaylistScreen(
                                                                     text = data.author.name,
                                                                     style = typo().labelSmall,
                                                                     color = MaterialTheme.colorScheme.onBackground,
-                                                            )
-                                                        }
-                                                    }
-                                                    Spacer(modifier = Modifier.size(4.dp))
-                                                    Text(
-                                                        text = "${
-                                                            if (data.isRadio) {
-                                                                stringResource(Res.string.radio)
-                                                            } else {
-                                                                stringResource(Res.string.playlist)
+                                                                )
                                                             }
-                                                        } • ${data.year}",
-                                                        style = typo().bodyMedium,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    )}
+                                                        }
+                                                        Spacer(modifier = Modifier.size(4.dp))
+                                                        Text(
+                                                            text = "${
+                                                                if (data.isRadio) {
+                                                                    stringResource(Res.string.radio)
+                                                                } else {
+                                                                    stringResource(Res.string.playlist)
+                                                                }
+                                                            } • ${data.year}",
+                                                            style = typo().bodyMedium,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )}
                                                 }
                                                 if (isMobilePortrait) {
                                                     // Apple Music-style action row:
@@ -704,7 +704,7 @@ fun PlaylistScreen(
                                                                     Modifier
                                                                         .size(48.dp)
                                                                         .clip(CircleShape)
-                                                                        .background(Color.White.copy(alpha = 0.12f))
+                                                                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f))
                                                                         .clickable {
                                                                             viewModel.onUIEvent(PlaylistUIEvent.Shuffle)
                                                                         },
@@ -713,7 +713,7 @@ fun PlaylistScreen(
                                                                 Icon(
                                                                     imageVector = Icons.Rounded.Shuffle,
                                                                     contentDescription = "Shuffle",
-                                                                    tint = Color.White,
+                                                                    tint = MaterialTheme.colorScheme.onBackground,
                                                                     modifier = Modifier.size(22.dp),
                                                                 )
                                                             }
@@ -724,7 +724,7 @@ fun PlaylistScreen(
                                                                     .height(48.dp)
                                                                     .widthIn(min = 110.dp)
                                                                     .clip(CircleShape)
-                                                                    .background(Color.White)
+                                                                    .background(MaterialTheme.colorScheme.onBackground)
                                                                     .clickable {
                                                                         if (isThisPlaying) {
                                                                             sharedViewModel.onUIEvent(UIEvent.PlayPause)
@@ -739,13 +739,13 @@ fun PlaylistScreen(
                                                                     imageVector =
                                                                         if (isThisPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                                                     contentDescription = null,
-                                                                    tint = Color.Black,
+                                                                    tint = MaterialTheme.colorScheme.background,
                                                                     modifier = Modifier.size(22.dp),
                                                                 )
                                                                 Spacer(modifier = Modifier.width(4.dp))
                                                                 Text(
                                                                     text = if (isThisPlaying) "Pause" else "Play",
-                                                                    color = Color.Black,
+                                                                    color = MaterialTheme.colorScheme.background,
                                                                     style = typo().labelLarge,
                                                                 )
                                                             }
@@ -756,7 +756,7 @@ fun PlaylistScreen(
                                                                     Modifier
                                                                         .size(48.dp)
                                                                         .clip(CircleShape)
-                                                                        .background(Color.White.copy(alpha = 0.12f)),
+                                                                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f)),
                                                                 contentAlignment = Alignment.Center,
                                                             ) {
                                                                 Crossfade(targetState = downloadState) { state ->
@@ -822,7 +822,7 @@ fun PlaylistScreen(
                                                                             ) {
                                                                                 Icon(
                                                                                     painter = painterResource(Res.drawable.download_button),
-                                                                                    tint = Color.White,
+                                                                                    tint = MaterialTheme.colorScheme.onBackground,
                                                                                     contentDescription = "Download",
                                                                                     modifier = Modifier.size(22.dp),
                                                                                 )
@@ -854,20 +854,20 @@ fun PlaylistScreen(
                                                                     resId = Res.drawable.baseline_play_circle_24,
                                                                     fillMaxSize = true,
                                                                     tint = dynamicPlayButtonColor,
-                                                                modifier = Modifier.size(48.dp),
-                                                            ) {
-                                                                viewModel.onUIEvent(PlaylistUIEvent.PlayAll)
+                                                                    modifier = Modifier.size(48.dp),
+                                                                ) {
+                                                                    viewModel.onUIEvent(PlaylistUIEvent.PlayAll)
+                                                                }
                                                             }
                                                         }
-                                                    }
-                                                    if (!data.isRadio) {
-                                                        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
-                                                            HeartCheckBox(
-                                                                size = 32,
-                                                                checked = liked,
-                                                                onStateChange = {
-                                                                    viewModel.onUIEvent(PlaylistUIEvent.Favorite)
-                                                                },
+                                                        if (!data.isRadio) {
+                                                            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
+                                                                HeartCheckBox(
+                                                                    size = 32,
+                                                                    checked = liked,
+                                                                    onStateChange = {
+                                                                        viewModel.onUIEvent(PlaylistUIEvent.Favorite)
+                                                                    },
                                                                 )
                                                             }
                                                             Crossfade(targetState = downloadState) {
@@ -923,42 +923,42 @@ fun PlaylistScreen(
                                                                             fillMaxSize = true,
                                                                             resId = Res.drawable.download_button,
                                                                             tint = MaterialTheme.colorScheme.onBackground,
-                                                                        modifier = Modifier.size(36.dp),
-                                                                    ) {
-                                                                        viewModel.onUIEvent(PlaylistUIEvent.Download)
+                                                                            modifier = Modifier.size(36.dp),
+                                                                        ) {
+                                                                            viewModel.onUIEvent(PlaylistUIEvent.Download)
+                                                                        }
                                                                     }
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    Spacer(Modifier.weight(1f))
-                                                    if (!data.isRadio) {
+                                                        Spacer(Modifier.weight(1f))
+                                                        if (!data.isRadio) {
+                                                            RippleIconButton(
+                                                                modifier =
+                                                                    Modifier.size(36.dp),
+                                                                resId = Res.drawable.baseline_sensors_24,
+                                                                tint = MaterialTheme.colorScheme.onBackground,
+                                                                fillMaxSize = true,
+                                                            ) {
+                                                                viewModel.onUIEvent(PlaylistUIEvent.StartRadio)
+                                                            }
+                                                            Spacer(Modifier.size(5.dp))
+                                                            RippleIconButton(
+                                                                modifier =
+                                                                    Modifier.size(36.dp),
+                                                                resId = Res.drawable.baseline_shuffle_24,
+                                                                tint = MaterialTheme.colorScheme.onBackground,
+                                                                fillMaxSize = true,
+                                                            ) {
+                                                                viewModel.onUIEvent(PlaylistUIEvent.Shuffle)
+                                                            }
+                                                            Spacer(Modifier.size(5.dp))
+                                                        }
                                                         RippleIconButton(
                                                             modifier =
                                                                 Modifier.size(36.dp),
-                                                            resId = Res.drawable.baseline_sensors_24,
+                                                            resId = Res.drawable.baseline_more_vert_24,
                                                             tint = MaterialTheme.colorScheme.onBackground,
-                                                            fillMaxSize = true,
-                                                        ) {
-                                                            viewModel.onUIEvent(PlaylistUIEvent.StartRadio)
-                                                        }
-                                                        Spacer(Modifier.size(5.dp))
-                                                        RippleIconButton(
-                                                            modifier =
-                                                                Modifier.size(36.dp),
-                                                            resId = Res.drawable.baseline_shuffle_24,
-                                                            tint = MaterialTheme.colorScheme.onBackground,
-                                                            fillMaxSize = true,
-                                                        ) {
-                                                            viewModel.onUIEvent(PlaylistUIEvent.Shuffle)
-                                                        }
-                                                        Spacer(Modifier.size(5.dp))
-                                                    }
-                                                    RippleIconButton(
-                                                        modifier =
-                                                            Modifier.size(36.dp),
-                                                        resId = Res.drawable.baseline_more_vert_24,
-                                                        tint = MaterialTheme.colorScheme.onBackground,
                                                             fillMaxSize = true,
                                                         ) {
                                                             onPlaylistMoreClick()
@@ -1086,7 +1086,7 @@ fun PlaylistScreen(
                                     HorizontalDivider(
                                         modifier = Modifier.padding(start = 72.dp, end = 16.dp),
                                         thickness = 0.5.dp,
-                                        color = Color.White.copy(alpha = 0.12f),
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f),
                                     )
                                 }
                             }
@@ -1164,7 +1164,7 @@ fun PlaylistScreen(
                                         tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
                                     }
                                 } else {
-                                    Modifier.background(Color.Black)
+                                    Modifier.background(MaterialTheme.colorScheme.background)
                                 },
                             ),
                     ) {
@@ -1218,7 +1218,7 @@ fun PlaylistScreen(
                                     showSearchBar = !showSearchBar
                                 },
                             ) {
-                                Icon(Icons.Rounded.Close, null, tint = Color.White)
+                                Icon(Icons.Rounded.Close, null, tint = MaterialTheme.colorScheme.onBackground)
                             }
                         }
                     }

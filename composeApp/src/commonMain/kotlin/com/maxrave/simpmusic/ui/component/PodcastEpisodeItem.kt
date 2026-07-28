@@ -15,11 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -32,7 +32,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.holder
 
 @Composable
 fun PodcastEpisodeFullWidthItem(
@@ -63,8 +62,8 @@ fun PodcastEpisodeFullWidthItem(
                             .diskCacheKey(episode.thumbnail.lastOrNull()?.url)
                             .crossfade(true)
                             .build(),
-                    placeholder = painterResource(Res.drawable.holder),
-                    error = painterResource(Res.drawable.holder),
+                    placeholder = rememberHolderPainter(),
+                    error = rememberHolderPainter(),
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth,
                     modifier = Modifier.fillMaxSize(),
@@ -80,7 +79,7 @@ fun PodcastEpisodeFullWidthItem(
                     text = episode.title,
                     style = typo().labelMedium,
                     maxLines = 1,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -95,7 +94,7 @@ fun PodcastEpisodeFullWidthItem(
                     text = "${episode.createdDay ?: ""}${if (!episode.durationString.isNullOrEmpty()) " • ${episode.durationString}" else ""}",
                     style = typo().bodyMedium,
                     maxLines = 1,
-                    color = Color(0xC4FFFFFF),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -112,7 +111,7 @@ fun PodcastEpisodeFullWidthItem(
                         text = description,
                         style = typo().bodyMedium,
                         maxLines = 1,
-                        color = Color(0xC4FFFFFF),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier =
                             Modifier
                                 .fillMaxWidth()

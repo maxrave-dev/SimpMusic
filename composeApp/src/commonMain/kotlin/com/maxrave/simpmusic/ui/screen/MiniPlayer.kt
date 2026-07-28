@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
@@ -78,7 +77,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -110,8 +108,6 @@ import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
-import com.maxrave.simpmusic.ui.component.liquidGlass
-import com.maxrave.simpmusic.ui.theme.transparent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -168,12 +164,8 @@ fun MiniPlayer(
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
-    val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
-
-    val layer = rememberGraphicsLayer()
-    val luminanceAnimation = remember { Animatable(0f) }
 
     val defaultBgColor = MaterialTheme.colorScheme.surfaceVariant
     val background = remember {
@@ -189,33 +181,6 @@ fun MiniPlayer(
         label = "MiniPlayerTextColor",
         animationSpec = tween(500),
     )
-
-    LaunchedEffect(layer, isLiquidGlassEnabled) {
-        val buffer = IntArray(25)
-        while (isActive && isLiquidGlassEnabled == DataStoreManager.TRUE) {
-            try {
-                withContext(Dispatchers.Main) {
-                    val imageBitmap = layer.toImageBitmap()
-                    val thumbnail = imageBitmap.toResizedBitmap(5, 5)
-                    thumbnail.readPixels(buffer)
-                }
-            } catch (e: Exception) {
-            }
-            val averageLuminance =
-                (0 until 25).sumOf { index ->
-                    val color = buffer.get(index)
-                    val r = (color shr 16 and 0xFF) / 255f
-                    val g = (color shr 8 and 0xFF) / 255f
-                    val b = (color and 0xFF) / 255f
-                    0.2126 * r + 0.7152 * g + 0.0722 * b
-                } / 25
-            luminanceAnimation.animateTo(
-                averageLuminance.coerceIn(0.3, 0.8).toFloat(),
-                tween(500),
-            )
-            delay(1.seconds)
-        }
-    }
 
     val (songEntity, setSongEntity) = remember {
         mutableStateOf<SongEntity?>(null)
@@ -327,25 +292,16 @@ fun MiniPlayer(
 
     if (getPlatform() == Platform.Android) {
         Card(
-            shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(12.dp),
             colors =
                 CardDefaults.cardColors(
-                    containerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
-                    disabledContainerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) transparent else background.value,
+                    containerColor = background.value,
+                    disabledContainerColor = background.value,
                 ),
             modifier =
                 modifier
-                    .then(
-                        if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                            Modifier.liquidGlass(backdrop, layer, luminanceAnimation.value, RoundedCornerShape(16.dp))
-                        } else {
-                            Modifier
-                        },
-                    ).then(
-                        Modifier
-                            .clipToBounds()
-                            .offset { IntOffset(0, offsetY.value.roundToInt()) },
-                    ),
+                    .clipToBounds()
+                    .offset { IntOffset(0, offsetY.value.roundToInt()) },
         ) {
             Box(
                 modifier =

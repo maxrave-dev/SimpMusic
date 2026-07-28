@@ -38,7 +38,6 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.pagination.PagingActions
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -1049,7 +1048,7 @@ data class LocalPlaylistState(
     val colors: List<Color> =
         listOf(
             Color.Black,
-            md_theme_dark_background,
+            Color.Black,
         ),
     val inLibrary: LocalDateTime? = null,
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,

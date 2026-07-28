@@ -39,7 +39,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import java.awt.MouseInfo
 import java.awt.Window
@@ -73,7 +72,7 @@ fun CustomTitleBar(
             modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .background(md_theme_dark_background)
+                .background(Color.Black)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {

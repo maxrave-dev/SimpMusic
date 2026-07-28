@@ -19,12 +19,12 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.ui.theme.typo
@@ -69,21 +69,21 @@ fun OfflineErrorState(
             Icon(
                 imageVector = Icons.Outlined.CloudOff,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.85f),
+                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.85f),
                 modifier = Modifier.size(80.dp),
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = stringResource(Res.string.home_offline_title),
                 style = typo().titleLarge,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(Res.string.home_offline_subtitle),
                 style = typo().bodyMedium,
-                color = Color.White.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(28.dp))
@@ -92,13 +92,13 @@ fun OfflineErrorState(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black,
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background,
                 ),
             ) {
                 Text(
                     text = stringResource(Res.string.retry),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.background,
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
@@ -106,19 +106,19 @@ fun OfflineErrorState(
                 onClick = onOpenDownloaded,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
                 ),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Download,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = stringResource(Res.string.listen_to_downloaded),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
             }
         }

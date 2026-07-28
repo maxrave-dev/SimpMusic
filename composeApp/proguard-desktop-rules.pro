@@ -2,9 +2,15 @@
 # from the Paragraph interface down to its only impl (SkiaParagraph). The bytecode still
 # pushes a Paragraph-typed value, so JVM 21's verifier rejects it at runtime with
 # "VerifyError: Bad return type" the moment any Text() renders (androidx.compose.ui.text).
-# Disable only method type-specialization; shrinking, obfuscation, class-merging,
-# inlining and every other optimization stay on.
--optimizations !method/specialization/*
+# code/allocation/variable + method/inlining: after inlining, ProGuard re-packs local
+# variable slots and emits a StackMapTable that disagrees with the actual frame on 2-slot
+# longs/doubles ("VerifyError: Inconsistent stackmap frames ... top not assignable to
+# long") the moment a large Composable class loads — hit at startup on the Windows
+# release build. Known upstream bug, still unfixed as of ProGuard 7.9.1:
+# https://github.com/Guardsquare/proguard/issues/443 (Compose Desktop, same frames)
+# https://github.com/Guardsquare/proguard/issues/302 (inlining-induced verify errors)
+# Shrinking, obfuscation, class-merging and every other optimization stay on.
+-optimizations !method/specialization/*,!code/allocation/variable,!method/inlining/*
 
 -keepclasseswithmembers class * {
     native <methods>;

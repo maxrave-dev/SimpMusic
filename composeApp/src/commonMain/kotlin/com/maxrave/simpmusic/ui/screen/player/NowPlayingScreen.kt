@@ -2,7 +2,6 @@
 
 package com.maxrave.simpmusic.ui.screen.player
 
-// Importa tu buscador global si Android Studio lo pide (Alt + Enter sobre getITunesCover)
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -25,6 +24,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -126,6 +126,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -145,6 +146,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.expect.ui.PlatformCastButton
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
@@ -214,6 +216,7 @@ import simpmusic.composeapp.generated.resources.lyrics_provider_lrc
 import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.offline_mode
+import simpmusic.composeapp.generated.resources.playing_on_device
 import simpmusic.composeapp.generated.resources.published_at
 import simpmusic.composeapp.generated.resources.rate_lyrics
 import simpmusic.composeapp.generated.resources.rich_synced
@@ -420,6 +423,9 @@ fun NowPlayingScreenContent(
     val bgColor = MaterialTheme.colorScheme.background
     val startColor = remember { Animatable(bgColor) }
     val endColor = remember { Animatable(bgColor) }
+    val gradientOffset by remember {
+        mutableStateOf(GradientOffset(GradientAngle.CW135))
+    }
 
     var spotShadowColor by remember {
         mutableStateOf(Color.White)
@@ -748,9 +754,6 @@ fun NowPlayingScreenContent(
         rememberHazeState(
             blurEnabled = true,
         )
-
-    val gradientAngle = remember { GradientAngle.CW45 }
-    val gradientOffset = remember(gradientAngle) { GradientOffset(gradientAngle) }
 
     if (screenDataState.lyricsData != null && controllerState.isPlaying) {
         KeepScreenOn()
@@ -1432,13 +1435,13 @@ fun NowPlayingScreenContent(
                                     ) {
                                         Text(
                                             text = stringResource(Res.string.now_playing_upper),
-                                            style = typo().bodyMedium,
-                                            color = MaterialTheme.colorScheme.onBackground,
+                                            style = typo().bodyMedium.copy(shadow = topTextShadow),
+                                            color = topContentColor,
                                         )
                                         Text(
                                             text = screenDataState.playlistName,
-                                            style = typo().labelMedium,
-                                            color = MaterialTheme.colorScheme.onBackground,
+                                            style = typo().labelMedium.copy(shadow = topTextShadow),
+                                            color = topContentColor,
                                             textAlign = TextAlign.Center,
                                             maxLines = 1,
                                             modifier =
@@ -1459,7 +1462,7 @@ fun NowPlayingScreenContent(
                                         Icon(
                                             imageVector = dismissIcon,
                                             contentDescription = "",
-                                            tint = MaterialTheme.colorScheme.onBackground,
+                                            tint = topContentColor,
                                         )
                                     }
                                 },
@@ -1469,7 +1472,7 @@ fun NowPlayingScreenContent(
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
                                                 contentDescription = "Mini Player",
-                                                tint = MaterialTheme.colorScheme.onBackground,
+                                                tint = topContentColor,
                                             )
                                         }
                                     }
@@ -1479,7 +1482,7 @@ fun NowPlayingScreenContent(
                                         Icon(
                                             painter = painterResource(Res.drawable.baseline_more_vert_24),
                                             contentDescription = "",
-                                            tint = MaterialTheme.colorScheme.onBackground,
+                                            tint = topContentColor,
                                         )
                                     }
                                 },
@@ -1874,17 +1877,27 @@ fun NowPlayingScreenContent(
                                                     horizontalArrangement = Arrangement.SpaceBetween,
                                                     verticalAlignment = Alignment.CenterVertically,
                                                 ) {
-                                                    IconButton(
-                                                        modifier =
-                                                            Modifier
-                                                                .size(24.dp)
-                                                                .aspectRatio(1f)
-                                                                .clip(CircleShape),
-                                                        onClick = {
-                                                            showInfoBottomSheet = true
-                                                        },
+                                                    Row(
+                                                        modifier = Modifier.weight(1f, fill = false),
+                                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                        verticalAlignment = Alignment.CenterVertically,
                                                     ) {
-                                                        Icon(imageVector = Icons.Outlined.Info, tint = topContentColor, contentDescription = "")
+                                                        IconButton(
+                                                            modifier =
+                                                                Modifier
+                                                                    .size(24.dp)
+                                                                    .aspectRatio(1f)
+                                                                    .clip(CircleShape),
+                                                            onClick = {
+                                                                showInfoBottomSheet = true
+                                                            },
+                                                        ) {
+                                                            Icon(imageVector = Icons.Outlined.Info, tint = topContentColor, contentDescription = "")
+                                                        }
+                                                        PlatformCastButton(
+                                                            modifier = Modifier.size(24.dp),
+                                                            tint = topContentColor,
+                                                        )
                                                     }
 
                                                     Row(
@@ -2151,7 +2164,7 @@ fun NowPlayingScreenContent(
                                                                             Icon(
                                                                                 imageVector = Icons.Rounded.CheckCircle,
                                                                                 tint = topContentColor,
-                                                                                contentDescription = "",
+                                                                                contentDescription = ""
                                                                             )
                                                                         }
                                                                     } else {
@@ -2228,7 +2241,7 @@ fun NowPlayingScreenContent(
                                                 LocalContentColor provides topContentColor,
                                                 LocalTextStyle provides typo().bodyMedium.copy(shadow = topTextShadow)
                                             ) {
-                                                Column(modifier = Modifier.padding(15.dp)) {
+                                                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 15.dp)) {
                                                     Spacer(modifier = Modifier.height(5.dp))
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                                         Text(
@@ -2295,7 +2308,7 @@ fun NowPlayingScreenContent(
                                                             LyricsView(
                                                                 lyricsData = it,
                                                                 timeLine = sharedViewModel.timeline,
-                                                                onLineClick = { _ ->
+                                                                onLineClick = { f ->
                                                                     showFullscreenLyrics = true
                                                                 },
                                                             )
@@ -2415,7 +2428,7 @@ fun NowPlayingScreenContent(
                                                 Box(
                                                     modifier =
                                                         Modifier
-                                                            .padding(15.dp)
+                                                            .padding(12.dp)
                                                             .fillMaxSize(),
                                                 ) {
                                                     Column(Modifier.align(Alignment.TopStart)) {
@@ -2476,7 +2489,7 @@ fun NowPlayingScreenContent(
                                             CompositionLocalProvider(LocalContentColor provides topContentColor) {
                                                 Column(
                                                     Modifier
-                                                        .padding(15.dp)
+                                                        .padding(horizontal = 12.dp, vertical = 15.dp)
                                                         .fillMaxWidth(),
                                                 ) {
                                                     Spacer(modifier = Modifier.height(5.dp))

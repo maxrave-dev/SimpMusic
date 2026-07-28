@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.extension.shimmer
-import com.maxrave.simpmusic.ui.theme.shimmerBackground
+import com.maxrave.simpmusic.ui.theme.LocalAppColors
 
 @Composable
 fun HomeItemShimmer() {
@@ -31,7 +31,7 @@ fun HomeItemShimmer() {
                 .height(36.dp)
                 .padding(vertical = 8.dp)
                 .background(
-                    color = shimmerBackground,
+                    color = LocalAppColors.current.shimmerBackground,
                 ).clip(RoundedCornerShape(10))
                 .shimmer(),
         )
@@ -56,7 +56,7 @@ fun PlaylistShimmer() {
                 .clip(
                     RoundedCornerShape(10),
                 ).background(
-                    color = shimmerBackground,
+                    color = LocalAppColors.current.shimmerBackground,
                 ).shimmer(),
         )
         Spacer(modifier = Modifier.size(10.dp))
@@ -67,7 +67,7 @@ fun PlaylistShimmer() {
                 .clip(
                     RoundedCornerShape(10),
                 ).background(
-                    color = shimmerBackground,
+                    color = LocalAppColors.current.shimmerBackground,
                 ).shimmer(),
         )
         Spacer(modifier = Modifier.size(10.dp))
@@ -78,7 +78,7 @@ fun PlaylistShimmer() {
                 .clip(
                     RoundedCornerShape(10),
                 ).background(
-                    color = shimmerBackground,
+                    color = LocalAppColors.current.shimmerBackground,
                 ).shimmer(),
         )
     }
@@ -95,7 +95,7 @@ fun QuickPicksShimmerItem() {
             Modifier
                 .size(50.dp)
                 .clip(RoundedCornerShape(10))
-                .background(shimmerBackground)
+                .background(LocalAppColors.current.shimmerBackground)
                 .shimmer(),
         )
         Column(
@@ -109,7 +109,7 @@ fun QuickPicksShimmerItem() {
                     .width(300.dp)
                     .height(21.dp)
                     .clip(RoundedCornerShape(10))
-                    .background(shimmerBackground)
+                    .background(LocalAppColors.current.shimmerBackground)
                     .shimmer(),
             )
             Spacer(modifier = Modifier.height(3.dp))
@@ -118,7 +118,7 @@ fun QuickPicksShimmerItem() {
                     .width(260.dp)
                     .height(21.dp)
                     .clip(RoundedCornerShape(10))
-                    .background(shimmerBackground)
+                    .background(LocalAppColors.current.shimmerBackground)
                     .shimmer(),
             )
         }
@@ -134,7 +134,7 @@ fun QuickPicksShimmer() {
                 .height(36.dp)
                 .padding(vertical = 8.dp)
                 .background(
-                    color = shimmerBackground,
+                    color = LocalAppColors.current.shimmerBackground,
                 ).clip(RoundedCornerShape(10))
                 .shimmer(),
         )
@@ -173,7 +173,7 @@ fun ShimmerSearchItem() {
             modifier = Modifier
                 .size(56.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(shimmerBackground)
+                .background(LocalAppColors.current.shimmerBackground)
                 .shimmer()
         )
 
@@ -186,7 +186,7 @@ fun ShimmerSearchItem() {
                     .width(200.dp)
                     .height(16.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(shimmerBackground)
+                    .background(LocalAppColors.current.shimmerBackground)
                     .shimmer()
             )
 
@@ -197,7 +197,7 @@ fun ShimmerSearchItem() {
                     .width(150.dp)
                     .height(14.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(shimmerBackground)
+                    .background(LocalAppColors.current.shimmerBackground)
                     .shimmer()
             )
 
@@ -208,7 +208,7 @@ fun ShimmerSearchItem() {
                     .width(80.dp)
                     .height(12.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(shimmerBackground)
+                    .background(LocalAppColors.current.shimmerBackground)
                     .shimmer()
             )
         }

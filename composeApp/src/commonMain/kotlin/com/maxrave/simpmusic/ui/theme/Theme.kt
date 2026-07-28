@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialExpressiveTheme
@@ -7,75 +8,118 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.maxrave.domain.manager.DataStoreManager
-import org.koin.compose.koinInject
-import java.util.Calendar
+import com.maxrave.simpmusic.expect.ui.SystemBarAppearanceEffect
+
+internal val md_theme_dark_background = Color(0xFF1C1B1F)
+internal val md_theme_dark_surface = Color(0xFF1C1B1F)
+internal val md_theme_dark_onSurface = Color(0xFFE6E1E5)
+internal val transparent = Color.Transparent
+
+@Immutable
+data class AppColors(
+    val favorite: Color,
+    val lyricActive: Color,
+    val shimmerBackground: Color,
+    val shimmerLine: Color,
+    val overlay: Color,
+    val overlayHeavy: Color,
+)
+
+private val DarkAppColors =
+    AppColors(
+        favorite = Color(0xFFEF5350),
+        lyricActive = Color(0xFFFFEB3B),
+        shimmerBackground = Color(0xFF2A2A2A),
+        shimmerLine = Color(0xFF3A3A3A),
+        overlay = Color(0x66000000),
+        overlayHeavy = Color(0xCC000000),
+    )
+
+private val LightAppColors =
+    DarkAppColors.copy(
+        shimmerBackground = Color(0xFFE0E0E0),
+        shimmerLine = Color(0xFFCCCCCC),
+    )
+
+val LocalAppColors = staticCompositionLocalOf { DarkAppColors }
+val LocalIsDarkTheme = staticCompositionLocalOf { true }
+
+fun parseThemeColorHex(hex: String): Color? {
+    val clean = hex.trim().removePrefix("#")
+    val argb =
+        when (clean.length) {
+            6 -> "FF$clean"
+            8 -> clean
+            else -> return null
+        }
+    return argb.toLongOrNull(16)?.let { Color(it) }
+}
 
 val DarkColors =
     darkColorScheme(
-        primary = md_theme_dark_primary,
-        onPrimary = md_theme_dark_onPrimary,
-        primaryContainer = md_theme_dark_primaryContainer,
-        onPrimaryContainer = md_theme_dark_onPrimaryContainer,
-        secondary = md_theme_dark_secondary,
-        onSecondary = md_theme_dark_onSecondary,
-        secondaryContainer = md_theme_dark_secondaryContainer,
-        onSecondaryContainer = md_theme_dark_onSecondaryContainer,
-        tertiary = md_theme_dark_tertiary,
-        onTertiary = md_theme_dark_onTertiary,
-        tertiaryContainer = md_theme_dark_tertiaryContainer,
-        onTertiaryContainer = md_theme_dark_onTertiaryContainer,
-        error = md_theme_dark_error,
-        errorContainer = md_theme_dark_errorContainer,
-        onError = md_theme_dark_onError,
-        onErrorContainer = md_theme_dark_onErrorContainer,
+        primary = Color(0xFFD0BCFF),
+        onPrimary = Color(0xFF381E72),
+        primaryContainer = Color(0xFF4F378B),
+        onPrimaryContainer = Color(0xFFEADDFF),
+        secondary = Color(0xFFCCC2DC),
+        onSecondary = Color(0xFF332D41),
+        secondaryContainer = Color(0xFF4A4458),
+        onSecondaryContainer = Color(0xFFE8DEF8),
+        tertiary = Color(0xFFEFB8C8),
+        onTertiary = Color(0xFF492532),
+        tertiaryContainer = Color(0xFF633B48),
+        onTertiaryContainer = Color(0xFFFFD8E4),
+        error = Color(0xFFF2B8B5),
+        errorContainer = Color(0xFF8C1D18),
+        onError = Color(0xFF601410),
+        onErrorContainer = Color(0xFFF9DEDC),
         background = md_theme_dark_background,
-        onBackground = md_theme_dark_onBackground,
+        onBackground = Color(0xFFE6E1E5),
         surface = md_theme_dark_surface,
         onSurface = md_theme_dark_onSurface,
-        surfaceVariant = md_theme_dark_surfaceVariant,
-        onSurfaceVariant = md_theme_dark_onSurfaceVariant,
-        outline = md_theme_dark_outline,
-        inverseOnSurface = md_theme_dark_inverseOnSurface,
-        inverseSurface = md_theme_dark_inverseSurface,
-        inversePrimary = md_theme_dark_inversePrimary,
-        surfaceTint = md_theme_dark_surfaceTint,
-        outlineVariant = md_theme_dark_outlineVariant,
-        scrim = md_theme_dark_scrim,
+        surfaceVariant = Color(0xFF49454F),
+        onSurfaceVariant = Color(0xFFCAC4D0),
+        outline = Color(0xFF938F99),
+        inverseOnSurface = Color(0xFF1C1B1F),
+        inverseSurface = Color(0xFFE6E1E5),
+        inversePrimary = Color(0xFF6750A4),
+        surfaceTint = Color(0xFFD0BCFF),
+        outlineVariant = Color(0xFF49454F),
+        scrim = Color(0xFF000000),
     )
 
 val LightColors =
     lightColorScheme(
-        primary = Color(0xFF1C1B1F),
+        primary = Color(0xFF6750A4),
         onPrimary = Color(0xFFFFFFFF),
-        primaryContainer = Color(0xFFEBEBEB),
-        onPrimaryContainer = Color(0xFF000000),
-        secondary = Color(0xFF4D4D4D),
+        primaryContainer = Color(0xFFEADDFF),
+        onPrimaryContainer = Color(0xFF21005D),
+        secondary = Color(0xFF625B71),
         onSecondary = Color(0xFFFFFFFF),
-        secondaryContainer = Color(0xFFE8E8E8),
-        onSecondaryContainer = Color(0xFF1C1B1F),
-        tertiary = Color(0xFF1C1B1F),
+        secondaryContainer = Color(0xFFE8DEF8),
+        onSecondaryContainer = Color(0xFF1D192B),
+        tertiary = Color(0xFF7D5260),
         onTertiary = Color(0xFFFFFFFF),
-        tertiaryContainer = Color(0xFFD9D9D9),
-        onTertiaryContainer = Color(0xFF000000),
-        error = Color(0xFFBA1A1A),
+        tertiaryContainer = Color(0xFFFFD8E4),
+        onTertiaryContainer = Color(0xFF31111D),
+        error = Color(0xFFB3261E),
         onError = Color(0xFFFFFFFF),
-        errorContainer = Color(0xFFFFDAD6),
+        errorContainer = Color(0xFFF9DEDC),
         onErrorContainer = Color(0xFF410002),
         outline = Color(0xFF79747E),
         background = Color(0xFFFAFAFA),
-        onBackground = Color(0xFF1C1B1F),
+        onBackground = Color(0xFF000000), // Letras principales negro absoluto
         surface = Color(0xFFFAFAFA),
-        onSurface = Color(0xFF1C1B1F),
+        onSurface = Color(0xFF000000), // Letras sobre superficies negro absoluto
         surfaceVariant = Color(0xFFE7E0EC),
-        onSurfaceVariant = Color(0xFF49454F),
+        onSurfaceVariant = Color(0xFF000000), // Letras secundarias negro absoluto para eliminar lo borroso
         inverseOnSurface = Color(0xFFF4EFF4),
         inverseSurface = Color(0xFF313033),
         inversePrimary = Color(0xFFD0BCFF),
-        surfaceTint = Color(0xFF1C1B1F),
+        surfaceTint = Color(0xFF6750A4),
         outlineVariant = Color(0xFFCAC4D0),
         scrim = Color(0xFF000000),
     )
@@ -83,31 +127,30 @@ val LightColors =
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppTheme(
+    color: Color? = null,
+    followSystemTheme: Boolean = true,
+    forceLightTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val dataStoreManager: DataStoreManager = koinInject()
-    val autoNightModeString by dataStoreManager.getString("auto_night_mode").collectAsStateWithLifecycle(initialValue = "TRUE")
-
-    val forceDarkMode = autoNightModeString != "FALSE"
-
-    val isDarkTheme = if (forceDarkMode) {
-        true
+    val isDark = if (followSystemTheme) {
+        isSystemInDarkTheme()
     } else {
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
-        val isDayTime = (hour > 6 || (hour == 6 && minute >= 30)) && (hour < 18 || (hour == 18 && minute < 30))
-        !isDayTime
+        !forceLightTheme
     }
 
-    val colors = if (isDarkTheme) DarkColors else LightColors
+    val baseColors = if (isDark) DarkColors else LightColors
+    val colors = if (color != null) baseColors.copy(primary = color) else baseColors
+
+    SystemBarAppearanceEffect(isDark)
 
     MaterialExpressiveTheme(
         colorScheme = colors,
         content = {
             CompositionLocalProvider(
                 LocalContentColor provides colors.onBackground,
-                content,
+                LocalAppColors provides if (isDark) DarkAppColors else LightAppColors,
+                LocalIsDarkTheme provides isDark,
+                content = content,
             )
         },
         typography = typo(),

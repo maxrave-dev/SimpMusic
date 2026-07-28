@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicatorDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -48,8 +48,8 @@ fun CenterLoadingBox(modifier: Modifier) {
                     Modifier
                         .size(56.dp),
                 polygons = LoadingIndicatorDefaults.IndeterminateIndicatorPolygons,
-                containerColor = Color.DarkGray,
-                indicatorColor = Color.LightGray,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                indicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 containerShape = shape.toShape(),
             )
         }

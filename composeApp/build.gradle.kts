@@ -73,6 +73,13 @@ kotlin {
             api(libs.startup.runtime)
             api(projects.media3)
             api(projects.media3Ui)
+
+            // Google Cast (gated: real SDK for full builds, no-op stub for FOSS builds)
+            if (isFullBuild) {
+                implementation(projects.cast)
+            } else {
+                implementation(projects.castEmpty)
+            }
         }
         commonMain.dependencies {
             implementation(libs.runtime)
@@ -97,6 +104,7 @@ kotlin {
             api(libs.coil.network.okhttp)
             api(libs.kmpalette.core)
             api(libs.kmpalette.network)
+            implementation(libs.materialkolor)
             implementation(libs.ktor.client.cio)
             implementation(libs.datastore.preferences)
             implementation(libs.compottie)

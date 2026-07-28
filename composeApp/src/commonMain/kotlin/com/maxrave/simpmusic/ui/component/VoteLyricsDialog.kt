@@ -44,6 +44,9 @@ fun VoteLyricsDialog(
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
+        containerColor = rememberSurfaceDarkColors().container,
+        titleContentColor = rememberSurfaceDarkColors().content,
+        textContentColor = rememberSurfaceDarkColors().content,
         onDismissRequest = onDismiss,
         confirmButton = {},
         dismissButton = {

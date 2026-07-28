@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -153,6 +154,7 @@ fun CreditScreen(
                     Modifier
                         .size(32.dp),
                     true,
+                    tint = MaterialTheme.colorScheme.onSurface,
                 ) {
                     navController.navigateUp()
                 }

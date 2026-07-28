@@ -362,6 +362,9 @@ interface DataStoreManager {
     }
 
     companion object Values {
+        const val FOLLOW_SYSTEM_THEME = "follow_system_theme"
+        const val FORCE_LIGHT_THEME = "force_light_theme"
+
         const val SIMPMUSIC = "simpmusic"
         const val YOUTUBE = "youtube"
         const val LRCLIB = "lrclib"

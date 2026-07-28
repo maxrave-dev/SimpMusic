@@ -1,0 +1,6 @@
+- Giao diện sáng mới với tùy chọn chế độ giao diện và màu chủ đạo tùy chỉnh
+- Hỗ trợ Google Cast: phát nhạc lên TV hoặc loa (bản Full)
+- Trải nghiệm Android Auto hoàn toàn mới: duyệt thư viện, tìm kiếm và xem hàng đợi phát
+- Sửa lỗi kết nối Discord Rich Presence
+- Desktop: sửa lỗi crash khi khởi động ở bản release
+- Desktop: Thêm tương thích với trình điều khiển mặc định của Windows

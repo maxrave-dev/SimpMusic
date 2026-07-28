@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.navigation.graph
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -19,6 +20,7 @@ import com.maxrave.simpmusic.ui.screen.other.ArtistScreen
 import com.maxrave.simpmusic.ui.screen.other.MoreAlbumsScreen
 import com.maxrave.simpmusic.ui.screen.other.PlaylistScreen
 import com.maxrave.simpmusic.ui.screen.other.PodcastScreen
+import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
 
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
@@ -28,24 +30,30 @@ fun NavGraphBuilder.listScreenGraph(
 ) {
     composable<AlbumDestination> { entry ->
         val data = entry.toRoute<AlbumDestination>()
-        AlbumScreen(
-            browseId = data.browseId,
-            navController = navController,
-        )
+        CompositionLocalProvider(LocalForceDarkText provides true) {
+            AlbumScreen(
+                browseId = data.browseId,
+                navController = navController,
+            )
+        }
     }
     composable<ArtistDestination> { entry ->
         val data = entry.toRoute<ArtistDestination>()
-        ArtistScreen(
-            channelId = data.channelId,
-            navController = navController,
-        )
+        CompositionLocalProvider(LocalForceDarkText provides true) {
+            ArtistScreen(
+                channelId = data.channelId,
+                navController = navController,
+            )
+        }
     }
     composable<LocalPlaylistDestination> { entry ->
         val data = entry.toRoute<LocalPlaylistDestination>()
-        LocalPlaylistScreen(
-            id = data.id,
-            navController = navController,
-        )
+        CompositionLocalProvider(LocalForceDarkText provides true) {
+            LocalPlaylistScreen(
+                id = data.id,
+                navController = navController,
+            )
+        }
     }
     composable<MoreAlbumsDestination> { entry ->
         val data = entry.toRoute<MoreAlbumsDestination>()
@@ -58,17 +66,21 @@ fun NavGraphBuilder.listScreenGraph(
     }
     composable<PlaylistDestination> { entry ->
         val data = entry.toRoute<PlaylistDestination>()
-        PlaylistScreen(
-            playlistId = data.playlistId,
-            isYourYouTubePlaylist = data.isYourYouTubePlaylist,
-            navController = navController,
-        )
+        CompositionLocalProvider(LocalForceDarkText provides true) {
+            PlaylistScreen(
+                playlistId = data.playlistId,
+                isYourYouTubePlaylist = data.isYourYouTubePlaylist,
+                navController = navController,
+            )
+        }
     }
     composable<PodcastDestination> { entry ->
         val data = entry.toRoute<PodcastDestination>()
-        PodcastScreen(
-            podcastId = data.podcastId,
-            navController = navController,
-        )
+        CompositionLocalProvider(LocalForceDarkText provides true) {
+            PodcastScreen(
+                podcastId = data.podcastId,
+                navController = navController,
+            )
+        }
     }
 }

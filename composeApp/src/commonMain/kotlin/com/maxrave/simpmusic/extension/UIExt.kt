@@ -60,9 +60,7 @@ import com.kmpalette.palette.graphics.Palette
 import com.maxrave.domain.data.model.ui.ScreenSizeInfo
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.getPlatform
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
-import com.maxrave.simpmusic.ui.theme.shimmerBackground
-import com.maxrave.simpmusic.ui.theme.shimmerLine
+import com.maxrave.simpmusic.ui.theme.LocalAppColors
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -85,6 +83,7 @@ fun generateRandomColor(): Color {
 
 fun Modifier.shimmer(): Modifier =
     composed {
+        val appColors = LocalAppColors.current
         var size by remember {
             mutableStateOf(IntSize.Zero)
         }
@@ -104,9 +103,9 @@ fun Modifier.shimmer(): Modifier =
                 Brush.linearGradient(
                     colors =
                         listOf(
-                            shimmerBackground,
-                            shimmerLine,
-                            shimmerBackground,
+                            appColors.shimmerBackground,
+                            appColors.shimmerLine,
+                            appColors.shimmerBackground,
                         ),
                     start = Offset(startOffsetX, 0f),
                     end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat()),
@@ -443,7 +442,7 @@ fun LazyGridState.isScrollingUp(): State<Boolean> {
 }
 
 fun Palette?.getColorFromPalette(): Color {
-    val p = this ?: return md_theme_dark_background
+    val p = this ?: return Color.Black
     val defaultColor = 0x000000
     var startColor = p.getDarkVibrantColor(defaultColor)
     if (startColor == defaultColor) {
@@ -480,18 +479,18 @@ fun Palette?.getColorFromPalette(): Color {
  * artwork.
  */
 fun Palette?.toImmersiveBackground(): Color {
-    val p = this ?: return md_theme_dark_background
+    val p = this ?: return Color.Black
     val rgb =
         p.getDominantColor(0).takeIf { it != 0 }
             ?: p.getMutedColor(0).takeIf { it != 0 }
             ?: p.getVibrantColor(0).takeIf { it != 0 }
-            ?: return md_theme_dark_background
+            ?: return Color.Black
     val base = Color(rgb)
     // Perceived luminance (0 dark .. 1 light) of the source swatch.
     val luminance = 0.299f * base.red + 0.587f * base.green + 0.114f * base.blue
     // Darken more for lighter artwork so the page stays dark enough for white text.
     val darkenFactor = 0.35f + 0.45f * luminance
-    return androidx.compose.ui.graphics.lerp(base, md_theme_dark_background, darkenFactor)
+    return androidx.compose.ui.graphics.lerp(base, Color.Black, darkenFactor)
 }
 
 fun Modifier.isElementVisible(onVisibilityChanged: (Boolean) -> Unit) =

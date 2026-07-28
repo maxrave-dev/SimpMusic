@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Añadido por la actualización de Android Auto -->
+    <uses-permission android:name="androidx.car.app.MEDIA_TEMPLATES" />
 
     <uses-feature
         android:name="android.hardware.type.automotive"
@@ -24,11 +26,16 @@
     <uses-feature
         android:name="android.hardware.screen.landscape"
         android:required="false" />
+    <!-- Añadido por la actualización de Android Auto -->
+    <uses-feature
+        android:name="android.software.car.templates_host.media"
+        android:required="false" />
 
     <queries>
         <intent>
             <action android:name="android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL" />
         </intent>
+        <!-- Tu personalización de paquete KuroMusic conservada -->
         <package android:name="com.maxrave.KuroMusic" />
         <intent>
             <action android:name="androidx.media3.session.MediaSessionService" />
@@ -78,6 +85,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+            <!-- Añadido por la actualización de Android Auto (Car App Library) -->
+            <intent-filter>
+                <action android:name="androidx.car.app.media.action.SHOW_MEDIA_PLAYBACK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <!-- YouTube Filters -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
@@ -121,6 +135,7 @@
                 <data android:scheme="vnd.youtube.launch" />
             </intent-filter>
 
+            <!-- Tus enlaces DeepLink personalizados de KuroMusic conservados -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -217,6 +232,23 @@
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
+
+        <!-- Añadido por la actualización de Android Auto: Obligatorio nivel de API -->
+        <meta-data
+            android:name="androidx.car.app.minCarApiLevel"
+            android:value="8" />
+
+        <!-- Añadido por la actualización de Android Auto: Servicio que conecta con la pantalla del carro -->
+        <service
+            android:name="com.maxrave.media3.carapp.SimpMusicCarAppService"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService" />
+                <action android:name="androidx.car.app.media.action.SHOW_MEDIA_PLAYBACK" />
+                <category android:name="androidx.car.app.category.MEDIA" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="io.sentry.auto-init"

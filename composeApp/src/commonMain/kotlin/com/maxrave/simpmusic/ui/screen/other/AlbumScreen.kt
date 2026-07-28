@@ -335,7 +335,7 @@ fun AlbumScreen(
                                         tint = MaterialTheme.colorScheme.onBackground
                                     ) {
                                         navController.navigateUp()}
-                                    }
+                                }
                                 }
                                 Column(
                                     horizontalAlignment = Alignment.Start,
@@ -345,7 +345,7 @@ fun AlbumScreen(
                                         // ~half screen height) with title overlay + liquid glass buttons.
                                         // Glass buttons MUST be siblings of the backdrop source (not children)
                                         // to avoid render feedback loop / RuntimeShader crash.
-                                        val artworkBackdrop = rememberBackdrop()
+                                        val artworkBackdrop = rememberBackdrop(Color.Black)
                                         Box(
                                             modifier =
                                                 Modifier
@@ -448,10 +448,10 @@ fun AlbumScreen(
                                                 resId = Res.drawable.baseline_arrow_back_ios_new_24,
                                                 modifier =
                                                     Modifier
-                                                    .align(Alignment.TopStart)
-                                                    .padding(12.dp)
-                                                    .windowInsetsPadding(WindowInsets.statusBars)
-                                                    .size(48.dp),
+                                                        .align(Alignment.TopStart)
+                                                        .padding(12.dp)
+                                                        .windowInsetsPadding(WindowInsets.statusBars)
+                                                        .size(48.dp),
                                             ) {
                                                 navController.navigateUp()
                                             }
@@ -527,11 +527,11 @@ fun AlbumScreen(
                                                     text = uiState.title,
                                                     style = typo().titleLarge,
                                                     color = MaterialTheme.colorScheme.onBackground,
-                                                maxLines = 2,
-                                            )
-                                            Column(
-                                                modifier = Modifier.padding(vertical = 8.dp),
-                                            ) {
+                                                    maxLines = 2,
+                                                )
+                                                Column(
+                                                    modifier = Modifier.padding(vertical = 8.dp),
+                                                ) {
                                                     Text(
                                                         text = uiState.artist.name,
                                                         style = typo().titleSmall,
@@ -579,14 +579,14 @@ fun AlbumScreen(
                                                             Modifier
                                                                 .size(48.dp)
                                                                 .clip(CircleShape)
-                                                                .background(Color.White.copy(alpha = 0.12f))
+                                                                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f))
                                                                 .clickable { viewModel.shuffle() },
                                                         contentAlignment = Alignment.Center,
                                                     ) {
                                                         Icon(
                                                             imageVector = Icons.Rounded.Shuffle,
                                                             contentDescription = "Shuffle",
-                                                            tint = Color.White,
+                                                            tint = MaterialTheme.colorScheme.onBackground,
                                                             modifier = Modifier.size(22.dp),
                                                         )
                                                     }
@@ -596,7 +596,7 @@ fun AlbumScreen(
                                                                 .height(48.dp)
                                                                 .widthIn(min = 110.dp)
                                                                 .clip(CircleShape)
-                                                                .background(Color.White)
+                                                                .background(MaterialTheme.colorScheme.onBackground)
                                                                 .clickable {
                                                                     if (isThisPlaying) {
                                                                         sharedViewModel.onUIEvent(UIEvent.PlayPause)
@@ -613,13 +613,13 @@ fun AlbumScreen(
                                                                 imageVector =
                                                                     if (isThisPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                                                 contentDescription = null,
-                                                                tint = Color.Black,
+                                                                tint = MaterialTheme.colorScheme.background,
                                                                 modifier = Modifier.size(22.dp),
                                                             )
                                                             Spacer(modifier = Modifier.width(4.dp))
                                                             Text(
                                                                 text = if (isThisPlaying) "Pause" else "Play",
-                                                                color = Color.Black,
+                                                                color = MaterialTheme.colorScheme.background,
                                                                 style = typo().labelLarge,
                                                             )
                                                         }
@@ -629,7 +629,7 @@ fun AlbumScreen(
                                                             Modifier
                                                                 .size(48.dp)
                                                                 .clip(CircleShape)
-                                                                .background(Color.White.copy(alpha = 0.12f)),
+                                                                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f)),
                                                         contentAlignment = Alignment.Center,
                                                     ) {
                                                         Crossfade(targetState = uiState.downloadState) { state ->
@@ -693,7 +693,7 @@ fun AlbumScreen(
                                                                     ) {
                                                                         Icon(
                                                                             painter = painterResource(Res.drawable.download_button),
-                                                                            tint = Color.White,
+                                                                            tint = MaterialTheme.colorScheme.onBackground,
                                                                             contentDescription = "Download",
                                                                             modifier = Modifier.size(22.dp),
                                                                         )
@@ -795,30 +795,30 @@ fun AlbumScreen(
                                                                     fillMaxSize = true,
                                                                     resId = Res.drawable.download_button,
                                                                     tint = MaterialTheme.colorScheme.onBackground,
-                                                                modifier = Modifier.size(36.dp),
-                                                            ) {
-                                                                viewModel.downloadFullAlbum()
+                                                                    modifier = Modifier.size(36.dp),
+                                                                ) {
+                                                                    viewModel.downloadFullAlbum()
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
-                                                Spacer(modifier = Modifier.size(5.dp))
-                                                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
-                                                    HeartCheckBox(
-                                                        size = 36,
-                                                        checked = uiState.liked,
-                                                        onStateChange = {
-                                                            viewModel.setAlbumLike()
-                                                        },
+                                                    Spacer(modifier = Modifier.size(5.dp))
+                                                    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
+                                                        HeartCheckBox(
+                                                            size = 36,
+                                                            checked = uiState.liked,
+                                                            onStateChange = {
+                                                                viewModel.setAlbumLike()
+                                                            },
                                                         )
                                                     }
-                                                Spacer(Modifier.weight(1f))
-                                                Spacer(Modifier.size(5.dp))
-                                                RippleIconButton(
-                                                    modifier =
-                                                        Modifier.size(36.dp),
-                                                    resId = Res.drawable.baseline_shuffle_24,
-                                                    tint = MaterialTheme.colorScheme.onBackground,
+                                                    Spacer(Modifier.weight(1f))
+                                                    Spacer(Modifier.size(5.dp))
+                                                    RippleIconButton(
+                                                        modifier =
+                                                            Modifier.size(36.dp),
+                                                        resId = Res.drawable.baseline_shuffle_24,
+                                                        tint = MaterialTheme.colorScheme.onBackground,
                                                         fillMaxSize = true,
                                                     ) {
                                                         viewModel.shuffle()
@@ -905,7 +905,7 @@ fun AlbumScreen(
                                     HorizontalDivider(
                                         modifier = Modifier.padding(start = 72.dp, end = 16.dp),
                                         thickness = 0.5.dp,
-                                        color = Color.White.copy(alpha = 0.12f),
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f),
                                     )
                                 }
                             }

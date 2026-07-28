@@ -1,0 +1,6 @@
+- New light theme with theme mode settings and custom primary color
+- Google Cast support: play music on your TV or speakers (Full version)
+- All-new Android Auto experience: browse your library, search and view the queue
+- Fix Discord Rich Presence connection issues
+- Desktop: fix app crash on startup in release builds
+- Desktop: Add native media controller for Windows

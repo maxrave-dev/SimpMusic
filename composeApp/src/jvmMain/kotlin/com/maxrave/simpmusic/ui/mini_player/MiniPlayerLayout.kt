@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.mediaservice.handler.ControlState
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.RichSyncLyricsLineItem
@@ -74,7 +75,6 @@ import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.baseline_skip_next_24
 import simpmusic.composeapp.generated.resources.baseline_skip_previous_24
-import simpmusic.composeapp.generated.resources.holder
 
 @Composable
 private fun MiniPlayerSeekBar(
@@ -281,8 +281,8 @@ fun MediumMiniLayout(
                     AsyncImage(
                         model = nowPlayingData.thumbnailURL,
                         contentDescription = "Album Art",
-                        placeholder = painterResource(Res.drawable.holder),
-                        error = painterResource(Res.drawable.holder),
+                        placeholder = rememberHolderPainter(),
+                        error = rememberHolderPainter(),
                         contentScale = ContentScale.Crop,
                         modifier =
                             Modifier
@@ -499,8 +499,8 @@ fun SquareMiniLayout(
             AsyncImage(
                 model = nowPlayingData.thumbnailURL,
                 contentDescription = "Album Art",
-                placeholder = painterResource(Res.drawable.holder),
-                error = painterResource(Res.drawable.holder),
+                placeholder = rememberHolderPainter(),
+                error = rememberHolderPainter(),
                 contentScale = ContentScale.Crop,
                 modifier =
                     Modifier
@@ -761,8 +761,8 @@ fun ExpandedMiniLayout(
                 AsyncImage(
                     model = nowPlayingData.thumbnailURL,
                     contentDescription = "Album Art",
-                    placeholder = painterResource(Res.drawable.holder),
-                    error = painterResource(Res.drawable.holder),
+                    placeholder = rememberHolderPainter(),
+                    error = rememberHolderPainter(),
                     contentScale = ContentScale.Crop,
                     modifier =
                         Modifier

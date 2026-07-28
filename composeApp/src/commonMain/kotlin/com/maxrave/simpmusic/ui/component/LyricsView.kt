@@ -113,6 +113,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
@@ -134,12 +135,8 @@ import kotlin.math.sin
 
 private const val TAG = "LyricsView"
 
-// Minimum wipe animation duration. Words shorter than this still wipe over MIN_WIPE_MS so the
-// motion stays perceivable; the snap-to-1f on isPast catches up at the actual word end.
 private const val MIN_WIPE_MS = 150
 
-// Repeated lyrics palette tokens hoisted to file scope: avoids re-allocating
-// the same Color() objects on every recomposition of every line item.
 private val DimOriginalColor = Color.LightGray.copy(alpha = 0.35f)
 private val DimTranslatedColor = Color(0xFF97971A).copy(alpha = 0.3f)
 private val DimRichPendingColor = Color.LightGray.copy(alpha = 0.6f)
@@ -149,19 +146,9 @@ private data class TimedLineIndex(
     val startTimeMs: Long,
 )
 
-/**
- * Returns the original line index of the last [TimedLineIndex] whose [TimedLineIndex.startTimeMs]
- * is `<= nowMs`. Assumes the receiver is sorted ascending by [TimedLineIndex.startTimeMs].
- *
- * Rules:
- *  - empty list -> -1
- *  - nowMs strictly before the first start time -> -1
- *  - nowMs after the last start time -> the last entry's original index (sticky last line)
- */
 private fun List<TimedLineIndex>.activeIndexAt(nowMs: Long): Int {
     if (isEmpty()) return -1
     if (nowMs < first().startTimeMs) return -1
-    // Binary search for the last item whose startTimeMs <= nowMs.
     var lo = 0
     var hi = size - 1
     var ans = -1
@@ -177,13 +164,6 @@ private fun List<TimedLineIndex>.activeIndexAt(nowMs: Long): Int {
     return if (ans >= 0) this[ans].index else -1
 }
 
-/**
- * Builds a [Map] from each ORIGINAL line index to its closest synced translated `words`
- * within [thresholdMs]. Two-pointer over both sorted lists; on ties an earlier translated
- * line (smaller startTimeMs in the sorted list) wins for determinism.
- *
- * Lines with invalid `startTimeMs` on either side are skipped.
- */
 private fun buildSyncedTranslatedWordsByLineIndex(
     originalLines: List<com.maxrave.domain.data.model.metadata.Line>,
     translatedLines: List<com.maxrave.domain.data.model.metadata.Line>,
@@ -191,9 +171,6 @@ private fun buildSyncedTranslatedWordsByLineIndex(
 ): Map<Int, String> {
     if (originalLines.isEmpty() || translatedLines.isEmpty()) return emptyMap()
 
-    // Sort translated entries by start time. We keep the original list order as a
-    // tie-breaker via stable sort: the FIRST translated line in the SORTED list wins
-    // when the time delta is equal.
     val sortedTranslated =
         translatedLines
             .mapNotNull { line ->
@@ -203,7 +180,6 @@ private fun buildSyncedTranslatedWordsByLineIndex(
 
     if (sortedTranslated.isEmpty()) return emptyMap()
 
-    // Original lines paired with their parsed timestamp + original index, sorted by time.
     data class OriginalEntry(val index: Int, val ts: Long)
 
     val sortedOriginal =
@@ -218,12 +194,9 @@ private fun buildSyncedTranslatedWordsByLineIndex(
     val result = HashMap<Int, String>(sortedOriginal.size)
     var j = 0
     for (orig in sortedOriginal) {
-        // Advance j so that sortedTranslated[j] is the first translated entry with ts >= orig.ts,
-        // or the last entry if everything is smaller.
         while (j + 1 < sortedTranslated.size && sortedTranslated[j + 1].first <= orig.ts) {
             j++
         }
-        // Candidate window: j and j+1 (the next one), pick whichever is closer.
         val candA = sortedTranslated[j]
         val diffA = abs(candA.first - orig.ts)
         var bestTs = candA.first
@@ -232,7 +205,6 @@ private fun buildSyncedTranslatedWordsByLineIndex(
         if (j + 1 < sortedTranslated.size) {
             val candB = sortedTranslated[j + 1]
             val diffB = abs(candB.first - orig.ts)
-            // Tie-break: prefer earlier (smaller startTimeMs) translated line.
             if (diffB < bestDiff) {
                 bestTs = candB.first
                 bestWords = candB.second
@@ -241,7 +213,6 @@ private fun buildSyncedTranslatedWordsByLineIndex(
         }
         if (bestDiff < thresholdMs) {
             result[orig.index] = bestWords
-            // Suppress unused warning while keeping the chosen ts visible for future tweaks.
             @Suppress("UNUSED_VARIABLE")
             val _bt = bestTs
         }
@@ -281,12 +252,10 @@ fun LyricsView(
                 val sentence = lines[i]
                 val startTimeMs = sentence.startTimeMs.toLong()
 
-                // estimate the end time of the current sentence based on the start time of the next sentence
                 val endTimeMs =
                     if (i < lines.size - 1) {
                         lines[i + 1].startTimeMs.toLong()
                     } else {
-                        // if this is the last sentence, set the end time to be some default value (e.g., 1 minute after the start time)
                         startTimeMs + 60000
                     }
                 if (current.current in startTimeMs..endTimeMs) {
@@ -299,9 +268,9 @@ fun LyricsView(
                         0..(
                             lines.getOrNull(0)?.startTimeMs
                                 ?: "0"
-                        ).toLong()
+                            ).toLong()
+                        )
                     )
-                )
             ) {
                 currentLineIndex = -1
             }
@@ -324,7 +293,6 @@ fun LyricsView(
         ) {
             items(lyricsData.lyrics.lines?.size ?: 0) { index ->
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
-                // Tìm translated lyrics phù hợp dựa vào thời gian
                 val translatedWords =
                     if (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED") {
                         syncedTranslatedWordsByLineIndex[index]
@@ -378,7 +346,6 @@ fun LyricsView(
                             }
                         }
 
-                        // Line sync or unsynced: use existing LyricsLineItem
                         else -> {
                             LyricsLineItem(
                                 originalWords = words,
@@ -660,10 +627,6 @@ fun FullscreenLyricsSheet(
     val midColor2 = remember { Animatable(color.copy(alpha = 0.85f)) }
     val endColor = remember { Animatable(bgColor) }
 
-    // Dynamic gradient animation - MULTIPLE DIRECTIONS
-    // Replaces the previous `while(true) { delay(16) }` loop with a Compose
-    // infinite transition. When haze is ON the gradient is hidden, so we keep
-    // values at 0f and skip the transition entirely.
     val gradientAngle: Float
     val gradientOffsetX: Float
     val gradientOffsetY: Float
@@ -871,6 +834,7 @@ fun FullscreenLyricsSheet(
                                     style = CupertinoMaterials.regular(),
                                 ) {
                                     blurEnabled = true
+                                    tints = listOf(HazeTint(Color.Black.copy(alpha = 0.5f)))
                                 }
                             } else {
                                 Modifier
@@ -890,7 +854,7 @@ fun FullscreenLyricsSheet(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 36.dp, vertical = 12.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     AsyncImage(
@@ -1003,7 +967,7 @@ fun FullscreenLyricsSheet(
                         Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                            .padding(horizontal = 50.dp),
+                            .padding(horizontal = 16.dp),
                 ) {
                     Crossfade(
                         targetState = screenDataState.lyricsData != null,
@@ -1050,7 +1014,7 @@ fun FullscreenLyricsSheet(
                         Modifier
                             .padding(
                                 top = 15.dp,
-                            ).padding(horizontal = 40.dp),
+                            ).padding(horizontal = 20.dp),
                     ) {
                         Box(
                             modifier =
@@ -1164,7 +1128,7 @@ fun FullscreenLyricsSheet(
                             Row(
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 40.dp),
+                                    .padding(horizontal = 20.dp),
                             ) {
                                 Text(
                                     text = formatDuration(timelineState.current),
@@ -1237,7 +1201,7 @@ fun FullscreenLyricsSheet(
                                         Modifier
                                             .height(32.dp)
                                             .fillMaxWidth()
-                                            .padding(horizontal = 40.dp),
+                                            .padding(horizontal = 20.dp),
                                 ) {
                                     IconButton(
                                         modifier =

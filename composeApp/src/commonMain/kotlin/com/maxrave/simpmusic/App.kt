@@ -18,12 +18,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
@@ -45,12 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -61,17 +53,13 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOW
 import coil3.toUri
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
-import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.Orientation
 import com.maxrave.simpmusic.expect.currentOrientation
-import com.maxrave.simpmusic.expect.openUrl
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
-import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -83,45 +71,33 @@ import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.screen.splash.SplashScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
-import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.mikepenz.markdown.m3.Markdown
-import com.mikepenz.markdown.m3.markdownTypography
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
-import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format
-import kotlinx.datetime.format.MonthNames
-import kotlinx.datetime.format.char
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.do_not_show_again
-import simpmusic.composeapp.generated.resources.download
 import simpmusic.composeapp.generated.resources.good_night
 import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.sleep_timer_off
 import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import simpmusic.composeapp.generated.resources.this_link_is_not_supported
-import simpmusic.composeapp.generated.resources.unknown
-import simpmusic.composeapp.generated.resources.update_available
-import simpmusic.composeapp.generated.resources.update_message
-import simpmusic.composeapp.generated.resources.version_format
 import simpmusic.composeapp.generated.resources.yes
-import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.runBlocking
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun App(viewModel: SharedViewModel = koinInject()) {
+fun App(
+    viewModel: SharedViewModel = koinInject(),
+    settingsViewModel: SettingsViewModel = koinViewModel()
+) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
 
@@ -129,9 +105,6 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
     val intent by viewModel.intent.collectAsStateWithLifecycle()
     val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
-
-    val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
-    val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
 
     var showSplash by rememberSaveable { mutableStateOf(true) }
 
@@ -155,6 +128,9 @@ fun App(viewModel: SharedViewModel = koinInject()) {
         rememberHazeState(
             blurEnabled = true,
         )
+
+    val followSystemTheme by settingsViewModel.followSystemTheme.collectAsStateWithLifecycle()
+    val forceLightTheme by settingsViewModel.forceLightTheme.collectAsStateWithLifecycle()
 
     LaunchedEffect(nowPlayingData) {
         isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
@@ -304,9 +280,12 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     val isTablet = windowSize.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val isTabletLandscape = isTablet && currentOrientation() == Orientation.LANDSCAPE
 
-    val backdrop = rememberBackdrop()
+    val backdrop = rememberBackdrop(Color.Black)
 
-    AppTheme {
+    AppTheme(
+        followSystemTheme = followSystemTheme,
+        forceLightTheme = forceLightTheme
+    )  {
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 bottomBar = {
@@ -318,7 +297,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                         ) {
                             Column {
                                 AnimatedVisibility(
-                                    isShowMiniPlayer && isLiquidGlassEnabled == DataStoreManager.FALSE,
+                                    isShowMiniPlayer,
                                     enter = fadeIn() + slideInHorizontally(),
                                     exit = fadeOut(),
                                 ) {
@@ -341,24 +320,14 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                         },
                                     )
                                 }
-                                if (isLiquidGlassEnabled == TRUE) {
-                                    LiquidGlassAppBottomNavigationBar(
-                                        navController = navController,
-                                        backdrop = backdrop,
-                                        viewModel = viewModel,
-                                        onOpenNowPlaying = { isShowNowPlaylistScreen = true },
-                                        isScrolledToTop = isScrolledToTop,
-                                    ) { klass ->
-                                        viewModel.reloadDestination(klass)
-                                    }
-                                } else {
-                                    AppBottomNavigationBar(
-                                        navController = navController,
-                                        isTranslucentBackground = isTranslucentBottomBar == TRUE,
-                                    ) { klass ->
-                                        viewModel.reloadDestination(klass)
-                                    }
+
+                                AppBottomNavigationBar(
+                                    navController = navController,
+                                    isTranslucentBackground = false,
+                                ) { klass ->
+                                    viewModel.reloadDestination(klass)
                                 }
+
                             }
                         }
                     }
@@ -367,13 +336,6 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .then(
-                                if (isLiquidGlassEnabled == TRUE && !isTablet) {
-                                    Modifier.layerBackdrop(backdrop)
-                                } else {
-                                    Modifier
-                                },
-                            ),
                     ) {
                         Row(
                             Modifier.fillMaxSize(),
@@ -393,13 +355,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                 Box(
                                     Modifier
                                         .fillMaxSize()
-                                        .then(
-                                            if (isLiquidGlassEnabled == TRUE && isTablet && !isInFullscreen) {
-                                                Modifier.layerBackdrop(backdrop)
-                                            } else {
-                                                Modifier
-                                            },
-                                        ).hazeSource(hazeState),
+                                        .hazeSource(hazeState),
                                 ) {
                                     AppNavigationGraph(
                                         innerPadding = innerPadding,

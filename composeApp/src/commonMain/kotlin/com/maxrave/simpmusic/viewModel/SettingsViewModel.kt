@@ -15,6 +15,9 @@ import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
+import com.maxrave.domain.manager.DataStoreManager.Values.FOLLOW_SYSTEM_THEME
+import com.maxrave.domain.manager.DataStoreManager.Values.FORCE_LIGHT_THEME
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.domain.repository.CacheRepository
@@ -64,8 +67,11 @@ class SettingsViewModel(
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
 
-    private val _autoNightMode = MutableStateFlow<Boolean>(true)
-    val autoNightMode: StateFlow<Boolean> = _autoNightMode
+    private val _followSystemTheme = MutableStateFlow(true)
+    val followSystemTheme: StateFlow<Boolean> = _followSystemTheme
+
+    private val _forceLightTheme = MutableStateFlow(false)
+    val forceLightTheme: StateFlow<Boolean> = _forceLightTheme
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -220,6 +226,7 @@ class SettingsViewModel(
     val killServiceOnExit: StateFlow<String?> = _killServiceOnExit
 
     init {
+        getThemeSettings()
         getYoutubeSubtitleLanguage()
         getHelpBuildLyricsDatabase()
         viewModelScope.launch {
@@ -249,7 +256,7 @@ class SettingsViewModel(
     fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
 
     fun getData() {
-        getAutoNightMode()
+        getThemeSettings()
         getLocation()
         getLanguage()
         getQuality()
@@ -319,18 +326,28 @@ class SettingsViewModel(
         }
     }
 
-    fun getAutoNightMode() {
+    private fun getThemeSettings() {
         viewModelScope.launch {
-            dataStoreManager.getString("auto_night_mode").collect { mode ->
-                _autoNightMode.value = mode != "FALSE"
+            dataStoreManager.getString(FOLLOW_SYSTEM_THEME).collect { mode ->
+                _followSystemTheme.value = mode != FALSE
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.getString(FORCE_LIGHT_THEME).collect { mode ->
+                _forceLightTheme.value = mode == TRUE
             }
         }
     }
 
-    fun setAutoNightMode(enabled: Boolean) {
+    fun setFollowSystemTheme(enabled: Boolean) {
         viewModelScope.launch {
-            dataStoreManager.putString("auto_night_mode", if (enabled) "TRUE" else "FALSE")
-            getAutoNightMode()
+            dataStoreManager.putString(FOLLOW_SYSTEM_THEME, if (enabled) TRUE else FALSE)
+        }
+    }
+
+    fun setForceLightTheme(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(FORCE_LIGHT_THEME, if (enabled) TRUE else FALSE)
         }
     }
 
@@ -505,9 +522,6 @@ class SettingsViewModel(
     fun logOutDiscord() {
         viewModelScope.launch {
             dataStoreManager.setDiscordToken("")
-            // Turn Rich Presence off on logout: without a token it can't run, and leaving the flag on
-            // would both strand the user (the toggle greys out when logged out) and let the player keep
-            // a dead RPC alive (issue #2157). The existing richPresenceEnabled collector refreshes the UI.
             dataStoreManager.setRichPresenceEnabled(false)
             delay(100)
             getDiscordLoggedIn()
@@ -1505,9 +1519,6 @@ class SettingsViewModel(
             _spotifyLogIn.emit(loggedIn)
             if (!loggedIn) {
                 dataStoreManager.setSpdc("")
-                // Logging out of Spotify must also tear down everything gated behind it. Otherwise the
-                // lyrics/canvas flags stay stuck ON with no way to switch them off (the toggles grey out
-                // when logged out) and stale tokens linger — issue #2064, same family as Discord #2157.
                 dataStoreManager.setSpotifyLyrics(false)
                 dataStoreManager.setSpotifyCanvas(false)
                 dataStoreManager.setSpotifyClientToken("")

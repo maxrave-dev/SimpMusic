@@ -354,6 +354,15 @@
     <string name="repeat_off">Repeat Off</string>
     <string name="youtube_transcript">YouTube Transcript</string>
     <string name="user_interface">Interface</string>
+    <string name="theme">Theme</string>
+    <string name="theme_mode_system">System default</string>
+    <string name="theme_mode_dark">Dark</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_color">Theme color</string>
+    <string name="theme_color_default">Default</string>
+    <string name="theme_color_wallpaper">Wallpaper</string>
+    <string name="theme_color_custom">Custom</string>
+    <string name="custom_color">Custom color</string>
     <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
     <string name="donation">If you love my work, give me a coffee</string>
@@ -563,4 +572,6 @@
     <string name="home_offline_title">Can't connect</string>
     <string name="home_offline_subtitle">Check your internet connection and try again, or listen to your downloaded music.</string>
     <string name="listen_to_downloaded">Listen to downloaded music</string>
+    <string name="playing_on_device">Playing on %1$s</string>
+    <string name="not_available_while_casting">Not available while casting</string>
 </resources>

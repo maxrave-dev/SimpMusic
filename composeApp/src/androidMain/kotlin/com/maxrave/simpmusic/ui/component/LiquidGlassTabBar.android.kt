@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -32,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
@@ -51,9 +53,8 @@ import com.kyant.backdrop.highlight.Highlight
 import com.kyant.backdrop.shadow.InnerShadow
 import com.kyant.backdrop.shadow.Shadow
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
-import com.maxrave.simpmusic.ui.theme.bottomBarSeedDark
+import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.ui.theme.white
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
@@ -104,6 +105,7 @@ fun LiquidGlassTabBar(
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
     val animationScope = rememberCoroutineScope()
     val barInteraction = rememberGlassInteraction()
+    val isDark = LocalIsDarkTheme.current
 
     var currentIndex by remember { mutableIntStateOf(selectedTab.coerceAtLeast(0)) }
     // [0] = a real drag happened (vs a pure tap) — keeps the blob from snapping back
@@ -173,7 +175,7 @@ fun LiquidGlassTabBar(
         // bar and the mini player read as one material (drawInteractiveGlass, no white veil).
         // barInteraction makes the whole capsule respond to a press (scale + touch glow) like iOS;
         // it's observe-only, so tab taps and the blob drag keep working.
-        Box(Modifier.matchParentSize().drawInteractiveGlass(backdrop, layer, luminance, CapsuleShape, barInteraction))
+        Box(Modifier.matchParentSize().drawInteractiveGlass(isDark, backdrop, layer, luminance, CapsuleShape, barInteraction))
 
         // 2) Frosted blob selection indicator — slides behind the icons.
         Box(
@@ -183,9 +185,8 @@ fun LiquidGlassTabBar(
                     // both the first and last tab (the last tab used to sit flush to the edge).
                     translationX =
                         (if (isLtr) dampedDrag.value else (tabsCount - 1) - dampedDrag.value) * tabWidthPx +
-                            4.dp.toPx()
-                }
-                .drawBackdrop(
+                        4.dp.toPx()
+                }.drawBackdrop(
                     backdrop = backdrop,
                     shape = { CapsuleShape },
                     effects = {
@@ -221,13 +222,15 @@ fun LiquidGlassTabBar(
                         scaleY *= 1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f)
                     },
                     onDrawSurface = {
-                        // Dark "đục đen" active pill — always a touch darker than the bar, scaling
-                        // with the background so it never washes out to white.
-                        val darken = lerp(0.22f, 0.55f, ((luminance - 0.3f) / 0.5f).coerceIn(0f, 1f))
+                        // Active pill sits a touch above the bar. Dark theme: "đục đen" (black veil that
+                        // scales with the backdrop). Light theme: only a faint grey so the pill stays
+                        // clearly lighter than a heavy slab — the highlight/shadow do the separating.
+                        val lumNorm = ((luminance - 0.3f) / 0.5f).coerceIn(0f, 1f)
+                        val darken =
+                            if (isDark) lerp(0.22f, 0.55f, lumNorm) else lerp(0.06f, 0.14f, lumNorm)
                         drawRect(Color.Black.copy(alpha = darken))
                     },
-                )
-                .width(TabWidth - 8.dp)
+                ).width(TabWidth - 8.dp)
                 .height(BlobHeight),
         )
 
@@ -268,7 +271,7 @@ private fun LiquidGlassTab(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val color = if (selected) bottomBarSeedDark else white
+    val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
     Column(
         Modifier
             .width(TabWidth)
