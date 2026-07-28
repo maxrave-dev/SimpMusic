@@ -66,9 +66,10 @@
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 -dontwarn kotlinx.serialization.internal.ClassValueReferences
 
--keep class com.maxrave.simpmusic.data.model.** { *; }
--keep class com.maxrave.simpmusic.extension.AllExtKt { *; }
--keep class com.maxrave.simpmusic.extension.AllExtKt$* { *; }
+# --- RUTAS DE PAQUETE ACTUALIZADAS A com.ytmusic.kurompx ---
+-keep class com.ytmusic.kurompx.data.model.** { *; }
+-keep class com.ytmusic.kurompx.extension.AllExtKt { *; }
+-keep class com.ytmusic.kurompx.extension.AllExtKt$* { *; }
 -keep class com.maxrave.kotlinytmusicscraper.extension.MapExtKt$* { *; }
 
 ## Rules for NewPipeExtractor
@@ -83,10 +84,12 @@
 -dontwarn java.beans.Introspector
 -dontwarn java.beans.PropertyDescriptor
 
-# Retrofit
+# Retrofit (CORREGIDO PARA EVITAR 'API FAILED')
 -keepattributes Signature, InnerClasses, EnclosingMethod
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
--keepclassmembers,allowshrinking,allowobfuscation interface * {
+-dontwarn retrofit2.**
+
+-keepclassmembers,allowshrinking interface * {
     @retrofit2.http.* <methods>;
 }
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
@@ -95,13 +98,19 @@
 -dontwarn retrofit2.KotlinExtensions
 -dontwarn retrofit2.KotlinExtensions$*
 -if interface * { @retrofit2.http.* <methods>; }
--keep,allowobfuscation interface <1>
+-keep interface <1>
 -if interface * { @retrofit2.http.* <methods>; }
--keep,allowobfuscation interface * extends <1>
--keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+-keep interface * extends <1>
+-keep,allowshrinking class kotlin.coroutines.Continuation
 -if interface * { @retrofit2.http.* public *** *(...); }
--keep,allowoptimization,allowshrinking,allowobfuscation class <3>
--keep,allowobfuscation,allowshrinking class retrofit2.Response
+-keep,allowoptimization,allowshrinking class <3>
+
+-keep,allowshrinking class retrofit2.Response
+
+# Proteger modelos de datos JSON para que no falle la API al desofuscar
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
 
 # Animal Sniffer y OkHttp
 -dontwarn org.codehaus.mojo.animal_sniffer.*
@@ -126,10 +135,7 @@
 -keep class org.apache.commons.compress.archivers.zip.** { *; }
 
 ## Rules for NewPipeExtractor (ClassFile)
-## Rules for NewPipeExtractor
--keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
--keep class dev.maxrave.pipepipe.extractor.timeago.patterns.** { *; }
--keep class org.mozilla.javascript.** { *; }
+-dontwarn org.mozilla.classfile.**
 -keep class org.mozilla.classfile.ClassFileWriter
 
 -dontwarn com.maxrave.data.di.loader.LoaderKt
@@ -150,6 +156,12 @@
 -dontwarn com.google.re2j.Matcher
 -dontwarn com.google.re2j.Pattern
 
+-dontwarn androidx.room.**
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
 
 -dontwarn io.sentry.**
+
+# Solucionar error de clases faltantes de Window/Sidecar en Release
+-dontwarn androidx.window.extensions.**
+-dontwarn androidx.window.sidecar.**
+-dontwarn androidx.window.layout.adapter.sidecar.**

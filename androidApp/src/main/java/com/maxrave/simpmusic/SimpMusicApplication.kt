@@ -48,7 +48,6 @@ class SimpMusicApplication :
 
     override fun onCreate() {
         super.onCreate()
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         configCrashlytics(this, BuildKonfig.sentryDsn)
         startKoin {
             androidLogger(level = Level.DEBUG)
@@ -56,17 +55,14 @@ class SimpMusicApplication :
             loadAllModules()
             loadKoinModules(viewModelModule)
         }
-        // provide custom configuration
         val workConfig =
             Configuration
                 .Builder()
                 .setMinimumLoggingLevel(Log.INFO)
                 .build()
 
-        // initialize WorkManager
         WorkManager.initialize(this, workConfig)
 
-        // Initialize and start AutoBackupScheduler
         autoBackupScheduler = AutoBackupScheduler(this, dataStoreManager)
         applicationScope.launch {
             autoBackupScheduler.observeAndSchedule()
@@ -74,15 +70,15 @@ class SimpMusicApplication :
 
         CaocConfig.Builder
             .create()
-            .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT) // default: CaocConfig.BACKGROUND_MODE_SHOW_CUSTOM
-            .enabled(true) // default: true
-            .showErrorDetails(true) // default: true
-            .showRestartButton(true) // default: true
+            .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT)
+            .enabled(true)
+            .showErrorDetails(true)
+            .showRestartButton(true)
             .errorDrawable(R.mipmap.ic_launcher_round)
-            .logErrorOnRestart(false) // default: true
-            .trackActivities(true) // default: false
-            .minTimeBetweenCrashesMs(2000) // default: 3000 //default: bug image
-            .restartActivity(MainActivity::class.java) // default: null (your app's launch activity)
+            .logErrorOnRestart(false)
+            .trackActivities(true)
+            .minTimeBetweenCrashesMs(2000)
+            .restartActivity(MainActivity::class.java)
             .apply()
 
         @SuppressLint("DiscouragedPrivateApi")
@@ -98,7 +94,6 @@ class SimpMusicApplication :
 
     override fun onTerminate() {
         super.onTerminate()
-
         Logger.w("Terminate", "Checking")
     }
 

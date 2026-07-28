@@ -208,14 +208,11 @@ internal class SimpleMediaService :
         Logger.w("Service", "Starting release process")
         runBlocking {
             try {
-                // Release MediaSession (don't release player - CrossfadeExoPlayerAdapter manages it)
                 mediaSession?.run {
                     this.player.pause()
                     this.player.playWhenReady = false
-                    // Don't call this.player.release() - CrossfadeExoPlayerAdapter manages player lifecycle
                     this.release()
                 }
-                // Release handler (contains coroutines and jobs, which also releases the adapter)
                 simpleMediaServiceHandler.release()
                 mediaSession = null
                 Logger.w("Service", "Simple Media Service Released")
@@ -249,7 +246,6 @@ internal class SimpleMediaService :
         }
     }
 
-    // Can't inject by Koin because it depend on service
     @UnstableApi
     private fun provideMediaLibrarySession(
         service: MediaLibraryService,
@@ -261,7 +257,7 @@ internal class SimpleMediaService :
                 service,
                 player,
                 callback,
-            ).setId(this.javaClass.name)
+            ).setId("Kurompx_Session_${System.currentTimeMillis()}")
             .setBitmapLoader(coilBitmapLoader)
             .build()
 

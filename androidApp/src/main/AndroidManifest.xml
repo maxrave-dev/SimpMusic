@@ -36,7 +36,7 @@
             <action android:name="android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL" />
         </intent>
         <!-- Tu personalización de paquete KuroMusic conservada -->
-        <package android:name="com.maxrave.KuroMusic" />
+        <package android:name="com.maxrave.simpmusic" />
         <intent>
             <action android:name="androidx.media3.session.MediaSessionService" />
         </intent>
