@@ -848,11 +848,11 @@ fun MiniPlayer(
                         IconButton(
                             onClick = {
                                 showQueueBottomSheet = true
-                            }
+                            },
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                                tint = Color.White,
+                                tint = textColor,
                                 contentDescription = "",
                             )
                         }
