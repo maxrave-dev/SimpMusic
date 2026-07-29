@@ -1789,8 +1789,20 @@ fun NowPlayingBottomSheet(
                     }
                     ActionButton(
                         icon = painterResource(Res.drawable.baseline_album_24),
-                        text = if (uiState.songUIState.album == null) Res.string.no_album else null,
-                        textString = uiState.songUIState.album?.name,
+                        // Three states, not two. A track can carry an album ID with no title: the
+                        // row it was parsed from links an album but never spells its name out.
+                        // That case still navigates, so it must not read "No album" — but the name
+                        // is genuinely unknown, so fall back to the generic label rather than
+                        // showing a blank row. The parser deliberately leaves the name empty
+                        // instead of inventing one, because a made-up title would travel out to
+                        // MediaSession and into external scrobblers.
+                        text =
+                            when {
+                                uiState.songUIState.album == null -> Res.string.no_album
+                                uiState.songUIState.album?.name.isNullOrBlank() -> Res.string.album
+                                else -> null
+                            },
+                        textString = uiState.songUIState.album?.name?.takeIf { it.isNotBlank() },
                         enable = uiState.songUIState.album != null,
                     ) {
                         uiState.songUIState.album?.id?.let { id ->
