@@ -15,7 +15,7 @@ import com.maxrave.simpmusic.expect.ui.SystemBarAppearanceEffect
 
 internal val md_theme_dark_background = Color(0xFF1C1B1F)
 internal val md_theme_dark_surface = Color(0xFF1C1B1F)
-internal val md_theme_dark_onSurface = Color(0xFFE6E1E5)
+internal val md_theme_dark_onSurface = Color(0xFFFFFFFF) // Cambiado a Blanco puro
 internal val transparent = Color.Transparent
 
 @Immutable
@@ -77,11 +77,11 @@ val DarkColors =
         onError = Color(0xFF601410),
         onErrorContainer = Color(0xFFF9DEDC),
         background = md_theme_dark_background,
-        onBackground = Color(0xFFE6E1E5),
+        onBackground = Color(0xFFFFFFFF), // Blanco puro
         surface = md_theme_dark_surface,
-        onSurface = md_theme_dark_onSurface,
+        onSurface = Color(0xFFFFFFFF), // Blanco puro
         surfaceVariant = Color(0xFF49454F),
-        onSurfaceVariant = Color(0xFFCAC4D0),
+        onSurfaceVariant = Color(0xFFFFFFFF), // Blanco puro para resaltar secundarios
         outline = Color(0xFF938F99),
         inverseOnSurface = Color(0xFF1C1B1F),
         inverseSurface = Color(0xFFE6E1E5),
@@ -111,11 +111,11 @@ val LightColors =
         onErrorContainer = Color(0xFF410002),
         outline = Color(0xFF79747E),
         background = Color(0xFFFAFAFA),
-        onBackground = Color(0xFF000000), // Letras principales negro absoluto
+        onBackground = Color(0xFF000000),
         surface = Color(0xFFFAFAFA),
-        onSurface = Color(0xFF000000), // Letras sobre superficies negro absoluto
+        onSurface = Color(0xFF000000),
         surfaceVariant = Color(0xFFE7E0EC),
-        onSurfaceVariant = Color(0xFF000000), // Letras secundarias negro absoluto para eliminar lo borroso
+        onSurfaceVariant = Color(0xFF000000),
         inverseOnSurface = Color(0xFFF4EFF4),
         inverseSurface = Color(0xFF313033),
         inversePrimary = Color(0xFFD0BCFF),

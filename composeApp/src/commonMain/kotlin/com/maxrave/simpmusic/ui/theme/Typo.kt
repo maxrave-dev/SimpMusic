@@ -35,10 +35,11 @@ fun typo(
 ): Typography {
     val fontFamily = fontFamily()
 
-    // Titles were pure white, everything else muted gray (#A8A8A8) in the old dark-only palette.
-    // forceDark keeps that; otherwise both come from the scheme (theme-aware light/dark).
-    val titleColor = if (forceDark) Color.White else colorScheme.onBackground
-    val bodyColor = if (forceDark) Color(0xFFA8A8A8) else colorScheme.onSurfaceVariant
+    // Solución: Si forceDark es true, se usan los colores fijos para mantener la lectura sobre arte.
+    // De lo contrario, usamos Color.Unspecified. Esto permite que los componentes hereden el color
+    // correctamente del sistema (modo claro o modo oscuro) de forma automática.
+    val titleColor = if (forceDark) Color.White else Color.Unspecified
+    val bodyColor = if (forceDark) Color(0xFFA8A8A8) else Color.Unspecified
 
     val typo =
         Typography(

@@ -90,7 +90,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.manager.DataStoreManager
@@ -400,7 +399,6 @@ fun MiniPlayer(
                                     ImageRequest
                                         .Builder(LocalPlatformContext.current)
                                         .data(dynamicThumbnailUrl)
-                                        .crossfade(550)
                                         .build(),
                                 placeholder = painterResource(Res.drawable.holder),
                                 error = painterResource(Res.drawable.holder),
@@ -591,7 +589,6 @@ fun MiniPlayer(
                                 ImageRequest
                                     .Builder(LocalPlatformContext.current)
                                     .data(dynamicThumbnailUrl)
-                                    .crossfade(550)
                                     .build(),
                             placeholder = painterResource(Res.drawable.holder),
                             error = painterResource(Res.drawable.holder),
