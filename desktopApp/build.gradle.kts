@@ -408,6 +408,19 @@ tasks.register("packageConveyorAppImage") {
             |sed "s|Exec=bin/simpmusic|Exec=${'$'}APPIMAGE_PATH|" "${'$'}HERE/simpmusic.desktop" > "${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
             |update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
             |
+            |# Cap glibc's per-thread malloc arenas.
+            |#
+            |# glibc spawns a fresh 64 MB-aligned arena whenever it sees mutex contention, up to
+            |# 8 x nproc of them, and never gives an arena back to the OS. Measured on a 20-core
+            |# box: 161 arenas holding 1.45 GB of a 1.9 GB RSS, while the JVM heap was using only
+            |# 121 MB of its 512 MB cap. Pinning the count to 2 took that to ~5 arenas. The cost is
+            |# more allocator lock contention, which this workload does not notice - the audio path
+            |# is native and its buffers are long-lived.
+            |#
+            |# Linux-only by construction: this file only exists inside the AppImage. macOS and
+            |# Windows tune their allocators elsewhere, and MemoryTrimmer covers all three at runtime.
+            |export MALLOC_ARENA_MAX=2
+            |
             |cd "${'$'}HERE"
             |exec bin/simpmusic "${'$'}@"
             |
