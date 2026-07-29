@@ -205,8 +205,6 @@ import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.download_quality
 import simpmusic.composeapp.generated.resources.downloaded_cache
 import simpmusic.composeapp.generated.resources.enable_canvas
-import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
-import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
 import simpmusic.composeapp.generated.resources.enable_rich_presence
 import simpmusic.composeapp.generated.resources.enable_sponsor_block
 import simpmusic.composeapp.generated.resources.enable_spotify_lyrics
@@ -465,7 +463,6 @@ fun SettingScreen(
     val autoBackupMaxFiles by viewModel.autoBackupMaxFiles.collectAsStateWithLifecycle()
     val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
-    val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
     val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
@@ -539,15 +536,6 @@ fun SettingScreen(
                     smallSubtitle = true,
                     switch = (enableTranslucentNavBar to { viewModel.setTranslucentBottomBar(it) }),
                 )
-                if (getPlatform() == Platform.Android) {
-                    SettingItem(
-                        title = stringResource(Res.string.enable_liquid_glass_effect),
-                        subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
-                        smallSubtitle = true,
-                        switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
-                        isEnable = getPlatform() == Platform.Android,
-                    )
-                }
             }
         }
         item(key = "content") {
