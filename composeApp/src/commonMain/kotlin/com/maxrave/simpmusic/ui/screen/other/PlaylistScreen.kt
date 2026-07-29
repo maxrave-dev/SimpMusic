@@ -166,6 +166,14 @@ import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.unlimited
 
+// --- FUNCIÓN DE UTILIDAD PARA CALCULAR LA LUMINANCIA DEL COLOR ---
+// Determina si un color es oscuro para devolver un texto contrastante.
+fun Color.isDark(): Boolean {
+    val luminance = (0.299 * red + 0.587 * green + 0.114 * blue)
+    return luminance < 0.5
+}
+// -----------------------------------------------------------------
+
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun PlaylistScreen(
@@ -293,9 +301,6 @@ fun PlaylistScreen(
     var bitmap by remember {
         mutableStateOf<ImageBitmap?>(null)
     }
-    // Track which thumbnail URL we've already extracted a palette from.
-    // Prevents palette flash when LazyColumn recycles the header item on scroll —
-    // AsyncImage re-mount fires onSuccess again, but we skip the regenerate.
     var paletteGeneratedFor by remember {
         mutableStateOf<String?>(null)
     }
@@ -320,12 +325,17 @@ fun PlaylistScreen(
 
     val dynamicPlayButtonColor = paletteState.palette?.getColorFromPalette() ?: MaterialTheme.colorScheme.primary
 
-// Apple Music-inspired immersive treatment: gated to mobile portrait so tablets,
-// foldable open state, landscape orientation, and Desktop keep the existing layout.
     val screenInfo = getScreenSizeInfo()
     val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
-// Apple Music-style page background from the artwork's dominant tone (see UIExt.toImmersiveBackground).
+
     val mutedPaletteBg = paletteState.palette.toImmersiveBackground()
+
+    // --- CORRECCIÓN DE CONTRASTE ---
+    // Determinamos si el fondo generado (mutedPaletteBg) es oscuro.
+    // Si es oscuro usamos texto blanco, si es claro usamos un gris muy oscuro.
+    val topAppBarContentColor = if (mutedPaletteBg.isDark()) Color.White else Color(0xFF1E1E1E)
+    // -------------------------------
+
     val artworkSizeDp =
         if (isMobilePortrait) {
             (screenInfo.wDP * 0.85f).coerceIn(280f, 380f).toInt()
@@ -333,7 +343,6 @@ fun PlaylistScreen(
             250
         }
 
-// Loading dialog
     val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
     if (showLoadingDialog.first) {
         LoadingDialog(
@@ -436,9 +445,6 @@ fun PlaylistScreen(
                                         horizontalAlignment = Alignment.Start,
                                     ) {
                                         if (isMobilePortrait) {
-                                            // Apple Music-style: edge-to-edge artwork + liquid glass buttons.
-                                            // Glass buttons MUST be siblings of the backdrop source (not children)
-                                            // to avoid render feedback loop / RuntimeShader crash.
                                             val artworkBackdrop = rememberBackdrop(Color.Black)
                                             Box(
                                                 modifier =
@@ -446,7 +452,6 @@ fun PlaylistScreen(
                                                         .fillMaxWidth()
                                                         .height((screenInfo.hDP / 2).dp),
                                             ) {
-                                                // Inner Box — backdrop SOURCE (artwork + overlays only, NO glass)
                                                 Box(modifier = Modifier.fillMaxSize().layerBackdrop(artworkBackdrop)) {
                                                     AsyncImage(
                                                         model =
@@ -544,7 +549,6 @@ fun PlaylistScreen(
                                                         )
                                                     }
                                                 }
-                                                // Back + Heart + Search button overlays on artwork top — liquid glass
                                                 Row(
                                                     modifier =
                                                         Modifier
@@ -687,8 +691,6 @@ fun PlaylistScreen(
                                                         )}
                                                 }
                                                 if (isMobilePortrait) {
-                                                    // Apple Music-style action row:
-                                                    // [Shuffle][Play pill][Download/More] (cluster centered, all 48dp matching size)
                                                     val isThisPlaying = isPlaying && playingPlaylistId == data.id
                                                     Row(
                                                         modifier =
@@ -1024,7 +1026,6 @@ fun PlaylistScreen(
                         val item = filteredTrack.getOrNull(index)
                         if (item != null) {
 
-                            // TU LÓGICA DE CARÁTULAS DE ITUNES (¡A SALVO!)
                             var itunesUrl by rememberSaveable(item.videoId) { mutableStateOf<String?>(null) }
                             var hasChecked by rememberSaveable(item.videoId) { mutableStateOf(false) }
 
@@ -1045,12 +1046,11 @@ fun PlaylistScreen(
                                 item
                             }
 
-                            // NUEVA ESTRUCTURA DEL DESARROLLADOR
                             Column(modifier = Modifier.animateItem()) {
                                 if (playingTrack?.videoId == item.videoId && isPlaying) {
                                     SongFullWidthItems(
                                         isPlaying = true,
-                                        track = displayTrack, // INYECTAMOS TU displayTrack AQUÍ
+                                        track = displayTrack,
                                         onMoreClickListener = { onItemMoreClick(it) },
                                         onClickListener = {
                                             Logger.w("PlaylistScreen", "index: $index")
@@ -1066,7 +1066,7 @@ fun PlaylistScreen(
                                 } else {
                                     SongFullWidthItems(
                                         isPlaying = false,
-                                        track = displayTrack, // INYECTAMOS TU displayTrack AQUÍ
+                                        track = displayTrack,
                                         onMoreClickListener = { onItemMoreClick(it) },
                                         onClickListener = {
                                             Logger.w("PlaylistScreen", "index: $index")
@@ -1081,7 +1081,6 @@ fun PlaylistScreen(
                                     )
                                 }
 
-                                // NUEVA LÍNEA DIVISORIA
                                 if (isMobilePortrait && index < filteredTrack.size - 1) {
                                     HorizontalDivider(
                                         modifier = Modifier.padding(start = 72.dp, end = 16.dp),
@@ -1178,6 +1177,8 @@ fun PlaylistScreen(
                         ) {
                             RippleIconButton(
                                 resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                // CORRECCIÓN: Botón "back" del buscador con color dinámico
+                                tint = MaterialTheme.colorScheme.onBackground
                             ) {
                                 navController.navigateUp()
                             }
@@ -1273,7 +1274,8 @@ fun PlaylistScreen(
                             Text(
                                 text = data.title,
                                 style = typo().titleMedium,
-                                color = MaterialTheme.colorScheme.onBackground,
+                                // CORRECCIÓN: Contraste automático para el texto del título (blanco o gris oscuro)
+                                color = if (isMobilePortrait) topAppBarContentColor else MaterialTheme.colorScheme.onBackground,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -1293,7 +1295,8 @@ fun PlaylistScreen(
                                     Modifier
                                         .size(32.dp),
                                     true,
-                                    tint = MaterialTheme.colorScheme.onBackground
+                                    // CORRECCIÓN: Contraste automático para el botón de regreso
+                                    tint = if (isMobilePortrait) topAppBarContentColor else MaterialTheme.colorScheme.onBackground
                                 ) {
                                     navController.navigateUp()
                                 }
@@ -1305,7 +1308,8 @@ fun PlaylistScreen(
                                     showSearchBar = !showSearchBar
                                 },
                             ) {
-                                Icon(Icons.Rounded.Search, null, tint = MaterialTheme.colorScheme.onBackground)
+                                // CORRECCIÓN: Contraste automático para el ícono de búsqueda
+                                Icon(Icons.Rounded.Search, null, tint = if (isMobilePortrait) topAppBarContentColor else MaterialTheme.colorScheme.onBackground)
                             }
                         },
                         colors =

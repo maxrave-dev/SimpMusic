@@ -379,8 +379,9 @@ fun LyricsLineItem(
 ) {
     val activeColor = LocalContentColor.current
     val inactiveColor = LocalContentColor.current.copy(alpha = 0.35f)
-    val activeTranslatedColor = MaterialTheme.colorScheme.primary
-    val inactiveTranslatedColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+    // CORRECCIÓN: Usamos el mismo color dinámico pero con opacidad para lograr un gris perfecto (claro u oscuro).
+    val activeTranslatedColor = LocalContentColor.current.copy(alpha = 0.7f)
+    val inactiveTranslatedColor = LocalContentColor.current.copy(alpha = 0.35f)
 
     Crossfade(targetState = isBold) {
         if (it) {
@@ -444,8 +445,9 @@ fun RichSyncLyricsLineItem(
         }
     }
 
-    val activeTranslatedColor = MaterialTheme.colorScheme.primary
-    val inactiveTranslatedColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+    // CORRECCIÓN: Usamos el mismo color dinámico pero con opacidad para la sincronización palabra por palabra.
+    val activeTranslatedColor = LocalContentColor.current.copy(alpha = 0.7f)
+    val inactiveTranslatedColor = LocalContentColor.current.copy(alpha = 0.35f)
 
     Column(
         modifier = modifier,

@@ -186,12 +186,9 @@ fun ArtistScreen(
         }
     }
 
-    // Apple Music-inspired immersive treatment: gated to mobile portrait so tablets,
-    // foldable open state, landscape orientation, and Desktop keep the existing layout.
     val screenInfo = getScreenSizeInfo()
     val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
 
-    // Palette extraction from the artist artwork (portrait Apple-style only).
     val paletteState = com.kmpalette.rememberPaletteState()
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var paletteGeneratedFor by remember { mutableStateOf<String?>(null) }
@@ -205,14 +202,15 @@ fun ArtistScreen(
         }
     }
 
-    // Apple Music-style page background from the artwork's dominant tone (see UIExt.toImmersiveBackground).
-    val mutedPaletteBg = paletteState.palette.toImmersiveBackground()
-    // Tint for the description card, matching the non-portrait CollapsingToolbar color.
+    // CORRECCIÓN: En lugar de forzar un color inmersivo quemado, usamos el color de fondo del tema actual
+    // (Blanco de día, Oscuro de noche) para que las letras contrasten perfectamente.
+    val mutedPaletteBg = MaterialTheme.colorScheme.background
+
     val sectionTint = paletteState.palette.getColorFromPalette()
 
-    // Accent color for the action buttons, sourced from the artist name-logo image's dominant
-    // color (hidden catalog). Falls back to white until the logo loads (or if none exists).
-    val artistAccent = artistLogo?.bgColorHex?.hexToColorOrNull() ?: Color.White
+    // CORRECCIÓN: Si el logo falla, caemos en el color primario del tema en lugar de Blanco absoluto,
+    // para que los botones se vean en fondo blanco.
+    val artistAccent = artistLogo?.bgColorHex?.hexToColorOrNull() ?: MaterialTheme.colorScheme.primary
 
     val hazeState = rememberHazeState(blurEnabled = true)
     val lazyState = rememberLazyListState()
@@ -237,31 +235,21 @@ fun ArtistScreen(
 
             is ArtistScreenState.Success -> {
                 if (isMobilePortrait) {
-                    // ---- Apple Music style (mobile portrait only) ----
                     Box(Modifier.fillMaxSize()) {
                         LazyColumn(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .background(mutedPaletteBg)
+                                    .background(mutedPaletteBg) // Ahora se adapta de blanco a negro según el tema
                                     .hazeSource(hazeState),
                             state = lazyState,
                         ) {
                             item(contentType = "header") {
                                 Column(
-                                    // Negative spacing pulls the action row up into the header AND
-                                    // shrinks the layout, so there's no leftover gap before "Popular"
-                                    // (unlike Modifier.offset, which only moves pixels, not layout).
                                     verticalArrangement = Arrangement.spacedBy((-36).dp),
                                 ) {
-                                    // Edge-to-edge artwork (canvas plays on top of it when available).
-                                    // Glass back button MUST be a sibling of the backdrop source
-                                    // (not a child) to avoid render feedback loop / RuntimeShader crash.
                                     val artworkBackdrop = rememberBackdrop(Color.Black)
-                                    // Haze state for the bottom progressive-blur fade (source = media layer).
                                     val headerHaze = rememberHazeState(blurEnabled = true)
-                                    // Clamp the artist thumbnail URL to a square size (logic from
-                                    // commit 5e596c5b) so it fills the square frame with FillWidth.
                                     val headerImageUrl = state.data.imageUrl?.toSquareThumbnailUrl()
                                     Box(
                                         modifier =
@@ -269,9 +257,7 @@ fun ArtistScreen(
                                                 .fillMaxWidth()
                                                 .aspectRatio(1f),
                                     ) {
-                                        // Inner Box — backdrop SOURCE (artwork + canvas + overlays, NO glass)
                                         Box(modifier = Modifier.fillMaxSize().clipToBounds().layerBackdrop(artworkBackdrop)) {
-                                            // Media layer (artwork + canvas) — Haze SOURCE for the bottom blur.
                                             Box(modifier = Modifier.fillMaxSize().hazeSource(headerHaze)) {
                                                 AsyncImage(
                                                     model =
@@ -288,33 +274,22 @@ fun ArtistScreen(
                                                     error = rememberHolderPainter(),
                                                     contentDescription = null,
                                                     contentScale = ContentScale.FillWidth,
-                                                    // Always decoded so the page background color can be extracted
-                                                    // from the artwork palette, even when a canvas is playing.
                                                     onSuccess = {
                                                         bitmap = it.result.image.toImageBitmap()
                                                     },
-                                                    // Hidden (but still decoded above) while a canvas is present —
-                                                    // the canvas is shown instead. No canvas -> artwork is shown.
                                                     modifier =
                                                         Modifier
                                                             .fillMaxSize()
                                                             .alpha(if (canvasUrl != null) 0f else 1f),
                                                 )
-                                                // Canvas (Spotify) plays AS the background when present;
-                                                // otherwise the static artwork above is the fallback.
                                                 canvasUrl?.let { canvas ->
-                                                    // Canvas is a tall/portrait video. cropToBounds center
-                                                    // scale-to-covers it into the square frame (ContentScale.Crop):
-                                                    // true video aspect ratio, no stretch, overflow clipped.
                                                     MediaPlayerView(
                                                         url = canvas.first,
                                                         modifier = Modifier.fillMaxSize(),
                                                         cropToBounds = true,
                                                     )
                                                 }
-                                            } // end media layer (Haze source)
-                                            // Bottom fade — progressive blur (Haze) over the media layer plus a
-                                            // color gradient, so the canvas/artwork edge melts into the page bg.
+                                            }
                                             Box(
                                                 modifier =
                                                     Modifier
@@ -339,12 +314,10 @@ fun ArtistScreen(
                                                             ),
                                                         ),
                                             )
-                                            // Artist name (TEXT for now — logo image is roadmap) + subscriber · view
                                             Column(
                                                 modifier =
                                                     Modifier
                                                         .align(Alignment.BottomCenter)
-                                                        // Lift the name + subtitle together with the action row.
                                                         .offset(y = (-36).dp)
                                                         .fillMaxWidth()
                                                         .padding(horizontal = 20.dp)
@@ -353,8 +326,6 @@ fun ArtistScreen(
                                             ) {
                                                 val logo = artistLogo
                                                 if (logo != null) {
-                                                    // Artist name rendered as a logo image (hidden catalog),
-                                                    // in place of the plain-text title.
                                                     AsyncImage(
                                                         model = logo.logoUrl,
                                                         contentDescription = state.data.title,
@@ -368,7 +339,8 @@ fun ArtistScreen(
                                                     Text(
                                                         text = state.data.title ?: stringResource(Res.string.unknown),
                                                         style = typo().titleLarge,
-                                                        color = Color.White,
+                                                        // CORRECCIÓN: Color dinámico en lugar de Color.White quemado
+                                                        color = MaterialTheme.colorScheme.onBackground,
                                                         maxLines = 2,
                                                         textAlign = TextAlign.Center,
                                                     )
@@ -383,13 +355,13 @@ fun ArtistScreen(
                                                     Text(
                                                         text = meta,
                                                         style = typo().bodyMedium,
-                                                        color = Color(0xC4FFFFFF),
+                                                        // CORRECCIÓN: Color dinámico
+                                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                                                         textAlign = TextAlign.Center,
                                                     )
                                                 }
                                             }
                                         }
-                                        // Back button — liquid glass, sibling of the backdrop source.
                                         LiquidGlassIconButton(
                                             backdrop = artworkBackdrop,
                                             resId = Res.drawable.baseline_arrow_back_ios_new_24,
@@ -404,8 +376,6 @@ fun ArtistScreen(
                                         }
                                     }
 
-                                    // Apple Music-style action row: [Radio][Shuffle pill][Follow] centered.
-                                    // In SimpMusic "play" an artist == shuffle, so the big middle button is Shuffle.
                                     Row(
                                         modifier =
                                             Modifier
@@ -415,8 +385,6 @@ fun ArtistScreen(
                                         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        // Radio — side button: outlined accent (yellow) circle with an
-                                        // accent-tinted icon over a transparent fill, matching the reference.
                                         Box(
                                             modifier =
                                                 Modifier
@@ -440,9 +408,6 @@ fun ArtistScreen(
                                                 modifier = Modifier.size(22.dp),
                                             )
                                         }
-                                        // Shuffle — primary "play" for an artist. Circular icon button filled
-                                        // with the artist accent (white fallback); icon uses the dark page
-                                        // background color so it stays legible on a bright accent.
                                         Box(
                                             modifier =
                                                 Modifier
@@ -466,9 +431,6 @@ fun ArtistScreen(
                                                 modifier = Modifier.size(28.dp),
                                             )
                                         }
-                                        // Follow — side button matching Radio: outlined accent (yellow)
-                                        // circle when not following; fills with the accent (icon flips to
-                                        // the dark page bg) once followed, so the state reads at a glance.
                                         Box(
                                             modifier =
                                                 Modifier
@@ -510,7 +472,6 @@ fun ArtistScreen(
                             }
                         }
 
-                        // Haze top bar appears once the header scrolls away.
                         AnimatedVisibility(
                             visible = shouldHideTopBar,
                             enter = fadeIn() + slideInVertically(),
@@ -541,7 +502,8 @@ fun ArtistScreen(
                                                         Res.drawable.baseline_arrow_back_ios_new_24,
                                                     ),
                                                 contentDescription = "Back",
-                                                tint = Color.White,
+                                                // CORRECCIÓN: Icono de retroceso adaptativo, no siempre blanco
+                                                tint = MaterialTheme.colorScheme.onBackground,
                                                 modifier = Modifier.size(20.dp),
                                             )
                                         }
@@ -562,7 +524,6 @@ fun ArtistScreen(
                         }
                     }
                 } else {
-                    // ---- Existing layout (tablet / landscape / Desktop) ----
                     CollapsingToolbarParallaxEffect(
                         modifier = Modifier.fillMaxSize(),
                         title = state.data.title ?: "",
@@ -604,54 +565,54 @@ fun ArtistScreen(
                                             LimitedBorderAnimationView(
                                                 isAnimated = true,
                                                 brush = Brush.sweepGradient(listOf(Color.Transparent, MaterialTheme.colorScheme.onBackground)),
-                                            backgroundColor = Color.Transparent,
-                                            contentPadding = 2.dp,
-                                            borderWidth = 1.dp,
-                                            shape = RoundedCornerShape(4.dp),
-                                            oneCircleDurationMillis = 3000,
-                                            interactionNumber = 1,
-                                        ) {
-                                            MediaPlayerView(
-                                                url = canvas.first,
-                                                modifier =
-                                                    Modifier
-                                                        .width(28.dp)
-                                                        .height(ButtonDefaults.MinHeight)
-                                                        .align(Alignment.CenterVertically)
-                                                        .border(
-                                                            width = 0.5.dp,
-                                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                                                            shape = RoundedCornerShape(4.dp),
-                                                        ).clip(RoundedCornerShape(4.dp))
-                                                        .clickable {
-                                                            val firstQueue: Track = canvas.second.toTrack()
-                                                            viewModel.setQueueData(
-                                                                QueueData.Data(
-                                                                    listTracks = arrayListOf(firstQueue),
-                                                                    firstPlayedTrack = firstQueue,
-                                                                    playlistId = "RDAMVM${firstQueue.videoId}",
-                                                                    playlistName = "\"${(state.data.title ?: "")}\" ${
-                                                                        getStringBlocking(
-                                                                            Res.string.popular,
-                                                                        )
-                                                                    }",
-                                                                    playlistType = PlaylistType.RADIO,
-                                                                    continuation = null,
-                                                                ),
-                                                            )
-                                                            viewModel.loadMediaItem(
-                                                                firstQueue,
-                                                                type = Config.SONG_CLICK,
-                                                            )
-                                                        },
-                                            )
+                                                backgroundColor = Color.Transparent,
+                                                contentPadding = 2.dp,
+                                                borderWidth = 1.dp,
+                                                shape = RoundedCornerShape(4.dp),
+                                                oneCircleDurationMillis = 3000,
+                                                interactionNumber = 1,
+                                            ) {
+                                                MediaPlayerView(
+                                                    url = canvas.first,
+                                                    modifier =
+                                                        Modifier
+                                                            .width(28.dp)
+                                                            .height(ButtonDefaults.MinHeight)
+                                                            .align(Alignment.CenterVertically)
+                                                            .border(
+                                                                width = 0.5.dp,
+                                                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                                                                shape = RoundedCornerShape(4.dp),
+                                                            ).clip(RoundedCornerShape(4.dp))
+                                                            .clickable {
+                                                                val firstQueue: Track = canvas.second.toTrack()
+                                                                viewModel.setQueueData(
+                                                                    QueueData.Data(
+                                                                        listTracks = arrayListOf(firstQueue),
+                                                                        firstPlayedTrack = firstQueue,
+                                                                        playlistId = "RDAMVM${firstQueue.videoId}",
+                                                                        playlistName = "\"${(state.data.title ?: "")}\" ${
+                                                                            getStringBlocking(
+                                                                                Res.string.popular,
+                                                                            )
+                                                                        }",
+                                                                        playlistType = PlaylistType.RADIO,
+                                                                        continuation = null,
+                                                                    ),
+                                                                )
+                                                                viewModel.loadMediaItem(
+                                                                    firstQueue,
+                                                                    type = Config.SONG_CLICK,
+                                                                )
+                                                            },
+                                                )
+                                            }
+                                            Spacer(Modifier.width(12.dp))
                                         }
-                                        Spacer(Modifier.width(12.dp))
                                     }
-                                }
-                                LimitedBorderAnimationView(
-                                    isAnimated = !isFollowed,
-                                    brush = Brush.sweepGradient(listOf(Color.Gray, MaterialTheme.colorScheme.onBackground)),
+                                    LimitedBorderAnimationView(
+                                        isAnimated = !isFollowed,
+                                        brush = Brush.sweepGradient(listOf(Color.Gray, MaterialTheme.colorScheme.onBackground)),
                                         backgroundColor = Color.Transparent,
                                         contentPadding = 0.dp,
                                         borderWidth = 2.dp,
@@ -722,7 +683,6 @@ fun ArtistScreen(
                                 }
                             }
 
-                        // Popular Songs
                             ArtistSections(
                                 state = state,
                                 playingTrack = playingTrack,
@@ -759,10 +719,6 @@ fun ArtistScreen(
     }
 }
 
-/**
- * Shared artist body (Popular → Description). Used by both the portrait Apple-Music layout
- * and the existing CollapsingToolbar layout, so the sections themselves stay untouched.
- */
 @Composable
 private fun ArtistSections(
     state: ArtistScreenState.Success,
@@ -774,7 +730,6 @@ private fun ArtistSections(
     onTrackMore: (Track) -> Unit,
 ) {
     Column {
-        // Popular Songs
         AnimatedVisibility(state.data.popularSongs.isNotEmpty()) {
             Column {
                 Row(
@@ -808,7 +763,7 @@ private fun ArtistSections(
                 }
                 state.data.popularSongs.forEach { song ->
                     SongFullWidthItems(
-                                              track = song,
+                        track = song,
                         isPlaying = song.videoId == playingTrack,
                         modifier = Modifier.fillMaxWidth(),
                         onMoreClickListener = {
@@ -841,9 +796,9 @@ private fun ArtistSections(
             }
         }
 
-                        AnimatedVisibility(
-                            state.data.singles != null &&
-                                state.data.singles!!
+        AnimatedVisibility(
+            state.data.singles != null &&
+                state.data.singles!!
                     .results
                     .isNotEmpty(),
         ) {
@@ -908,9 +863,9 @@ private fun ArtistSections(
             }
         }
 
-                        AnimatedVisibility(
-                            state.data.albums != null &&
-                                state.data.albums!!
+        AnimatedVisibility(
+            state.data.albums != null &&
+                state.data.albums!!
                     .results
                     .isNotEmpty(),
         ) {
@@ -975,9 +930,9 @@ private fun ArtistSections(
             }
         }
 
-                        AnimatedVisibility(
-                            state.data.video != null &&
-                                state.data.video!!
+        AnimatedVisibility(
+            state.data.video != null &&
+                state.data.video!!
                     .video
                     .isNotEmpty(),
         ) {
@@ -1065,16 +1020,16 @@ private fun ArtistSections(
             }
         }
 
-                        AnimatedVisibility(state.data.featuredOn.isNotEmpty()) {
-                            Column {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 20.dp),
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.featured_inArtist),
-                                        style = typo().labelMedium,
-                                        color = MaterialTheme.colorScheme.onBackground,
+        AnimatedVisibility(state.data.featuredOn.isNotEmpty()) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.featured_inArtist),
+                        style = typo().labelMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier =
                             Modifier
                                 .weight(1f)
@@ -1107,7 +1062,7 @@ private fun ArtistSections(
             }
         }
 
-                        // Related
+        // Related
         AnimatedVisibility(
             state.data.related != null &&
                 state.data.related!!
