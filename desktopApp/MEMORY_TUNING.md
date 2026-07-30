@@ -62,11 +62,11 @@ scale less aggressively.
 
 ## The changes
 
-Four changes across two repositories. Three apply to all platforms; one is Linux-specific.
+Four changes across two repositories, each scoped to the platforms listed below.
 
 | # | Change | File | Platforms |
 | --- | --- | --- | --- |
-| 1 | `MemoryTrimmer` — returns free pages to the OS when playback goes idle | `core/media/media-jvm/.../memory/MemoryTrimmer.kt` (new) + `.../mpv/MpvPlayerAdapter.kt` | all |
+| 1 | `MemoryTrimmer` — returns free pages to the OS when playback goes idle | `core/media/media-jvm/.../memory/MemoryTrimmer.kt` (new) + `.../mpv/MpvPlayerAdapter.kt` | Linux, Windows |
 | 2 | Let G1 uncommit unused heap | `conveyor.conf` (`jvm` block) | all |
 | 3 | Disable Apple's nano malloc zone | `conveyor.conf` (`mac` block) | macOS |
 | 4 | Cap glibc arenas | `desktopApp/build.gradle.kts` (`AppRun`) | Linux |
@@ -80,8 +80,19 @@ Every desktop allocator can be asked to return free pages; only the spelling dif
 | OS | Call | Available since |
 | --- | --- | --- |
 | Linux | `malloc_trim(0)` | glibc |
-| macOS | `malloc_zone_pressure_relief(NULL, 0)` | OS X 10.7 |
 | Windows | `HeapSetInformation(NULL, HeapOptimizeResources, ...)` | Windows 8.1 |
+
+**macOS is deliberately excluded.** It does have an equivalent — `malloc_zone_pressure_relief(NULL, 0)`
+— and it shipped briefly, but it was traced to a startup crash and removed. A null zone means *every
+registered zone*, not just the one mpv/FFmpeg allocate from, so the call also asks the zones behind
+Metal, QuartzCore and Skia to give pages back. Running off a background dispatcher it can land inside
+a `CATransaction` commit on the main thread; the process then dies with an uncaught NSException
+raised in `-[MTLLayer blitCallback]`, which macOS 26+ turns into a hard crash.
+
+The window is narrow enough that anything perturbing timing hides it — attaching `log stream` was
+enough — so it only reproduced on a real Finder/Dock launch, where activation and the window
+animation hold the main thread inside CoreAnimation longer. Change 3 below already covers allocator
+growth on macOS, so nothing is lost. **Do not re-add the macOS branch.**
 
 Bound through JNA, which the module already uses for libmpv. Called from the `PAUSED` and `IDLE`
 transitions in `MpvPlayerAdapter`, throttled to at most once per 60 s, dispatched off the service
@@ -163,6 +174,7 @@ Each change is independent. Undo only the one whose symptom you see.
 | Symptom | Suspect | Go to |
 | --- | --- | --- |
 | Audio glitches or stutters **when pausing / stopping** | `MemoryTrimmer` | A |
+| macOS: hard crash a few seconds after a Finder/Dock launch, stack inside `-[MTLLayer blitCallback]` | `MemoryTrimmer`'s macOS branch is back | A |
 | General sluggishness on Linux, higher CPU under load | `MALLOC_ARENA_MAX=2` (lock contention) | D |
 | CPU spikes while the app sits idle | `G1PeriodicGCInterval` | B |
 | macOS feels slower overall | `MallocNanoZone=0` | C |
