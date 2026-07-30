@@ -91,10 +91,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.getString
+import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.lastfm_login_failed
+import simpmusic.composeapp.generated.resources.login_success
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
@@ -457,6 +461,32 @@ class SharedViewModel(
 
     fun setIntent(intent: GenericIntent?) {
         _intent.value = intent
+    }
+
+    /**
+     * Finishes a Last.fm login from the `wordbyword://lastfm-auth` callback.
+     *
+     * It lands here, and not on the login screen, because the callback arrives at the app rather
+     * than at any one screen: the user left for their browser, and the screen they left from may
+     * not even exist any more if the process was killed. Routing the token onwards through
+     * navigation would push a second copy of the login screen on top of the one already open.
+     *
+     * The screen learns it succeeded by watching the stored session key, not by being told.
+     */
+    fun completeLastfmLogin(token: String) {
+        if (token.isEmpty()) return
+        viewModelScope.launch {
+            val session = completeLogin(token)
+            if (session != null) {
+                dataStoreManager.setLastfmSession(
+                    sessionKey = session.sessionKey,
+                    username = session.username,
+                )
+                makeToast(getString(Res.string.login_success))
+            } else {
+                makeToast(getString(Res.string.lastfm_login_failed))
+            }
+        }
     }
 
     fun showNotificationPermissionDialog() {

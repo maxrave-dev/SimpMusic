@@ -180,6 +180,18 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                 navController.navigate(
                     NotificationDestination,
                 )
+            } else if (data.scheme == "wordbyword" && data.host == "lastfm-auth") {
+                // Last.fm sends the user back here after they approve access, carrying the request
+                // token: wordbyword://lastfm-auth?token=xxx. The callback is fixed on the API
+                // account, which is why the scheme is not "simpmusic".
+                val token = data.getQueryParameter("token")
+                Logger.d("MainActivity", "Last.fm callback, token present: ${!token.isNullOrEmpty()}")
+                viewModel.setIntent(null)
+                // Deliberately no navigation: the login screen is almost certainly already open —
+                // the browser was opened from it — and navigating would stack a second copy on top
+                // of it. The token is handed straight to the shared view model, and the screen
+                // closes itself when it sees a session key appear.
+                token?.let { viewModel.completeLastfmLogin(it) }
             } else if (data.host == "simpmusic.org" || data.scheme == "simpmusic") {
                 // https://simpmusic.org/app/watch?v=VIDEO_ID
                 // https://simpmusic.org/app/playlist?list=PLAYLIST_ID

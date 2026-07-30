@@ -119,6 +119,7 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
@@ -232,7 +233,13 @@ import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
 import simpmusic.composeapp.generated.resources.http
+import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.intro_login_to_discord
+import simpmusic.composeapp.generated.resources.intro_login_to_lastfm
+import simpmusic.composeapp.generated.resources.lastfm_integration
+import simpmusic.composeapp.generated.resources.log_in_to_lastfm
+import simpmusic.composeapp.generated.resources.logged_in_as
+import simpmusic.composeapp.generated.resources.scrobbling_info
 import simpmusic.composeapp.generated.resources.intro_login_to_spotify
 import simpmusic.composeapp.generated.resources.invalid
 import simpmusic.composeapp.generated.resources.invalid_api_key
@@ -257,6 +264,7 @@ import simpmusic.composeapp.generated.resources.log_in_to_discord
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
 import simpmusic.composeapp.generated.resources.log_out
 import simpmusic.composeapp.generated.resources.log_out_from_discord
+import simpmusic.composeapp.generated.resources.log_out_from_lastfm
 import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
@@ -470,6 +478,9 @@ fun SettingScreen(
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
     var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
+    val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
+    val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
+    val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
     val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
 
@@ -1612,6 +1623,54 @@ fun SettingScreen(
                         }
                     },
                 )
+            }
+        }
+        // Hidden entirely when the build carries no Last.fm credentials — a FOSS build, or a full
+        // build whose local.properties has no key.
+        if (viewModel.lastfmAvailable) {
+            item(key = "lastfm") {
+                Column {
+                    Text(
+                        text = stringResource(Res.string.lastfm_integration),
+                        style = typo().labelMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                    SettingItem(
+                        title =
+                            if (lastfmLoggedIn) {
+                                stringResource(Res.string.log_out_from_lastfm)
+                            } else {
+                                stringResource(Res.string.log_in_to_lastfm)
+                            },
+                        subtitle =
+                            if (lastfmLoggedIn) {
+                                stringResource(Res.string.logged_in_as, lastfmUsername)
+                            } else {
+                                stringResource(Res.string.intro_login_to_lastfm)
+                            },
+                        onClick = {
+                            if (lastfmLoggedIn) {
+                                viewModel.confirmLogOut(
+                                    confirmLabel = runBlocking { getString(Res.string.log_out_from_lastfm) },
+                                ) { viewModel.logOutLastfm() }
+                            } else {
+                                navController.navigate(LastfmLoginDestination)
+                            }
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.enable_scrobbling),
+                        subtitle = stringResource(Res.string.scrobbling_info),
+                        switch = (lastfmScrobbleEnabled to { viewModel.setLastfmScrobbleEnabled(it) }),
+                        isEnable = lastfmLoggedIn,
+                        onDisable = {
+                            if (lastfmScrobbleEnabled) {
+                                viewModel.setLastfmScrobbleEnabled(false)
+                            }
+                        },
+                    )
+                }
             }
         }
         item(key = "sponsor_block") {

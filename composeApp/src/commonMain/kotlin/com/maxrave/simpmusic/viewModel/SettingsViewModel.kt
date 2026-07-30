@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
+import org.simpmusic.lastfm.isLastfmAvailable
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.backup_create_failed
 import simpmusic.composeapp.generated.resources.backup_create_success
@@ -165,6 +166,22 @@ class SettingsViewModel(
     private val _richPresenceEnabled = MutableStateFlow(false)
     val richPresenceEnabled: StateFlow<Boolean> = _richPresenceEnabled
 
+    /**
+     * False in a FOSS build, and in a full build with no API key in `local.properties`. The whole
+     * Last.fm block in settings is hidden when it is false, rather than offering a login that
+     * could never succeed.
+     */
+    val lastfmAvailable: Boolean = isLastfmAvailable()
+
+    private val _lastfmUsername = MutableStateFlow("")
+    val lastfmUsername: StateFlow<String> = _lastfmUsername
+
+    private val _lastfmLoggedIn = MutableStateFlow(false)
+    val lastfmLoggedIn: StateFlow<Boolean> = _lastfmLoggedIn
+
+    private val _lastfmScrobbleEnabled = MutableStateFlow(false)
+    val lastfmScrobbleEnabled: StateFlow<Boolean> = _lastfmScrobbleEnabled
+
     private val _keepServiceAlive = MutableStateFlow<Boolean>(false)
     val keepServiceAlive: StateFlow<Boolean> = _keepServiceAlive
 
@@ -276,6 +293,8 @@ class SettingsViewModel(
         getExplicitContentEnabled()
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
+        getLastfmSession()
+        getLastfmScrobbleEnabled()
         getKeepServiceAlive()
         getKeepYouTubePlaylistOffline()
         getCombineLocalAndYouTubeLiked()
@@ -461,6 +480,39 @@ class SettingsViewModel(
             dataStoreManager.discordToken.collect { loggedIn ->
                 _discordLoggedIn.value = loggedIn.isNotEmpty()
             }
+        }
+    }
+
+    private fun getLastfmSession() {
+        viewModelScope.launch {
+            dataStoreManager.lastfmSessionKey.collect { key ->
+                _lastfmLoggedIn.value = key.isNotEmpty()
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.lastfmUsername.collect { username ->
+                _lastfmUsername.value = username
+            }
+        }
+    }
+
+    fun logOutLastfm() {
+        viewModelScope.launch {
+            dataStoreManager.setLastfmSession(sessionKey = "", username = "")
+        }
+    }
+
+    private fun getLastfmScrobbleEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.lastfmScrobbleEnabled.collect { enabled ->
+                _lastfmScrobbleEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setLastfmScrobbleEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setLastfmScrobbleEnabled(enabled)
         }
     }
 
@@ -758,8 +810,9 @@ class SettingsViewModel(
      * Asks before signing out of a linked account.
      *
      * Every one of these rows sits inside a long settings list and does its work on a single tap,
-     * with no undo — and getting back in is not symmetric with getting out, since it means a full
-     * web login. The confirmation is cheap next to that.
+     * with no undo — and getting back in is not symmetric with getting out: Last.fm sends the user
+     * through a browser again, YouTube and Spotify through a full web login. The confirmation is
+     * cheap next to that.
      *
      * @param confirmLabel names the service on the confirming button, because the dialog is the
      * only thing on screen at that moment and "Log out" alone does not say out of what.
