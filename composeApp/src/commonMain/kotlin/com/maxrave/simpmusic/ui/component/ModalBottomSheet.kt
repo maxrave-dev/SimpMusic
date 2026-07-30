@@ -1685,6 +1685,10 @@ fun NowPlayingBottomSheet(
                             Text(
                                 text = uiState.songUIState.title,
                                 style = typo().labelMedium,
+                                // typo() bakes a colour into the style, computed from the app's own
+                                // scheme — on this always-dark sheet that reads as washed out next
+                                // to the ActionButton rows below, which take their colour from here.
+                                color = rememberSurfaceDarkColors().content,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -1698,6 +1702,7 @@ fun NowPlayingBottomSheet(
                                         .toListName()
                                         .connectArtists(),
                                 style = typo().bodyMedium,
+                                color = rememberSurfaceDarkColors().subtitle,
                                 maxLines = 1,
                                 modifier =
                                     Modifier
@@ -1991,6 +1996,9 @@ fun CheckBoxActionButton(
                         stringResource(Res.string.like)
                     },
                 style = typo().labelSmall,
+                // Matches [ActionButton], which this sits directly above in every sheet that uses
+                // both — without it the label alone falls back to the colour typo() carries.
+                color = rememberSurfaceDarkColors().content,
                 modifier =
                     Modifier
                         .padding(start = 10.dp)
