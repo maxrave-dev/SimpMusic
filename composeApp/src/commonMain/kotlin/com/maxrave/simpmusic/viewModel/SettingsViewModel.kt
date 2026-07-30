@@ -44,12 +44,15 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.backup_create_failed
 import simpmusic.composeapp.generated.resources.backup_create_success
 import simpmusic.composeapp.generated.resources.backup_in_progress
+import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
+import simpmusic.composeapp.generated.resources.log_out_confirm_message
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
+import simpmusic.composeapp.generated.resources.warning
 
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -749,6 +752,32 @@ class SettingsViewModel(
 
     fun setBasicAlertData(alertData: SettingBasicAlertState?) {
         _basicAlertData.value = alertData
+    }
+
+    /**
+     * Asks before signing out of a linked account.
+     *
+     * Every one of these rows sits inside a long settings list and does its work on a single tap,
+     * with no undo — and getting back in is not symmetric with getting out, since it means a full
+     * web login. The confirmation is cheap next to that.
+     *
+     * @param confirmLabel names the service on the confirming button, because the dialog is the
+     * only thing on screen at that moment and "Log out" alone does not say out of what.
+     */
+    fun confirmLogOut(
+        confirmLabel: String,
+        onConfirm: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            setBasicAlertData(
+                SettingBasicAlertState(
+                    title = getString(Res.string.warning),
+                    message = getString(Res.string.log_out_confirm_message),
+                    confirm = confirmLabel to onConfirm,
+                    dismiss = getString(Res.string.cancel),
+                ),
+            )
+        }
     }
 
     private fun getUsingProxy() {

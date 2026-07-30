@@ -256,6 +256,8 @@ import simpmusic.composeapp.generated.resources.local_tracking_title
 import simpmusic.composeapp.generated.resources.log_in_to_discord
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
 import simpmusic.composeapp.generated.resources.log_out
+import simpmusic.composeapp.generated.resources.log_out_from_discord
+import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.lrclib
@@ -1520,7 +1522,14 @@ fun SettingScreen(
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
-                    title = stringResource(Res.string.log_in_to_spotify),
+                    // The title follows the state: a row that still reads "Log in" while logged in
+                    // gives no clue that tapping it signs you out.
+                    title =
+                        if (spotifyLoggedIn) {
+                            stringResource(Res.string.log_out_from_spotify)
+                        } else {
+                            stringResource(Res.string.log_in_to_spotify)
+                        },
                     subtitle =
                         if (spotifyLoggedIn) {
                             stringResource(Res.string.logged_in)
@@ -1529,7 +1538,9 @@ fun SettingScreen(
                         },
                     onClick = {
                         if (spotifyLoggedIn) {
-                            viewModel.setSpotifyLogIn(false)
+                            viewModel.confirmLogOut(
+                                confirmLabel = runBlocking { getString(Res.string.log_out_from_spotify) },
+                            ) { viewModel.setSpotifyLogIn(false) }
                         } else {
                             navController.navigate(SpotifyLoginDestination)
                         }
@@ -1568,7 +1579,12 @@ fun SettingScreen(
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
-                    title = stringResource(Res.string.log_in_to_discord),
+                    title =
+                        if (discordLoggedIn) {
+                            stringResource(Res.string.log_out_from_discord)
+                        } else {
+                            stringResource(Res.string.log_in_to_discord)
+                        },
                     subtitle =
                         if (discordLoggedIn) {
                             stringResource(Res.string.logged_in)
@@ -1577,7 +1593,9 @@ fun SettingScreen(
                         },
                     onClick = {
                         if (discordLoggedIn) {
-                            viewModel.logOutDiscord()
+                            viewModel.confirmLogOut(
+                                confirmLabel = runBlocking { getString(Res.string.log_out_from_discord) },
+                            ) { viewModel.logOutDiscord() }
                         } else {
                             navController.navigate(DiscordLoginDestination)
                         }
