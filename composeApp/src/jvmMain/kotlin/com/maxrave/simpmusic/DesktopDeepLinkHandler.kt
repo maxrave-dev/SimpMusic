@@ -133,6 +133,11 @@ object DesktopDeepLinkHandler {
                 Uri.parse(convertedUrl)
             }
 
+            // wordbyword://lastfm-auth?token=xxx → pass through untouched. It must NOT be rewritten
+            // to simpmusic.org like the branch above does: App.kt matches on this exact scheme to
+            // read the Last.fm request token.
+            parsed.scheme == "wordbyword" -> parsed
+
             // https://simpmusic.org/app/... or YouTube URLs → pass through
             else -> parsed
         }

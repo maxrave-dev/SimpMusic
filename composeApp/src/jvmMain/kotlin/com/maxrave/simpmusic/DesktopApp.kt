@@ -53,6 +53,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
+import org.simpmusic.lastfm.configLastfm
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.mp.KoinPlatform.getKoin
 import simpmusic.composeapp.generated.resources.Res
@@ -131,6 +132,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     changeLanguageNative(language)
 
     VersionManager.initialize()
+    configLastfm(BuildKonfig.lastfmApiKey, BuildKonfig.lastfmSecret)
     if (BuildKonfig.sentryDsn.isNotEmpty()) {
         Sentry.init { options ->
             options.dsn = BuildKonfig.sentryDsn
