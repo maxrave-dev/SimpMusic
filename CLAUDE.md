@@ -118,6 +118,14 @@ Service modules:
 - **crashlytics-empty/**: FOSS version without tracking
 
 #### 5. **cast/** & **cast-empty/**
+#### 6. **lastfm/** & **lastfm-empty/**
+- **lastfm/**: direct Last.fm scrobbling for the Full build. KMP (android + jvm + ios), package `org.simpmusic.lastfm`. Signs `api_sig` with okio's MD5; talks to `ws.audioscrobbler.com/2.0/` over form-urlencoded POST
+- **lastfm-empty/**: FOSS no-op stub with the identical public API — `isLastfmAvailable()` returns `false`, which hides the whole settings block. A FOSS build ships no API secret, so it ships no Last.fm code either
+- Selected via `isFullBuild` in `core/data/build.gradle.kts` (playback hooks) and `composeApp/build.gradle.kts` (UI); credentials come from `LASTFM_API_KEY`/`LASTFM_SECRET` in `local.properties` via BuildKonfig, and are handed in with `configLastfm(key, secret)` at startup — the same shape as `configCrashlytics(context, dsn)`
+- Auth is Last.fm's **web flow** on every platform: open `last.fm/api/auth/?api_key=X` with **no token**, the user approves in their own browser, Last.fm redirects to the callback with `?token=`, then `auth.getSession`. The app never sees a password. **Do not switch to the desktop flow** (`auth.getToken` first, then open the same URL with `&token=` on it): that tells Last.fm the app already holds the token, so it renders a "return to the application" page and the callback is never called — which looks exactly like a broken redirect
+- The callback registered on the API account is `wordbyword://lastfm-auth`, handled by an intent-filter on Android and by Conveyor `url-schemes` + `WindowsProtocolRegistrar` on Desktop; the login screen also accepts the callback URL pasted by hand, for hosts where no scheme handler exists
+
+#### 7. **cast/** & **cast-empty/**
 - **cast/**: Google Cast support for the Full build (`media3-cast` + `play-services-cast-framework`, `CastOptionsProvider`, `CastIconButton` Compose wrapper for `MediaRouteButton`)
 - **cast-empty/**: FOSS no-op stub with identical public API (package `org.simpmusic.cast`), keeping GMS out of F-Droid builds
 - Selected via the `isFullBuild` Gradle property (same pattern as crashlytics) in `core/media/media3/build.gradle.kts` and `composeApp/build.gradle.kts` androidMain
@@ -495,6 +503,15 @@ if (getPlatform() == Platform.Android) {
   - The container build targets glibc **2.34** → runs on Ubuntu 22.04 / Debian 11 and newer. Vulkan/shaderc/glslang/D3D11 are disabled in libplacebo and X11/Wayland/GPU in mpv, since playback goes through the software render API; that also drops `libshaderc`/`libglslang`/`libSPIRV-Tools` (the bulk of the old bundle) and removes libsixel entirely, which had been aborting the JVM.
   - `stage.sh` deliberately does **not** bundle `libc`/`libm`/`libstdc++`/`ld-linux`, sets `DT_RPATH` (not `DT_RUNPATH` — RUNPATH is not inherited by transitive dependencies), and fails the build unless a `dlopen` + `mpv_initialize` smoke test passes.
   - mpv built with `-Dlua=disabled` has no `ytdl_hook`, so the `ytdl` option genuinely does not exist there; `MpvPlayer` uses `optionalOption()` to treat `MPV_ERROR_OPTION_NOT_FOUND` as success.
+- **Last.fm scrobbling (2026-07-30, Full build only)**: `lastfm`/`lastfm-empty` module pair gated by `isFullBuild`, following the `cast`/`crashlytics` shape. `LastfmScrobbler` (in `core/data/.../lastfm/`) lives in `commonMain` and is driven by both player handlers, because Android and Desktop run entirely separate ones. It sends `track.updateNowPlaying` where the Discord RPC is updated, and `track.scrobble` off the existing 5-second position-persist tick — a track over 30s scrobbles at half its length or 4 minutes, whichever comes first.
+  - **`status="ok"` does not mean accepted.** Last.fm answers OK while discarding a scrobble and only says so in `ignoredMessage`: code 1 = artist name filtered, 2 = track name filtered, 3/4 = timestamp too far past/future, 5 = daily limit. Codes 1 and 2 are how bad metadata surfaces, so they are logged loudly rather than dropped.
+  - **The two auth flows are not interchangeable, and picking the wrong one silently kills the callback.** Web flow: send the user to `last.fm/api/auth/?api_key=X` with no token; Last.fm mints it and redirects to the registered callback with `?token=`. Desktop flow: call `auth.getToken`, then open that URL with `&token=` already on it; Last.fm then shows "return to the application" and never redirects. SimpMusic uses the **web** flow because it has a registered callback and deep-link handlers on every platform.
+  - **The callback token does NOT travel through navigation.** `App.kt` hands it straight to `SharedViewModel.completeLastfmLogin()`, and `LastfmLoginScreen` closes itself by watching the stored session key. Navigating to the login screen with the token instead pushes a *second* copy on top of the one the user opened their browser from, so the `navigateUp()` after a successful login only peels off that copy and lands back on a login screen — it looks exactly like "logged in but still stuck on the login screen". The other three login screens never hit this because they embed a WebView and never leave the app; Desktop has no real WebView (`Cookies.jvm.kt` is a placeholder), which is why Last.fm uses the system browser at all.
+  - **`toSortedMap()` does not exist in common Kotlin** (it is a JDK collection) — sort the signature parameters with `entries.sortedBy { it.key }`.
+  - **`format` must be excluded from `api_sig`.** Parameters are sorted by name, concatenated `<name><value>`, secret appended, MD5'd — but signing `format` (or `callback`) yields "Invalid method signature supplied" (code 13) on every request.
+  - Error codes worth branching on: `9` invalid session key → clear the stored session and make the user log in again; `11`/`16`/`29` → transient, retryable; everything else is a malformed request.
+  - Two places where Last.fm's own docs contradict themselves, resolved conservatively: `timestamp` is the time the track **started** (the method page says started, the scrobbling guide says finished — every scrobbler in the wild sends the start), and `duration` is **always sent** (optional on one page, required on the other).
+  - Responses are parsed as loose `JsonObject`s, not `@Serializable` classes: Last.fm's JSON is a translation of its XML, so numbers arrive as strings, attributes hide under `@attr`, and a field is an object with one entry but an array with several.
 - **JNA open flags are POSIX-only (2026-07-28)**: `MpvLibrary` passes `OPTION_OPEN_FLAGS = 2` (RTLD_NOW without RTLD_GLOBAL) **only when not on Windows**. JNA forwards the value verbatim to `LoadLibraryEx`, where `2` means `LOAD_LIBRARY_AS_DATAFILE`: the DLL maps as plain data, imports never resolve, and `GetProcAddress` returns nothing — surfacing as the misleading `Error looking up function 'mpv_client_api_version': The specified module could not be found`.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
@@ -521,6 +538,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-07-28
+**Last updated**: 2026-07-30
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
