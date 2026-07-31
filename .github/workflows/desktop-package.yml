@@ -79,7 +79,7 @@ jobs:
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
         run: |
           echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> ./local.properties
-          echo "c=${{ secrets.LASTFM_SECRET }}" >> ./local.properties
+          echo "LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}" >> ./local.properties
 
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
