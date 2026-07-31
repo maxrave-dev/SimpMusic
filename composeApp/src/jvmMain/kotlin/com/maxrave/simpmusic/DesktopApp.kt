@@ -66,10 +66,38 @@ import simpmusic.composeapp.generated.resources.open_miniplayer
 import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 
+/**
+ * Any `scheme://…` command-line argument. RFC 3986 §3.1 allows ALPHA followed by
+ * ALPHA / DIGIT / "+" / "-" / ".".
+ */
+private val DEEP_LINK_ARG = Regex("^[A-Za-z][A-Za-z0-9+.\\-]*://.+")
+
 @OptIn(ExperimentalMaterial3Api::class)
 fun runDesktopApp(args: Array<String> = emptyArray()) {
     // Install crash dialog handler first — catches all uncaught exceptions
     CrashDialog.install()
+
+    // Force AWT to probe the Desktop API now, BEFORE anything can load libmpv.
+    //
+    // On Linux the bundled libmpv drags in its own libglib-2.0.so.0 (2.72, built on
+    // Ubuntu 22.04) through the $ORIGIN/lib rpath. Once that soname is taken, AWT's
+    // XDesktopPeer.init() can no longer dlopen the SYSTEM libgio-2.0.so.0 — on a host
+    // with newer glib (2.80 on Ubuntu 24.04) it dies with
+    // "libgobject-2.0.so.0: undefined symbol: g_dir_unref" — and the JDK then reports
+    // the whole Desktop API as unsupported for the rest of the process. Every external
+    // link breaks: openUrl() silently does nothing, and Compose's LocalUriHandler
+    // throws UnsupportedOperationException out of the click handler and crashes the app.
+    //
+    // XDesktopPeer caches the result of that probe on the first call, so calling it here
+    // — while only the system glib is mapped — pins it to "supported" and lets the system
+    // gio/gobject win the soname race. AWT is already initialized at this point anyway
+    // (forceLinuxWmClass() in Main.kt touches the toolkit before we get here), so this
+    // costs nothing.
+    //
+    // This is a workaround, not the cure: the real fix is to stop bundling glib in
+    // scripts/mpv-linux/stage.sh, which needs the Linux mpv tarball rebuilt and
+    // republished. Keep this call until that lands.
+    java.awt.Desktop.isDesktopSupported()
 
     System.setProperty("compose.swing.render.on.graphics", "true")
     System.setProperty("compose.interop.blending", "true")
@@ -90,10 +118,13 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     }
     // Handle URI passed as command-line argument (Windows/Linux, or explicit invocation)
     // Note: macOS does NOT pass URI as args — it uses Apple Events via setOpenURIHandler
-    val deepLinkArg =
-        args.firstOrNull()?.takeIf { arg ->
-            arg.startsWith("simpmusic://") || arg.startsWith("http://") || arg.startsWith("https://")
-        }
+    //
+    // Matched by shape rather than against a fixed list of schemes. The list used to be
+    // simpmusic:// + http:// + https://, which silently dropped the Last.fm callback
+    // (wordbyword://lastfm-auth?token=…): the OS launched us with the token, this filter
+    // discarded it, and the app merely came to the foreground while the login sat there
+    // waiting forever. Any scheme we register with the OS must survive this line.
+    val deepLinkArg = args.firstOrNull()?.takeIf { DEEP_LINK_ARG.matches(it) }
     // Single-instance guard — MUST run before startKoin. The DataStore Koin
     // singleton is `createdAtStart`, so a second Windows instance would touch
     // ~/.simpmusic/settings.preferences_pb and crash with an "Unable to rename
