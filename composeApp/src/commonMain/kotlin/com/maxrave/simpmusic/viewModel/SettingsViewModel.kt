@@ -12,6 +12,7 @@ import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.data.player.GenericCastState
+import com.maxrave.domain.extension.normalizeCookieString
 import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
@@ -1366,6 +1367,10 @@ class SettingsViewModel(
         cookie: String,
         netscapeCookie: String? = null,
     ): Boolean {
+        // Accept both a header-style cookie and a raw Netscape cookies.txt paste
+        // (browser extension export). The raw file format cannot go into a Cookie
+        // header — normalize it to `name=value; ...` before storing anything.
+        val cookie = normalizeCookieString(cookie) ?: return false
         val currentCookie = dataStoreManager.cookie.first()
         val currentPageId = dataStoreManager.pageId.first()
         val currentLoggedIn = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE

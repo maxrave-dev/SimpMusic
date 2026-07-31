@@ -235,7 +235,9 @@ compose.desktop {
 afterEvaluate {
     tasks.withType<JavaExec> {
         jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
+        jvmArgs("--add-opens", "java.desktop/sun.awt.windows=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
+        jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
 
         // Pass the bundled natives path to the runtime for `./gradlew desktopApp:run`.
