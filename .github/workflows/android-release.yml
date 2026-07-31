@@ -43,6 +43,14 @@ jobs:
           echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
 
+      - name: Update Last.fm secrets
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> ./local.properties
+          echo "LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}" >> ./local.properties
+
       - name: Update environment variables
         env:
           BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
@@ -147,6 +155,14 @@ jobs:
         run: |
           echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN_JVM }}' > ./local.properties
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
+
+      - name: Update Last.fm secrets
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> ./local.properties
+          echo "LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}" >> ./local.properties
 
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
