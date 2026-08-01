@@ -919,6 +919,17 @@ fun MiniPlayer(
                                 volumeValue = controllerState.volume
                             }
                         }
+                        // Remembers the level to come back to when unmuting, so the button restores
+                        // what the user was listening at instead of jumping to full volume.
+                        // Starting muted leaves nothing to restore, so full volume stays the fallback.
+                        var previousVolumeValue by rememberSaveable {
+                            mutableFloatStateOf(controllerState.volume.takeIf { it > 0f } ?: 1f)
+                        }
+                        LaunchedEffect(controllerState.volume) {
+                            if (controllerState.volume > 0f) {
+                                previousVolumeValue = controllerState.volume
+                            }
+                        }
                         // The slider only claims space while the pointer is over the volume cluster.
                         // `hoverable` sits on the Row wrapping both the icon and the slider so moving
                         // between them never drops the hover, and an in-progress drag keeps it open
@@ -932,8 +943,13 @@ fun MiniPlayer(
                             IconButton(
                                 onClick = {
                                     // Toggle mute/unmute
-                                    val newVolume = if (controllerState.volume > 0f) 0f else 1f
-                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                    if (controllerState.volume > 0f) {
+                                        sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
+                                    } else {
+                                        sharedViewModel.onUIEvent(
+                                            UIEvent.UpdateVolume(previousVolumeValue.coerceIn(0.1f, 1f)),
+                                        )
+                                    }
                                 },
                             ) {
                                 Icon(
