@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import com.maxrave.simpmusic.components.AudioWavesIndicator
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -122,11 +123,7 @@ fun SongFullWidthItems(
         .getSongAsFlow(songEntity?.videoId ?: track?.videoId ?: "")
         .mapNotNull { it?.downloadState }
         .collectAsState(initial = DownloadState.STATE_NOT_DOWNLOADED)
-    val composition by rememberLottieComposition {
-        LottieCompositionSpec.JsonString(
-            Res.readBytes("files/audio_playing_animation.json").decodeToString(),
-        )
-    }
+
     val offsetX = remember { Animatable(initialValue = 0f) }
     var heightDp by remember { mutableStateOf(0.dp) }
 
@@ -206,14 +203,7 @@ fun SongFullWidthItems(
                 ) {
                     Crossfade(isPlaying) {
                         if (it) {
-                            Image(
-                                painter =
-                                    rememberLottiePainter(
-                                        composition = composition,
-                                        iterations = Compottie.IterateForever,
-                                    ),
-                                contentDescription = "Lottie animation",
-                            )
+                            AudioWavesIndicator()
                         } else if (index == null) {
                             val thumb = track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
                             AsyncImage(
@@ -378,7 +368,7 @@ fun SuggestItems(
                                     composition = composition,
                                     iterations = Compottie.IterateForever,
                                 ),
-                            contentDescription = "Lottie animation",
+                            contentDescription = "",
                         )
                     } else {
                         val thumb = track.thumbnails?.lastOrNull()?.url
@@ -496,7 +486,7 @@ fun PlaylistFullWidthItems(
                 title = data.title
                 thumb = data.thumbnails
                 secondSubtitle = data.author ?: ""
-                if (data.description == "PIN") { // LIKED MUSIC
+                if (data.description == "PIN") {
                     shouldPin = true
                 }
             }

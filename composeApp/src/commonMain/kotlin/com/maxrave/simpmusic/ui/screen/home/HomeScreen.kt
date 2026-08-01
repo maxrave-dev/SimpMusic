@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,9 +55,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -71,8 +69,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -133,11 +136,6 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_SLEEP
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_WORKOUT
 import com.maxrave.simpmusic.viewModel.ListState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.chrisbanes.haze.rememberHazeState
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.http.Url
@@ -196,7 +194,7 @@ private val listOfHomeChip =
         Res.string.focus,
     )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Composable
 fun HomeScreen(
@@ -218,7 +216,6 @@ fun HomeScreen(
     var accountShow by rememberSaveable { mutableStateOf(false) }
     val regionChart by viewModel.regionCodeChart.collectAsStateWithLifecycle()
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
-    val pullToRefreshState = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
     val params by viewModel.params.collectAsStateWithLifecycle()
@@ -228,6 +225,8 @@ fun HomeScreen(
     val openAppTime by sharedViewModel.openAppTime.collectAsStateWithLifecycle()
     val shareLyricsPermissions by sharedViewModel.shareSavedLyrics.collectAsStateWithLifecycle()
     val bgColor = MaterialTheme.colorScheme.background
+    
+    val isLightMode = bgColor.luminance() > 0.5f
 
     var topHeaderColor by remember { mutableStateOf(bgColor) }
     val animatedColor by animateColorAsState(topHeaderColor, tween(500))
@@ -255,7 +254,6 @@ fun HomeScreen(
 
     var showRequestShareLyricsPermissions by rememberSaveable { mutableStateOf(false) }
     var topAppBarHeightPx by rememberSaveable { mutableIntStateOf(0) }
-    val hazeState = rememberHazeState(blurEnabled = true)
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.firstVisibleItemIndex }
@@ -269,8 +267,28 @@ fun HomeScreen(
     }
 
     val onRefresh: () -> Unit = {
-        isRefreshing = true
-        viewModel.getHomeItemList(params)
+        if (!loading && !isRefreshing) {
+            isRefreshing = true
+            viewModel.getHomeItemList(params)
+        }
+    }
+
+    // AQUI ESTÁ LA CORRECCIÓN: onPostScroll escucha la inercia SOBRANTE del scroll
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                // Si la lista ya consumió todo y sobra energía de scroll hacia abajo (available.y > 25f)
+                // Y además estamos garantizadamente en el tope (index 0, offset 0)
+                if (available.y > 25f && scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0) {
+                    onRefresh()
+                }
+                return Offset.Zero
+            }
+        }
     }
 
     LaunchedEffect(key1 = reloadDestination) {
@@ -288,7 +306,6 @@ fun HomeScreen(
         if (!loading) {
             isRefreshing = false
             sharedViewModel.reloadDestinationDone()
-            coroutineScope.launch { pullToRefreshState.animateToHidden() }
         }
     }
 
@@ -366,24 +383,7 @@ fun HomeScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        PullToRefreshBox(
-            modifier = Modifier.hazeSource(hazeState),
-            state = pullToRefreshState,
-            onRefresh = onRefresh,
-            isRefreshing = isRefreshing,
-            indicator = {
-                PullToRefreshDefaults.Indicator(
-                    state = pullToRefreshState,
-                    isRefreshing = isRefreshing,
-                    modifier = Modifier.align(Alignment.TopCenter).padding(
-                        top = with(LocalDensity.current) { topAppBarHeightPx.toDp() }
-                    ),
-                    containerColor = PullToRefreshDefaults.indicatorContainerColor,
-                    color = PullToRefreshDefaults.indicatorColor,
-                    maxDistance = PullToRefreshDefaults.PositionalThreshold,
-                )
-            },
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
                     if (homeData.isEmpty()) {
@@ -402,12 +402,13 @@ fun HomeScreen(
                     LazyColumn(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(28.dp),
+                        modifier = Modifier.nestedScroll(nestedScrollConnection)
                     ) {
                         itemsIndexed(homeData, key = { _, item ->
                             item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
                         }) { index, item ->
                             Box {
-                                if (index == 0) {
+                                if (index == 0 && !isLightMode) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -424,6 +425,7 @@ fun HomeScreen(
                                                         listOf(
                                                             Color.Transparent,
                                                             MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
+                                                            MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                                                             MaterialTheme.colorScheme.background,
                                                         ),
                                                     ),
@@ -467,7 +469,6 @@ fun HomeScreen(
                             }
                         }
 
-                        // Independent sections - Moved out of PAGINATION_EXHAUST
                         items(newRelease, key = { "nr_" + it.hashCode() }) {
                             Box(modifier = Modifier.padding(horizontal = 15.dp)) {
                                 HomeItem(navController = navController, data = it)
@@ -534,7 +535,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.align(Alignment.TopCenter).then(
                     if (target) Modifier.background(Color.Transparent)
-                    else Modifier.hazeEffect(hazeState, style = HazeMaterials.ultraThin()) { blurEnabled = true }
+                    else Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = 0.95f))
                 ).onGloballyPositioned { coordinates -> topAppBarHeightPx = coordinates.size.height },
             ) {
                 AnimatedVisibility(visible = isScrollingUp, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {

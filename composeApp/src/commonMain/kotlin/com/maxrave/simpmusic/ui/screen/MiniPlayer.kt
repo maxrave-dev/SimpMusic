@@ -567,11 +567,11 @@ fun MiniPlayer(
             }
         }
         Box(
-            modifier.then(
-                Modifier.clickable {
+            modifier = modifier
+                .background(background.value)
+                .clickable {
                     onClick()
                 },
-            ),
             contentAlignment = Alignment.Center,
         ) {
             Row(
@@ -735,70 +735,70 @@ fun MiniPlayer(
                                             }
                                         }
                                     }
-                                }
-                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                    Slider(
-                                        value = sliderValue,
-                                        onValueChangeFinished = {
-                                            isSliding = false
-                                            sharedViewModel.onUIEvent(
-                                                UIEvent.UpdateProgress(sliderValue),
-                                            )
-                                        },
-                                        onValueChange = {
-                                            isSliding = true
-                                            sliderValue = it
-                                        },
-                                        valueRange = 0f..100f,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 3.dp)
-                                                .align(
-                                                    Alignment.TopCenter,
-                                                ),
-                                        track = { sliderState ->
-                                            SliderDefaults.Track(
-                                                modifier =
-                                                    Modifier
-                                                        .height(5.dp),
-                                                enabled = true,
-                                                sliderState = sliderState,
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = textColor,
-                                                        activeTrackColor = textColor,
-                                                        inactiveTrackColor = Color.Transparent,
+                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                        Slider(
+                                            value = sliderValue,
+                                            onValueChangeFinished = {
+                                                isSliding = false
+                                                sharedViewModel.onUIEvent(
+                                                    UIEvent.UpdateProgress(sliderValue),
+                                                )
+                                            },
+                                            onValueChange = {
+                                                isSliding = true
+                                                sliderValue = it
+                                            },
+                                            valueRange = 0f..100f,
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(top = 3.dp)
+                                                    .align(
+                                                        Alignment.TopCenter,
                                                     ),
-                                                thumbTrackGapSize = 0.dp,
-                                                drawTick = { _, _ -> },
-                                                drawStopIndicator = null,
-                                            )
-                                        },
-                                        thumb = {
-                                            SliderDefaults.Thumb(
-                                                modifier =
-                                                    Modifier
-                                                        .height(18.dp)
-                                                        .width(8.dp)
-                                                        .padding(
-                                                            vertical = 4.dp,
+                                            track = { sliderState ->
+                                                SliderDefaults.Track(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(5.dp),
+                                                    enabled = true,
+                                                    sliderState = sliderState,
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = textColor,
+                                                            activeTrackColor = textColor,
+                                                            inactiveTrackColor = Color.Transparent,
                                                         ),
-                                                thumbSize = DpSize(8.dp, 8.dp),
-                                                interactionSource =
-                                                    remember {
-                                                        MutableInteractionSource()
-                                                    },
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = textColor,
-                                                        activeTrackColor = textColor,
-                                                        inactiveTrackColor = Color.Transparent,
-                                                    ),
-                                                enabled = true,
-                                            )
-                                        },
-                                    )
+                                                    thumbTrackGapSize = 0.dp,
+                                                    drawTick = { _, _ -> },
+                                                    drawStopIndicator = null,
+                                                )
+                                            },
+                                            thumb = {
+                                                SliderDefaults.Thumb(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(18.dp)
+                                                            .width(8.dp)
+                                                            .padding(
+                                                                vertical = 4.dp,
+                                                            ),
+                                                    thumbSize = DpSize(8.dp, 8.dp),
+                                                    interactionSource =
+                                                        remember {
+                                                            MutableInteractionSource()
+                                                        },
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = textColor,
+                                                            activeTrackColor = textColor,
+                                                            inactiveTrackColor = Color.Transparent,
+                                                        ),
+                                                    enabled = true,
+                                                )
+                                            },
+                                        )
+                                    }
                                 }
                             }
                             Text(

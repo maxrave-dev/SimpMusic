@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -176,76 +177,89 @@ fun AppNavigationRail(
         }
     }
 
-    NavigationRail(
-        containerColor = MaterialTheme.colorScheme.background
-    ) {
-        Spacer(Modifier.height(16.dp))
-        Box(Modifier.padding(horizontal = 16.dp)) {
-            Box(
-                Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center,
-            ) {
-                Image(
-                    painter = painterResource(Res.drawable.mono),
-                    contentDescription = null,
-                    modifier =
-                        Modifier
-                            .height(32.dp)
-                            .clip(CircleShape),
+    val bgColor = MaterialTheme.colorScheme.background
+    val isLightMode = bgColor.luminance() > 0.5f
+
+    Row(modifier = Modifier.fillMaxHeight()) {
+        NavigationRail(
+            containerColor = MaterialTheme.colorScheme.background
+        ) {
+            Spacer(Modifier.height(16.dp))
+            Box(Modifier.padding(horizontal = 16.dp)) {
+                Box(
+                    Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painter = painterResource(Res.drawable.mono),
+                        contentDescription = null,
+                        modifier =
+                            Modifier
+                                .height(32.dp)
+                                .clip(CircleShape),
+                    )
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            bottomNavScreens.forEachIndexed { index, screen ->
+                val isSelected = selectedIndex == index
+                NavigationRailItem(
+                    icon = screen.icon,
+                    label = {
+                        Text(
+                            stringResource(screen.title),
+                            style =
+                                if (isSelected) {
+                                    typo().bodySmall
+                                } else {
+                                    typo().bodySmall.greyScale()
+                                },
+                        )
+                    },
+                    colors = NavigationRailItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.onBackground,
+                        selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unselectedIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                        unselectedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    selected = isSelected,
+                    onClick = {
+                        if (isSelected) {
+                            if (currentBackStackEntry?.destination?.hierarchy?.any {
+                                    it.hasRoute(screen.destination::class)
+                                } == true
+                            ) {
+                                reloadDestinationIfNeeded(
+                                    screen.destination::class,
+                                )
+                            } else {
+                                navController.navigate(screen.destination)
+                            }
+                        } else {
+                            navController.navigate(screen.destination) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
                 )
             }
+            Spacer(Modifier.height(32.dp))
         }
-        Spacer(Modifier.weight(1f))
-        bottomNavScreens.forEachIndexed { index, screen ->
-            val isSelected = selectedIndex == index
-            NavigationRailItem(
-                icon = screen.icon,
-                label = {
-                    Text(
-                        stringResource(screen.title),
-                        style =
-                            if (isSelected) {
-                                typo().bodySmall
-                            } else {
-                                typo().bodySmall.greyScale()
-                            },
-                    )
-                },
-                colors = NavigationRailItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.onBackground,
-                    selectedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unselectedIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                    unselectedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                    indicatorColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                selected = isSelected,
-                onClick = {
-                    if (isSelected) {
-                        if (currentBackStackEntry?.destination?.hierarchy?.any {
-                                it.hasRoute(screen.destination::class)
-                            } == true
-                        ) {
-                            reloadDestinationIfNeeded(
-                                screen.destination::class,
-                            )
-                        } else {
-                            navController.navigate(screen.destination)
-                        }
-                    } else {
-                        navController.navigate(screen.destination) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
-            )
-        }
-        Spacer(Modifier.height(32.dp))
+        
+        // La línea divisoria a la derecha del menú
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(1.dp)
+                .background(if (isLightMode) Color.Black else Color.DarkGray)
+        )
     }
 }

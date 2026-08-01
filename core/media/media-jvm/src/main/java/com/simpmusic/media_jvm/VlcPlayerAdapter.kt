@@ -49,46 +49,46 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.JPanel
+import com.sun.jna.NativeLibrary
 
 private const val TAG = "VlcPlayerAdapter"
 
-/**
- * VLC (vlcj) implementation of MediaPlayerInterface
- * Features:
- * - Queue management with auto-load for next track
- * - Precaching system for smooth transitions
- * - Crossfade transitions
- * - Audio + Video merging via --input-slave (equivalent to Android MergingMediaSource)
- * - Built-in equalizer support
- * - No external installation required (when bundled via vlc-setup plugin)
- */
 class VlcPlayerAdapter(
     private val coroutineScope: CoroutineScope,
     private val dataStoreManager: DataStoreManager,
     private val streamRepository: StreamRepository,
 ) : MediaPlayerInterface {
-    // Internal state enum for proper state machine
+    
     private enum class InternalState {
-        IDLE,
-        PREPARING,
-        READY,
-        PLAYING,
-        PAUSED,
-        ENDED,
-        ERROR,
+        IDLE, PREPARING, READY, PLAYING, PAUSED, ENDED, ERROR,
     }
 
     private fun InternalState.isInReadyState(): Boolean = this == InternalState.READY || this == InternalState.PLAYING || this == InternalState.PAUSED
 
-    // ========== VLC Factory ==========
     private val mediaPlayerFactory: MediaPlayerFactory
 
     init {
+        try {
+            val rootDir = File(System.getProperty("user.dir"))
+            val localVlcDir = File(rootDir, "vlc")
+            if (localVlcDir.exists() && localVlcDir.isDirectory) {
+                val vlcPath = localVlcDir.absolutePath
+                System.setProperty("jna.library.path", vlcPath)
+                System.setProperty("VLC_PLUGIN_PATH", File(vlcPath, "plugins").absolutePath)
+                NativeLibrary.addSearchPath("libvlc", vlcPath)
+                NativeLibrary.addSearchPath("libvlccore", vlcPath)
+                Logger.d(TAG, "Bundled VLC loaded successfully from: $vlcPath")
+            } else {
+                Logger.w(TAG, "Bundled VLC directory not found at $localVlcDir")
+            }
+        } catch (e: Exception) {
+            Logger.e(TAG, "Failed to load bundled VLC: ${e.message}")
+        }
+
         System
             .getProperty("compose.application.resources.dir")
             ?.let { System.setProperty("jna.library.path", it) }
-        // Use custom NativeDiscoveryStrategy to find bundled VLC libraries
-        // DefaultVlcDiscoverer handles Windows/Linux, MacOsVlcDiscoverer handles macOS
+            
         val discovery =
             NativeDiscovery(
                 DefaultVlcDiscoverer(),
@@ -109,7 +109,6 @@ class VlcPlayerAdapter(
 
         mediaPlayerFactory = MediaPlayerFactory(discovery, *factoryArgs.toTypedArray())
 
-        // Load crossfade settings
         coroutineScope.launch {
             dataStoreManager.crossfadeEnabled.collect { enabled ->
                 crossfadeEnabled = (enabled == DataStoreManager.TRUE)
@@ -125,14 +124,11 @@ class VlcPlayerAdapter(
         }
     }
 
-    // ========== State Management ==========
     private val listeners = mutableListOf<MediaPlayerListener>()
 
     @Volatile
     private var currentPlayer: VlcPlayer? = null
 
-    // Tracks whether the current player is actually rendering video
-    // (based on PlayableSource.isVideo, not GenericMediaItem metadata)
     @Volatile
     private var currentPlayerIsVideo = false
 
@@ -154,7 +150,6 @@ class VlcPlayerAdapter(
     @Volatile
     private var internalPlaybackSpeed = 1.0f
 
-    // Position tracking
     @Volatile
     private var cachedPosition = 0L
 
@@ -167,10 +162,8 @@ class VlcPlayerAdapter(
     @Volatile
     private var cachedIsLoading = false
 
-    // Position update job (fallback polling for crossfade detection)
     private var positionUpdateJob: Job? = null
 
-    // Precaching system
     private data class PrecachedPlayer(
         val player: VlcPlayer,
         val mediaItem: GenericMediaItem,
@@ -182,7 +175,6 @@ class VlcPlayerAdapter(
     private val maxPrecacheCount = 2
     private var precacheJob: Job? = null
 
-    // Crossfade system
     @Volatile
     private var crossfadeEnabled = false
 
@@ -198,7 +190,6 @@ class VlcPlayerAdapter(
     @Volatile
     private var isCrossfading = false
 
-    /** Index we're crossfading from; used when cancelling to revert localCurrentMediaItemIndex. */
     @Volatile
     private var crossfadeFromIndex = -1
 
@@ -207,7 +198,6 @@ class VlcPlayerAdapter(
             isCrossfading = value
             notifyListeners { onCrossfadeStateChanged(value) }
             if (value) {
-                // Debug: dump all thread states to find what blocks the UI
                 Logger.w(TAG, "=== CROSSFADE START - THREAD DUMP ===")
                 Thread.getAllStackTraces().forEach { (thread, stack) ->
                     if (thread.name.contains("AWT-EventQueue") ||
@@ -226,36 +216,28 @@ class VlcPlayerAdapter(
         }
     }
 
-    // Retry system - mirrors Android CrossfadeExoPlayerAdapter retry logic
     private var retryCount = 0
     private var retryVideoId: String? = null
     private val maxRetryCount = 2
 
-    // Playlist management
     private val playlist = mutableListOf<GenericMediaItem>()
     private var localCurrentMediaItemIndex = -1
 
-    // Shuffle management
     private var shuffleIndices = mutableListOf<Int>()
     private var shuffleOrder = mutableListOf<Int>()
 
-    // Loading management
     private var currentLoadJob: Job? = null
 
     fun getCurrentPlayer(): VlcPlayer? = currentPlayer
 
-    // Video surface state - UI collects this to display video
     private val _currentVideoSurface = MutableStateFlow<Component?>(null)
     val currentVideoSurface: StateFlow<Component?> = _currentVideoSurface.asStateFlow()
 
-    // ========== Playback Source ==========
     private data class PlayableSource(
         val isVideo: Boolean,
         val url: String,
-        val audioSlaveUrl: String? = null, // For merging: audio URL as --input-slave
+        val audioSlaveUrl: String? = null,
     )
-
-    // ========== Playback Control ==========
 
     override fun play() {
         Logger.d(TAG, "play() called (current state: $internalState)")
@@ -294,7 +276,6 @@ class VlcPlayerAdapter(
     override fun pause() {
         Logger.d(TAG, "pause() called (current state: $internalState)")
         coroutineScope.launch {
-            // Cancel any ongoing crossfade and await completion before proceeding
             if (isCrossfading) {
                 Logger.d(TAG, "Pause: Cancelling crossfade")
                 cancelCrossfadeAndCleanup(revertIndex = true)
@@ -355,13 +336,11 @@ class VlcPlayerAdapter(
         coroutineScope.launch {
             val shouldPlay = internalPlayWhenReady
 
-            // Cancel any ongoing crossfade and await completion
             if (isCrossfading) {
                 Logger.d(TAG, "seekTo: Cancelling crossfade")
                 cancelCrossfadeAndCleanup(revertIndex = false)
             }
 
-            // Cancel any ongoing load
             currentLoadJob?.cancel()
 
             localCurrentMediaItemIndex = mediaItemIndex
@@ -385,9 +364,6 @@ class VlcPlayerAdapter(
 
     override fun seekToNext() {
         if (hasNextMediaItem()) {
-            // During crossfade A→A+1: user pressing "next" means go to the track we're fading in (A+1).
-            // localCurrentMediaItemIndex was already updated to A+1 in triggerCrossfadeTransition,
-            // so getNextMediaItemIndex() would return A+2. We must seek to localCurrentMediaItemIndex instead.
             if (isCrossfading) {
                 val targetIndex = localCurrentMediaItemIndex
                 Logger.d(TAG, "seekToNext: Cancelling crossfade, seeking to track we're fading in (index $targetIndex)")
@@ -405,15 +381,11 @@ class VlcPlayerAdapter(
 
     override fun seekToPrevious() {
         coroutineScope.launch {
-            // Cancel any ongoing crossfade first and revert index, awaiting completion
             if (isCrossfading) {
                 Logger.d(TAG, "seekToPrevious: Cancelling crossfade")
                 cancelCrossfadeAndCleanup(revertIndex = true)
             }
 
-            // Standard music player behavior:
-            // Position > 3s → seek to start of current track
-            // Position <= 3s → go to previous track
             val positionThresholdMs = 3000L
             if (cachedPosition > positionThresholdMs) {
                 Logger.d(TAG, "seekToPrevious: pos=${cachedPosition}ms > ${positionThresholdMs}ms — seeking to start")
@@ -433,7 +405,6 @@ class VlcPlayerAdapter(
 
     override fun seekToPreviousMediaItem() {
         coroutineScope.launch {
-            // Cancel any ongoing crossfade first and revert index, awaiting completion
             if (isCrossfading) {
                 Logger.d(TAG, "seekToPreviousMediaItem: Cancelling crossfade")
                 cancelCrossfadeAndCleanup(revertIndex = true)
@@ -458,8 +429,6 @@ class VlcPlayerAdapter(
             }
         }
     }
-
-    // ========== Media Item Management ==========
 
     override fun setMediaItem(mediaItem: GenericMediaItem) {
         coroutineScope.launch {
@@ -663,8 +632,6 @@ class VlcPlayerAdapter(
             shuffledIndex
         }
 
-    // ========== Playback State Properties ==========
-
     override val isPlaying: Boolean
         get() = internalState == InternalState.PLAYING
 
@@ -707,8 +674,6 @@ class VlcPlayerAdapter(
                 InternalState.ERROR -> PlayerConstants.STATE_IDLE
                 InternalState.PAUSED -> PlayerConstants.STATE_READY
             }
-
-    // ========== Navigation ==========
 
     override fun hasNextMediaItem(): Boolean =
         when (internalRepeatMode) {
@@ -795,8 +760,6 @@ class VlcPlayerAdapter(
             }
         }
 
-    // ========== Playback Modes ==========
-
     override var shuffleModeEnabled: Boolean
         get() = internalShuffleModeEnabled
         set(value) {
@@ -843,24 +806,19 @@ class VlcPlayerAdapter(
             }
         }
 
-    // ========== Audio Settings ==========
-
     override val audioSessionId: Int
-        get() = 0 // VLC doesn't provide audio session ID
+        get() = 0
 
     override var volume: Float
         get() = internalVolume
         set(value) {
             Logger.w(TAG, "Setting volume to $value")
             internalVolume = value.coerceIn(0f, 1f)
-            // VLC volume: 0-200 (100 = normal). Map our 0.0-1.0 to 0-100.
             currentPlayer?.setVolume((internalVolume * 100).toInt())
             notifyListeners { onVolumeChanged(internalVolume) }
         }
 
     override var skipSilenceEnabled: Boolean = false
-
-    // ========== Listener Management ==========
 
     override fun addListener(listener: MediaPlayerListener) {
         listeners.add(listener)
@@ -869,8 +827,6 @@ class VlcPlayerAdapter(
     override fun removeListener(listener: MediaPlayerListener) {
         listeners.remove(listener)
     }
-
-    // ========== Release Resources ==========
 
     override fun release() {
         currentLoadJob?.cancel()
@@ -895,14 +851,6 @@ class VlcPlayerAdapter(
         }
     }
 
-    // ========== Internal Methods ==========
-
-    /**
-     * Transition internal state and notify listeners.
-     * Listeners are called on the VLC thread (not Main) because
-     * JvmMediaPlayerHandlerImpl uses thread-safe StateFlow updates
-     * and contains runBlocking calls that would deadlock on Main.
-     */
     private fun transitionToState(newState: InternalState) {
         if (internalState == newState) return
 
@@ -911,7 +859,6 @@ class VlcPlayerAdapter(
 
         Logger.d(TAG, "State transition: $oldState -> $newState (playWhenReady=$internalPlayWhenReady)")
 
-        // Query duration from VLC
         currentPlayer?.let { player ->
             val dur = player.length
             if (dur > 0L) {
@@ -919,8 +866,6 @@ class VlcPlayerAdapter(
             }
         }
 
-        // Notify listeners on VLC thread — safe because JvmMediaPlayerHandlerImpl
-        // uses thread-safe StateFlow/MutableStateFlow for all state updates.
         when (newState) {
             InternalState.PAUSED -> {
                 listeners.forEach { it.onPlaybackStateChanged(PlayerConstants.STATE_READY) }
@@ -980,9 +925,6 @@ class VlcPlayerAdapter(
         }
     }
 
-    /**
-     * Load and play track - MUST run on coroutineScope
-     */
     private fun loadAndPlayTrackInternal(
         index: Int,
         startPositionMs: Long,
@@ -1000,8 +942,6 @@ class VlcPlayerAdapter(
                 try {
                     transitionToState(InternalState.PREPARING)
 
-                    // Notify media item transition (fire-and-forget to avoid
-                    // blocking VLC thread with runBlocking inside handler)
                     notifyListeners {
                         onMediaItemTransition(
                             mediaItem,
@@ -1009,14 +949,9 @@ class VlcPlayerAdapter(
                         )
                     }
 
-                    // Detach event listener from old player IMMEDIATELY before
-                    // spending time on URL extraction. This prevents stale events
-                    // (error/finished) from the old player seeing the updated
-                    // playlist/index and interfering with the new track load.
                     cleanupEventListenerInternal()
                     stopPositionUpdates()
 
-                    // Extract URL on IO thread (network), VLC native calls stay on VLC thread
                     val cachedPrecache = precachedPlayers.remove(videoId)
                     var resolvedSource: PlayableSource? = null
                     val player =
@@ -1041,7 +976,6 @@ class VlcPlayerAdapter(
                             createMediaPlayerInternal(source)
                         }
 
-                    // VLC native calls on VLC thread
                     cleanupCurrentPlayerInternal()
                     currentPlayer = player
                     currentPlayerIsVideo = player.videoSurface != null
@@ -1076,15 +1010,10 @@ class VlcPlayerAdapter(
                         cachedPosition = startPositionMs
                     }
 
-                    // Always transition to READY first so UI receives
-                    // isLoading=false via STATE_READY. The READY handler
-                    // will auto-call play() when internalPlayWhenReady is true.
                     transitionToState(InternalState.READY)
 
-                    // Start position updates
                     startPositionUpdates()
 
-                    // Trigger precaching
                     triggerPrecachingInternal()
                 } catch (e: Exception) {
                     if (e !is CancellationException) {
@@ -1101,22 +1030,12 @@ class VlcPlayerAdapter(
             options.add(":input-slave=${source.audioSlaveUrl}")
         }
         if (source.isVideo) {
-            // Extra buffering for video streams to prevent stalls near end
             options.add(":network-caching=15000")
             options.add(":http-reconnect")
         }
         return options.toTypedArray()
     }
 
-    /**
-     * Create a VLC media player instance
-     *
-     * For video: Creates an EmbeddedMediaPlayer with a Canvas video surface
-     * For audio: Creates a headless MediaPlayer (no video)
-     *
-     * When source has audioSlaveUrl, VLC will merge video + audio streams
-     * via --input-slave (equivalent to Android's MergingMediaSource)
-     */
     private fun createMediaPlayerInternal(source: PlayableSource): VlcPlayer {
         if (source.isVideo) {
             Logger.d(TAG, "Creating video player with callback surface")
@@ -1132,7 +1051,6 @@ class VlcPlayerAdapter(
             )
         }
 
-        // Audio-only player
         Logger.d(TAG, "Creating audio-only player")
         val player = mediaPlayerFactory.mediaPlayers().newMediaPlayer()
         return VlcPlayer(
@@ -1141,28 +1059,18 @@ class VlcPlayerAdapter(
         )
     }
 
-    /**
-     * Setup VLC event listeners for a player
-     */
     private fun setupPlayerEventsInternal(player: VlcPlayer) {
-        // Remove old listener
         cleanupEventListenerInternal()
 
-        // IMPORTANT: VLC callbacks run on a native thread. Calling stop()/release()
-        // from within a callback causes deadlock (native thread waits for itself to finish).
-        // All heavy operations must be dispatched to coroutineScope (runs on Main/Swing).
         val listener =
             object : MediaPlayerEventAdapter() {
                 override fun finished(mediaPlayer: MediaPlayer) {
                     Logger.d(TAG, "End of stream reached")
                     coroutineScope.launch {
-                        // Ignore events from a player that is no longer current
                         if (currentPlayer?.mediaPlayer != mediaPlayer) {
                             Logger.w(TAG, "Ignoring finished() from stale player")
                             return@launch
                         }
-                        // During crossfade, the old player will naturally finish near the end.
-                        // Ignore it - the crossfade is already handling the transition.
                         if (isCrossfading) {
                             Logger.d(TAG, "Ignoring finished() during crossfade (old player ended)")
                             return@launch
@@ -1175,22 +1083,16 @@ class VlcPlayerAdapter(
                 override fun error(mediaPlayer: MediaPlayer) {
                     Logger.e(TAG, "VLC playback error")
                     coroutineScope.launch {
-                        // Ignore errors from a player that is no longer current.
-                        // This can happen when the old player fires error() after
-                        // a new track has started loading (playlist/index already updated).
                         if (currentPlayer?.mediaPlayer != mediaPlayer) {
                             Logger.w(TAG, "Ignoring error() from stale player")
                             return@launch
                         }
-                        // During crossfade, ignore errors from the old player -
-                        // it's fading out and will be released soon anyway.
                         if (isCrossfading) {
                             Logger.w(TAG, "Ignoring error() during crossfade (old player error)")
                             return@launch
                         }
                         val currentVideoId = playlist.getOrNull(localCurrentMediaItemIndex)?.mediaId
                         if (currentVideoId != null) {
-                            // Reset retry count for new track
                             if (retryVideoId != currentVideoId) {
                                 retryVideoId = currentVideoId
                                 retryCount = 0
@@ -1199,12 +1101,9 @@ class VlcPlayerAdapter(
                                 retryCount++
                                 Logger.w(TAG, "Retrying playback (attempt $retryCount/$maxRetryCount) for $currentVideoId")
                                 try {
-                                    // Invalidate cached format so fresh URL is fetched
                                     streamRepository.invalidateFormat(currentVideoId)
                                     streamRepository.invalidateFormat("${MERGING_DATA_TYPE.VIDEO}$currentVideoId")
-                                    // Evict stale precache
                                     precachedPlayers.remove(currentVideoId)?.player?.release()
-                                    // Reload the track
                                     loadAndPlayTrackInternal(localCurrentMediaItemIndex, 0L, shouldPlay = true)
                                     return@launch
                                 } catch (e: Exception) {
@@ -1231,7 +1130,6 @@ class VlcPlayerAdapter(
                         if (internalState != InternalState.PLAYING) {
                             transitionToState(InternalState.PLAYING)
                             notifyEqualizerIntent(true)
-                            // Reset retry counter on successful playback
                             retryCount = 0
                             retryVideoId = null
                         }
@@ -1258,8 +1156,6 @@ class VlcPlayerAdapter(
                     mediaPlayer: MediaPlayer,
                     newTime: Long,
                 ) {
-                    // During crossfade, this fires from the OLD player — ignore it.
-                    // Position updates come from the poll loop using secondaryPlayer's time.
                     if (!isCrossfading) {
                         cachedPosition = newTime
                     }
@@ -1269,7 +1165,6 @@ class VlcPlayerAdapter(
                     mediaPlayer: MediaPlayer,
                     newLength: Long,
                 ) {
-                    // During crossfade, this fires from the OLD player — ignore it.
                     if (!isCrossfading && newLength > 0) {
                         cachedDuration = newLength
                     }
@@ -1279,17 +1174,12 @@ class VlcPlayerAdapter(
                     mediaPlayer: MediaPlayer,
                     newCache: Float,
                 ) {
-                    // During crossfade, ignore buffering events from old player
                     if (isCrossfading) return
 
-                    // Update buffered position first
                     if (cachedDuration > 0) {
                         cachedBufferedPosition = (cachedDuration * newCache / 100f).toLong()
                     }
 
-                    // Only report loading when buffer is actually behind the playhead.
-                    // VLC fires buffering(<100%) during normal refills even when
-                    // there's plenty of data ahead — that's not a stall.
                     val isStalled = newCache < 100f && cachedBufferedPosition <= cachedPosition
                     Logger.d(
                         TAG,
@@ -1310,16 +1200,10 @@ class VlcPlayerAdapter(
         player.setEventListener(listener)
     }
 
-    /**
-     * Clean up event listener from current player
-     */
     private fun cleanupEventListenerInternal() {
         currentPlayer?.setEventListener(null)
     }
 
-    /**
-     * Cleanup a player instance
-     */
     private fun cleanupPlayerInternal(player: VlcPlayer) {
         try {
             player.release()
@@ -1328,9 +1212,6 @@ class VlcPlayerAdapter(
         }
     }
 
-    /**
-     * Cleanup current player
-     */
     private fun cleanupCurrentPlayerInternal() {
         stopPositionUpdates()
         cleanupEventListenerInternal()
@@ -1345,13 +1226,7 @@ class VlcPlayerAdapter(
         _currentVideoSurface.value = null
     }
 
-    /**
-     * Handle track end
-     */
     private fun handleTrackEndInternal() {
-        // If crossfade is already in progress (triggered by position update before track ended),
-        // don't interrupt it. The old player ending is expected — the crossfade will complete
-        // and finalizeCrossfade() will handle the transition.
         if (isCrossfading) {
             Logger.d(TAG, "handleTrackEndInternal: crossfade in progress, ignoring track end")
             return
@@ -1387,9 +1262,6 @@ class VlcPlayerAdapter(
         }
     }
 
-    /**
-     * Trigger crossfade to next track
-     */
     private fun triggerCrossfadeTransition(nextIndex: Int) {
         if (nextIndex !in playlist.indices || isCrossfading) return
 
@@ -1402,7 +1274,6 @@ class VlcPlayerAdapter(
 
                     Logger.d(TAG, "Starting crossfade to track $nextIndex")
 
-                    // Extract URL on IO thread (network), VLC native calls stay on VLC thread
                     val cachedPrecache = precachedPlayers.remove(nextVideoId)
                     val nextPlayer: VlcPlayer? =
                         if (cachedPrecache?.player != null) {
@@ -1422,9 +1293,6 @@ class VlcPlayerAdapter(
                         }
 
                     if (nextPlayer != null) {
-                        // Setup secondary player with its OWN listener.
-                        // DO NOT call setupPlayerEventsInternal() here - that would remove
-                        // the event listener from the current player (which is still playing).
                         secondaryPlayer = nextPlayer
                         nextPlayer.setEventListener(
                             object : MediaPlayerEventAdapter() {
@@ -1450,10 +1318,8 @@ class VlcPlayerAdapter(
                         return@launch
                     }
 
-                    // Capture current index BEFORE advancing localCurrentMediaItemIndex
                     crossfadeFromIndex = localCurrentMediaItemIndex
 
-                    // Update now playing and video surface immediately
                     localCurrentMediaItemIndex = nextIndex
                     if (nextPlayer.videoSurface != null) {
                         _currentVideoSurface.value = nextPlayer.videoSurface
@@ -1467,10 +1333,6 @@ class VlcPlayerAdapter(
 
                     Logger.d(TAG, "Now playing updated to track $nextIndex during crossfade")
 
-                    // Calculate effective crossfade duration based on ACTUAL remaining time.
-                    // If the secondary player wasn't precached, URL resolution + buffering may
-                    // have consumed part of the crossfade window. Use the lesser of configured
-                    // duration and actual remaining time so the animation ends when the old track does.
                     val actualTimeRemaining =
                         currentPlayer?.let { player ->
                             val dur = player.length
@@ -1490,7 +1352,6 @@ class VlcPlayerAdapter(
                             "actualRemaining=${actualTimeRemaining}ms, effective=${effectiveCrossfadeDurationMs}ms",
                     )
 
-                    // Perform crossfade animation with effective duration
                     performCrossfade(nextIndex, nextPlayer, effectiveCrossfadeDurationMs)
                 } catch (e: Exception) {
                     if (e !is CancellationException) {
@@ -1502,21 +1363,11 @@ class VlcPlayerAdapter(
             }
     }
 
-    /**
-     * Cancel the ongoing crossfade, await its completion, and clean up state.
-     * Uses [Job.cancelAndJoin] to ensure the crossfade coroutine's catch block
-     * has finished before the caller proceeds, preventing race conditions.
-     *
-     * @param revertIndex If true, revert [localCurrentMediaItemIndex] to the track
-     *   that was playing before the crossfade started.
-     */
     private suspend fun cancelCrossfadeAndCleanup(revertIndex: Boolean) {
         val job = crossfadeJob
         crossfadeJob = null
         job?.cancel()
         job?.join()
-        // secondaryPlayer may already be released by performCrossfade's catch block,
-        // but with isReleased guard in VlcPlayer, this is safe.
         secondaryPlayer?.release()
         secondaryPlayer = null
         if (revertIndex && crossfadeFromIndex >= 0) {
@@ -1534,20 +1385,13 @@ class VlcPlayerAdapter(
         setCrossfading(false)
     }
 
-    /**
-     * Perform the actual crossfade animation
-     *
-     * @param effectiveDurationMs The actual crossfade duration to use. May be shorter than
-     *   the configured [crossfadeDurationMs] if URL resolution / buffering consumed
-     *   part of the crossfade window.
-     */
     private suspend fun performCrossfade(
         nextIndex: Int,
         nextPlayer: VlcPlayer,
         effectiveDurationMs: Int,
     ) {
         val steps = 50
-        val delayPerStep = (effectiveDurationMs / steps).coerceAtLeast(20) // min 20ms per step
+        val delayPerStep = (effectiveDurationMs / steps).coerceAtLeast(20)
         val targetVolume = (internalVolume * 100).toInt()
         Logger.d(
             TAG,
@@ -1561,32 +1405,24 @@ class VlcPlayerAdapter(
                 val progress = step.toFloat() / steps
                 val angle = progress * Math.PI / 2.0
 
-                // Equal-power crossfade using sine curve
-                // Fade out: cos curve holds volume longer, then drops naturally
                 val fadeOutVolume = (targetVolume * kotlin.math.cos(angle)).toInt()
                 currentPlayer?.setVolume(fadeOutVolume)
 
-                // Fade in: sin curve brings next track in earlier
                 val fadeInVolume = (targetVolume * kotlin.math.sin(angle)).toInt()
                 nextPlayer.setVolume(fadeInVolume)
 
                 delay(delayPerStep.toLong())
             }
 
-            // Transition complete
             finalizeCrossfade(nextIndex, nextPlayer)
         } catch (e: CancellationException) {
             Logger.d(TAG, "Crossfade cancelled")
-            // Release is safe even if caller also releases (isReleased guard prevents double-release)
             nextPlayer.release()
             secondaryPlayer = null
             setCrossfading(false)
         }
     }
 
-    /**
-     * Finalize crossfade: swap players and cleanup
-     */
     private fun finalizeCrossfade(
         nextIndex: Int,
         nextPlayer: VlcPlayer,
@@ -1595,7 +1431,6 @@ class VlcPlayerAdapter(
 
         stopPositionUpdates()
 
-        // Cleanup old current player
         currentPlayer?.let { oldPlayer ->
             try {
                 oldPlayer.release()
@@ -1604,36 +1439,24 @@ class VlcPlayerAdapter(
             }
         }
 
-        // Promote secondary to current
         currentPlayer = nextPlayer
         currentPlayerIsVideo = nextPlayer.videoSurface != null
         _currentVideoSurface.value = nextPlayer.videoSurface
         secondaryPlayer = null
 
-        // Now set up the full event listener on the new current player
-        // (replaces the minimal crossfade error listener)
         setupPlayerEventsInternal(nextPlayer)
 
-        // Ensure correct volume
         currentPlayer?.setVolume((internalVolume * 100).toInt())
 
-        // Reset state
         setCrossfading(false)
         crossfadeFromIndex = -1
         transitionToState(InternalState.PLAYING)
 
-        // Start position tracking
         startPositionUpdates()
 
-        // Trigger next precache
         triggerPrecachingInternal()
     }
 
-    /**
-     * Start position updates (periodic polling for crossfade detection)
-     * VLC timeChanged callback handles position caching, but we need
-     * this loop for crossfade trigger detection.
-     */
     private fun startPositionUpdates() {
         stopPositionUpdates()
 
@@ -1645,7 +1468,6 @@ class VlcPlayerAdapter(
                             internalState == InternalState.READY ||
                             internalState == InternalState.PAUSED
                         ) {
-                            // During crossfade, show the incoming track's timeline exclusively
                             if (isCrossfading) {
                                 val nextPlayer = secondaryPlayer
                                 if (nextPlayer != null) {
@@ -1664,8 +1486,6 @@ class VlcPlayerAdapter(
                                 }
                             }
 
-                            // Check if should trigger crossfade.
-                            // Use currentPlayer's time (not the timeline player) for trigger detection.
                             if (crossfadeEnabled &&
                                 !isCrossfading
                             ) {
@@ -1690,10 +1510,9 @@ class VlcPlayerAdapter(
                             }
                         }
                     } catch (_: Exception) {
-                        // Ignore query errors
                     }
 
-                    delay(200) // Update every 200ms
+                    delay(200)
                 }
             }
     }
@@ -1703,9 +1522,6 @@ class VlcPlayerAdapter(
         positionUpdateJob = null
     }
 
-    /**
-     * Trigger precaching
-     */
     private fun triggerPrecachingInternal() {
         if (!precacheEnabled || playlist.isEmpty()) return
 
@@ -1736,13 +1552,11 @@ class VlcPlayerAdapter(
                         }
                     }
 
-                    // Run all I/O and VLC native calls off EDT
                     for (idx in indicesToPrecache) {
                         if (!isActive) break
 
                         val mediaItem = playlist.getOrNull(idx) ?: continue
 
-                        // Network extraction on IO, VLC native calls on VLC thread
                         val source = withContext(Dispatchers.IO) { extractPlayableUrl(mediaItem) }
 
                         if (source != null && source.url.isNotEmpty()) {
@@ -1791,11 +1605,6 @@ class VlcPlayerAdapter(
         precachedPlayers.clear()
     }
 
-    /**
-     * Dispatch listener notifications on VLC thread.
-     * Listeners (JvmMediaPlayerHandlerImpl) use thread-safe StateFlow updates
-     * and contain runBlocking calls that would deadlock on Main/Swing EDT.
-     */
     private fun notifyListeners(block: MediaPlayerListener.() -> Unit) {
         coroutineScope.launch {
             listeners.forEach(block)
@@ -1805,8 +1614,6 @@ class VlcPlayerAdapter(
     private fun notifyEqualizerIntent(shouldOpen: Boolean) {
         notifyListeners { shouldOpenOrCloseEqualizerIntent(shouldOpen) }
     }
-
-    // ========== Shuffle Management ==========
 
     private fun createShuffleOrder() {
         if (playlist.isEmpty()) {
@@ -1890,16 +1697,8 @@ class VlcPlayerAdapter(
     }
 
     fun setMaxPrecacheCount(count: Int) {
-        // maxPrecacheCount is val, but can be changed to var if needed
     }
 
-    // ========== URL Extraction ==========
-
-    /**
-     * Extract playable URL for a media item.
-     * KEY IMPROVEMENT over GStreamer: Returns both video AND audio URLs for merging
-     * via VLC's --input-slave option (equivalent to Android's MergingMediaSource).
-     */
     private suspend fun extractPlayableUrl(mediaItem: GenericMediaItem): PlayableSource? {
         Logger.w(TAG, "Extracting playable URL for ${mediaItem.mediaId}")
         val shouldFindVideo =
@@ -1907,7 +1706,6 @@ class VlcPlayerAdapter(
                 dataStoreManager.watchVideoInsteadOfPlayingAudio.first() == DataStoreManager.TRUE
         val videoId = mediaItem.mediaId
 
-        // Check downloads first
         val downloadFiles =
             File(getDownloadPath()).listFiles()?.filter {
                 it.name.contains(videoId)
@@ -1915,12 +1713,10 @@ class VlcPlayerAdapter(
         if (!downloadFiles.isNullOrEmpty()) {
             val audioFile = downloadFiles.firstOrNull { !it.name.contains(MERGING_DATA_TYPE.VIDEO) }
             if (audioFile != null && audioFile.length() > 0 && audioFile.exists()) {
-                // VLC accepts absolute file paths directly as MRL
                 return PlayableSource(isVideo = false, url = audioFile.absolutePath)
             }
         }
 
-        // Try new format API (returns both audio and video URLs)
         streamRepository.getNewFormat(videoId).lastOrNull()?.let { format ->
             val audioUrl = format.audioUrl
             val videoUrl = format.videoUrl
@@ -1928,7 +1724,6 @@ class VlcPlayerAdapter(
             if (shouldFindVideo && !videoUrl.isNullOrEmpty()) {
                 val is403Video = streamRepository.is403Url(videoUrl).firstOrNull() != false
                 if (!is403Video) {
-                    // Return video URL with audio as slave for merging
                     val audioSlave =
                         if (!audioUrl.isNullOrEmpty()) {
                             val is403Audio = streamRepository.is403Url(audioUrl).firstOrNull() != false
@@ -1953,7 +1748,6 @@ class VlcPlayerAdapter(
             }
         }
 
-        // Fallback to stream extraction
         if (shouldFindVideo) {
             val videoUrl =
                 streamRepository
@@ -1987,10 +1781,6 @@ class VlcPlayerAdapter(
     }
 }
 
-/**
- * VLC Player wrapper - equivalent to the old GstreamerPlayer.
- * Wraps a VLC MediaPlayer instance with optional video surface component.
- */
 class VlcPlayer(
     val mediaPlayer: MediaPlayer,
     val videoSurface: Component? = null,
@@ -2048,10 +1838,6 @@ class VlcPlayer(
         }
     }
 
-    /**
-     * Set volume. VLC range: 0-200 (100 = normal).
-     * We use 0-100 mapping from our 0.0-1.0 interface range.
-     */
     fun setVolume(volume: Int) {
         if (isReleased) return
         try {
@@ -2099,8 +1885,6 @@ class VlcPlayer(
         isReleased = true
         try {
             setEventListener(null)
-            // Run stop+release on a separate thread to avoid deadlock
-            // if called from VLC callback thread (which can happen during transitions)
             Thread {
                 try {
                     mediaPlayer.controls().stop()
@@ -2115,14 +1899,6 @@ class VlcPlayer(
     }
 }
 
-/**
- * JPanel that renders VLC video frames via callback.
- * Works on all platforms including macOS (unlike Canvas-based approach which
- * requires a native window handle that macOS VLC can't use).
- *
- * VLC renders frames to a BufferedImage via native buffer callbacks,
- * then this panel paints the image scaled to fit.
- */
 class VlcVideoSurfacePanel : JPanel() {
     @Volatile
     private var videoImage: BufferedImage? = null
@@ -2133,9 +1909,6 @@ class VlcVideoSurfacePanel : JPanel() {
     @Volatile
     private var videoHeight = 0
 
-    // Strong references to prevent JNA from garbage collecting native callback pointers.
-    // JNA wraps these in CallbackReference with weak refs; without strong refs here,
-    // the GC can collect them while VLC native code still holds the function pointer → SIGSEGV.
     private val bufferFormatCb =
         object : BufferFormatCallback {
             override fun getBufferFormat(
@@ -2154,11 +1927,9 @@ class VlcVideoSurfacePanel : JPanel() {
                 p2: Int,
                 p3: Int,
             ) {
-                // No-op
             }
 
             override fun allocatedBuffers(buffers: Array<out ByteBuffer>) {
-                // No-op
             }
         }
 
@@ -2178,20 +1949,16 @@ class VlcVideoSurfacePanel : JPanel() {
                     intBuffer.get(rgbArray, 0, minOf(rgbArray.size, intBuffer.remaining()))
                     repaint()
                 } catch (_: Exception) {
-                    // Buffer size mismatch during format change - skip frame
                 }
             }
 
             override fun lock(p0: MediaPlayer?) {
-                // No-op
             }
 
             override fun unlock(p0: MediaPlayer?) {
-                // No-op
             }
         }
 
-    // The CallbackVideoSurface itself also must be strongly referenced
     @Volatile
     private var videoSurfaceRef: Any? = null
 
@@ -2200,17 +1967,12 @@ class VlcVideoSurfacePanel : JPanel() {
         isOpaque = true
     }
 
-    /**
-     * Create a callback video surface bound to this panel.
-     * The surface and all callbacks are strongly referenced by this panel
-     * to prevent JNA garbage collection.
-     */
     fun createVideoSurface(factory: MediaPlayerFactory): uk.co.caprica.vlcj.player.embedded.videosurface.VideoSurface {
         val surface =
             factory.videoSurfaces().newVideoSurface(
                 bufferFormatCb,
                 renderCb,
-                true, // lock buffers for thread safety
+                true,
             )
         videoSurfaceRef = surface
         return surface
@@ -2235,7 +1997,6 @@ class VlcVideoSurfacePanel : JPanel() {
             RenderingHints.KEY_INTERPOLATION,
             RenderingHints.VALUE_INTERPOLATION_BILINEAR,
         )
-        // Maintain aspect ratio, center in panel
         val panelW = width.toDouble()
         val panelH = height.toDouble()
         val imgW = img.width.toDouble()

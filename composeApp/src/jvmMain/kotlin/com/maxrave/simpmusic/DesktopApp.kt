@@ -1,18 +1,32 @@
 package com.maxrave.simpmusic
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
@@ -29,6 +43,9 @@ import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
+import com.maxrave.simpmusic.desktop.auth.AuthManager
+import com.maxrave.simpmusic.desktop.auth.SecurityGuard
+import com.maxrave.simpmusic.desktop.ui.LoginScreen
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
@@ -38,11 +55,13 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import io.sentry.Sentry
 import io.sentry.SentryLevel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import multiplatform.network.cmptoast.ToastHost
 import multiplatform.network.cmptoast.showToast
 import okhttp3.OkHttpClient
@@ -78,31 +97,21 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             java.awt.Desktop.getDesktop().setOpenURIHandler { event ->
                 DesktopDeepLinkHandler.onNewUri(event.uri.toString())
             }
-        } catch (_: UnsupportedOperationException) {
-        }
+        } catch (_: UnsupportedOperationException) {}
     }
 
-    val deepLinkArg =
-        args.firstOrNull()?.takeIf { arg ->
-            arg.startsWith("simpmusic://") || arg.startsWith("http://") || arg.startsWith("https://")
-        }
-    // Single-instance guard — MUST run before startKoin. The DataStore Koin
-    // singleton is `createdAtStart`, so a second Windows instance would touch
-    // ~/.simpmusic/settings.preferences_pb and crash with an "Unable to rename
-    // ...tmp" IOException (#2044) before it ever reached the old in-Compose check.
-    // Bail out here, before Koin/DataStore initialize.
-    val isSingleInstance =
-        SingleInstanceManager.isSingleInstance(
-            onRestoreRequest = { DesktopRestoreSignal.request() },
-        )
+    val deepLinkArg = args.firstOrNull()?.takeIf { arg ->
+        arg.startsWith("simpmusic://") || arg.startsWith("http://") || arg.startsWith("https://")
+    }
+
+    val isSingleInstance = SingleInstanceManager.isSingleInstance(
+        onRestoreRequest = { DesktopRestoreSignal.request() },
+    )
     if (!isSingleInstance) {
-        // Second instance: forward the deep link (if any) to the running instance,
-        // then exit. Nothing has touched the DataStore file yet.
         deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
         return
     }
 
-    // First instance only: deliver our own deep link (non-macOS passes URI via args).
     if (!isMacOS) {
         deepLinkArg?.let { DesktopDeepLinkHandler.onNewUri(it) }
     }
@@ -112,14 +121,9 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         loadKoinModules(viewModelModule)
     }
 
-    val language =
-        runBlocking {
-            getKoin()
-                .get<DataStoreManager>()
-                .language
-                .first()
-                .substring(0..1)
-        }
+    val language = runBlocking {
+        getKoin().get<DataStoreManager>().language.first().substring(0..1)
+    }
     changeLanguageNative(language)
 
     VersionManager.initialize()
@@ -135,13 +139,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     mediaPlayerHandler.showToast = { type ->
         showToast(
             when (type) {
-                ToastType.ExplicitContent -> {
-                    runBlocking { getString(Res.string.explicit_content_blocked) }
-                }
-
-                is ToastType.PlayerError -> {
-                    runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
-                }
+                ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
+                is ToastType.PlayerError -> runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
             },
         )
     }
@@ -160,195 +159,221 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     }
 
     application {
-        val windowState =
-            rememberWindowState(
-                size = DpSize(1500.dp, 860.dp),
-            )
-        var isVisible by remember { mutableStateOf(true) }
-        // The single-instance guard now runs before startKoin (top of
-        // runDesktopApp). Here we only react to a restore request raised when a
-        // second instance launches: bring the window back to the foreground and
-        // consume any deep link the second instance forwarded.
-        LaunchedEffect(Unit) {
-            DesktopRestoreSignal.requests.collect {
-                isVisible = true
-                windowState.isMinimized = false
-                DesktopDeepLinkHandler.consumePendingUri()
-            }
-        }
-        val openAppString = stringResource(Res.string.open_app)
-        val quitAppString = stringResource(Res.string.quit_app)
-        val openMiniPlayer = stringResource(Res.string.open_miniplayer)
-        val closeMiniPlayer = stringResource(Res.string.close_miniplayer)
-        Tray(
-            icon = painterResource(Res.drawable.circle_app_icon),
-            tooltip = stringResource(Res.string.app_name),
-            primaryAction = {
-                isVisible = true
-                windowState.isMinimized = false
-            },
-        ) {
-            if (!isVisible) {
-                Item(openAppString) {
-                    isVisible = true
-                    windowState.isMinimized = false
-                }
-            }
-            if (MiniPlayerManager.isOpen) {
-                Item(closeMiniPlayer) {
-                    MiniPlayerManager.isOpen = false
-                }
-            } else {
-                Item(openMiniPlayer) {
-                    MiniPlayerManager.isOpen = true
-                }
-            }
-            Divider()
-            Item(quitAppString) {
-                mediaPlayerHandler.release()
-                exitApplication()
-            }
-        }
-        // Detect virtual machines (Parallels, VirtualBox, VMware, etc.).
-        // Transparent + undecorated Compose windows don't render on VM
-        // GPU drivers — the window stays invisible while the JVM keeps
-        // running, so we must detect the VM and fall back to a normal
-        // decorated window.
-        //
-        // We probe Manufacturer + Model because brand strings live in
-        // different fields per hypervisor (Parallels-on-ARM puts
-        // "Parallels Software International Inc." in Manufacturer and
-        // "Parallels ARM Virtual Machine" in Model; VirtualBox uses
-        // "innotek GmbH" + "VirtualBox"; etc).
-        //
-        // Microsoft removed `wmic` from Windows 11 (deprecated since
-        // 10 21H1), so on modern Windows it returns "command not
-        // recognized" and our previous detection always saw an empty
-        // vendor — Parallels Win 11 ARM users hit this and got an
-        // invisible window. PowerShell `Get-CimInstance` is the modern
-        // replacement; we try it first and fall back to wmic for older
-        // hosts.
-        val isVM =
-            remember {
-                val osName = System.getProperty("os.name", "")
-                if (!osName.contains("Windows", ignoreCase = true)) {
-                    return@remember false
-                }
-                val probes =
-                    listOf(
-                        listOf(
-                            "powershell",
-                            "-NoProfile",
-                            "-Command",
-                            "(Get-CimInstance Win32_ComputerSystem | " +
-                                "Select-Object Manufacturer,Model | " +
-                                "Format-List | Out-String).Trim()",
-                        ),
-                        listOf("wmic", "computersystem", "get", "manufacturer,model"),
-                    )
-                val sysInfo =
-                    probes
-                        .asSequence()
-                        .mapNotNull { cmd ->
-                            runCatching {
-                                val p =
-                                    ProcessBuilder(cmd)
-                                        .redirectErrorStream(true)
-                                        .start()
-                                val out = p.inputStream.bufferedReader().readText()
-                                if (p.waitFor() == 0 && out.isNotBlank()) out else null
-                            }.getOrNull()
-                        }
-                        .firstOrNull()
-                        .orEmpty()
-                val vmTokens = listOf("Parallels", "VirtualBox", "VMware", "QEMU", "KVM", "Xen", "Hyper-V")
-                vmTokens.any { sysInfo.contains(it, ignoreCase = true) } ||
-                    System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
-            }
-        Window(
-            onCloseRequest = {
-                isVisible = false
-            },
-            title = stringResource(Res.string.app_name),
-            icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = !isVM,
-            transparent = !isVM,
-            state = windowState,
-            visible = isVisible,
-        ) {
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .then(
-                            if (!isVM) {
-                                Modifier.clip(RoundedCornerShape(12.dp))
-                            } else {
-                                Modifier
-                            },
-                        ),
-            ) {
-                if (!isVM) {
-                    CustomTitleBar(
-                        title = stringResource(Res.string.app_name),
-                        windowState = windowState,
-                        window = window,
-                        onCloseRequest = {
-                            isVisible = false
-                        },
-                    )
+        var isUserLoggedIn by remember { mutableStateOf(AuthManager.isLoggedIn) } 
+        var isSecurityChecked by remember { mutableStateOf(false) }
+        var isBlocked by remember { mutableStateOf(false) }
+        var blockTitle by remember { mutableStateOf("") }
+        var blockMessage by remember { mutableStateOf("") }
+
+        LaunchedEffect(isUserLoggedIn) {
+            if (isUserLoggedIn) {
+                if (System.currentTimeMillis() - AuthManager.getValidationTime() < 5000) {
+                    isSecurityChecked = true
+                    isBlocked = false
+                    return@LaunchedEffect
                 }
 
-                val context = LocalPlatformContext.current
-                setSingletonImageLoaderFactory {
-                    ImageLoader
-                        .Builder(context)
-                        .components {
-                            add(
-                                OkHttpNetworkFetcherFactory(
-                                    callFactory = {
-                                        OkHttpClient()
-                                    },
-                                ),
-                            )
+                val user = AuthManager.username ?: ""
+                val pass = AuthManager.getSavedPassword() ?: ""
+
+                withContext(Dispatchers.IO) {
+                    val loginResult = AuthManager.login(user, pass)
+
+                    withContext(Dispatchers.Main) {
+                        if (loginResult.isSuccess) {
+                            AuthManager.updateValidationTime()
+                            isSecurityChecked = true
+                            isBlocked = false
+                        } else {
+                            val errorMsg = loginResult.exceptionOrNull()?.message ?: ""
+                            
+                            if (errorMsg.contains("Error de red") || errorMsg.contains("Error en el servidor")) {
+                                val lastTime = AuthManager.getValidationTime()
+                                val currentTime = System.currentTimeMillis()
+                                val sevenDaysMs = 604800000L
+
+                                if (currentTime - lastTime > sevenDaysMs) {
+                                    AuthManager.clearSession()
+                                    isUserLoggedIn = false
+                                    isBlocked = true
+                                    blockTitle = "Sesión Expirada"
+                                    blockMessage = "Han pasado más de 7 días sin conexión a internet. Por favor, vuelve a iniciar sesión."
+                                } else {
+                                    isSecurityChecked = true
+                                    isBlocked = false
+                                }
+                            } else {
+                                AuthManager.clearSession()
+                                isUserLoggedIn = false
+                                isBlocked = true
+                                blockTitle = "Acceso Denegado"
+                                blockMessage = errorMsg
+                            }
+                        }
+                    }
+                }
+            } else {
+                isSecurityChecked = false
+            }
+        }
+
+        if (isBlocked) {
+            Window(
+                onCloseRequest = ::exitApplication,
+                title = blockTitle,
+                state = rememberWindowState(size = DpSize(400.dp, 250.dp)),
+                resizable = false
+            ) {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(blockTitle, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(blockMessage, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+            }
+        } else if (!isUserLoggedIn) {
+            Window(
+                onCloseRequest = ::exitApplication,
+                title = "Login - YouTube Music",
+                state = rememberWindowState(size = DpSize(450.dp, 600.dp)),
+                resizable = false
+            ) {
+                LoginScreen(onLoginSuccess = { isUserLoggedIn = true })
+            }
+        } else if (!isSecurityChecked) {
+            Window(
+                onCloseRequest = ::exitApplication,
+                title = "Verificando...",
+                state = rememberWindowState(size = DpSize(400.dp, 200.dp)),
+                resizable = false
+            ) {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Verificando seguridad de la cuenta...", color = MaterialTheme.colorScheme.onBackground)
+                        }
+                    }
+                }
+            }
+        } else {
+            val windowState = rememberWindowState(size = DpSize(1500.dp, 860.dp))
+            var isVisible by remember { mutableStateOf(true) }
+
+            LaunchedEffect(Unit) {
+                DesktopRestoreSignal.requests.collect {
+                    isVisible = true
+                    windowState.isMinimized = false
+                    DesktopDeepLinkHandler.consumePendingUri()
+                }
+            }
+
+            val openAppString = stringResource(Res.string.open_app)
+            val quitAppString = stringResource(Res.string.quit_app)
+            val openMiniPlayer = stringResource(Res.string.open_miniplayer)
+            val closeMiniPlayer = stringResource(Res.string.close_miniplayer)
+
+            Tray(
+                icon = painterResource(Res.drawable.circle_app_icon),
+                tooltip = stringResource(Res.string.app_name),
+                primaryAction = {
+                    isVisible = true
+                    windowState.isMinimized = false
+                },
+            ) {
+                if (!isVisible) {
+                    Item(openAppString) {
+                        isVisible = true
+                        windowState.isMinimized = false
+                    }
+                }
+                if (MiniPlayerManager.isOpen) {
+                    Item(closeMiniPlayer) { MiniPlayerManager.isOpen = false }
+                } else {
+                    Item(openMiniPlayer) { MiniPlayerManager.isOpen = true }
+                }
+                Divider()
+                Item(quitAppString) {
+                    mediaPlayerHandler.release()
+                    exitApplication()
+                }
+            }
+
+            val isVM = remember {
+                val osName = System.getProperty("os.name", "")
+                if (!osName.contains("Windows", ignoreCase = true)) return@remember false
+                val probes = listOf(
+                    listOf("powershell", "-NoProfile", "-Command", "(Get-CimInstance Win32_ComputerSystem | Select-Object Manufacturer,Model | Format-List | Out-String).Trim()"),
+                    listOf("wmic", "computersystem", "get", "manufacturer,model")
+                )
+                val sysInfo = probes.asSequence().mapNotNull { cmd ->
+                    runCatching {
+                        val p = ProcessBuilder(cmd).redirectErrorStream(true).start()
+                        val out = p.inputStream.bufferedReader().readText()
+                        if (p.waitFor() == 0 && out.isNotBlank()) out else null
+                    }.getOrNull()
+                }.firstOrNull().orEmpty()
+                val vmTokens = listOf("Parallels", "VirtualBox", "VMware", "QEMU", "KVM", "Xen", "Hyper-V")
+                vmTokens.any { sysInfo.contains(it, ignoreCase = true) } || System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
+            }
+
+            Window(
+                onCloseRequest = { isVisible = false },
+                title = stringResource(Res.string.app_name),
+                icon = painterResource(Res.drawable.circle_app_icon),
+                undecorated = !isVM,
+                transparent = !isVM,
+                state = windowState,
+                visible = isVisible,
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize().then(if (!isVM) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier)
+                ) {
+                    if (!isVM) {
+                        CustomTitleBar(
+                            title = stringResource(Res.string.app_name),
+                            windowState = windowState,
+                            window = window,
+                            onCloseRequest = { isVisible = false },
+                        )
+                    }
+
+                    val context = LocalPlatformContext.current
+                    setSingletonImageLoaderFactory {
+                        ImageLoader.Builder(context).components {
+                            add(OkHttpNetworkFetcherFactory(callFactory = { OkHttpClient() }))
                         }.diskCachePolicy(CachePolicy.ENABLED)
                         .networkCachePolicy(CachePolicy.ENABLED)
                         .diskCache(
-                            DiskCache
-                                .Builder()
+                            DiskCache.Builder()
                                 .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-                                .maxSizeBytes(512L * 1024 * 1024)
-                                .build(),
-                        ).crossfade(true)
-                        .build()
-                }
-                App()
-                ToastHost()
-            }
-        }
+                                .maxSizeBytes(512L * 1024 * 1024).build()
+                        ).crossfade(true).build()
+                    }
 
-        if (MiniPlayerManager.isOpen) {
-            MiniPlayerWindow(
-                sharedViewModel = sharedViewModel,
-                onCloseRequest = {
-                    MiniPlayerManager.isOpen = false
-                },
-            )
+                    App()
+                    ToastHost()
+                }
+            }
+
+            if (MiniPlayerManager.isOpen) {
+                MiniPlayerWindow(
+                    sharedViewModel = sharedViewModel,
+                    onCloseRequest = { MiniPlayerManager.isOpen = false },
+                )
+            }
         }
     }
 }
 
-/**
- * Bridges a restore request from the single-instance guard (which runs outside
- * Compose, at the top of [runDesktopApp]) into the running window's composition.
- * The guard calls [request] when a second instance launches; the window collects
- * [requests] to bring itself back to the foreground and pick up any deep link.
- */
 private object DesktopRestoreSignal {
     private val _requests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val requests: SharedFlow<Unit> = _requests.asSharedFlow()
-
-    fun request() {
-        _requests.tryEmit(Unit)
-    }
+    fun request() { _requests.tryEmit(Unit) }
 }
