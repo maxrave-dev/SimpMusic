@@ -394,14 +394,10 @@
     <string name="do_not_show_again">以後不再提示</string>
     <string name="auto_check_for_update">自動檢查更新</string>
     <string name="auto_check_for_update_description">啓動時檢查更新</string>
-    <string name="blur_fullscreen_lyrics">模糊全螢幕歌詞</string>
-    <string name="blur_fullscreen_lyrics_description">模糊全螢幕歌詞畫面的背景</string>
     <string name="playback_speed_pitch"><![CDATA[回放速度與音調]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[播放速度和音調（啟用交叉淡入淡出時禁用）]]></string>
     <string name="playback_speed">回放速度</string>
     <string name="pitch">音調</string>
-    <string name="blur_player_background">模糊播放器背景</string>
-    <string name="blur_player_background_description">模糊正在播放畫面的背景</string>
     <string name="merging_audio_and_video">音訊與視訊合併</string>
     <string name="error_occurred">發生錯誤</string>
     <string name="downloading_audio">下載音頻中...%1$s </string>

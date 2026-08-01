@@ -395,14 +395,10 @@
     <string name="do_not_show_again">Non mostrare più</string>
     <string name="auto_check_for_update">Controllo automatico degli aggiornamenti</string>
     <string name="auto_check_for_update_description">Controllo degli aggiornamenti all'apertura dell'app</string>
-    <string name="blur_fullscreen_lyrics">Sfoca effetto testo a schermo intero</string>
-    <string name="blur_fullscreen_lyrics_description">Sfoca lo sfondo dell'effetto schermo intero del testo</string>
     <string name="playback_speed_pitch"><![CDATA[Velocità di riproduzione e tono]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Velocità e tono brano (disabilitato quando la dissolvenza è abilitata)]]></string>
     <string name="playback_speed">Velocità di riproduzione</string>
     <string name="pitch">Tono</string>
-    <string name="blur_player_background">Sfoca lo sfondo del lettore</string>
-    <string name="blur_player_background_description">Sfoca lo sfondo dell'effetto della schermata di riproduzione</string>
     <string name="merging_audio_and_video">Unione di audio e video</string>
     <string name="error_occurred">C'è stato un problema</string>
     <string name="downloading_audio">Download dell'audio in corso: %1$s </string>

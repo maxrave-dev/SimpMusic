@@ -40,16 +40,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
+import org.simpmusic.lastfm.isLastfmAvailable
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.backup_create_failed
 import simpmusic.composeapp.generated.resources.backup_create_success
 import simpmusic.composeapp.generated.resources.backup_in_progress
+import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
+import simpmusic.composeapp.generated.resources.log_out_confirm_message
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
+import simpmusic.composeapp.generated.resources.warning
 
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -121,10 +125,6 @@ class SettingsViewModel(
     val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate
     private var _updateChannel: MutableStateFlow<String> = MutableStateFlow(DataStoreManager.GITHUB)
     val updateChannel: StateFlow<String> = _updateChannel
-    private var _blurFullscreenLyrics = MutableStateFlow(false)
-    val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
-    private var _blurPlayerBackground = MutableStateFlow(false)
-    val blurPlayerBackground: StateFlow<Boolean> = _blurPlayerBackground
     private val _aiProvider = MutableStateFlow<String>(DataStoreManager.AI_PROVIDER_OPENAI)
     val aiProvider: StateFlow<String> = _aiProvider
     private val _isHasApiKey = MutableStateFlow<Boolean>(false)
@@ -165,6 +165,22 @@ class SettingsViewModel(
 
     private val _richPresenceEnabled = MutableStateFlow(false)
     val richPresenceEnabled: StateFlow<Boolean> = _richPresenceEnabled
+
+    /**
+     * False in a FOSS build, and in a full build with no API key in `local.properties`. The whole
+     * Last.fm block in settings is hidden when it is false, rather than offering a login that
+     * could never succeed.
+     */
+    val lastfmAvailable: Boolean = isLastfmAvailable()
+
+    private val _lastfmUsername = MutableStateFlow("")
+    val lastfmUsername: StateFlow<String> = _lastfmUsername
+
+    private val _lastfmLoggedIn = MutableStateFlow(false)
+    val lastfmLoggedIn: StateFlow<Boolean> = _lastfmLoggedIn
+
+    private val _lastfmScrobbleEnabled = MutableStateFlow(false)
+    val lastfmScrobbleEnabled: StateFlow<Boolean> = _lastfmScrobbleEnabled
 
     private val _keepServiceAlive = MutableStateFlow<Boolean>(false)
     val keepServiceAlive: StateFlow<Boolean> = _keepServiceAlive
@@ -260,8 +276,6 @@ class SettingsViewModel(
         getCanvasCache()
         getTranslucentBottomBar()
         getAutoCheckUpdate()
-        getBlurFullscreenLyrics()
-        getBlurPlayerBackground()
         getAIProvider()
         getAIApiKey()
         getAITranslation()
@@ -279,6 +293,8 @@ class SettingsViewModel(
         getExplicitContentEnabled()
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
+        getLastfmSession()
+        getLastfmScrobbleEnabled()
         getKeepServiceAlive()
         getKeepYouTubePlaylistOffline()
         getCombineLocalAndYouTubeLiked()
@@ -464,6 +480,39 @@ class SettingsViewModel(
             dataStoreManager.discordToken.collect { loggedIn ->
                 _discordLoggedIn.value = loggedIn.isNotEmpty()
             }
+        }
+    }
+
+    private fun getLastfmSession() {
+        viewModelScope.launch {
+            dataStoreManager.lastfmSessionKey.collect { key ->
+                _lastfmLoggedIn.value = key.isNotEmpty()
+            }
+        }
+        viewModelScope.launch {
+            dataStoreManager.lastfmUsername.collect { username ->
+                _lastfmUsername.value = username
+            }
+        }
+    }
+
+    fun logOutLastfm() {
+        viewModelScope.launch {
+            dataStoreManager.setLastfmSession(sessionKey = "", username = "")
+        }
+    }
+
+    private fun getLastfmScrobbleEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.lastfmScrobbleEnabled.collect { enabled ->
+                _lastfmScrobbleEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setLastfmScrobbleEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setLastfmScrobbleEnabled(enabled)
         }
     }
 
@@ -728,36 +777,6 @@ class SettingsViewModel(
         }
     }
 
-    private fun getBlurFullscreenLyrics() {
-        viewModelScope.launch {
-            dataStoreManager.blurFullscreenLyrics.collect { blurFullscreenLyrics ->
-                _blurFullscreenLyrics.value = blurFullscreenLyrics == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setBlurFullscreenLyrics(blurFullscreenLyrics: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setBlurFullscreenLyrics(blurFullscreenLyrics)
-            getBlurFullscreenLyrics()
-        }
-    }
-
-    private fun getBlurPlayerBackground() {
-        viewModelScope.launch {
-            dataStoreManager.blurPlayerBackground.collect { blurPlayerBackground ->
-                _blurPlayerBackground.value = blurPlayerBackground == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setBlurPlayerBackground(blurPlayerBackground: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setBlurPlayerBackground(blurPlayerBackground)
-            getBlurPlayerBackground()
-        }
-    }
-
     private fun getAutoCheckUpdate() {
         viewModelScope.launch {
             dataStoreManager.autoCheckForUpdates.collect { autoCheckUpdate ->
@@ -785,6 +804,33 @@ class SettingsViewModel(
 
     fun setBasicAlertData(alertData: SettingBasicAlertState?) {
         _basicAlertData.value = alertData
+    }
+
+    /**
+     * Asks before signing out of a linked account.
+     *
+     * Every one of these rows sits inside a long settings list and does its work on a single tap,
+     * with no undo — and getting back in is not symmetric with getting out: Last.fm sends the user
+     * through a browser again, YouTube and Spotify through a full web login. The confirmation is
+     * cheap next to that.
+     *
+     * @param confirmLabel names the service on the confirming button, because the dialog is the
+     * only thing on screen at that moment and "Log out" alone does not say out of what.
+     */
+    fun confirmLogOut(
+        confirmLabel: String,
+        onConfirm: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            setBasicAlertData(
+                SettingBasicAlertState(
+                    title = getString(Res.string.warning),
+                    message = getString(Res.string.log_out_confirm_message),
+                    confirm = confirmLabel to onConfirm,
+                    dismiss = getString(Res.string.cancel),
+                ),
+            )
+        }
     }
 
     private fun getUsingProxy() {

@@ -366,13 +366,9 @@
     <string name="do_not_show_again">Təkrar göstərmə</string>
     <string name="auto_check_for_update">Yeniləmə üçün avtomatik yoxla</string>
     <string name="auto_check_for_update_description">Tətbiqi açdığınızda yeniləmə yoxlanılır</string>
-    <string name="blur_fullscreen_lyrics">Tam ekran lirika effektini tutqunlaşdır</string>
-    <string name="blur_fullscreen_lyrics_description">Tam ekran lirika ekran effekti arxa planı, tutqunlaşır</string>
     <string name="playback_speed_pitch"><![CDATA[Səslənmə sürəti və ucalıq]]></string>
     <string name="playback_speed">Səslənmə sürəti</string>
     <string name="pitch">Ucalıq</string>
-    <string name="blur_player_background">Səsləndirici arxa planın tutqunlaşdır</string>
-    <string name="blur_player_background_description">İndi səslənən ekran effekti fonunu tutqunlaşdır</string>
     <string name="merging_audio_and_video">Səs və videonun birləşdirilməsi</string>
     <string name="error_occurred">Xəta baş verdi</string>
     <string name="downloading_audio">Səs endirilir: %1$s </string>

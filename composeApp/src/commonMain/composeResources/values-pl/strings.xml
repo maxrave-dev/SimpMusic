@@ -386,13 +386,9 @@
     <string name="do_not_show_again">Nie pokazuj ponownie</string>
     <string name="auto_check_for_update">Automatyczne sprawdzanie aktualizacji</string>
     <string name="auto_check_for_update_description">Sprawdzanie aktualizacji po otwarciu aplikacji</string>
-    <string name="blur_fullscreen_lyrics">Efekt rozmycia tekstu piosenki na pełnym ekranie</string>
-    <string name="blur_fullscreen_lyrics_description">Rozmycie tła efektu pełnoekranowego ekranu tekstu</string>
     <string name="playback_speed_pitch"><![CDATA[Prędkość odtwarzania i tonacja]]></string>
     <string name="playback_speed">Szybkość odtwarzania</string>
     <string name="pitch">Tonacja</string>
-    <string name="blur_player_background">Rozmyj tło odtwarzacza</string>
-    <string name="blur_player_background_description">Rozmycie tła efektu pełnoekranowego ekranu obecnie odtwarzanego utworu</string>
     <string name="merging_audio_and_video">Scalanie audio i wideo</string>
     <string name="error_occurred">Wystąpił błąd</string>
     <string name="downloading_audio">Pobieranie audio: %1$s </string>

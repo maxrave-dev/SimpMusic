@@ -395,14 +395,10 @@
     <string name="do_not_show_again">No ho tornis a mostrar</string>
     <string name="auto_check_for_update">Busca actualitzacions automàticament</string>
     <string name="auto_check_for_update_description">Busca actualitzacions cada cop que l'aplicació s'obre</string>
-    <string name="blur_fullscreen_lyrics">Efecte de desenfocament amb la lletra a pantalla completa</string>
-    <string name="blur_fullscreen_lyrics_description">Effecte de desenfoc del fons de la pantalla de lletra de la cançó a pantalla completa</string>
     <string name="playback_speed_pitch"><![CDATA[Velocitat de reproducció i to]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Velocitat de reproducció i to (desactivat quan l'encadenament està activat)]]></string>
     <string name="playback_speed">Velocitat de reproducció</string>
     <string name="pitch">To</string>
-    <string name="blur_player_background">Desenfoca el fons del reproductor</string>
-    <string name="blur_player_background_description">Efecte de desenfocament del fons de la pantalla \"Reproduint\"</string>
     <string name="merging_audio_and_video">Fusionant àudio i vídeo</string>
     <string name="error_occurred">S'ha produït un error</string>
     <string name="downloading_audio">Descarregant àudio: %1$s </string>

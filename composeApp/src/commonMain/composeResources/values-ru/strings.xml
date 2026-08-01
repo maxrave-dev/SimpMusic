@@ -397,14 +397,10 @@
     <string name="do_not_show_again">Больше не показывать</string>
     <string name="auto_check_for_update">Автоматически проверять обновления</string>
     <string name="auto_check_for_update_description">Проверьте наличие обновлений при открытии приложения</string>
-    <string name="blur_fullscreen_lyrics">Эффект размытия экрана текста песен</string>
-    <string name="blur_fullscreen_lyrics_description">Размытие фона в полноэкранном просмотре текстов песен</string>
     <string name="playback_speed_pitch"><![CDATA[Скорость и высота воспроизведения]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Скорость и высота тона воспроизведения (отключено при включенном кроссфейде)]]></string>
     <string name="playback_speed">Скорость воспроизведения</string>
     <string name="pitch">Тон</string>
-    <string name="blur_player_background">Размыть фон плеера</string>
-    <string name="blur_player_background_description">Эффект размытия фона текущего экрана воспроизведения</string>
     <string name="merging_audio_and_video">Объединение аудио и видео</string>
     <string name="error_occurred">Произошла ошибка</string>
     <string name="downloading_audio">Загрузка аудио: %1$s </string>

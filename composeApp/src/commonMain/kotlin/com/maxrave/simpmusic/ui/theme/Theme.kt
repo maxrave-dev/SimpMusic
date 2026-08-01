@@ -5,6 +5,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -51,6 +52,12 @@ val LocalAppColors = staticCompositionLocalOf { DarkAppColors }
 
 /** True in dark theme. Provided by [AppTheme] so platform glass (blur/tint) can adapt reliably. */
 val LocalIsDarkTheme = staticCompositionLocalOf { true }
+
+/**
+ * The dark scheme to use for immersive screens while the app itself is on the light theme.
+ * Provided by [AppTheme], consumed by [ForceDarkContent]; null only outside of [AppTheme].
+ */
+val LocalForcedDarkColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
 
 /** Parses "RRGGBB" or "AARRGGBB" (optionally "#"-prefixed) into a [Color]; null if malformed. */
 fun parseThemeColorHex(hex: String): Color? {
@@ -130,6 +137,19 @@ fun AppTheme(
                 style = PaletteStyle.TonalSpot,
                 modifyColorScheme = { cs -> if (isDark) cs else cs.withNeutralLightSurfaces() },
             )
+    // Immersive screens stay dark even at light theme (see [ForceDarkContent]). Resolve their scheme
+    // once here instead of letting every such subtree build a palette of its own.
+    val forcedDarkScheme =
+        if (isDark) {
+            colorScheme
+        } else {
+            rememberDynamicColorScheme(
+                seedColor = seedColor,
+                isDark = true,
+                isAmoled = true,
+                style = PaletteStyle.TonalSpot,
+            )
+        }
     SystemBarAppearanceEffect(isDark)
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
@@ -138,9 +158,38 @@ fun AppTheme(
                 LocalContentColor provides colorScheme.onSurfaceVariant,
                 LocalAppColors provides if (isDark) DarkAppColors else LightAppColors,
                 LocalIsDarkTheme provides isDark,
+                LocalForcedDarkColorScheme provides forcedDarkScheme,
                 content = content,
             )
         },
         typography = typo(colorScheme),
+    )
+}
+
+/**
+ * Wraps immersive screens — artist, album, playlist, local playlist, podcast and the players — which
+ * always draw over dark artwork and must therefore render dark even on the light theme.
+ *
+ * [LocalForceDarkText] alone is not enough: it only recolors text through [typo]. Icons, buttons and
+ * every other Material default read [LocalContentColor] and [MaterialTheme.colorScheme], which at
+ * light theme resolve to dark-on-light and turn grey and unreadable over the artwork. Providing the
+ * dark scheme here fixes the whole subtree in one place.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun ForceDarkContent(content: @Composable () -> Unit) {
+    val darkScheme = LocalForcedDarkColorScheme.current ?: MaterialTheme.colorScheme
+    MaterialExpressiveTheme(
+        colorScheme = darkScheme,
+        content = {
+            CompositionLocalProvider(
+                LocalForceDarkText provides true,
+                LocalIsDarkTheme provides true,
+                LocalContentColor provides darkScheme.onSurfaceVariant,
+                LocalAppColors provides DarkAppColors,
+                content = content,
+            )
+        },
+        typography = typo(darkScheme, forceDark = true),
     )
 }

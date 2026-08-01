@@ -394,14 +394,10 @@
     <string name="do_not_show_again">Không hiển thị lại</string>
     <string name="auto_check_for_update">Kiểm tra cập nhật tự động</string>
     <string name="auto_check_for_update_description">Kiểm tra cập nhật mỗi khi bạn mở ứng dụng</string>
-    <string name="blur_fullscreen_lyrics">Làm mờ màn hình lời bài hát toàn màn hình</string>
-    <string name="blur_fullscreen_lyrics_description">Hiệu ứng làm mờ nền màn hình lời bài hát toàn màn hình</string>
     <string name="playback_speed_pitch"><![CDATA[Tốc độ phát lại và cao độ]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Tốc độ phát lại và cao độ (bị vô hiệu hóa khi chuyển tiếp mượt mà được bật)]]></string>
     <string name="playback_speed">Tốc độ phát lại</string>
     <string name="pitch">Cao độ</string>
-    <string name="blur_player_background">Làm mờ nền trình phát</string>
-    <string name="blur_player_background_description">Hiệu ứng làm mờ nền màn hình đang phát</string>
     <string name="merging_audio_and_video">Đang ghép tệp âm thanh vào video</string>
     <string name="error_occurred">Đã xảy ra lỗi</string>
     <string name="downloading_audio">Đang tải xuống âm thanh: %1$s </string>

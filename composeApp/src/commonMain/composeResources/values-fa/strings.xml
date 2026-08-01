@@ -392,13 +392,9 @@
     <string name="do_not_show_again">دوباره نشان نده</string>
     <string name="auto_check_for_update">بررسی خودکار بروزرسانی</string>
     <string name="auto_check_for_update_description">بررسی به روز رسانی هنگام باز کردن برنامه</string>
-    <string name="blur_fullscreen_lyrics">افکت محو کردن متن آهنگ در حالت تمام صفحه</string>
-    <string name="blur_fullscreen_lyrics_description">محو کردن پس‌زمینه‌ی صفحه‌ی کامل متن آهنگ</string>
     <string name="playback_speed_pitch"><![CDATA[سرعت پخش و گام]]></string>
     <string name="playback_speed">سرعت پخش</string>
     <string name="pitch">گام صدا</string>
-    <string name="blur_player_background">تار کردن پس‌زمینه‌ پخش کننده</string>
-    <string name="blur_player_background_description">تار کردن پس‌زمینه‌ی صفحه‌ی در حال پخش</string>
     <string name="merging_audio_and_video">ادغام صدا و ویدیو</string>
     <string name="error_occurred">خطایی رخ داد</string>
     <string name="downloading_audio">در حال دانلود صدا: %1$s </string>

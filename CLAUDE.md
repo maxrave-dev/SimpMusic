@@ -100,7 +100,7 @@ Contains core modules organized by functionality:
 ##### **core/media/**
 - **media3/**: Media3 ExoPlayer integration (includes `CrossfadeExoPlayerAdapter` for DJ-style crossfade on Android)
 - **media3-ui/**: Media3 UI components
-- **media-jvm/**: JVM media playback (VLCJ - replaced GStreamer post-1.0.4)
+- **media-jvm/**: JVM media playback (libmpv via JNA — replaced VLCJ, which replaced GStreamer post-1.0.4)
 - **media-jvm-ui/**: JVM media UI components
 
 ##### **core/service/**
@@ -118,6 +118,14 @@ Service modules:
 - **crashlytics-empty/**: FOSS version without tracking
 
 #### 5. **cast/** & **cast-empty/**
+#### 6. **lastfm/** & **lastfm-empty/**
+- **lastfm/**: direct Last.fm scrobbling for the Full build. KMP (android + jvm + ios), package `org.simpmusic.lastfm`. Signs `api_sig` with okio's MD5; talks to `ws.audioscrobbler.com/2.0/` over form-urlencoded POST
+- **lastfm-empty/**: FOSS no-op stub with the identical public API — `isLastfmAvailable()` returns `false`, which hides the whole settings block. A FOSS build ships no API secret, so it ships no Last.fm code either
+- Selected via `isFullBuild` in `core/data/build.gradle.kts` (playback hooks) and `composeApp/build.gradle.kts` (UI); credentials come from `LASTFM_API_KEY`/`LASTFM_SECRET` in `local.properties` via BuildKonfig, and are handed in with `configLastfm(key, secret)` at startup — the same shape as `configCrashlytics(context, dsn)`
+- Auth is Last.fm's **web flow** on every platform: open `last.fm/api/auth/?api_key=X` with **no token**, the user approves in their own browser, Last.fm redirects to the callback with `?token=`, then `auth.getSession`. The app never sees a password. **Do not switch to the desktop flow** (`auth.getToken` first, then open the same URL with `&token=` on it): that tells Last.fm the app already holds the token, so it renders a "return to the application" page and the callback is never called — which looks exactly like a broken redirect
+- The callback registered on the API account is `wordbyword://lastfm-auth`, handled by an intent-filter on Android and by Conveyor `url-schemes` + `WindowsProtocolRegistrar` on Desktop; the login screen also accepts the callback URL pasted by hand, for hosts where no scheme handler exists
+
+#### 7. **cast/** & **cast-empty/**
 - **cast/**: Google Cast support for the Full build (`media3-cast` + `play-services-cast-framework`, `CastOptionsProvider`, `CastIconButton` Compose wrapper for `MediaRouteButton`)
 - **cast-empty/**: FOSS no-op stub with identical public API (package `org.simpmusic.cast`), keeping GMS out of F-Droid builds
 - Selected via the `isFullBuild` Gradle property (same pattern as crashlytics) in `core/media/media3/build.gradle.kts` and `composeApp/build.gradle.kts` androidMain
@@ -135,8 +143,8 @@ Service modules:
 
 ### Desktop
 - **Compose for Desktop**: UI
-- **VLCJ**: Audio playback (replaced GStreamer since post-1.0.4)
-- VLC native libraries are bundled per platform via `vlc-setup` Gradle plugin
+- **libmpv** (mpv's C client API, bound with JNA): audio + video playback. Replaced VLCJ, which had replaced GStreamer post-1.0.4
+- libmpv natives are bundled per platform via `./gradlew :composeApp:mpvSetupAll` into `mpv-natives/<os>-<arch>/`
 
 ### Networking & APIs
 - **Ktor Client**: HTTP client
@@ -261,7 +269,7 @@ Before implementing code, researching code, or answering technical questions, th
 ### 5. Work with Media Playback
 **Location**: `core/media/media3/` (Android) or `core/media/media-jvm/` (Desktop)
 - Media3/ExoPlayer + CrossfadeExoPlayerAdapter for Android
-- VLCJ (VlcPlayerAdapter) for Desktop
+- libmpv (MpvPlayerAdapter / MpvPlayer / MpvLibrary) for Desktop
 - Queue management in `core/data/src/.../mediaservice/`
 - Playback controls
 
@@ -332,7 +340,8 @@ Before implementing code, researching code, or answering technical questions, th
 
 #### Desktop
 - **Required Dependencies**:
-  - VLCJ: Audio playback (bundled via vlc-setup plugin)
+  - libmpv: audio + video playback (bundled via `mpvSetupAll`; falls back to a system-wide libmpv when `mpv-natives/` has not been staged)
+- **Minimum macOS: 15.0** — raised from 11.0 when VLC was replaced by mpv. mpv's macOS release builds target macOS 15 (96/98 arm64 dylibs declare `minos 15.0`; on Intel `libmpv` itself does), and Conveyor rejects a lower `LSMinimumSystemVersion`. No mpv artifact covers both architectures below 15.
 - **Features**:
   - Deep link support (`simpmusic://` and `simpmusic.org`)
   - Mini Player window (always-on-top, resizable, draggable)
@@ -340,7 +349,6 @@ Before implementing code, researching code, or answering technical questions, th
   - Custom title bar (disabled in VM environments)
 - **Limitations**:
   - No offline playback
-  - No video playback
 
 ### External APIs
 - YouTube Music: Hidden/unofficial API (may change anytime)
@@ -351,18 +359,20 @@ Before implementing code, researching code, or answering technical questions, th
 
 ## 🎵 Media Playback Architecture
 
-### Desktop Player (VLCJ - replaced GStreamer post-1.0.4)
+### Desktop Player (libmpv — replaced VLCJ 2026-07-27)
 
-**Location**: `core/media/media-jvm/src/main/java/com/simpmusic/media_jvm/VlcPlayerAdapter.kt`
+**Location**: `core/media/media-jvm/src/main/java/com/simpmusic/media_jvm/mpv/`
 
-- Uses **VLCJ** library for audio playback (GStreamer was removed)
-- VLC native libraries bundled per platform via `vlc-setup` Gradle plugin in `composeApp/build.gradle.kts`
-- Bundled natives stored in `vlc-natives/{linux,macos,windows}/`
+- `MpvLibrary.kt` — JNA binding for libmpv's C client API, hand-mapped against client API 2.x. Struct layouts are read by raw offset, so a MAJOR client-API bump needs them re-verified
+- `MpvPlayer.kt` — one handle per media item; `vo=libmpv` + software render context
+- `MpvVideoFrameSource.kt` — mpv SW render API → immutable `BufferedImage` snapshots published via `StateFlow`, drawn by plain Compose `Image` (`MpvVideoFrames` in `media-jvm-ui`); replaced the `SwingPanel`-embedded `MpvVideoSurfacePanel` on 2026-08-01
+- `MpvPlayerAdapter.kt` — the `MediaPlayerInterface` implementation; separate YouTube audio/video URLs are merged into ONE source with an `edl://...;!new_stream;...` URL (mpv's equivalent of Android's `MergingMediaSource`)
+- Natives bundled per platform in `mpv-natives/<os>-<arch>/`, staged by `mpvSetupAll` (Linux slice is compiled from source — `scripts/mpv-linux/`)
 - Supports crossfade transition with dual-player approach
 
 #### Crossfade Transition (Desktop)
 - Configurable duration: 1-15 seconds (default: 5 seconds)
-- Audio-only: Crossfade is skipped for video playback
+- Skipped when the NEXT track will play as video (`isVideo()` + watch-video setting on) — same rule as Android since 2026-08-01
 - Settings persisted via DataStore
 
 ### Android Player (Media3/ExoPlayer)
@@ -408,7 +418,8 @@ See `CODE_OF_CONDUCT.md`
 - [Media3 (ExoPlayer)](https://developer.android.com/guide/topics/media/media3)
 - [Room Database](https://developer.android.com/training/data-storage/room)
 - [Ktor Client](https://ktor.io/docs/client.html)
-- [VLCJ](https://github.com/caprica/vlcj)
+- [libmpv client API](https://github.com/mpv-player/mpv/blob/master/include/mpv/client.h)
+- [mpv EDL format](https://github.com/mpv-player/mpv/blob/master/DOCS/edl-mpv.rst)
 
 ### Community
 - Website: https://simpmusic.org
@@ -480,6 +491,38 @@ if (getPlatform() == Platform.Android) {
 - **VM environment detection**: Disable transparency and custom titlebar in VMs
 - **Google Cast (2026-07, Full build only)**: `cast`/`cast-empty` module pair gated by `isFullBuild`; unified Media3 `CastPlayer` wraps the session `ForwardingPlayer`; `CastHandoffManager` pushes resolved-URL queue windows to the receiver with 403/expiry retry; Cast button in Now Playing top bar, "Playing on <device>" pill, crossfade/DJ/EQ settings gray out while casting; FOSS build stays GMS-free
 - **Windows SMTC (2026-07)**: System Media Transport Controls on Windows via `jmtc`/`nowplayingcenter` 0.0.3 (forked JMTC). The native `SMTCAdapter.dll` was hardened against the 1.0.x crash (Sentry SIMPMUSIC-DESKTOP-7, ~95k events): COM apartment tolerates `RPC_E_CHANGED_MODE`, `MediaPlayer` kept alive process-wide, and every exported call is exception-guarded so nothing crosses the JNA boundary as "Invalid memory access". JMTC is confined to a dedicated thread (off the AWT EDT), and `MediaType.Music` is set before display properties so title/artist render (not just the app name). Enabled in `JvmMediaPlayerHandlerImpl` for `Platform.Windows` (Linux MPRIS unchanged; macOS uses NowPlayingCenter). DLL built by GitHub Actions (`windows-latest`) in the NowPlayingCenter repo.
+- **VLC removed entirely (2026-07-27)**: `VlcPlayerAdapter`, `DefaultVlcDiscoverer`, `MacOsVlcDiscoverer` and `VlcModule` are deleted; `VlcModule.kt` became `DesktopPlayerModule.kt` (`loadVlcModule()` → `loadDesktopPlayerModule()`). The `vlcj` dependency, the `vlc-setup` Gradle plugin, every `vlcSetup*` task, the `vlc-natives/` tree and the VLC Conveyor inputs are all gone. `appResourcesRootDir` now points at `mpv-natives/`. libmpv is the only desktop backend.
+- **Bundled libmpv (2026-07-27)**: two entry points, deliberately split. `:composeApp:mpvBundleAll` runs **on a Mac, once per mpv bump** — it turns upstream mpv builds into loadable slices in `mpv-natives/<os>-<arch>/`, packs them into tarballs and prints their SHA-256. Those are published to `maxrave-dev/simpmusic-files`. `:composeApp:mpvSetupAll` is what **CI** runs: it downloads those tarballs, verifies them against the digests pinned in `mpvNativesChecksums`, and unpacks them — no toolchain needed on the runner. Both workflows must call it before Conveyor, which is invoked by its own action and so never triggers the Gradle `dependsOn`.
+  - Sources: shinchiro `mpv-dev-*.7z` (Windows — the only one shipping a real `libmpv-2.dll`), mpv's own release `.zip` (macOS), and **for Linux a from-source container build** (see below). On macOS **libmpv is statically linked into the `mpv` executable**; that PIE binary exports the full client API and is renamed to `libmpv.dylib`, with load-command paths repointed to `@loader_path`.
+  - Do NOT lift `IINA.app/Contents/Frameworks` instead: IINA 1.4.4 ships a version-skewed pair (libmpv needs `_pl_log_create_349`, bundled `libplacebo.338.dylib` exports `_pl_log_create_338`) and that libmpv fails `dlopen` under both RTLD_NOW and RTLD_LAZY.
+  - **Every `._*` sidecar must be stripped after unpacking** (`mpvSetupAll` does this). Tarring a slice on macOS writes each file's xattrs out as a companion `._name`; Conveyor then signs them as ordinary bundle members and seals them in `_CodeSignature/CodeResources`, but macOS folds `._name` back into the xattrs of `name` and deletes the sidecar the moment Finder touches the app — unzipping it **or** dragging it out of the DMG. The launched bundle is then missing every sidecar the seal expects and Gatekeeper reports "SimpMusic is damaged and can't be opened" (`codesign --strict`: `a sealed resource is missing or invalid`). Only macOS is affected: it alone seals the whole app directory and re-checks it at launch.
+  - `MpvLibrary.bundledLibraryDirs()` resolves the staged folder: `mpv.bundled.path` → `compose.application.resources.dir` → `mpv/` found by walking up from the JAR → `mpv-natives/<os>-<arch>`.
+- **Linux libmpv built from source (2026-07-28)**: the AppImage route is gone — `scripts/mpv-linux/Dockerfile` now compiles libplacebo 7.351 + FFmpeg 7.1.1 + mpv 0.41.0 on **Ubuntu 22.04**, and `mpvSetupLinuxCi` runs that container and copies `/out`. This deleted ~186 lines of DwarFS extraction, closure pruning and rpath rewriting from `composeApp/build.gradle.kts`.
+  - **Why the AppImage could never work**: every prebuilt Linux mpv targets "run mpv as its own process". `mpv-AppImage` ships its own glibc + `ld-linux`, and its "libmpv.so.2" was really the `mpv` **PIE executable** — glibc refuses to `dlopen` a PIE outright (`DF_1_PIE`), and even patched past that, its glibc 2.43 collides with the one the JVM already mapped. It only ever appeared to work on dev machines because JNA silently fell back to a system-wide libmpv. **Always log the resolved path (`NativeLibrary.getInstance(name).file`)** — that is the only thing distinguishing "using the bundle" from "quietly using /usr/lib".
+  - The container build targets glibc **2.34** → runs on Ubuntu 22.04 / Debian 11 and newer. Vulkan/shaderc/glslang/D3D11 are disabled in libplacebo and X11/Wayland/GPU in mpv, since playback goes through the software render API; that also drops `libshaderc`/`libglslang`/`libSPIRV-Tools` (the bulk of the old bundle) and removes libsixel entirely, which had been aborting the JVM.
+  - `stage.sh` deliberately does **not** bundle `libc`/`libm`/`libstdc++`/`ld-linux`, sets `DT_RPATH` (not `DT_RUNPATH` — RUNPATH is not inherited by transitive dependencies), and fails the build unless a `dlopen` + `mpv_initialize` smoke test passes.
+  - mpv built with `-Dlua=disabled` has no `ytdl_hook`, so the `ytdl` option genuinely does not exist there; `MpvPlayer` uses `optionalOption()` to treat `MPV_ERROR_OPTION_NOT_FOUND` as success.
+- **Last.fm scrobbling (2026-07-30, Full build only)**: `lastfm`/`lastfm-empty` module pair gated by `isFullBuild`, following the `cast`/`crashlytics` shape. `LastfmScrobbler` (in `core/data/.../lastfm/`) lives in `commonMain` and is driven by both player handlers, because Android and Desktop run entirely separate ones. It sends `track.updateNowPlaying` where the Discord RPC is updated, and `track.scrobble` off the existing 5-second position-persist tick — a track over 30s scrobbles at half its length or 4 minutes, whichever comes first.
+  - **`status="ok"` does not mean accepted.** Last.fm answers OK while discarding a scrobble and only says so in `ignoredMessage`: code 1 = artist name filtered, 2 = track name filtered, 3/4 = timestamp too far past/future, 5 = daily limit. Codes 1 and 2 are how bad metadata surfaces, so they are logged loudly rather than dropped.
+  - **The two auth flows are not interchangeable, and picking the wrong one silently kills the callback.** Web flow: send the user to `last.fm/api/auth/?api_key=X` with no token; Last.fm mints it and redirects to the registered callback with `?token=`. Desktop flow: call `auth.getToken`, then open that URL with `&token=` already on it; Last.fm then shows "return to the application" and never redirects. SimpMusic uses the **web** flow because it has a registered callback and deep-link handlers on every platform.
+  - **The callback token does NOT travel through navigation.** `App.kt` hands it straight to `SharedViewModel.completeLastfmLogin()`, and `LastfmLoginScreen` closes itself by watching the stored session key. Navigating to the login screen with the token instead pushes a *second* copy on top of the one the user opened their browser from, so the `navigateUp()` after a successful login only peels off that copy and lands back on a login screen — it looks exactly like "logged in but still stuck on the login screen". The other three login screens never hit this because they embed a WebView and never leave the app; Desktop has no real WebView (`Cookies.jvm.kt` is a placeholder), which is why Last.fm uses the system browser at all.
+  - **`toSortedMap()` does not exist in common Kotlin** (it is a JDK collection) — sort the signature parameters with `entries.sortedBy { it.key }`.
+  - **`format` must be excluded from `api_sig`.** Parameters are sorted by name, concatenated `<name><value>`, secret appended, MD5'd — but signing `format` (or `callback`) yields "Invalid method signature supplied" (code 13) on every request.
+  - Error codes worth branching on: `9` invalid session key → clear the stored session and make the user log in again; `11`/`16`/`29` → transient, retryable; everything else is a malformed request.
+  - Two places where Last.fm's own docs contradict themselves, resolved conservatively: `timestamp` is the time the track **started** (the method page says started, the scrobbling guide says finished — every scrobbler in the wild sends the start), and `duration` is **always sent** (optional on one page, required on the other).
+  - Responses are parsed as loose `JsonObject`s, not `@Serializable` classes: Last.fm's JSON is a translation of its XML, so numbers arrive as strings, attributes hide under `@attr`, and a field is an object with one entry but an array with several.
+- **JNA open flags are POSIX-only (2026-07-28)**: `MpvLibrary` passes `OPTION_OPEN_FLAGS = 2` (RTLD_NOW without RTLD_GLOBAL) **only when not on Windows**. JNA forwards the value verbatim to `LoadLibraryEx`, where `2` means `LOAD_LIBRARY_AS_DATAFILE`: the DLL maps as plain data, imports never resolve, and `GetProcAddress` returns nothing — surfacing as the misleading `Error looking up function 'mpv_client_api_version': The specified module could not be found`.
+- **Desktop URL schemes were never actually registered (2026-07-31)**: `url-schemes` belongs at the **top level** of `app` in `conveyor.conf`. Conveyor binds it on `AppConfig`, not on `MacConfig`/`WindowsConfig`/`LinuxConfig` — compare `MacConfigAccess.getUrlSchemes()` (reads `appConfig`) with the `getFileAssociations()` beside it (reads `mac`). It had been written as `mac.url-schemes` / `windows.url-schemes` / `linux.url-schemes` since May 2026; HOCON accepts unknown keys silently, so all three sat inert and **every packaged build shipped with no `CFBundleURLTypes` at all** — macOS never routed `simpmusic://` either, not just the Last.fm callback. Proven by diffing two `mac-app` builds that differed only in where the key was written. The same misplacement had parked `desktop-file.Categories` / `Comment[en]` / `StartupWMClass` *beside* the `"Desktop Entry"` group instead of inside it, so those never reached the generated `.desktop` either. Two more links in the same chain: the argv filter in `runDesktopApp` matched a fixed list (`simpmusic://`, `http://`, `https://`) and therefore discarded `wordbyword://lastfm-auth?token=…` on Windows and Linux — it now matches any `scheme://` — and the AppImage's own `.desktop` (written by `packageConveyorAppImage`, which is what actually reaches users since AppRun installs it into `~/.local/share/applications`) now declares `x-scheme-handler/wordbyword` alongside `simpmusic`.
+- **Bundled glib disabled `java.awt.Desktop` on Linux (2026-07-31)**: `mpv-natives/linux-x64/lib/libglib-2.0.so.0` is glib 2.72 (built on Ubuntu 22.04) and is missing from `SYSTEM_LIBS` in `scripts/mpv-linux/stage.sh`, so it ships in the bundle and claims the glib soname the moment JNA loads libmpv at startup. AWT's `XDesktopPeer.init()` can then no longer dlopen the **system** `libgio-2.0.so.0`: on a glib 2.80 host (Ubuntu 24.04) it dies with `libgobject-2.0.so.0: undefined symbol: g_dir_unref`, and the JDK reports the whole Desktop API unsupported for the rest of the process. All 23 external-link call sites broke at once — `openUrl()` was an `if` with no `else` so it silently did nothing, while Compose's `LocalUriHandler` calls `Desktop.getDesktop()` on its first line and threw `UnsupportedOperationException` straight out of the click handler, crashing the app. Arrived with the from-source Linux mpv build (2026-07-28); before that JNA quietly fell back to a system-wide libmpv, so the system glib was the only one mapped and links worked. Worked around by calling `Desktop.isDesktopSupported()` at the top of `runDesktopApp` — `XDesktopPeer` caches that probe, so running it before libmpv loads lets the system gio/gobject win the soname race. `OpenUrl.jvm.kt` additionally gained a per-OS launcher fallback (`xdg-open` → `gio open` → `$BROWSER`) and a toast, so it can no longer fail in silence. **The actual cure is to stop bundling glib** — add it to `SYSTEM_LIBS`, which needs the Linux tarball rebuilt, republished and re-pinned in `mpvNativesChecksums`.
+
+- **Crossfade skips video tracks (2026-08-01)**: both `CrossfadeExoPlayerAdapter` (Android) and `MpvPlayerAdapter` (Desktop) skip the crossfade path when the NEXT track will play as video (`isVideo()` + watch-video setting on — the same condition that builds a merged audio+video source). The merged two-URL source is error-prone to prepare mid-fade and used to cut the outgoing song short or jump straight to the video at 0:00; such transitions now take the normal (non-crossfade) path. The Android check for the CURRENT track being video stays removed (commit `9da155d7`).
+- **Desktop video renders through Compose, SwingPanel removed (2026-08-01)**: `MpvVideoSurfacePanel` (JPanel + `SwingPanel` embedding) became `MpvVideoFrameSource` — the mpv SW render loop is unchanged, but finished frames are published as immutable `BufferedImage` snapshots on a `StateFlow` and drawn by a plain Compose `Image` (`MpvVideoFrames` in `media-jvm-ui`, converted with `toComposeImageBitmap()` off the UI thread; the UI reports its size via `setTargetSize()`). This kills the whole SwingPanel bug class: always-on-top z-order, one-frame-late repositioning while scrolling (the flicker that exposed the transparent window), and AWT's single-parent rule that made NowPlaying/Fullscreen/Artist screens fight over the one panel (video "randomly missing until next/prev"). `MpvPlayerAdapter.currentVideoSurface: StateFlow<Component?>` is now `currentVideoFrames: StateFlow<MpvVideoFrameSource?>` and is set unconditionally during crossfade — the old null-guard kept a dead panel from a released player on screen (the "black video" bug).
+- **macOS desktop audio moved to `ao=avfoundation` (2026-08-01)**: `MpvPlayer` now pins `ao` to `"avfoundation,"` when `Platform.isMac()`, because **`ao_coreaudio` leaks a process-wide CoreAudio listener onto a freed `struct ao`** and takes the whole JVM down the next time an audio device appears or disappears — Sentry-visible as `EXC_BAD_ACCESS` on the `HALC_ProxyNotification Call Listener Queue`, reproduced by simply plugging in headphones. Windows (wasapi) and Linux (pulse/pipewire) are untouched.
+  - The chain, all upstream and **still present in mpv master as of 0.41.0**: `ao_coreaudio.c` `init()` registers `AudioObjectAddPropertyListener(kAudioObjectSystemObject, …, hotplug_cb, (void *)ao)` on the *system* object, but its failure label is bare (`coreaudio_error: return CONTROL_ERROR;`). An init that fails any later step (`ca_init_chmap`, `init_audiounit`) therefore leaves the listener registered. `ao.c` then does `goto fail` → `ao_uninit()`, and `buffer.c`'s `ao_uninit()` calls `driver->uninit()` **only when `driver_initialized` is set** — a flag `ao.c` sets only *after* a successful init. So `unregister_hotplug_cb()` never runs while `talloc_free(ao)` does, and the orphaned listener outlives the handle for the rest of the process.
+  - **Why SimpMusic hits this and plain mpv does not**: mpv initialises one ao per session; SimpMusic creates one handle per media item and runs two at once during a crossfade, so a single failed audio init anywhere in a session arms the crash. The crash then waits for an unrelated hotplug event, which is why the process can look healthy for an hour first.
+  - Diagnosing it: the faulting address decodes as ASCII (`0x65636e6174736e49` = "Instance"), the signature of a freed allocation already handed to another object. No thread was tearing an ao down at crash time, which is what ruled out a teardown race and pointed at a listener leaked much earlier.
+  - Accepted trade-offs, neither reproducible in testing on macOS 27: delayed mute (mpv#15014) and audio desync on playback-speed changes (mpv#14483). The trailing comma in `"avfoundation,"` keeps mpv's auto-probe as a fallback, so a failure degrades audio instead of silencing it. Remove the whole workaround once upstream frees the listener on the error path.
+  - Related blind spot, still open: nothing calls `mpv_request_log_messages()`, so libmpv's own warnings (including failed audio init) never surface anywhere.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
@@ -505,6 +548,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-07-18
+**Last updated**: 2026-08-01
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

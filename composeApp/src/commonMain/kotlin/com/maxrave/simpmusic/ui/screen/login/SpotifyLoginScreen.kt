@@ -172,7 +172,11 @@ fun SpotifyLoginScreen(
                         }
                     viewModel.setFullSpotifyCookies(cookies)
                 }
-                val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status$")
+                // Some login flows land on the status page with a query string appended
+                // (e.g. /en/status?flow_ctx=...). Anchoring right after `status` made those
+                // URLs fail the match silently, so sp_dc was never saved and auto-login
+                // appeared to do nothing.
+                val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status(?:\\?.*)?$")
                 if (statusUrl.matches(url)) {
                     cookie
                         .takeIf {

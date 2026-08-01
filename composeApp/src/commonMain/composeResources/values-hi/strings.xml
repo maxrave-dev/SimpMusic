@@ -382,13 +382,9 @@
     <string name="do_not_show_again">दोबारा न दिखाएं</string>
     <string name="auto_check_for_update">अपडेट की स्वतः जाँच</string>
     <string name="auto_check_for_update_description">ऐप खोलते समय अपडेट की जाँच करना</string>
-    <string name="blur_fullscreen_lyrics">पूर्ण स्क्रीन गीत प्रभाव को धुंधला करें</string>
-    <string name="blur_fullscreen_lyrics_description">पूर्ण स्क्रीन गीत प्रभाव को धुंधला किया जा रहा है</string>
     <string name="playback_speed_pitch"><![CDATA[प्लेबैक गति और पिच]]></string>
     <string name="playback_speed">प्लेबैक गति</string>
     <string name="pitch">पिच</string>
-    <string name="blur_player_background">प्लेयर बैकग्राउंड धुंधला करें</string>
-    <string name="blur_player_background_description">नाओ प्लेयिंग स्क्रीन प्रभाव की पृष्ठभूमि को धुंधला किया गया</string>
     <string name="merging_audio_and_video">ऑडियो और वीडियो का संयोजन</string>
     <string name="error_occurred">त्रुटि हुई</string>
     <string name="downloading_audio">ऑडियो डाउनलोड हो रहा है: %1$s </string>

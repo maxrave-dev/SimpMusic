@@ -20,7 +20,14 @@ import com.maxrave.logger.Logger
 object WindowsProtocolRegistrar {
     private const val TAG = "WindowsProtocolRegistrar"
     private const val SCHEME = "simpmusic"
-    private const val REG_KEY = "HKCU\\Software\\Classes\\$SCHEME"
+
+    /**
+     * The Last.fm auth callback. Its scheme is fixed by the callback URL registered on the Last.fm
+     * API account, so it cannot be folded into "simpmusic".
+     */
+    private const val LASTFM_SCHEME = "wordbyword"
+
+    private fun regKeyOf(scheme: String) = "HKCU\\Software\\Classes\\$scheme"
 
     fun register() {
         if (!System.getProperty("os.name", "").contains("Windows", ignoreCase = true)) return
@@ -30,33 +37,46 @@ object WindowsProtocolRegistrar {
             return
         }
 
+        register(SCHEME, "URL:SimpMusic Protocol", exePath)
+        register(LASTFM_SCHEME, "URL:SimpMusic Last.fm Callback", exePath)
+    }
+
+    private fun register(
+        scheme: String,
+        description: String,
+        exePath: String,
+    ) {
+        val regKey = regKeyOf(scheme)
         try {
-            if (isAlreadyRegistered(exePath)) {
-                Logger.d(TAG, "Protocol handler already registered with correct path")
+            if (isAlreadyRegistered(scheme, exePath)) {
+                Logger.d(TAG, "$scheme:// already registered with correct path")
                 return
             }
 
-            Logger.d(TAG, "Registering simpmusic:// protocol handler -> $exePath")
+            Logger.d(TAG, "Registering $scheme:// protocol handler -> $exePath")
 
             // Main key with protocol description
-            regAdd(REG_KEY, null, "URL:SimpMusic Protocol")
-            regAdd(REG_KEY, "URL Protocol", "")
+            regAdd(regKey, null, description)
+            regAdd(regKey, "URL Protocol", "")
 
             // DefaultIcon
-            regAdd("$REG_KEY\\DefaultIcon", null, "\"$exePath\",0")
+            regAdd("$regKey\\DefaultIcon", null, "\"$exePath\",0")
 
             // shell\open\command
-            regAdd("$REG_KEY\\shell\\open\\command", null, "\"$exePath\" \"%1\"")
+            regAdd("$regKey\\shell\\open\\command", null, "\"$exePath\" \"%1\"")
 
-            Logger.d(TAG, "Protocol handler registered successfully")
+            Logger.d(TAG, "$scheme:// registered successfully")
         } catch (e: Exception) {
-            Logger.e(TAG, "Failed to register protocol handler: ${e.message}")
+            Logger.e(TAG, "Failed to register $scheme:// handler: ${e.message}")
         }
     }
 
-    private fun isAlreadyRegistered(currentExePath: String): Boolean {
+    private fun isAlreadyRegistered(
+        scheme: String,
+        currentExePath: String,
+    ): Boolean {
         return try {
-            val result = regQuery("$REG_KEY\\shell\\open\\command", null)
+            val result = regQuery("${regKeyOf(scheme)}\\shell\\open\\command", null)
             // Registry stores path with quotes: "C:\path\to\SimpMusic.exe" "%1"
             // Normalize both for comparison
             val normalizedExe = currentExePath.replace("\\", "/").lowercase()

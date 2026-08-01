@@ -159,6 +159,19 @@
                 <data android:scheme="simpmusic" />
             </intent-filter>
 
+            <!-- Last.fm auth callback. The scheme is fixed by the callback URL registered on the
+                 Last.fm API account, so it is not "simpmusic". -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="lastfm-auth"
+                    android:scheme="wordbyword" />
+            </intent-filter>
+
             <!-- Share filter -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

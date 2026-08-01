@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -107,7 +106,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -136,7 +137,6 @@ import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
@@ -167,6 +167,7 @@ import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
@@ -177,12 +178,6 @@ import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.CupertinoMaterials
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -220,8 +215,22 @@ import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
 private val RICH_SYNC_TIMESTAMP_REGEX = Regex("""<\d{2}:\d{2}\.\d{2,3}>\s*""")
+private val WHITESPACE_REGEX = Regex("""\s+""")
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
+// Word-by-word lyrics carry a timestamp per word; replace each with a space
+// (not ""), then collapse — otherwise the words run together.
+private fun String.stripRichSyncTimestamps(): String =
+    replace(RICH_SYNC_TIMESTAMP_REGEX, " ")
+        .replace(WHITESPACE_REGEX, " ")
+        .trim()
+
+// Backdrop behind the player. A dark surface rather than pure black: #000000 reads as a hole
+// next to the artwork-tinted gradient and cards, which is why Spotify sits its player on a
+// near-black surface instead. Used for the gradient's end colour, the fade-to target and the
+// area below the gradient so all three match exactly and leave no seam.
+private val PlayerBackdropColor = Color(0xFF121212)
+
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun NowPlayingScreen(
@@ -251,7 +260,7 @@ fun NowPlayingScreen(
         },
         containerColor = Color.Black,
         dragHandle = {},
-        scrimColor = Color.Black,
+        scrimColor = Color.Black.copy(alpha = .5f),
         sheetState = sheetState,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         shape = RectangleShape,
@@ -268,7 +277,7 @@ fun NowPlayingScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingScreenContent(
     sharedViewModel: SharedViewModel = koinInject(),
@@ -449,8 +458,6 @@ fun NowPlayingScreenContent(
         mutableStateOf(Color.White)
     }
 
-    val blurBg by sharedViewModel.blurBg.collectAsStateWithLifecycle()
-
     LaunchedEffect(screenDataState) {
         Logger.d(TAG, "ScreenDataState: $screenDataState")
         showHideMiddleLayout = screenDataState.canvasData == null
@@ -467,7 +474,9 @@ fun NowPlayingScreenContent(
             .collectLatest {
                 spotShadowColor = it.getColorFromPalette()
                 startColor.animateTo(it.getColorFromPalette())
-                endColor.animateTo(Color.Black)
+                // Lands on the same backdrop colour the fade and the area below the gradient
+                // use, so the palette ramp resolves into the surface instead of a black patch.
+                endColor.animateTo(PlayerBackdropColor)
             }
     }
 
@@ -610,7 +619,7 @@ fun NowPlayingScreenContent(
         mutableStateOf(false)
     }
 
-    var canvasSubtitleLineIndex by rememberSaveable {
+    var currentLyricLineIndex by rememberSaveable {
         mutableIntStateOf(-1)
     }
 
@@ -625,7 +634,7 @@ fun NowPlayingScreenContent(
     LaunchedEffect(timelineState, screenDataState.lyricsData?.lyrics) {
         val lyrics = screenDataState.lyricsData?.lyrics
         if (lyrics == null || lyrics.syncType == "UNSYNCED" || lyrics.syncType == null) {
-            canvasSubtitleLineIndex = -1
+            currentLyricLineIndex = -1
             return@LaunchedEffect
         }
         val lines = lyrics.lines ?: return@LaunchedEffect
@@ -644,16 +653,16 @@ fun NowPlayingScreenContent(
                         startTimeMs + 60000
                     }
                 if (timelineState.current in startTimeMs..endTimeMs) {
-                    canvasSubtitleLineIndex = i
+                    currentLyricLineIndex = i
                 }
             }
             if (lines.isNotEmpty() &&
                 timelineState.current in 0..(lines.getOrNull(0)?.startTimeMs?.toLongOrNull() ?: 0L)
             ) {
-                canvasSubtitleLineIndex = -1
+                currentLyricLineIndex = -1
             }
         } else {
-            canvasSubtitleLineIndex = -1
+            currentLyricLineIndex = -1
         }
     }
 
@@ -677,7 +686,6 @@ fun NowPlayingScreenContent(
             sharedViewModel = sharedViewModel,
             navController = navController, // <-- ADD THIS LINE
             color = startColor.value,
-            shouldHaze = sharedViewModel.blurFullscreenLyrics(),
         ) {
             showFullscreenLyrics = false
         }
@@ -757,36 +765,10 @@ fun NowPlayingScreenContent(
         )
     }
 
-    val hazeState =
-        rememberHazeState(
-            blurEnabled = true,
-        )
-
     if (screenDataState.lyricsData != null && controllerState.isPlaying) {
         KeepScreenOn()
     }
     Box {
-        if (blurBg && screenDataState.canvasData == null) {
-            AsyncImage(
-                model =
-                    ImageRequest
-                        .Builder(LocalPlatformContext.current)
-                        .data(screenDataState.thumbnailURL)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
-                        .crossfade(550)
-                        .build(),
-                contentDescription = "",
-                contentScale = ContentScale.FillHeight,
-                placeholder = rememberHolderPainter(),
-                error = rememberHolderPainter(),
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .fillMaxSize()
-                        .hazeSource(hazeState),
-            )
-        }
         Column(
             Modifier
                 .verticalScroll(
@@ -798,31 +780,45 @@ fun NowPlayingScreenContent(
                 // drags fall through to the Pager.
                 .then(
                     if (showHideMiddleLayout) {
-                        if (blurBg && screenDataState.canvasData == null) {
-                            Modifier
-                                .background(Color.Transparent)
-                                .hazeEffect(hazeState, style = CupertinoMaterials.thin()) {
-                                    blurEnabled = true
-                                    // The player must stay dark in every app theme. Haze samples the app
-                                    // content behind the sheet (white in light theme), so pin a black
-                                    // backdrop + tint — otherwise the blurred background washes out to white.
-                                    backgroundColor = Color.Black
-                                    tints = listOf(HazeTint(Color.Black.copy(alpha = 0.7f)))
-                                }
-                        } else {
-                            Modifier
-                                .background(
-                                    Brush.linearGradient(
-                                        colors =
-                                            listOf(
-                                                startColor.value,
-                                                endColor.value,
-                                            ),
-                                        start = gradientOffset.start,
-                                        end = gradientOffset.end,
-                                    ),
+                        Modifier
+                            // The backdrop fills the whole scrollable content, then the gradient
+                            // is drawn over just the first screen height. Using background() for
+                            // the gradient instead would stretch it across the entire content,
+                            // which is what made it run on forever while scrolling.
+                            .background(PlayerBackdropColor)
+                            .drawBehind {
+                                val gradientHeight = screenInfo.hPX.toFloat()
+                                val area = Size(size.width, gradientHeight)
+                                // Palette gradient, keeping its diagonal angle.
+                                drawRect(
+                                    brush =
+                                        Brush.linearGradient(
+                                            colors =
+                                                listOf(
+                                                    startColor.value,
+                                                    endColor.value,
+                                                ),
+                                            start = gradientOffset.start,
+                                            end = gradientOffset.end,
+                                        ),
+                                    size = area,
                                 )
-                        }
+                                // Vertical fade to the backdrop colour, fully opaque from 90%
+                                // down, so the bottom edge meets the area underneath seamlessly
+                                // across the whole width. Adding the same colour as a stop to
+                                // the diagonal gradient above could not do that — it would only
+                                // arrive in one corner and leave a visible diagonal seam.
+                                drawRect(
+                                    brush =
+                                        Brush.verticalGradient(
+                                            0f to Color.Transparent,
+                                            0.95f to PlayerBackdropColor,
+                                            startY = 0f,
+                                            endY = gradientHeight,
+                                        ),
+                                    size = area,
+                                )
+                            }
                     } else {
                         Modifier.background(Color.Black)
                     },
@@ -851,7 +847,7 @@ fun NowPlayingScreenContent(
                     val isCurrentArtworkPage = page == currentOrderIndex
                     val pageHasCanvas = isCurrentArtworkPage && screenDataState.canvasData != null
 
-                    // Per-page palette state for the !blurBg gradient backdrop.
+                    // Per-page palette state for the gradient backdrop.
                     // The bitmap is fed in by Layer 2's adjacent-thumbnail AsyncImage
                     // (onSuccess), so we use the SAME bitmap that's painted on screen —
                     // matches the outer Column's palette extraction characteristics.
@@ -897,60 +893,30 @@ fun NowPlayingScreenContent(
                                 ),
                     ) {
                         // ── Layer 0: per-page backdrop (adjacent pages only) ──
-                        // Mirrors the outer Column's bg branching so the backdrop logic stays
-                        // consistent during a swipe:
-                        //   - blurBg=true  → dim track thumbnail (matches the haze look)
-                        //   - blurBg=false → palette gradient (startColor → endColor) so the
-                        //                    adjacent page never falls back to a flat dark void
-                        //                    when the user disables blur.
+                        // Palette gradient (startColor → endColor) so the adjacent page never
+                        // falls back to a flat dark void during a swipe.
                         // The CURRENT page deliberately skips this layer so the existing
-                        // hazeEffect blur / gradient / canvas on the Column stays visible.
+                        // gradient / canvas on the Column stays visible.
                         if (!isCurrentArtworkPage && pageTrack != null) {
-                            if (blurBg) {
-                                val backdropUrl =
-                                    pageTrack.thumbnails
-                                        ?.maxByOrNull { it.width * it.height }
-                                        ?.url
-                                AsyncImage(
-                                    model =
-                                        ImageRequest
-                                            .Builder(LocalPlatformContext.current)
-                                            .data(backdropUrl)
-                                            .diskCachePolicy(CachePolicy.ENABLED)
-                                            .diskCacheKey(backdropUrl)
-                                            .crossfade(300)
-                                            .build(),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    placeholder = rememberHolderPainter(),
-                                    error = rememberHolderPainter(),
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            // Dim slightly so the centered thumbnail above stands out.
-                                            .alpha(0.35f),
-                                )
-                            } else {
-                                // Palette is fed by Layer 2's adjacent-thumbnail AsyncImage
-                                // (see below) so the gradient color stays consistent with
-                                // the bitmap actually painted for that page.
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                Brush.linearGradient(
-                                                    colors =
-                                                        listOf(
-                                                            pageStartColor.value,
-                                                            Color.Black,
-                                                        ),
-                                                    start = gradientOffset.start,
-                                                    end = gradientOffset.end,
-                                                ),
+                            // Palette is fed by Layer 2's adjacent-thumbnail AsyncImage
+                            // (see below) so the gradient color stays consistent with
+                            // the bitmap actually painted for that page.
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.linearGradient(
+                                                colors =
+                                                    listOf(
+                                                        pageStartColor.value,
+                                                        Color.Black,
+                                                    ),
+                                                start = gradientOffset.start,
+                                                end = gradientOffset.end,
                                             ),
-                                )
-                            }
+                                        ),
+                            )
                         }
 
                         // ── Layer 1: fullscreen canvas backdrop (current track + canvas data) ──
@@ -1347,15 +1313,16 @@ fun NowPlayingScreenContent(
                                             .value
                                             .toInt()
                                     }
-                            },
+                            }.padding(
+                                top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() },
+                            ),
                     colors =
                         TopAppBarDefaults.topAppBarColors().copy(
                             containerColor = Color.Transparent,
                         ),
-                    windowInsets =
-                        TopAppBarDefaults.windowInsets.only(
-                            WindowInsetsSides.Top,
-                        ),
+                    // Position-aware insets shrink per frame while the sheet is dragged (pinned
+                    // bar + layout jitter) — status-bar space is static padding on the modifier.
+                    windowInsets = WindowInsets(0, 0, 0, 0),
                     title = {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
@@ -1396,16 +1363,6 @@ fun NowPlayingScreenContent(
                         }
                     },
                     actions = {
-                        // Desktop mini player button (JVM only)
-                        if (getPlatform() == Platform.Desktop) {
-                            IconButton(onClick = { toggleMiniPlayer() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                                    contentDescription = "Mini Player",
-                                    tint = Color.White,
-                                )
-                            }
-                        }
                         IconButton(onClick = {
                             showSheet = true
                         }) {
@@ -1458,14 +1415,61 @@ fun NowPlayingScreenContent(
                                         }.aspectRatio(1f),
                             )
 
-                            Spacer(
+                            // Spotify-style current lyric line — vertically centered in the gap
+                            // between the artwork and the info layout below. This Box replaces the
+                            // plain gap Spacer at the same middleLayoutPaddingDp height, so the
+                            // info layout position never moves; the line just lives inside the gap.
+                            Box(
+                                contentAlignment = Alignment.Center,
                                 modifier =
                                     Modifier
                                         .animateContentSize()
                                         .height(
                                             middleLayoutPaddingDp.dp,
                                         ).fillMaxWidth(),
-                            )
+                            ) {
+                                val inlineLyrics = screenDataState.lyricsData?.lyrics
+                                val hasSyncedLyrics =
+                                    inlineLyrics != null &&
+                                        inlineLyrics.syncType != null &&
+                                        inlineLyrics.syncType != "UNSYNCED" &&
+                                        inlineLyrics.lines != null
+                                // Canvas mode has its own subtitle overlay — never show both.
+                                val currentLyricLineText =
+                                    if (!hasSyncedLyrics ||
+                                        screenDataState.canvasData != null ||
+                                        currentLyricLineIndex < 0
+                                    ) {
+                                        ""
+                                    } else {
+                                        inlineLyrics
+                                            ?.lines
+                                            ?.getOrNull(currentLyricLineIndex)
+                                            ?.words
+                                            ?.stripRichSyncTimestamps()
+                                            .orEmpty()
+                                    }
+                                Crossfade(
+                                    targetState = currentLyricLineText,
+                                    animationSpec = tween(durationMillis = 300),
+                                    label = "inlineLyricLine",
+                                ) { lineText ->
+                                    Text(
+                                        text = lineText,
+                                        style = typo().labelSmall,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 20.dp)
+                                                .basicMarquee(
+                                                    iterations = Int.MAX_VALUE,
+                                                    animationMode = MarqueeAnimationMode.Immediately,
+                                                ).focusable(),
+                                    )
+                                }
+                            }
 
                             // Info Layout
                             Box {
@@ -1941,7 +1945,7 @@ fun NowPlayingScreenContent(
                                                     .animateContentSize(),
                                         ) {
                                             this@Column.AnimatedVisibility(
-                                                visible = canvasSubtitleLineIndex > -1,
+                                                visible = currentLyricLineIndex > -1,
                                                 enter = fadeIn() + expandVertically(),
                                                 exit = fadeOut() + shrinkVertically(),
                                             ) {
@@ -1950,10 +1954,9 @@ fun NowPlayingScreenContent(
                                                     screenDataState.lyricsData
                                                         ?.lyrics
                                                         ?.lines
-                                                        ?.getOrNull(canvasSubtitleLineIndex)
+                                                        ?.getOrNull(currentLyricLineIndex)
                                                         ?.words
-                                                        ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
-                                                        ?.trim()
+                                                        ?.stripRichSyncTimestamps()
                                                 if (!lineText.isNullOrBlank()) {
                                                     Column(
                                                         modifier = Modifier.fillMaxWidth(),
@@ -1978,10 +1981,9 @@ fun NowPlayingScreenContent(
                                                                 ?.translatedLyrics
                                                                 ?.first
                                                                 ?.lines
-                                                                ?.getOrNull(canvasSubtitleLineIndex)
+                                                                ?.getOrNull(currentLyricLineIndex)
                                                                 ?.words
-                                                                ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
-                                                                ?.trim()
+                                                                ?.stripRichSyncTimestamps()
                                                         if (!translatedLineText.isNullOrBlank()) {
                                                             Text(
                                                                 modifier =
@@ -2323,65 +2325,79 @@ fun NowPlayingScreenContent(
                                 shape = RoundedCornerShape(8.dp),
                                 colors =
                                     CardDefaults.elevatedCardColors().copy(
-                                        containerColor = startColor.value,
+                                        containerColor = Color(0xFF212121),
                                     ),
                             ) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(250.dp),
-                                ) {
-                                    val thumb = screenDataState.songInfoData?.authorThumbnail
-                                    AsyncImage(
-                                        model =
-                                            ImageRequest
-                                                .Builder(LocalPlatformContext.current)
-                                                .data(thumb)
-                                                .diskCachePolicy(CachePolicy.ENABLED)
-                                                .diskCacheKey(thumb)
-                                                .crossfade(550)
-                                                .build(),
-                                        placeholder = rememberHolderPainter(isVideo = true),
-                                        error = rememberHolderPainter(isVideo = true),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxSize()
-                                                .alpha(0.8f)
-                                                .clip(
-                                                    RoundedCornerShape(8.dp),
-                                                ),
-                                    )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    // Artwork occupies the top of the card; only the section
+                                    // label sits on top of it. Name and subscriber count moved
+                                    // below onto the solid card surface so they stay readable
+                                    // regardless of how bright the artist photo is.
                                     Box(
                                         modifier =
                                             Modifier
-                                                .padding(15.dp)
-                                                .fillMaxSize(),
+                                                .fillMaxWidth()
+                                                .height(250.dp),
                                     ) {
-                                        Column(Modifier.align(Alignment.TopStart)) {
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                            Text(
-                                                text = stringResource(Res.string.artists),
-                                                style = typo().labelMedium,
-                                                color = Color.White,
-                                            )
-                                        }
-                                        Column(Modifier.align(Alignment.BottomStart)) {
-                                            Text(
-                                                text = screenDataState.songInfoData?.author ?: "",
-                                                style = typo().labelMedium,
-                                                color = Color.White,
-                                            )
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                            Text(
-                                                text = screenDataState.songInfoData?.subscribers ?: "",
-                                                style = typo().bodySmall,
-                                                textAlign = TextAlign.End,
-                                            )
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                        }
+                                        val thumb = screenDataState.songInfoData?.authorThumbnail
+                                        AsyncImage(
+                                            model =
+                                                ImageRequest
+                                                    .Builder(LocalPlatformContext.current)
+                                                    .data(thumb)
+                                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                                    .diskCacheKey(thumb)
+                                                    .crossfade(550)
+                                                    .build(),
+                                            placeholder = rememberHolderPainter(isVideo = true),
+                                            error = rememberHolderPainter(isVideo = true),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            // No explicit clip: the ElevatedCard already clips to
+                                            // its 8.dp shape, so only the card's top corners round
+                                            // and the image meets the panel below flush.
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                        // Scrim behind the label: artist photos are often bright
+                                        // at the top, which swallowed the white text.
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .matchParentSize()
+                                                    .background(
+                                                        Brush.verticalGradient(
+                                                            0f to Color.Black.copy(alpha = 0.6f),
+                                                            0.4f to Color.Transparent,
+                                                        ),
+                                                    ),
+                                        )
+                                        Text(
+                                            text = stringResource(Res.string.artists),
+                                            style = typo().labelMedium,
+                                            color = Color.White,
+                                            modifier =
+                                                Modifier
+                                                    .align(Alignment.TopStart)
+                                                    .padding(15.dp),
+                                        )
+                                    }
+                                    Column(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 15.dp, vertical = 12.dp),
+                                    ) {
+                                        Text(
+                                            text = screenDataState.songInfoData?.author ?: "",
+                                            style = typo().titleMedium,
+                                            color = Color.White,
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = screenDataState.songInfoData?.subscribers ?: "",
+                                            style = typo().bodySmall,
+                                            color = Color.White.copy(alpha = 0.7f),
+                                        )
                                     }
                                 }
                             }

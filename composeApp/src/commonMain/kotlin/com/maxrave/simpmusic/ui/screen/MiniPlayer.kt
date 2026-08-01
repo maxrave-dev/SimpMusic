@@ -2,14 +2,22 @@ package com.maxrave.simpmusic.ui.screen
 
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -21,7 +29,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +52,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -98,20 +109,22 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.toResizedBitmap
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
+import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -560,11 +573,39 @@ fun MiniPlayer(
         // Desktop bottom bar surface follows the theme (haze over content), so text and controls
         // use the theme foreground token instead of the artwork-luminance colour.
         val textColor = MaterialTheme.colorScheme.onBackground
+
+        // Crossfade: RGB rainbow color cycling while transitioning between tracks, mirroring the
+        // Now Playing screen so the desktop bar signals a crossfade the same way.
+        val crossfadeTransition = rememberInfiniteTransition(label = "miniPlayerCrossfadeRainbow")
+        val rainbowHue by crossfadeTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+            label = "miniPlayerRainbowHue",
+        )
+        val progressColor by animateColorAsState(
+            targetValue =
+                if (timelineState.isCrossfading) {
+                    hsvToColor(rainbowHue, 1f, 1f)
+                } else {
+                    textColor
+                },
+            animationSpec = tween(300),
+            label = "miniPlayerCrossfadeColor",
+        )
+
         var isSliding by rememberSaveable {
             mutableStateOf(false)
         }
         var sliderValue by rememberSaveable {
             mutableFloatStateOf(0f)
+        }
+        var showQueueBottomSheet by rememberSaveable {
+            mutableStateOf(false)
         }
         LaunchedEffect(key1 = timelineState, key2 = isSliding) {
             if (!isSliding) {
@@ -575,6 +616,13 @@ fun MiniPlayer(
                         0f
                     }
             }
+        }
+        if (showQueueBottomSheet) {
+            QueueBottomSheet(
+                onDismiss = {
+                    showQueueBottomSheet = false
+                },
+            )
         }
         Box(
             modifier.then(
@@ -738,10 +786,16 @@ fun MiniPlayer(
                                                             ).clip(
                                                                 RoundedCornerShape(8.dp),
                                                             ),
-                                                    color = textColor,
+                                                    // Three levels have to stay apart on one bar: the
+                                                    // slider above draws played position solid, so
+                                                    // buffered-but-unplayed must be dimmed and the
+                                                    // unbuffered remainder dimmer still. At full
+                                                    // buffer a solid colour here would blend into the
+                                                    // played part and the bar would look uniform.
+                                                    color = textColor.copy(alpha = 0.35f),
                                                     trackColor =
                                                         textColor.copy(
-                                                            alpha = 0.4f,
+                                                            alpha = 0.15f,
                                                         ),
                                                     strokeCap = StrokeCap.Round,
                                                     drawStopIndicator = {},
@@ -780,8 +834,8 @@ fun MiniPlayer(
                                                 sliderState = sliderState,
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = textColor,
-                                                        activeTrackColor = textColor,
+                                                        thumbColor = progressColor,
+                                                        activeTrackColor = progressColor,
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 thumbTrackGapSize = 0.dp,
@@ -805,8 +859,8 @@ fun MiniPlayer(
                                                     },
                                                 colors =
                                                     SliderDefaults.colors().copy(
-                                                        thumbColor = textColor,
-                                                        activeTrackColor = textColor,
+                                                        thumbColor = progressColor,
+                                                        activeTrackColor = progressColor,
                                                         inactiveTrackColor = Color.Transparent,
                                                     ),
                                                 enabled = true,
@@ -832,6 +886,19 @@ fun MiniPlayer(
                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                         }
                         Spacer(Modifier.width(4.dp))
+                        // Queue Button
+                        IconButton(
+                            onClick = {
+                                showQueueBottomSheet = true
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                tint = textColor,
+                                contentDescription = "",
+                            )
+                        }
+                        Spacer(Modifier.width(2.dp))
                         // Desktop mini player button (JVM only)
                         if (getPlatform() == Platform.Desktop) {
                             IconButton(onClick = { toggleMiniPlayer() }) {
@@ -841,36 +908,6 @@ fun MiniPlayer(
                                 )
                             }
                         }
-                        var previousVolumeValue by rememberSaveable {
-                            mutableFloatStateOf(controllerState.volume.coerceAtLeast(0.1f))
-                        }
-                        LaunchedEffect(controllerState.volume) {
-                            if (controllerState.volume > 0f) {
-                                previousVolumeValue = controllerState.volume
-                            }
-                        }
-                        IconButton(
-                            onClick = {
-                                // Toggle mute/unmute
-                                if (controllerState.volume > 0f) {
-                                    previousVolumeValue = controllerState.volume
-                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
-                                } else {
-                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(previousVolumeValue.coerceIn(0.1f, 1f)))
-                                }
-                            },
-                        ) {
-                            Icon(
-                                imageVector =
-                                    if (controllerState.volume > 0f) {
-                                        Icons.AutoMirrored.Filled.VolumeUp
-                                    } else {
-                                        Icons.AutoMirrored.Filled.VolumeOff
-                                    },
-                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                            )
-                        }
-                        Spacer(Modifier.width(2.dp))
                         var isVolumeSliding by rememberSaveable {
                             mutableStateOf(false)
                         }
@@ -882,67 +919,119 @@ fun MiniPlayer(
                                 volumeValue = controllerState.volume
                             }
                         }
-                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                            Slider(
-                                value = volumeValue,
-                                onValueChangeFinished = {
-                                    isVolumeSliding = false
-                                    sharedViewModel.onUIEvent(
-                                        UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
-                                    )
+                        // Remembers the level to come back to when unmuting, so the button restores
+                        // what the user was listening at instead of jumping to full volume.
+                        // Starting muted leaves nothing to restore, so full volume stays the fallback.
+                        var previousVolumeValue by rememberSaveable {
+                            mutableFloatStateOf(controllerState.volume.takeIf { it > 0f } ?: 1f)
+                        }
+                        LaunchedEffect(controllerState.volume) {
+                            if (controllerState.volume > 0f) {
+                                previousVolumeValue = controllerState.volume
+                            }
+                        }
+                        // The slider only claims space while the pointer is over the volume cluster.
+                        // `hoverable` sits on the Row wrapping both the icon and the slider so moving
+                        // between them never drops the hover, and an in-progress drag keeps it open
+                        // even when the pointer slips outside.
+                        val volumeInteractionSource = remember { MutableInteractionSource() }
+                        val isVolumeHovered by volumeInteractionSource.collectIsHoveredAsState()
+                        Row(
+                            modifier = Modifier.hoverable(volumeInteractionSource),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    // Toggle mute/unmute
+                                    if (controllerState.volume > 0f) {
+                                        sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
+                                    } else {
+                                        sharedViewModel.onUIEvent(
+                                            UIEvent.UpdateVolume(previousVolumeValue.coerceIn(0.1f, 1f)),
+                                        )
+                                    }
                                 },
-                                onValueChange = {
-                                    isVolumeSliding = true
-                                    volumeValue = it
-                                    if (it > 0f) previousVolumeValue = it
-                                },
-                                valueRange = 0f..1f,
-                                modifier =
-                                    Modifier
-                                        .padding(top = 3.dp)
-                                        .width(64.dp),
-                                track = { sliderState ->
-                                    SliderDefaults.Track(
-                                        modifier =
-                                            Modifier
-                                                .height(5.dp),
-                                        enabled = true,
-                                        sliderState = sliderState,
-                                        colors =
-                                            SliderDefaults.colors().copy(
-                                                thumbColor = textColor,
-                                                activeTrackColor = textColor,
-                                                inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                                            ),
-                                        thumbTrackGapSize = 0.dp,
-                                        drawTick = { _, _ -> },
-                                        drawStopIndicator = null,
-                                    )
-                                },
-                                thumb = {
-                                    SliderDefaults.Thumb(
-                                        modifier =
-                                            Modifier
-                                                .height(18.dp)
-                                                .width(8.dp)
-                                                .padding(
-                                                    vertical = 4.dp,
-                                                ),
-                                        thumbSize = DpSize(8.dp, 8.dp),
-                                        interactionSource =
-                                            remember {
-                                                MutableInteractionSource()
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (controllerState.volume > 0f) {
+                                            Icons.AutoMirrored.Filled.VolumeUp
+                                        } else {
+                                            Icons.AutoMirrored.Filled.VolumeOff
+                                        },
+                                    contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = isVolumeHovered || isVolumeSliding,
+                                enter = expandHorizontally() + fadeIn(),
+                                exit = shrinkHorizontally() + fadeOut(),
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Spacer(Modifier.width(2.dp))
+                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                        Slider(
+                                            value = volumeValue,
+                                            onValueChangeFinished = {
+                                                isVolumeSliding = false
+                                                sharedViewModel.onUIEvent(
+                                                    UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
+                                                )
                                             },
-                                        colors =
-                                            SliderDefaults.colors().copy(
-                                                thumbColor = textColor,
-                                                activeTrackColor = textColor,
-                                                inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                                            ),
-                                        enabled = true,
-                                    )
-                                },
-                            )
+                                            onValueChange = {
+                                                isVolumeSliding = true
+                                                volumeValue = it
+                                            },
+                                            valueRange = 0f..1f,
+                                            modifier =
+                                                Modifier
+                                                    .padding(top = 3.dp)
+                                                    .width(64.dp),
+                                            track = { sliderState ->
+                                                SliderDefaults.Track(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(5.dp),
+                                                    enabled = true,
+                                                    sliderState = sliderState,
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = textColor,
+                                                            activeTrackColor = textColor,
+                                                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
+                                                        ),
+                                                    thumbTrackGapSize = 0.dp,
+                                                    drawTick = { _, _ -> },
+                                                    drawStopIndicator = null,
+                                                )
+                                            },
+                                            thumb = {
+                                                SliderDefaults.Thumb(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(18.dp)
+                                                            .width(8.dp)
+                                                            .padding(
+                                                                vertical = 4.dp,
+                                                            ),
+                                                    thumbSize = DpSize(8.dp, 8.dp),
+                                                    interactionSource =
+                                                        remember {
+                                                            MutableInteractionSource()
+                                                        },
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = textColor,
+                                                            activeTrackColor = textColor,
+                                                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
+                                                        ),
+                                                    enabled = true,
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
+                            }
                         }
                         Spacer(Modifier.width(4.dp))
                         IconButton(onClick = { onClose() }) {
