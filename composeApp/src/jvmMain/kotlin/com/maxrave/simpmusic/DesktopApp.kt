@@ -103,17 +103,39 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     System.setProperty("compose.interop.blending", "true")
     System.setProperty("compose.layers.type", "COMPONENT")
 
+    // Skiko's vsync wait can park the EDT forever after a display change:
+    // macOS waits on a CVDisplayLink-signalled NSConditionLock with no timeout
+    // (DisplayLinkThrottler.mm), Linux blocks inside the vsync'd glXSwapBuffers
+    // when X11 loses its sync source (CMP-9725 / CMP-10019). Both surface as
+    // "UI frozen, audio keeps playing" when the window moves to another
+    // monitor. With vsync off, skiko paces frames with its refresh-rate frame
+    // limiter (skiko.vsync.framelimit.fallback, on by default) instead.
+    // Windows renders via DirectX and shows no such freeze — leave it alone.
+    if (!System.getProperty("os.name", "").contains("Windows", ignoreCase = true)) {
+        System.setProperty("skiko.vsync.enabled", "false")
+    }
+
     // Handle deep link URIs
     // macOS: receives URI via Desktop open URI handler (app already running or launched via scheme)
     // Windows/Linux: receives URI as command-line argument
     val isMacOS = System.getProperty("os.name", "").contains("Mac", ignoreCase = true)
     if (isMacOS && java.awt.Desktop.isDesktopSupported()) {
+        val desktop = java.awt.Desktop.getDesktop()
         try {
-            java.awt.Desktop.getDesktop().setOpenURIHandler { event ->
+            desktop.setOpenURIHandler { event ->
                 DesktopDeepLinkHandler.onNewUri(event.uri.toString())
             }
         } catch (_: UnsupportedOperationException) {
             // Shouldn't happen on macOS, but handle gracefully
+        }
+        // Clicking the Dock icon of a running app arrives as a "reopen" Apple
+        // Event — macOS never spawns a second instance, so the
+        // SingleInstanceManager restore path can't fire for it. Route it
+        // through the same restore signal the tray and second instances use.
+        if (desktop.isSupported(java.awt.Desktop.Action.APP_EVENT_REOPENED)) {
+            desktop.addAppEventListener(
+                java.awt.desktop.AppReopenedListener { DesktopRestoreSignal.request() },
+            )
         }
     }
     // Handle URI passed as command-line argument (Windows/Linux, or explicit invocation)
@@ -243,8 +265,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     else -> appName
                 },
             primaryAction = {
-                isVisible = true
-                windowState.isMinimized = false
+                DesktopRestoreSignal.request()
             },
         ) {
             // Disabled entries: while the window is hidden the tray is the only place showing what
@@ -258,8 +279,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             }
             if (!isVisible) {
                 Item(openAppString) {
-                    isVisible = true
-                    windowState.isMinimized = false
+                    DesktopRestoreSignal.request()
                 }
             }
             if (MiniPlayerManager.isOpen) {
@@ -344,6 +364,14 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             state = windowState,
             visible = isVisible,
         ) {
+            // Restore requests (Dock reopen, tray, second instance) also need a
+            // z-order raise; visibility/minimized are reset by the
+            // application-level collector, but toFront needs the AWT window.
+            LaunchedEffect(Unit) {
+                DesktopRestoreSignal.requests.collect {
+                    window.toFront()
+                }
+            }
             Column(
                 modifier =
                     Modifier
