@@ -927,11 +927,7 @@ fun QueueBottomSheet(
             queueData?.data?.listTracks ?: emptyList()
         }
     }
-    val currentSongIndex by remember(queue, songEntity) {
-        derivedStateOf {
-            musicServiceHandler.currentOrderIndex().takeIf { it > -1 } ?: 0
-        }
-    }
+    val currentSongIndex by musicServiceHandler.currentSongIndex.collectAsStateWithLifecycle()
     val loadMoreState by remember {
         derivedStateOf {
             queueData?.queueState ?: QueueData.StateSource.STATE_CREATED
@@ -1172,7 +1168,7 @@ fun QueueBottomSheet(
                             ) { _ ->
                                 SongFullWidthItems(
                                     track = track,
-                                    isPlaying = index == currentSongIndex,
+                                    isPlaying = index == currentSongIndex && track.videoId == songEntity?.videoId,
                                     modifier =
                                         Modifier
                                             .fillMaxWidth(),
