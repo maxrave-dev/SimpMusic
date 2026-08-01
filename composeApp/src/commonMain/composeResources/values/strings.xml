@@ -584,4 +584,12 @@
     <string name="listen_to_downloaded">Listen to downloaded music</string>
     <string name="playing_on_device">Playing on %1$s</string>
     <string name="not_available_while_casting">Not available while casting</string>
+    <string name="import_data">Import playlists</string>
+    <string name="import_playlists_from_other_apps">Import playlists converted from Spotify or another app at simpmusic.org</string>
+    <string name="import_reading_file">Reading file…</string>
+    <string name="import_progress_songs">%1$d of %2$d songs</string>
+    <string name="import_result">Created %1$d playlists and imported %2$d songs.</string>
+    <string name="import_result_skipped">%1$d entries were skipped because their song was missing from the file.</string>
+    <string name="import_failed">Import failed</string>
+    <string name="import_invalid_file">This file is not a valid SimpMusic import file. Convert your library at simpmusic.org first.</string>
 </resources>

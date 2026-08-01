@@ -48,6 +48,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -83,6 +84,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -101,6 +103,7 @@ import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
@@ -126,6 +129,7 @@ import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.viewModel.ImportViewModel
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -233,6 +237,13 @@ import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
 import simpmusic.composeapp.generated.resources.http
+import simpmusic.composeapp.generated.resources.import_data
+import simpmusic.composeapp.generated.resources.import_failed
+import simpmusic.composeapp.generated.resources.import_playlists_from_other_apps
+import simpmusic.composeapp.generated.resources.import_progress_songs
+import simpmusic.composeapp.generated.resources.import_reading_file
+import simpmusic.composeapp.generated.resources.import_result
+import simpmusic.composeapp.generated.resources.import_result_skipped
 import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.intro_login_to_discord
 import simpmusic.composeapp.generated.resources.intro_login_to_lastfm
@@ -278,6 +289,7 @@ import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
+import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
@@ -411,6 +423,23 @@ fun SettingScreen(
         ) { file ->
             file.firstOrNull()?.getPath(pl)?.toKmpUri()?.let {
                 viewModel.restore(it)
+            }
+        }
+
+    // Import playlists converted on the web. Unlike restore, the file is read through Calf's
+    // KmpFile rather than a Uri, so no expect/actual is needed. The type stays All because a
+    // converted .json arrives with whatever MIME its source assigned it, and an application/json
+    // filter would hide it on some hosts.
+    val importViewModel: ImportViewModel = koinViewModel()
+    val importState by importViewModel.importState.collectAsStateWithLifecycle()
+    val importLauncher =
+        rememberFilePickerLauncher(
+            type =
+                FilePickerFileType.All,
+            selectionMode = FilePickerSelectionMode.Single,
+        ) { file ->
+            file.firstOrNull()?.let {
+                importViewModel.import(it, pl)
             }
         }
 
@@ -2200,6 +2229,15 @@ fun SettingScreen(
                         }
                     },
                 )
+                SettingItem(
+                    title = stringResource(Res.string.import_data),
+                    subtitle = stringResource(Res.string.import_playlists_from_other_apps),
+                    onClick = {
+                        coroutineScope.launch {
+                            importLauncher.launch()
+                        }
+                    },
+                )
             }
         }
         item(key = "about_us") {
@@ -2304,6 +2342,12 @@ fun SettingScreen(
         item(key = "end") {
             EndOfPage()
         }
+    }
+    importState?.let { progress ->
+        ImportProgressDialog(
+            progress = progress,
+            onDismiss = importViewModel::dismiss,
+        )
     }
     val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
     if (basisAlertData != null) {
@@ -2893,5 +2937,97 @@ fun SettingScreen(
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
             ),
+    )
+}
+
+/**
+ * Progress and outcome of a playlist import.
+ *
+ * Only dismissible once the import has finished — cancelling mid-write would leave the database
+ * half-populated with no way to tell the user which half.
+ */
+@Composable
+private fun ImportProgressDialog(
+    progress: ImportProgress,
+    onDismiss: () -> Unit,
+) {
+    val finished = progress is ImportProgress.Success || progress is ImportProgress.Error
+    AlertDialog(
+        onDismissRequest = { if (finished) onDismiss() },
+        properties =
+            DialogProperties(
+                dismissOnBackPress = finished,
+                dismissOnClickOutside = finished,
+            ),
+        title = {
+            Text(
+                text =
+                    stringResource(
+                        if (progress is ImportProgress.Error) Res.string.import_failed else Res.string.import_data,
+                    ),
+                style = typo().titleSmall,
+            )
+        },
+        text = {
+            Column {
+                when (progress) {
+                    is ImportProgress.Preparing -> {
+                        Text(
+                            text = stringResource(Res.string.import_reading_file),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    is ImportProgress.Importing -> {
+                        Text(
+                            text = stringResource(Res.string.import_progress_songs, progress.processed, progress.total),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(
+                            progress = {
+                                if (progress.total > 0) progress.processed.toFloat() / progress.total else 0f
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    is ImportProgress.Success -> {
+                        Text(
+                            text =
+                                stringResource(
+                                    Res.string.import_result,
+                                    progress.result.playlistsCreated,
+                                    progress.result.songsImported,
+                                ),
+                            style = typo().bodyMedium,
+                        )
+                        if (progress.result.skippedEntries > 0) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(Res.string.import_result_skipped, progress.result.skippedEntries),
+                                style = typo().bodySmall,
+                            )
+                        }
+                    }
+
+                    is ImportProgress.Error -> {
+                        Text(
+                            text = progress.message,
+                            style = typo().bodyMedium,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (finished) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = stringResource(Res.string.ok))
+                }
+            }
+        },
     )
 }
