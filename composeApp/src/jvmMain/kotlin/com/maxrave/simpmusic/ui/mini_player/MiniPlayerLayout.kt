@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -121,45 +122,38 @@ private fun MiniPlayerSeekBar(
                 },
         contentAlignment = Alignment.CenterStart,
     ) {
-        // Track
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(trackHeight)
                 .align(Alignment.Center)
                 .background(
-                    Color.White.copy(alpha = 0.25f),
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                     RoundedCornerShape(50),
                 ),
         )
 
-        // Progress
         Box(
             Modifier
                 .width(maxWidth * progress)
                 .height(trackHeight)
                 .align(Alignment.CenterStart)
                 .background(
-                    Color.White,
+                    MaterialTheme.colorScheme.primary,
                     RoundedCornerShape(50),
                 ),
         )
 
-        // Thumb
         Box(
             Modifier
                 .offset(x = (maxWidth * progress) - (thumbSize / 2))
                 .size(thumbSize)
                 .align(Alignment.CenterStart)
-                .background(Color.White, CircleShape),
+                .background(MaterialTheme.colorScheme.primary, CircleShape),
         )
     }
 }
 
-/**
- * Compact layout (< 260dp): Controls only, no artwork or text
- * Perfect for very narrow windows
- */
 @Composable
 fun CompactMiniLayout(
     controllerState: ControlState,
@@ -179,10 +173,10 @@ fun CompactMiniLayout(
                 .fillMaxSize()
                 .animateContentSize(animationSpec = tween(300))
                 .hoverable(interactionSource),
-        color = Color(0xFF1C1C1E),
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Controls only - centered
             Box(
                 modifier =
                     Modifier
@@ -198,7 +192,7 @@ fun CompactMiniLayout(
                     RippleIconButton(
                         resId = Res.drawable.baseline_skip_previous_24,
                         modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                        tint = if (controllerState.isPreviousAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                         onClick = {
                             if (controllerState.isPreviousAvailable) {
                                 onUIEvent(UIEvent.Previous)
@@ -215,7 +209,7 @@ fun CompactMiniLayout(
                     RippleIconButton(
                         resId = Res.drawable.baseline_skip_next_24,
                         modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                        tint = if (controllerState.isNextAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                         onClick = {
                             if (controllerState.isNextAvailable) {
                                 onUIEvent(UIEvent.Next)
@@ -225,7 +219,6 @@ fun CompactMiniLayout(
                 }
             }
 
-            // Seek bar
             Box(
                 modifier = Modifier.padding(horizontal = 12.dp),
             ) {
@@ -238,10 +231,6 @@ fun CompactMiniLayout(
     }
 }
 
-/**
- * Medium layout (260-360dp): Artwork + controls, no text
- * Good balance for medium-sized windows
- */
 @Composable
 fun MediumMiniLayout(
     nowPlayingData: NowPlayingScreenData,
@@ -262,7 +251,8 @@ fun MediumMiniLayout(
             Modifier
                 .fillMaxSize()
                 .animateContentSize(animationSpec = tween(300)),
-        color = Color(0xFF1C1C1E),
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         BoxWithConstraints {
             val showExtraButtons = maxWidth >= 300.dp
@@ -277,7 +267,6 @@ fun MediumMiniLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    // Smaller artwork with hover effect
                     AsyncImage(
                         model = nowPlayingData.thumbnailURL,
                         contentDescription = "Album Art",
@@ -294,12 +283,10 @@ fun MediumMiniLayout(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    // Controls - show extra buttons only if width >= 300dp
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // Like button - only show if width >= 300dp
                         AnimatedVisibility(
                             visible = showExtraButtons,
                             enter = scaleIn() + fadeIn(),
@@ -321,7 +308,7 @@ fun MediumMiniLayout(
                                         if (controllerState.isLiked) {
                                             Color(0xFFFF4081)
                                         } else {
-                                            Color.White.copy(alpha = 0.7f)
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                         },
                                     modifier = Modifier.size(18.dp),
                                 )
@@ -331,7 +318,7 @@ fun MediumMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_previous_24,
                             modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isPreviousAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             onClick = {
                                 if (controllerState.isPreviousAvailable) {
                                     onUIEvent(UIEvent.Previous)
@@ -348,7 +335,7 @@ fun MediumMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_next_24,
                             modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isNextAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             onClick = {
                                 if (controllerState.isNextAvailable) {
                                     onUIEvent(UIEvent.Next)
@@ -356,7 +343,6 @@ fun MediumMiniLayout(
                             },
                         )
 
-                        // Volume button - only show if width >= 300dp
                         AnimatedVisibility(
                             visible = showExtraButtons,
                             enter = scaleIn() + fadeIn(),
@@ -364,7 +350,6 @@ fun MediumMiniLayout(
                         ) {
                             IconButton(
                                 onClick = {
-                                    // Toggle mute/unmute
                                     val newVolume = if (controllerState.volume > 0f) 0f else 1f
                                     onUIEvent(UIEvent.UpdateVolume(newVolume))
                                 },
@@ -378,7 +363,7 @@ fun MediumMiniLayout(
                                             Icons.AutoMirrored.Filled.VolumeOff
                                         },
                                     contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                                    tint = Color.White.copy(alpha = 0.7f),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                     modifier = Modifier.size(18.dp),
                                 )
                             }
@@ -386,7 +371,6 @@ fun MediumMiniLayout(
                     }
                 }
 
-                // Lyrics display (if available)
                 if (lyricsData != null && !lyricsData.lyrics.error && lyricsData.lyrics.lines != null) {
                     val currentLine =
                         remember(timeline.current) {
@@ -434,7 +418,7 @@ fun MediumMiniLayout(
                                     textAlign = TextAlign.Center,
                                     text = currentLine.words,
                                     style = typo().bodySmall,
-                                    color = Color.White.copy(alpha = 0.9f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = 11.sp,
@@ -444,7 +428,6 @@ fun MediumMiniLayout(
                     }
                 }
 
-                // Seek bar
                 Box(
                     modifier = Modifier.padding(horizontal = 12.dp),
                 ) {
@@ -458,11 +441,6 @@ fun MediumMiniLayout(
     }
 }
 
-/**
- * Square/Tall layout (Spotify-style): Large artwork centered with controls below
- * Appears when window is square or taller (aspect ratio <= 1.3)
- * Includes like/favorite and volume/mute buttons
- */
 @Composable
 fun SquareMiniLayout(
     nowPlayingData: NowPlayingScreenData,
@@ -483,7 +461,8 @@ fun SquareMiniLayout(
             Modifier
                 .fillMaxSize()
                 .animateContentSize(animationSpec = tween(300)),
-        color = Color(0xFF1C1C1E),
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Column(
             modifier =
@@ -495,7 +474,6 @@ fun SquareMiniLayout(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Large centered album artwork
             AsyncImage(
                 model = nowPlayingData.thumbnailURL,
                 contentDescription = "Album Art",
@@ -513,7 +491,6 @@ fun SquareMiniLayout(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Track info
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -521,7 +498,7 @@ fun SquareMiniLayout(
                 Text(
                     text = nowPlayingData.nowPlayingTitle,
                     style = typo().bodyLarge,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 16.sp,
@@ -530,7 +507,7 @@ fun SquareMiniLayout(
                 Text(
                     text = nowPlayingData.artistName,
                     style = typo().bodyMedium,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 13.sp,
@@ -539,7 +516,6 @@ fun SquareMiniLayout(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Lyrics display (if available)
             if (lyricsData != null && !lyricsData.lyrics.error && lyricsData.lyrics.lines != null) {
                 val currentLine =
                     remember(timeline.current) {
@@ -581,7 +557,7 @@ fun SquareMiniLayout(
                             textAlign = TextAlign.Center,
                             text = currentLine.words,
                             style = typo().bodySmall,
-                            color = Color.White.copy(alpha = 0.9f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             fontSize = 12.sp,
@@ -591,7 +567,6 @@ fun SquareMiniLayout(
                 }
             }
 
-            // Seek bar
             Box(
                 modifier = Modifier.padding(horizontal = 12.dp),
             ) {
@@ -602,13 +577,11 @@ fun SquareMiniLayout(
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Main playback controls
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Like/Favorite button
                 IconButton(
                     onClick = { onUIEvent(UIEvent.ToggleLike) },
                     modifier = Modifier.size(32.dp),
@@ -625,17 +598,16 @@ fun SquareMiniLayout(
                             if (controllerState.isLiked) {
                                 Color(0xFFFF4081)
                             } else {
-                                Color.White.copy(alpha = 0.7f)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             },
                         modifier = Modifier.size(24.dp),
                     )
                 }
 
-                // Previous
                 RippleIconButton(
                     resId = Res.drawable.baseline_skip_previous_24,
                     modifier = Modifier.size(36.dp),
-                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                    tint = if (controllerState.isPreviousAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                     onClick = {
                         if (controllerState.isPreviousAvailable) {
                             onUIEvent(UIEvent.Previous)
@@ -643,18 +615,16 @@ fun SquareMiniLayout(
                     },
                 )
 
-                // Play/Pause
                 PlayPauseButton(
                     isPlaying = controllerState.isPlaying,
                     modifier = Modifier.size(52.dp),
                     onClick = { onUIEvent(UIEvent.PlayPause) },
                 )
 
-                // Next
                 RippleIconButton(
                     resId = Res.drawable.baseline_skip_next_24,
                     modifier = Modifier.size(36.dp),
-                    tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                    tint = if (controllerState.isNextAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                     onClick = {
                         if (controllerState.isNextAvailable) {
                             onUIEvent(UIEvent.Next)
@@ -662,10 +632,8 @@ fun SquareMiniLayout(
                     },
                 )
 
-                // Volume/Mute button
                 IconButton(
                     onClick = {
-                        // Toggle mute/unmute
                         val newVolume = if (controllerState.volume > 0f) 0f else 1f
                         onUIEvent(UIEvent.UpdateVolume(newVolume))
                     },
@@ -679,7 +647,7 @@ fun SquareMiniLayout(
                                 Icons.AutoMirrored.Filled.VolumeOff
                             },
                         contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                        tint = Color.White.copy(alpha = 0.7f),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -690,9 +658,6 @@ fun SquareMiniLayout(
     }
 }
 
-/**
- * Empty state when no track is playing
- */
 @Composable
 fun EmptyMiniPlayerState() {
     Box(
@@ -706,22 +671,18 @@ fun EmptyMiniPlayerState() {
             Text(
                 text = "No track playing",
                 style = typo().bodyMedium.copy(fontSize = 13.sp),
-                color = Color.White.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Play something to see controls",
                 style = typo().bodySmall.copy(fontSize = 11.sp),
-                color = Color.White.copy(alpha = 0.4f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
             )
         }
     }
 }
 
-/**
- * Legacy full layout - now used only when Box shows > 360dp
- * Kept for backwards compatibility
- */
 @Composable
 fun ExpandedMiniLayout(
     nowPlayingData: NowPlayingScreenData,
@@ -742,12 +703,12 @@ fun ExpandedMiniLayout(
             Modifier
                 .fillMaxSize()
                 .animateContentSize(animationSpec = tween(300)),
-        color = Color(0xFF1C1C1E),
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            // Main content area
             Row(
                 modifier =
                     Modifier
@@ -757,7 +718,6 @@ fun ExpandedMiniLayout(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Album artwork with hover animation
                 AsyncImage(
                     model = nowPlayingData.thumbnailURL,
                     contentDescription = "Album Art",
@@ -772,7 +732,6 @@ fun ExpandedMiniLayout(
                             .hoverable(artworkInteractionSource),
                 )
 
-                // Track info
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.Center,
@@ -780,7 +739,7 @@ fun ExpandedMiniLayout(
                     Text(
                         text = nowPlayingData.nowPlayingTitle,
                         style = typo().bodyMedium,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 14.sp,
@@ -789,14 +748,13 @@ fun ExpandedMiniLayout(
                     Text(
                         text = nowPlayingData.artistName,
                         style = typo().bodySmall,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 12.sp,
                     )
                 }
 
-                // Playback controls
                 AnimatedVisibility(
                     visible = true,
                     enter = fadeIn(tween(300, delayMillis = 150)),
@@ -806,7 +764,6 @@ fun ExpandedMiniLayout(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // Like button
                         IconButton(
                             onClick = { onUIEvent(UIEvent.ToggleLike) },
                             modifier = Modifier.size(28.dp),
@@ -823,7 +780,7 @@ fun ExpandedMiniLayout(
                                     if (controllerState.isLiked) {
                                         Color(0xFFFF4081)
                                     } else {
-                                        Color.White.copy(alpha = 0.7f)
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                     },
                                 modifier = Modifier.size(20.dp),
                             )
@@ -832,7 +789,7 @@ fun ExpandedMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_previous_24,
                             modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isPreviousAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             onClick = {
                                 if (controllerState.isPreviousAvailable) {
                                     onUIEvent(UIEvent.Previous)
@@ -851,7 +808,7 @@ fun ExpandedMiniLayout(
                         RippleIconButton(
                             resId = Res.drawable.baseline_skip_next_24,
                             modifier = Modifier.size(32.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            tint = if (controllerState.isNextAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             onClick = {
                                 if (controllerState.isNextAvailable) {
                                     onUIEvent(UIEvent.Next)
@@ -859,10 +816,8 @@ fun ExpandedMiniLayout(
                             },
                         )
 
-                        // Volume button
                         IconButton(
                             onClick = {
-                                // Toggle mute/unmute
                                 val newVolume = if (controllerState.volume > 0f) 0f else 1f
                                 onUIEvent(UIEvent.UpdateVolume(newVolume))
                             },
@@ -876,7 +831,7 @@ fun ExpandedMiniLayout(
                                         Icons.AutoMirrored.Filled.VolumeOff
                                     },
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                                tint = Color.White.copy(alpha = 0.7f),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -884,7 +839,6 @@ fun ExpandedMiniLayout(
                 }
             }
 
-            // Lyrics display below thumbnail row
             if (lyricsData != null && !lyricsData.lyrics.error && lyricsData.lyrics.lines != null) {
                 val currentLine =
                     remember(timeline.current) {
@@ -933,7 +887,7 @@ fun ExpandedMiniLayout(
                                 textAlign = TextAlign.Center,
                                 text = currentLine.words,
                                 style = typo().bodySmall,
-                                color = Color.White.copy(alpha = 0.9f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 fontSize = 11.sp,
@@ -943,7 +897,6 @@ fun ExpandedMiniLayout(
                 }
             }
 
-            // Seek bar
             Box(
                 modifier = Modifier.padding(horizontal = 12.dp),
             ) {

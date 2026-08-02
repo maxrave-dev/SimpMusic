@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -516,18 +519,23 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                                     if (updateProgress < 0f) {
                                         Button(
                                             onClick = {
-                                                updateProgress = 0f
+                                                updateProgress = 0.01f
                                                 coroutineScope.launch(Dispatchers.IO) {
                                                     val success = SecurityGuard.downloadAndInstallUpdate(updateInfoState!!.downloadUrl!!) { progress, downloaded, total ->
-                                                        updateProgress = progress
-                                                        downloadedBytes = downloaded
-                                                        totalBytes = total
+                                                        kotlinx.coroutines.runBlocking(Dispatchers.Main) {
+                                                            updateProgress = progress
+                                                            downloadedBytes = downloaded
+                                                            totalBytes = total
+                                                        }
                                                     }
                                                     withContext(Dispatchers.Main) {
-                                                        if (success) exitProcess(0)
+                                                        if (success) {
+                                                            updateProgress = 1f
+                                                            kotlinx.coroutines.delay(1000)
+                                                            exitProcess(0)
+                                                        }
                                                         else {
                                                             updateProgress = -1f
-                                                            if (!updateInfoState!!.isMandatory) showUpdateAlert = false
                                                         }
                                                     }
                                                 }
@@ -554,10 +562,14 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             }
 
             if (MiniPlayerManager.isOpen) {
-                MiniPlayerWindow(
-                    sharedViewModel = sharedViewModel,
-                    onCloseRequest = { MiniPlayerManager.isOpen = false },
-                )
+                MaterialTheme(
+                    colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()
+                ) {
+                    MiniPlayerWindow(
+                        sharedViewModel = sharedViewModel,
+                        onCloseRequest = { MiniPlayerManager.isOpen = false },
+                    )
+                }
             }
         }
     }
