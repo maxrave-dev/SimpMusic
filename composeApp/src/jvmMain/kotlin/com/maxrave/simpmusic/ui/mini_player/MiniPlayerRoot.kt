@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -34,16 +35,6 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import java.awt.Cursor
 import java.awt.MouseInfo
 
-/**
- * Root composable for the mini player window content.
- * Automatically switches between layouts based on window width:
- * - < 260dp: Compact (controls only)
- * - 260-360dp: Medium (artwork + controls)
- * - > 360dp: Full (artwork + info + controls)
- *
- * Shows placeholder when no track is playing.
- * Includes close button and drag handle since window is frameless.
- */
 @Composable
 fun MiniPlayerRoot(
     sharedViewModel: SharedViewModel,
@@ -54,31 +45,24 @@ fun MiniPlayerRoot(
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
 
-    val lyricsData by remember {
-        derivedStateOf {
-            nowPlayingData.lyricsData
-        }
-    }
+    val lyricsData by remember { derivedStateOf { nowPlayingData.lyricsData } }
 
-    // Track mouse position for dragging
     var dragStartMousePos by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var dragStartWindowPos by remember { mutableStateOf<Pair<Float, Float>?>(null) }
 
-    // Check if there's any track playing
     val hasTrack = nowPlayingData.nowPlayingTitle.isNotBlank()
 
     Surface(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        color = Color(0xFF1C1C1E),
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(12.dp),
     ) {
         Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
             if (!hasTrack) {
-                // Show empty state
                 EmptyMiniPlayerState()
             } else {
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    // Calculate aspect ratio to detect square/tall layout
                     val aspectRatio = maxWidth.value / maxHeight.value
                     val isSquareOrTall = aspectRatio <= 1.3f && maxHeight >= 200.dp
 
@@ -124,62 +108,56 @@ fun MiniPlayerRoot(
                 }
             }
 
-            // Close button (top-right corner)
             IconButton(
                 onClick = onClose,
-                modifier =
-                    Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp)
-                        .size(24.dp),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(24.dp),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Close",
-                    tint = Color.White.copy(alpha = 0.7f),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     modifier = Modifier.size(16.dp),
                 )
             }
 
-            // Drag handle (top center area for moving window - narrower to avoid resize corners)
             Box(
-                modifier =
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .fillMaxWidth(0.5f)
-                        .height(28.dp)
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = {
-                                    // Store initial mouse and window positions
-                                    val mousePos = MouseInfo.getPointerInfo().location
-                                    dragStartMousePos = Pair(mousePos.x, mousePos.y)
-                                    val currentPos = windowState.position
-                                    if (currentPos is androidx.compose.ui.window.WindowPosition.Absolute) {
-                                        dragStartWindowPos = Pair(currentPos.x.value, currentPos.y.value)
-                                    }
-                                },
-                                onDrag = { change, _ ->
-                                    change.consume()
-                                    val startMouse = dragStartMousePos
-                                    val startWindow = dragStartWindowPos
-                                    if (startMouse != null && startWindow != null) {
-                                        val currentMousePos = MouseInfo.getPointerInfo().location
-                                        val deltaX = currentMousePos.x - startMouse.first
-                                        val deltaY = currentMousePos.y - startMouse.second
-                                        windowState.position =
-                                            androidx.compose.ui.window.WindowPosition(
-                                                (startWindow.first + deltaX).dp,
-                                                (startWindow.second + deltaY).dp,
-                                            )
-                                    }
-                                },
-                                onDragEnd = {
-                                    dragStartMousePos = null
-                                    dragStartWindowPos = null
-                                },
-                            )
-                        }.pointerHoverIcon(PointerIcon(Cursor(Cursor.MOVE_CURSOR))),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth(0.5f)
+                    .height(28.dp)
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDragStart = {
+                                val mousePos = MouseInfo.getPointerInfo().location
+                                dragStartMousePos = Pair(mousePos.x, mousePos.y)
+                                val currentPos = windowState.position
+                                if (currentPos is androidx.compose.ui.window.WindowPosition.Absolute) {
+                                    dragStartWindowPos = Pair(currentPos.x.value, currentPos.y.value)
+                                }
+                            },
+                            onDrag = { change, _ ->
+                                change.consume()
+                                val startMouse = dragStartMousePos
+                                val startWindow = dragStartWindowPos
+                                if (startMouse != null && startWindow != null) {
+                                    val currentMousePos = MouseInfo.getPointerInfo().location
+                                    val deltaX = currentMousePos.x - startMouse.first
+                                    val deltaY = currentMousePos.y - startMouse.second
+                                    windowState.position = androidx.compose.ui.window.WindowPosition(
+                                        (startWindow.first + deltaX).dp,
+                                        (startWindow.second + deltaY).dp,
+                                    )
+                                }
+                            },
+                            onDragEnd = {
+                                dragStartMousePos = null
+                                dragStartWindowPos = null
+                            },
+                        )
+                    }.pointerHoverIcon(PointerIcon(Cursor(Cursor.MOVE_CURSOR))),
             )
         }
     }
