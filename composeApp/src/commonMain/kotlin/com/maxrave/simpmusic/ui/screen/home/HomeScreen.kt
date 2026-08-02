@@ -118,8 +118,8 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
-import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -273,18 +273,27 @@ fun HomeScreen(
         }
     }
 
-    // AQUI ESTÁ LA CORRECCIÓN: onPostScroll escucha la inercia SOBRANTE del scroll
     val nestedScrollConnection = remember {
+        var accumulatedOverscroll = 0f
         object : NestedScrollConnection {
             override fun onPostScroll(
                 consumed: Offset,
                 available: Offset,
                 source: NestedScrollSource
             ): Offset {
-                // Si la lista ya consumió todo y sobra energía de scroll hacia abajo (available.y > 25f)
-                // Y además estamos garantizadamente en el tope (index 0, offset 0)
-                if (available.y > 25f && scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0) {
-                    onRefresh()
+                if (scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0) {
+                    val isFling = source.toString().contains("Fling")
+                    if (!isFling && consumed.y == 0f && available.y > 0f) {
+                        accumulatedOverscroll += available.y
+                        if (accumulatedOverscroll > 80f) {
+                            onRefresh()
+                            accumulatedOverscroll = 0f
+                        }
+                    } else if (available.y <= 0f) {
+                        accumulatedOverscroll = 0f
+                    }
+                } else {
+                    accumulatedOverscroll = 0f
                 }
                 return Offset.Zero
             }
@@ -699,7 +708,7 @@ fun QuickPicks(homeItem: HomeItem, viewModel: HomeViewModel = koinViewModel()) {
                                     playlistName = "\"${it.title}\" Radio",
                                     playlistType = PlaylistType.RADIO,
                                     continuation = null,
-                                ),
+                                )
                             )
                             viewModel.loadMediaItem(firstQueue, type = Config.SONG_CLICK)
                         },

@@ -31,12 +31,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import coil3.ImageLoader
-import coil3.compose.LocalPlatformContext
 import coil3.compose.setSingletonImageLoaderFactory
-import coil3.disk.DiskCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
-import coil3.request.CachePolicy
-import coil3.request.crossfade
 import com.kdroid.composetray.tray.api.Tray
 import com.kdroid.composetray.utils.SingleInstanceManager
 import com.maxrave.data.di.loader.loadAllModules
@@ -64,8 +60,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import multiplatform.network.cmptoast.ToastHost
 import multiplatform.network.cmptoast.showToast
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okio.FileSystem
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -82,11 +78,13 @@ import simpmusic.composeapp.generated.resources.open_app
 import simpmusic.composeapp.generated.resources.open_miniplayer
 import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun runDesktopApp(args: Array<String> = emptyArray()) {
     CrashDialog.install()
 
+    System.setProperty("java.net.preferIPv4Stack", "true")
     System.setProperty("compose.swing.render.on.graphics", "true")
     System.setProperty("compose.interop.blending", "true")
     System.setProperty("compose.layers.type", "COMPONENT")
@@ -139,11 +137,12 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     mediaPlayerHandler.showToast = { type ->
         showToast(
             when (type) {
-                ToastType.ExplicitContent -> runBlocking { getString(Res.string.explicit_content_blocked) }
-                is ToastType.PlayerError -> runBlocking { getString(Res.string.time_out_check_internet_connection_or_change_piped_instance_in_settings, type.error) }
+                ToastType.ExplicitContent -> "Contenido explícito bloqueado"
+                is ToastType.PlayerError -> "Tiempo de espera agotado o error de red: ${type.error}"
             },
         )
     }
+    
     mediaPlayerHandler.pushPlayerError = { error ->
         Sentry.withScope { scope ->
             Sentry.captureMessage("Player Error: ${error.message}, code: ${error.errorCode}, code name: ${error.errorCodeName}")
@@ -159,6 +158,26 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     }
 
     application {
+        setSingletonImageLoaderFactory { context ->
+            val okHttpClient = OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .followRedirects(true)
+                .followSslRedirects(true)
+                .addInterceptor(Interceptor { chain ->
+                    val request = chain.request().newBuilder()
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                        .header("Accept", "*/*")
+                        .build()
+                    chain.proceed(request)
+                })
+                .build()
+
+            ImageLoader.Builder(context).components {
+                add(OkHttpNetworkFetcherFactory(callFactory = { okHttpClient }))
+            }.build()
+        }
+
         var isUserLoggedIn by remember { mutableStateOf(AuthManager.isLoggedIn) } 
         var isSecurityChecked by remember { mutableStateOf(false) }
         var isBlocked by remember { mutableStateOf(false) }
@@ -342,19 +361,6 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                             window = window,
                             onCloseRequest = { isVisible = false },
                         )
-                    }
-
-                    val context = LocalPlatformContext.current
-                    setSingletonImageLoaderFactory {
-                        ImageLoader.Builder(context).components {
-                            add(OkHttpNetworkFetcherFactory(callFactory = { OkHttpClient() }))
-                        }.diskCachePolicy(CachePolicy.ENABLED)
-                        .networkCachePolicy(CachePolicy.ENABLED)
-                        .diskCache(
-                            DiskCache.Builder()
-                                .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-                                .maxSizeBytes(512L * 1024 * 1024).build()
-                        ).crossfade(true).build()
                     }
 
                     App()
