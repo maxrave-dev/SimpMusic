@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,19 +10,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -41,6 +49,7 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.simpmusic.desktop.auth.AuthManager
 import com.maxrave.simpmusic.desktop.auth.SecurityGuard
+import com.maxrave.simpmusic.desktop.auth.UpdateInfo
 import com.maxrave.simpmusic.desktop.ui.LoginScreen
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
@@ -56,6 +65,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import multiplatform.network.cmptoast.ToastHost
@@ -79,6 +89,7 @@ import simpmusic.composeapp.generated.resources.open_miniplayer
 import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
 import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun runDesktopApp(args: Array<String> = emptyArray()) {
@@ -284,6 +295,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         } else {
             val windowState = rememberWindowState(size = DpSize(1500.dp, 860.dp))
             var isVisible by remember { mutableStateOf(true) }
+            val coroutineScope = rememberCoroutineScope()
 
             LaunchedEffect(Unit) {
                 DesktopRestoreSignal.requests.collect {
@@ -342,6 +354,47 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 vmTokens.any { sysInfo.contains(it, ignoreCase = true) } || System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
             }
 
+            var showDaysAlert by remember { mutableStateOf(false) }
+            var daysAlertTitle by remember { mutableStateOf("") }
+            var daysAlertMessage by remember { mutableStateOf("") }
+            var isAccountBlocked by remember { mutableStateOf(false) }
+
+            var showUpdateAlert by remember { mutableStateOf(false) }
+            var updateInfoState by remember { mutableStateOf<UpdateInfo?>(null) }
+            var updateProgress by remember { mutableFloatStateOf(-1f) }
+            var downloadedBytes by remember { mutableStateOf(0L) }
+            var totalBytes by remember { mutableStateOf(0L) }
+
+            LaunchedEffect(Unit) {
+                val user = AuthManager.username
+                if (!user.isNullOrBlank()) {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        val securityStatus = SecurityGuard.checkRemainingDays(user)
+                        val updateInfo = SecurityGuard.checkAppUpdates()
+                        
+                        withContext(Dispatchers.Main) {
+                            if (!securityStatus.isValid && securityStatus.alertTitle != null) {
+                                isAccountBlocked = true
+                                daysAlertTitle = securityStatus.alertTitle ?: ""
+                                daysAlertMessage = securityStatus.alertMessage ?: ""
+                                showDaysAlert = true
+                            } else if (securityStatus.alertTitle != null && securityStatus.alertMessage != null) {
+                                daysAlertTitle = securityStatus.alertTitle ?: ""
+                                daysAlertMessage = securityStatus.alertMessage ?: ""
+                                showDaysAlert = true
+                            }
+                            
+                            if (updateInfo?.hasUpdate == true) {
+                                updateInfoState = updateInfo
+                                if (!showDaysAlert) {
+                                    showUpdateAlert = true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             Window(
                 onCloseRequest = { isVisible = false },
                 title = stringResource(Res.string.app_name),
@@ -351,20 +404,152 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 state = windowState,
                 visible = isVisible,
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize().then(if (!isVM) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier)
-                ) {
-                    if (!isVM) {
-                        CustomTitleBar(
-                            title = stringResource(Res.string.app_name),
-                            windowState = windowState,
-                            window = window,
-                            onCloseRequest = { isVisible = false },
-                        )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().then(if (!isVM) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier)
+                    ) {
+                        if (!isVM) {
+                            CustomTitleBar(
+                                title = stringResource(Res.string.app_name),
+                                windowState = windowState,
+                                window = window,
+                                onCloseRequest = { isVisible = false },
+                            )
+                        }
+
+                        App()
+                        ToastHost()
                     }
 
-                    App()
-                    ToastHost()
+                    if (showDaysAlert) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.5f))
+                        ) {
+                            AlertDialog(
+                                onDismissRequest = {
+                                    if (!isAccountBlocked) {
+                                        showDaysAlert = false
+                                        if (updateInfoState?.hasUpdate == true) showUpdateAlert = true
+                                    }
+                                },
+                                containerColor = Color(0xFF1E1E1E),
+                                titleContentColor = Color.White,
+                                textContentColor = Color.LightGray,
+                                shape = RoundedCornerShape(12.dp),
+                                title = {
+                                    Text(
+                                        text = daysAlertTitle,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp,
+                                        color = Color(0xFFFF3E3E)
+                                    )
+                                },
+                                text = { Text(text = daysAlertMessage, fontSize = 16.sp) },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            if (isAccountBlocked) {
+                                                AuthManager.clearSession()
+                                                exitProcess(0)
+                                            } else {
+                                                showDaysAlert = false
+                                                if (updateInfoState?.hasUpdate == true) showUpdateAlert = true
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF3E3E), contentColor = Color.White)
+                                    ) {
+                                        Text(if (isAccountBlocked) "Salir" else "Entendido", fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    if (showUpdateAlert && updateInfoState != null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.5f))
+                        ) {
+                            AlertDialog(
+                                onDismissRequest = {
+                                    if (updateProgress < 0f && !updateInfoState!!.isMandatory) {
+                                        showUpdateAlert = false
+                                    }
+                                },
+                                containerColor = Color(0xFF1E1E1E),
+                                titleContentColor = Color.White,
+                                textContentColor = Color.LightGray,
+                                shape = RoundedCornerShape(12.dp),
+                                title = {
+                                    Text(
+                                        text = if (updateInfoState!!.isMandatory) "Actualización Requerida" else "¡Actualización Disponible!",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp,
+                                        color = if (updateInfoState!!.isMandatory) Color(0xFFFF3E3E) else Color(0xFF0090E7)
+                                    )
+                                },
+                                text = {
+                                    Column {
+                                        Text("Nueva versión disponible. Notas:", fontWeight = FontWeight.Bold, color = Color.White)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(updateInfoState!!.changelog ?: "Mejoras generales y corrección de errores.", fontSize = 14.sp)
+                                        
+                                        if (updateProgress >= 0f) {
+                                            Spacer(modifier = Modifier.height(16.dp))
+                                            val downloadedMB = String.format("%.2f", downloadedBytes / (1024f * 1024f))
+                                            val totalMB = if (totalBytes > 0) String.format("%.2f", totalBytes / (1024f * 1024f)) else "..."
+                                            Text("Descargando: $downloadedMB MB / $totalMB MB", fontSize = 14.sp, color = Color.White)
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            LinearProgressIndicator(
+                                                progress = { updateProgress },
+                                                modifier = Modifier.fillMaxWidth().height(8.dp),
+                                                color = Color(0xFF00D25B),
+                                                trackColor = Color(0xFF333333)
+                                            )
+                                        }
+                                    }
+                                },
+                                confirmButton = {
+                                    if (updateProgress < 0f) {
+                                        Button(
+                                            onClick = {
+                                                updateProgress = 0f
+                                                coroutineScope.launch(Dispatchers.IO) {
+                                                    val success = SecurityGuard.downloadAndInstallUpdate(updateInfoState!!.downloadUrl!!) { progress, downloaded, total ->
+                                                        updateProgress = progress
+                                                        downloadedBytes = downloaded
+                                                        totalBytes = total
+                                                    }
+                                                    withContext(Dispatchers.Main) {
+                                                        if (success) exitProcess(0)
+                                                        else {
+                                                            updateProgress = -1f
+                                                            if (!updateInfoState!!.isMandatory) showUpdateAlert = false
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (updateInfoState!!.isMandatory) Color(0xFFFF3E3E) else Color(0xFF0090E7), 
+                                                contentColor = Color.White
+                                            )
+                                        ) { Text("Actualizar Ahora", fontWeight = FontWeight.Bold) }
+                                    }
+                                },
+                                dismissButton = {
+                                    if (updateProgress < 0f && !updateInfoState!!.isMandatory) {
+                                        Button(
+                                            onClick = { showUpdateAlert = false },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.Gray)
+                                        ) { Text("Más tarde") }
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
 

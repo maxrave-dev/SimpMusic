@@ -1,11 +1,16 @@
 package com.maxrave.simpmusic
 
+import java.awt.Color
 import java.awt.Toolkit
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.URLDecoder
 import java.util.zip.ZipInputStream
+import javax.swing.BorderFactory
+import javax.swing.JLabel
+import javax.swing.JWindow
+import javax.swing.SwingConstants
 
 private fun forceLinuxWmClass(appName: String = "SimpMusic") {
     if (!System.getProperty("os.name").orEmpty().contains("linux", ignoreCase = true)) return
@@ -90,6 +95,36 @@ private fun configureVlcPath() {
 
 fun main(args: Array<String>) {
     Thread.setDefaultUncaughtExceptionHandler { _, _ -> }
+    
+    val splash = JWindow()
+    val label = JLabel("Iniciando YouTube Music, cargando componentes...", SwingConstants.CENTER)
+    label.isOpaque = true
+    label.background = Color(25, 25, 25)
+    label.foreground = Color.WHITE
+    label.border = BorderFactory.createLineBorder(Color(60, 60, 60), 2)
+    splash.add(label)
+    splash.setSize(400, 120)
+    
+    val screenSize = Toolkit.getDefaultToolkit().screenSize
+    splash.setLocation((screenSize.width - 400) / 2, (screenSize.height - 120) / 2)
+    splash.isVisible = true
+
+    Thread {
+        try {
+            var appWindowAppeared = false
+            while (!appWindowAppeared) {
+                Thread.sleep(100)
+                for (window in java.awt.Window.getWindows()) {
+                    if (window.isVisible && window !== splash) {
+                        appWindowAppeared = true
+                        break
+                    }
+                }
+            }
+            splash.isVisible = false
+            splash.dispose()
+        } catch (e: Exception) {}
+    }.start()
     
     configureVlcPath()
     forceLinuxWmClass()
