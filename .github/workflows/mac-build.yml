@@ -1,0 +1,32 @@
+name: Build Mac DMG
+
+on:
+  push:
+    branches: [ "macos" ]
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout del código
+      uses: actions/checkout@v3
+
+    - name: Configurar Java 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'zulu'
+
+    - name: Dar permisos al Gradle Wrapper
+      run: chmod +x gradlew
+
+    - name: Compilar y empaquetar para Mac (DMG)
+      run: ./gradlew packageReleaseDmg
+
+    - name: Subir ejecutable (.dmg)
+      uses: actions/upload-artifact@v3
+      with:
+        name: SimpMusic-Mac-Build
+        path: composeApp/build/compose/binaries/main/dmg/*.dmg
