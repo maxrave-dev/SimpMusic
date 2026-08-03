@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.other
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -96,6 +97,9 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.MoodCategoryCard
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -597,38 +601,15 @@ fun SearchScreen(
                                 EndOfPage()
                             }
                         }
+                        }
                     }
                 }
 
                 SearchUIType.SEARCH_RESULTS -> {
-                    // Content area
+                    // Content area — chips now live in the blurred bar block above.
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Filter chips
-                        Row(
-                            modifier =
-                                Modifier
-                                    .horizontalScroll(chipRowState)
-                                    .padding(top = 10.dp)
-                                    .padding(horizontal = 12.dp),
-                        ) {
-                            SearchType.entries.forEach { id ->
-                                val isSelected = id == searchScreenState.searchType
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Chip(
-                                    isAnimated = uiState is SearchScreenUIState.Loading,
-                                    isSelected = isSelected,
-                                    text = stringResource(id.toStringRes()),
-                                ) {
-                                    searchViewModel.setSearchType(id)
-                                }
-                                Spacer(modifier = Modifier.width(4.dp))
-                            }
-                        }
                         PullToRefreshBox(
-                            modifier =
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(vertical = 10.dp),
+                            modifier = Modifier.fillMaxSize(),
                             state = pullToRefreshState,
                             onRefresh = {
                                 val query = searchText.trim()
@@ -652,7 +633,13 @@ fun SearchScreen(
                                 PullToRefreshDefaults.Indicator(
                                     state = pullToRefreshState,
                                     isRefreshing = uiState is SearchScreenUIState.Loading,
-                                    modifier = Modifier.align(Alignment.TopCenter),
+                                    // Anchored to the top of the box, which now starts under the
+                                    // bar — without this offset the spinner sits behind the bar
+                                    // and only its top sliver shows.
+                                    modifier =
+                                        Modifier
+                                            .align(Alignment.TopCenter)
+                                            .padding(top = searchBarHeight),
                                     containerColor = PullToRefreshDefaults.indicatorContainerColor,
                                     color = PullToRefreshDefaults.indicatorColor,
                                     maxDistance = PullToRefreshDefaults.PositionalThreshold - 5.dp,
@@ -662,8 +649,15 @@ fun SearchScreen(
                             Crossfade(targetState = uiState) { uiState ->
                                 when (uiState) {
                                     is SearchScreenUIState.Loading -> {
-                                        // Loading state
-                                        LazyColumn {
+                                        // Loading state — same top inset as the results list, or
+                                        // the first shimmer row hides behind the bar and chips.
+                                        LazyColumn(
+                                            contentPadding =
+                                                PaddingValues(
+                                                    top = searchBarHeight,
+                                                    bottom = 10.dp,
+                                                ),
+                                        ) {
                                             items(10) {
                                                 ShimmerSearchItem()
                                             }
@@ -689,7 +683,13 @@ fun SearchScreen(
                                             Crossfade(targetState = currentResults.isNotEmpty()) {
                                                 if (it) {
                                                     LazyColumn(
-                                                        contentPadding = PaddingValues(horizontal = 4.dp),
+                                                        contentPadding =
+                                                            PaddingValues(
+                                                                start = 4.dp,
+                                                                end = 4.dp,
+                                                                top = searchBarHeight,
+                                                                bottom = 10.dp,
+                                                            ),
                                                         state = resultsState,
                                                     ) {
                                                         items(currentResults) { result ->
@@ -890,7 +890,7 @@ fun SearchScreen(
                     .onGloballyPositioned { searchBarHeightPx = it.size.height },
             label = "search_bar_scrim",
         ) { atTop ->
-            Box(
+            Column(
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -990,7 +990,31 @@ fun SearchScreen(
             shape = RoundedCornerShape(8.dp),
             content = {},
         )
-
+                // Filter chips ride along inside the blurred block instead of sitting in the
+                // results branch. That way searchBarHeight covers them too, results scroll
+                // underneath the whole thing, and the glass has something to blur.
+                AnimatedVisibility(visible = searchUIType == SearchUIType.SEARCH_RESULTS) {
+                    Row(
+                        modifier =
+                            Modifier
+                                .horizontalScroll(chipRowState)
+                                .padding(top = 10.dp)
+                                .padding(horizontal = 12.dp),
+                    ) {
+                        SearchType.entries.forEach { id ->
+                            val isSelected = id == searchScreenState.searchType
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Chip(
+                                isAnimated = uiState is SearchScreenUIState.Loading,
+                                isSelected = isSelected,
+                                text = stringResource(id.toStringRes()),
+                            ) {
+                                searchViewModel.setSearchType(id)
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                    }
+                }
             }
         }
     }
