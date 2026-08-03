@@ -158,7 +158,10 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                     Text(
                                         text = stringResource(Res.string.create),
                                         style = typo().titleSmall,
-                                        color = Color.White,
+                                        // Sits on the page background, not on the tile, so it has
+                                        // to follow the theme — hard-coded white vanished in light
+                                        // theme while every other tile label stayed readable.
+                                        color = MaterialTheme.colorScheme.onBackground,
                                         maxLines = 1,
                                         modifier =
                                             Modifier
