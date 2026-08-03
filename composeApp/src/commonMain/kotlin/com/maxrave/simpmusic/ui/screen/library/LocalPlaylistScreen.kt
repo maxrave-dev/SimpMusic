@@ -47,11 +47,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.sharp.Sort
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -139,6 +134,11 @@ import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
 import com.maxrave.simpmusic.ui.component.playlistTitleGradient
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
+import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Sort
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
@@ -844,7 +844,7 @@ fun LocalPlaylistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Rounded.Shuffle,
+                                                imageVector = SimpIcons.Shuffle,
                                                 contentDescription = "Shuffle",
                                                 tint = Color.White,
                                                 modifier = Modifier.size(22.dp),
@@ -870,9 +870,9 @@ fun LocalPlaylistScreen(
                                                 Icon(
                                                     imageVector =
                                                         if (isThisPlaying) {
-                                                            Icons.Rounded.Pause
+                                                            SimpIcons.Pause
                                                         } else {
-                                                            Icons.Rounded.PlayArrow
+                                                            SimpIcons.PlayArrow
                                                         },
                                                     contentDescription = null,
                                                     tint = Color.Black,
@@ -1221,7 +1221,7 @@ fun LocalPlaylistScreen(
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                                    imageVector = SimpIcons.Sort,
                                                     contentDescription = "Sort playlist",
                                                     tint = Color.White,
                                                     modifier = Modifier.size(20.dp),
@@ -1249,7 +1249,7 @@ fun LocalPlaylistScreen(
                                             ) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(
-                                                        imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                                        imageVector = SimpIcons.Sort,
                                                         contentDescription = "Sort playlist",
                                                         tint = Color.White,
                                                         modifier = Modifier.size(24.dp),

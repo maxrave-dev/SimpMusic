@@ -49,15 +49,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.outlined.OpenInNew
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -125,6 +116,12 @@ import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.OpenInNew
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.VolumeOff
+import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -893,7 +890,7 @@ fun MiniPlayer(
                             },
                         ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                imageVector = SimpIcons.QueueMusic,
                                 tint = textColor,
                                 contentDescription = "",
                             )
@@ -903,7 +900,7 @@ fun MiniPlayer(
                         if (getPlatform() == Platform.Desktop) {
                             IconButton(onClick = { toggleMiniPlayer() }) {
                                 Icon(
-                                    imageVector = Icons.Outlined.OpenInNew,
+                                    imageVector = SimpIcons.OpenInNew,
                                     contentDescription = "Mini Player",
                                 )
                             }
@@ -955,9 +952,9 @@ fun MiniPlayer(
                                 Icon(
                                     imageVector =
                                         if (controllerState.volume > 0f) {
-                                            Icons.AutoMirrored.Filled.VolumeUp
+                                            SimpIcons.VolumeUp
                                         } else {
-                                            Icons.AutoMirrored.Filled.VolumeOff
+                                            SimpIcons.VolumeOff
                                         },
                                     contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                 )
@@ -1035,7 +1032,7 @@ fun MiniPlayer(
                         }
                         Spacer(Modifier.width(4.dp))
                         IconButton(onClick = { onClose() }) {
-                            Icon(Icons.Rounded.Close, "")
+                            Icon(SimpIcons.Close, "")
                         }
                     }
                 }

@@ -37,9 +37,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -120,6 +117,9 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Error
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
@@ -2504,7 +2504,7 @@ fun SettingScreen(
                                         .align(Alignment.CenterStart)
                                         .fillMaxHeight(),
                             ) {
-                                Icon(Icons.Outlined.Close, null, tint = MaterialTheme.colorScheme.onSurface)
+                                Icon(SimpIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                             Text(
                                 stringResource(Res.string.youtube_account),
@@ -2671,7 +2671,7 @@ fun SettingScreen(
                                 },
                                 trailingIcon = {
                                     if (!verify.first) {
-                                        Icons.Outlined.Error
+                                        SimpIcons.Error
                                     }
                                 },
                                 modifier =

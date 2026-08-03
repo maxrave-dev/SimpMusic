@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LogoDev
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +31,8 @@ import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.LogoDev
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import org.jetbrains.compose.resources.stringResource
@@ -128,7 +128,7 @@ fun DiscordLoginScreen(
                     },
                 ) {
                     Icon(
-                        Icons.Default.LogoDev,
+                        SimpIcons.LogoDev,
                         "Developer Mode",
                     )
                 }

@@ -25,8 +25,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoGraph
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,6 +72,8 @@ import com.maxrave.simpmusic.ui.component.LibraryItem
 import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
+import com.maxrave.simpmusic.ui.icon.AutoGraph
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
@@ -451,7 +451,7 @@ fun LibraryScreen(
                     },
                 ) {
                     Box {
-                        Icon(Icons.Rounded.AutoGraph, "Analytics", tint = MaterialTheme.colorScheme.onBackground)
+                        Icon(SimpIcons.AutoGraph, "Analytics", tint = MaterialTheme.colorScheme.onBackground)
                         Text(
                             "NEW",
                             Modifier.align(Alignment.BottomEnd),

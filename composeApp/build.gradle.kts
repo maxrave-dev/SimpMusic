@@ -112,8 +112,6 @@ kotlin {
             // Compose
             implementation(libs.compose.material3.adaptive)
             implementation(libs.compose.material.ripple)
-            implementation(libs.compose.material.icons.core)
-            implementation(libs.compose.material.icons.extended)
 
             implementation(libs.ui.tooling.preview)
 

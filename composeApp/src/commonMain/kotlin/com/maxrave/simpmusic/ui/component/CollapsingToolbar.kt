@@ -24,8 +24,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,7 +70,10 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rgbFactor
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.compose.resources.painterResource
@@ -213,7 +214,7 @@ fun CollapsingToolbarParallaxEffect(
                                 ),
                         ),
                 ) {
-                    Icon(Icons.Default.ArrowBackIosNew, "Back")
+                    Icon(SimpIcons.ArrowBackIosNew, "Back")
                 }
             }
         }
@@ -367,7 +368,7 @@ private fun Toolbar(
                             .size(24.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBackIosNew,
+                        imageVector = SimpIcons.ArrowBackIosNew,
                         contentDescription = null,
                         tint = Color.White,
                     )

@@ -57,18 +57,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.filled.SubtitlesOff
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Forward5
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.Replay5
-import androidx.compose.material.icons.rounded.ThumbsUpDown
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -168,6 +156,17 @@ import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.AddCircleOutline
+import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.Forward5
+import com.maxrave.simpmusic.ui.icon.Info
+import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.Replay5
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Subtitles
+import com.maxrave.simpmusic.ui.icon.SubtitlesOff
+import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
@@ -269,7 +268,7 @@ fun NowPlayingScreen(
             sharedViewModel = sharedViewModel,
             navController = navController,
             isExpanded = sheetState.currentValue == SheetValue.Expanded,
-            dismissIcon = Icons.Rounded.KeyboardArrowDown,
+            dismissIcon = SimpIcons.KeyboardArrowDown,
             onDismiss = {
                 hideSheet()
             },
@@ -1183,7 +1182,7 @@ fun NowPlayingScreenContent(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = Icons.Rounded.Replay5,
+                                                                        imageVector = SimpIcons.Replay5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -1207,7 +1206,7 @@ fun NowPlayingScreenContent(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = Icons.Rounded.Forward5,
+                                                                        imageVector = SimpIcons.Forward5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -1227,9 +1226,9 @@ fun NowPlayingScreenContent(
                                                                     Icon(
                                                                         imageVector =
                                                                             if (internalShowSubtitle) {
-                                                                                Icons.Filled.SubtitlesOff
+                                                                                SimpIcons.SubtitlesOff
                                                                             } else {
-                                                                                Icons.Filled.Subtitles
+                                                                                SimpIcons.Subtitles
                                                                             },
                                                                         contentDescription = "",
                                                                         tint = Color.White,
@@ -1598,7 +1597,7 @@ fun NowPlayingScreenContent(
                                                             sharedViewModel.addToYouTubeLiked()
                                                         },
                                                     ) {
-                                                        Icon(imageVector = Icons.Rounded.CheckCircle, tint = Color.White, contentDescription = "")
+                                                        Icon(imageVector = SimpIcons.CheckCircle, tint = Color.White, contentDescription = "")
                                                     }
                                                 } else {
                                                     IconButton(
@@ -1614,7 +1613,7 @@ fun NowPlayingScreenContent(
                                                         },
                                                     ) {
                                                         Icon(
-                                                            imageVector = Icons.Rounded.AddCircleOutline,
+                                                            imageVector = SimpIcons.AddCircleOutline,
                                                             tint = Color.White,
                                                             contentDescription = "",
                                                         )
@@ -1828,7 +1827,7 @@ fun NowPlayingScreenContent(
                                                     showInfoBottomSheet = true
                                                 },
                                             ) {
-                                                Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                                                Icon(imageVector = SimpIcons.Info, tint = Color.White, contentDescription = "")
                                             }
                                             // Cyan rather than colorScheme.primary: this screen is force-dark whatever
                                             // the app theme is, so a light-theme primary would sink into the black
@@ -1886,7 +1885,7 @@ fun NowPlayingScreenContent(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                                    imageVector = SimpIcons.QueueMusic,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                 )
@@ -2117,7 +2116,7 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = Icons.Rounded.CheckCircle,
+                                                                    imageVector = SimpIcons.CheckCircle,
                                                                     tint = Color.White,
                                                                     contentDescription = "",
                                                                 )
@@ -2136,7 +2135,7 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = Icons.Rounded.AddCircleOutline,
+                                                                    imageVector = SimpIcons.AddCircleOutline,
                                                                     tint = Color.White,
                                                                     contentDescription = "",
                                                                 )
@@ -2206,7 +2205,7 @@ fun NowPlayingScreenContent(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Rounded.ThumbsUpDown,
+                                                        imageVector = SimpIcons.ThumbsUpDown,
                                                         contentDescription = stringResource(Res.string.rate_lyrics),
                                                         tint = Color.White,
                                                         modifier = Modifier.size(16.dp),

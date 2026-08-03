@@ -3,8 +3,6 @@ package com.maxrave.simpmusic.ui.component
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -18,6 +16,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.maxrave.simpmusic.ui.icon.Done
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 
 @Composable
 fun Chip(
@@ -62,7 +62,7 @@ fun Chip(
                     AnimatedContent(isSelected) {
                         if (it) {
                             Icon(
-                                imageVector = Icons.Filled.Done,
+                                imageVector = SimpIcons.Done,
                                 contentDescription = "Done icon",
                                 modifier = Modifier.size(FilterChipDefaults.IconSize),
                             )

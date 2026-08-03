@@ -43,9 +43,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.QueueMusic
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -98,6 +95,9 @@ import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.parseRichSyncWords
+import com.maxrave.simpmusic.ui.icon.Info
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
@@ -1148,7 +1148,7 @@ fun FullscreenLyricsSheet(
                                             showControlButtons = true
                                         },
                                     ) {
-                                        Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                                        Icon(imageVector = SimpIcons.Info, tint = Color.White, contentDescription = "")
                                     }
                                     Row(
                                         Modifier.align(Alignment.CenterEnd),
@@ -1168,7 +1168,7 @@ fun FullscreenLyricsSheet(
                                             },
                                         ) {
                                             Icon(
-                                                imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
+                                                imageVector = SimpIcons.QueueMusic,
                                                 tint = Color.White,
                                                 contentDescription = "",
                                             )

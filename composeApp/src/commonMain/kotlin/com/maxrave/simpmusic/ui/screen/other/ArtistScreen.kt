@@ -36,11 +36,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Sensors
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.PersonAddAlt1
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -116,6 +111,11 @@ import com.maxrave.simpmusic.ui.component.LimitedBorderAnimationView
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.Check
+import com.maxrave.simpmusic.ui.icon.PersonAdd
+import com.maxrave.simpmusic.ui.icon.Sensors
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.MoreAlbumsDestination
@@ -431,7 +431,7 @@ fun ArtistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Outlined.Sensors,
+                                                imageVector = SimpIcons.Sensors,
                                                 contentDescription = "Radio",
                                                 tint = artistAccent,
                                                 modifier = Modifier.size(22.dp),
@@ -457,7 +457,7 @@ fun ArtistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Rounded.Shuffle,
+                                                imageVector = SimpIcons.Shuffle,
                                                 contentDescription = "Shuffle",
                                                 tint = mutedPaletteBg,
                                                 modifier = Modifier.size(28.dp),
@@ -482,7 +482,7 @@ fun ArtistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = if (isFollowed) Icons.Rounded.Check else Icons.Rounded.PersonAddAlt1,
+                                                imageVector = if (isFollowed) SimpIcons.Check else SimpIcons.PersonAdd,
                                                 contentDescription = if (isFollowed) "Followed" else "Follow",
                                                 tint = if (isFollowed) mutedPaletteBg else artistAccent,
                                                 modifier = Modifier.size(22.dp),
@@ -691,7 +691,7 @@ fun ArtistScreen(
                                             }
                                         },
                                     ) {
-                                        Icon(Icons.Rounded.Shuffle, "Shuffle")
+                                        Icon(SimpIcons.Shuffle, "Shuffle")
                                     }
                                     Spacer(Modifier.weight(1f))
                                     TextButton(
@@ -712,7 +712,7 @@ fun ArtistScreen(
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Icon(Icons.Outlined.Sensors, "")
+                                            Icon(SimpIcons.Sensors, "")
                                             if (canvasUrl == null) {
                                                 Spacer(Modifier.width(6.dp))
                                                 Text(text = stringResource(Res.string.start_radio))

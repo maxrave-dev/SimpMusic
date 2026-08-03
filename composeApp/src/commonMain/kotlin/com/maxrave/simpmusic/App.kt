@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,6 +70,8 @@ import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
+import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -534,7 +534,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                 navController = navController,
                                                 sharedViewModel = viewModel,
                                                 isExpanded = true,
-                                                dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                                dismissIcon = SimpIcons.ArrowForwardIos,
                                             ) {
                                                 isShowNowPlaylistScreen = false
                                             }

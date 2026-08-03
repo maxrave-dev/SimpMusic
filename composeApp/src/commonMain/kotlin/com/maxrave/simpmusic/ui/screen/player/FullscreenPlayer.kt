@@ -28,18 +28,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Forward5
-import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay5
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -76,10 +64,24 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.Forward5
+import com.maxrave.simpmusic.ui.icon.FullscreenExit
+import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowLeft
+import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowRight
+import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.Replay5
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.SkipNext
+import com.maxrave.simpmusic.ui.icon.SkipPrevious
+import com.maxrave.simpmusic.ui.icon.Subtitles
+import com.maxrave.simpmusic.ui.icon.SubtitlesOff
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -236,7 +238,7 @@ fun FullscreenPlayer(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Icon(
-                                    Icons.Filled.KeyboardDoubleArrowLeft,
+                                    SimpIcons.KeyboardDoubleArrowLeft,
                                     "",
                                     tint = Color.White,
                                 )
@@ -294,7 +296,7 @@ fun FullscreenPlayer(
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Icon(
-                                    Icons.Filled.KeyboardDoubleArrowRight,
+                                    SimpIcons.KeyboardDoubleArrowRight,
                                     "",
                                     tint = Color.White,
                                 )
@@ -397,7 +399,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.SkipPrevious,
+                                    imageVector = SimpIcons.SkipPrevious,
                                     tint = if (controllerState.isPreviousAvailable) Color.White else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
@@ -422,7 +424,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Replay5,
+                                    imageVector = SimpIcons.Replay5,
                                     tint = Color.White,
                                     contentDescription = "",
                                     modifier =
@@ -449,7 +451,7 @@ fun FullscreenPlayer(
                                 Crossfade(controllerState.isPlaying) {
                                     if (it) {
                                         Icon(
-                                            imageVector = Icons.Filled.Pause,
+                                            imageVector = SimpIcons.Pause,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =
@@ -458,7 +460,7 @@ fun FullscreenPlayer(
                                         )
                                     } else {
                                         Icon(
-                                            imageVector = Icons.Filled.PlayArrow,
+                                            imageVector = SimpIcons.PlayArrow,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =
@@ -485,7 +487,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Forward5,
+                                    imageVector = SimpIcons.Forward5,
                                     tint = Color.White,
                                     contentDescription = "",
                                     modifier =
@@ -511,7 +513,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.SkipNext,
+                                    imageVector = SimpIcons.SkipNext,
                                     tint = if (controllerState.isNextAvailable) Color.White else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
@@ -697,7 +699,7 @@ fun FullscreenPlayer(
                                         Crossfade(shouldShowSubtitle) {
                                             if (it) {
                                                 Icon(
-                                                    imageVector = Icons.Filled.SubtitlesOff,
+                                                    imageVector = SimpIcons.SubtitlesOff,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier =
@@ -706,7 +708,7 @@ fun FullscreenPlayer(
                                                 )
                                             } else {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Subtitles,
+                                                    imageVector = SimpIcons.Subtitles,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier =
@@ -734,7 +736,7 @@ fun FullscreenPlayer(
                                         },
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Filled.FullscreenExit,
+                                            imageVector = SimpIcons.FullscreenExit,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =

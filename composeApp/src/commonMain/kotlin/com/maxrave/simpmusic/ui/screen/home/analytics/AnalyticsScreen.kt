@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -66,12 +63,16 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.FiveImagesComponent
 import com.maxrave.simpmusic.ui.component.ImageData
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.CalendarToday
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -863,7 +864,7 @@ fun AnalyticsScreen(
                                     ),
                             ),
                     ) {
-                        Icon(Icons.Default.ArrowBackIosNew, "Back")
+                        Icon(SimpIcons.ArrowBackIosNew, "Back")
                     }
                 }
             },
@@ -894,7 +895,7 @@ fun AnalyticsScreen(
                             ),
                     ) {
                         Box {
-                            Icon(Icons.Rounded.CalendarToday, "Analytics", tint = MaterialTheme.colorScheme.onSurface)
+                            Icon(SimpIcons.CalendarToday, "Analytics", tint = MaterialTheme.colorScheme.onSurface)
                             Text(
                                 when (uiState.dayRange) {
                                     AnalyticsUiState.DayRange.LAST_7_DAYS -> "7d"

@@ -36,10 +36,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -101,6 +97,10 @@ import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
@@ -551,7 +551,7 @@ fun AlbumScreen(
                                                         contentAlignment = Alignment.Center,
                                                     ) {
                                                         Icon(
-                                                            imageVector = Icons.Rounded.Shuffle,
+                                                            imageVector = SimpIcons.Shuffle,
                                                             contentDescription = "Shuffle",
                                                             tint = Color.White,
                                                             modifier = Modifier.size(22.dp),
@@ -578,7 +578,7 @@ fun AlbumScreen(
                                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                                             Icon(
                                                                 imageVector =
-                                                                    if (isThisPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                                                                    if (isThisPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
                                                                 contentDescription = null,
                                                                 tint = Color.Black,
                                                                 modifier = Modifier.size(22.dp),

@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cookie
-import androidx.compose.material.icons.filled.LogoDev
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -39,6 +36,9 @@ import com.maxrave.simpmusic.ui.component.DevCookieLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.Cookie
+import com.maxrave.simpmusic.ui.icon.LogoDev
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -130,7 +130,7 @@ fun SpotifyLoginScreen(
                                 ),
                     ) {
                         Icon(
-                            Icons.Default.Cookie,
+                            SimpIcons.Cookie,
                             "Cookies",
                         )
                     }
@@ -221,7 +221,7 @@ fun SpotifyLoginScreen(
                     },
                 ) {
                     Icon(
-                        Icons.Default.LogoDev,
+                        SimpIcons.LogoDev,
                         "Developer Mode",
                     )
                 }

@@ -30,10 +30,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -77,6 +73,10 @@ import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
+import com.maxrave.simpmusic.ui.icon.DragHandle
+import com.maxrave.simpmusic.ui.icon.PushPin
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
 import com.maxrave.simpmusic.ui.theme.typo
 import io.github.alexzhirkevich.compottie.Compottie
@@ -155,7 +155,7 @@ fun SongFullWidthItems(
                 ) {
                     Icon(
                         tint = contentColor,
-                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                        imageVector = SimpIcons.QueueMusic,
                         contentDescription = stringResource(Res.string.add_to_queue),
                     )
                 }
@@ -337,7 +337,7 @@ fun SongFullWidthItems(
                     exit = fadeOut() + shrinkHorizontally(),
                 ) {
                     Icon(
-                        Icons.Rounded.DragHandle,
+                        SimpIcons.DragHandle,
                         contentDescription = null,
                         tint = contentColor,
                         modifier = Modifier.padding(horizontal = 8.dp),
@@ -589,7 +589,7 @@ fun PlaylistFullWidthItems(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (shouldPin) {
                         Image(
-                            imageVector = Icons.Default.PushPin,
+                            imageVector = SimpIcons.PushPin,
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(if (forceDark) Color.Cyan else MaterialTheme.colorScheme.primary),
                             modifier =

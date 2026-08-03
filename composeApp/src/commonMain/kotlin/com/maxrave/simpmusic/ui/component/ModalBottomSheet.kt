@@ -46,13 +46,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -141,6 +134,13 @@ import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.AddCircleOutline
+import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.ContentCopy
+import com.maxrave.simpmusic.ui.icon.Remove
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Tune
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
@@ -1981,9 +1981,9 @@ fun CheckBoxActionButton(
                 } else {
                     Crossfade(stateChecked) {
                         if (it) {
-                            Icon(Icons.Rounded.CheckCircle, "")
+                            Icon(SimpIcons.CheckCircle, "")
                         } else {
-                            Icon(Icons.Rounded.AddCircleOutline, "")
+                            Icon(SimpIcons.AddCircleOutline, "")
                         }
                     }
                 }
@@ -2099,7 +2099,7 @@ fun PlaybackSpeedPitchBottomSheet(
                         },
                     ) {
                         Icon(
-                            Icons.Rounded.Remove,
+                            SimpIcons.Remove,
                             contentDescription = "Decrease speed",
                             tint = rememberSurfaceDarkColors().subtitle,
                         )
@@ -2121,7 +2121,7 @@ fun PlaybackSpeedPitchBottomSheet(
                         },
                     ) {
                         Icon(
-                            Icons.Rounded.Add,
+                            SimpIcons.Add,
                             contentDescription = "Increase speed",
                             tint = rememberSurfaceDarkColors().subtitle,
                         )
@@ -2135,7 +2135,7 @@ fun PlaybackSpeedPitchBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Icons.Rounded.Tune,
+                            SimpIcons.Tune,
                             contentDescription = stringResource(Res.string.pitch),
                             modifier = Modifier.size(24.dp),
                             tint = rememberSurfaceDarkColors().subtitle,
@@ -2148,7 +2148,7 @@ fun PlaybackSpeedPitchBottomSheet(
                             },
                         ) {
                             Icon(
-                                Icons.Rounded.Remove,
+                                SimpIcons.Remove,
                                 contentDescription = "Decrease pitch",
                                 tint = rememberSurfaceDarkColors().subtitle,
                             )
@@ -2167,7 +2167,7 @@ fun PlaybackSpeedPitchBottomSheet(
                             },
                         ) {
                             Icon(
-                                Icons.Rounded.Add,
+                                SimpIcons.Add,
                                 contentDescription = "Increase pitch",
                                 tint = rememberSurfaceDarkColors().subtitle,
                             )
@@ -3249,7 +3249,7 @@ fun DevCookieLogInBottomSheet(
                             copyToClipboard(cookie.first, cookie.second ?: "")
                             showToast(copied, ToastGravity.Bottom)
                         }) {
-                            Icon(imageVector = Icons.Default.ContentCopy, contentDescription = "Copy")
+                            Icon(imageVector = SimpIcons.ContentCopy, contentDescription = "Copy")
                         }
                     }
                 }

@@ -33,13 +33,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -68,6 +61,11 @@ import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.RichSyncLyricsLineItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.Favorite
+import com.maxrave.simpmusic.ui.icon.FavoriteBorder
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.VolumeOff
+import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -312,9 +310,9 @@ fun MediumMiniLayout(
                                 Icon(
                                     imageVector =
                                         if (controllerState.isLiked) {
-                                            Icons.Filled.Favorite
+                                            SimpIcons.Favorite
                                         } else {
-                                            Icons.Outlined.FavoriteBorder
+                                            SimpIcons.FavoriteBorder
                                         },
                                     contentDescription = "Like",
                                     tint =
@@ -373,9 +371,9 @@ fun MediumMiniLayout(
                                 Icon(
                                     imageVector =
                                         if (controllerState.volume > 0f) {
-                                            Icons.AutoMirrored.Filled.VolumeUp
+                                            SimpIcons.VolumeUp
                                         } else {
-                                            Icons.AutoMirrored.Filled.VolumeOff
+                                            SimpIcons.VolumeOff
                                         },
                                     contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                     tint = Color.White.copy(alpha = 0.7f),
@@ -616,9 +614,9 @@ fun SquareMiniLayout(
                     Icon(
                         imageVector =
                             if (controllerState.isLiked) {
-                                Icons.Filled.Favorite
+                                SimpIcons.Favorite
                             } else {
-                                Icons.Outlined.FavoriteBorder
+                                SimpIcons.FavoriteBorder
                             },
                         contentDescription = "Like",
                         tint =
@@ -674,9 +672,9 @@ fun SquareMiniLayout(
                     Icon(
                         imageVector =
                             if (controllerState.volume > 0f) {
-                                Icons.AutoMirrored.Filled.VolumeUp
+                                SimpIcons.VolumeUp
                             } else {
-                                Icons.AutoMirrored.Filled.VolumeOff
+                                SimpIcons.VolumeOff
                             },
                         contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                         tint = Color.White.copy(alpha = 0.7f),
@@ -814,9 +812,9 @@ fun ExpandedMiniLayout(
                             Icon(
                                 imageVector =
                                     if (controllerState.isLiked) {
-                                        Icons.Filled.Favorite
+                                        SimpIcons.Favorite
                                     } else {
-                                        Icons.Outlined.FavoriteBorder
+                                        SimpIcons.FavoriteBorder
                                     },
                                 contentDescription = "Like",
                                 tint =
@@ -871,9 +869,9 @@ fun ExpandedMiniLayout(
                             Icon(
                                 imageVector =
                                     if (controllerState.volume > 0f) {
-                                        Icons.AutoMirrored.Filled.VolumeUp
+                                        SimpIcons.VolumeUp
                                     } else {
-                                        Icons.AutoMirrored.Filled.VolumeOff
+                                        SimpIcons.VolumeOff
                                     },
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                 tint = Color.White.copy(alpha = 0.7f),
