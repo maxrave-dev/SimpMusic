@@ -572,10 +572,13 @@ fun QuickPicksItem(
                     ).align(Alignment.CenterVertically),
                 verticalArrangement = Arrangement.SpaceEvenly,
             ) {
+                // One line + marquee, NOT maxLines = 2: the parent LazyHorizontalGrid uses
+                // GridCells.Fixed(4) over a fixed 256.dp, so every cell is exactly 64.dp and a
+                // second title line pushes the artist row out of the cell, where the grid clips it.
                 Text(
                     text = data.title,
                     style = typo().titleSmall,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier =
@@ -584,6 +587,11 @@ fun QuickPicksItem(
                             .wrapContentHeight(align = Alignment.CenterVertically)
                             .padding(
                                 bottom = 3.dp,
+                            ).basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                initialDelayMillis = 2000,
+                                repeatDelayMillis = 2000,
+                                velocity = 25.dp,
                             ),
                 )
                 LazyRow(verticalAlignment = Alignment.CenterVertically) {
