@@ -268,16 +268,9 @@ private fun Header(
                 .fillMaxSize()
                 .background(
                     brush =
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    Color.Transparent,
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.3f),
-                                    Color.Black.copy(alpha = 0.6f),
-                                    Color.Black.copy(alpha = 0.85f),
-                                    Color.Black,
-                                ),
+                        smoothScrimBrush(
+                            from = Color.Black.copy(alpha = 0f),
+                            to = Color.Black,
                             startY = headerHeightPx / 2, // Start fade at middle of header
                             endY = headerHeightPx, // Complete at bottom of header
                         ),

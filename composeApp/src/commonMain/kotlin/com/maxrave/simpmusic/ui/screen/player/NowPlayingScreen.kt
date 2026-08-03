@@ -141,6 +141,7 @@ import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
@@ -809,11 +810,13 @@ fun NowPlayingScreenContent(
                                 // arrive in one corner and leave a visible diagonal seam.
                                 drawRect(
                                     brush =
-                                        Brush.verticalGradient(
-                                            0f to Color.Transparent,
-                                            0.95f to PlayerBackdropColor,
+                                        smoothScrimBrush(
+                                            from = PlayerBackdropColor.copy(alpha = 0f),
+                                            to = PlayerBackdropColor,
                                             startY = 0f,
-                                            endY = gradientHeight,
+                                            // Reaches full opacity at 95% and is held there by Clamp,
+                                            // same as the old `0.95f to PlayerBackdropColor` stop.
+                                            endY = gradientHeight * 0.95f,
                                         ),
                                     size = area,
                                 )
@@ -971,12 +974,10 @@ fun NowPlayingScreenContent(
                                             Modifier
                                                 .fillMaxSize()
                                                 .background(
-                                                    Brush.verticalGradient(
-                                                        colorStops =
-                                                            arrayOf(
-                                                                0.2f to overlay,
-                                                                1f to Color.Black,
-                                                            ),
+                                                    smoothScrimBrush(
+                                                        from = overlay,
+                                                        to = Color.Black,
+                                                        startFraction = 0.2f,
                                                     ),
                                                 ),
                                     )
@@ -998,14 +999,11 @@ fun NowPlayingScreenContent(
                                             Modifier
                                                 .fillMaxSize()
                                                 .background(
-                                                    Brush.verticalGradient(
-                                                        colorStops =
-                                                            arrayOf(
-                                                                0f to Color.Transparent,
-                                                                0.92f to Color.Transparent,
-                                                                0.97f to Color.Black,
-                                                                1f to Color.Black,
-                                                            ),
+                                                    smoothScrimBrush(
+                                                        from = Color.Black.copy(alpha = 0f),
+                                                        to = Color.Black,
+                                                        startFraction = 0.92f,
+                                                        endFraction = 0.97f,
                                                     ),
                                                 ),
                                     )
@@ -1138,13 +1136,14 @@ fun NowPlayingScreenContent(
                                                                 Modifier
                                                                     .fillMaxSize()
                                                                     .background(
-                                                                        Brush.verticalGradient(
-                                                                            colorStops =
-                                                                                arrayOf(
-                                                                                    0.03f to blackMoreOverlay,
-                                                                                    0.15f to overlay,
-                                                                                    0.8f to Color.Transparent,
-                                                                                ),
+                                                                        // The old middle stop (0.15f to overlay)
+                                                                        // hand-approximated a convex falloff;
+                                                                        // smoothstep does that on its own.
+                                                                        smoothScrimBrush(
+                                                                            from = blackMoreOverlay,
+                                                                            to = overlay.copy(alpha = 0f),
+                                                                            startFraction = 0.03f,
+                                                                            endFraction = 0.8f,
                                                                         ),
                                                                     ),
                                                         ) {
@@ -1927,12 +1926,9 @@ fun NowPlayingScreenContent(
                                                 Modifier
                                                     .fillMaxSize()
                                                     .background(
-                                                        Brush.verticalGradient(
-                                                            colorStops =
-                                                                arrayOf(
-                                                                    0f to Color.Transparent,
-                                                                    1f to Color.Black.copy(alpha = 0.85f),
-                                                                ),
+                                                        smoothScrimBrush(
+                                                            from = Color.Black.copy(alpha = 0f),
+                                                            to = Color.Black.copy(alpha = 0.85f),
                                                         ),
                                                     ),
                                         )
@@ -2364,9 +2360,10 @@ fun NowPlayingScreenContent(
                                                 Modifier
                                                     .matchParentSize()
                                                     .background(
-                                                        Brush.verticalGradient(
-                                                            0f to Color.Black.copy(alpha = 0.6f),
-                                                            0.4f to Color.Transparent,
+                                                        smoothScrimBrush(
+                                                            from = Color.Black.copy(alpha = 0.6f),
+                                                            to = Color.Black.copy(alpha = 0f),
+                                                            endFraction = 0.4f,
                                                         ),
                                                     ),
                                         )

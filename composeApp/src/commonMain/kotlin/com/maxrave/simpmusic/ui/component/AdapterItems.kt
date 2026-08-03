@@ -82,7 +82,6 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
-import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -912,10 +911,13 @@ fun MoodMomentAndGenreHomeItem(
     ) {
         Row {
             Box(
+                // `solid.leftStripeColor` straight from the API (full ARGB). This used to be
+                // generateRandomColor(), which — being outside remember — rolled a new colour on
+                // every recomposition, so the stripes flickered while scrolling.
                 Modifier
                     .width(10.dp)
                     .height(64.dp)
-                    .background(generateRandomColor()),
+                    .background(Color(stripeColor)),
             )
             Text(
                 text = title,

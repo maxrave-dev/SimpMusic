@@ -53,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -318,19 +317,16 @@ fun FullscreenPlayer(
                                 .fillMaxWidth()
                                 .height(64.dp)
                                 .align(Alignment.BottomCenter)
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(Color.Transparent, Color.Black),
-                                    ),
-                                ),
+                                .background(artworkScrimBrush(Color.Black)),
                         )
                         TopAppBar(
                             modifier =
                                 Modifier
                                     .align(Alignment.TopCenter)
                                     .background(
-                                        Brush.verticalGradient(
-                                            listOf(Color.Black, Color.Transparent),
+                                        smoothScrimBrush(
+                                            from = Color.Black,
+                                            to = Color.Black.copy(alpha = 0f),
                                         ),
                                     ).padding(horizontal = 12.dp)
                                     .fillMaxWidth(),

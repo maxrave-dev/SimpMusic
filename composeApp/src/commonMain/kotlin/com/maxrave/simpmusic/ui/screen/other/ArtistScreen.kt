@@ -91,6 +91,7 @@ import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
@@ -325,16 +326,19 @@ fun ArtistScreen(
                                                                     startIntensity = 0f,
                                                                     endIntensity = 1f,
                                                                 )
-                                                        }.background(
-                                                            Brush.verticalGradient(
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    Color.Transparent,
-                                                                    mutedPaletteBg.copy(alpha = 0.5f),
-                                                                    mutedPaletteBg,
-                                                                ),
-                                                            ),
-                                                        ),
+                                                        },
+                                            )
+                                            // Color scrim is a SEPARATE, taller box: the blur stays at 200dp so
+                                            // its cost doesn't grow, while the color gets 70% of the (square)
+                                            // artwork to ramp over. A short ramp means a steep alpha, and a
+                                            // steep alpha is what reads as a visible edge.
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height((screenInfo.wDP * 0.7f).dp)
+                                                        .align(Alignment.BottomCenter)
+                                                        .background(artworkScrimBrush(mutedPaletteBg)),
                                             )
                                             // Artist name (TEXT for now — logo image is roadmap) + subscriber · view
                                             Column(

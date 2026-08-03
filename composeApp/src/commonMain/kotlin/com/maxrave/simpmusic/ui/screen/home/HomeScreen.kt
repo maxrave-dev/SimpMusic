@@ -99,6 +99,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -543,16 +544,7 @@ fun HomeScreen(
                                                     .fillMaxWidth()
                                                     .height(180.dp)
                                                     .align(Alignment.BottomCenter)
-                                                    .background(
-                                                        brush =
-                                                            Brush.verticalGradient(
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    backgroundColor.copy(alpha = 0.46f),
-                                                                    backgroundColor,
-                                                                ),
-                                                            ),
-                                                    ),
+                                                    .background(artworkScrimBrush(backgroundColor)),
                                         )
                                     }
                                 }

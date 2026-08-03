@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -27,6 +26,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.ui.theme.typo
 
 @Composable
@@ -65,20 +65,7 @@ fun FiveImagesComponent(
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(
-                        brush =
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        Color.Transparent,
-                                        Color.Transparent,
-                                        Color.Black.copy(
-                                            alpha = 0.4f,
-                                        ),
-                                        Color.Black,
-                                    ),
-                            ),
-                    ),
+                    .background(artworkScrimBrush(Color.Black)),
             )
             Column(
                 modifier =
@@ -165,20 +152,7 @@ fun FiveImagesComponent(
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(
-                                brush =
-                                    Brush.verticalGradient(
-                                        colors =
-                                            listOf(
-                                                Color.Transparent,
-                                                Color.Transparent,
-                                                Color.Black.copy(
-                                                    alpha = 0.4f,
-                                                ),
-                                                Color.Black,
-                                            ),
-                                    ),
-                            ),
+                            .background(artworkScrimBrush(Color.Black)),
                     )
                     Column(
                         modifier =
@@ -267,20 +241,7 @@ fun FiveImagesComponent(
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(
-                                brush =
-                                    Brush.verticalGradient(
-                                        colors =
-                                            listOf(
-                                                Color.Transparent,
-                                                Color.Transparent,
-                                                Color.Black.copy(
-                                                    alpha = 0.4f,
-                                                ),
-                                                Color.Black,
-                                            ),
-                                    ),
-                            ),
+                            .background(artworkScrimBrush(Color.Black)),
                     )
                     Column(
                         modifier =

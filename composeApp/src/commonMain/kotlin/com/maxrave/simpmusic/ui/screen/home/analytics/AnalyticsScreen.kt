@@ -38,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -214,15 +213,9 @@ fun AnalyticsScreen(
                                     .fillMaxSize()
                                     .background(
                                         brush =
-                                            Brush.verticalGradient(
-                                                colors =
-                                                    listOf(
-                                                        Color.Transparent,
-                                                        MaterialTheme.colorScheme.background.copy(
-                                                            alpha = 0.8f,
-                                                        ),
-                                                        MaterialTheme.colorScheme.background,
-                                                    ),
+                                            smoothScrimBrush(
+                                                from = MaterialTheme.colorScheme.background.copy(alpha = 0f),
+                                                to = MaterialTheme.colorScheme.background,
                                                 startY = (screenSizeInfo.hPX / 2.5f) * 3 / 4, // Gradient applied to wrap the title only
                                             ),
                                     ),

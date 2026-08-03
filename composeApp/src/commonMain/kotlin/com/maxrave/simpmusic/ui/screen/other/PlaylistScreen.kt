@@ -65,7 +65,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -96,6 +95,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
@@ -408,16 +408,7 @@ fun PlaylistScreen(
                                                     .fillMaxWidth()
                                                     .height(180.dp)
                                                     .align(Alignment.BottomCenter)
-                                                    .background(
-                                                        brush =
-                                                            Brush.verticalGradient(
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    Color(0x75000000),
-                                                                    Color.Black,
-                                                                ),
-                                                            ),
-                                                    ),
+                                                    .background(artworkScrimBrush(Color.Black)),
                                         )
                                     }
                                 }
@@ -484,22 +475,17 @@ fun PlaylistScreen(
                                                         },
                                                         modifier = Modifier.fillMaxSize(),
                                                     )
+                                                    // Scrim spans 70% of the artwork (not a fixed 200dp): the
+                                                    // shorter the ramp, the steeper the alpha, and a steep ramp
+                                                    // is what makes the fade read as an edge. See
+                                                    // artworkScrimBrush for the curve itself.
                                                     Box(
                                                         modifier =
                                                             Modifier
                                                                 .fillMaxWidth()
-                                                                .height(200.dp)
+                                                                .height((screenInfo.hDP * 0.35f).dp)
                                                                 .align(Alignment.BottomCenter)
-                                                                .background(
-                                                                    Brush.verticalGradient(
-                                                                        listOf(
-                                                                            Color.Transparent,
-                                                                            Color.Transparent,
-                                                                            mutedPaletteBg.copy(alpha = 0.5f),
-                                                                            mutedPaletteBg,
-                                                                        ),
-                                                                    ),
-                                                                ),
+                                                                .background(artworkScrimBrush(mutedPaletteBg)),
                                                     )
                                                     Column(
                                                         modifier =
