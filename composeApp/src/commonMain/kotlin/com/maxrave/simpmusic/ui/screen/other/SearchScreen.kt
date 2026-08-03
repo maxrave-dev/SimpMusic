@@ -18,12 +18,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -174,6 +176,13 @@ fun SearchScreen(
     // The bar floats OVER the content (a Box, not a Column) so there is something behind it to
     // blur — same arrangement HomeScreen uses. Each branch owns a scroll state, hoisted here so
     // the bar can tell whether the branch currently on screen is scrolled away from the top.
+    // Two columns only on a phone held upright. Anywhere wider — tablet, landscape, desktop — two
+    // columns stretch each tile to half the window, and since the tile keeps a 2:1 ratio it grows
+    // absurdly tall with it.
+    val screenInfo = getScreenSizeInfo()
+    val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
+    val moodGridColumns = if (isMobilePortrait) 2 else 4
+
     val hazeState = rememberHazeState(blurEnabled = true)
     val suggestionsState = rememberLazyListState()
     val historyState = rememberLazyListState()
@@ -500,11 +509,19 @@ fun SearchScreen(
                         // network, so this spinner is never seen again after the first fetch.
                         CenterLoadingBox(Modifier.fillMaxSize())
                     } else {
+                        // Capped and centred: on a wide desktop window the grid would otherwise
+                        // span the whole width, stretching four tiles into long bars. 1100.dp
+                        // keeps a tile near 250.dp, which is its natural size.
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.TopCenter,
+                        ) {
                         LazyVerticalGrid(
-                            columns = GridCells.Fixed(2),
+                            columns = GridCells.Fixed(moodGridColumns),
                             modifier =
                                 Modifier
-                                    .fillMaxSize()
+                                    .fillMaxHeight()
+                                    .widthIn(max = 1100.dp)
                                     .padding(horizontal = 16.dp),
                             state = moodGridState,
                             contentPadding = PaddingValues(top = searchBarHeight),
