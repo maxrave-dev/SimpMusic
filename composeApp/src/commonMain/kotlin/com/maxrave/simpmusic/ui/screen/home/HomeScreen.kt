@@ -69,7 +69,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
@@ -166,7 +165,6 @@ import simpmusic.composeapp.generated.resources.do_not_show_again
 import simpmusic.composeapp.generated.resources.energize
 import simpmusic.composeapp.generated.resources.feel_good
 import simpmusic.composeapp.generated.resources.focus
-import simpmusic.composeapp.generated.resources.genre
 import simpmusic.composeapp.generated.resources.go_to_log_in_page
 import simpmusic.composeapp.generated.resources.good_afternoon
 import simpmusic.composeapp.generated.resources.good_evening
@@ -175,7 +173,6 @@ import simpmusic.composeapp.generated.resources.good_night
 import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
 import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
 import simpmusic.composeapp.generated.resources.log_in_warning
-import simpmusic.composeapp.generated.resources.moods_amp_moment
 import simpmusic.composeapp.generated.resources.outline_notifications_24
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.quick_picks
@@ -1015,12 +1012,6 @@ fun MoodMomentAndGenre(
     mood: Mood,
     navController: NavController,
 ) {
-    val lazyListState1 = rememberLazyGridState()
-    val snapperFlingBehavior1 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState1))
-
-    val lazyListState2 = rememberLazyGridState()
-    val snapperFlingBehavior2 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2))
-
     Column(
         Modifier
             .padding(vertical = 8.dp),
@@ -1029,55 +1020,40 @@ fun MoodMomentAndGenre(
             text = stringResource(Res.string.let_s_pick_a_playlist_for_you),
             style = typo().bodyMedium,
         )
-        Text(
-            text = stringResource(Res.string.moods_amp_moment),
-            style = typo().headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-        )
-        LazyHorizontalGrid(
-            rows = GridCells.Fixed(3),
-            modifier = Modifier.height(210.dp),
-            state = lazyListState1,
-            flingBehavior = snapperFlingBehavior1,
-        ) {
-            items(mood.moodsMoments, key = { it.title }) {
-                MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigate(
-                        MoodDestination(
-                            it.params,
-                        ),
-                    )
-                }
-            }
-        }
-        Text(
-            text = stringResource(Res.string.genre),
-            style = typo().headlineMedium,
-            maxLines = 1,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-        )
-        LazyHorizontalGrid(
-            rows = GridCells.Fixed(3),
-            modifier = Modifier.height(210.dp),
-            state = lazyListState2,
-            flingBehavior = snapperFlingBehavior2,
-        ) {
-            items(mood.genres, key = { it.title }) {
-                MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigate(
-                        MoodDestination(
-                            it.params,
-                        ),
-                    )
+        // One block per section YouTube returned, headed by ITS OWN title. Hard-coding
+        // "Moods & moment" / "Genre" here (and reading mood.moodsMoments / mood.genres by
+        // index) mislabelled every row as soon as a signed-in account got an extra
+        // "For you" section, and hid the real Genres section altogether.
+        mood.sections.forEach { section ->
+            val gridState = rememberLazyGridState()
+            val flingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = gridState))
+            Text(
+                text = section.title,
+                style = typo().headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+            )
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(3),
+                modifier = Modifier.height(210.dp),
+                state = gridState,
+                flingBehavior = flingBehavior,
+            ) {
+                items(section.items, key = { it.params }) { item ->
+                    MoodMomentAndGenreHomeItem(
+                        title = item.title,
+                        stripeColor = item.stripeColor,
+                    ) {
+                        navController.navigate(
+                            MoodDestination(
+                                item.params,
+                            ),
+                        )
+                    }
                 }
             }
         }
