@@ -311,8 +311,8 @@ fun ArtistScreen(
                                                     )
                                                 }
                                             } // end media layer (Haze source)
-                                            // Bottom fade — progressive blur (Haze) over the media layer plus a
-                                            // color gradient, so the canvas/artwork edge melts into the page bg.
+                                            // Bottom fade — progressive blur (Haze) over the media layer, so the
+                                            // canvas/artwork edge melts into the page bg.
                                             Box(
                                                 modifier =
                                                     Modifier
