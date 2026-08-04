@@ -1688,7 +1688,16 @@ fun NowPlayingScreenContent(
                                             }
                                             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                                 Slider(
-                                                    value = sliderValue,
+                                                    // material3 1.5.0-alpha25 keeps a
+                                                    // binary-compatibility overload of Slider that
+                                                    // accepts valueRange and then forwards without
+                                                    // it, so the slider silently runs on the
+                                                    // default 0f..1f and anything larger is clamped
+                                                    // to a full track. Hand it a fraction instead;
+                                                    // sliderValue stays on the 0..100 scale that
+                                                    // UIEvent.UpdateProgress and the time labels
+                                                    // are built around.
+                                                    value = sliderValue / 100f,
                                                     onValueChangeFinished = {
                                                         isSliding = false
                                                         sharedViewModel.onUIEvent(
@@ -1697,9 +1706,8 @@ fun NowPlayingScreenContent(
                                                     },
                                                     onValueChange = {
                                                         isSliding = true
-                                                        sliderValue = it
+                                                        sliderValue = it * 100f
                                                     },
-                                                    valueRange = 0f..100f,
                                                     modifier =
                                                         Modifier
                                                             .fillMaxWidth()
