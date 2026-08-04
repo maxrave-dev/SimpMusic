@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,6 +78,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.album_length
+import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
@@ -390,16 +393,43 @@ fun LibraryDynamicPlaylistScreen(
             type != LibraryDynamicPlaylistType.Followed &&
                 type != LibraryDynamicPlaylistType.TopArtists &&
                 type != LibraryDynamicPlaylistType.TopAlbums
+        // Counts always come from the unfiltered lists, so the subtitle keeps reporting the
+        // library total while the user is typing in the search bar.
+        val subtitle =
+            when (type) {
+                LibraryDynamicPlaylistType.Favorite ->
+                    stringResource(Res.string.album_length, favorite.size.toString(), "")
+                LibraryDynamicPlaylistType.MostPlayed ->
+                    stringResource(Res.string.album_length, mostPlayed.size.toString(), "")
+                LibraryDynamicPlaylistType.Downloaded ->
+                    stringResource(Res.string.album_length, downloaded.size.toString(), "")
+                LibraryDynamicPlaylistType.Followed ->
+                    "${followed.size} ${stringResource(Res.string.artists)}"
+                else -> null
+            }
         Box {
             TopAppBar(
                 title = {
-                    Text(
-                        text =
-                            stringResource(
-                                type.name(),
-                            ),
-                        style = typo().titleMedium,
-                    )
+                    Column {
+                        Text(
+                            text =
+                                stringResource(
+                                    type.name(),
+                                ),
+                            style = typo().titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (subtitle != null) {
+                            Text(
+                                text = subtitle,
+                                style = typo().bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     Box(Modifier.padding(horizontal = 5.dp)) {
