@@ -13,10 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +57,7 @@ fun NormalAppBarPreview() {
         leftIcon = {
             IconButton(onClick = { }) {
                 Icon(
-                    painterResource(Res.drawable.baseline_arrow_back_ios_new_24),
+                    SimpIcons.ArrowBackIosNew,
                     contentDescription = "Back",
                 )
             }
@@ -64,7 +65,7 @@ fun NormalAppBarPreview() {
         rightIcon = {
             IconButton(onClick = { }) {
                 Icon(
-                    painterResource(Res.drawable.baseline_more_vert_24),
+                    SimpIcons.MoreVert,
                     contentDescription = "Back",
                 )
             }

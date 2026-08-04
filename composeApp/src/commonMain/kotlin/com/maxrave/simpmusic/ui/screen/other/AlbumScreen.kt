@@ -97,8 +97,13 @@ import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PauseCircle
 import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.PlayCircle
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -128,13 +133,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.album_length
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_downloaded
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
-import simpmusic.composeapp.generated.resources.baseline_play_circle_24
-import simpmusic.composeapp.generated.resources.baseline_shuffle_24
-import simpmusic.composeapp.generated.resources.download_button
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.no_description
@@ -288,7 +287,7 @@ fun AlbumScreen(
                                                 .windowInsetsPadding(WindowInsets.statusBars),
                                     ) {
                                         RippleIconButton(
-                                            resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                            imageVector = SimpIcons.ArrowBackIosNew,
                                         ) {
                                             navController.navigateUp()
                                         }
@@ -396,7 +395,7 @@ fun AlbumScreen(
                                             // Back button — liquid glass effect (Kyant backdrop)
                                             LiquidGlassIconButton(
                                                 backdrop = artworkBackdrop,
-                                                resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                                imageVector = SimpIcons.ArrowBackIosNew,
                                                 modifier =
                                                     Modifier
                                                         .align(Alignment.TopStart)
@@ -433,7 +432,7 @@ fun AlbumScreen(
                                                     onClick = { albumBottomSheetShow = true },
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                                        imageVector = SimpIcons.MoreVert,
                                                         contentDescription = "More",
                                                         tint = Color.White,
                                                     )
@@ -644,7 +643,7 @@ fun AlbumScreen(
                                                                         contentAlignment = Alignment.Center,
                                                                     ) {
                                                                         Icon(
-                                                                            painter = painterResource(Res.drawable.download_button),
+                                                                            imageVector = SimpIcons.DownloadForOffline,
                                                                             tint = Color.White,
                                                                             contentDescription = "Download",
                                                                             modifier = Modifier.size(22.dp),
@@ -667,7 +666,7 @@ fun AlbumScreen(
                                                     ) { isThisPlaying ->
                                                         if (isThisPlaying) {
                                                             RippleIconButton(
-                                                                resId = Res.drawable.baseline_pause_circle_24,
+                                                                imageVector = SimpIcons.PauseCircle,
                                                                 fillMaxSize = true,
                                                                 tint = seed,
                                                                 modifier = Modifier.size(48.dp),
@@ -676,7 +675,7 @@ fun AlbumScreen(
                                                             }
                                                         } else {
                                                             RippleIconButton(
-                                                                resId = Res.drawable.baseline_play_circle_24,
+                                                                imageVector = SimpIcons.PlayCircle,
                                                                 fillMaxSize = true,
                                                                 tint = seed,
                                                                 modifier = Modifier.size(48.dp),
@@ -745,7 +744,7 @@ fun AlbumScreen(
                                                             else -> {
                                                                 RippleIconButton(
                                                                     fillMaxSize = true,
-                                                                    resId = Res.drawable.download_button,
+                                                                    imageVector = SimpIcons.DownloadForOffline,
                                                                     modifier = Modifier.size(36.dp),
                                                                 ) {
                                                                     viewModel.downloadFullAlbum()
@@ -766,7 +765,7 @@ fun AlbumScreen(
                                                     RippleIconButton(
                                                         modifier =
                                                             Modifier.size(36.dp),
-                                                        resId = Res.drawable.baseline_shuffle_24,
+                                                        imageVector = SimpIcons.Shuffle,
                                                         fillMaxSize = true,
                                                     ) {
                                                         viewModel.shuffle()
@@ -905,7 +904,7 @@ fun AlbumScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    Res.drawable.baseline_arrow_back_ios_new_24,
+                                    SimpIcons.ArrowBackIosNew,
                                     Modifier
                                         .size(32.dp),
                                     true,

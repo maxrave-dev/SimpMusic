@@ -36,6 +36,7 @@ import com.maxrave.simpmusic.ui.component.DevCookieLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Cookie
 import com.maxrave.simpmusic.ui.icon.LogoDev
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -51,7 +52,6 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
 import simpmusic.composeapp.generated.resources.login_success
 
@@ -206,7 +206,7 @@ fun SpotifyLoginScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        Res.drawable.baseline_arrow_back_ios_new_24,
+                        SimpIcons.ArrowBackIosNew,
                         Modifier.size(32.dp),
                         true,
                     ) {

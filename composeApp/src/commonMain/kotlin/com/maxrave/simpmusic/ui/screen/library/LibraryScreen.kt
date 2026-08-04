@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -73,6 +74,7 @@ import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
 import com.maxrave.simpmusic.ui.icon.AutoGraph
+import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -89,7 +91,6 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_people_alt_24
 import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.create
 import simpmusic.composeapp.generated.resources.downloaded_playlists
@@ -477,8 +478,8 @@ fun LibraryScreen(
                                 .data(accountThumbnail)
                                 .crossfade(550)
                                 .build(),
-                        placeholder = painterResource(Res.drawable.baseline_people_alt_24),
-                        error = painterResource(Res.drawable.baseline_people_alt_24),
+                        placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
+                        error = rememberVectorPainter(SimpIcons.PeopleAlt),
                         contentDescription = null,
                         modifier =
                             Modifier

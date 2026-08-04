@@ -18,6 +18,8 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.MoodAndGenresContentItem
 import com.maxrave.simpmusic.ui.component.NormalAppBar
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.MoodViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -50,7 +52,7 @@ fun MoodScreen(
             leftIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
-                        painterResource(Res.drawable.baseline_arrow_back_ios_new_24),
+                        SimpIcons.ArrowBackIosNew,
                         contentDescription = "Back",
                     )
                 }

@@ -112,6 +112,11 @@ import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.ShimmerSearchItem
 import com.maxrave.simpmusic.ui.component.SimpMusicChartButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowOutward
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.History
+import com.maxrave.simpmusic.ui.icon.Search
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -135,10 +140,6 @@ import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.albums
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.baseline_arrow_outward_24
-import simpmusic.composeapp.generated.resources.baseline_close_24
-import simpmusic.composeapp.generated.resources.baseline_history_24
-import simpmusic.composeapp.generated.resources.baseline_search_24
 import simpmusic.composeapp.generated.resources.clear_search_history
 import simpmusic.composeapp.generated.resources.error_occurred
 import simpmusic.composeapp.generated.resources.everything_you_need
@@ -399,7 +400,7 @@ fun SearchScreen(
                                     },
                                 ) {
                                     Icon(
-                                        painter = painterResource(Res.drawable.baseline_arrow_outward_24),
+                                        imageVector = SimpIcons.ArrowOutward,
                                         contentDescription = "Search suggestion",
                                         modifier = Modifier.size(24.dp),
                                     )
@@ -473,7 +474,7 @@ fun SearchScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Icon(
-                                        painter = painterResource(Res.drawable.baseline_history_24),
+                                        imageVector = SimpIcons.History,
                                         contentDescription = "Search history",
                                         modifier = Modifier.size(24.dp),
                                     )
@@ -490,7 +491,7 @@ fun SearchScreen(
                                         },
                                     ) {
                                         Icon(
-                                            painter = painterResource(Res.drawable.baseline_arrow_outward_24),
+                                            imageVector = SimpIcons.ArrowOutward,
                                             contentDescription = "Search suggestion",
                                             modifier = Modifier.size(24.dp),
                                         )
@@ -955,7 +956,7 @@ fun SearchScreen(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(Res.drawable.baseline_search_24),
+                            imageVector = SimpIcons.Search,
                             contentDescription = "Search",
                         )
                     },
@@ -970,7 +971,7 @@ fun SearchScreen(
                                 },
                             ) {
                                 Icon(
-                                    painter = painterResource(Res.drawable.baseline_close_24),
+                                    imageVector = SimpIcons.Close,
                                     contentDescription = "Clear search",
                                 )
                             }

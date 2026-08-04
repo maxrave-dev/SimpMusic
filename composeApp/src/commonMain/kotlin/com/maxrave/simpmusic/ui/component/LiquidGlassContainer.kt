@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
@@ -86,7 +87,7 @@ fun LiquidGlassContainer(
 @Composable
 fun LiquidGlassIconButton(
     backdrop: PlatformBackdrop,
-    resId: DrawableResource,
+    imageVector: ImageVector,
     modifier: Modifier = Modifier.size(48.dp),
     shape: Shape = CircleShape,
     tint: Color = Color.White,
@@ -100,7 +101,7 @@ fun LiquidGlassIconButton(
         interactive = interactive,
     ) {
         RippleIconButton(
-            resId = resId,
+            imageVector = imageVector,
             tint = tint,
             onClick = onClick,
         )

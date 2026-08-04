@@ -286,6 +286,50 @@ Before implementing code, researching code, or answering technical questions, th
 - AI lyrics translation
 - Song recommendations
 
+### 8. Add a New Icon
+
+**Location**: `composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/icon/`
+
+All icons are **Material Symbols Rounded** generated as Compose `ImageVector`s. There is no
+`material-icons-extended` dependency and no XML icon drawable — do not add either back.
+
+**Fetch it from Google's own generator** (it returns a ready `.kt` file, gzipped):
+
+```bash
+curl -sfL --compressed \
+  "https://fonts.gstatic.com/render/v1/Material+Symbols+Rounded/24dp/<symbol_name>.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,1,0,50" \
+  -o <PascalName>.kt
+```
+
+Keep the axes identical for every icon so the set stays consistent: **Rounded, opsz 24, wght 400,
+GRAD 0, ROND 50**, `FILL=1`. Use `FILL=0` only for the "off" half of a state pair (e.g.
+`FavoriteBorder`, `AddCircleOutline`, `DownloadForOfflineOutlined`) — otherwise the empty and
+filled states render identically.
+
+**Then edit the downloaded file:**
+1. `package com.example.test` → `package com.maxrave.simpmusic.ui.icon`
+2. `public val <symbol_name>: ImageVector` → `val SimpIcons.<PascalName>: ImageVector`
+3. Rename the backing field `_<symbol_name>` → `_<PascalName>`, and `name = "<symbol_name>"` → `"<PascalName>"`
+4. For an icon that must flip in RTL, add `autoMirror = true,` to `ImageVector.Builder`
+
+**Use it:** `SimpIcons.PlayArrow` — plus a per-icon import, `import com.maxrave.simpmusic.ui.icon.PlayArrow`.
+
+#### Traps that have already cost time here
+
+- **Each icon needs its own import.** `val SimpIcons.X` is an *extension property*, so importing the
+  `SimpIcons` object alone does not bring it into scope. This is also what lets R8 drop unused icons —
+  do not "simplify" it into a map or a `when`, that would ship all of them.
+- **`ImageVector` is not a `Painter`.** `Icon`/`Image` have overloads for both, but `AsyncImage`
+  (`placeholder`/`error`), anything drawing inside a `DrawScope`, and custom composables typed
+  `Painter` do not — wrap with `rememberVectorPainter(SimpIcons.X)` there.
+- **The response is gzipped** even when the request asks for `identity`; decompress by magic bytes.
+- **Do not replace an icon whose colour carries meaning.** `baseline_downloaded.xml` (`#FF00A0CB`),
+  `baseline_favorite_24.xml` (`#D10000`), `mono.xml`, `monochrome.xml` and the `holder*.png`
+  placeholders stay as resources; a tinted neutral symbol is not equivalent.
+- Verify a name exists before assuming: the Symbols codepoint list is at
+  `google/material-design-icons` → `variablefont/MaterialSymbolsRounded[...].codepoints`. Legacy
+  names like `favorite_border` and `thumb_up_alt` do still exist; `person_add_alt_1` does not.
+
 ## 📍 Important Files and Locations
 
 ### Configuration
@@ -485,6 +529,7 @@ if (getPlatform() == Platform.Android) {
 - **SimpMusic Lyrics voting**: Vote functionality for community lyrics
 
 ### New Features (post-1.0.4, dev branch)
+- **Icons unified on Material Symbols (2026-08-03)**: `material-icons-core`/`material-icons-extended` are gone, and so are the XML icon drawables — every icon is now a generated `ImageVector` under `ui/icon/`, addressed as `SimpIcons.<Name>`. Two migrations fed into this: 59 icons replacing `Icons.*` (117 call sites), then 25 more replacing `painterResource(Res.drawable.baseline_*)` (167 call sites, 44 XML files deleted). `RippleIconButton`, `LiquidGlassIconButton` and `ActionButton` changed from taking `DrawableResource`/`Painter` to `ImageVector`. See **Common Tasks → Add a New Icon** for how to add one and which traps to avoid. Icons whose colour carries meaning (`baseline_downloaded`, `baseline_favorite_24`), the logos (`mono`, `monochrome`) and the `holder*` bitmaps deliberately stay as resources.
 - **Deep link support**: `simpmusic://` and `simpmusic.org` URL schemes
 - **Desktop Crash dialog**: Error reporting UI for desktop
 - **Playback speed/pitch controls**: Redesigned UI with improved animations
@@ -548,6 +593,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-08-01
+**Last updated**: 2026-08-03
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

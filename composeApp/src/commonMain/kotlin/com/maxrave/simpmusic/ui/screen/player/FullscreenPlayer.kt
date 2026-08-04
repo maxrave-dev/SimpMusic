@@ -69,10 +69,12 @@ import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.FullscreenExit
 import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowLeft
 import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowRight
+import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
 import com.maxrave.simpmusic.ui.icon.PlayArrow
 import com.maxrave.simpmusic.ui.icon.Replay5
@@ -90,8 +92,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.five_seconds
 import kotlin.math.roundToLong
 
@@ -353,7 +353,7 @@ fun FullscreenPlayer(
                             navigationIcon = {
                                 Box(Modifier.padding(horizontal = 5.dp)) {
                                     RippleIconButton(
-                                        Res.drawable.baseline_arrow_back_ios_new_24,
+                                        SimpIcons.ArrowBackIosNew,
                                         Modifier
                                             .size(32.dp),
                                         true,
@@ -364,7 +364,7 @@ fun FullscreenPlayer(
                             },
                             actions = {
                                 RippleIconButton(
-                                    Res.drawable.baseline_more_vert_24,
+                                    SimpIcons.MoreVert,
                                 ) {
                                     showBottom = true
                                 }

@@ -73,7 +73,10 @@ import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
+import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DragHandle
+import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.PushPin
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -92,9 +95,6 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.baseline_add_24
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.download_for_offline_white
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.radio
@@ -282,7 +282,7 @@ fun SongFullWidthItems(
                         ) {
                             Row {
                                 Icon(
-                                    painter = painterResource(Res.drawable.download_for_offline_white),
+                                    imageVector = SimpIcons.DownloadForOffline,
                                     tint = contentColor,
                                     contentDescription = "",
                                     modifier = Modifier.size(16.dp).padding(2.dp),
@@ -326,7 +326,7 @@ fun SongFullWidthItems(
                     rightView()
                 }
                 if (onMoreClickListener != null) {
-                    RippleIconButton(resId = Res.drawable.baseline_more_vert_24, fillMaxSize = false, tint = contentColor) {
+                    RippleIconButton(imageVector = SimpIcons.MoreVert, fillMaxSize = false, tint = contentColor) {
                         val videoId = track?.videoId ?: songEntity?.videoId
                         videoId?.let { onMoreClickListener.invoke(it) }
                     }
@@ -452,7 +452,7 @@ fun SuggestItems(
                 )
             }
             RippleIconButton(
-                resId = Res.drawable.baseline_add_24,
+                imageVector = SimpIcons.Add,
                 fillMaxSize = false,
                 onClick =
                     onAddClickListener ?: {

@@ -52,6 +52,9 @@ import com.maxrave.simpmusic.extension.formatTimeAgo
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.RssFeed
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -61,8 +64,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.ic_rss_feed_24
 import simpmusic.composeapp.generated.resources.new_release
 import simpmusic.composeapp.generated.resources.no_notification
 import simpmusic.composeapp.generated.resources.notification
@@ -85,7 +86,7 @@ fun NotificationScreen(
             },
             navigationIcon = {
                 RippleIconButton(
-                    resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                    imageVector = SimpIcons.ArrowBackIosNew,
                     tint = MaterialTheme.colorScheme.onSurface,
                 ) {
                     navController.navigateUp()
@@ -246,7 +247,7 @@ fun BlogNotificationItem(notification: NotificationEntity) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_rss_feed_24),
+                    imageVector = SimpIcons.RssFeed,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(26.dp),

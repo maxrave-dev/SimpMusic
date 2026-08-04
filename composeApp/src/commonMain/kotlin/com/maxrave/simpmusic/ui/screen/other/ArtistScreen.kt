@@ -112,6 +112,7 @@ import com.maxrave.simpmusic.ui.component.LimitedBorderAnimationView
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.PersonAdd
 import com.maxrave.simpmusic.ui.icon.Sensors
@@ -138,7 +139,6 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.albums
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.featured_inArtist
@@ -393,7 +393,7 @@ fun ArtistScreen(
                                         // Back button — liquid glass, sibling of the backdrop source.
                                         LiquidGlassIconButton(
                                             backdrop = artworkBackdrop,
-                                            resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                            imageVector = SimpIcons.ArrowBackIosNew,
                                             modifier =
                                                 Modifier
                                                     .align(Alignment.TopStart)
@@ -537,10 +537,7 @@ fun ArtistScreen(
                                     Box(Modifier.padding(horizontal = 5.dp)) {
                                         IconButton(onClick = { navController.navigateUp() }) {
                                             Icon(
-                                                painter =
-                                                    org.jetbrains.compose.resources.painterResource(
-                                                        Res.drawable.baseline_arrow_back_ios_new_24,
-                                                    ),
+                                                imageVector = SimpIcons.ArrowBackIosNew,
                                                 contentDescription = "Back",
                                                 tint = Color.White,
                                                 modifier = Modifier.size(20.dp),

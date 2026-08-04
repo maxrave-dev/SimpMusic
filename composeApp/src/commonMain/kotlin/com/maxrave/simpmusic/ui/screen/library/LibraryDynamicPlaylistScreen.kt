@@ -55,7 +55,11 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.PlayCircle
 import com.maxrave.simpmusic.ui.icon.Search
+import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -73,11 +77,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_close_24
-import simpmusic.composeapp.generated.resources.baseline_play_circle_24
-import simpmusic.composeapp.generated.resources.baseline_search_24
-import simpmusic.composeapp.generated.resources.baseline_shuffle_24
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
@@ -405,7 +404,7 @@ fun LibraryDynamicPlaylistScreen(
                 navigationIcon = {
                     Box(Modifier.padding(horizontal = 5.dp)) {
                         RippleIconButton(
-                            Res.drawable.baseline_arrow_back_ios_new_24,
+                            SimpIcons.ArrowBackIosNew,
                             Modifier
                                 .size(32.dp),
                             true,
@@ -418,7 +417,7 @@ fun LibraryDynamicPlaylistScreen(
                 actions = {
                     if (isSongType) {
                         RippleIconButton(
-                            Res.drawable.baseline_play_circle_24,
+                            SimpIcons.PlayCircle,
                             Modifier
                                 .size(48.dp),
                             fillMaxSize = true,
@@ -449,7 +448,7 @@ fun LibraryDynamicPlaylistScreen(
                             }
                         }
                         RippleIconButton(
-                            Res.drawable.baseline_shuffle_24,
+                            SimpIcons.Shuffle,
                             Modifier.size(32.dp),
                             true,
                             tint = MaterialTheme.colorScheme.onBackground,
@@ -482,7 +481,7 @@ fun LibraryDynamicPlaylistScreen(
                     }
                     Box(Modifier.padding(horizontal = 5.dp)) {
                         RippleIconButton(
-                            if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,
+                            if (showSearchBar) SimpIcons.Close else SimpIcons.Search,
                             Modifier
                                 .size(32.dp),
                             true,

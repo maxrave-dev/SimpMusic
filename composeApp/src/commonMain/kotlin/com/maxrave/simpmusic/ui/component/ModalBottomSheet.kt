@@ -92,6 +92,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
@@ -134,13 +135,37 @@ import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
+import com.maxrave.simpmusic.ui.icon.AddPhotoAlternate
+import com.maxrave.simpmusic.ui.icon.Album
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.ContentCopy
+import com.maxrave.simpmusic.ui.icon.Delete
+import com.maxrave.simpmusic.ui.icon.Done
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.DownloadForOfflineOutlined
+import com.maxrave.simpmusic.ui.icon.Downloading
+import com.maxrave.simpmusic.ui.icon.Edit
+import com.maxrave.simpmusic.ui.icon.FavoriteBorder
+import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
+import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowDown
+import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowUp
+import com.maxrave.simpmusic.ui.icon.Lyrics
+import com.maxrave.simpmusic.ui.icon.PeopleAlt
+import com.maxrave.simpmusic.ui.icon.PlayCircle
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
+import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Remove
+import com.maxrave.simpmusic.ui.icon.Sensors
+import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Speed
+import com.maxrave.simpmusic.ui.icon.Sync
+import com.maxrave.simpmusic.ui.icon.SyncDisabled
 import com.maxrave.simpmusic.ui.icon.Tune
+import com.maxrave.simpmusic.ui.icon.Update
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.seed
@@ -168,27 +193,8 @@ import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.baseline_access_alarm_24
-import simpmusic.composeapp.generated.resources.baseline_add_photo_alternate_24
-import simpmusic.composeapp.generated.resources.baseline_album_24
-import simpmusic.composeapp.generated.resources.baseline_delete_24
 import simpmusic.composeapp.generated.resources.baseline_downloaded
-import simpmusic.composeapp.generated.resources.baseline_downloading_white
-import simpmusic.composeapp.generated.resources.baseline_edit_24
 import simpmusic.composeapp.generated.resources.baseline_favorite_24
-import simpmusic.composeapp.generated.resources.baseline_favorite_border_24
-import simpmusic.composeapp.generated.resources.baseline_keyboard_arrow_down_24
-import simpmusic.composeapp.generated.resources.baseline_keyboard_double_arrow_down_24
-import simpmusic.composeapp.generated.resources.baseline_keyboard_double_arrow_up_24
-import simpmusic.composeapp.generated.resources.baseline_lyrics_24
-import simpmusic.composeapp.generated.resources.baseline_people_alt_24
-import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
-import simpmusic.composeapp.generated.resources.baseline_queue_music_24
-import simpmusic.composeapp.generated.resources.baseline_sensors_24
-import simpmusic.composeapp.generated.resources.baseline_share_24
-import simpmusic.composeapp.generated.resources.baseline_sync_24
-import simpmusic.composeapp.generated.resources.baseline_sync_disabled_24
-import simpmusic.composeapp.generated.resources.baseline_update_24
 import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.bitrate
 import simpmusic.composeapp.generated.resources.bpm
@@ -200,7 +206,6 @@ import simpmusic.composeapp.generated.resources.delete
 import simpmusic.composeapp.generated.resources.delete_playlist
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.description
-import simpmusic.composeapp.generated.resources.done
 import simpmusic.composeapp.generated.resources.download
 import simpmusic.composeapp.generated.resources.download_speed
 import simpmusic.composeapp.generated.resources.download_this_song_video_file_to_your_device
@@ -230,9 +235,7 @@ import simpmusic.composeapp.generated.resources.no_playlist_found
 import simpmusic.composeapp.generated.resources.now_playing
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.ok
-import simpmusic.composeapp.generated.resources.outline_download_for_offline_24
 import simpmusic.composeapp.generated.resources.pitch
-import simpmusic.composeapp.generated.resources.play_circle
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playback_speed
 import simpmusic.composeapp.generated.resources.playback_speed_pitch
@@ -242,7 +245,6 @@ import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
-import simpmusic.composeapp.generated.resources.round_speed_24
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
@@ -498,7 +500,7 @@ fun InfoPlayerBottomSheet(
                             }
                         }) {
                             Icon(
-                                painter = painterResource(Res.drawable.baseline_keyboard_arrow_down_24),
+                                imageVector = SimpIcons.KeyboardArrowDown,
                                 contentDescription = "",
                                 tint = rememberSurfaceDarkColors().content,
                             )
@@ -1053,7 +1055,7 @@ fun QueueBottomSheet(
                             }
                         }) {
                             Icon(
-                                painter = painterResource(Res.drawable.baseline_keyboard_arrow_down_24),
+                                imageVector = SimpIcons.KeyboardArrowDown,
                                 contentDescription = "",
                                 tint = rememberSurfaceDarkColors().content,
                             )
@@ -1331,30 +1333,21 @@ fun QueueItemBottomSheet(
                                 when (action) {
                                     QueueItemAction.UP -> {
                                         Image(
-                                            painter =
-                                                painterResource(
-                                                    Res.drawable.baseline_keyboard_double_arrow_up_24,
-                                                ),
+                                            imageVector = SimpIcons.KeyboardDoubleArrowUp,
                                             contentDescription = "Move up",
                                         )
                                     }
 
                                     QueueItemAction.DOWN -> {
                                         Image(
-                                            painter =
-                                                painterResource(
-                                                    Res.drawable.baseline_keyboard_double_arrow_down_24,
-                                                ),
+                                            imageVector = SimpIcons.KeyboardDoubleArrowDown,
                                             contentDescription = "Move down",
                                         )
                                     }
 
                                     QueueItemAction.DELETE -> {
                                         Image(
-                                            painter =
-                                                painterResource(
-                                                    Res.drawable.baseline_delete_24,
-                                                ),
+                                            imageVector = SimpIcons.Delete,
                                             contentDescription = "Delete",
                                         )
                                     }
@@ -1721,7 +1714,7 @@ fun NowPlayingBottomSheet(
                     Crossfade(targetState = onDelete != null) {
                         if (it) {
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_delete_24),
+                                icon = SimpIcons.Delete,
                                 text = Res.string.delete_song_from_playlist,
                             ) {
                                 hideModalBottomSheet()
@@ -1732,7 +1725,7 @@ fun NowPlayingBottomSheet(
                     Crossfade(targetState = onLibraryDelete != null) {
                         if (it) {
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_delete_24),
+                                icon = SimpIcons.Delete,
                                 text = Res.string.delete,
                             ) {
                                 hideModalBottomSheet()
@@ -1750,11 +1743,19 @@ fun NowPlayingBottomSheet(
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED -> painterResource(Res.drawable.outline_download_for_offline_24)
-                                DownloadState.STATE_DOWNLOADING -> painterResource(Res.drawable.baseline_downloading_white)
-                                DownloadState.STATE_DOWNLOADED -> painterResource(Res.drawable.baseline_downloaded)
-                                DownloadState.STATE_PREPARING -> painterResource(Res.drawable.baseline_downloading_white)
-                                else -> painterResource(Res.drawable.outline_download_for_offline_24)
+                                DownloadState.STATE_NOT_DOWNLOADED -> SimpIcons.DownloadForOfflineOutlined
+                                DownloadState.STATE_DOWNLOADING -> SimpIcons.Downloading
+                                DownloadState.STATE_DOWNLOADED -> SimpIcons.DownloadForOffline
+                                DownloadState.STATE_PREPARING -> SimpIcons.Downloading
+                                else -> SimpIcons.DownloadForOfflineOutlined
+                            },
+                        // The old baseline_downloaded.xml carried #FF00A0CB baked in; the shared
+                        // symbol is neutral, so the "done" state has to say the colour out loud.
+                        iconColor =
+                            if (uiState.songUIState.downloadState == DownloadState.STATE_DOWNLOADED) {
+                                Color(0xFF00A0CB)
+                            } else {
+                                Color.Unspecified
                             },
                         text =
                             when (uiState.songUIState.downloadState) {
@@ -1768,32 +1769,32 @@ fun NowPlayingBottomSheet(
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Download)
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_playlist_add_24),
+                        icon = SimpIcons.PlaylistAdd,
                         text = Res.string.add_to_a_playlist,
                     ) {
                         viewModel.resetPlaylists()
                         addToAPlaylist = true
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.play_circle),
+                        icon = SimpIcons.PlayCircle,
                         text = Res.string.play_next,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.PlayNext)
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_queue_music_24),
+                        icon = SimpIcons.QueueMusic,
                         text = Res.string.add_to_queue,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToQueue)
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_people_alt_24),
+                        icon = SimpIcons.PeopleAlt,
                         text = Res.string.artists,
                     ) {
                         artist = true
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_album_24),
+                        icon = SimpIcons.Album,
                         // Three states, not two. A track can carry an album ID with no title: the
                         // row it was parsed from links an album but never spells its name out.
                         // That case still navigates, so it must not read "No album" — but the name
@@ -1816,7 +1817,7 @@ fun NowPlayingBottomSheet(
                         }
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_sensors_24),
+                        icon = SimpIcons.Sensors,
                         text = Res.string.start_radio,
                     ) {
                         viewModel.onUIEvent(
@@ -1830,7 +1831,7 @@ fun NowPlayingBottomSheet(
                     Crossfade(targetState = changeMainLyricsProviderEnable) {
                         if (it) {
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_lyrics_24),
+                                icon = SimpIcons.Lyrics,
                                 text = Res.string.main_lyrics_provider,
                             ) {
                                 mainLyricsProvider = true
@@ -1846,7 +1847,7 @@ fun NowPlayingBottomSheet(
                             Crossfade(targetState = isRunning) { running ->
                                 if (running) {
                                     ActionButton(
-                                        icon = painterResource(Res.drawable.baseline_access_alarm_24),
+                                        icon = SimpIcons.AccessAlarm,
                                         textString =
                                             if (isEndOfSong) {
                                                 stringResource(Res.string.sleep_timer_end_of_song)
@@ -1861,7 +1862,7 @@ fun NowPlayingBottomSheet(
                                     }
                                 } else {
                                     ActionButton(
-                                        icon = painterResource(Res.drawable.baseline_access_alarm_24),
+                                        icon = SimpIcons.AccessAlarm,
                                         text = Res.string.sleep_timer_off,
                                     ) {
                                         sleepTimer = true
@@ -1874,7 +1875,7 @@ fun NowPlayingBottomSheet(
                         if (it) {
                             val isDesktop = getPlatform() == Platform.Desktop
                             ActionButton(
-                                icon = painterResource(Res.drawable.round_speed_24),
+                                icon = SimpIcons.Speed,
                                 text =
                                     if (crossfadeEnabled != DataStoreManager.TRUE) {
                                         if (isDesktop) Res.string.playback_speed else Res.string.playback_speed_pitch
@@ -1888,7 +1889,7 @@ fun NowPlayingBottomSheet(
                         }
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_share_24),
+                        icon = SimpIcons.Share,
                         text = Res.string.share,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Share)
@@ -1902,7 +1903,7 @@ fun NowPlayingBottomSheet(
 
 @Composable
 fun ActionButton(
-    icon: Painter,
+    icon: ImageVector,
     text: StringResource?,
     textString: String? = null,
     textColor: Color? = null,
@@ -1926,7 +1927,7 @@ fun ActionButton(
             modifier = Modifier.padding(horizontal = 20.dp),
         ) {
             Image(
-                painter = icon,
+                imageVector = icon,
                 contentDescription = if (text != null) stringResource(text) else textString ?: "",
                 modifier =
                     Modifier
@@ -2033,7 +2034,7 @@ fun HeartCheckBox(
                 )
             } else {
                 Image(
-                    painter = painterResource(Res.drawable.baseline_favorite_border_24),
+                    imageVector = SimpIcons.FavoriteBorder,
                     contentDescription = "Favorite unchecked",
                     modifier = Modifier.fillMaxSize().padding(4.dp),
                     colorFilter = ColorFilter.tint(tint),
@@ -2083,7 +2084,7 @@ fun PlaybackSpeedPitchBottomSheet(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.round_speed_24),
+                        imageVector = SimpIcons.Speed,
                         contentDescription = stringResource(Res.string.playback_speed),
                         modifier = Modifier.size(24.dp),
                         colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().subtitle),
@@ -2259,7 +2260,7 @@ fun SleepTimerBottomSheet(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.baseline_access_alarm_24),
+                        imageVector = SimpIcons.AccessAlarm,
                         contentDescription = null,
                         colorFilter = ColorFilter.tint(seed),
                         modifier = Modifier.size(20.dp),
@@ -2584,7 +2585,7 @@ fun AddToPlaylistModalBottomSheet(
                                                 modifier = Modifier.padding(12.dp).align(Alignment.CenterStart),
                                             ) {
                                                 Image(
-                                                    painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                                                    imageVector = SimpIcons.PlaylistAdd,
                                                     contentDescription = "",
                                                 )
                                                 Spacer(modifier = Modifier.width(10.dp))
@@ -2619,10 +2620,10 @@ fun AddToPlaylistModalBottomSheet(
                                             ) {
                                                 Crossfade(targetState = playlist.tracks?.contains(videoId) == true) {
                                                     if (it) {
-                                                        Image(painter = painterResource(Res.drawable.done), contentDescription = "")
+                                                        Image(imageVector = SimpIcons.Done, contentDescription = "")
                                                     } else {
                                                         Image(
-                                                            painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                                                            imageVector = SimpIcons.PlaylistAdd,
                                                             contentDescription = "",
                                                         )
                                                     }
@@ -2708,7 +2709,7 @@ fun ArtistModalBottomSheet(
                                     modifier = Modifier.padding(20.dp).align(Alignment.CenterStart),
                                 ) {
                                     Image(
-                                        painter = painterResource(Res.drawable.baseline_people_alt_24),
+                                        imageVector = SimpIcons.PeopleAlt,
                                         contentDescription = "",
                                     )
                                     Spacer(modifier = Modifier.width(10.dp))
@@ -2839,7 +2840,7 @@ fun PlaylistBottomSheet(
                 Spacer(modifier = Modifier.height(5.dp))
                 if (onAddToQueue != null) {
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_queue_music_24),
+                        icon = SimpIcons.QueueMusic,
                         text = Res.string.add_to_queue,
                     ) {
                         onAddToQueue()
@@ -2847,15 +2848,15 @@ fun PlaylistBottomSheet(
                     }
                 }
                 if (isYourYouTubePlaylist) {
-                    ActionButton(icon = painterResource(Res.drawable.baseline_edit_24), text = Res.string.edit_title) {
+                    ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
                         showEditTitle = true
                     }
                     ActionButton(
                         icon =
                             if (isSavedToLocal) {
-                                painterResource(Res.drawable.baseline_sync_disabled_24)
+                                SimpIcons.SyncDisabled
                             } else {
-                                painterResource(Res.drawable.baseline_sync_24)
+                                SimpIcons.Sync
                             },
                         text =
                             if (isSavedToLocal) {
@@ -2870,7 +2871,7 @@ fun PlaylistBottomSheet(
                     }
                 }
                 val shareTitle = stringResource(Res.string.share)
-                ActionButton(icon = painterResource(Res.drawable.baseline_share_24), text = Res.string.share) {
+                ActionButton(icon = SimpIcons.Share, text = Res.string.share) {
                     val url = "https://music.youtube.com/playlist?list=${playlistId.replaceFirst("VL", "")}"
                     shareUrl(shareTitle, url)
                 }
@@ -2992,21 +2993,21 @@ fun LocalPlaylistBottomSheet(
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    ActionButton(icon = painterResource(Res.drawable.baseline_edit_24), text = Res.string.edit_title) {
+                    ActionButton(icon = SimpIcons.Edit, text = Res.string.edit_title) {
                         showEditTitle = true
                     }
-                    ActionButton(icon = painterResource(Res.drawable.baseline_add_photo_alternate_24), text = Res.string.edit_thumbnail) {
+                    ActionButton(icon = SimpIcons.AddPhotoAlternate, text = Res.string.edit_thumbnail) {
                         resultLauncher.launch()
                     }
-                    ActionButton(icon = painterResource(Res.drawable.baseline_queue_music_24), text = Res.string.add_to_queue) {
+                    ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) {
                         onAddToQueue()
                     }
                     ActionButton(
                         icon =
                             if (ytPlaylistId != null) {
-                                painterResource(Res.drawable.baseline_sync_disabled_24)
+                                SimpIcons.SyncDisabled
                             } else {
-                                painterResource(Res.drawable.baseline_sync_24)
+                                SimpIcons.Sync
                             },
                         text =
                             if (ytPlaylistId != null) {
@@ -3018,19 +3019,19 @@ fun LocalPlaylistBottomSheet(
                         onSync()
                     }
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_update_24),
+                        icon = SimpIcons.Update,
                         text = Res.string.update_playlist,
                         enable = (ytPlaylistId != null),
                     ) {
                         onUpdatePlaylist()
                     }
-                    ActionButton(icon = painterResource(Res.drawable.baseline_delete_24), text = Res.string.delete_playlist) {
+                    ActionButton(icon = SimpIcons.Delete, text = Res.string.delete_playlist) {
                         onDelete()
                         hideModalBottomSheet()
                     }
                     val shareTitle = stringResource(Res.string.share_url)
                     ActionButton(
-                        icon = painterResource(Res.drawable.baseline_share_24),
+                        icon = SimpIcons.Share,
                         text = if (ytPlaylistId != null) Res.string.share else Res.string.sync_first,
                         enable = (ytPlaylistId != null),
                     ) {
@@ -3114,7 +3115,7 @@ fun SortPlaylistBottomSheet(
                             Spacer(modifier = Modifier.weight(1f))
                             if (isSelected) {
                                 Image(
-                                    painter = painterResource(Res.drawable.done),
+                                    imageVector = SimpIcons.Done,
                                     contentDescription = "Selected",
                                     colorFilter = ColorFilter.tint(seed),
                                     modifier = Modifier.size(32.dp),

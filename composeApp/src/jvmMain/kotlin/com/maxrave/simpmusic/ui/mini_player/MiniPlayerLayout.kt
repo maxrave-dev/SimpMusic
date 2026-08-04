@@ -64,6 +64,8 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.SkipNext
+import com.maxrave.simpmusic.ui.icon.SkipPrevious
 import com.maxrave.simpmusic.ui.icon.VolumeOff
 import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.theme.typo
@@ -71,8 +73,6 @@ import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_skip_next_24
-import simpmusic.composeapp.generated.resources.baseline_skip_previous_24
 
 @Composable
 private fun MiniPlayerSeekBar(
@@ -194,7 +194,7 @@ fun CompactMiniLayout(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RippleIconButton(
-                        resId = Res.drawable.baseline_skip_previous_24,
+                        imageVector = SimpIcons.SkipPrevious,
                         modifier = Modifier.size(28.dp),
                         tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                         onClick = {
@@ -211,7 +211,7 @@ fun CompactMiniLayout(
                     )
 
                     RippleIconButton(
-                        resId = Res.drawable.baseline_skip_next_24,
+                        imageVector = SimpIcons.SkipNext,
                         modifier = Modifier.size(28.dp),
                         tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                         onClick = {
@@ -327,7 +327,7 @@ fun MediumMiniLayout(
                         }
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_previous_24,
+                            imageVector = SimpIcons.SkipPrevious,
                             modifier = Modifier.size(28.dp),
                             tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                             onClick = {
@@ -344,7 +344,7 @@ fun MediumMiniLayout(
                         )
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_next_24,
+                            imageVector = SimpIcons.SkipNext,
                             modifier = Modifier.size(28.dp),
                             tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                             onClick = {
@@ -631,7 +631,7 @@ fun SquareMiniLayout(
 
                 // Previous
                 RippleIconButton(
-                    resId = Res.drawable.baseline_skip_previous_24,
+                    imageVector = SimpIcons.SkipPrevious,
                     modifier = Modifier.size(36.dp),
                     tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                     onClick = {
@@ -650,7 +650,7 @@ fun SquareMiniLayout(
 
                 // Next
                 RippleIconButton(
-                    resId = Res.drawable.baseline_skip_next_24,
+                    imageVector = SimpIcons.SkipNext,
                     modifier = Modifier.size(36.dp),
                     tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                     onClick = {
@@ -828,7 +828,7 @@ fun ExpandedMiniLayout(
                         }
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_previous_24,
+                            imageVector = SimpIcons.SkipPrevious,
                             modifier = Modifier.size(28.dp),
                             tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                             onClick = {
@@ -847,7 +847,7 @@ fun ExpandedMiniLayout(
                         )
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_next_24,
+                            imageVector = SimpIcons.SkipNext,
                             modifier = Modifier.size(32.dp),
                             tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                             onClick = {

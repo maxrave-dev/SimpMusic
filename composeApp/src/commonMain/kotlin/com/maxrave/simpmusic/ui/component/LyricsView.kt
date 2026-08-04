@@ -96,6 +96,7 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.icon.Info
+import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -109,7 +110,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.unavailable
 import kotlin.math.PI
@@ -892,7 +892,7 @@ fun FullscreenLyricsSheet(
                         onClick = { showNowPlayingSheet = true },
                     ) {
                         Icon(
-                            painter = painterResource(Res.drawable.baseline_more_vert_24),
+                            imageVector = SimpIcons.MoreVert,
                             contentDescription = "",
                             tint = Color.White,
                         )
