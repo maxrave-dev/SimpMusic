@@ -203,7 +203,11 @@ kotlin {
 // mpv-natives block below. The layout is per-arch so Conveyor bundles only
 // the slice each per-machine installer actually needs.
 
-fun downloadIfMissing(url: String, target: java.io.File, logPrefix: String = "mpv-multi") {
+fun downloadIfMissing(
+    url: String,
+    target: java.io.File,
+    logPrefix: String = "mpv-multi",
+) {
     if (target.exists() && target.length() > 0) {
         logger.lifecycle("[$logPrefix] Cached: ${target.name}")
         return
@@ -219,19 +223,23 @@ fun downloadIfMissing(url: String, target: java.io.File, logPrefix: String = "mp
     // exits non-zero on HTTP errors instead of saving error bodies, and
     // `-o` writes atomically via tmp file. The downloaded artifact is
     // also size-verified (must match Content-Length).
-    val curlExit = ProcessBuilder(
-        "curl",
-        "-fsSL",
-        // `--retry` alone does NOT retry curl exit 56 (mid-transfer receive failure) — it only
-        // retries HTTP 5xx/408/429 and connection errors. The get.videolan.org mirrors flake with
-        // exit 56 mid-download, so `--retry-all-errors` is required to retry those too. Count/delay
-        // bumped a bit for the occasionally-slow mirror.
-        "--retry", "5",
-        "--retry-delay", "5",
-        "--retry-all-errors",
-        "-o", target.absolutePath,
-        url,
-    ).inheritIO().start().waitFor()
+    val curlExit =
+        ProcessBuilder(
+            "curl",
+            "-fsSL",
+            // `--retry` alone does NOT retry curl exit 56 (mid-transfer receive failure) — it only
+            // retries HTTP 5xx/408/429 and connection errors. The get.videolan.org mirrors flake with
+            // exit 56 mid-download, so `--retry-all-errors` is required to retry those too. Count/delay
+            // bumped a bit for the occasionally-slow mirror.
+            "--retry",
+            "5",
+            "--retry-delay",
+            "5",
+            "--retry-all-errors",
+            "-o",
+            target.absolutePath,
+            url,
+        ).inheritIO().start().waitFor()
     check(curlExit == 0 && target.exists() && target.length() > 0) {
         // Delete partial/empty file so the next run can retry cleanly.
         if (target.exists()) target.delete()
@@ -314,8 +322,12 @@ val mpvWinBuildSuffix = "20260610-git-304426c"
 // artifact and copies its whole sibling set, rather than hard-coding upstream
 // tree shapes. Those layouts drift between releases; "the folder libmpv lives
 // in" does not.
-fun findDirContaining(root: java.io.File, namePredicate: (String) -> Boolean): java.io.File? =
-    root.walkTopDown()
+fun findDirContaining(
+    root: java.io.File,
+    namePredicate: (String) -> Boolean,
+): java.io.File? =
+    root
+        .walkTopDown()
         .firstOrNull { it.isFile && namePredicate(it.name) }
         ?.parentFile
 
@@ -377,7 +389,10 @@ fun sha256(file: java.io.File): String {
  *
  * @return how many entries were rewritten.
  */
-fun rewriteExecutablePathRefs(file: java.io.File, prefix: String): Int {
+fun rewriteExecutablePathRefs(
+    file: java.io.File,
+    prefix: String,
+): Int {
     val needle = "@executable_path/lib/".toByteArray(Charsets.US_ASCII)
     val prefixBytes = prefix.toByteArray(Charsets.US_ASCII)
     check(prefixBytes.size <= needle.size) {
@@ -450,7 +465,10 @@ fun codesignAdhoc(dir: java.io.File) {
  * to a libplacebo.338 exporting only 338, on both slices and not weakly referenced, so its libmpv
  * fails dlopen under RTLD_NOW *and* RTLD_LAZY.
  */
-fun extractMacMpvSlice(assetArch: String, outputDir: java.io.File) {
+fun extractMacMpvSlice(
+    assetArch: String,
+    outputDir: java.io.File,
+) {
     val cache = mpvCacheDir.get().asFile
     val zip = cache.resolve("mpv-$mpvVersion-$assetArch.zip")
     downloadIfMissing(
@@ -468,15 +486,17 @@ fun extractMacMpvSlice(assetArch: String, outputDir: java.io.File) {
         from(zipTree(zip))
         into(stage)
     }
-    val innerTar = stage.walkTopDown().firstOrNull { it.isFile && it.name.endsWith(".tar.gz") }
-        ?: error("No inner tarball inside ${zip.name}")
+    val innerTar =
+        stage.walkTopDown().firstOrNull { it.isFile && it.name.endsWith(".tar.gz") }
+            ?: error("No inner tarball inside ${zip.name}")
     project.copy {
         from(tarTree(resources.gzip(innerTar)))
         into(stage)
     }
-    val macOsDir = stage.walkTopDown().firstOrNull {
-        it.isDirectory && it.name == "MacOS" && it.parentFile?.name == "Contents"
-    } ?: error("mpv.app/Contents/MacOS not found inside ${zip.name}")
+    val macOsDir =
+        stage.walkTopDown().firstOrNull {
+            it.isDirectory && it.name == "MacOS" && it.parentFile?.name == "Contents"
+        } ?: error("mpv.app/Contents/MacOS not found inside ${zip.name}")
     val binary = macOsDir.resolve("mpv")
     check(binary.isFile) { "mpv binary missing from ${macOsDir.absolutePath}" }
 
@@ -528,18 +548,22 @@ val mpvSetupMacX64Ci by tasks.registering {
 // Windows
 // ---------------------------------------------------------------------------
 
-fun extractWindowsMpvSlice(arch: String, outputDir: java.io.File) {
+fun extractWindowsMpvSlice(
+    arch: String,
+    outputDir: java.io.File,
+) {
     // `7zz` (the official 7-Zip binary) is preferred over `7z`, which on many machines is p7zip
     // — a fork last released in 2017. shinchiro's aarch64 archive uses the ARM64 BCJ filter that
     // 7-Zip only gained in 21.07, so p7zip fails it with "Unsupported Method : libmpv-2.dll"
     // while extracting the x86_64 one just fine. The CI image installs 7-Zip 26.x for the same
     // reason.
-    val sevenZip = listOf("7zz", "7z").firstOrNull(::toolAvailable)
-        ?: error(
-            "7-Zip is required to unpack shinchiro's .7z builds and must be 21.07 or newer. " +
-                "macOS: `brew install sevenzip` (provides 7zz). Ubuntu: install the official " +
-                "7-Zip build — distro p7zip is too old for the ARM64 archive.",
-        )
+    val sevenZip =
+        listOf("7zz", "7z").firstOrNull(::toolAvailable)
+            ?: error(
+                "7-Zip is required to unpack shinchiro's .7z builds and must be 21.07 or newer. " +
+                    "macOS: `brew install sevenzip` (provides 7zz). Ubuntu: install the official " +
+                    "7-Zip build — distro p7zip is too old for the ARM64 archive.",
+            )
     val cache = mpvCacheDir.get().asFile
     val archive = cache.resolve("mpv-dev-$arch-$mpvWinBuildSuffix.7z")
     downloadIfMissing(
@@ -558,8 +582,9 @@ fun extractWindowsMpvSlice(arch: String, outputDir: java.io.File) {
     // The dev package is headers + import lib + the runtime DLL. Only the DLL
     // is shipped; JNA resolves it by name ("libmpv-2" is in MpvLibrary's
     // CANDIDATE_NAMES), and ffmpeg is linked into it, so it stands alone.
-    val dllDir = findDirContaining(extractDir) { it.startsWith("libmpv") && it.endsWith(".dll") }
-        ?: error("No libmpv*.dll inside ${archive.name}")
+    val dllDir =
+        findDirContaining(extractDir) { it.startsWith("libmpv") && it.endsWith(".dll") }
+            ?: error("No libmpv*.dll inside ${archive.name}")
     outputDir.deleteRecursively()
     outputDir.mkdirs()
     project.copy {
@@ -636,14 +661,15 @@ val mpvSetupLinuxCi by tasks.registering {
         // staged a PIE executable that no glibc will ever dlopen. Cheap to assert, so assert.
         val staged = outputDir.resolve("libmpv.so.2")
         check(staged.isFile) { "libmpv.so.2 missing from the container output" }
-        val elfType = staged.inputStream().use { stream ->
-            val header = ByteArray(18)
-            check(stream.read(header) == header.size) { "libmpv.so.2 is truncated" }
-            // e_type is a little-endian u16 at offset 0x10. ET_DYN (3) covers both shared
-            // objects and PIE executables; PIE additionally carries a PT_INTERP segment,
-            // which is what dlopen rejects. A shared object has none.
-            (header[0x10].toInt() and 0xFF) or ((header[0x11].toInt() and 0xFF) shl 8)
-        }
+        val elfType =
+            staged.inputStream().use { stream ->
+                val header = ByteArray(18)
+                check(stream.read(header) == header.size) { "libmpv.so.2 is truncated" }
+                // e_type is a little-endian u16 at offset 0x10. ET_DYN (3) covers both shared
+                // objects and PIE executables; PIE additionally carries a PT_INTERP segment,
+                // which is what dlopen rejects. A shared object has none.
+                (header[0x10].toInt() and 0xFF) or ((header[0x11].toInt() and 0xFF) shl 8)
+            }
         check(elfType == 3) { "libmpv.so.2 is not ET_DYN (e_type=$elfType) — it cannot be dlopen()ed" }
 
         val libs = outputDir.resolve("lib").listFiles()?.size ?: 0
@@ -694,8 +720,12 @@ val mpvBundleAll by tasks.registering {
                 "mpv-natives/$slice is missing or empty — cannot pack an incomplete set"
             }
             runChecked(
-                "tar", "-czf", dist.resolve("mpv-natives-$slice.tar.gz").absolutePath,
-                "-C", rootDir.resolve("mpv-natives").absolutePath, slice,
+                "tar",
+                "-czf",
+                dist.resolve("mpv-natives-$slice.tar.gz").absolutePath,
+                "-C",
+                rootDir.resolve("mpv-natives").absolutePath,
+                slice,
             )
         }
         logger.lifecycle("[mpv-bundle] Packed ${mpvSlices.size} slices into ${dist.absolutePath}")
@@ -727,7 +757,6 @@ val mpvNativesChecksums =
         "windows-x64" to "256f17cf402c7583b8684d5a7cf585ad1b59695469219671f4887b9d8d272a99",
         "windows-arm64" to "30e04a117de0b7d6abc5f86d4231e9b4bffa3637f282ff9efe3dc66e6cc4fcba",
     )
-
 
 val mpvSetupAll by tasks.registering {
     group = "mpv-multi"
@@ -859,9 +888,9 @@ aboutLibraries {
 // generateBuildKonfig output to AGP's prepare*ArtProfile tasks.
 // Refs: moko-resources#421, AboutLibraries#936.
 afterEvaluate {
-    tasks.matching { it.name.startsWith("prepare") && it.name.endsWith("ArtProfile") }
+    tasks
+        .matching { it.name.startsWith("prepare") && it.name.endsWith("ArtProfile") }
         .configureEach {
             dependsOn("generateBuildKonfig")
         }
 }
-
