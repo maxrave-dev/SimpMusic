@@ -94,6 +94,7 @@ import com.maxrave.domain.data.model.mood.Mood
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -112,6 +113,7 @@ import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.OfflineErrorState
+import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -602,6 +604,7 @@ fun HomeScreen(
                                                                 },
                                                         )
                                                     },
+                                                navController = navController,
                                                 viewModel = viewModel,
                                             )
                                         }
@@ -942,6 +945,7 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
+    navController: NavController,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val lazyListState = rememberLazyGridState()
@@ -950,6 +954,17 @@ fun QuickPicks(
     var widthDp by remember {
         mutableStateOf(0.dp)
     }
+    var bottomSheetShow by remember { mutableStateOf(false) }
+    var track by remember { mutableStateOf<Track?>(null) }
+
+    if (bottomSheetShow) {
+        NowPlayingBottomSheet(
+            onDismiss = { bottomSheetShow = false },
+            song = track?.toSongEntity(),
+            navController = navController,
+        )
+    }
+
     Column(
         Modifier
             .padding(vertical = 8.dp)
@@ -998,6 +1013,10 @@ fun QuickPicks(
                                 firstQueue,
                                 type = Config.SONG_CLICK,
                             )
+                        },
+                        onLongClick = {
+                            track = it.toTrack()
+                            bottomSheetShow = true
                         },
                         data = it,
                         widthDp = widthDp,

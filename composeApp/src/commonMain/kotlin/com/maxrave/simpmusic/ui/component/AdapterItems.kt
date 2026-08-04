@@ -523,9 +523,11 @@ fun HomeItemContentPlaylist(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QuickPicksItem(
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     widthDp: Dp,
     data: Content,
 ) {
@@ -536,9 +538,10 @@ fun QuickPicksItem(
                 .wrapContentHeight()
                 .width(widthDp - 30.dp)
                 .focusable(true)
-                .clickable {
-                    onClick()
-                },
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
     ) {
         Row(
             modifier =
