@@ -174,6 +174,11 @@ fun PlaylistScreen(
     isYourYouTubePlaylist: Boolean,
     navController: NavController,
 ) {
+    // Home shelves navigate with the browseEndpoint id, which is "VL" + the playlist id
+    // (HomeParser reads title.runs[0].navigationEndpoint.browseEndpoint.browseId). Every radio
+    // prefix check and the watch endpoint expect the bare id, so normalise once on the way in
+    // rather than stripping "VL" again at each consumer.
+    val id = playlistId.removePrefix("VL")
     val tag = "PlaylistScreen"
 
     val composition by rememberLottieComposition {
@@ -244,7 +249,7 @@ fun PlaylistScreen(
         Logger.d(tag, "Continuation: $continuation")
         if (shouldStartPaginate.value && tracksListState == ListState.IDLE) {
             viewModel.getContinuationTrack(
-                playlistId,
+                id,
                 continuation,
             )
         }
@@ -291,10 +296,10 @@ fun PlaylistScreen(
         playlistBottomSheetShow = true
     }
 
-    LaunchedEffect(key1 = playlistId) {
-        if (playlistId != uiState.data?.id) {
-            Logger.w(tag, "new id: $playlistId")
-            viewModel.getData(playlistId)
+    LaunchedEffect(key1 = id) {
+        if (id != uiState.data?.id) {
+            Logger.w(tag, "new id: $id")
+            viewModel.getData(id)
         }
     }
     LaunchedEffect(key1 = firstItemVisible) {
