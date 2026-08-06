@@ -13,20 +13,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.ui.icon.PauseCircle
 import com.maxrave.simpmusic.ui.icon.PlayCircle
-import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Repeat
 import com.maxrave.simpmusic.ui.icon.RepeatOne
-import com.maxrave.simpmusic.ui.icon.Replay5
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
@@ -39,6 +41,8 @@ fun PlayerControlLayout(
     controllerState: ControlState,
     isSmallSize: Boolean = false,
     isPodcast: Boolean = false,
+    podcastRewindSeconds: Int = 5,
+    podcastForwardSeconds: Int = 5,
     contentColor: Color = Color.White,
     onUIEvent: (UIEvent) -> Unit,
 ) {
@@ -105,19 +109,31 @@ fun PlayerControlLayout(
                         )
                         .clickable {
                             if (isPodcast) {
-                                onUIEvent(UIEvent.Backward)
+                                onUIEvent(UIEvent.SeekBy(-podcastRewindSeconds * 1_000L))
                             } else if (controllerState.isPreviousAvailable) {
                                 onUIEvent(UIEvent.Previous)
                             }
                         },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    imageVector = if (isPodcast) SimpIcons.Replay5 else SimpIcons.SkipPrevious,
-                    tint = if (isPodcast || controllerState.isPreviousAvailable) contentColor else contentColor.copy(alpha = 0.4f),
-                    contentDescription = if (isPodcast) "Back 5 seconds" else "Previous",
-                    modifier = Modifier.size(mediumIcon.first),
-                )
+                if (isPodcast) {
+                    Text(
+                        text = "-$podcastRewindSeconds",
+                        color = contentColor,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier =
+                            Modifier.semantics {
+                                contentDescription = "Back $podcastRewindSeconds seconds"
+                            },
+                    )
+                } else {
+                    Icon(
+                        imageVector = SimpIcons.SkipPrevious,
+                        tint = if (controllerState.isPreviousAvailable) contentColor else contentColor.copy(alpha = 0.4f),
+                        contentDescription = "Previous",
+                        modifier = Modifier.size(mediumIcon.first),
+                    )
+                }
             }
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -166,19 +182,31 @@ fun PlayerControlLayout(
                         )
                         .clickable {
                             if (isPodcast) {
-                                onUIEvent(UIEvent.Forward)
+                                onUIEvent(UIEvent.SeekBy(podcastForwardSeconds * 1_000L))
                             } else if (controllerState.isNextAvailable) {
                                 onUIEvent(UIEvent.Next)
                             }
                         },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    imageVector = if (isPodcast) SimpIcons.Forward5 else SimpIcons.SkipNext,
-                    tint = if (isPodcast || controllerState.isNextAvailable) contentColor else contentColor.copy(alpha = 0.4f),
-                    contentDescription = if (isPodcast) "Forward 5 seconds" else "Next",
-                    modifier = Modifier.size(mediumIcon.first),
-                )
+                if (isPodcast) {
+                    Text(
+                        text = "+$podcastForwardSeconds",
+                        color = contentColor,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier =
+                            Modifier.semantics {
+                                contentDescription = "Forward $podcastForwardSeconds seconds"
+                            },
+                    )
+                } else {
+                    Icon(
+                        imageVector = SimpIcons.SkipNext,
+                        tint = if (controllerState.isNextAvailable) contentColor else contentColor.copy(alpha = 0.4f),
+                        contentDescription = "Next",
+                        modifier = Modifier.size(mediumIcon.first),
+                    )
+                }
             }
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {

@@ -297,6 +297,8 @@ fun NowPlayingScreenContent(
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val podcastRewindSeconds by sharedViewModel.podcastRewindSeconds.collectAsStateWithLifecycle()
+    val podcastForwardSeconds by sharedViewModel.podcastForwardSeconds.collectAsStateWithLifecycle()
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
 
@@ -1805,6 +1807,8 @@ fun NowPlayingScreenContent(
                                         PlayerControlLayout(
                                             controllerState,
                                             isPodcast = isPodcast,
+                                            podcastRewindSeconds = podcastRewindSeconds,
+                                            podcastForwardSeconds = podcastForwardSeconds,
                                         ) {
                                             sharedViewModel.onUIEvent(it)
                                         }

@@ -155,6 +155,8 @@ fun MiniPlayer(
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val podcastRewindSeconds by sharedViewModel.podcastRewindSeconds.collectAsStateWithLifecycle()
+    val podcastForwardSeconds by sharedViewModel.podcastForwardSeconds.collectAsStateWithLifecycle()
 
     val layer = rememberGraphicsLayer()
     val luminanceAnimation = remember { Animatable(0f) }
@@ -720,6 +722,8 @@ fun MiniPlayer(
                                 controllerState,
                                 isSmallSize = true,
                                 isPodcast = songEntity?.isPodcast() == true,
+                                podcastRewindSeconds = podcastRewindSeconds,
+                                podcastForwardSeconds = podcastForwardSeconds,
                                 contentColor = textColor,
                             ) {
                                 sharedViewModel.onUIEvent(it)

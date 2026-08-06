@@ -310,6 +310,9 @@ import simpmusic.composeapp.generated.resources.proxy_port_message
 import simpmusic.composeapp.generated.resources.proxy_type
 import simpmusic.composeapp.generated.resources.proxy_username
 import simpmusic.composeapp.generated.resources.proxy_username_message
+import simpmusic.composeapp.generated.resources.podcast_forward_interval
+import simpmusic.composeapp.generated.resources.podcast_rewind_interval
+import simpmusic.composeapp.generated.resources.podcast_seek_interval_description
 import simpmusic.composeapp.generated.resources.quality
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
@@ -516,6 +519,8 @@ fun SettingScreen(
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
     val crossfadeDjMode by viewModel.crossfadeDjMode.collectAsStateWithLifecycle()
+    val podcastRewindSeconds by viewModel.podcastRewindSeconds.collectAsStateWithLifecycle()
+    val podcastForwardSeconds by viewModel.podcastForwardSeconds.collectAsStateWithLifecycle()
     val castState by viewModel.castState.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
@@ -1094,6 +1099,62 @@ fun SettingScreen(
                     title = stringResource(Res.string.save_last_played),
                     subtitle = stringResource(Res.string.save_last_played_track_and_queue),
                     switch = (saveLastPlayed to { viewModel.setSaveLastPlayed(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.podcast_rewind_interval),
+                    subtitle = "${podcastRewindSeconds}s · ${stringResource(Res.string.podcast_seek_interval_description)}",
+                    smallSubtitle = true,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.podcast_rewind_interval) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            DataStoreManager.PODCAST_SEEK_INTERVALS.map { seconds ->
+                                                (podcastRewindSeconds == seconds) to "${seconds}s"
+                                            },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        state.selectOne
+                                            ?.getSelected()
+                                            ?.removeSuffix("s")
+                                            ?.toIntOrNull()
+                                            ?.let { viewModel.setPodcastRewindSeconds(it) }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.podcast_forward_interval),
+                    subtitle = "${podcastForwardSeconds}s · ${stringResource(Res.string.podcast_seek_interval_description)}",
+                    smallSubtitle = true,
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.podcast_forward_interval) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            DataStoreManager.PODCAST_SEEK_INTERVALS.map { seconds ->
+                                                (podcastForwardSeconds == seconds) to "${seconds}s"
+                                            },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        state.selectOne
+                                            ?.getSelected()
+                                            ?.removeSuffix("s")
+                                            ?.toIntOrNull()
+                                            ?.let { viewModel.setPodcastForwardSeconds(it) }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
                 )
                 if (getPlatform() == Platform.Android) {
                     SettingItem(

@@ -595,4 +595,7 @@
     <string name="download_all_episodes">Download all episodes</string>
     <string name="save_episode_offline">Save episode offline</string>
     <string name="resume_at">Resume at %1$s</string>
+    <string name="podcast_rewind_interval">Podcast rewind interval</string>
+    <string name="podcast_forward_interval">Podcast forward interval</string>
+    <string name="podcast_seek_interval_description">Choose how many seconds the podcast control skips.</string>
 </resources>
