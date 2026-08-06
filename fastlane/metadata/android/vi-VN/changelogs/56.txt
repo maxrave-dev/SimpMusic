@@ -1,0 +1,9 @@
+- Ghi lại nhạc đang nghe lên Last.fm (bản Full)
+- Nhập playlist đã chuyển đổi từ Spotify hoặc ứng dụng khác
+- Màn tìm kiếm trống nay hiện các chủ đề duyệt nhạc
+- Làm mới màn Đang phát: nền mới và lời bài hát ngay trên màn
+- Thêm bảy quốc gia mới vào bảng xếp hạng
+- Sửa lỗi sai tên nghệ sĩ, tên album và lời bài hát mất ký tự đầu
+- Desktop: nhân phát nhạc mpv thay VLC, phát ổn định hơn
+- Desktop: sửa lỗi crash khi cắm tai nghe trên macOS
+- Desktop: yêu cầu macOS 15 trở lên
