@@ -100,7 +100,10 @@ import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.you
 import kotlin.math.roundToInt
-
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isSecondaryPressed
 /**
  * This is the song item in the playlist or other places.
  */
@@ -165,6 +168,22 @@ fun SongFullWidthItems(
             modifier =
                 modifier
                     .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                    .pointerInput(
+                        track?.videoId ?: songEntity?.videoId ?: "", onMoreClickListener
+                    ) {
+                        awaitEachGesture {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+
+                            if (event.type == PointerEventType.Press &&
+                                event.buttons.isSecondaryPressed
+                            ) {
+                                event.changes.forEach { it.consume() }
+                                onMoreClickListener?.invoke(
+                                    track?.videoId ?: songEntity?.videoId ?: ""
+                                )
+                            }
+                        }
+                    }
                     .clickable {
                         onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
                     }.animateContentSize()
