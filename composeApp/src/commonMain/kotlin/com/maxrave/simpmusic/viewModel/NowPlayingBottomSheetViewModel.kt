@@ -9,6 +9,7 @@ import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Album
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
+import com.maxrave.domain.extension.isPodcast
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.BETTER_LYRICS
 import com.maxrave.domain.manager.DataStoreManager.Values.LRCLIB
@@ -202,6 +203,7 @@ class NowPlayingBottomSheetViewModel(
                                         thumbnails = song.thumbnails,
                                         liked = song.liked,
                                         downloadState = song.downloadState,
+                                        isPodcast = song.isPodcast(),
                                         album =
                                             song.albumName?.takeIf { it.isNotEmpty() }?.let { name ->
                                                 Album(name = name, id = song.albumId ?: "")
@@ -419,6 +421,7 @@ data class NowPlayingBottomSheetUIState(
         val liked: Boolean = false,
         val isAddedToYouTubeLiked: Boolean = false,
         val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
+        val isPodcast: Boolean = false,
         val album: Album? = null,
     )
 }

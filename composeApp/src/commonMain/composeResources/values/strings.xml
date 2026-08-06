@@ -592,4 +592,7 @@
     <string name="import_result_skipped">%1$d entries were skipped because their song was missing from the file.</string>
     <string name="import_failed">Import failed</string>
     <string name="import_invalid_file">This file is not a valid SimpMusic import file. Convert your library at simpmusic.org first.</string>
+    <string name="download_all_episodes">Download all episodes</string>
+    <string name="save_episode_offline">Save episode offline</string>
+    <string name="resume_at">Resume at %1$s</string>
 </resources>

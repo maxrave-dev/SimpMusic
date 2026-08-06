@@ -97,6 +97,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.extension.isPodcast
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
@@ -718,6 +719,7 @@ fun MiniPlayer(
                             PlayerControlLayout(
                                 controllerState,
                                 isSmallSize = true,
+                                isPodcast = songEntity?.isPodcast() == true,
                                 contentColor = textColor,
                             ) {
                                 sharedViewModel.onUIEvent(it)

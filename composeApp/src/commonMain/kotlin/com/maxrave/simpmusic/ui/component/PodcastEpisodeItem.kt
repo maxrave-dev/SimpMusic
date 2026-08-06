@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,16 +29,21 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.model.podcast.PodcastBrowse
+import com.maxrave.simpmusic.extension.formatDuration
+import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.resume_at
 
 @Composable
 fun PodcastEpisodeFullWidthItem(
     modifier: Modifier = Modifier,
     episode: PodcastBrowse.EpisodeItem,
+    progressMs: Long = 0L,
     onClick: (String) -> Unit,
     onMoreClickListener: (() -> Unit)? = null,
 ) {
@@ -105,6 +111,22 @@ fun PodcastEpisodeFullWidthItem(
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable(),
                 )
+
+                if (progressMs >= 5_000L) {
+                    Text(
+                        text = stringResource(Res.string.resume_at, formatDuration(progressMs)),
+                        style = typo().bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                    )
+                    val durationMs = episode.durationString?.let(::parseTimestampToMilliseconds)?.toLong() ?: 0L
+                    if (durationMs > 0L) {
+                        LinearProgressIndicator(
+                            progress = { (progressMs.toFloat() / durationMs).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        )
+                    }
+                }
 
                 val description = episode.description
                 if (description != null) {

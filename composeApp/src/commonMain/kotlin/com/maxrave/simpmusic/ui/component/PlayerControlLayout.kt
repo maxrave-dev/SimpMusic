@@ -23,8 +23,10 @@ import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.ui.icon.PauseCircle
 import com.maxrave.simpmusic.ui.icon.PlayCircle
+import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Repeat
 import com.maxrave.simpmusic.ui.icon.RepeatOne
+import com.maxrave.simpmusic.ui.icon.Replay5
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
@@ -36,6 +38,7 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 fun PlayerControlLayout(
     controllerState: ControlState,
     isSmallSize: Boolean = false,
+    isPodcast: Boolean = false,
     contentColor: Color = Color.White,
     onUIEvent: (UIEvent) -> Unit,
 ) {
@@ -63,23 +66,27 @@ fun PlayerControlLayout(
                             CircleShape,
                         )
                         .clickable {
-                            onUIEvent(UIEvent.Shuffle)
+                            if (isPodcast) {
+                                if (controllerState.isPreviousAvailable) onUIEvent(UIEvent.Previous)
+                            } else {
+                                onUIEvent(UIEvent.Shuffle)
+                            }
                         },
                 contentAlignment = Alignment.Center,
             ) {
-                Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
-                    if (!isShuffle) {
+                if (isPodcast) {
+                    Icon(
+                        imageVector = SimpIcons.SkipPrevious,
+                        tint = if (controllerState.isPreviousAvailable) contentColor else contentColor.copy(alpha = 0.4f),
+                        contentDescription = "Previous episode",
+                        modifier = Modifier.size(smallIcon.first),
+                    )
+                } else {
+                    Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
                         Icon(
                             imageVector = SimpIcons.Shuffle,
-                            tint = contentColor,
-                            contentDescription = "",
-                            modifier = Modifier.size(smallIcon.first),
-                        )
-                    } else {
-                        Icon(
-                            imageVector = SimpIcons.Shuffle,
-                            tint = seed,
-                            contentDescription = "",
+                            tint = if (isShuffle) seed else contentColor,
+                            contentDescription = "Shuffle",
                             modifier = Modifier.size(smallIcon.first),
                         )
                     }
@@ -97,16 +104,18 @@ fun PlayerControlLayout(
                             CircleShape,
                         )
                         .clickable {
-                            if (controllerState.isPreviousAvailable) {
+                            if (isPodcast) {
+                                onUIEvent(UIEvent.Backward)
+                            } else if (controllerState.isPreviousAvailable) {
                                 onUIEvent(UIEvent.Previous)
                             }
                         },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = SimpIcons.SkipPrevious,
-                    tint = if (controllerState.isPreviousAvailable) contentColor else contentColor.copy(alpha = 0.4f),
-                    contentDescription = "",
+                    imageVector = if (isPodcast) SimpIcons.Replay5 else SimpIcons.SkipPrevious,
+                    tint = if (isPodcast || controllerState.isPreviousAvailable) contentColor else contentColor.copy(alpha = 0.4f),
+                    contentDescription = if (isPodcast) "Back 5 seconds" else "Previous",
                     modifier = Modifier.size(mediumIcon.first),
                 )
             }
@@ -156,16 +165,18 @@ fun PlayerControlLayout(
                             CircleShape,
                         )
                         .clickable {
-                            if (controllerState.isNextAvailable) {
+                            if (isPodcast) {
+                                onUIEvent(UIEvent.Forward)
+                            } else if (controllerState.isNextAvailable) {
                                 onUIEvent(UIEvent.Next)
                             }
                         },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = SimpIcons.SkipNext,
-                    tint = if (controllerState.isNextAvailable) contentColor else contentColor.copy(alpha = 0.4f),
-                    contentDescription = "",
+                    imageVector = if (isPodcast) SimpIcons.Forward5 else SimpIcons.SkipNext,
+                    tint = if (isPodcast || controllerState.isNextAvailable) contentColor else contentColor.copy(alpha = 0.4f),
+                    contentDescription = if (isPodcast) "Forward 5 seconds" else "Next",
                     modifier = Modifier.size(mediumIcon.first),
                 )
             }
@@ -180,37 +191,50 @@ fun PlayerControlLayout(
                             CircleShape,
                         )
                         .clickable {
-                            onUIEvent(UIEvent.Repeat)
+                            if (isPodcast) {
+                                if (controllerState.isNextAvailable) onUIEvent(UIEvent.Next)
+                            } else {
+                                onUIEvent(UIEvent.Repeat)
+                            }
                         },
                 contentAlignment = Alignment.Center,
             ) {
-                Crossfade(targetState = controllerState.repeatState) { rs ->
-                    when (rs) {
-                        is RepeatState.None -> {
-                            Icon(
-                                imageVector = SimpIcons.Repeat,
-                                tint = contentColor,
-                                contentDescription = "",
-                                modifier = Modifier.size(smallIcon.first),
-                            )
-                        }
+                if (isPodcast) {
+                    Icon(
+                        imageVector = SimpIcons.SkipNext,
+                        tint = if (controllerState.isNextAvailable) contentColor else contentColor.copy(alpha = 0.4f),
+                        contentDescription = "Next episode",
+                        modifier = Modifier.size(smallIcon.first),
+                    )
+                } else {
+                    Crossfade(targetState = controllerState.repeatState) { rs ->
+                        when (rs) {
+                            is RepeatState.None -> {
+                                Icon(
+                                    imageVector = SimpIcons.Repeat,
+                                    tint = contentColor,
+                                    contentDescription = "Repeat",
+                                    modifier = Modifier.size(smallIcon.first),
+                                )
+                            }
 
-                        RepeatState.All -> {
-                            Icon(
-                                imageVector = SimpIcons.Repeat,
-                                tint = seed,
-                                contentDescription = "",
-                                modifier = Modifier.size(smallIcon.first),
-                            )
-                        }
+                            RepeatState.All -> {
+                                Icon(
+                                    imageVector = SimpIcons.Repeat,
+                                    tint = seed,
+                                    contentDescription = "Repeat all",
+                                    modifier = Modifier.size(smallIcon.first),
+                                )
+                            }
 
-                        RepeatState.One -> {
-                            Icon(
-                                imageVector = SimpIcons.RepeatOne,
-                                tint = seed,
-                                contentDescription = "",
-                                modifier = Modifier.size(smallIcon.first),
-                            )
+                            RepeatState.One -> {
+                                Icon(
+                                    imageVector = SimpIcons.RepeatOne,
+                                    tint = seed,
+                                    contentDescription = "Repeat one",
+                                    modifier = Modifier.size(smallIcon.first),
+                                )
+                            }
                         }
                     }
                 }

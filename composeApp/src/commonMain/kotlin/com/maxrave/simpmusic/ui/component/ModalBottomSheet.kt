@@ -246,6 +246,7 @@ import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.save
+import simpmusic.composeapp.generated.resources.save_episode_offline
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
 import simpmusic.composeapp.generated.resources.scale
@@ -1391,6 +1392,7 @@ fun NowPlayingBottomSheet(
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isPodcast = uiState.songUIState.isPodcast
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
         rememberModalBottomSheetState(
@@ -1733,13 +1735,15 @@ fun NowPlayingBottomSheet(
                             }
                         }
                     }
-                    CheckBoxActionButton(
-                        defaultChecked = uiState.songUIState.liked,
-                        isHeartIcon = true,
-                        onChangeListener = {
-                            viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
-                        },
-                    )
+                    if (!isPodcast) {
+                        CheckBoxActionButton(
+                            defaultChecked = uiState.songUIState.liked,
+                            isHeartIcon = true,
+                            onChangeListener = {
+                                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
+                            },
+                        )
+                    }
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {
@@ -1759,21 +1763,24 @@ fun NowPlayingBottomSheet(
                             },
                         text =
                             when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED -> Res.string.download
+                                DownloadState.STATE_NOT_DOWNLOADED ->
+                                    if (isPodcast) Res.string.save_episode_offline else Res.string.download
                                 DownloadState.STATE_DOWNLOADING -> Res.string.downloading
                                 DownloadState.STATE_DOWNLOADED -> Res.string.downloaded
                                 DownloadState.STATE_PREPARING -> Res.string.downloading
-                                else -> Res.string.download
+                                else -> if (isPodcast) Res.string.save_episode_offline else Res.string.download
                             },
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Download)
                     }
-                    ActionButton(
-                        icon = SimpIcons.PlaylistAdd,
-                        text = Res.string.add_to_a_playlist,
-                    ) {
-                        viewModel.resetPlaylists()
-                        addToAPlaylist = true
+                    if (!isPodcast) {
+                        ActionButton(
+                            icon = SimpIcons.PlaylistAdd,
+                            text = Res.string.add_to_a_playlist,
+                        ) {
+                            viewModel.resetPlaylists()
+                            addToAPlaylist = true
+                        }
                     }
                     ActionButton(
                         icon = SimpIcons.PlayCircle,
@@ -1793,8 +1800,9 @@ fun NowPlayingBottomSheet(
                     ) {
                         artist = true
                     }
-                    ActionButton(
-                        icon = SimpIcons.Album,
+                    if (!isPodcast) {
+                        ActionButton(
+                            icon = SimpIcons.Album,
                         // Three states, not two. A track can carry an album ID with no title: the
                         // row it was parsed from links an album but never spells its name out.
                         // That case still navigates, so it must not read "No album" — but the name
@@ -1802,39 +1810,40 @@ fun NowPlayingBottomSheet(
                         // showing a blank row. The parser deliberately leaves the name empty
                         // instead of inventing one, because a made-up title would travel out to
                         // MediaSession and into external scrobblers.
-                        text =
-                            when {
-                                uiState.songUIState.album == null -> Res.string.no_album
-                                uiState.songUIState.album?.name.isNullOrBlank() -> Res.string.album
-                                else -> null
-                            },
-                        textString = uiState.songUIState.album?.name?.takeIf { it.isNotBlank() },
-                        enable = uiState.songUIState.album != null,
-                    ) {
-                        uiState.songUIState.album?.id?.let { id ->
-                            onNavigateToOtherScreen()
-                            navController.navigate(AlbumDestination(browseId = id))
+                            text =
+                                when {
+                                    uiState.songUIState.album == null -> Res.string.no_album
+                                    uiState.songUIState.album?.name.isNullOrBlank() -> Res.string.album
+                                    else -> null
+                                },
+                            textString = uiState.songUIState.album?.name?.takeIf { it.isNotBlank() },
+                            enable = uiState.songUIState.album != null,
+                        ) {
+                            uiState.songUIState.album?.id?.let { id ->
+                                onNavigateToOtherScreen()
+                                navController.navigate(AlbumDestination(browseId = id))
+                            }
                         }
-                    }
-                    ActionButton(
-                        icon = SimpIcons.Sensors,
-                        text = Res.string.start_radio,
-                    ) {
-                        viewModel.onUIEvent(
-                            NowPlayingBottomSheetUIEvent.StartRadio(
-                                videoId = uiState.songUIState.videoId,
-                                name = "\"${uiState.songUIState.title}\" ${runBlocking { getString(Res.string.radio) }}",
-                            ),
-                        )
-                        hideModalBottomSheet()
-                    }
-                    Crossfade(targetState = changeMainLyricsProviderEnable) {
-                        if (it) {
-                            ActionButton(
-                                icon = SimpIcons.Lyrics,
-                                text = Res.string.main_lyrics_provider,
-                            ) {
-                                mainLyricsProvider = true
+                        ActionButton(
+                            icon = SimpIcons.Sensors,
+                            text = Res.string.start_radio,
+                        ) {
+                            viewModel.onUIEvent(
+                                NowPlayingBottomSheetUIEvent.StartRadio(
+                                    videoId = uiState.songUIState.videoId,
+                                    name = "\"${uiState.songUIState.title}\" ${runBlocking { getString(Res.string.radio) }}",
+                                ),
+                            )
+                            hideModalBottomSheet()
+                        }
+                        Crossfade(targetState = changeMainLyricsProviderEnable) {
+                            if (it) {
+                                ActionButton(
+                                    icon = SimpIcons.Lyrics,
+                                    text = Res.string.main_lyrics_provider,
+                                ) {
+                                    mainLyricsProvider = true
+                                }
                             }
                         }
                     }
@@ -1877,12 +1886,12 @@ fun NowPlayingBottomSheet(
                             ActionButton(
                                 icon = SimpIcons.Speed,
                                 text =
-                                    if (crossfadeEnabled != DataStoreManager.TRUE) {
+                                    if (isPodcast || crossfadeEnabled != DataStoreManager.TRUE) {
                                         if (isDesktop) Res.string.playback_speed else Res.string.playback_speed_pitch
                                     } else {
                                         Res.string.playback_speed_pitch_disabled
                                     },
-                                enable = crossfadeEnabled != DataStoreManager.TRUE,
+                                enable = isPodcast || crossfadeEnabled != DataStoreManager.TRUE,
                             ) {
                                 changePlaybackSpeedPitch = true
                             }
