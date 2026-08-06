@@ -25,10 +25,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -101,29 +103,32 @@ class PodcastViewModel(
 
     init {
         viewModelScope.launch {
-            combine(mediaPlayerHandler.nowPlayingState, mediaPlayerHandler.simpleMediaState) { nowPlaying, mediaState ->
-                nowPlaying to mediaState
-            }.collectLatest { (nowPlaying, mediaState) ->
-                val isPodcast = nowPlaying.track?.isPodcast() == true || nowPlaying.songEntity?.isPodcast() == true
-                if (!isPodcast) return@collectLatest
-                val videoId = nowPlaying.track?.videoId ?: nowPlaying.songEntity?.videoId ?: return@collectLatest
-                when (mediaState) {
-                    is SimpleMediaState.Progress -> {
-                        val progressSecond = mediaState.progress / 1_000L
-                        if (videoId != lastProgressVideoId || progressSecond != lastProgressSecond) {
-                            lastProgressVideoId = videoId
-                            lastProgressSecond = progressSecond
-                            _episodeProgress.update { it + (videoId to mediaState.progress) }
+            mediaPlayerHandler.nowPlayingState
+                .map { nowPlaying ->
+                    val isPodcast = nowPlaying.track?.isPodcast() == true || nowPlaying.songEntity?.isPodcast() == true
+                    if (isPodcast) nowPlaying.track?.videoId ?: nowPlaying.songEntity?.videoId else null
+                }.distinctUntilChanged()
+                .collectLatest { videoId ->
+                    if (videoId == null) return@collectLatest
+                    mediaPlayerHandler.simpleMediaState.collect { mediaState ->
+                        when (mediaState) {
+                            is SimpleMediaState.Progress -> {
+                                val progressSecond = mediaState.progress / 1_000L
+                                if (videoId != lastProgressVideoId || progressSecond != lastProgressSecond) {
+                                    lastProgressVideoId = videoId
+                                    lastProgressSecond = progressSecond
+                                    _episodeProgress.update { it + (videoId to mediaState.progress) }
+                                }
+                            }
+
+                            SimpleMediaState.Ended -> {
+                                _episodeProgress.update { it + (videoId to 0L) }
+                            }
+
+                            else -> Unit
                         }
                     }
-
-                    SimpleMediaState.Ended -> {
-                        _episodeProgress.update { it + (videoId to 0L) }
-                    }
-
-                    else -> Unit
                 }
-            }
         }
     }
 
@@ -132,6 +137,8 @@ class PodcastViewModel(
         _podcastEntity.value = null
         episodeProgressJob?.cancel()
         _episodeProgress.value = emptyMap()
+        lastProgressVideoId = null
+        lastProgressSecond = -1L
     }
 
     fun getPodcastBrowse(id: String) {

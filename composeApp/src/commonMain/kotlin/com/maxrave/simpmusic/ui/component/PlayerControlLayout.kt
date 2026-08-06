@@ -69,7 +69,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .clickable(enabled = !isPodcast || controllerState.isPreviousAvailable) {
                             if (isPodcast) {
                                 if (controllerState.isPreviousAvailable) onUIEvent(UIEvent.Previous)
                             } else {
@@ -107,7 +107,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .clickable(enabled = isPodcast || controllerState.isPreviousAvailable) {
                             if (isPodcast) {
                                 onUIEvent(UIEvent.SeekBy(-podcastRewindSeconds * 1_000L))
                             } else if (controllerState.isPreviousAvailable) {
@@ -180,7 +180,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .clickable(enabled = isPodcast || controllerState.isNextAvailable) {
                             if (isPodcast) {
                                 onUIEvent(UIEvent.SeekBy(podcastForwardSeconds * 1_000L))
                             } else if (controllerState.isNextAvailable) {
@@ -218,7 +218,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .clickable(enabled = !isPodcast || controllerState.isNextAvailable) {
                             if (isPodcast) {
                                 if (controllerState.isNextAvailable) onUIEvent(UIEvent.Next)
                             } else {

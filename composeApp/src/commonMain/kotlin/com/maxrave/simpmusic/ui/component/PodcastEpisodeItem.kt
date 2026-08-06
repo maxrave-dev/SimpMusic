@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -47,6 +48,10 @@ fun PodcastEpisodeFullWidthItem(
     onClick: (String) -> Unit,
     onMoreClickListener: (() -> Unit)? = null,
 ) {
+    val durationMs =
+        remember(episode.durationString) {
+            episode.durationString?.let(::parseTimestampToMilliseconds)?.toLong() ?: 0L
+        }
     Box(
         modifier =
             modifier
@@ -119,7 +124,6 @@ fun PodcastEpisodeFullWidthItem(
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                     )
-                    val durationMs = episode.durationString?.let(::parseTimestampToMilliseconds)?.toLong() ?: 0L
                     if (durationMs > 0L) {
                         LinearProgressIndicator(
                             progress = { (progressMs.toFloat() / durationMs).coerceIn(0f, 1f) },
