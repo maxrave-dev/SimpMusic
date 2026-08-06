@@ -120,7 +120,7 @@ fun PodcastScreen(
     }
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
 
-    var currentTrack by rememberSaveable {
+    var currentTrack by remember {
         mutableStateOf<Track?>(null)
     }
     var shouldShowMoreBottomSheet by rememberSaveable { mutableStateOf(false) }
