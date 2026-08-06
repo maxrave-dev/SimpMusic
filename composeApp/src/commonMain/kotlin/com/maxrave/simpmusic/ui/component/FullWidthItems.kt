@@ -171,16 +171,16 @@ fun SongFullWidthItems(
                     .pointerInput(
                         track?.videoId ?: songEntity?.videoId ?: "", onMoreClickListener
                     ) {
-                        awaitEachGesture {
-                            val event = awaitPointerEvent(PointerEventPass.Initial)
-
-                            if (event.type == PointerEventType.Press &&
-                                event.buttons.isSecondaryPressed
-                            ) {
-                                event.changes.forEach { it.consume() }
-                                onMoreClickListener?.invoke(
-                                    track?.videoId ?: songEntity?.videoId ?: ""
-                                )
+                        //Right click opens 'More' modal sheet (designed for desktop but compatible if android has external mouse)
+                        //Ensure right click is consumed before clickable
+                        if (onMoreClickListener != null) {
+                            awaitEachGesture {
+                                val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+                                if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed
+                                ) {
+                                    event.changes.forEach { it.consume() }
+                                    onMoreClickListener(track?.videoId ?: songEntity?.videoId ?: "")
+                                }
                             }
                         }
                     }
