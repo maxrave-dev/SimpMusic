@@ -1,10 +1,10 @@
 package com.maxrave.simpmusic
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -39,11 +39,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -342,6 +344,10 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     var isScrolledToTop by rememberSaveable {
         mutableStateOf(false)
     }
+    val sidePanelSaveableStateHolder = rememberSaveableStateHolder()
+    LaunchedEffect(isShowNowPlaylistScreen) {
+        Logger.w("App", "isShowNowPlaylistScreen -> $isShowNowPlaylistScreen")
+    }
     val isTablet = windowSize.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val isTabletLandscape = isTablet && currentOrientation() == Orientation.LANDSCAPE
 
@@ -506,37 +512,50 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                             }
                         }
                         if (isTablet && isTabletLandscape && !isInFullscreen) {
-                            AnimatedVisibility(
-                                isShowNowPlaylistScreen,
-                                enter = expandHorizontally() + fadeIn(),
-                                exit = fadeOut() + shrinkHorizontally(),
-                            ) {
-                                Row(
-                                    Modifier
-                                        .fillMaxHeight()
-                                        .fillMaxWidth(0.35f),
+                            // Drive the side panel purely with an animated progress value instead of
+                            // AnimatedVisibility: the panel content holds infinite animations
+                            // (basicMarquee, crossfadeRainbow, equalizer Lottie), which are known to
+                            // stall AnimatedVisibility exit transitions and leave the panel stuck.
+                            val panelProgress by animateFloatAsState(
+                                targetValue = if (isShowNowPlaylistScreen) 1f else 0f,
+                                animationSpec = tween(320),
+                                label = "nowPlayingPanelProgress",
+                            )
+                            if (panelProgress > 0f) {
+                                sidePanelSaveableStateHolder.SaveableStateProvider(
+                                    key = "NowPlayingSidePanel",
                                 ) {
-                                    Spacer(Modifier.width(8.dp))
-                                    Box(
+                                    Row(
                                         Modifier
-                                            .padding(
-                                                innerPadding.copy(
-                                                    start = 0.dp,
-                                                    top = 0.dp,
-                                                    bottom = 0.dp,
-                                                ),
-                                            ).clip(
-                                                RoundedCornerShape(12.dp),
-                                            ),
+                                            .fillMaxHeight()
+                                            .fillMaxWidth(0.35f)
+                                            .graphicsLayer {
+                                                alpha = panelProgress
+                                                translationX = (1f - panelProgress) * size.width
+                                            },
                                     ) {
-                                        ForceDarkContent {
-                                            NowPlayingScreenContent(
-                                                navController = navController,
-                                                sharedViewModel = viewModel,
-                                                isExpanded = true,
-                                                dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                            ) {
-                                                isShowNowPlaylistScreen = false
+                                        Spacer(Modifier.width(8.dp))
+                                        Box(
+                                            Modifier
+                                                .padding(
+                                                    innerPadding.copy(
+                                                        start = 0.dp,
+                                                        top = 0.dp,
+                                                        bottom = 0.dp,
+                                                    ),
+                                                ).clip(
+                                                    RoundedCornerShape(12.dp),
+                                                ),
+                                        ) {
+                                            ForceDarkContent {
+                                                NowPlayingScreenContent(
+                                                    navController = navController,
+                                                    sharedViewModel = viewModel,
+                                                    isExpanded = true,
+                                                    dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                                                ) {
+                                                    isShowNowPlaylistScreen = false
+                                                }
                                             }
                                         }
                                     }

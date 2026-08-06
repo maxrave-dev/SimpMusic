@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -27,6 +28,8 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,7 +53,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -68,6 +74,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Replay5
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.ThumbsUpDown
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -84,6 +91,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -91,6 +99,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -107,6 +116,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -115,6 +125,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -134,7 +145,10 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
@@ -164,9 +178,11 @@ import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
+import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
-import com.maxrave.simpmusic.ui.component.QueueBottomSheet
+import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
+import com.maxrave.simpmusic.ui.component.rememberDragDropState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
@@ -178,10 +194,12 @@ import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -194,6 +212,7 @@ import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.endless_queue
 import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.line_synced
 import simpmusic.composeapp.generated.resources.lyrics
@@ -205,6 +224,7 @@ import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.offline_mode
 import simpmusic.composeapp.generated.resources.playing_on_device
 import simpmusic.composeapp.generated.resources.published_at
+import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.rate_lyrics
 import simpmusic.composeapp.generated.resources.rich_synced
 import simpmusic.composeapp.generated.resources.show
@@ -316,6 +336,17 @@ fun NowPlayingScreenContent(
     val currentOrderIndex by remember(artworkQueue, nowPlayingVideoId) {
         derivedStateOf { deriveOrderIndex(artworkQueue, nowPlayingVideoId) }
     }
+    // Spotify-style "Next in queue" card: the single track that comes after the
+    // currently playing one, wrapping around the end of the queue.
+    val nextTrack by remember(artworkQueue, currentOrderIndex) {
+        derivedStateOf {
+            if (artworkQueue.size > 1) {
+                artworkQueue[(currentOrderIndex + 1).mod(artworkQueue.size)]
+            } else {
+                null
+            }
+        }
+    }
     val isRepeatOne = controllerState.repeatState is RepeatState.One
     // Single PagerState — the unified ArtworkPager renders BOTH the fullscreen canvas
     // background and the centered square thumbnail in each page, so we don't need two
@@ -418,8 +449,18 @@ fun NowPlayingScreenContent(
         mutableStateOf(false)
     }
 
-    var showQueueBottomSheet by rememberSaveable {
+    var showQueuePanel by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    // Closing the player must also collapse the inline queue panel. The desktop
+    // side panel is hosted in an AnimatedVisibility that keeps rememberSaveable
+    // state alive across show/hide, so without this reset the expanded queue
+    // would still be open the next time the player opens.
+    val dismissPlayer: () -> Unit = {
+        Logger.w(TAG, "dismissPlayer invoked")
+        showQueuePanel = false
+        onDismiss()
     }
 
     var showInfoBottomSheet by rememberSaveable {
@@ -673,7 +714,7 @@ fun NowPlayingScreenContent(
             },
             navController = navController,
             onNavigateToOtherScreen = {
-                onDismiss()
+                dismissPlayer()
             },
             song = null, // Auto set now playing
             setSleepTimerEnable = true,
@@ -689,14 +730,6 @@ fun NowPlayingScreenContent(
         ) {
             showFullscreenLyrics = false
         }
-    }
-
-    if (showQueueBottomSheet) {
-        QueueBottomSheet(
-            onDismiss = {
-                showQueueBottomSheet = false
-            },
-        )
     }
 
     if (showInfoBottomSheet) {
@@ -1151,7 +1184,7 @@ fun NowPlayingScreenContent(
                                                         ) {
                                                             IconButton(
                                                                 onClick = {
-                                                                    onDismiss()
+                                                                    dismissPlayer()
                                                                     navController.navigate(FullscreenDestination)
                                                                 },
                                                                 Modifier.align(Alignment.TopEnd),
@@ -1353,7 +1386,7 @@ fun NowPlayingScreenContent(
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            onDismiss()
+                            dismissPlayer()
                         }) {
                             Icon(
                                 imageVector = dismissIcon,
@@ -1568,7 +1601,7 @@ fun NowPlayingScreenContent(
                                                                         song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                                                             ?: screenDataState.songInfoData?.authorId
                                                                     )?.let { channelId ->
-                                                                        onDismiss()
+                                                                        dismissPlayer()
                                                                         navController.navigate(
                                                                             ArtistDestination(
                                                                                 channelId = channelId,
@@ -1874,22 +1907,25 @@ fun NowPlayingScreenContent(
                                                 )
                                             }
 
-                                            // Queue Button (Right)
-                                            IconButton(
-                                                modifier =
-                                                    Modifier
-                                                        .size(24.dp)
-                                                        .aspectRatio(1f)
-                                                        .clip(CircleShape),
-                                                onClick = {
-                                                    showQueueBottomSheet = true
-                                                },
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                                                    tint = Color.White,
-                                                    contentDescription = "",
-                                                )
+                                            // Queue Button (Right) — desktop only. On mobile the
+                                            // "Next in queue" card below is the queue entry point.
+                                            if (getPlatform() != Platform.Android) {
+                                                IconButton(
+                                                    modifier =
+                                                        Modifier
+                                                            .size(24.dp)
+                                                            .aspectRatio(1f)
+                                                            .clip(CircleShape),
+                                                    onClick = {
+                                                        showQueuePanel = !showQueuePanel
+                                                    },
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                                        tint = Color.White,
+                                                        contentDescription = stringResource(Res.string.queue),
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -2086,7 +2122,7 @@ fun NowPlayingScreenContent(
                                                                                 song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                                                                     ?: screenDataState.songInfoData?.authorId
                                                                             )?.let { channelId ->
-                                                                                onDismiss()
+                                                                                dismissPlayer()
                                                                                 navController.navigate(
                                                                                     ArtistDestination(
                                                                                         channelId = channelId,
@@ -2160,6 +2196,112 @@ fun NowPlayingScreenContent(
                         // sibling clickable.
                     }
                     Column(Modifier.padding(horizontal = 20.dp)) {
+                        // ── Next in queue card (Spotify-style) ──
+                        // Shows the single track that plays after the current one.
+                        // Tapping the card expands the full queue inline (animated), so
+                        // it does NOT open a separate menu anymore.
+                        nextTrack?.let { next ->
+                            ElevatedCard(
+                                onClick = {
+                                    showQueuePanel = !showQueuePanel
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                colors =
+                                    CardDefaults.elevatedCardColors().copy(
+                                        containerColor = Color(0xFF212121),
+                                    ),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 10.dp),
+                            ) {
+                                Row(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    AsyncImage(
+                                        model =
+                                            next.thumbnails?.lastOrNull()?.url
+                                                ?: next.thumbnails?.firstOrNull()?.url,
+                                        contentDescription = null,
+                                        placeholder = rememberHolderPainter(),
+                                        error = rememberHolderPainter(),
+                                        contentScale = ContentScale.Crop,
+                                        modifier =
+                                            Modifier
+                                                .size(40.dp)
+                                                .clip(RoundedCornerShape(6.dp)),
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Next in queue",
+                                            style = typo().labelSmall,
+                                            color = Color.White.copy(alpha = 0.6f),
+                                            maxLines = 1,
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = next.title,
+                                            style = typo().bodyMedium,
+                                            color = Color.White,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        Text(
+                                            text = next.artists?.joinToString(", ") { it.name }.orEmpty(),
+                                            style = typo().bodySmall,
+                                            color = Color.White.copy(alpha = 0.6f),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Icon(
+                                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                                        contentDescription = stringResource(Res.string.queue),
+                                        tint = Color.White,
+                                        modifier =
+                                            Modifier.rotate(
+                                                if (showQueuePanel) 180f else 0f,
+                                            ),
+                                    )
+                                }
+                            }
+                        }
+                        // ── Inline queue panel ──
+                        // Expands in place (no separate modal sheet) when the "Next in
+                        // queue" card or the desktop queue button is tapped.
+                        AnimatedVisibility(
+                            visible = showQueuePanel,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut(),
+                            modifier = Modifier.padding(top = 10.dp),
+                        ) {
+                            ElevatedCard(
+                                onClick = {},
+                                shape = RoundedCornerShape(8.dp),
+                                colors =
+                                    CardDefaults.elevatedCardColors().copy(
+                                        containerColor = Color(0xFF212121),
+                                    ),
+                            ) {
+                                InlineQueuePanel(
+                                    queue = artworkQueue,
+                                    nowPlayingVideoId = nowPlayingVideoId,
+                                    loadMoreState = queueDataState?.queueState,
+                                    maxHeight = (screenInfo.hDP.dp * 0.5f),
+                                    mediaPlayerHandler = mediaPlayerHandler,
+                                    onPlay = { index ->
+                                        showQueuePanel = false
+                                        mediaPlayerHandler.playMediaItemInMediaSource(index)
+                                    },
+                                )
+                            }
+                        }
                         // Lyrics Layout
                         AnimatedVisibility(
                             visible = screenDataState.lyricsData != null,
@@ -2314,7 +2456,7 @@ fun NowPlayingScreenContent(
                                         song?.artistId?.firstOrNull()?.takeIf { it.isNotEmpty() }
                                             ?: screenDataState.songInfoData?.authorId
                                     )?.let { channelId ->
-                                        onDismiss()
+                                        dismissPlayer()
                                         navController.navigate(
                                             ArtistDestination(
                                                 channelId = channelId,
@@ -2617,6 +2759,162 @@ fun NowPlayingScreenContent(
                             trackColor = Color.Gray.copy(alpha = 0.4f),
                             strokeCap = StrokeCap.Round,
                             drawStopIndicator = {},
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun InlineQueuePanel(
+    queue: List<Track>,
+    nowPlayingVideoId: String?,
+    loadMoreState: QueueData.StateSource?,
+    maxHeight: Dp,
+    mediaPlayerHandler: MediaPlayerHandler,
+    dataStoreManager: DataStoreManager = koinInject(),
+    onPlay: (Int) -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
+    val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
+    val dragDropState =
+        rememberDragDropState(lazyListState) { from, to ->
+            coroutineScope.launch {
+                mediaPlayerHandler.swap(from, to)
+            }
+        }
+    var overscrollJob by remember { mutableStateOf<Job?>(null) }
+
+    val shouldLoadMore =
+        remember {
+            derivedStateOf {
+                val layoutInfo = lazyListState.layoutInfo
+                val lastVisibleItem =
+                    layoutInfo.visibleItemsInfo.lastOrNull()
+                        ?: return@derivedStateOf true
+                lastVisibleItem.index >= layoutInfo.totalItemsCount - 3 && layoutInfo.totalItemsCount > 0
+            }
+        }
+
+    LaunchedEffect(shouldLoadMore) {
+        snapshotFlow { shouldLoadMore.value }
+            .collect {
+                if (it && loadMoreState == QueueData.StateSource.STATE_INITIALIZED) {
+                    mediaPlayerHandler.loadMore()
+                }
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        val currentSongIndex = mediaPlayerHandler.currentOrderIndex().takeIf { i -> i > -1 } ?: 0
+        lazyListState.requestScrollToItem(currentSongIndex)
+    }
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(max = maxHeight),
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(Res.string.queue),
+                style = typo().titleMedium,
+                color = Color.White,
+                modifier = Modifier.weight(1f),
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(Res.string.endless_queue),
+                    style = typo().bodySmall,
+                    color = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                Switch(
+                    checked = endlessQueueEnable,
+                    onCheckedChange = {
+                        coroutineScope.launch {
+                            dataStoreManager.setEndlessQueue(it)
+                        }
+                    },
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+            }
+        }
+        LazyColumn(
+            horizontalAlignment = Alignment.Start,
+            state = lazyListState,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectDragGesturesAfterLongPress(
+                            onDrag = { change, offset ->
+                                change.consume()
+                                dragDropState.onDrag(offset = offset)
+
+                                if (overscrollJob?.isActive == true) {
+                                    return@detectDragGesturesAfterLongPress
+                                }
+
+                                dragDropState
+                                    .checkForOverScroll()
+                                    .takeIf { it != 0f }
+                                    ?.let {
+                                        overscrollJob =
+                                            coroutineScope.launch {
+                                                dragDropState.state.animateScrollBy(
+                                                    it * 1.3f,
+                                                    tween(easing = FastOutLinearInEasing),
+                                                )
+                                            }
+                                    }
+                                    ?: run { overscrollJob?.cancel() }
+                            },
+                            onDragStart = { offset ->
+                                dragDropState.onDragStart(offset)
+                            },
+                            onDragEnd = {
+                                dragDropState.onDragInterrupted(true)
+                                overscrollJob?.cancel()
+                            },
+                            onDragCancel = {
+                                dragDropState.onDragInterrupted()
+                                overscrollJob?.cancel()
+                            },
+                        )
+                    },
+        ) {
+            itemsIndexed(
+                queue,
+                key = { i, t -> i.toString() + t.videoId },
+            ) { index, track ->
+                if (index != -1) {
+                    DraggableItem(
+                        dragDropState = dragDropState,
+                        index = index,
+                        modifier = Modifier,
+                    ) { _ ->
+                        SongFullWidthItems(
+                            track = track,
+                            isPlaying = track.videoId == nowPlayingVideoId,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClickListener = { videoId ->
+                                if (videoId == track.videoId) {
+                                    onPlay(index)
+                                }
+                            },
+                            onAddToQueue = null,
                         )
                     }
                 }

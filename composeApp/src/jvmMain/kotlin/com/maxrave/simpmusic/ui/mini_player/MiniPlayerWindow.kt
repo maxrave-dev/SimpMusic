@@ -18,6 +18,7 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.ui.component.WindowNative
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
@@ -135,11 +136,15 @@ fun MiniPlayerWindow(
     ) {
         // Set minimum size at AWT level to prevent flickering
         LaunchedEffect(Unit) {
-            (window as? java.awt.Window)?.minimumSize =
-                Dimension(
-                    (minWidth * window.graphicsConfiguration.defaultTransform.scaleX).toInt(),
-                    (minHeight * window.graphicsConfiguration.defaultTransform.scaleY).toInt(),
-                )
+            (window as? java.awt.Window)?.let { awtWindow ->
+                awtWindow.minimumSize =
+                    Dimension(
+                        (minWidth * window.graphicsConfiguration.defaultTransform.scaleX).toInt(),
+                        (minHeight * window.graphicsConfiguration.defaultTransform.scaleY).toInt(),
+                    )
+                // The mini player is a utility surface — hide its taskbar button.
+                WindowNative.hideFromTaskbar(awtWindow)
+            }
         }
 
         MiniPlayerRoot(

@@ -30,6 +30,48 @@ object WindowNative {
         System.getProperty("os.name", "").contains("Win", ignoreCase = true)
     }
 
+    private const val GWL_EXSTYLE = -20
+    private const val WS_EX_TOOLWINDOW = 0x00000080
+    private const val WS_EX_APPWINDOW = 0x00040000
+    private const val SWP_NOSIZE = 0x0001
+    private const val SWP_NOMOVE = 0x0002
+    private const val SWP_NOZORDER = 0x0004
+    private const val SWP_NOACTIVATE = 0x0010
+    private const val SWP_FRAMECHANGED = 0x0020
+
+    /**
+     * Exclude this window from the Windows taskbar (no button, no Alt+Tab group of its own).
+     *
+     * An undecorated always-on-top Compose window would otherwise get its own taskbar entry even
+     * though it is a utility surface. Flipping the extended style to a tool window after the
+     * window is shown makes Windows drop the button; SWP_FRAMECHANGED forces the taskbar to
+     * re-evaluate it immediately. No-op off Windows.
+     */
+    fun hideFromTaskbar(window: Window) {
+        if (!isWindows) return
+        val hwnd = nativeHandle(window) ?: return
+        try {
+            val user32 = com.sun.jna.platform.win32.User32.INSTANCE
+            val handle = com.sun.jna.platform.win32.WinDef.HWND(com.sun.jna.Pointer(hwnd))
+            val oldStyle = user32.GetWindowLong(handle, GWL_EXSTYLE)
+            val newStyle = (oldStyle or WS_EX_TOOLWINDOW) and WS_EX_APPWINDOW.inv()
+            if (newStyle != oldStyle) {
+                user32.SetWindowLong(handle, GWL_EXSTYLE, newStyle)
+                user32.SetWindowPos(
+                    handle,
+                    null,
+                    0,
+                    0,
+                    0,
+                    0,
+                    SWP_NOMOVE or SWP_NOSIZE or SWP_NOZORDER or SWP_NOACTIVATE or SWP_FRAMECHANGED,
+                )
+            }
+        } catch (e: Throwable) {
+            // Not a Windows peer or the handle is stale — leave the call a no-op.
+        }
+    }
+
     /**
      * Start the OS-native move/resize loop for this window. No-op off Windows.
      * [hitTest] is one of the [HT_] constants.

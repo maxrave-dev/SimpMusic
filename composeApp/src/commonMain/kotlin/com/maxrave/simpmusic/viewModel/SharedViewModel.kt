@@ -259,6 +259,16 @@ class SharedViewModel(
                                     getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
                                 }
                                 nowPlaying.songEntity?.let { song ->
+                                    // Stale-guard: during a track transition the player handler
+                                    // can briefly publish a state where `track` is already the new
+                                    // song while `songEntity` is still the previous one (or vice
+                                    // versa). Fetching lyrics for the stale song would clobber the
+                                    // new track's lyricsData, so skip until the two agree. A null
+                                    // track (song not in the queue) is fine — trust songEntity.
+                                    val playingVideoId = nowPlaying.track?.videoId
+                                    if (playingVideoId != null && playingVideoId != song.videoId) {
+                                        return@collectLatest
+                                    }
                                     if (nowPlayingScreenData.value.lyricsData == null &&
                                         lastLyricsRequestedVideoId != song.videoId
                                     ) {
