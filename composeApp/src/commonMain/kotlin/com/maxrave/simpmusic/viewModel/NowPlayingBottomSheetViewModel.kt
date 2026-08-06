@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -355,8 +356,13 @@ class NowPlayingBottomSheetViewModel(
                 }
 
                 is NowPlayingBottomSheetUIEvent.ChangePlaybackSpeedPitch -> {
-                    dataStoreManager.setPlaybackSpeed(ev.speed)
-                    dataStoreManager.setPitch(ev.pitch)
+                    if (songUIState.isPodcast) {
+                        dataStoreManager.setPodcastPlaybackSpeed(ev.speed)
+                        dataStoreManager.setPodcastPitch(ev.pitch)
+                    } else if (dataStoreManager.crossfadeEnabled.first() != DataStoreManager.TRUE) {
+                        dataStoreManager.setPlaybackSpeed(ev.speed)
+                        dataStoreManager.setPitch(ev.pitch)
+                    }
                 }
 
                 is NowPlayingBottomSheetUIEvent.Share -> {

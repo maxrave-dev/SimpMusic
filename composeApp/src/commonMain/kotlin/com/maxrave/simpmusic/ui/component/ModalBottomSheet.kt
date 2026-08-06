@@ -1426,8 +1426,12 @@ fun NowPlayingBottomSheet(
     }
 
     if (changePlaybackSpeedPitch) {
-        val playbackSpeed by dataStoreManager.playbackSpeed.collectAsState(1f)
-        val pitch by dataStoreManager.pitch.collectAsState(0)
+        val playbackSpeed by
+            (if (isPodcast) dataStoreManager.podcastPlaybackSpeed else dataStoreManager.playbackSpeed)
+                .collectAsState(1f)
+        val pitch by
+            (if (isPodcast) dataStoreManager.podcastPitch else dataStoreManager.pitch)
+                .collectAsState(0)
         PlaybackSpeedPitchBottomSheet(
             onDismiss = { changePlaybackSpeedPitch = false },
             playbackSpeed = playbackSpeed,
