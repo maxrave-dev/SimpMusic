@@ -238,6 +238,7 @@ import simpmusic.composeapp.generated.resources.help_build_lyrics_database
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
 import simpmusic.composeapp.generated.resources.http
 import simpmusic.composeapp.generated.resources.import_data
+import simpmusic.composeapp.generated.resources.import_data_intro
 import simpmusic.composeapp.generated.resources.import_failed
 import simpmusic.composeapp.generated.resources.import_playlists_from_other_apps
 import simpmusic.composeapp.generated.resources.import_progress_songs
@@ -2237,6 +2238,24 @@ fun SettingScreen(
                             importLauncher.launch()
                         }
                     },
+                )
+                val beforeUrl = stringResource(Res.string.import_data_intro).substringBefore("https://www.simpmusic.org/tools")
+                val afterUrl = stringResource(Res.string.import_data_intro).substringAfter("https://www.simpmusic.org/tools")
+                Text(
+                    buildAnnotatedString {
+                        append(beforeUrl)
+                        withLink(
+                            LinkAnnotation.Url(
+                                "https://www.simpmusic.org/tools",
+                                TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                            ),
+                        ) {
+                            append("https://www.simpmusic.org/tools")
+                        }
+                        append(afterUrl)
+                    },
+                    style = typo().bodySmall,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
                 )
             }
         }
