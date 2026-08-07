@@ -352,6 +352,15 @@
     <string name="repeat_off">Вимкнути повторення</string>
     <string name="youtube_transcript">Розшифрування YouTube</string>
     <string name="user_interface">Оформлення</string>
+    <string name="theme">Тема</string>
+    <string name="theme_mode_system">Системна</string>
+    <string name="theme_mode_dark">Темна</string>
+    <string name="theme_mode_light">Світла</string>
+    <string name="theme_color">Колір теми</string>
+    <string name="theme_color_default">Стандартний</string>
+    <string name="theme_color_wallpaper">Шпалери</string>
+    <string name="theme_color_custom">Власний</string>
+    <string name="custom_color">Власний колір</string>
     <string name="translucent_bottom_navigation_bar">Напівпрозора нижня панель навігації</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Ви можете побачити вміст під нижньою панеллю</string>
     <string name="donation">Якщо ви оцінили мою роботу, дайте мені на каву</string>
@@ -539,6 +548,8 @@
     <string name="quit_app">Вийти</string>
     <string name="local_tracking_title">Локальне відстеження історії прослуховування</string>
     <string name="local_tracking_description">Запис історії прослуховування в локальну базу даних</string>
+    <string name="blog_notification_title">Сповіщення про публікації в блозі</string>
+    <string name="blog_notification_description">Отримуйте сповіщення про публікацію нової публікації в блозі</string>
     <string name="simpmusic_charts">Чарти SimpMusic</string>
     <string name="crossfading">Кроссфейдинг</string>
     <string name="your_320kbps_url">Ваша URL-адреса 320 Кбіт/с</string>
