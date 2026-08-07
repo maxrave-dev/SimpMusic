@@ -351,6 +351,8 @@ import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
+import simpmusic.composeapp.generated.resources.ring_player
+import simpmusic.composeapp.generated.resources.ring_player_description
 import simpmusic.composeapp.generated.resources.you_can_see_the_content_below_the_bottom_bar
 import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
@@ -473,6 +475,7 @@ fun SettingScreen(
     val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
     val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
+    val ringPlayerEnabled by viewModel.ringPlayerEnabled.collectAsStateWithLifecycle()
     val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
@@ -630,6 +633,12 @@ fun SettingScreen(
                         isEnable = getPlatform() == Platform.Android,
                     )
                 }
+                SettingItem(
+                    title = stringResource(Res.string.ring_player),
+                    subtitle = stringResource(Res.string.ring_player_description),
+                    smallSubtitle = true,
+                    switch = (ringPlayerEnabled to { viewModel.setRingPlayerEnabled(it) }),
+                )
             }
         }
         item(key = "content") {

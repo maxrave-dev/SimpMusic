@@ -158,6 +158,9 @@ class SettingsViewModel(
     private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
 
+    private var _ringPlayerEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val ringPlayerEnabled: StateFlow<Boolean> = _ringPlayerEnabled
+
     private val _explicitContentEnabled = MutableStateFlow(false)
     val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
 
@@ -291,6 +294,7 @@ class SettingsViewModel(
         getBackupDownloaded()
         getUpdateChannel()
         getEnableLiquidGlass()
+        getRingPlayerEnabled()
         getExplicitContentEnabled()
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
@@ -572,6 +576,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setEnableLiquidGlass(enableLiquidGlass)
             getEnableLiquidGlass()
+        }
+    }
+
+    private fun getRingPlayerEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.ringPlayerEnabled.collect { enabled ->
+                _ringPlayerEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setRingPlayerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setRingPlayerEnabled(enabled)
+            getRingPlayerEnabled()
         }
     }
 

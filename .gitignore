@@ -24,6 +24,7 @@ crowdin.yml
 #dev files
 ign.md
 .docs
+AUDIT_DEEP_DIVE_PRIVATE.md
 # Sentry Config File
 sentry.properties
 /composeApp/build/

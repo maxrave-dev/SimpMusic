@@ -1798,6 +1798,8 @@ class SharedViewModel(
 
     fun getEnableLiquidGlass() = dataStoreManager.enableLiquidGlass
 
+    fun getRingPlayerEnabled() = dataStoreManager.ringPlayerEnabled
+
     fun getThemeMode() = dataStoreManager.themeMode
 
     fun getThemeColorSource() = dataStoreManager.themeColorSource

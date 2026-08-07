@@ -75,7 +75,9 @@ import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.RichSyncLyricsLineItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.RingPlayerArtwork
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
@@ -169,6 +171,28 @@ private fun MiniPlayerSeekBar(
 }
 
 /**
+ * Time label shown in place of the seek bar when ring player mode is on — the ring already
+ * shows progress and handles seeking, so the bar is replaced with a "current / total" readout.
+ */
+@Composable
+private fun MiniPlayerTimeLabel(
+    timeline: TimeLine,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.End,
+    ) {
+        Text(
+            text = "${formatDuration(timeline.current)} / ${formatDuration(timeline.total)}",
+            style = typo().bodySmall,
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 11.sp,
+        )
+    }
+}
+
+/**
  * Shared top bar for the mini player: album art + track/artist info + transport controls
  * plus an expand/collapse chevron (double arrow up when collapsed, down when expanded).
  */
@@ -176,6 +200,8 @@ private fun MiniPlayerSeekBar(
 private fun MiniPlayerBarContent(
     nowPlayingData: NowPlayingScreenData,
     controllerState: ControlState,
+    timeline: TimeLine,
+    ringPlayerEnabled: Boolean,
     expanded: Boolean,
     onUIEvent: (UIEvent) -> Unit,
     onToggleExpand: () -> Unit,
@@ -188,18 +214,37 @@ private fun MiniPlayerBarContent(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Album art
-        AsyncImage(
-            model = nowPlayingData.thumbnailURL,
-            contentDescription = "Album Art",
-            placeholder = rememberHolderPainter(),
-            error = rememberHolderPainter(),
-            contentScale = ContentScale.Crop,
-            modifier =
-                Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-        )
+        // Album art (ring player mode shows a spinning vinyl with progress ring)
+        if (ringPlayerEnabled) {
+            RingPlayerArtwork(
+                thumbnailURL = nowPlayingData.thumbnailURL,
+                isPlaying = controllerState.isPlaying,
+                progress =
+                    if (timeline.total > 0) {
+                        timeline.current.toFloat() / timeline.total.toFloat()
+                    } else {
+                        0f
+                    },
+                onSeek = { p ->
+                    onUIEvent(UIEvent.UpdateProgress(p * 100f))
+                },
+                modifier = Modifier.size(52.dp),
+                ringWidth = 3.dp,
+                rimWidth = 1.dp,
+            )
+        } else {
+            AsyncImage(
+                model = nowPlayingData.thumbnailURL,
+                contentDescription = "Album Art",
+                placeholder = rememberHolderPainter(),
+                error = rememberHolderPainter(),
+                contentScale = ContentScale.Crop,
+                modifier =
+                    Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+            )
+        }
 
         // Track + artist info
         Column(modifier = Modifier.weight(1f)) {
@@ -332,6 +377,7 @@ fun MiniPlayerBarLayout(
     controllerState: ControlState,
     timeline: TimeLine,
     background: Color,
+    ringPlayerEnabled: Boolean,
     onUIEvent: (UIEvent) -> Unit,
     onToggleExpand: () -> Unit,
 ) {
@@ -346,16 +392,30 @@ fun MiniPlayerBarLayout(
             MiniPlayerBarContent(
                 nowPlayingData = nowPlayingData,
                 controllerState = controllerState,
+                timeline = timeline,
+                ringPlayerEnabled = ringPlayerEnabled,
                 expanded = false,
                 onUIEvent = onUIEvent,
                 onToggleExpand = onToggleExpand,
             )
 
-            Box(modifier = Modifier.padding(horizontal = 12.dp)) {
-                MiniPlayerSeekBar(
+            if (ringPlayerEnabled) {
+                // Ring player mode: the ring is the progress/seek control, so the seek bar
+                // is replaced with a simple current/total time readout.
+                MiniPlayerTimeLabel(
                     timeline = timeline,
-                    onUIEvent = onUIEvent,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
                 )
+            } else {
+                Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                    MiniPlayerSeekBar(
+                        timeline = timeline,
+                        onUIEvent = onUIEvent,
+                    )
+                }
             }
         }
     }
@@ -377,6 +437,7 @@ fun LyricsExpandedMiniLayout(
     queue: List<Track>,
     currentVideoId: String?,
     background: Color,
+    ringPlayerEnabled: Boolean,
     onUIEvent: (UIEvent) -> Unit,
     onToggleExpand: () -> Unit,
     onPlayQueueItem: (Int) -> Unit,
@@ -394,6 +455,8 @@ fun LyricsExpandedMiniLayout(
             MiniPlayerBarContent(
                 nowPlayingData = nowPlayingData,
                 controllerState = controllerState,
+                timeline = timeline,
+                ringPlayerEnabled = ringPlayerEnabled,
                 expanded = true,
                 onUIEvent = onUIEvent,
                 onToggleExpand = onToggleExpand,
@@ -472,14 +535,24 @@ fun LyricsExpandedMiniLayout(
                 }
             }
 
-            // Seek bar
-            Box(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            ) {
-                MiniPlayerSeekBar(
+            // Seek bar (replaced by the ring + a time readout in ring player mode)
+            if (ringPlayerEnabled) {
+                MiniPlayerTimeLabel(
                     timeline = timeline,
-                    onUIEvent = onUIEvent,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
                 )
+            } else {
+                Box(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                ) {
+                    MiniPlayerSeekBar(
+                        timeline = timeline,
+                        onUIEvent = onUIEvent,
+                    )
+                }
             }
         }
     }

@@ -32,6 +32,7 @@ import androidx.compose.ui.window.WindowState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kmpalette.loader.rememberNetworkLoader
 import com.kmpalette.rememberDominantColorState
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -40,6 +41,7 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.http.Url
 import java.awt.Cursor
 import java.awt.MouseInfo
+import kotlinx.coroutines.flow.map
 
 /**
  * Root composable for the mini player window content.
@@ -64,6 +66,9 @@ fun MiniPlayerRoot(
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val nowPlayingState by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
     val queueDataState by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val ringPlayerEnabled by remember {
+        sharedViewModel.getRingPlayerEnabled().map { it == DataStoreManager.Values.TRUE }
+    }.collectAsStateWithLifecycle(initialValue = false)
 
     val lyricsData by remember {
         derivedStateOf {
@@ -127,6 +132,7 @@ fun MiniPlayerRoot(
                     queue = artworkQueue,
                     currentVideoId = nowPlayingVideoId,
                     background = miniPlayerBackground,
+                    ringPlayerEnabled = ringPlayerEnabled,
                     onUIEvent = sharedViewModel::onUIEvent,
                     onToggleExpand = onToggleExpand,
                     onPlayQueueItem = { index ->
@@ -140,6 +146,7 @@ fun MiniPlayerRoot(
                     controllerState = controllerState,
                     timeline = timeline,
                     background = miniPlayerBackground,
+                    ringPlayerEnabled = ringPlayerEnabled,
                     onUIEvent = sharedViewModel::onUIEvent,
                     onToggleExpand = onToggleExpand,
                 )
