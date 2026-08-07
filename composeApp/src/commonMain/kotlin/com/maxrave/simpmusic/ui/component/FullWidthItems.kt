@@ -100,6 +100,9 @@ import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.you
 import kotlin.math.roundToInt
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 
 /**
  * This is the song item in the playlist or other places.
@@ -135,6 +138,7 @@ fun SongFullWidthItems(
     }
     val offsetX = remember { Animatable(initialValue = 0f) }
     var heightDp by remember { mutableStateOf(0.dp) }
+    val haptics = LocalHapticFeedback.current
 
     Box(
         modifier =
@@ -165,9 +169,15 @@ fun SongFullWidthItems(
             modifier =
                 modifier
                     .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                    .clickable {
-                        onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
-                    }.animateContentSize()
+                    .combinedClickable(
+                        onClick = {
+                            onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
+                        },
+                        onLongClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onMoreClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
+                        },
+                    ).animateContentSize()
                     .pointerInput(Unit) {
                         if (!isPlaying && onAddToQueue != null) {
                             detectHorizontalDragGestures(
