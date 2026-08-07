@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,6 +56,12 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.PlayCircle
+import com.maxrave.simpmusic.ui.icon.Search
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -73,11 +78,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_close_24
-import simpmusic.composeapp.generated.resources.baseline_play_circle_24
-import simpmusic.composeapp.generated.resources.baseline_search_24
-import simpmusic.composeapp.generated.resources.baseline_shuffle_24
+import simpmusic.composeapp.generated.resources.album_length
+import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
@@ -391,21 +393,48 @@ fun LibraryDynamicPlaylistScreen(
             type != LibraryDynamicPlaylistType.Followed &&
                 type != LibraryDynamicPlaylistType.TopArtists &&
                 type != LibraryDynamicPlaylistType.TopAlbums
+        // Counts always come from the unfiltered lists, so the subtitle keeps reporting the
+        // library total while the user is typing in the search bar.
+        val subtitle =
+            when (type) {
+                LibraryDynamicPlaylistType.Favorite ->
+                    stringResource(Res.string.album_length, favorite.size.toString(), "")
+                LibraryDynamicPlaylistType.MostPlayed ->
+                    stringResource(Res.string.album_length, mostPlayed.size.toString(), "")
+                LibraryDynamicPlaylistType.Downloaded ->
+                    stringResource(Res.string.album_length, downloaded.size.toString(), "")
+                LibraryDynamicPlaylistType.Followed ->
+                    "${followed.size} ${stringResource(Res.string.artists)}"
+                else -> null
+            }
         Box {
             TopAppBar(
                 title = {
-                    Text(
-                        text =
-                            stringResource(
-                                type.name(),
-                            ),
-                        style = typo().titleMedium,
-                    )
+                    Column {
+                        Text(
+                            text =
+                                stringResource(
+                                    type.name(),
+                                ),
+                            style = typo().titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (subtitle != null) {
+                            Text(
+                                text = subtitle,
+                                style = typo().bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     Box(Modifier.padding(horizontal = 5.dp)) {
                         RippleIconButton(
-                            Res.drawable.baseline_arrow_back_ios_new_24,
+                            SimpIcons.ArrowBackIosNew,
                             Modifier
                                 .size(32.dp),
                             true,
@@ -418,7 +447,7 @@ fun LibraryDynamicPlaylistScreen(
                 actions = {
                     if (isSongType) {
                         RippleIconButton(
-                            Res.drawable.baseline_play_circle_24,
+                            SimpIcons.PlayCircle,
                             Modifier
                                 .size(48.dp),
                             fillMaxSize = true,
@@ -449,7 +478,7 @@ fun LibraryDynamicPlaylistScreen(
                             }
                         }
                         RippleIconButton(
-                            Res.drawable.baseline_shuffle_24,
+                            SimpIcons.Shuffle,
                             Modifier.size(32.dp),
                             true,
                             tint = MaterialTheme.colorScheme.onBackground,
@@ -482,7 +511,7 @@ fun LibraryDynamicPlaylistScreen(
                     }
                     Box(Modifier.padding(horizontal = 5.dp)) {
                         RippleIconButton(
-                            if (showSearchBar) Res.drawable.baseline_close_24 else Res.drawable.baseline_search_24,
+                            if (showSearchBar) SimpIcons.Close else SimpIcons.Search,
                             Modifier
                                 .size(32.dp),
                             true,
@@ -524,7 +553,7 @@ fun LibraryDynamicPlaylistScreen(
                                     style = typo().bodySmall,
                                 )
                             },
-                            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                            leadingIcon = { Icon(SimpIcons.Search, contentDescription = null) },
                         )
                     }
                 },

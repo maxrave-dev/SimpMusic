@@ -349,6 +349,15 @@
     <string name="repeat_off">關閉循環</string>
     <string name="youtube_transcript">YouTube 字幕</string>
     <string name="user_interface">使用者介面</string>
+    <string name="theme">主題</string>
+    <string name="theme_mode_system">跟隨系統</string>
+    <string name="theme_mode_dark">深色</string>
+    <string name="theme_mode_light">淺色</string>
+    <string name="theme_color">主題顏色</string>
+    <string name="theme_color_default">預設</string>
+    <string name="theme_color_wallpaper">跟隨桌布</string>
+    <string name="theme_color_custom">自訂</string>
+    <string name="custom_color">自訂顏色</string>
     <string name="translucent_bottom_navigation_bar">半透明底部導覽列</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">你可以看到底欄下方的內容</string>
     <string name="donation">如果你喜歡我的工作，請給我一杯咖啡</string>
@@ -394,14 +403,10 @@
     <string name="do_not_show_again">以後不再提示</string>
     <string name="auto_check_for_update">自動檢查更新</string>
     <string name="auto_check_for_update_description">啓動時檢查更新</string>
-    <string name="blur_fullscreen_lyrics">模糊全螢幕歌詞</string>
-    <string name="blur_fullscreen_lyrics_description">模糊全螢幕歌詞畫面的背景</string>
     <string name="playback_speed_pitch"><![CDATA[回放速度與音調]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[播放速度和音調（啟用交叉淡入淡出時禁用）]]></string>
     <string name="playback_speed">回放速度</string>
     <string name="pitch">音調</string>
-    <string name="blur_player_background">模糊播放器背景</string>
-    <string name="blur_player_background_description">模糊正在播放畫面的背景</string>
     <string name="merging_audio_and_video">音訊與視訊合併</string>
     <string name="error_occurred">發生錯誤</string>
     <string name="downloading_audio">下載音頻中...%1$s </string>
@@ -554,4 +559,5 @@
     <string name="home_offline_title">離線</string>
     <string name="home_offline_subtitle">請檢查您的網路連線並重試，或聆聽您已下載的音樂。</string>
     <string name="listen_to_downloaded">聆聽已下載的音樂</string>
+    <string name="playing_on_device">在 %1$s 上播放</string>
 </resources>

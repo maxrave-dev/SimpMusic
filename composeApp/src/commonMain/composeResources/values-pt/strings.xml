@@ -350,6 +350,12 @@
     <string name="repeat_off">Repetição desligada</string>
     <string name="youtube_transcript">Transcrição do YouTube</string>
     <string name="user_interface">Interface</string>
+    <string name="theme">Tema</string>
+    <string name="theme_mode_system">Padrão do sistema</string>
+    <string name="theme_mode_dark">Escuro</string>
+    <string name="theme_mode_light">Claro</string>
+    <string name="theme_color">Cor do tema</string>
+    <string name="theme_color_default">Padrão</string>
     <string name="translucent_bottom_navigation_bar">Barra de navegação inferior translúcida</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Você pode ver o conteúdo abaixo da barra inferior</string>
     <string name="donation">Se curtiu o meu trabalho, me paga um café</string>
@@ -395,14 +401,10 @@
     <string name="do_not_show_again">Não mostrar novamente</string>
     <string name="auto_check_for_update">Verificar atualizações automaticamente</string>
     <string name="auto_check_for_update_description">Procurar atualizações quando abre o aplicativo</string>
-    <string name="blur_fullscreen_lyrics">Desfocar o efeito letras em tela cheia</string>
-    <string name="blur_fullscreen_lyrics_description">Desfocando o fundo do efeito de tela em letras em tela cheia</string>
     <string name="playback_speed_pitch"><![CDATA[Velocidade de reprodução e tom]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Velocidade e tom de reprodução (desativado quando o crossfade está habilitado)]]></string>
     <string name="playback_speed">Velocidade de reprodução</string>
     <string name="pitch">Tonalidade</string>
-    <string name="blur_player_background">Desfocar fundo do ‘player’</string>
-    <string name="blur_player_background_description">Desfocando o fundo do efeito de tela do tocando agora</string>
     <string name="merging_audio_and_video">Mesclando áudio e vídeo</string>
     <string name="error_occurred">Ocorreu um erro</string>
     <string name="downloading_audio">Baixando áudio: %1$s </string>

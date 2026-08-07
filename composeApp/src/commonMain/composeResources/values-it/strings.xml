@@ -272,7 +272,7 @@
     <string name="description_and_licenses">Descrizione e licenze</string>
     <string name="author">Autore</string>
     <string name="other_app">Altre app</string>
-    <string name="database">Database applicazioni</string>
+    <string name="database">Database delle applicazioni</string>
     <string name="free_space">Spazio libero</string>
     <string name="suggest">Suggerimento</string>
     <string name="reload">Ricarica</string>
@@ -350,6 +350,15 @@
     <string name="repeat_off">Disattiva ripetizione</string>
     <string name="youtube_transcript">Trascrizione YouTube</string>
     <string name="user_interface">Interfaccia</string>
+    <string name="theme">Tema</string>
+    <string name="theme_mode_system">Impostazioni predefinite di sistema</string>
+    <string name="theme_mode_dark">Scuro</string>
+    <string name="theme_mode_light">Chiaro</string>
+    <string name="theme_color">Colore del tema</string>
+    <string name="theme_color_default">Predefinito</string>
+    <string name="theme_color_wallpaper">Sfondo</string>
+    <string name="theme_color_custom">Personalizzato</string>
+    <string name="custom_color">Colore personalizzato</string>
     <string name="translucent_bottom_navigation_bar">Barra di navigazione inferiore traslucida</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Puoi vedere il contenuto sotto la barra inferiore</string>
     <string name="donation">Se apprezzi il mio lavoro, donami un caffè</string>
@@ -395,14 +404,10 @@
     <string name="do_not_show_again">Non mostrare più</string>
     <string name="auto_check_for_update">Controllo automatico degli aggiornamenti</string>
     <string name="auto_check_for_update_description">Controllo degli aggiornamenti all'apertura dell'app</string>
-    <string name="blur_fullscreen_lyrics">Sfoca effetto testo a schermo intero</string>
-    <string name="blur_fullscreen_lyrics_description">Sfoca lo sfondo dell'effetto schermo intero del testo</string>
     <string name="playback_speed_pitch"><![CDATA[Velocità di riproduzione e tono]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Velocità e tono brano (disabilitato quando la dissolvenza è abilitata)]]></string>
     <string name="playback_speed">Velocità di riproduzione</string>
     <string name="pitch">Tono</string>
-    <string name="blur_player_background">Sfoca lo sfondo del lettore</string>
-    <string name="blur_player_background_description">Sfoca lo sfondo dell'effetto della schermata di riproduzione</string>
     <string name="merging_audio_and_video">Unione di audio e video</string>
     <string name="error_occurred">C'è stato un problema</string>
     <string name="downloading_audio">Download dell'audio in corso: %1$s </string>
@@ -555,4 +560,6 @@
     <string name="home_offline_title">Impossibile connettersi</string>
     <string name="home_offline_subtitle">Controlla la tua connessione internet e riprova o ascolta la tua musica già scaricata.</string>
     <string name="listen_to_downloaded">Ascolta la musica scaricata</string>
+    <string name="playing_on_device">In riproduzione su %1$s</string>
+    <string name="not_available_while_casting">Non disponibile durante il casting</string>
 </resources>

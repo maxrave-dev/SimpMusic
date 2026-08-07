@@ -69,7 +69,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
@@ -95,10 +94,12 @@ import com.maxrave.domain.data.model.mood.Mood
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -112,10 +113,15 @@ import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.OfflineErrorState
+import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
+import com.maxrave.simpmusic.ui.icon.History
+import com.maxrave.simpmusic.ui.icon.Notifications
+import com.maxrave.simpmusic.ui.icon.Settings
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
@@ -156,8 +162,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.all
 import simpmusic.composeapp.generated.resources.app_name
-import simpmusic.composeapp.generated.resources.baseline_history_24
-import simpmusic.composeapp.generated.resources.baseline_settings_24
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.commute
@@ -165,7 +169,6 @@ import simpmusic.composeapp.generated.resources.do_not_show_again
 import simpmusic.composeapp.generated.resources.energize
 import simpmusic.composeapp.generated.resources.feel_good
 import simpmusic.composeapp.generated.resources.focus
-import simpmusic.composeapp.generated.resources.genre
 import simpmusic.composeapp.generated.resources.go_to_log_in_page
 import simpmusic.composeapp.generated.resources.good_afternoon
 import simpmusic.composeapp.generated.resources.good_evening
@@ -174,8 +177,6 @@ import simpmusic.composeapp.generated.resources.good_night
 import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
 import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
 import simpmusic.composeapp.generated.resources.log_in_warning
-import simpmusic.composeapp.generated.resources.moods_amp_moment
-import simpmusic.composeapp.generated.resources.outline_notifications_24
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.quick_picks
 import simpmusic.composeapp.generated.resources.relax
@@ -543,16 +544,7 @@ fun HomeScreen(
                                                     .fillMaxWidth()
                                                     .height(180.dp)
                                                     .align(Alignment.BottomCenter)
-                                                    .background(
-                                                        brush =
-                                                            Brush.verticalGradient(
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    backgroundColor.copy(alpha = 0.46f),
-                                                                    backgroundColor,
-                                                                ),
-                                                            ),
-                                                    ),
+                                                    .background(artworkScrimBrush(backgroundColor)),
                                         )
                                     }
                                 }
@@ -612,6 +604,7 @@ fun HomeScreen(
                                                                 },
                                                         )
                                                     },
+                                                navController = navController,
                                                 viewModel = viewModel,
                                             )
                                         }
@@ -883,13 +876,13 @@ fun HomeTopAppBar(navController: NavController) {
             }
         },
         actions = {
-            RippleIconButton(resId = Res.drawable.outline_notifications_24, tint = MaterialTheme.colorScheme.onBackground) {
+            RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(NotificationDestination)
             }
-            RippleIconButton(resId = Res.drawable.baseline_history_24, tint = MaterialTheme.colorScheme.onBackground) {
+            RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(RecentlySongsDestination)
             }
-            RippleIconButton(resId = Res.drawable.baseline_settings_24, tint = MaterialTheme.colorScheme.onBackground) {
+            RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(SettingsDestination)
             }
         },
@@ -952,6 +945,7 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
+    navController: NavController,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val lazyListState = rememberLazyGridState()
@@ -960,6 +954,17 @@ fun QuickPicks(
     var widthDp by remember {
         mutableStateOf(0.dp)
     }
+    var bottomSheetShow by remember { mutableStateOf(false) }
+    var track by remember { mutableStateOf<Track?>(null) }
+
+    if (bottomSheetShow) {
+        NowPlayingBottomSheet(
+            onDismiss = { bottomSheetShow = false },
+            song = track?.toSongEntity(),
+            navController = navController,
+        )
+    }
+
     Column(
         Modifier
             .padding(vertical = 8.dp)
@@ -1009,6 +1014,10 @@ fun QuickPicks(
                                 type = Config.SONG_CLICK,
                             )
                         },
+                        onLongClick = {
+                            track = it.toTrack()
+                            bottomSheetShow = true
+                        },
                         data = it,
                         widthDp = widthDp,
                     )
@@ -1023,12 +1032,6 @@ fun MoodMomentAndGenre(
     mood: Mood,
     navController: NavController,
 ) {
-    val lazyListState1 = rememberLazyGridState()
-    val snapperFlingBehavior1 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState1))
-
-    val lazyListState2 = rememberLazyGridState()
-    val snapperFlingBehavior2 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2))
-
     Column(
         Modifier
             .padding(vertical = 8.dp),
@@ -1037,55 +1040,40 @@ fun MoodMomentAndGenre(
             text = stringResource(Res.string.let_s_pick_a_playlist_for_you),
             style = typo().bodyMedium,
         )
-        Text(
-            text = stringResource(Res.string.moods_amp_moment),
-            style = typo().headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-        )
-        LazyHorizontalGrid(
-            rows = GridCells.Fixed(3),
-            modifier = Modifier.height(210.dp),
-            state = lazyListState1,
-            flingBehavior = snapperFlingBehavior1,
-        ) {
-            items(mood.moodsMoments, key = { it.title }) {
-                MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigate(
-                        MoodDestination(
-                            it.params,
-                        ),
-                    )
-                }
-            }
-        }
-        Text(
-            text = stringResource(Res.string.genre),
-            style = typo().headlineMedium,
-            maxLines = 1,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-        )
-        LazyHorizontalGrid(
-            rows = GridCells.Fixed(3),
-            modifier = Modifier.height(210.dp),
-            state = lazyListState2,
-            flingBehavior = snapperFlingBehavior2,
-        ) {
-            items(mood.genres, key = { it.title }) {
-                MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigate(
-                        MoodDestination(
-                            it.params,
-                        ),
-                    )
+        // One block per section YouTube returned, headed by ITS OWN title. Hard-coding
+        // "Moods & moment" / "Genre" here (and reading mood.moodsMoments / mood.genres by
+        // index) mislabelled every row as soon as a signed-in account got an extra
+        // "For you" section, and hid the real Genres section altogether.
+        mood.sections.forEach { section ->
+            val gridState = rememberLazyGridState()
+            val flingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = gridState))
+            Text(
+                text = section.title,
+                style = typo().headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+            )
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(3),
+                modifier = Modifier.height(210.dp),
+                state = gridState,
+                flingBehavior = flingBehavior,
+            ) {
+                items(section.items, key = { it.params }) { item ->
+                    MoodMomentAndGenreHomeItem(
+                        title = item.title,
+                        stripeColor = item.stripeColor,
+                    ) {
+                        navController.navigate(
+                            MoodDestination(
+                                item.params,
+                            ),
+                        )
+                    }
                 }
             }
         }

@@ -6,18 +6,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -41,11 +41,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,12 +66,16 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.FiveImagesComponent
 import com.maxrave.simpmusic.ui.component.ImageData
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.CalendarToday
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -213,16 +217,14 @@ fun AnalyticsScreen(
                                     .fillMaxSize()
                                     .background(
                                         brush =
-                                            Brush.verticalGradient(
-                                                colors =
-                                                    listOf(
-                                                        Color.Transparent,
-                                                        MaterialTheme.colorScheme.background.copy(
-                                                            alpha = 0.8f,
-                                                        ),
-                                                        MaterialTheme.colorScheme.background,
-                                                    ),
-                                                startY = (screenSizeInfo.hPX / 2.5f) * 3 / 4, // Gradient applied to wrap the title only
+                                            smoothScrimBrush(
+                                                from = MaterialTheme.colorScheme.background.copy(alpha = 0f),
+                                                to = MaterialTheme.colorScheme.background,
+                                                // The header is hDP/2.5 tall, so starting at 3/4 of
+                                                // that left only a quarter of it to fade in — short
+                                                // enough that the edge still read as a hard cut.
+                                                // Half the header gives the ramp room to disappear.
+                                                startY = (screenSizeInfo.hPX / 2.5f) / 2,
                                             ),
                                     ),
                             )
@@ -245,6 +247,10 @@ fun AnalyticsScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     Column(
+                                        // Takes the leftover width and stops there. Without a
+                                        // weight the column sizes to the song title, so a long
+                                        // name simply grew across the "Listened time" column.
+                                        modifier = Modifier.weight(1f),
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
                                         Text(
@@ -252,14 +258,19 @@ fun AnalyticsScreen(
                                             style = typo().labelMedium,
                                             color = MaterialTheme.colorScheme.onBackground,
                                             maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                         Text(
                                             topTrack.second.artistName?.connectArtists() ?: "",
                                             style = typo().bodyMedium,
                                             maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                     }
+                                    Spacer(modifier = Modifier.width(12.dp))
                                     Column(
+                                        modifier = Modifier.wrapContentWidth(),
+                                        horizontalAlignment = Alignment.End,
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
                                         Text(
@@ -863,7 +874,7 @@ fun AnalyticsScreen(
                                     ),
                             ),
                     ) {
-                        Icon(Icons.Default.ArrowBackIosNew, "Back")
+                        Icon(SimpIcons.ArrowBackIosNew, "Back")
                     }
                 }
             },
@@ -894,7 +905,7 @@ fun AnalyticsScreen(
                             ),
                     ) {
                         Box {
-                            Icon(Icons.Rounded.CalendarToday, "Analytics", tint = MaterialTheme.colorScheme.onSurface)
+                            Icon(SimpIcons.CalendarToday, "Analytics", tint = MaterialTheme.colorScheme.onSurface)
                             Text(
                                 when (uiState.dayRange) {
                                     AnalyticsUiState.DayRange.LAST_7_DAYS -> "7d"

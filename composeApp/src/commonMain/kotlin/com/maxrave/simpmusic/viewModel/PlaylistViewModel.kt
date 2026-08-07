@@ -21,6 +21,7 @@ import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
+import com.maxrave.domain.utils.isRadioPlaylistId
 import com.maxrave.domain.utils.toListVideoId
 import com.maxrave.domain.utils.toPlaylistEntity
 import com.maxrave.domain.utils.toSongEntity
@@ -183,7 +184,7 @@ class PlaylistViewModel(
         resetData()
         viewModelScope.launch {
             // Check radio
-            if (id.matches(Regex("(RDAMVM|RDEM|RDAT).*"))) {
+            if (id.isRadioPlaylistId()) {
                 playlistRepository
                     .getRadio(
                         id,

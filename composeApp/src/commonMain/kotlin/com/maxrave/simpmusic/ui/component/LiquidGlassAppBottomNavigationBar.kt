@@ -1,13 +1,13 @@
 package com.maxrave.simpmusic.ui.component
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.ui.icon.Home
+import com.maxrave.simpmusic.ui.icon.LibraryMusic
+import com.maxrave.simpmusic.ui.icon.Search
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
@@ -42,7 +42,7 @@ sealed class BottomNavScreen(
         title = Res.string.home,
         icon = {
             Icon(
-                Icons.Rounded.Home,
+                SimpIcons.Home,
                 contentDescription = null,
             )
         },
@@ -54,7 +54,7 @@ sealed class BottomNavScreen(
         title = Res.string.search,
         icon = {
             Icon(
-                Icons.Rounded.Search,
+                SimpIcons.Search,
                 contentDescription = null,
             )
         },
@@ -66,7 +66,7 @@ sealed class BottomNavScreen(
         title = Res.string.library,
         icon = {
             Icon(
-                imageVector = Icons.Filled.LibraryMusic,
+                imageVector = SimpIcons.LibraryMusic,
                 contentDescription = null,
             )
         },

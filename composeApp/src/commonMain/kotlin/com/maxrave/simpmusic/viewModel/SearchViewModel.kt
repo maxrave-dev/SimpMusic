@@ -7,9 +7,11 @@ import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.SongsResult
+import com.maxrave.domain.data.model.mood.Mood
 import com.maxrave.domain.data.model.searchResult.videos.VideosResult
 import com.maxrave.domain.data.type.SearchResultType
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.repository.SearchRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toQueryList
@@ -89,6 +91,7 @@ sealed class SearchScreenUIState {
 class SearchViewModel(
     private val dataStoreManager: DataStoreManager,
     private val searchRepository: SearchRepository,
+    private val homeRepository: HomeRepository,
 ) : BaseViewModel() {
     private val _searchScreenUIState = MutableStateFlow<SearchScreenUIState>(SearchScreenUIState.Empty)
     val searchScreenUIState: StateFlow<SearchScreenUIState> get() = _searchScreenUIState.asStateFlow()
@@ -99,6 +102,16 @@ class SearchViewModel(
     private val _searchHistory: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     val searchHistory: StateFlow<List<String>> get() = _searchHistory.asStateFlow()
 
+    /** Browse categories shown on the empty search screen, the way YouTube Music itself does. */
+    private val _moodAndGenres: MutableStateFlow<Mood?> = MutableStateFlow(null)
+    val moodAndGenres: StateFlow<Mood?> get() = _moodAndGenres.asStateFlow()
+
+    /** Cover art per category params, filled in as tiles scroll into view. */
+    private val _moodArtwork: MutableStateFlow<Map<String, String>> = MutableStateFlow(emptyMap())
+    val moodArtwork: StateFlow<Map<String, String>> get() = _moodArtwork.asStateFlow()
+
+    private val requestedArtwork = mutableSetOf<String>()
+
     var regionCode: String? = null
     var language: String? = null
 
@@ -106,6 +119,39 @@ class SearchViewModel(
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
         getSearchHistory()
+        getMoodAndGenres()
+    }
+
+    /**
+     * Fetched once for the app's lifetime — this ViewModel is a Koin `single`, and the category
+     * list changes about as often as YouTube ships a new mood, so re-fetching on every visit to
+     * the search tab would be pure waste.
+     */
+    private fun getMoodAndGenres() {
+        if (_moodAndGenres.value != null) return
+        viewModelScope.launch {
+            homeRepository.getMoodAndMomentsData().collect { resource ->
+                if (resource is Resource.Success) {
+                    _moodAndGenres.value = resource.data
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolve the cover for one category. Called from the tile itself, so only categories the user
+     * actually scrolls to cost a request — [requestedArtwork] keeps a tile scrolling in and out of
+     * view from firing it again.
+     */
+    fun loadMoodArtwork(params: String) {
+        if (!requestedArtwork.add(params)) return
+        viewModelScope.launch {
+            homeRepository.getMoodCategoryArtwork(params).collect { url ->
+                if (url != null) {
+                    _moodArtwork.update { it + (params to url) }
+                }
+            }
+        }
     }
 
     private fun getSearchHistory() {

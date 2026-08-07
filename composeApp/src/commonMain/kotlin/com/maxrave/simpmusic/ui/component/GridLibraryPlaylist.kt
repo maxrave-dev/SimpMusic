@@ -22,8 +22,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +51,8 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
@@ -150,7 +150,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                     ) {
                                         Icon(
                                             modifier = Modifier.size(84.dp),
-                                            imageVector = Icons.Rounded.Add,
+                                            imageVector = SimpIcons.Add,
                                             tint = Color.White,
                                             contentDescription = null,
                                         )
@@ -158,7 +158,10 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                     Text(
                                         text = stringResource(Res.string.create),
                                         style = typo().titleSmall,
-                                        color = Color.White,
+                                        // Sits on the page background, not on the tile, so it has
+                                        // to follow the theme — hard-coded white vanished in light
+                                        // theme while every other tile label stayed readable.
+                                        color = MaterialTheme.colorScheme.onBackground,
                                         maxLines = 1,
                                         modifier =
                                             Modifier
