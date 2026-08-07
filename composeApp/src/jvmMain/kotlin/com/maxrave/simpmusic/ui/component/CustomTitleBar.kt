@@ -17,11 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material.icons.rounded.UnfoldLess
-import androidx.compose.material.icons.rounded.UnfoldMore
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +34,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Remove
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.UnfoldLess
+import com.maxrave.simpmusic.ui.icon.UnfoldMore
 import com.maxrave.simpmusic.ui.theme.typo
 import java.awt.MouseInfo
 import java.awt.Window
@@ -73,7 +72,7 @@ fun CustomTitleBar(
             modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .background(md_theme_dark_background)
+                .background(Color.Black)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
@@ -207,13 +206,13 @@ private fun WindowControlButton(
             Box(modifier = Modifier.padding(1.dp)) {
                 when (icon) {
                     WindowControlIcon.Minimize -> {
-                        Icon(Icons.Rounded.Remove, tint = Color.DarkGray, contentDescription = "Minimize")
+                        Icon(SimpIcons.Remove, tint = Color.DarkGray, contentDescription = "Minimize")
                     }
 
                     WindowControlIcon.Maximize -> {
                         Icon(
                             modifier = Modifier.rotate(45f),
-                            imageVector = Icons.Rounded.UnfoldMore,
+                            imageVector = SimpIcons.UnfoldMore,
                             tint = Color.DarkGray,
                             contentDescription = "Minimize",
                         )
@@ -222,7 +221,7 @@ private fun WindowControlButton(
                     WindowControlIcon.Restore -> {
                         Icon(
                             modifier = Modifier.rotate(45f),
-                            imageVector = Icons.Rounded.UnfoldLess,
+                            imageVector = SimpIcons.UnfoldLess,
                             tint = Color.DarkGray,
                             contentDescription = "Minimize",
                         )
@@ -230,7 +229,7 @@ private fun WindowControlButton(
 
                     WindowControlIcon.Close -> {
                         Icon(
-                            imageVector = Icons.Rounded.Close,
+                            imageVector = SimpIcons.Close,
                             tint = Color.DarkGray,
                             contentDescription = "Close",
                         )

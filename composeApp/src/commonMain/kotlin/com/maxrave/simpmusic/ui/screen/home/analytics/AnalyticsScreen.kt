@@ -6,18 +6,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -40,11 +41,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,12 +66,16 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.FiveImagesComponent
 import com.maxrave.simpmusic.ui.component.ImageData
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.CalendarToday
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -212,16 +217,14 @@ fun AnalyticsScreen(
                                     .fillMaxSize()
                                     .background(
                                         brush =
-                                            Brush.verticalGradient(
-                                                colors =
-                                                    listOf(
-                                                        Color.Transparent,
-                                                        Color.Black.copy(
-                                                            alpha = 0.8f,
-                                                        ),
-                                                        Color.Black,
-                                                    ),
-                                                startY = (screenSizeInfo.hPX / 2.5f) * 3 / 4, // Gradient applied to wrap the title only
+                                            smoothScrimBrush(
+                                                from = MaterialTheme.colorScheme.background.copy(alpha = 0f),
+                                                to = MaterialTheme.colorScheme.background,
+                                                // The header is hDP/2.5 tall, so starting at 3/4 of
+                                                // that left only a quarter of it to fade in — short
+                                                // enough that the edge still read as a hard cut.
+                                                // Half the header gives the ramp room to disappear.
+                                                startY = (screenSizeInfo.hPX / 2.5f) / 2,
                                             ),
                                     ),
                             )
@@ -235,7 +238,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.top_song),
                                     style = typo().titleLarge,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     maxLines = 1,
                                 )
                                 Row(
@@ -244,27 +247,36 @@ fun AnalyticsScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     Column(
+                                        // Takes the leftover width and stops there. Without a
+                                        // weight the column sizes to the song title, so a long
+                                        // name simply grew across the "Listened time" column.
+                                        modifier = Modifier.weight(1f),
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
                                         Text(
                                             topTrack.second.title,
                                             style = typo().labelMedium,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                         Text(
                                             topTrack.second.artistName?.connectArtists() ?: "",
                                             style = typo().bodyMedium,
                                             maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                     }
+                                    Spacer(modifier = Modifier.width(12.dp))
                                     Column(
+                                        modifier = Modifier.wrapContentWidth(),
+                                        horizontalAlignment = Alignment.End,
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
                                         Text(
                                             "Listened time",
                                             style = typo().bodyMedium,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             maxLines = 1,
                                         )
                                         Text(
@@ -307,7 +319,7 @@ fun AnalyticsScreen(
                                     stringResource(Res.string.songs_played),
                                     style = typo().bodyMedium,
                                     textDecoration = TextDecoration.Underline,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                 )
                                 Text(
@@ -330,7 +342,7 @@ fun AnalyticsScreen(
                                     stringResource(Res.string.artists),
                                     style = typo().bodyMedium,
                                     textDecoration = TextDecoration.Underline,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                 )
                                 Text(
@@ -353,7 +365,7 @@ fun AnalyticsScreen(
                                     stringResource(Res.string.total_listened_time),
                                     style = typo().bodyMedium,
                                     textDecoration = TextDecoration.Underline,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                 )
                                 Text(
@@ -384,7 +396,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_recently_played),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -395,7 +407,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = MaterialTheme.colorScheme.onSurface,
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -486,7 +498,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_top_artists),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -501,7 +513,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = MaterialTheme.colorScheme.onSurface,
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -550,7 +562,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_top_albums),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -565,7 +577,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = MaterialTheme.colorScheme.onSurface,
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -616,7 +628,7 @@ fun AnalyticsScreen(
                                 Text(
                                     text = stringResource(Res.string.your_top_tracks),
                                     style = typo().labelMedium,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),
                                 )
                                 TextButton(
@@ -631,7 +643,7 @@ fun AnalyticsScreen(
                                         ButtonDefaults
                                             .textButtonColors()
                                             .copy(
-                                                contentColor = Color.White,
+                                                contentColor = MaterialTheme.colorScheme.onSurface,
                                             ),
                                 ) {
                                     Text(stringResource(Res.string.more), style = typo().bodySmall)
@@ -689,7 +701,7 @@ fun AnalyticsScreen(
                                                             .wrapContentHeight()
                                                             .fillMaxWidth(pair.first.playCount.toFloat() / maxPlays)
                                                             .clip(CircleShape)
-                                                            .background(Color.DarkGray),
+                                                            .background(MaterialTheme.colorScheme.onSurfaceVariant),
                                                 ) {
                                                     Text(
                                                         text = "",
@@ -703,6 +715,7 @@ fun AnalyticsScreen(
                                                 Text(
                                                     text = "${pair.first.playCount} ${stringResource(Res.string.lower_plays)}",
                                                     style = typo().bodySmall,
+                                                    color = MaterialTheme.colorScheme.surface,
                                                     modifier =
                                                         Modifier
                                                             .align(Alignment.CenterStart)
@@ -734,7 +747,7 @@ fun AnalyticsScreen(
                             Text(
                                 text = stringResource(Res.string.date_range),
                                 style = typo().labelMedium,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Row(
                                 modifier = Modifier.padding(top = 12.dp),
@@ -792,7 +805,7 @@ fun AnalyticsScreen(
                                                             .fillMaxWidth(playCount.toFloat() / maxPlays)
                                                             .padding(vertical = 4.dp)
                                                             .clip(CircleShape)
-                                                            .background(Color.DarkGray),
+                                                            .background(MaterialTheme.colorScheme.onSurfaceVariant),
                                                 ) {
                                                     Text(
                                                         text = "",
@@ -806,6 +819,7 @@ fun AnalyticsScreen(
                                                 Text(
                                                     text = "$playCount ${stringResource(Res.string.lower_plays)}",
                                                     style = typo().bodySmall,
+                                                    color = MaterialTheme.colorScheme.surface,
                                                     modifier =
                                                         Modifier
                                                             .align(Alignment.CenterStart)
@@ -851,16 +865,16 @@ fun AnalyticsScreen(
                         colors =
                             IconButtonDefaults.iconButtonColors().copy(
                                 containerColor =
-                                    Color.DarkGray.copy(
+                                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(
                                         alpha = 0.8f,
                                     ),
                                 contentColor =
-                                    Color.White.copy(
+                                    MaterialTheme.colorScheme.onSurface.copy(
                                         alpha = 0.6f,
                                     ),
                             ),
                     ) {
-                        Icon(Icons.Default.ArrowBackIosNew, "Back")
+                        Icon(SimpIcons.ArrowBackIosNew, "Back")
                     }
                 }
             },
@@ -881,17 +895,17 @@ fun AnalyticsScreen(
                         colors =
                             IconButtonDefaults.iconButtonColors().copy(
                                 containerColor =
-                                    Color.DarkGray.copy(
+                                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(
                                         alpha = 0.8f,
                                     ),
                                 contentColor =
-                                    Color.White.copy(
+                                    MaterialTheme.colorScheme.onSurface.copy(
                                         alpha = 0.6f,
                                     ),
                             ),
                     ) {
                         Box {
-                            Icon(Icons.Rounded.CalendarToday, "Analytics", tint = Color.White)
+                            Icon(SimpIcons.CalendarToday, "Analytics", tint = MaterialTheme.colorScheme.onSurface)
                             Text(
                                 when (uiState.dayRange) {
                                     AnalyticsUiState.DayRange.LAST_7_DAYS -> "7d"
@@ -900,7 +914,7 @@ fun AnalyticsScreen(
                                     AnalyticsUiState.DayRange.THIS_YEAR -> "1y"
                                 },
                                 style = typo().bodySmall.copy(fontSize = 8.sp),
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.align(Alignment.Center),
                             )
                         }

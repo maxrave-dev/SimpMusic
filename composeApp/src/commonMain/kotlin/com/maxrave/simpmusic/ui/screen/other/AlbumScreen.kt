@@ -36,10 +36,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -59,7 +55,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -80,28 +75,39 @@ import com.kmpalette.rememberPaletteState
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
+import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
-import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
-import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PauseCircle
+import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.PlayCircle
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
@@ -127,16 +133,9 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.album_length
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_downloaded
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
-import simpmusic.composeapp.generated.resources.baseline_play_circle_24
-import simpmusic.composeapp.generated.resources.baseline_shuffle_24
-import simpmusic.composeapp.generated.resources.download_button
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
-import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.other_version
 import simpmusic.composeapp.generated.resources.year_and_category
@@ -213,7 +212,7 @@ fun AlbumScreen(
         snapshotFlow { paletteState.palette }
             .distinctUntilChanged()
             .collectLatest {
-                viewModel.setBrush(listOf(it.getColorFromPalette(), md_theme_dark_background))
+                viewModel.setBrush(listOf(it.getColorFromPalette(), Color.Black))
             }
     }
 
@@ -221,25 +220,9 @@ fun AlbumScreen(
     // foldable open state, landscape orientation, and Desktop keep the existing layout.
     val screenInfo = getScreenSizeInfo()
     val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
-    val dominantColor = uiState.colors.firstOrNull() ?: md_theme_dark_background
-    // Apple Music-style page background: derived from palette's Muted swatch (medium-bright,
-    // unlike getColorFromPalette which prefers DarkVibrant/DarkMuted and turns near-black for
-    // B&W artwork). Slight darkening for white-text readability.
-    val mutedPaletteBg =
-        run {
-            val p = paletteState.palette
-            val rgb =
-                p
-                    ?.getMutedColor(0)
-                    ?.takeIf { it != 0 }
-                    ?: p?.getDarkMutedColor(0)?.takeIf { it != 0 }
-                    ?: p?.getDominantColor(0)?.takeIf { it != 0 }
-            if (rgb != null) {
-                lerp(Color(rgb), md_theme_dark_background, 0.45f)
-            } else {
-                md_theme_dark_background
-            }
-        }
+    val dominantColor = uiState.colors.firstOrNull() ?: Color.Black
+    // Apple Music-style page background from the artwork's dominant tone (see UIExt.toImmersiveBackground).
+    val mutedPaletteBg = paletteState.palette.toImmersiveBackground()
     val artworkSizeDp =
         if (isMobilePortrait) {
             (screenInfo.wDP * 0.85f).coerceIn(280f, 380f).toInt()
@@ -287,16 +270,7 @@ fun AlbumScreen(
                                                 .fillMaxWidth()
                                                 .height(180.dp)
                                                 .align(Alignment.BottomCenter)
-                                                .background(
-                                                    brush =
-                                                        Brush.verticalGradient(
-                                                            listOf(
-                                                                Color.Transparent,
-                                                                Color(0x75000000),
-                                                                Color.Black,
-                                                            ),
-                                                        ),
-                                                ),
+                                                .background(artworkScrimBrush(Color.Black)),
                                     )
                                 }
                             }
@@ -313,7 +287,7 @@ fun AlbumScreen(
                                                 .windowInsetsPadding(WindowInsets.statusBars),
                                     ) {
                                         RippleIconButton(
-                                            resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                            imageVector = SimpIcons.ArrowBackIosNew,
                                         ) {
                                             navController.navigateUp()
                                         }
@@ -327,7 +301,7 @@ fun AlbumScreen(
                                         // ~half screen height) with title overlay + liquid glass buttons.
                                         // Glass buttons MUST be siblings of the backdrop source (not children)
                                         // to avoid render feedback loop / RuntimeShader crash.
-                                        val artworkBackdrop = rememberBackdrop()
+                                        val artworkBackdrop = rememberBackdrop(Color.Black)
                                         Box(
                                             modifier =
                                                 Modifier
@@ -347,8 +321,8 @@ fun AlbumScreen(
                                                             .memoryCacheKey(uiState.thumbnail)
                                                             .crossfade(false)
                                                             .build(),
-                                                    placeholder = painterResource(Res.drawable.holder),
-                                                    error = painterResource(Res.drawable.holder),
+                                                    placeholder = rememberHolderPainter(),
+                                                    error = rememberHolderPainter(),
                                                     contentDescription = null,
                                                     contentScale = ContentScale.Crop,
                                                     onSuccess = {
@@ -359,22 +333,16 @@ fun AlbumScreen(
                                                 // Subtle bottom gradient — keeps artwork visible behind
                                                 // the title text and blends artwork edge seamlessly into
                                                 // the muted palette page background (Apple Music style).
+                                                // Spans 70% of the artwork (not a fixed 200dp): the shorter
+                                                // the ramp, the steeper the alpha, and a steep ramp is what
+                                                // makes the fade read as an edge.
                                                 Box(
                                                     modifier =
                                                         Modifier
                                                             .fillMaxWidth()
-                                                            .height(200.dp)
+                                                            .height((screenInfo.hDP * 0.35f).dp)
                                                             .align(Alignment.BottomCenter)
-                                                            .background(
-                                                                Brush.verticalGradient(
-                                                                    listOf(
-                                                                        Color.Transparent,
-                                                                        Color.Transparent,
-                                                                        mutedPaletteBg.copy(alpha = 0.5f),
-                                                                        mutedPaletteBg,
-                                                                    ),
-                                                                ),
-                                                            ),
+                                                            .background(artworkScrimBrush(mutedPaletteBg)),
                                                 )
                                                 // Title/artist/year overlay (centered horizontally like Apple Music)
                                                 Column(
@@ -427,13 +395,13 @@ fun AlbumScreen(
                                             // Back button — liquid glass effect (Kyant backdrop)
                                             LiquidGlassIconButton(
                                                 backdrop = artworkBackdrop,
-                                                resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                                imageVector = SimpIcons.ArrowBackIosNew,
                                                 modifier =
                                                     Modifier
-                                                    .align(Alignment.TopStart)
-                                                    .padding(12.dp)
-                                                    .windowInsetsPadding(WindowInsets.statusBars)
-                                                    .size(48.dp),
+                                                        .align(Alignment.TopStart)
+                                                        .padding(12.dp)
+                                                        .windowInsetsPadding(WindowInsets.statusBars)
+                                                        .size(48.dp),
                                             ) {
                                                 navController.navigateUp()
                                             }
@@ -464,7 +432,7 @@ fun AlbumScreen(
                                                     onClick = { albumBottomSheetShow = true },
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                                        imageVector = SimpIcons.MoreVert,
                                                         contentDescription = "More",
                                                         tint = Color.White,
                                                     )
@@ -481,8 +449,8 @@ fun AlbumScreen(
                                                     .diskCacheKey(uiState.thumbnail)
                                                     .crossfade(true)
                                                     .build(),
-                                            placeholder = painterResource(Res.drawable.holder),
-                                            error = painterResource(Res.drawable.holder),
+                                            placeholder = rememberHolderPainter(),
+                                            error = rememberHolderPainter(),
                                             contentDescription = null,
                                             contentScale = ContentScale.FillHeight,
                                             onSuccess = {
@@ -567,7 +535,7 @@ fun AlbumScreen(
                                                         contentAlignment = Alignment.Center,
                                                     ) {
                                                         Icon(
-                                                            imageVector = Icons.Rounded.Shuffle,
+                                                            imageVector = SimpIcons.Shuffle,
                                                             contentDescription = "Shuffle",
                                                             tint = Color.White,
                                                             modifier = Modifier.size(22.dp),
@@ -594,7 +562,7 @@ fun AlbumScreen(
                                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                                             Icon(
                                                                 imageVector =
-                                                                    if (isThisPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                                                                    if (isThisPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
                                                                 contentDescription = null,
                                                                 tint = Color.Black,
                                                                 modifier = Modifier.size(22.dp),
@@ -675,7 +643,7 @@ fun AlbumScreen(
                                                                         contentAlignment = Alignment.Center,
                                                                     ) {
                                                                         Icon(
-                                                                            painter = painterResource(Res.drawable.download_button),
+                                                                            imageVector = SimpIcons.DownloadForOffline,
                                                                             tint = Color.White,
                                                                             contentDescription = "Download",
                                                                             modifier = Modifier.size(22.dp),
@@ -698,7 +666,7 @@ fun AlbumScreen(
                                                     ) { isThisPlaying ->
                                                         if (isThisPlaying) {
                                                             RippleIconButton(
-                                                                resId = Res.drawable.baseline_pause_circle_24,
+                                                                imageVector = SimpIcons.PauseCircle,
                                                                 fillMaxSize = true,
                                                                 tint = seed,
                                                                 modifier = Modifier.size(48.dp),
@@ -707,7 +675,7 @@ fun AlbumScreen(
                                                             }
                                                         } else {
                                                             RippleIconButton(
-                                                                resId = Res.drawable.baseline_play_circle_24,
+                                                                imageVector = SimpIcons.PlayCircle,
                                                                 fillMaxSize = true,
                                                                 tint = seed,
                                                                 modifier = Modifier.size(48.dp),
@@ -776,7 +744,7 @@ fun AlbumScreen(
                                                             else -> {
                                                                 RippleIconButton(
                                                                     fillMaxSize = true,
-                                                                    resId = Res.drawable.download_button,
+                                                                    imageVector = SimpIcons.DownloadForOffline,
                                                                     modifier = Modifier.size(36.dp),
                                                                 ) {
                                                                     viewModel.downloadFullAlbum()
@@ -797,7 +765,7 @@ fun AlbumScreen(
                                                     RippleIconButton(
                                                         modifier =
                                                             Modifier.size(36.dp),
-                                                        resId = Res.drawable.baseline_shuffle_24,
+                                                        imageVector = SimpIcons.Shuffle,
                                                         fillMaxSize = true,
                                                     ) {
                                                         viewModel.shuffle()
@@ -844,6 +812,7 @@ fun AlbumScreen(
                         if (item != null) {
                             Column(modifier = Modifier.animateItem()) {
                                 SongFullWidthItems(
+                                    forceDark = true,
                                     isPlaying = item.videoId == playingVideoId,
                                     index = index,
                                     track = item,
@@ -890,6 +859,7 @@ fun AlbumScreen(
                                 ) {
                                     items(uiState.otherVersion) { album ->
                                         HomeItemContentPlaylist(
+                                            forceDark = true,
                                             onClick = {
                                                 navController.navigate(
                                                     AlbumDestination(
@@ -934,7 +904,7 @@ fun AlbumScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    Res.drawable.baseline_arrow_back_ios_new_24,
+                                    SimpIcons.ArrowBackIosNew,
                                     Modifier
                                         .size(32.dp),
                                     true,

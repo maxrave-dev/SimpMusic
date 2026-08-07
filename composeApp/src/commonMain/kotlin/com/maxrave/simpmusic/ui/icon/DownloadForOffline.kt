@@ -1,0 +1,96 @@
+package com.maxrave.simpmusic.ui.icon
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.unit.dp
+
+@Suppress("CheckReturnValue")
+val SimpIcons.DownloadForOffline: ImageVector
+  get() {
+    if (_DownloadForOffline != null) {
+      return _DownloadForOffline!!
+    }
+    _DownloadForOffline =
+      ImageVector.Builder(
+          name = "DownloadForOffline",
+          defaultWidth = 24.dp,
+          defaultHeight = 24.dp,
+          viewportWidth = 24f,
+          viewportHeight = 24f,
+        )
+        .apply {
+          path(
+            fill = SolidColor(Color.Black),
+            fillAlpha = 1f,
+            stroke = null,
+            strokeAlpha = 1f,
+            strokeLineWidth = 1f,
+            strokeLineCap = StrokeCap.Butt,
+            strokeLineJoin = StrokeJoin.Bevel,
+            strokeLineMiter = 1f,
+            pathFillType = PathFillType.Companion.NonZero,
+          ) {
+            moveTo(8f, 17f)
+            horizontalLineToRelative(8f)
+            quadToRelative(0.43f, 0f, 0.71f, -0.29f)
+            quadTo(17f, 16.43f, 17f, 16f)
+            reflectiveQuadTo(16.71f, 15.29f)
+            reflectiveQuadTo(16f, 15f)
+            horizontalLineTo(8f)
+            quadTo(7.58f, 15f, 7.29f, 15.29f)
+            reflectiveQuadTo(7f, 16f)
+            reflectiveQuadToRelative(0.29f, 0.71f)
+            reflectiveQuadTo(8f, 17f)
+            close()
+            moveToRelative(3f, -6.85f)
+            lineTo(10.1f, 9.27f)
+            quadTo(9.83f, 9f, 9.41f, 9f)
+            reflectiveQuadTo(8.7f, 9.3f)
+            quadTo(8.43f, 9.57f, 8.43f, 10f)
+            reflectiveQuadTo(8.7f, 10.7f)
+            lineToRelative(2.6f, 2.6f)
+            quadToRelative(0.3f, 0.3f, 0.7f, 0.3f)
+            reflectiveQuadToRelative(0.7f, -0.3f)
+            lineToRelative(2.6f, -2.6f)
+            quadToRelative(0.28f, -0.28f, 0.29f, -0.69f)
+            reflectiveQuadTo(15.3f, 9.3f)
+            quadTo(15.03f, 9.02f, 14.61f, 9.01f)
+            reflectiveQuadTo(13.9f, 9.27f)
+            lineTo(13f, 10.15f)
+            verticalLineTo(7f)
+            quadTo(13f, 6.57f, 12.71f, 6.29f)
+            reflectiveQuadTo(12f, 6f)
+            reflectiveQuadTo(11.29f, 6.29f)
+            reflectiveQuadTo(11f, 7f)
+            verticalLineToRelative(3.15f)
+            close()
+            moveTo(12f, 22f)
+            quadTo(9.93f, 22f, 8.1f, 21.21f)
+            quadTo(6.28f, 20.43f, 4.93f, 19.08f)
+            quadTo(3.58f, 17.73f, 2.79f, 15.9f)
+            reflectiveQuadTo(2f, 12f)
+            quadTo(2f, 9.92f, 2.79f, 8.1f)
+            quadTo(3.58f, 6.27f, 4.93f, 4.93f)
+            quadTo(6.28f, 3.57f, 8.1f, 2.79f)
+            quadTo(9.93f, 2f, 12f, 2f)
+            reflectiveQuadToRelative(3.9f, 0.79f)
+            reflectiveQuadToRelative(3.17f, 2.14f)
+            quadToRelative(1.35f, 1.35f, 2.14f, 3.17f)
+            quadTo(22f, 9.92f, 22f, 12f)
+            reflectiveQuadToRelative(-0.79f, 3.9f)
+            reflectiveQuadToRelative(-2.14f, 3.17f)
+            quadToRelative(-1.35f, 1.35f, -3.17f, 2.14f)
+            reflectiveQuadTo(12f, 22f)
+            close()
+          }
+        }
+        .build()
+    return _DownloadForOffline!!
+  }
+
+private var _DownloadForOffline: ImageVector? = null

@@ -27,6 +27,7 @@ import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.model.update.UpdateData
+import com.maxrave.domain.data.player.GenericCastState
 import com.maxrave.domain.extension.decodeHtmlEntities
 import com.maxrave.domain.extension.isSong
 import com.maxrave.domain.extension.isVideo
@@ -90,10 +91,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.getString
+import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.lastfm_login_failed
+import simpmusic.composeapp.generated.resources.login_success
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
@@ -160,14 +165,7 @@ class SharedViewModel(
 
     fun getQueueDataState() = mediaPlayerHandler.queueData
 
-    val blurBg: StateFlow<Boolean> =
-        dataStoreManager.blurPlayerBackground
-            .map { it == TRUE }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(500L),
-                initialValue = false,
-            )
+    val castState: StateFlow<GenericCastState> get() = mediaPlayerHandler.castState
 
     private var _controllerState =
         MutableStateFlow<ControlState>(
@@ -465,6 +463,32 @@ class SharedViewModel(
         _intent.value = intent
     }
 
+    /**
+     * Finishes a Last.fm login from the `wordbyword://lastfm-auth` callback.
+     *
+     * It lands here, and not on the login screen, because the callback arrives at the app rather
+     * than at any one screen: the user left for their browser, and the screen they left from may
+     * not even exist any more if the process was killed. Routing the token onwards through
+     * navigation would push a second copy of the login screen on top of the one already open.
+     *
+     * The screen learns it succeeded by watching the stored session key, not by being told.
+     */
+    fun completeLastfmLogin(token: String) {
+        if (token.isEmpty()) return
+        viewModelScope.launch {
+            val session = completeLogin(token)
+            if (session != null) {
+                dataStoreManager.setLastfmSession(
+                    sessionKey = session.sessionKey,
+                    username = session.username,
+                )
+                makeToast(getString(Res.string.login_success))
+            } else {
+                makeToast(getString(Res.string.lastfm_login_failed))
+            }
+        }
+    }
+
     fun showNotificationPermissionDialog() {
         _showNotificationPermissionDialog.value = true
     }
@@ -475,8 +499,6 @@ class SharedViewModel(
             putString("notification_permission_do_not_ask", "true")
         }
     }
-
-    fun blurFullscreenLyrics(): Boolean = runBlocking { dataStoreManager.blurFullscreenLyrics.first() == TRUE }
 
     private fun getLikeStatus(videoId: String?) {
         viewModelScope.launch {
@@ -825,8 +847,10 @@ class SharedViewModel(
 
                 is UIEvent.UpdateVolume -> {
                     val newVolume = uiEvent.newVolume
-                    dataStoreManager.setPlayerVolume(newVolume)
+                    // Apply to the player first: persisting to DataStore is a suspending disk write
+                    // and must not sit between the user's gesture and the audible change.
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.UpdateVolume(newVolume))
+                    dataStoreManager.setPlayerVolume(newVolume)
                 }
             }
         }
@@ -1701,6 +1725,30 @@ class SharedViewModel(
     fun getTranslucentBottomBar() = dataStoreManager.translucentBottomBar
 
     fun getEnableLiquidGlass() = dataStoreManager.enableLiquidGlass
+
+    fun getThemeMode() = dataStoreManager.themeMode
+
+    fun getThemeColorSource() = dataStoreManager.themeColorSource
+
+    fun getCustomThemeColor() = dataStoreManager.customThemeColor
+
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch {
+            dataStoreManager.setThemeMode(mode)
+        }
+    }
+
+    fun setThemeColorSource(source: String) {
+        viewModelScope.launch {
+            dataStoreManager.setThemeColorSource(source)
+        }
+    }
+
+    fun setCustomThemeColor(argbHex: String) {
+        viewModelScope.launch {
+            dataStoreManager.setCustomThemeColor(argbHex)
+        }
+    }
 
     private val _reloadDestination: MutableStateFlow<KClass<*>?> = MutableStateFlow(null)
     val reloadDestination: StateFlow<KClass<*>?> = _reloadDestination.asStateFlow()

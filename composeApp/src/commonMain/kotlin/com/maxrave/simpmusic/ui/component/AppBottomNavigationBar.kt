@@ -13,13 +13,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
@@ -60,16 +60,7 @@ fun AppBottomNavigationBar(
                 .wrapContentSize()
                 .then(
                     if (isTranslucentBackground) {
-                        Modifier.background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.5f),
-                                    Color.Black.copy(alpha = 0.8f),
-                                    Color.Black,
-                                ),
-                            ),
-                        )
+                        Modifier.background(artworkScrimBrush(MaterialTheme.colorScheme.surface))
                     } else {
                         Modifier
                     },
@@ -81,7 +72,7 @@ fun AppBottomNavigationBar(
                 if (isTranslucentBackground) {
                     Color.Transparent
                 } else {
-                    Color.Black
+                    MaterialTheme.colorScheme.surface
                 },
         ) {
             bottomNavScreens.forEach { screen ->
@@ -122,6 +113,12 @@ fun AppBottomNavigationBar(
                         )
                     },
                     icon = screen.icon,
+                    colors =
+                        NavigationBarItemDefaults.colors(
+                            indicatorColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            selectedIconColor = MaterialTheme.colorScheme.onSurface,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
                     modifier =
                         Modifier.windowInsetsPadding(
                             NavigationBarDefaults.windowInsets,
@@ -162,7 +159,7 @@ fun AppNavigationRail(
                 Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color.DarkGray),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(

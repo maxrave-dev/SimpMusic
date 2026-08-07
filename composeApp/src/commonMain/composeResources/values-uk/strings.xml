@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Song_and_artist_name">Композиція • %1$s</string>
-    <string name="playlist_and_author">Список відтворення• %1$s</string>
+    <string name="Song_and_artist_name">Трек • %1$s</string>
+    <string name="playlist_and_author">Плейлист • %1$s</string>
     <string name="album_and_artist_name">Альбом • %1$s</string>
-    <string name="subscribers">%1$s Підписників</string>
+    <string name="subscribers">%1$s підписників</string>
     <string name="year_and_category">%1$s • %2$s</string>
-    <string name="album_length">%1$s Треків  %2$s</string>
-    <string name="view_count">%1$s Переглядів</string>
+    <string name="album_length">%1$s треків  %2$s</string>
+    <string name="view_count">%s переглядів</string>
     <string name="clear_search_history">Очистити історію пошуку</string>
     <string name="liked">Вподобано</string>
     <string name="like">Вподобати</string>
@@ -352,6 +352,15 @@
     <string name="repeat_off">Вимкнути повторення</string>
     <string name="youtube_transcript">Розшифрування YouTube</string>
     <string name="user_interface">Оформлення</string>
+    <string name="theme">Тема</string>
+    <string name="theme_mode_system">Системна</string>
+    <string name="theme_mode_dark">Темна</string>
+    <string name="theme_mode_light">Світла</string>
+    <string name="theme_color">Колір теми</string>
+    <string name="theme_color_default">Стандартний</string>
+    <string name="theme_color_wallpaper">Шпалери</string>
+    <string name="theme_color_custom">Власний</string>
+    <string name="custom_color">Власний колір</string>
     <string name="translucent_bottom_navigation_bar">Напівпрозора нижня панель навігації</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Ви можете побачити вміст під нижньою панеллю</string>
     <string name="donation">Якщо ви оцінили мою роботу, дайте мені на каву</string>
@@ -397,14 +406,10 @@
     <string name="do_not_show_again">Більше не показувати</string>
     <string name="auto_check_for_update">Автоматично перевіряти оновлення</string>
     <string name="auto_check_for_update_description">Перевірка наявності оновлень, коли ви відкриєте застосунок</string>
-    <string name="blur_fullscreen_lyrics">Ефект розмиття екрана тексту пісень</string>
-    <string name="blur_fullscreen_lyrics_description">Розмиття фону в повноекранному перегляді текстів пісень</string>
     <string name="playback_speed_pitch"><![CDATA[Швидкість відтворення та висота тону]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Швидкість відтворення та висота тону (вимкнено, коли ввімкнено кросфейд)]]></string>
     <string name="playback_speed">Швидкість відтворення</string>
     <string name="pitch">Тон</string>
-    <string name="blur_player_background">Розмити фон плеєра</string>
-    <string name="blur_player_background_description">Розмиття фону екрана, що зараз відтворюється</string>
     <string name="merging_audio_and_video">Об'єднання аудіо та відео</string>
     <string name="error_occurred">Сталася помилка</string>
     <string name="downloading_audio">Завантаження аудіо: %1$s </string>
@@ -543,6 +548,8 @@
     <string name="quit_app">Вийти</string>
     <string name="local_tracking_title">Локальне відстеження історії прослуховування</string>
     <string name="local_tracking_description">Запис історії прослуховування в локальну базу даних</string>
+    <string name="blog_notification_title">Сповіщення про публікації в блозі</string>
+    <string name="blog_notification_description">Отримуйте сповіщення про публікацію нової публікації в блозі</string>
     <string name="simpmusic_charts">Чарти SimpMusic</string>
     <string name="crossfading">Кроссфейдинг</string>
     <string name="your_320kbps_url">Ваша URL-адреса 320 Кбіт/с</string>
@@ -552,4 +559,7 @@
     <string name="bpm">BPM</string>
     <string name="key">Ключ</string>
     <string name="scale">Масштаб</string>
+    <string name="home_offline_title">Помилка підключення</string>
+    <string name="home_offline_subtitle">Перевірте підключення до Інтернету і повторіть спробу, або слухайте вашу завантажену музику.</string>
+    <string name="listen_to_downloaded">Слухати завантажену музику</string>
 </resources>

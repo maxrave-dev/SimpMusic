@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,9 +37,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -47,6 +45,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -72,6 +71,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -82,6 +82,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -100,10 +101,12 @@ import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
+import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
@@ -115,15 +118,22 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Error
+import com.maxrave.simpmusic.ui.icon.PeopleAlt
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
-import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.ui.theme.white
 import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.viewModel.ImportViewModel
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -176,15 +186,9 @@ import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
 import simpmusic.composeapp.generated.resources.backup_frequency
 import simpmusic.composeapp.generated.resources.balance_media_loudness
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_close_24
-import simpmusic.composeapp.generated.resources.baseline_people_alt_24
-import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
 import simpmusic.composeapp.generated.resources.better_lyrics
-import simpmusic.composeapp.generated.resources.blur_fullscreen_lyrics
-import simpmusic.composeapp.generated.resources.blur_fullscreen_lyrics_description
-import simpmusic.composeapp.generated.resources.blur_player_background
-import simpmusic.composeapp.generated.resources.blur_player_background_description
+import simpmusic.composeapp.generated.resources.blog_notification_description
+import simpmusic.composeapp.generated.resources.blog_notification_title
 import simpmusic.composeapp.generated.resources.buy_me_a_coffee
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.canvas_info
@@ -209,6 +213,7 @@ import simpmusic.composeapp.generated.resources.crossfade_dj_mode
 import simpmusic.composeapp.generated.resources.crossfade_dj_mode_description
 import simpmusic.composeapp.generated.resources.crossfade_duration
 import simpmusic.composeapp.generated.resources.custom_ai_model_id
+import simpmusic.composeapp.generated.resources.custom_color
 import simpmusic.composeapp.generated.resources.custom_model_id_messages
 import simpmusic.composeapp.generated.resources.daily
 import simpmusic.composeapp.generated.resources.database
@@ -232,7 +237,21 @@ import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
 import simpmusic.composeapp.generated.resources.http
+import simpmusic.composeapp.generated.resources.import_data
+import simpmusic.composeapp.generated.resources.import_data_intro
+import simpmusic.composeapp.generated.resources.import_failed
+import simpmusic.composeapp.generated.resources.import_playlists_from_other_apps
+import simpmusic.composeapp.generated.resources.import_progress_songs
+import simpmusic.composeapp.generated.resources.import_reading_file
+import simpmusic.composeapp.generated.resources.import_result
+import simpmusic.composeapp.generated.resources.import_result_skipped
+import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.intro_login_to_discord
+import simpmusic.composeapp.generated.resources.intro_login_to_lastfm
+import simpmusic.composeapp.generated.resources.lastfm_integration
+import simpmusic.composeapp.generated.resources.log_in_to_lastfm
+import simpmusic.composeapp.generated.resources.logged_in_as
+import simpmusic.composeapp.generated.resources.scrobbling_info
 import simpmusic.composeapp.generated.resources.intro_login_to_spotify
 import simpmusic.composeapp.generated.resources.invalid
 import simpmusic.composeapp.generated.resources.invalid_api_key
@@ -256,6 +275,9 @@ import simpmusic.composeapp.generated.resources.local_tracking_title
 import simpmusic.composeapp.generated.resources.log_in_to_discord
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
 import simpmusic.composeapp.generated.resources.log_out
+import simpmusic.composeapp.generated.resources.log_out_from_discord
+import simpmusic.composeapp.generated.resources.log_out_from_lastfm
+import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.lrclib
@@ -267,6 +289,8 @@ import simpmusic.composeapp.generated.resources.monthly
 import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
+import simpmusic.composeapp.generated.resources.not_available_while_casting
+import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
@@ -313,6 +337,14 @@ import simpmusic.composeapp.generated.resources.spotify_canvas_cache
 import simpmusic.composeapp.generated.resources.spotify_lyrícs_info
 import simpmusic.composeapp.generated.resources.storage
 import simpmusic.composeapp.generated.resources.such_as_music_video_lyrics_video_podcasts_and_more
+import simpmusic.composeapp.generated.resources.theme
+import simpmusic.composeapp.generated.resources.theme_color
+import simpmusic.composeapp.generated.resources.theme_color_custom
+import simpmusic.composeapp.generated.resources.theme_color_default
+import simpmusic.composeapp.generated.resources.theme_color_wallpaper
+import simpmusic.composeapp.generated.resources.theme_mode_dark
+import simpmusic.composeapp.generated.resources.theme_mode_light
+import simpmusic.composeapp.generated.resources.theme_mode_system
 import simpmusic.composeapp.generated.resources.third_party_libraries
 import simpmusic.composeapp.generated.resources.thumbnail_cache
 import simpmusic.composeapp.generated.resources.translation_language
@@ -395,10 +427,27 @@ fun SettingScreen(
             }
         }
 
+    // Import playlists converted on the web. Unlike restore, the file is read through Calf's
+    // KmpFile rather than a Uri, so no expect/actual is needed. The type stays All because a
+    // converted .json arrives with whatever MIME its source assigned it, and an application/json
+    // filter would hide it on some hosts.
+    val importViewModel: ImportViewModel = koinViewModel()
+    val importState by importViewModel.importState.collectAsStateWithLifecycle()
+    val importLauncher =
+        rememberFilePickerLauncher(
+            type =
+                FilePickerFileType.All,
+            selectionMode = FilePickerSelectionMode.Single,
+        ) { file ->
+            file.firstOrNull()?.let {
+                importViewModel.import(it, pl)
+            }
+        }
+
     // Open equalizer
     val resultLauncher = openEqResult(viewModel.getAudioSessionId())
 
-    val enableTranslucentNavBar by viewModel.translucentBottomBar.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val enableTranslucentNavBar by remember { viewModel.translucentBottomBar.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
@@ -406,21 +455,22 @@ fun SettingScreen(
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
     val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val blogNotificationEnabled by viewModel.blogNotificationEnabled.collectAsStateWithLifecycle()
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
-    val playVideo by viewModel.playVideoInsteadOfAudio.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val playVideo by remember { viewModel.playVideoInsteadOfAudio.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val videoQuality by viewModel.videoQuality.collectAsStateWithLifecycle()
-    val sendData by viewModel.sendBackToGoogle.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
-    val normalizeVolume by viewModel.normalizeVolume.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
-    val skipSilent by viewModel.skipSilent.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
-    val savePlaybackState by viewModel.savedPlaybackState.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
-    val saveLastPlayed by viewModel.saveRecentSongAndQueue.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
-    val killServiceOnExit by viewModel.killServiceOnExit.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = true)
+    val sendData by remember { viewModel.sendBackToGoogle.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val normalizeVolume by remember { viewModel.normalizeVolume.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val skipSilent by remember { viewModel.skipSilent.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val savePlaybackState by remember { viewModel.savedPlaybackState.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val saveLastPlayed by remember { viewModel.saveRecentSongAndQueue.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val killServiceOnExit by remember { viewModel.killServiceOnExit.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = true)
     val mainLyricsProvider by viewModel.mainLyricsProvider.collectAsStateWithLifecycle()
     val youtubeSubtitleLanguage by viewModel.youtubeSubtitleLanguage.collectAsStateWithLifecycle()
     val spotifyLoggedIn by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
     val spotifyCanvas by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
-    val enableSponsorBlock by viewModel.sponsorBlockEnabled.map { it == TRUE }.collectAsStateWithLifecycle(initialValue = false)
+    val enableSponsorBlock by remember { viewModel.sponsorBlockEnabled.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val skipSegments by viewModel.sponsorBlockCategories.collectAsStateWithLifecycle()
     val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
     val downloadedCache by viewModel.downloadedCacheSize.collectAsStateWithLifecycle()
@@ -437,8 +487,6 @@ fun SettingScreen(
     val proxyUsername by viewModel.proxyUsername.collectAsStateWithLifecycle()
     val proxyPassword by viewModel.proxyPassword.collectAsStateWithLifecycle()
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
-    val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
-    val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
@@ -455,13 +503,21 @@ fun SettingScreen(
     val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
     val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
+    val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
+    val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
+    val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
+    val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
+    val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
+    val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
     val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
 
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
     val crossfadeDjMode by viewModel.crossfadeDjMode.collectAsStateWithLifecycle()
+    val castState by viewModel.castState.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
@@ -517,24 +573,83 @@ fun SettingScreen(
         item(key = "user_interface") {
             Column {
                 Spacer(Modifier.height(16.dp))
-                Text(text = stringResource(Res.string.user_interface), style = typo().labelMedium, color = white)
+                Text(text = stringResource(Res.string.user_interface), style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
+                val themeModeLabels =
+                    listOf(
+                        DataStoreManager.THEME_MODE_SYSTEM to stringResource(Res.string.theme_mode_system),
+                        DataStoreManager.THEME_MODE_DARK to stringResource(Res.string.theme_mode_dark),
+                        DataStoreManager.THEME_MODE_LIGHT to stringResource(Res.string.theme_mode_light),
+                    )
+                SettingItem(
+                    title = stringResource(Res.string.theme),
+                    subtitle = themeModeLabels.firstOrNull { it.first == themeMode }?.second ?: "",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.theme) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect = themeModeLabels.map { (it.first == themeMode) to it.second },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        val selected = state.selectOne?.getSelected()
+                                        themeModeLabels.firstOrNull { it.second == selected }?.first?.let {
+                                            sharedViewModel.setThemeMode(it)
+                                        }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                val colorSourceLabels =
+                    buildList {
+                        add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))
+                        if (isWallpaperDynamicColorSupported()) {
+                            add(DataStoreManager.THEME_COLOR_WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
+                        }
+                        add(DataStoreManager.THEME_COLOR_CUSTOM to stringResource(Res.string.theme_color_custom))
+                    }
+                SettingItem(
+                    title = stringResource(Res.string.theme_color),
+                    subtitle = colorSourceLabels.firstOrNull { it.first == themeColorSource }?.second ?: "",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.theme_color) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect = colorSourceLabels.map { (it.first == themeColorSource) to it.second },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        val selected = state.selectOne?.getSelected()
+                                        colorSourceLabels.firstOrNull { it.second == selected }?.first?.let {
+                                            sharedViewModel.setThemeColorSource(it)
+                                            if (it == DataStoreManager.THEME_COLOR_CUSTOM) {
+                                                showColorPickerDialog = true
+                                            }
+                                        }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
+                    SettingItem(
+                        title = stringResource(Res.string.custom_color),
+                        subtitle = "#${customThemeColorHex.takeLast(6)}",
+                        smallSubtitle = true,
+                        onClick = { showColorPickerDialog = true },
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.translucent_bottom_navigation_bar),
                     subtitle = stringResource(Res.string.you_can_see_the_content_below_the_bottom_bar),
                     smallSubtitle = true,
                     switch = (enableTranslucentNavBar to { viewModel.setTranslucentBottomBar(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.blur_fullscreen_lyrics),
-                    subtitle = stringResource(Res.string.blur_fullscreen_lyrics_description),
-                    smallSubtitle = true,
-                    switch = (blurFullscreenLyrics to { viewModel.setBlurFullscreenLyrics(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.blur_player_background),
-                    subtitle = stringResource(Res.string.blur_player_background_description),
-                    smallSubtitle = true,
-                    switch = (blurPlayerBackground to { viewModel.setBlurPlayerBackground(it) }),
                 )
                 if (getPlatform() == Platform.Android) {
                     SettingItem(
@@ -552,7 +667,7 @@ fun SettingScreen(
                 Text(
                     text = stringResource(Res.string.content),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
@@ -932,7 +1047,7 @@ fun SettingScreen(
                     Text(
                         text = stringResource(Res.string.audio),
                         style = typo().labelMedium,
-                        color = white,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(vertical = 8.dp),
                     )
                     SettingItem(
@@ -947,7 +1062,13 @@ fun SettingScreen(
                     )
                     SettingItem(
                         title = stringResource(Res.string.open_system_equalizer),
-                        subtitle = stringResource(Res.string.use_your_system_equalizer),
+                        subtitle =
+                            if (castState.isRemote) {
+                                stringResource(Res.string.not_available_while_casting)
+                            } else {
+                                stringResource(Res.string.use_your_system_equalizer)
+                            },
+                        isEnable = !castState.isRemote,
                         onClick = {
                             coroutineScope.launch {
                                 resultLauncher.launch()
@@ -962,7 +1083,7 @@ fun SettingScreen(
                 Text(
                     text = stringResource(Res.string.playback),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
@@ -994,20 +1115,29 @@ fun SettingScreen(
             Column {
                 SettingItem(
                     title = stringResource(Res.string.crossfade),
-                    subtitle = stringResource(Res.string.crossfade_description),
+                    subtitle =
+                        if (castState.isRemote) {
+                            stringResource(Res.string.not_available_while_casting)
+                        } else {
+                            stringResource(Res.string.crossfade_description)
+                        },
                     smallSubtitle = true,
                     switch = (crossfadeEnabled to { viewModel.setCrossfadeEnabled(it) }),
+                    isEnable = !castState.isRemote,
                 )
                 AnimatedVisibility(visible = crossfadeEnabled) {
                     Column {
                         SettingItem(
                             title = stringResource(Res.string.crossfade_duration),
                             subtitle =
-                                if (crossfadeDuration == DataStoreManager.CROSSFADE_DURATION_AUTO) {
+                                if (castState.isRemote) {
+                                    stringResource(Res.string.not_available_while_casting)
+                                } else if (crossfadeDuration == DataStoreManager.CROSSFADE_DURATION_AUTO) {
                                     stringResource(Res.string.crossfade_auto)
                                 } else {
                                     "${crossfadeDuration / 1000}s"
                                 },
+                            isEnable = !castState.isRemote,
                             onClick = {
                                 viewModel.setAlertData(
                                     SettingAlertState(
@@ -1059,14 +1189,20 @@ fun SettingScreen(
                                 )
                             },
                         )
-                        if (getPlatform() == Platform.Android) {
-                            SettingItem(
-                                title = stringResource(Res.string.crossfade_dj_mode),
-                                subtitle = stringResource(Res.string.crossfade_dj_mode_description),
-                                smallSubtitle = true,
-                                switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
-                            )
-                        }
+//                        if (getPlatform() == Platform.Android) {
+                        SettingItem(
+                            title = stringResource(Res.string.crossfade_dj_mode),
+                            subtitle =
+                                if (castState.isRemote) {
+                                    stringResource(Res.string.not_available_while_casting)
+                                } else {
+                                    stringResource(Res.string.crossfade_dj_mode_description)
+                                },
+                            smallSubtitle = true,
+                            switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
+                            isEnable = !castState.isRemote,
+                        )
+//                        }
                     }
                 }
             }
@@ -1076,7 +1212,7 @@ fun SettingScreen(
                 Text(
                     text = stringResource(Res.string.lyrics),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
@@ -1239,7 +1375,12 @@ fun SettingScreen(
         }
         item(key = "AI") {
             Column {
-                Text(text = stringResource(Res.string.ai), style = typo().labelMedium, color = white, modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = stringResource(Res.string.ai),
+                    style = typo().labelMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
                 SettingItem(
                     title = stringResource(Res.string.ai_provider),
                     subtitle =
@@ -1418,11 +1559,18 @@ fun SettingScreen(
                 Text(
                     text = stringResource(Res.string.spotify),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
-                    title = stringResource(Res.string.log_in_to_spotify),
+                    // The title follows the state: a row that still reads "Log in" while logged in
+                    // gives no clue that tapping it signs you out.
+                    title =
+                        if (spotifyLoggedIn) {
+                            stringResource(Res.string.log_out_from_spotify)
+                        } else {
+                            stringResource(Res.string.log_in_to_spotify)
+                        },
                     subtitle =
                         if (spotifyLoggedIn) {
                             stringResource(Res.string.logged_in)
@@ -1431,7 +1579,9 @@ fun SettingScreen(
                         },
                     onClick = {
                         if (spotifyLoggedIn) {
-                            viewModel.setSpotifyLogIn(false)
+                            viewModel.confirmLogOut(
+                                confirmLabel = runBlocking { getString(Res.string.log_out_from_spotify) },
+                            ) { viewModel.setSpotifyLogIn(false) }
                         } else {
                             navController.navigate(SpotifyLoginDestination)
                         }
@@ -1466,11 +1616,16 @@ fun SettingScreen(
                 Text(
                     text = stringResource(Res.string.discord_integration),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
-                    title = stringResource(Res.string.log_in_to_discord),
+                    title =
+                        if (discordLoggedIn) {
+                            stringResource(Res.string.log_out_from_discord)
+                        } else {
+                            stringResource(Res.string.log_in_to_discord)
+                        },
                     subtitle =
                         if (discordLoggedIn) {
                             stringResource(Res.string.logged_in)
@@ -1479,7 +1634,9 @@ fun SettingScreen(
                         },
                     onClick = {
                         if (discordLoggedIn) {
-                            viewModel.logOutDiscord()
+                            viewModel.confirmLogOut(
+                                confirmLabel = runBlocking { getString(Res.string.log_out_from_discord) },
+                            ) { viewModel.logOutDiscord() }
                         } else {
                             navController.navigate(DiscordLoginDestination)
                         }
@@ -1498,12 +1655,60 @@ fun SettingScreen(
                 )
             }
         }
+        // Hidden entirely when the build carries no Last.fm credentials — a FOSS build, or a full
+        // build whose local.properties has no key.
+        if (viewModel.lastfmAvailable) {
+            item(key = "lastfm") {
+                Column {
+                    Text(
+                        text = stringResource(Res.string.lastfm_integration),
+                        style = typo().labelMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                    SettingItem(
+                        title =
+                            if (lastfmLoggedIn) {
+                                stringResource(Res.string.log_out_from_lastfm)
+                            } else {
+                                stringResource(Res.string.log_in_to_lastfm)
+                            },
+                        subtitle =
+                            if (lastfmLoggedIn) {
+                                stringResource(Res.string.logged_in_as, lastfmUsername)
+                            } else {
+                                stringResource(Res.string.intro_login_to_lastfm)
+                            },
+                        onClick = {
+                            if (lastfmLoggedIn) {
+                                viewModel.confirmLogOut(
+                                    confirmLabel = runBlocking { getString(Res.string.log_out_from_lastfm) },
+                                ) { viewModel.logOutLastfm() }
+                            } else {
+                                navController.navigate(LastfmLoginDestination)
+                            }
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.enable_scrobbling),
+                        subtitle = stringResource(Res.string.scrobbling_info),
+                        switch = (lastfmScrobbleEnabled to { viewModel.setLastfmScrobbleEnabled(it) }),
+                        isEnable = lastfmLoggedIn,
+                        onDisable = {
+                            if (lastfmScrobbleEnabled) {
+                                viewModel.setLastfmScrobbleEnabled(false)
+                            }
+                        },
+                    )
+                }
+            }
+        }
         item(key = "sponsor_block") {
             Column {
                 Text(
                     text = stringResource(Res.string.sponsorBlock),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
@@ -1563,7 +1768,7 @@ fun SettingScreen(
                         withLink(
                             LinkAnnotation.Url(
                                 "https://sponsor.ajay.app/",
-                                TextLinkStyles(style = SpanStyle(color = md_theme_dark_primary)),
+                                TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                             ),
                         ) {
                             append("https://sponsor.ajay.app/")
@@ -1581,7 +1786,7 @@ fun SettingScreen(
                     Text(
                         text = stringResource(Res.string.storage),
                         style = typo().labelMedium,
-                        color = white,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(vertical = 8.dp),
                     )
                     SettingItem(
@@ -1892,7 +2097,7 @@ fun SettingScreen(
                 Text(
                     text = stringResource(Res.string.backup),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
@@ -2025,6 +2230,33 @@ fun SettingScreen(
                         }
                     },
                 )
+                SettingItem(
+                    title = stringResource(Res.string.import_data),
+                    subtitle = stringResource(Res.string.import_playlists_from_other_apps),
+                    onClick = {
+                        coroutineScope.launch {
+                            importLauncher.launch()
+                        }
+                    },
+                )
+                val beforeUrl = stringResource(Res.string.import_data_intro).substringBefore("https://www.simpmusic.org/tools")
+                val afterUrl = stringResource(Res.string.import_data_intro).substringAfter("https://www.simpmusic.org/tools")
+                Text(
+                    buildAnnotatedString {
+                        append(beforeUrl)
+                        withLink(
+                            LinkAnnotation.Url(
+                                "https://www.simpmusic.org/tools",
+                                TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                            ),
+                        ) {
+                            append("https://www.simpmusic.org/tools")
+                        }
+                        append(afterUrl)
+                    },
+                    style = typo().bodySmall,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                )
             }
         }
         item(key = "about_us") {
@@ -2032,7 +2264,7 @@ fun SettingScreen(
                 Text(
                     text = stringResource(Res.string.about_us),
                     style = typo().labelMedium,
-                    color = white,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
                 SettingItem(
@@ -2103,6 +2335,13 @@ fun SettingScreen(
                         uriHandler.openUri("https://maxrave.dev")
                     },
                 )
+                if (getPlatform() == Platform.Android) {
+                    SettingItem(
+                        title = stringResource(Res.string.blog_notification_title),
+                        subtitle = stringResource(Res.string.blog_notification_description),
+                        switch = (blogNotificationEnabled to { viewModel.setBlogNotificationEnabled(it) }),
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.buy_me_a_coffee),
                     subtitle = stringResource(Res.string.donation),
@@ -2122,6 +2361,12 @@ fun SettingScreen(
         item(key = "end") {
             EndOfPage()
         }
+    }
+    importState?.let { progress ->
+        ImportProgressDialog(
+            progress = progress,
+            onDismiss = importViewModel::dismiss,
+        )
     }
     val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
     if (basisAlertData != null) {
@@ -2160,6 +2405,80 @@ fun SettingScreen(
             },
         )
     }
+    if (showColorPickerDialog) {
+        val presetColors =
+            listOf(
+                "FF8ECAE6",
+                "FF4C82EF",
+                "FF9B72CF",
+                "FFEF6C9B",
+                "FFEF5350",
+                "FFF4A340",
+                "FFFFCA28",
+                "FF66BB6A",
+                "FF26A69A",
+                "FFBDBDBD",
+            )
+        var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
+        val parsedColor = parseThemeColorHex(pendingHex)
+        AlertDialog(
+            onDismissRequest = { showColorPickerDialog = false },
+            title = { Text(text = stringResource(Res.string.custom_color), style = typo().titleSmall) },
+            text = {
+                Column {
+                    presetColors.chunked(5).forEach { rowColors ->
+                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                            rowColors.forEach { hex ->
+                                val color = parseThemeColorHex(hex) ?: Color.Gray
+                                val isSelected = pendingHex.equals(hex.takeLast(6), ignoreCase = true)
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .padding(4.dp)
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(color)
+                                            .border(
+                                                width = if (isSelected) 3.dp else 0.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                                                shape = CircleShape,
+                                            ).clickable { pendingHex = hex.takeLast(6) },
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    TextField(
+                        value = pendingHex,
+                        onValueChange = { pendingHex = it.removePrefix("#").take(8).uppercase() },
+                        label = { Text("HEX") },
+                        prefix = { Text("#") },
+                        singleLine = true,
+                        isError = parsedColor == null,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = parsedColor != null,
+                    onClick = {
+                        parsedColor?.let {
+                            val argb = "FF${pendingHex.takeLast(6).uppercase()}"
+                            sharedViewModel.setCustomThemeColor(argb)
+                            sharedViewModel.setThemeColorSource(DataStoreManager.THEME_COLOR_CUSTOM)
+                        }
+                        showColorPickerDialog = false
+                    },
+                ) { Text(text = stringResource(Res.string.change)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showColorPickerDialog = false }) {
+                    Text(text = stringResource(Res.string.cancel))
+                }
+            },
+        )
+    }
     if (showYouTubeAccountDialog) {
         BasicAlertDialog(
             onDismissRequest = { },
@@ -2168,7 +2487,7 @@ fun SettingScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.large,
-                color = Color(0xFF242424),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 tonalElevation = AlertDialogDefaults.TonalElevation,
                 shadowElevation = 1.dp,
             ) {
@@ -2197,14 +2516,14 @@ fun SettingScreen(
                                 onClick = { showYouTubeAccountDialog = false },
                                 colors =
                                     IconButtonDefaults.iconButtonColors().copy(
-                                        contentColor = Color.White,
+                                        contentColor = MaterialTheme.colorScheme.onSurface,
                                     ),
                                 modifier =
                                     Modifier
                                         .align(Alignment.CenterStart)
                                         .fillMaxHeight(),
                             ) {
-                                Icon(Icons.Outlined.Close, null, tint = Color.White)
+                                Icon(SimpIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                             Text(
                                 stringResource(Res.string.youtube_account),
@@ -2250,8 +2569,8 @@ fun SettingScreen(
                                                 .data(it.thumbnailUrl)
                                                 .crossfade(550)
                                                 .build(),
-                                        placeholder = painterResource(Res.drawable.baseline_people_alt_24),
-                                        error = painterResource(Res.drawable.baseline_people_alt_24),
+                                        placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
+                                        error = rememberVectorPainter(SimpIcons.PeopleAlt),
                                         contentDescription = it.name,
                                         modifier =
                                             Modifier
@@ -2260,7 +2579,7 @@ fun SettingScreen(
                                     )
                                     Spacer(Modifier.width(12.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(it.name, style = typo().labelMedium, color = white)
+                                        Text(it.name, style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
                                         Text(it.email, style = typo().bodySmall)
                                     }
                                     Spacer(Modifier.width(12.dp))
@@ -2289,14 +2608,14 @@ fun SettingScreen(
                     item {
                         Column {
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_people_alt_24),
+                                icon = SimpIcons.PeopleAlt,
                                 text = Res.string.guest,
                             ) {
                                 viewModel.setUsedAccount(null)
                                 showYouTubeAccountDialog = false
                             }
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_close_24),
+                                icon = SimpIcons.Close,
                                 text = Res.string.log_out,
                             ) {
                                 viewModel.setBasicAlertData(
@@ -2313,7 +2632,7 @@ fun SettingScreen(
                                 )
                             }
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_playlist_add_24),
+                                icon = SimpIcons.PlaylistAdd,
                                 text = Res.string.add_an_account,
                             ) {
                                 showYouTubeAccountDialog = false
@@ -2365,13 +2684,13 @@ fun SettingScreen(
                                         Text(
                                             modifier = Modifier.fillMaxWidth(),
                                             text = verify.second ?: "",
-                                            color = DarkColors.error,
+                                            color = MaterialTheme.colorScheme.error,
                                         )
                                     }
                                 },
                                 trailingIcon = {
                                     if (!verify.first) {
-                                        Icons.Outlined.Error
+                                        SimpIcons.Error
                                     }
                                 },
                                 modifier =
@@ -2537,13 +2856,16 @@ fun SettingScreen(
             onDismissRequest = {
                 showThirdPartyLibraries = false
             },
-            containerColor = Color.Black,
+            containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = {},
-            scrimColor = Color.Black,
+            scrimColor = Color.Black.copy(alpha = .5f),
             sheetState = sheetState,
             contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
             shape = RectangleShape,
         ) {
+            // Capture theme colors here: the ChipColors getters below run outside composition.
+            val surfaceContainerHighestColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            val onSurfaceColor = MaterialTheme.colorScheme.onSurface
             LibrariesContainer(
                 libraries?.copy(
                     libraries =
@@ -2555,17 +2877,15 @@ fun SettingScreen(
                 ),
                 Modifier.fillMaxSize(),
                 lazyListState = lazyListState,
-                showDescription = true,
                 contentPadding = innerPadding,
-                typography = typo(),
                 colors =
                     LibraryDefaults.libraryColors(
                         licenseChipColors =
                             object : ChipColors {
                                 override val containerColor: Color
-                                    get() = Color.DarkGray
+                                    get() = surfaceContainerHighestColor
                                 override val contentColor: Color
-                                    get() = Color.White
+                                    get() = onSurfaceColor
                             },
                     ),
                 header = {
@@ -2584,10 +2904,11 @@ fun SettingScreen(
                             navigationIcon = {
                                 Box(Modifier.padding(horizontal = 5.dp)) {
                                     RippleIconButton(
-                                        Res.drawable.baseline_arrow_back_ios_new_24,
+                                        SimpIcons.ArrowBackIosNew,
                                         Modifier
                                             .size(32.dp),
                                         true,
+                                        tint = MaterialTheme.colorScheme.onSurface,
                                     ) {
                                         coroutineScope.launch {
                                             sheetState.hide()
@@ -2616,10 +2937,11 @@ fun SettingScreen(
         navigationIcon = {
             Box(Modifier.padding(horizontal = 5.dp)) {
                 RippleIconButton(
-                    Res.drawable.baseline_arrow_back_ios_new_24,
+                    SimpIcons.ArrowBackIosNew,
                     Modifier
                         .size(32.dp),
                     true,
+                    tint = MaterialTheme.colorScheme.onSurface,
                 ) {
                     navController.navigateUp()
                 }
@@ -2634,5 +2956,97 @@ fun SettingScreen(
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
             ),
+    )
+}
+
+/**
+ * Progress and outcome of a playlist import.
+ *
+ * Only dismissible once the import has finished — cancelling mid-write would leave the database
+ * half-populated with no way to tell the user which half.
+ */
+@Composable
+private fun ImportProgressDialog(
+    progress: ImportProgress,
+    onDismiss: () -> Unit,
+) {
+    val finished = progress is ImportProgress.Success || progress is ImportProgress.Error
+    AlertDialog(
+        onDismissRequest = { if (finished) onDismiss() },
+        properties =
+            DialogProperties(
+                dismissOnBackPress = finished,
+                dismissOnClickOutside = finished,
+            ),
+        title = {
+            Text(
+                text =
+                    stringResource(
+                        if (progress is ImportProgress.Error) Res.string.import_failed else Res.string.import_data,
+                    ),
+                style = typo().titleSmall,
+            )
+        },
+        text = {
+            Column {
+                when (progress) {
+                    is ImportProgress.Preparing -> {
+                        Text(
+                            text = stringResource(Res.string.import_reading_file),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    is ImportProgress.Importing -> {
+                        Text(
+                            text = stringResource(Res.string.import_progress_songs, progress.processed, progress.total),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(
+                            progress = {
+                                if (progress.total > 0) progress.processed.toFloat() / progress.total else 0f
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    is ImportProgress.Success -> {
+                        Text(
+                            text =
+                                stringResource(
+                                    Res.string.import_result,
+                                    progress.result.playlistsCreated,
+                                    progress.result.songsImported,
+                                ),
+                            style = typo().bodyMedium,
+                        )
+                        if (progress.result.skippedEntries > 0) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(Res.string.import_result_skipped, progress.result.skippedEntries),
+                                style = typo().bodySmall,
+                            )
+                        }
+                    }
+
+                    is ImportProgress.Error -> {
+                        Text(
+                            text = progress.message,
+                            style = typo().bodyMedium,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (finished) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = stringResource(Res.string.ok))
+                }
+            }
+        },
     )
 }

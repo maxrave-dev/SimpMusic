@@ -33,13 +33,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -63,18 +56,23 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.mediaservice.handler.ControlState
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.RichSyncLyricsLineItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.Favorite
+import com.maxrave.simpmusic.ui.icon.FavoriteBorder
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.SkipNext
+import com.maxrave.simpmusic.ui.icon.SkipPrevious
+import com.maxrave.simpmusic.ui.icon.VolumeOff
+import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_skip_next_24
-import simpmusic.composeapp.generated.resources.baseline_skip_previous_24
-import simpmusic.composeapp.generated.resources.holder
 
 @Composable
 private fun MiniPlayerSeekBar(
@@ -196,7 +194,7 @@ fun CompactMiniLayout(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RippleIconButton(
-                        resId = Res.drawable.baseline_skip_previous_24,
+                        imageVector = SimpIcons.SkipPrevious,
                         modifier = Modifier.size(28.dp),
                         tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                         onClick = {
@@ -213,7 +211,7 @@ fun CompactMiniLayout(
                     )
 
                     RippleIconButton(
-                        resId = Res.drawable.baseline_skip_next_24,
+                        imageVector = SimpIcons.SkipNext,
                         modifier = Modifier.size(28.dp),
                         tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                         onClick = {
@@ -281,8 +279,8 @@ fun MediumMiniLayout(
                     AsyncImage(
                         model = nowPlayingData.thumbnailURL,
                         contentDescription = "Album Art",
-                        placeholder = painterResource(Res.drawable.holder),
-                        error = painterResource(Res.drawable.holder),
+                        placeholder = rememberHolderPainter(),
+                        error = rememberHolderPainter(),
                         contentScale = ContentScale.Crop,
                         modifier =
                             Modifier
@@ -312,9 +310,9 @@ fun MediumMiniLayout(
                                 Icon(
                                     imageVector =
                                         if (controllerState.isLiked) {
-                                            Icons.Filled.Favorite
+                                            SimpIcons.Favorite
                                         } else {
-                                            Icons.Outlined.FavoriteBorder
+                                            SimpIcons.FavoriteBorder
                                         },
                                     contentDescription = "Like",
                                     tint =
@@ -329,7 +327,7 @@ fun MediumMiniLayout(
                         }
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_previous_24,
+                            imageVector = SimpIcons.SkipPrevious,
                             modifier = Modifier.size(28.dp),
                             tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                             onClick = {
@@ -346,7 +344,7 @@ fun MediumMiniLayout(
                         )
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_next_24,
+                            imageVector = SimpIcons.SkipNext,
                             modifier = Modifier.size(28.dp),
                             tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                             onClick = {
@@ -373,9 +371,9 @@ fun MediumMiniLayout(
                                 Icon(
                                     imageVector =
                                         if (controllerState.volume > 0f) {
-                                            Icons.AutoMirrored.Filled.VolumeUp
+                                            SimpIcons.VolumeUp
                                         } else {
-                                            Icons.AutoMirrored.Filled.VolumeOff
+                                            SimpIcons.VolumeOff
                                         },
                                     contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                     tint = Color.White.copy(alpha = 0.7f),
@@ -499,8 +497,8 @@ fun SquareMiniLayout(
             AsyncImage(
                 model = nowPlayingData.thumbnailURL,
                 contentDescription = "Album Art",
-                placeholder = painterResource(Res.drawable.holder),
-                error = painterResource(Res.drawable.holder),
+                placeholder = rememberHolderPainter(),
+                error = rememberHolderPainter(),
                 contentScale = ContentScale.Crop,
                 modifier =
                     Modifier
@@ -616,9 +614,9 @@ fun SquareMiniLayout(
                     Icon(
                         imageVector =
                             if (controllerState.isLiked) {
-                                Icons.Filled.Favorite
+                                SimpIcons.Favorite
                             } else {
-                                Icons.Outlined.FavoriteBorder
+                                SimpIcons.FavoriteBorder
                             },
                         contentDescription = "Like",
                         tint =
@@ -633,7 +631,7 @@ fun SquareMiniLayout(
 
                 // Previous
                 RippleIconButton(
-                    resId = Res.drawable.baseline_skip_previous_24,
+                    imageVector = SimpIcons.SkipPrevious,
                     modifier = Modifier.size(36.dp),
                     tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                     onClick = {
@@ -652,7 +650,7 @@ fun SquareMiniLayout(
 
                 // Next
                 RippleIconButton(
-                    resId = Res.drawable.baseline_skip_next_24,
+                    imageVector = SimpIcons.SkipNext,
                     modifier = Modifier.size(36.dp),
                     tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                     onClick = {
@@ -674,9 +672,9 @@ fun SquareMiniLayout(
                     Icon(
                         imageVector =
                             if (controllerState.volume > 0f) {
-                                Icons.AutoMirrored.Filled.VolumeUp
+                                SimpIcons.VolumeUp
                             } else {
-                                Icons.AutoMirrored.Filled.VolumeOff
+                                SimpIcons.VolumeOff
                             },
                         contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                         tint = Color.White.copy(alpha = 0.7f),
@@ -761,8 +759,8 @@ fun ExpandedMiniLayout(
                 AsyncImage(
                     model = nowPlayingData.thumbnailURL,
                     contentDescription = "Album Art",
-                    placeholder = painterResource(Res.drawable.holder),
-                    error = painterResource(Res.drawable.holder),
+                    placeholder = rememberHolderPainter(),
+                    error = rememberHolderPainter(),
                     contentScale = ContentScale.Crop,
                     modifier =
                         Modifier
@@ -814,9 +812,9 @@ fun ExpandedMiniLayout(
                             Icon(
                                 imageVector =
                                     if (controllerState.isLiked) {
-                                        Icons.Filled.Favorite
+                                        SimpIcons.Favorite
                                     } else {
-                                        Icons.Outlined.FavoriteBorder
+                                        SimpIcons.FavoriteBorder
                                     },
                                 contentDescription = "Like",
                                 tint =
@@ -830,7 +828,7 @@ fun ExpandedMiniLayout(
                         }
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_previous_24,
+                            imageVector = SimpIcons.SkipPrevious,
                             modifier = Modifier.size(28.dp),
                             tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                             onClick = {
@@ -849,7 +847,7 @@ fun ExpandedMiniLayout(
                         )
 
                         RippleIconButton(
-                            resId = Res.drawable.baseline_skip_next_24,
+                            imageVector = SimpIcons.SkipNext,
                             modifier = Modifier.size(32.dp),
                             tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                             onClick = {
@@ -871,9 +869,9 @@ fun ExpandedMiniLayout(
                             Icon(
                                 imageVector =
                                     if (controllerState.volume > 0f) {
-                                        Icons.AutoMirrored.Filled.VolumeUp
+                                        SimpIcons.VolumeUp
                                     } else {
-                                        Icons.AutoMirrored.Filled.VolumeOff
+                                        SimpIcons.VolumeOff
                                     },
                                 contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                 tint = Color.White.copy(alpha = 0.7f),

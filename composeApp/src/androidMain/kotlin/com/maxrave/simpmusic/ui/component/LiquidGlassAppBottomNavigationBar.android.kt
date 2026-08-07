@@ -50,6 +50,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
+import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -70,7 +71,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
     viewModel: SharedViewModel,
     isScrolledToTop: Boolean,
     onOpenNowPlaying: () -> Unit,
-    reloadDestinationIfNeeded: (KClass<*>) -> Unit
+    reloadDestinationIfNeeded: (KClass<*>) -> Unit,
 ) {
     val layer = rememberGraphicsLayer()
     val toolbarInteraction = rememberGlassInteraction()
@@ -221,11 +222,9 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 .fillMaxWidth()
                 .padding(
                     WindowInsets.navigationBars.asPaddingValues(),
-                )
-                .padding(
+                ).padding(
                     bottom = 8.dp,
-                )
-                .imePadding(),
+                ).imePadding(),
         animateChangesSpec = tween(300),
     ) {
         /**
@@ -256,13 +255,13 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         Modifier
                             .size(56.dp)
                             .drawInteractiveGlass(
+                                LocalIsDarkTheme.current,
                                 backdrop,
                                 layer,
                                 luminanceAnimation.value,
                                 CircleShape,
                                 searchFabInteraction,
-                            )
-                            .clickable { selectTab(BottomNavScreen.Search.ordinal) },
+                            ).clickable { selectTab(BottomNavScreen.Search.ordinal) },
                     contentAlignment = Alignment.Center,
                 ) {
                     BottomNavScreen.Search.icon()
@@ -275,13 +274,13 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         Modifier
                             .size(48.dp)
                             .drawInteractiveGlass(
+                                LocalIsDarkTheme.current,
                                 backdrop,
                                 layer,
                                 luminanceAnimation.value,
                                 CircleShape,
                                 toolbarInteraction,
-                            )
-                            .clickable { isExpanded = true },
+                            ).clickable { isExpanded = true },
                     contentAlignment = Alignment.Center,
                 ) {
                     selectedScreen.icon()

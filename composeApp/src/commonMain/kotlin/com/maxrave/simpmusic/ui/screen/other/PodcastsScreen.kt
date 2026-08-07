@@ -49,10 +49,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
@@ -71,6 +71,7 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -79,8 +80,12 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PodcastEpisodeFullWidthItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.PlayCircle
+import com.maxrave.simpmusic.ui.icon.Share
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.PodcastUIEvent
 import com.maxrave.simpmusic.viewModel.PodcastUIState
@@ -92,11 +97,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album_length
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_play_circle_24
-import simpmusic.composeapp.generated.resources.baseline_share_24
-import simpmusic.composeapp.generated.resources.baseline_shuffle_24
-import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.podcasts
 
@@ -128,7 +128,7 @@ fun PodcastScreen(
     }
 
     // Theo dõi gradient cho background
-    var gradientColors by remember { mutableStateOf(listOf(md_theme_dark_background, md_theme_dark_background)) }
+    var gradientColors by remember { mutableStateOf(listOf(Color.Black, Color.Black)) }
 
     val paletteState = rememberPaletteState()
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -144,7 +144,7 @@ fun PodcastScreen(
         snapshotFlow { paletteState.palette }
             .distinctUntilChanged()
             .collectLatest {
-                gradientColors = listOf(it.getColorFromPalette(), md_theme_dark_background)
+                gradientColors = listOf(it.getColorFromPalette(), Color.Black)
             }
     }
 
@@ -194,16 +194,7 @@ fun PodcastScreen(
                                             .fillMaxWidth()
                                             .height(180.dp)
                                             .align(Alignment.BottomCenter)
-                                            .background(
-                                                brush =
-                                                    Brush.verticalGradient(
-                                                        listOf(
-                                                            Color.Transparent,
-                                                            Color(0x75000000),
-                                                            Color.Black,
-                                                        ),
-                                                    ),
-                                            ),
+                                            .background(artworkScrimBrush(Color.Black)),
                                 )
                             }
                             Column(
@@ -217,7 +208,7 @@ fun PodcastScreen(
                                             .windowInsetsPadding(WindowInsets.statusBars),
                                 ) {
                                     RippleIconButton(
-                                        resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                        imageVector = SimpIcons.ArrowBackIosNew,
                                     ) {
                                         navController.navigateUp()
                                     }
@@ -234,8 +225,8 @@ fun PodcastScreen(
                                                 .diskCacheKey(data.thumbnail.lastOrNull()?.url)
                                                 .crossfade(true)
                                                 .build(),
-                                        placeholder = painterResource(Res.drawable.holder),
-                                        error = painterResource(Res.drawable.holder),
+                                        placeholder = rememberHolderPainter(),
+                                        error = rememberHolderPainter(),
                                         contentDescription = null,
                                         contentScale = ContentScale.FillHeight,
                                         onSuccess = {
@@ -275,8 +266,8 @@ fun PodcastScreen(
                                                                 .diskCacheKey(data.authorThumbnail)
                                                                 .crossfade(true)
                                                                 .build(),
-                                                        placeholder = painterResource(Res.drawable.holder),
-                                                        error = painterResource(Res.drawable.holder),
+                                                        placeholder = rememberHolderPainter(),
+                                                        error = rememberHolderPainter(),
                                                         contentDescription = null,
                                                         modifier =
                                                             Modifier
@@ -326,7 +317,7 @@ fun PodcastScreen(
                                             ) {
                                                 // Play button
                                                 RippleIconButton(
-                                                    resId = Res.drawable.baseline_play_circle_24,
+                                                    imageVector = SimpIcons.PlayCircle,
                                                     fillMaxSize = true,
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
@@ -352,7 +343,7 @@ fun PodcastScreen(
                                                 // Shuffle
                                                 RippleIconButton(
                                                     modifier = Modifier.size(36.dp),
-                                                    resId = Res.drawable.baseline_shuffle_24,
+                                                    imageVector = SimpIcons.Shuffle,
                                                     fillMaxSize = true,
                                                 ) {
                                                     viewModel.onUIEvent(PodcastUIEvent.Shuffle(id))
@@ -363,7 +354,7 @@ fun PodcastScreen(
                                                 // More options
                                                 RippleIconButton(
                                                     modifier = Modifier.size(36.dp),
-                                                    resId = Res.drawable.baseline_share_24,
+                                                    imageVector = SimpIcons.Share,
                                                     fillMaxSize = true,
                                                 ) {
                                                     viewModel.onUIEvent(PodcastUIEvent.Share(id))
@@ -454,7 +445,7 @@ fun PodcastScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    Res.drawable.baseline_arrow_back_ios_new_24,
+                                    SimpIcons.ArrowBackIosNew,
                                     Modifier.size(32.dp),
                                     true,
                                 ) {

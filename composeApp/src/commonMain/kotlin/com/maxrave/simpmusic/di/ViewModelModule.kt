@@ -4,6 +4,7 @@ import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel
+import com.maxrave.simpmusic.viewModel.ImportViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
@@ -40,6 +41,7 @@ val viewModelModule =
             SearchViewModel(
                 get(),
                 get(),
+                get(),
             )
         }
         viewModel {
@@ -68,6 +70,11 @@ val viewModelModule =
             )
         }
         viewModel {
+            ImportViewModel(
+                get(),
+            )
+        }
+        viewModel {
             AlbumViewModel(
                 get(),
                 get(),
@@ -90,6 +97,7 @@ val viewModelModule =
         }
         viewModel {
             ArtistViewModel(
+                get(),
                 get(),
                 get(),
             )

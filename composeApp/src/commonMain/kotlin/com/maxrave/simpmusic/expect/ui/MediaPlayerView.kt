@@ -10,6 +10,10 @@ import com.maxrave.domain.data.model.streams.TimeLine
 expect fun MediaPlayerView(
     url: String,
     modifier: Modifier,
+    // When true, the video center scales-to-cover the given frame (ContentScale.Crop)
+    // and clips the overflow. Default false keeps the legacy fit-height-by-screen
+    // behavior used by NowPlaying / Fullscreen.
+    cropToBounds: Boolean = false,
 )
 
 @Composable

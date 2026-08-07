@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Material Symbols Outlined "music_cast" (24dp, wght 400, ROND 50).
+
+  White fill rather than a theme attr: the only host is the Now Playing screen, which is
+  permanently dark, and MediaRouteButton renders this drawable straight from the view layer,
+  where the Compose colour scheme isn't in play.
+
+  The 0.9 group scale trims the glyph from 20x16 to ~18x14 so it carries the same optical margin
+  as the baseline_* icons it shares a row with (playlist_add measures 19x14 in the same viewport).
+  It has to be a group scale rather than a smaller drawable: MediaRouteButton draws with
+  scaleType=center and never rescales, so the drawable itself must stay 24dp to keep filling its
+  24dp box. The glyph is already centred on (12,12), so scaling about that pivot keeps it centred.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:scaleX="0.9"
+        android:scaleY="0.9">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M11.18,18.83Q10,17.65 10,16t1.18-2.83T14,12q0.58,0 1.06,0.14T16,12.55V4h6V7H18v9q0,1.65-1.18,2.82T14,20t-2.82-1.18ZM2,16q0-2.48 0.95-4.66T5.53,7.52T9.34,4.95T14,4V6q-2.05,0-3.88,0.79T6.94,8.94Q5.58,10.3 4.79,12.11T4,16H2Zm4,0q0-1.65 0.64-3.11t1.73-2.55T10.9,8.63T14,8v2q-2.5,0-4.25,1.75T8,16H6Z" />
+    </group>
+</vector>

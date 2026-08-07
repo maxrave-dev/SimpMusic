@@ -1,0 +1,5 @@
+- Add a toggle in About settings to turn blog post notifications on or off
+- Desktop: fix an app crash that broke all text rendering
+- Desktop: fix Canvas and video rendering see-through to the desktop
+- Desktop: fix Lottie animations crashing the app
+- Linux: fix the desktop icon and app name

@@ -122,4 +122,71 @@ object NotificationHandler {
             notificationManager.createNotificationChannel(channel)
         }
     }
+
+    private const val BLOG_CHANNEL_ID = "blog_updates_channel"
+
+    /**
+     * Separate channel so users can silence blog updates without affecting artist-release
+     * notifications.
+     */
+    fun createBlogNotificationChannel(context: Context) {
+        val notificationManager: NotificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.getNotificationChannel(BLOG_CHANNEL_ID) == null) {
+            val channel =
+                NotificationChannel(
+                    BLOG_CHANNEL_ID,
+                    "Blog updates",
+                    NotificationManager.IMPORTANCE_DEFAULT,
+                ).apply {
+                    description = "Notifies when a new blog post is published"
+                }
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    /**
+     * Posts a local notification for a new blog post. Tapping opens [url] in the browser
+     * (ACTION_VIEW). No image is loaded — the feed carries no per-item thumbnail.
+     * The notification id is derived from [url] so the same post never stacks duplicates.
+     */
+    fun createBlogNotification(
+        context: Context,
+        title: String,
+        text: String?,
+        url: String,
+    ) {
+        val action =
+            Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+        val pendingIntent =
+            PendingIntent.getActivity(
+                context,
+                url.hashCode(),
+                action,
+                PendingIntent.FLAG_IMMUTABLE,
+            )
+        val builder =
+            NotificationCompat
+                .Builder(context, BLOG_CHANNEL_ID)
+                .setSmallIcon(R.drawable.mono)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        with(NotificationManagerCompat.from(context)) {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS,
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            notify(url.hashCode(), builder.build())
+        }
+    }
 }

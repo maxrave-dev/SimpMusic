@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -58,18 +57,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.filled.SubtitlesOff
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Forward5
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.Replay5
-import androidx.compose.material.icons.rounded.ThumbsUpDown
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -107,7 +94,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -119,6 +108,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -139,6 +129,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.expect.ui.PlatformCastButton
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
@@ -150,6 +141,7 @@ import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
@@ -164,10 +156,24 @@ import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.AddCircleOutline
+import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.Forward5
+import com.maxrave.simpmusic.ui.icon.Fullscreen
+import com.maxrave.simpmusic.ui.icon.Info
+import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.Replay5
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Subtitles
+import com.maxrave.simpmusic.ui.icon.SubtitlesOff
+import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
@@ -175,11 +181,6 @@ import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.CupertinoMaterials
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -191,13 +192,8 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
-import simpmusic.composeapp.generated.resources.holder
-import simpmusic.composeapp.generated.resources.holder_video
 import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.line_synced
 import simpmusic.composeapp.generated.resources.lyrics
@@ -207,6 +203,7 @@ import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
 import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.offline_mode
+import simpmusic.composeapp.generated.resources.playing_on_device
 import simpmusic.composeapp.generated.resources.published_at
 import simpmusic.composeapp.generated.resources.rate_lyrics
 import simpmusic.composeapp.generated.resources.rich_synced
@@ -218,8 +215,22 @@ import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
 private val RICH_SYNC_TIMESTAMP_REGEX = Regex("""<\d{2}:\d{2}\.\d{2,3}>\s*""")
+private val WHITESPACE_REGEX = Regex("""\s+""")
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
+// Word-by-word lyrics carry a timestamp per word; replace each with a space
+// (not ""), then collapse — otherwise the words run together.
+private fun String.stripRichSyncTimestamps(): String =
+    replace(RICH_SYNC_TIMESTAMP_REGEX, " ")
+        .replace(WHITESPACE_REGEX, " ")
+        .trim()
+
+// Backdrop behind the player. A dark surface rather than pure black: #000000 reads as a hole
+// next to the artwork-tinted gradient and cards, which is why Spotify sits its player on a
+// near-black surface instead. Used for the gradient's end colour, the fade-to target and the
+// area below the gradient so all three match exactly and leave no seam.
+private val PlayerBackdropColor = Color(0xFF121212)
+
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun NowPlayingScreen(
@@ -249,7 +260,7 @@ fun NowPlayingScreen(
         },
         containerColor = Color.Black,
         dragHandle = {},
-        scrimColor = Color.Black,
+        scrimColor = Color.Black.copy(alpha = .5f),
         sheetState = sheetState,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         shape = RectangleShape,
@@ -258,7 +269,7 @@ fun NowPlayingScreen(
             sharedViewModel = sharedViewModel,
             navController = navController,
             isExpanded = sheetState.currentValue == SheetValue.Expanded,
-            dismissIcon = Icons.Rounded.KeyboardArrowDown,
+            dismissIcon = SimpIcons.KeyboardArrowDown,
             onDismiss = {
                 hideSheet()
             },
@@ -266,7 +277,7 @@ fun NowPlayingScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingScreenContent(
     sharedViewModel: SharedViewModel = koinInject(),
@@ -286,6 +297,7 @@ fun NowPlayingScreenContent(
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
+    val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
     val translatedVoteState by sharedViewModel.translatedVoteState.collectAsStateWithLifecycle()
@@ -432,11 +444,11 @@ fun NowPlayingScreenContent(
 
     val startColor =
         remember {
-            Animatable(md_theme_dark_background)
+            Animatable(Color.Black)
         }
     val endColor =
         remember {
-            Animatable(md_theme_dark_background)
+            Animatable(Color.Black)
         }
     val gradientOffset by remember {
         mutableStateOf(GradientOffset(GradientAngle.CW135))
@@ -445,8 +457,6 @@ fun NowPlayingScreenContent(
     var spotShadowColor by remember {
         mutableStateOf(Color.White)
     }
-
-    val blurBg by sharedViewModel.blurBg.collectAsStateWithLifecycle()
 
     LaunchedEffect(screenDataState) {
         Logger.d(TAG, "ScreenDataState: $screenDataState")
@@ -464,7 +474,9 @@ fun NowPlayingScreenContent(
             .collectLatest {
                 spotShadowColor = it.getColorFromPalette()
                 startColor.animateTo(it.getColorFromPalette())
-                endColor.animateTo(md_theme_dark_background)
+                // Lands on the same backdrop colour the fade and the area below the gradient
+                // use, so the palette ramp resolves into the surface instead of a black patch.
+                endColor.animateTo(PlayerBackdropColor)
             }
     }
 
@@ -607,7 +619,7 @@ fun NowPlayingScreenContent(
         mutableStateOf(false)
     }
 
-    var canvasSubtitleLineIndex by rememberSaveable {
+    var currentLyricLineIndex by rememberSaveable {
         mutableIntStateOf(-1)
     }
 
@@ -622,7 +634,7 @@ fun NowPlayingScreenContent(
     LaunchedEffect(timelineState, screenDataState.lyricsData?.lyrics) {
         val lyrics = screenDataState.lyricsData?.lyrics
         if (lyrics == null || lyrics.syncType == "UNSYNCED" || lyrics.syncType == null) {
-            canvasSubtitleLineIndex = -1
+            currentLyricLineIndex = -1
             return@LaunchedEffect
         }
         val lines = lyrics.lines ?: return@LaunchedEffect
@@ -641,16 +653,16 @@ fun NowPlayingScreenContent(
                         startTimeMs + 60000
                     }
                 if (timelineState.current in startTimeMs..endTimeMs) {
-                    canvasSubtitleLineIndex = i
+                    currentLyricLineIndex = i
                 }
             }
             if (lines.isNotEmpty() &&
                 timelineState.current in 0..(lines.getOrNull(0)?.startTimeMs?.toLongOrNull() ?: 0L)
             ) {
-                canvasSubtitleLineIndex = -1
+                currentLyricLineIndex = -1
             }
         } else {
-            canvasSubtitleLineIndex = -1
+            currentLyricLineIndex = -1
         }
     }
 
@@ -674,7 +686,6 @@ fun NowPlayingScreenContent(
             sharedViewModel = sharedViewModel,
             navController = navController, // <-- ADD THIS LINE
             color = startColor.value,
-            shouldHaze = sharedViewModel.blurFullscreenLyrics(),
         ) {
             showFullscreenLyrics = false
         }
@@ -754,36 +765,10 @@ fun NowPlayingScreenContent(
         )
     }
 
-    val hazeState =
-        rememberHazeState(
-            blurEnabled = true,
-        )
-
     if (screenDataState.lyricsData != null && controllerState.isPlaying) {
         KeepScreenOn()
     }
     Box {
-        if (blurBg && screenDataState.canvasData == null) {
-            AsyncImage(
-                model =
-                    ImageRequest
-                        .Builder(LocalPlatformContext.current)
-                        .data(screenDataState.thumbnailURL)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
-                        .crossfade(550)
-                        .build(),
-                contentDescription = "",
-                contentScale = ContentScale.FillHeight,
-                placeholder = painterResource(Res.drawable.holder),
-                error = painterResource(Res.drawable.holder),
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .fillMaxSize()
-                        .hazeSource(hazeState),
-            )
-        }
         Column(
             Modifier
                 .verticalScroll(
@@ -795,28 +780,49 @@ fun NowPlayingScreenContent(
                 // drags fall through to the Pager.
                 .then(
                     if (showHideMiddleLayout) {
-                        if (blurBg && screenDataState.canvasData == null) {
-                            Modifier
-                                .background(Color.Transparent)
-                                .hazeEffect(hazeState, style = CupertinoMaterials.thin()) {
-                                    blurEnabled = true
-                                }
-                        } else {
-                            Modifier
-                                .background(
-                                    Brush.linearGradient(
-                                        colors =
-                                            listOf(
-                                                startColor.value,
-                                                endColor.value,
-                                            ),
-                                        start = gradientOffset.start,
-                                        end = gradientOffset.end,
-                                    ),
+                        Modifier
+                            // The backdrop fills the whole scrollable content, then the gradient
+                            // is drawn over just the first screen height. Using background() for
+                            // the gradient instead would stretch it across the entire content,
+                            // which is what made it run on forever while scrolling.
+                            .background(PlayerBackdropColor)
+                            .drawBehind {
+                                val gradientHeight = screenInfo.hPX.toFloat()
+                                val area = Size(size.width, gradientHeight)
+                                // Palette gradient, keeping its diagonal angle.
+                                drawRect(
+                                    brush =
+                                        Brush.linearGradient(
+                                            colors =
+                                                listOf(
+                                                    startColor.value,
+                                                    endColor.value,
+                                                ),
+                                            start = gradientOffset.start,
+                                            end = gradientOffset.end,
+                                        ),
+                                    size = area,
                                 )
-                        }
+                                // Vertical fade to the backdrop colour, fully opaque from 90%
+                                // down, so the bottom edge meets the area underneath seamlessly
+                                // across the whole width. Adding the same colour as a stop to
+                                // the diagonal gradient above could not do that — it would only
+                                // arrive in one corner and leave a visible diagonal seam.
+                                drawRect(
+                                    brush =
+                                        smoothScrimBrush(
+                                            from = PlayerBackdropColor.copy(alpha = 0f),
+                                            to = PlayerBackdropColor,
+                                            startY = 0f,
+                                            // Reaches full opacity at 95% and is held there by Clamp,
+                                            // same as the old `0.95f to PlayerBackdropColor` stop.
+                                            endY = gradientHeight * 0.95f,
+                                        ),
+                                    size = area,
+                                )
+                            }
                     } else {
-                        Modifier.background(md_theme_dark_background)
+                        Modifier.background(Color.Black)
                     },
                 ),
         ) {
@@ -843,14 +849,14 @@ fun NowPlayingScreenContent(
                     val isCurrentArtworkPage = page == currentOrderIndex
                     val pageHasCanvas = isCurrentArtworkPage && screenDataState.canvasData != null
 
-                    // Per-page palette state for the !blurBg gradient backdrop.
+                    // Per-page palette state for the gradient backdrop.
                     // The bitmap is fed in by Layer 2's adjacent-thumbnail AsyncImage
                     // (onSuccess), so we use the SAME bitmap that's painted on screen —
                     // matches the outer Column's palette extraction characteristics.
                     val pagePaletteState = rememberPaletteState()
                     val pageStartColor =
                         remember(pageTrack?.videoId) {
-                            Animatable(md_theme_dark_background)
+                            Animatable(Color.Black)
                         }
                     LaunchedEffect(pagePaletteState, pageTrack?.videoId) {
                         snapshotFlow { pagePaletteState.palette }
@@ -889,60 +895,30 @@ fun NowPlayingScreenContent(
                                 ),
                     ) {
                         // ── Layer 0: per-page backdrop (adjacent pages only) ──
-                        // Mirrors the outer Column's bg branching so the backdrop logic stays
-                        // consistent during a swipe:
-                        //   - blurBg=true  → dim track thumbnail (matches the haze look)
-                        //   - blurBg=false → palette gradient (startColor → endColor) so the
-                        //                    adjacent page never falls back to a flat dark void
-                        //                    when the user disables blur.
+                        // Palette gradient (startColor → endColor) so the adjacent page never
+                        // falls back to a flat dark void during a swipe.
                         // The CURRENT page deliberately skips this layer so the existing
-                        // hazeEffect blur / gradient / canvas on the Column stays visible.
+                        // gradient / canvas on the Column stays visible.
                         if (!isCurrentArtworkPage && pageTrack != null) {
-                            if (blurBg) {
-                                val backdropUrl =
-                                    pageTrack.thumbnails
-                                        ?.maxByOrNull { it.width * it.height }
-                                        ?.url
-                                AsyncImage(
-                                    model =
-                                        ImageRequest
-                                            .Builder(LocalPlatformContext.current)
-                                            .data(backdropUrl)
-                                            .diskCachePolicy(CachePolicy.ENABLED)
-                                            .diskCacheKey(backdropUrl)
-                                            .crossfade(300)
-                                            .build(),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    placeholder = painterResource(Res.drawable.holder),
-                                    error = painterResource(Res.drawable.holder),
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            // Dim slightly so the centered thumbnail above stands out.
-                                            .alpha(0.35f),
-                                )
-                            } else {
-                                // Palette is fed by Layer 2's adjacent-thumbnail AsyncImage
-                                // (see below) so the gradient color stays consistent with
-                                // the bitmap actually painted for that page.
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                Brush.linearGradient(
-                                                    colors =
-                                                        listOf(
-                                                            pageStartColor.value,
-                                                            md_theme_dark_background,
-                                                        ),
-                                                    start = gradientOffset.start,
-                                                    end = gradientOffset.end,
-                                                ),
+                            // Palette is fed by Layer 2's adjacent-thumbnail AsyncImage
+                            // (see below) so the gradient color stays consistent with
+                            // the bitmap actually painted for that page.
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.linearGradient(
+                                                colors =
+                                                    listOf(
+                                                        pageStartColor.value,
+                                                        Color.Black,
+                                                    ),
+                                                start = gradientOffset.start,
+                                                end = gradientOffset.end,
                                             ),
-                                )
-                            }
+                                        ),
+                            )
                         }
 
                         // ── Layer 1: fullscreen canvas backdrop (current track + canvas data) ──
@@ -998,12 +974,10 @@ fun NowPlayingScreenContent(
                                             Modifier
                                                 .fillMaxSize()
                                                 .background(
-                                                    Brush.verticalGradient(
-                                                        colorStops =
-                                                            arrayOf(
-                                                                0.2f to overlay,
-                                                                1f to Color.Black,
-                                                            ),
+                                                    smoothScrimBrush(
+                                                        from = overlay,
+                                                        to = Color.Black,
+                                                        startFraction = 0.2f,
                                                     ),
                                                 ),
                                     )
@@ -1025,14 +999,11 @@ fun NowPlayingScreenContent(
                                             Modifier
                                                 .fillMaxSize()
                                                 .background(
-                                                    Brush.verticalGradient(
-                                                        colorStops =
-                                                            arrayOf(
-                                                                0f to Color.Transparent,
-                                                                0.92f to Color.Transparent,
-                                                                0.97f to Color.Black,
-                                                                1f to Color.Black,
-                                                            ),
+                                                    smoothScrimBrush(
+                                                        from = Color.Black.copy(alpha = 0f),
+                                                        to = Color.Black,
+                                                        startFraction = 0.92f,
+                                                        endFraction = 0.97f,
                                                     ),
                                                 ),
                                     )
@@ -1096,8 +1067,8 @@ fun NowPlayingScreenContent(
                                                 )
                                             },
                                             contentScale = ContentScale.Crop,
-                                            placeholder = painterResource(Res.drawable.holder),
-                                            error = painterResource(Res.drawable.holder),
+                                            placeholder = rememberHolderPainter(),
+                                            error = rememberHolderPainter(),
                                             modifier =
                                                 Modifier
                                                     .align(Alignment.Center)
@@ -1128,7 +1099,7 @@ fun NowPlayingScreenContent(
                                                     .fillMaxWidth()
                                                     .aspectRatio(16f / 9)
                                                     .clip(RoundedCornerShape(8.dp))
-                                                    .background(md_theme_dark_background),
+                                                    .background(Color.Black),
                                         ) {
                                             Box(Modifier.fillMaxSize()) {
                                                 MediaPlayerViewWithSubtitle(
@@ -1165,13 +1136,14 @@ fun NowPlayingScreenContent(
                                                                 Modifier
                                                                     .fillMaxSize()
                                                                     .background(
-                                                                        Brush.verticalGradient(
-                                                                            colorStops =
-                                                                                arrayOf(
-                                                                                    0.03f to blackMoreOverlay,
-                                                                                    0.15f to overlay,
-                                                                                    0.8f to Color.Transparent,
-                                                                                ),
+                                                                        // The old middle stop (0.15f to overlay)
+                                                                        // hand-approximated a convex falloff;
+                                                                        // smoothstep does that on its own.
+                                                                        smoothScrimBrush(
+                                                                            from = blackMoreOverlay,
+                                                                            to = overlay.copy(alpha = 0f),
+                                                                            startFraction = 0.03f,
+                                                                            endFraction = 0.8f,
                                                                         ),
                                                                     ),
                                                         ) {
@@ -1183,7 +1155,7 @@ fun NowPlayingScreenContent(
                                                                 Modifier.align(Alignment.TopEnd),
                                                             ) {
                                                                 Icon(
-                                                                    painter = painterResource(Res.drawable.baseline_fullscreen_24),
+                                                                    imageVector = SimpIcons.Fullscreen,
                                                                     contentDescription = "",
                                                                     tint = Color.White,
                                                                 )
@@ -1209,7 +1181,7 @@ fun NowPlayingScreenContent(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = Icons.Rounded.Replay5,
+                                                                        imageVector = SimpIcons.Replay5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -1233,7 +1205,7 @@ fun NowPlayingScreenContent(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = Icons.Rounded.Forward5,
+                                                                        imageVector = SimpIcons.Forward5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -1253,9 +1225,9 @@ fun NowPlayingScreenContent(
                                                                     Icon(
                                                                         imageVector =
                                                                             if (internalShowSubtitle) {
-                                                                                Icons.Filled.SubtitlesOff
+                                                                                SimpIcons.SubtitlesOff
                                                                             } else {
-                                                                                Icons.Filled.Subtitles
+                                                                                SimpIcons.Subtitles
                                                                             },
                                                                         contentDescription = "",
                                                                         tint = Color.White,
@@ -1299,8 +1271,8 @@ fun NowPlayingScreenContent(
                                                     .build(),
                                             contentDescription = pageTrack.title,
                                             contentScale = ContentScale.Crop,
-                                            placeholder = painterResource(Res.drawable.holder),
-                                            error = painterResource(Res.drawable.holder),
+                                            placeholder = rememberHolderPainter(),
+                                            error = rememberHolderPainter(),
                                             // Feed the per-page palette using the SAME bitmap
                                             // we just rendered so the Layer 0 gradient backdrop
                                             // matches what the user sees on screen.
@@ -1339,15 +1311,16 @@ fun NowPlayingScreenContent(
                                             .value
                                             .toInt()
                                     }
-                            },
+                            }.padding(
+                                top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() },
+                            ),
                     colors =
                         TopAppBarDefaults.topAppBarColors().copy(
                             containerColor = Color.Transparent,
                         ),
-                    windowInsets =
-                        TopAppBarDefaults.windowInsets.only(
-                            WindowInsetsSides.Top,
-                        ),
+                    // Position-aware insets shrink per frame while the sheet is dragged (pinned
+                    // bar + layout jitter) — status-bar space is static padding on the modifier.
+                    windowInsets = WindowInsets(0, 0, 0, 0),
                     title = {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
@@ -1388,21 +1361,11 @@ fun NowPlayingScreenContent(
                         }
                     },
                     actions = {
-                        // Desktop mini player button (JVM only)
-                        if (getPlatform() == Platform.Desktop) {
-                            IconButton(onClick = { toggleMiniPlayer() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                                    contentDescription = "Mini Player",
-                                    tint = Color.White,
-                                )
-                            }
-                        }
                         IconButton(onClick = {
                             showSheet = true
                         }) {
                             Icon(
-                                painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                imageVector = SimpIcons.MoreVert,
                                 contentDescription = "",
                                 tint = Color.White,
                             )
@@ -1450,14 +1413,61 @@ fun NowPlayingScreenContent(
                                         }.aspectRatio(1f),
                             )
 
-                            Spacer(
+                            // Spotify-style current lyric line — vertically centered in the gap
+                            // between the artwork and the info layout below. This Box replaces the
+                            // plain gap Spacer at the same middleLayoutPaddingDp height, so the
+                            // info layout position never moves; the line just lives inside the gap.
+                            Box(
+                                contentAlignment = Alignment.Center,
                                 modifier =
                                     Modifier
                                         .animateContentSize()
                                         .height(
                                             middleLayoutPaddingDp.dp,
                                         ).fillMaxWidth(),
-                            )
+                            ) {
+                                val inlineLyrics = screenDataState.lyricsData?.lyrics
+                                val hasSyncedLyrics =
+                                    inlineLyrics != null &&
+                                        inlineLyrics.syncType != null &&
+                                        inlineLyrics.syncType != "UNSYNCED" &&
+                                        inlineLyrics.lines != null
+                                // Canvas mode has its own subtitle overlay — never show both.
+                                val currentLyricLineText =
+                                    if (!hasSyncedLyrics ||
+                                        screenDataState.canvasData != null ||
+                                        currentLyricLineIndex < 0
+                                    ) {
+                                        ""
+                                    } else {
+                                        inlineLyrics
+                                            ?.lines
+                                            ?.getOrNull(currentLyricLineIndex)
+                                            ?.words
+                                            ?.stripRichSyncTimestamps()
+                                            .orEmpty()
+                                    }
+                                Crossfade(
+                                    targetState = currentLyricLineText,
+                                    animationSpec = tween(durationMillis = 300),
+                                    label = "inlineLyricLine",
+                                ) { lineText ->
+                                    Text(
+                                        text = lineText,
+                                        style = typo().labelSmall,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 20.dp)
+                                                .basicMarquee(
+                                                    iterations = Int.MAX_VALUE,
+                                                    animationMode = MarqueeAnimationMode.Immediately,
+                                                ).focusable(),
+                                    )
+                                }
+                            }
 
                             // Info Layout
                             Box {
@@ -1491,8 +1501,8 @@ fun NowPlayingScreenContent(
                                                         .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
                                                         .crossfade(true)
                                                         .build(),
-                                                placeholder = painterResource(Res.drawable.holder),
-                                                error = painterResource(Res.drawable.holder),
+                                                placeholder = rememberHolderPainter(),
+                                                error = rememberHolderPainter(),
                                                 contentDescription = null,
                                                 contentScale = ContentScale.FillWidth,
                                                 modifier =
@@ -1586,7 +1596,7 @@ fun NowPlayingScreenContent(
                                                             sharedViewModel.addToYouTubeLiked()
                                                         },
                                                     ) {
-                                                        Icon(imageVector = Icons.Rounded.CheckCircle, tint = Color.White, contentDescription = "")
+                                                        Icon(imageVector = SimpIcons.CheckCircle, tint = Color.White, contentDescription = "")
                                                     }
                                                 } else {
                                                     IconButton(
@@ -1602,7 +1612,7 @@ fun NowPlayingScreenContent(
                                                         },
                                                     ) {
                                                         Icon(
-                                                            imageVector = Icons.Rounded.AddCircleOutline,
+                                                            imageVector = SimpIcons.AddCircleOutline,
                                                             tint = Color.White,
                                                             contentDescription = "",
                                                         )
@@ -1678,7 +1688,16 @@ fun NowPlayingScreenContent(
                                             }
                                             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                                 Slider(
-                                                    value = sliderValue,
+                                                    // material3 1.5.0-alpha25 keeps a
+                                                    // binary-compatibility overload of Slider that
+                                                    // accepts valueRange and then forwards without
+                                                    // it, so the slider silently runs on the
+                                                    // default 0f..1f and anything larger is clamped
+                                                    // to a full track. Hand it a fraction instead;
+                                                    // sliderValue stays on the 0..100 scale that
+                                                    // UIEvent.UpdateProgress and the time labels
+                                                    // are built around.
+                                                    value = sliderValue / 100f,
                                                     onValueChangeFinished = {
                                                         isSliding = false
                                                         sharedViewModel.onUIEvent(
@@ -1687,9 +1706,8 @@ fun NowPlayingScreenContent(
                                                     },
                                                     onValueChange = {
                                                         isSliding = true
-                                                        sliderValue = it
+                                                        sliderValue = it * 100f
                                                     },
-                                                    valueRange = 0f..100f,
                                                     modifier =
                                                         Modifier
                                                             .fillMaxWidth()
@@ -1798,18 +1816,46 @@ fun NowPlayingScreenContent(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        // Info Button (Left)
-                                        IconButton(
-                                            modifier =
-                                                Modifier
-                                                    .size(24.dp)
-                                                    .aspectRatio(1f)
-                                                    .clip(CircleShape),
-                                            onClick = {
-                                                showInfoBottomSheet = true
-                                            },
+                                        // Info + Cast Buttons (Left)
+                                        // weight(fill = false) keeps a long device name from shoving the
+                                        // playlist/queue buttons off the end of this SpaceBetween row.
+                                        Row(
+                                            modifier = Modifier.weight(1f, fill = false),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                                            IconButton(
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(CircleShape),
+                                                onClick = {
+                                                    showInfoBottomSheet = true
+                                                },
+                                            ) {
+                                                Icon(imageVector = SimpIcons.Info, tint = Color.White, contentDescription = "")
+                                            }
+                                            // Cyan rather than colorScheme.primary: this screen is force-dark whatever
+                                            // the app theme is, so a light-theme primary would sink into the black
+                                            // backdrop. Mirrors the `if (forceDark) Color.Cyan` rule in FullWidthItems.
+                                            PlatformCastButton(
+                                                modifier = Modifier.size(24.dp),
+                                                tint = if (castState.isRemote) Color.Cyan else Color.White,
+                                            )
+                                            AnimatedVisibility(visible = castState.isRemote) {
+                                                Text(
+                                                    text =
+                                                        stringResource(
+                                                            Res.string.playing_on_device,
+                                                            castState.deviceName ?: "Cast",
+                                                        ),
+                                                    style = typo().bodySmall,
+                                                    color = Color.Cyan,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
+                                            }
                                         }
 
                                         Row(
@@ -1828,7 +1874,7 @@ fun NowPlayingScreenContent(
                                                 },
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                                                    imageVector = SimpIcons.PlaylistAdd,
                                                     tint = Color.White,
                                                     contentDescription = "Add to Playlist",
                                                 )
@@ -1846,7 +1892,7 @@ fun NowPlayingScreenContent(
                                                 },
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                                    imageVector = SimpIcons.QueueMusic,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                 )
@@ -1888,12 +1934,9 @@ fun NowPlayingScreenContent(
                                                 Modifier
                                                     .fillMaxSize()
                                                     .background(
-                                                        Brush.verticalGradient(
-                                                            colorStops =
-                                                                arrayOf(
-                                                                    0f to Color.Transparent,
-                                                                    1f to Color.Black.copy(alpha = 0.85f),
-                                                                ),
+                                                        smoothScrimBrush(
+                                                            from = Color.Black.copy(alpha = 0f),
+                                                            to = Color.Black.copy(alpha = 0.85f),
                                                         ),
                                                     ),
                                         )
@@ -1905,7 +1948,7 @@ fun NowPlayingScreenContent(
                                                     .animateContentSize(),
                                         ) {
                                             this@Column.AnimatedVisibility(
-                                                visible = canvasSubtitleLineIndex > -1,
+                                                visible = currentLyricLineIndex > -1,
                                                 enter = fadeIn() + expandVertically(),
                                                 exit = fadeOut() + shrinkVertically(),
                                             ) {
@@ -1914,10 +1957,9 @@ fun NowPlayingScreenContent(
                                                     screenDataState.lyricsData
                                                         ?.lyrics
                                                         ?.lines
-                                                        ?.getOrNull(canvasSubtitleLineIndex)
+                                                        ?.getOrNull(currentLyricLineIndex)
                                                         ?.words
-                                                        ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
-                                                        ?.trim()
+                                                        ?.stripRichSyncTimestamps()
                                                 if (!lineText.isNullOrBlank()) {
                                                     Column(
                                                         modifier = Modifier.fillMaxWidth(),
@@ -1942,10 +1984,9 @@ fun NowPlayingScreenContent(
                                                                 ?.translatedLyrics
                                                                 ?.first
                                                                 ?.lines
-                                                                ?.getOrNull(canvasSubtitleLineIndex)
+                                                                ?.getOrNull(currentLyricLineIndex)
                                                                 ?.words
-                                                                ?.replace(RICH_SYNC_TIMESTAMP_REGEX, "")
-                                                                ?.trim()
+                                                                ?.stripRichSyncTimestamps()
                                                         if (!translatedLineText.isNullOrBlank()) {
                                                             Text(
                                                                 modifier =
@@ -1983,8 +2024,8 @@ fun NowPlayingScreenContent(
                                                                 .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
                                                                 .crossfade(true)
                                                                 .build(),
-                                                        placeholder = painterResource(Res.drawable.holder),
-                                                        error = painterResource(Res.drawable.holder),
+                                                        placeholder = rememberHolderPainter(),
+                                                        error = rememberHolderPainter(),
                                                         contentDescription = null,
                                                         contentScale = ContentScale.FillWidth,
                                                         modifier =
@@ -2079,7 +2120,7 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = Icons.Rounded.CheckCircle,
+                                                                    imageVector = SimpIcons.CheckCircle,
                                                                     tint = Color.White,
                                                                     contentDescription = "",
                                                                 )
@@ -2098,7 +2139,7 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = Icons.Rounded.AddCircleOutline,
+                                                                    imageVector = SimpIcons.AddCircleOutline,
                                                                     tint = Color.White,
                                                                     contentDescription = "",
                                                                 )
@@ -2168,7 +2209,7 @@ fun NowPlayingScreenContent(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Rounded.ThumbsUpDown,
+                                                        imageVector = SimpIcons.ThumbsUpDown,
                                                         contentDescription = stringResource(Res.string.rate_lyrics),
                                                         tint = Color.White,
                                                         modifier = Modifier.size(16.dp),
@@ -2188,7 +2229,7 @@ fun NowPlayingScreenContent(
                                                         .height(20.dp)
                                                         .wrapContentWidth(),
                                             ) {
-                                                Text(text = stringResource(Res.string.show))
+                                                Text(text = stringResource(Res.string.show), color = Color.White)
                                             }
                                         }
                                     }
@@ -2287,65 +2328,80 @@ fun NowPlayingScreenContent(
                                 shape = RoundedCornerShape(8.dp),
                                 colors =
                                     CardDefaults.elevatedCardColors().copy(
-                                        containerColor = startColor.value,
+                                        containerColor = Color(0xFF212121),
                                     ),
                             ) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(250.dp),
-                                ) {
-                                    val thumb = screenDataState.songInfoData?.authorThumbnail
-                                    AsyncImage(
-                                        model =
-                                            ImageRequest
-                                                .Builder(LocalPlatformContext.current)
-                                                .data(thumb)
-                                                .diskCachePolicy(CachePolicy.ENABLED)
-                                                .diskCacheKey(thumb)
-                                                .crossfade(550)
-                                                .build(),
-                                        placeholder = painterResource(Res.drawable.holder_video),
-                                        error = painterResource(Res.drawable.holder_video),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxSize()
-                                                .alpha(0.8f)
-                                                .clip(
-                                                    RoundedCornerShape(8.dp),
-                                                ),
-                                    )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    // Artwork occupies the top of the card; only the section
+                                    // label sits on top of it. Name and subscriber count moved
+                                    // below onto the solid card surface so they stay readable
+                                    // regardless of how bright the artist photo is.
                                     Box(
                                         modifier =
                                             Modifier
-                                                .padding(15.dp)
-                                                .fillMaxSize(),
+                                                .fillMaxWidth()
+                                                .height(250.dp),
                                     ) {
-                                        Column(Modifier.align(Alignment.TopStart)) {
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                            Text(
-                                                text = stringResource(Res.string.artists),
-                                                style = typo().labelMedium,
-                                                color = Color.White,
-                                            )
-                                        }
-                                        Column(Modifier.align(Alignment.BottomStart)) {
-                                            Text(
-                                                text = screenDataState.songInfoData?.author ?: "",
-                                                style = typo().labelMedium,
-                                                color = Color.White,
-                                            )
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                            Text(
-                                                text = screenDataState.songInfoData?.subscribers ?: "",
-                                                style = typo().bodySmall,
-                                                textAlign = TextAlign.End,
-                                            )
-                                            Spacer(modifier = Modifier.height(5.dp))
-                                        }
+                                        val thumb = screenDataState.songInfoData?.authorThumbnail
+                                        AsyncImage(
+                                            model =
+                                                ImageRequest
+                                                    .Builder(LocalPlatformContext.current)
+                                                    .data(thumb)
+                                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                                    .diskCacheKey(thumb)
+                                                    .crossfade(550)
+                                                    .build(),
+                                            placeholder = rememberHolderPainter(isVideo = true),
+                                            error = rememberHolderPainter(isVideo = true),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            // No explicit clip: the ElevatedCard already clips to
+                                            // its 8.dp shape, so only the card's top corners round
+                                            // and the image meets the panel below flush.
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                        // Scrim behind the label: artist photos are often bright
+                                        // at the top, which swallowed the white text.
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .matchParentSize()
+                                                    .background(
+                                                        smoothScrimBrush(
+                                                            from = Color.Black.copy(alpha = 0.6f),
+                                                            to = Color.Black.copy(alpha = 0f),
+                                                            endFraction = 0.4f,
+                                                        ),
+                                                    ),
+                                        )
+                                        Text(
+                                            text = stringResource(Res.string.artists),
+                                            style = typo().labelMedium,
+                                            color = Color.White,
+                                            modifier =
+                                                Modifier
+                                                    .align(Alignment.TopStart)
+                                                    .padding(15.dp),
+                                        )
+                                    }
+                                    Column(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 15.dp, vertical = 12.dp),
+                                    ) {
+                                        Text(
+                                            text = screenDataState.songInfoData?.author ?: "",
+                                            style = typo().titleMedium,
+                                            color = Color.White,
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = screenDataState.songInfoData?.subscribers ?: "",
+                                            style = typo().bodySmall,
+                                            color = Color.White.copy(alpha = 0.7f),
+                                        )
                                     }
                                 }
                             }

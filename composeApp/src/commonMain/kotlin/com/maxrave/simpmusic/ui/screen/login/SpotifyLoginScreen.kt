@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cookie
-import androidx.compose.material.icons.filled.LogoDev
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -39,6 +36,10 @@ import com.maxrave.simpmusic.ui.component.DevCookieLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInBottomSheet
 import com.maxrave.simpmusic.ui.component.DevLogInType
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Cookie
+import com.maxrave.simpmusic.ui.icon.LogoDev
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -51,7 +52,6 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
 import simpmusic.composeapp.generated.resources.login_success
 
@@ -130,7 +130,7 @@ fun SpotifyLoginScreen(
                                 ),
                     ) {
                         Icon(
-                            Icons.Default.Cookie,
+                            SimpIcons.Cookie,
                             "Cookies",
                         )
                     }
@@ -172,7 +172,11 @@ fun SpotifyLoginScreen(
                         }
                     viewModel.setFullSpotifyCookies(cookies)
                 }
-                val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status$")
+                // Some login flows land on the status page with a query string appended
+                // (e.g. /en/status?flow_ctx=...). Anchoring right after `status` made those
+                // URLs fail the match silently, so sp_dc was never saved and auto-login
+                // appeared to do nothing.
+                val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status(?:\\?.*)?$")
                 if (statusUrl.matches(url)) {
                     cookie
                         .takeIf {
@@ -202,7 +206,7 @@ fun SpotifyLoginScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        Res.drawable.baseline_arrow_back_ios_new_24,
+                        SimpIcons.ArrowBackIosNew,
                         Modifier.size(32.dp),
                         true,
                     ) {
@@ -217,7 +221,7 @@ fun SpotifyLoginScreen(
                     },
                 ) {
                     Icon(
-                        Icons.Default.LogoDev,
+                        SimpIcons.LogoDev,
                         "Developer Mode",
                     )
                 }

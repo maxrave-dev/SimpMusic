@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,7 +70,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.holder
 import simpmusic.composeapp.generated.resources.most_played
 import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_playlists_downloaded
@@ -123,7 +123,7 @@ fun LibraryItem(
                 Text(
                     text = title,
                     style = typo().headlineMedium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     modifier =
                         Modifier
@@ -267,8 +267,8 @@ fun LibraryItem(
                                                 .diskCacheKey(item.canvasThumbUrl)
                                                 .crossfade(true)
                                                 .build(),
-                                        placeholder = painterResource(Res.drawable.holder),
-                                        error = painterResource(Res.drawable.holder),
+                                        placeholder = rememberHolderPainter(),
+                                        error = rememberHolderPainter(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier =

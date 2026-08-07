@@ -5,11 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ThumbDown
-import androidx.compose.material.icons.rounded.ThumbDownAlt
-import androidx.compose.material.icons.rounded.ThumbUp
-import androidx.compose.material.icons.rounded.ThumbUpAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -21,6 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.ThumbDown
+import com.maxrave.simpmusic.ui.icon.ThumbUp
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.VoteData
 import com.maxrave.simpmusic.viewModel.VoteState
@@ -44,6 +42,9 @@ fun VoteLyricsDialog(
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
+        containerColor = rememberSurfaceDarkColors().container,
+        titleContentColor = rememberSurfaceDarkColors().content,
+        textContentColor = rememberSurfaceDarkColors().content,
         onDismissRequest = onDismiss,
         confirmButton = {},
         dismissButton = {
@@ -127,7 +128,7 @@ private fun VoteRow(
 
                 is VoteState.Success -> {
                     Icon(
-                        imageVector = if (voteState.state.upvote) Icons.Rounded.ThumbUpAlt else Icons.Rounded.ThumbDownAlt,
+                        imageVector = if (voteState.state.upvote) SimpIcons.ThumbUp else SimpIcons.ThumbDown,
                         contentDescription = null,
                         tint = Color.Cyan,
                         modifier = Modifier.size(24.dp),
@@ -151,7 +152,7 @@ private fun VoteRow(
                             modifier = Modifier.size(36.dp),
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.ThumbUp,
+                                imageVector = SimpIcons.ThumbUp,
                                 contentDescription = stringResource(Res.string.upvote),
                                 modifier = Modifier.size(20.dp),
                             )
@@ -161,7 +162,7 @@ private fun VoteRow(
                             modifier = Modifier.size(36.dp),
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.ThumbDown,
+                                imageVector = SimpIcons.ThumbDown,
                                 contentDescription = stringResource(Res.string.downvote),
                                 modifier = Modifier.size(20.dp),
                             )

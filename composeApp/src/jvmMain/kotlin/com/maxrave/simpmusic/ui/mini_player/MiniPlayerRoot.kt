@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -30,6 +28,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import java.awt.Cursor
 import java.awt.MouseInfo
@@ -134,7 +134,7 @@ fun MiniPlayerRoot(
                         .size(24.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Close,
+                    imageVector = SimpIcons.Close,
                     contentDescription = "Close",
                     tint = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.size(16.dp),

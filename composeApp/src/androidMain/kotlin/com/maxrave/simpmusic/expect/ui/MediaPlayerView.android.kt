@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 actual fun MediaPlayerView(
     url: String,
     modifier: Modifier,
+    cropToBounds: Boolean,
 ) {
     MediaPlayerView(
         modifier = modifier,
@@ -26,6 +27,7 @@ actual fun MediaPlayerView(
         density = LocalDensity.current,
         url = url,
         screenSize = getScreenSizeInfo(),
+        cropToBounds = cropToBounds,
     )
 }
 

@@ -20,6 +20,7 @@ import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.isRadioPlaylistId
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -127,7 +128,7 @@ class LibraryViewModel(
                 temp.addAll(data)
                 temp
                     .find {
-                        it is PlaylistEntity && (it.id.contains("RDEM") || it.id.contains("RDAMVM"))
+                        it is PlaylistEntity && it.id.isRadioPlaylistId()
                     }.let {
                         temp.remove(it)
                     }

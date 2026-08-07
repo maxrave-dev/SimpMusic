@@ -18,7 +18,6 @@ import com.maxrave.domain.utils.toAlbumEntity
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.LogLevel
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -282,7 +281,7 @@ data class AlbumUIState(
     val browseId: String = "",
     val title: String = "",
     val thumbnail: String? = null,
-    val colors: List<Color> = listOf(Color.Black, md_theme_dark_background),
+    val colors: List<Color> = listOf(Color.Black, Color.Black),
     val artist: Artist =
         Artist(
             id = null,

@@ -24,8 +24,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,7 +48,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -69,15 +66,18 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rgbFactor
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
+import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.holder_video
 
 private val paddingMedium = 0.dp
 
@@ -105,8 +105,18 @@ fun CollapsingToolbarParallaxEffect(
 
     val scroll: ScrollState = rememberScrollState(0)
 
-    // Increased from 2/6 to 2/4 (50% of screen height) for a bigger, more prominent artist image
-    val headerHeight = (getScreenSizeInfo().hDP.dp * 2 / 4).coerceAtLeast(250.dp)
+    // Portrait: square header (= screen width) so a squared artist image fills it exactly,
+    // with no crop. Landscape: keep the original wide header (half screen height) and the
+    // original (un-squared) image, which fits the wide frame better.
+    val screenSize = getScreenSizeInfo()
+    val isPortraitHeader = screenSize.hDP >= screenSize.wDP
+    val headerHeight =
+        if (isPortraitHeader) {
+            screenSize.wDP.dp.coerceAtLeast(250.dp)
+        } else {
+            (screenSize.hDP.dp * 2 / 4).coerceAtLeast(250.dp)
+        }
+    val headerImageUrl = if (isPortraitHeader) imageUrl?.toSquareThumbnailUrl() else imageUrl
 
     val headerHeightPx = with(density) { headerHeight.toPx() }
     val toolbarHeightPx = with(density) { toolbarHeight.toPx() }
@@ -115,7 +125,7 @@ fun CollapsingToolbarParallaxEffect(
     var bitmap by remember {
         mutableStateOf<ImageBitmap?>(null)
     }
-    var color by remember { mutableStateOf(md_theme_dark_background) }
+    var color by remember { mutableStateOf(Color.Black) }
     var showBackButton by rememberSaveable {
         mutableStateOf(true)
     }
@@ -141,7 +151,7 @@ fun CollapsingToolbarParallaxEffect(
         Header(
             scroll = scroll,
             headerHeightPx = headerHeightPx,
-            imageUrl = imageUrl,
+            imageUrl = headerImageUrl,
             backgroundColor = color,
             modifier =
                 Modifier
@@ -204,7 +214,7 @@ fun CollapsingToolbarParallaxEffect(
                                 ),
                         ),
                 ) {
-                    Icon(Icons.Default.ArrowBackIosNew, "Back")
+                    Icon(SimpIcons.ArrowBackIosNew, "Back")
                 }
             }
         }
@@ -244,10 +254,10 @@ private fun Header(
                     it.result.image.toImageBitmap(),
                 )
             },
-            placeholder = painterResource(Res.drawable.holder_video),
-            error = painterResource(Res.drawable.holder_video),
+            placeholder = rememberHolderPainter(isVideo = true),
+            error = rememberHolderPainter(isVideo = true),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.FillWidth,
             modifier =
                 Modifier
                     .fillMaxSize(),
@@ -258,16 +268,9 @@ private fun Header(
                 .fillMaxSize()
                 .background(
                     brush =
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    Color.Transparent,
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.3f),
-                                    Color.Black.copy(alpha = 0.6f),
-                                    Color.Black.copy(alpha = 0.85f),
-                                    md_theme_dark_background,
-                                ),
+                        smoothScrimBrush(
+                            from = Color.Black.copy(alpha = 0f),
+                            to = Color.Black,
                             startY = headerHeightPx / 2, // Start fade at middle of header
                             endY = headerHeightPx, // Complete at bottom of header
                         ),
@@ -294,7 +297,7 @@ private fun Body(
         Spacer(Modifier.height(headerHeight))
         Box(
             Modifier.background(
-                md_theme_dark_background,
+                Color.Black,
             ),
         ) {
             content()
@@ -309,7 +312,7 @@ private fun Toolbar(
     scroll: ScrollState,
     headerHeightPx: Float,
     toolbarHeightPx: Float,
-    backgroundColor: Color = md_theme_dark_background,
+    backgroundColor: Color = Color.Black,
     onShow: (Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -358,7 +361,7 @@ private fun Toolbar(
                             .size(24.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBackIosNew,
+                        imageVector = SimpIcons.ArrowBackIosNew,
                         contentDescription = null,
                         tint = Color.White,
                     )

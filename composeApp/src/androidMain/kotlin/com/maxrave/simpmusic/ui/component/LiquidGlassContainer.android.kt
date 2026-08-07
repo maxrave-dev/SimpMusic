@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -35,7 +37,9 @@ import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.colorControls
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.sign
@@ -46,9 +50,11 @@ actual fun Modifier.liquidGlass(
     shape: Shape,
     interactive: Boolean,
 ): Modifier {
+    val isDark = LocalIsDarkTheme.current
     val layer = rememberGraphicsLayer()
     val interaction = rememberGlassInteraction()
     return this.drawInteractiveGlass(
+        isDark = isDark,
         backdrop = backdrop,
         layer = layer,
         luminanceAnimation = 0.5f,
@@ -65,8 +71,10 @@ actual fun Modifier.liquidGlass(
     shape: Shape,
     interactive: Boolean,
 ): Modifier {
+    val isDark = LocalIsDarkTheme.current
     val interaction = rememberGlassInteraction()
     return this.drawInteractiveGlass(
+        isDark = isDark,
         backdrop = backdrop,
         layer = layer,
         luminanceAnimation = luminanceAnimation,
@@ -132,6 +140,7 @@ fun rememberGlassInteraction(): GlassInteraction {
  * wrapper (the bottom navigation bar animates it; static surfaces pass `0.5f`).
  */
 fun Modifier.drawInteractiveGlass(
+    isDark: Boolean,
     backdrop: LayerBackdrop,
     layer: GraphicsLayer,
     luminanceAnimation: Float,
@@ -177,7 +186,7 @@ fun Modifier.drawInteractiveGlass(
                 // Stay "đục đen": darken more as the background brightens so the glass never washes
                 // out to white (shared by the bottom bar capsule, search FAB and detail-screen pills).
                 val darken = lerp(0.12f, 0.5f, ((luminanceAnimation - 0.3f) / 0.5f).coerceIn(0f, 1f))
-                drawRect(Color.Black.copy(alpha = darken))
+                drawRect((if (isDark) Color.Black else Color.White).copy(alpha = darken))
                 val press = interaction?.pressProgress ?: 0f
                 if (press > 0f) {
                     drawRect(
@@ -266,9 +275,7 @@ private suspend inline fun AwaitPointerEventScope.drag(
     }
 }
 
-private suspend inline fun AwaitPointerEventScope.awaitDragOrUp(
-    pointerId: PointerId,
-): PointerInputChange? {
+private suspend inline fun AwaitPointerEventScope.awaitDragOrUp(pointerId: PointerId): PointerInputChange? {
     var pointer = pointerId
     while (true) {
         val event = awaitPointerEvent()

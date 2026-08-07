@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.ui.theme.white
 
 @Composable
 fun SettingItem(
@@ -32,7 +32,10 @@ fun SettingItem(
     onDisable: (() -> Unit)? = null, // Callback when the item is disabled, switch off settings
     otherView: @Composable (() -> Unit)? = null,
 ) {
-    LaunchedEffect(Unit) {
+    // Key on isEnable (not Unit) so the auto-disable fires whenever the gate flips to false mid-session
+    // (e.g. the user logs out while Settings is open), not only on first composition. Without this, any
+    // child flag gated behind a login stays stuck ON until Settings is reopened (issues #2157, #2064).
+    LaunchedEffect(isEnable) {
         if (!isEnable && onDisable != null) {
             onDisable.invoke()
         }
@@ -73,7 +76,7 @@ fun SettingItem(
                         typo().labelMedium.let {
                             if (!isEnable) it.greyScale() else it
                         },
-                    color = white,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(

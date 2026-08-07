@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.expect.openUrl
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import dev.chrisbanes.haze.hazeEffect
@@ -240,10 +243,11 @@ fun CreditScreen(
         navigationIcon = {
             Box(Modifier.padding(horizontal = 5.dp)) {
                 RippleIconButton(
-                    Res.drawable.baseline_arrow_back_ios_new_24,
+                    SimpIcons.ArrowBackIosNew,
                     Modifier
                         .size(32.dp),
                     true,
+                    tint = MaterialTheme.colorScheme.onSurface,
                 ) {
                     navController.navigateUp()
                 }

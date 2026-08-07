@@ -1,0 +1,5 @@
+- Thêm tùy chọn bật/tắt thông báo bài viết blog trong phần Cài đặt Giới thiệu
+- Desktop: sửa lỗi crash làm hỏng toàn bộ hiển thị chữ
+- Desktop: sửa lỗi Canvas và video bị trong suốt (nhìn xuyên thấu ra ngoài)
+- Desktop: sửa lỗi ảnh động Lottie làm crash ứng dụng
+- Linux: sửa biểu tượng và tên ứng dụng trên desktop

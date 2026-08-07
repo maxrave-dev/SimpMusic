@@ -23,7 +23,6 @@ import java.io.FileOutputStream
 import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
 
 actual suspend fun calculateDataFraction(cacheRepository: CacheRepository): SettingsStorageSectionFraction? = null
@@ -79,9 +78,7 @@ actual suspend fun backupNative(
     uri: Uri,
     backupDownloaded: Boolean,
 ) {
-    ZipOutputStream(
-        FileOutputStream(File(uri.toString()))
-    ).use {
+    FileOutputStream(File(uri.toString())).use {
         it.buffered().zipOutputStream().use { outputStream ->
             File(getHomeFolderPath(listOf(".simpmusic")), "$SETTINGS_FILENAME.preferences_pb")
                 .inputStream()
@@ -98,7 +95,6 @@ actual suspend fun backupNative(
                 inputStream.copyTo(outputStream)
             }
         }
-
     }
 }
 

@@ -23,11 +23,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
@@ -70,6 +70,8 @@ import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
+import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -80,6 +82,8 @@ import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.ui.theme.ForceDarkContent
+import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
@@ -130,6 +134,10 @@ fun App(viewModel: SharedViewModel = koinInject()) {
 
     val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+
+    val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
+    val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
+    val customThemeColorHex by viewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
     // MiniPlayer visibility logic
     var isShowMiniPlayer by rememberSaveable {
         mutableStateOf(true)
@@ -172,6 +180,18 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                 navController.navigate(
                     NotificationDestination,
                 )
+            } else if (data.scheme == "wordbyword" && data.host == "lastfm-auth") {
+                // Last.fm sends the user back here after they approve access, carrying the request
+                // token: wordbyword://lastfm-auth?token=xxx. The callback is fixed on the API
+                // account, which is why the scheme is not "simpmusic".
+                val token = data.getQueryParameter("token")
+                Logger.d("MainActivity", "Last.fm callback, token present: ${!token.isNullOrEmpty()}")
+                viewModel.setIntent(null)
+                // Deliberately no navigation: the login screen is almost certainly already open —
+                // the browser was opened from it — and navigating would stack a second copy on top
+                // of it. The token is handed straight to the shared view model, and the screen
+                // closes itself when it sees a session key appear.
+                token?.let { viewModel.completeLastfmLogin(it) }
             } else if (data.host == "simpmusic.org" || data.scheme == "simpmusic") {
                 // https://simpmusic.org/app/watch?v=VIDEO_ID
                 // https://simpmusic.org/app/playlist?list=PLAYLIST_ID
@@ -325,9 +345,17 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     val isTablet = windowSize.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val isTabletLandscape = isTablet && currentOrientation() == Orientation.LANDSCAPE
 
-    val backdrop = rememberBackdrop()
-
-    AppTheme {
+    AppTheme(
+        themeMode = themeMode,
+        themeColorSource = themeColorSource,
+        customThemeColor = parseThemeColorHex(customThemeColorHex),
+    ) {
+        // Backdrop base must match the theme: white page → white glass, dark/AMOLED → black glass.
+        // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
+        val backdrop =
+            rememberBackdrop(
+                if (MaterialTheme.colorScheme.background.luminance() > 0.5f) Color.White else Color.Black,
+            )
         Scaffold(
             bottomBar = {
                 if (!isTablet) {
@@ -501,13 +529,15 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                 RoundedCornerShape(12.dp),
                                             ),
                                     ) {
-                                        NowPlayingScreenContent(
-                                            navController = navController,
-                                            sharedViewModel = viewModel,
-                                            isExpanded = true,
-                                            dismissIcon = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                        ) {
-                                            isShowNowPlaylistScreen = false
+                                        ForceDarkContent {
+                                            NowPlayingScreenContent(
+                                                navController = navController,
+                                                sharedViewModel = viewModel,
+                                                isExpanded = true,
+                                                dismissIcon = SimpIcons.ArrowForwardIos,
+                                            ) {
+                                                isShowNowPlaylistScreen = false
+                                            }
                                         }
                                     }
                                 }
@@ -517,10 +547,12 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                 }
 
                 if (isShowNowPlaylistScreen && !isTabletLandscape) {
-                    NowPlayingScreen(
-                        navController = navController,
-                    ) {
-                        isShowNowPlaylistScreen = false
+                    ForceDarkContent {
+                        NowPlayingScreen(
+                            navController = navController,
+                        ) {
+                            isShowNowPlaylistScreen = false
+                        }
                     }
                 }
 

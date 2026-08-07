@@ -7,11 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Downloading
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -24,6 +19,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.extension.NonLazyGrid
+import com.maxrave.simpmusic.ui.icon.Downloading
+import com.maxrave.simpmusic.ui.icon.Favorite
+import com.maxrave.simpmusic.ui.icon.Insights
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.TrendingUp
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.typo
@@ -148,28 +148,28 @@ data class LibraryTilingState(
             LibraryTilingState(
                 title = Res.string.favorite,
                 containerColor = Color(0xffff99ae),
-                icon = Icons.Default.Favorite,
+                icon = SimpIcons.Favorite,
                 iconColor = Color(0xffD10000),
             )
         val Followed =
             LibraryTilingState(
                 title = Res.string.followed,
                 containerColor = Color(0xffFFEB3B),
-                icon = Icons.Default.Insights,
+                icon = SimpIcons.Insights,
                 iconColor = Color.Black,
             )
         val MostPlayed =
             LibraryTilingState(
                 title = Res.string.most_played,
                 containerColor = Color(0xff00BCD4),
-                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                icon = SimpIcons.TrendingUp,
                 iconColor = Color.Black,
             )
         val Downloaded =
             LibraryTilingState(
                 title = Res.string.downloaded,
                 containerColor = Color(0xff4CAF50),
-                icon = Icons.Default.Downloading,
+                icon = SimpIcons.Downloading,
                 iconColor = Color.Black,
             )
     }

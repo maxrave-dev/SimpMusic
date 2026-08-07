@@ -18,18 +18,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun SimpMusicChartButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val isDark = LocalIsDarkTheme.current
+    // Dark: original warm-black pill (reads as a warm/orange tint on the dark page). Light: a warm
+    // cream-orange pill so it doesn't turn into a hard black slab on the white page.
+    val containerColor = if (isDark) Color(0xFF1A0F0F) else Color(0xFFFBE6D4)
+    val borderColor = if (isDark) Color(0xFF3D2828) else Color(0xFFEBCBB0)
+    val labelColor = if (isDark) Color(0xFFB8B8B8) else Color(0xFF5C3D2A)
     Surface(
         modifier = modifier,
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFF1A0F0F),
-        border = BorderStroke(1.dp, Color(0xFF3D2828))
+        color = containerColor,
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
@@ -47,7 +54,7 @@ fun SimpMusicChartButton(
             Text(
                 text = "Introducing SimpMusic Chart",
                 fontSize = 13.sp,
-                color = Color(0xFFB8B8B8),
+                color = labelColor,
                 fontWeight = FontWeight.Normal
             )
         }

@@ -30,11 +30,11 @@
     <string name="your_playlists">Ваши локальные плейлисты</string>
     <string name="no_playlists_added">Плейлисты не добавлены</string>
     <string name="recently_added">Недавно добавленные</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Поиск песен, исполнителей, альбомов, плейлистов и многое другое</string>
+    <string name="search_for_songs_artists_albums_playlists_and_more">Искать песни, исполнителей, альбомы, плейлисты, и многое другое</string>
     <string name="everything_you_need">Все что вам нужно</string>
     <string name="restore_failed">Ошибка восстановления</string>
     <string name="restore_success">Восстановление прошло успешно</string>
-    <string name="search">Искать</string>
+    <string name="search">Поиск</string>
     <string name="songs">Песни</string>
     <string name="albums">Альбомы</string>
     <string name="playlists">Плейлисты</string>
@@ -352,6 +352,15 @@
     <string name="repeat_off">Отключить повтор</string>
     <string name="youtube_transcript">Расшифровка YouTube</string>
     <string name="user_interface">Интерфейс</string>
+    <string name="theme">Тема</string>
+    <string name="theme_mode_system">Системная</string>
+    <string name="theme_mode_dark">Тёмная</string>
+    <string name="theme_mode_light">Светлая</string>
+    <string name="theme_color">Цвет темы</string>
+    <string name="theme_color_default">По умолчанию</string>
+    <string name="theme_color_wallpaper">Обои</string>
+    <string name="theme_color_custom">Пользовательский</string>
+    <string name="custom_color">Пользовательский цвет</string>
     <string name="translucent_bottom_navigation_bar">Полупрозрачная нижняя панель</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Вы можете увидеть содержимое под нижней панелью</string>
     <string name="donation">Если вам нравится моя работа — купите мне кофе</string>
@@ -397,14 +406,10 @@
     <string name="do_not_show_again">Больше не показывать</string>
     <string name="auto_check_for_update">Автоматически проверять обновления</string>
     <string name="auto_check_for_update_description">Проверьте наличие обновлений при открытии приложения</string>
-    <string name="blur_fullscreen_lyrics">Эффект размытия экрана текста песен</string>
-    <string name="blur_fullscreen_lyrics_description">Размытие фона в полноэкранном просмотре текстов песен</string>
     <string name="playback_speed_pitch"><![CDATA[Скорость и высота воспроизведения]]></string>
     <string name="playback_speed_pitch_disabled"><![CDATA[Скорость и высота тона воспроизведения (отключено при включенном кроссфейде)]]></string>
     <string name="playback_speed">Скорость воспроизведения</string>
     <string name="pitch">Тон</string>
-    <string name="blur_player_background">Размыть фон плеера</string>
-    <string name="blur_player_background_description">Эффект размытия фона текущего экрана воспроизведения</string>
     <string name="merging_audio_and_video">Объединение аудио и видео</string>
     <string name="error_occurred">Произошла ошибка</string>
     <string name="downloading_audio">Загрузка аудио: %1$s </string>
@@ -544,6 +549,8 @@
     <string name="quit_app">Выйти из приложения</string>
     <string name="local_tracking_title">Локальная история прослушивания</string>
     <string name="local_tracking_description">Записывать историю прослушивания в локальную базу данных</string>
+    <string name="blog_notification_title">Уведомления о публикациях в блоге</string>
+    <string name="blog_notification_description">Получайте уведомления о публикации новых записей в блоге</string>
     <string name="simpmusic_charts">Чарты SimpMusic</string>
     <string name="crossfading">Кроссфейд</string>
     <string name="your_320kbps_url">Ваш URL 320 кбит/с</string>
@@ -553,4 +560,7 @@
     <string name="bpm">BPM</string>
     <string name="key">Ключ</string>
     <string name="scale">Шкала</string>
+    <string name="home_offline_title">Ошибка подключения</string>
+    <string name="home_offline_subtitle">Проверьте подключение к Интернету и повторите попытку, или прослушивайте скачанную музыку.</string>
+    <string name="listen_to_downloaded">Слушать скачанную музыку</string>
 </resources>

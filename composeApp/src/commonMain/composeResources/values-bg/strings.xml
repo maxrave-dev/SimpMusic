@@ -385,13 +385,9 @@
     <string name="do_not_show_again">Не показвай отново</string>
     <string name="auto_check_for_update">Автоматична проверка за актуализации</string>
     <string name="auto_check_for_update_description">Проверка за актуализации когато отворите приложението</string>
-    <string name="blur_fullscreen_lyrics">Ефект на замъгляване на текстовете в цял екран</string>
-    <string name="blur_fullscreen_lyrics_description">Замъгляване на фона на текстовете в цял екран</string>
     <string name="playback_speed_pitch"><![CDATA[Скорост на възпроизвеждане и тон]]></string>
     <string name="playback_speed">Скорост на възпроизвеждане</string>
     <string name="pitch">Тон</string>
-    <string name="blur_player_background">Замъгли на фона на плейъра</string>
-    <string name="blur_player_background_description">Замъгляване на фона на плейъра</string>
     <string name="merging_audio_and_video">Смесване на звук и видео</string>
     <string name="error_occurred">Възникна грешка</string>
     <string name="downloading_audio">Сваляне на аудио: %1$s </string>

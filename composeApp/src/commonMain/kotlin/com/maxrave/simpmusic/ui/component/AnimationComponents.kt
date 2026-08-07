@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import kotlinx.coroutines.delay
 
 /**
@@ -95,7 +94,7 @@ fun InfiniteBorderAnimationView(
             modifier =
                 Modifier
                     .background(
-                        color = if (isAnimated) md_theme_dark_background else backgroundColor,
+                        color = if (isAnimated) Color.Black else backgroundColor,
                     ).padding(
                         contentPadding,
                     ),

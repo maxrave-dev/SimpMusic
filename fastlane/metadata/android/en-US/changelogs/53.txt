@@ -1,0 +1,8 @@
+- New artist page: immersive header with the artist's name logo, accent-colored follow and radio buttons, and a blurred bottom
+- Get a notification when a new blog post is published, shown alongside artist release notifications
+- Update the YouTube extraction engine (core) for more reliable playback and downloads
+- Fix high battery drain and overheating caused by Discord Rich Presence retrying login in the background
+- Fix Spotify lyrics and canvas toggles staying stuck after logging out
+- Fix the liquid glass tab bar not switching screens when tapped
+- Keep crossfade on the correct track when you pause, skip, or go back mid-transition
+- Desktop: fix a crash when changing tracks
