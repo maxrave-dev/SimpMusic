@@ -28,18 +28,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Forward5
-import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay5
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -65,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -76,10 +63,26 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Forward5
+import com.maxrave.simpmusic.ui.icon.FullscreenExit
+import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowLeft
+import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowRight
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.Replay5
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.SkipNext
+import com.maxrave.simpmusic.ui.icon.SkipPrevious
+import com.maxrave.simpmusic.ui.icon.Subtitles
+import com.maxrave.simpmusic.ui.icon.SubtitlesOff
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -89,8 +92,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
 import simpmusic.composeapp.generated.resources.five_seconds
 import kotlin.math.roundToLong
 
@@ -236,7 +237,7 @@ fun FullscreenPlayer(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Icon(
-                                    Icons.Filled.KeyboardDoubleArrowLeft,
+                                    SimpIcons.KeyboardDoubleArrowLeft,
                                     "",
                                     tint = Color.White,
                                 )
@@ -294,7 +295,7 @@ fun FullscreenPlayer(
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Icon(
-                                    Icons.Filled.KeyboardDoubleArrowRight,
+                                    SimpIcons.KeyboardDoubleArrowRight,
                                     "",
                                     tint = Color.White,
                                 )
@@ -316,19 +317,16 @@ fun FullscreenPlayer(
                                 .fillMaxWidth()
                                 .height(64.dp)
                                 .align(Alignment.BottomCenter)
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(Color.Transparent, Color.Black),
-                                    ),
-                                ),
+                                .background(artworkScrimBrush(Color.Black)),
                         )
                         TopAppBar(
                             modifier =
                                 Modifier
                                     .align(Alignment.TopCenter)
                                     .background(
-                                        Brush.verticalGradient(
-                                            listOf(Color.Black, Color.Transparent),
+                                        smoothScrimBrush(
+                                            from = Color.Black,
+                                            to = Color.Black.copy(alpha = 0f),
                                         ),
                                     ).padding(horizontal = 12.dp)
                                     .fillMaxWidth(),
@@ -355,7 +353,7 @@ fun FullscreenPlayer(
                             navigationIcon = {
                                 Box(Modifier.padding(horizontal = 5.dp)) {
                                     RippleIconButton(
-                                        Res.drawable.baseline_arrow_back_ios_new_24,
+                                        SimpIcons.ArrowBackIosNew,
                                         Modifier
                                             .size(32.dp),
                                         true,
@@ -366,7 +364,7 @@ fun FullscreenPlayer(
                             },
                             actions = {
                                 RippleIconButton(
-                                    Res.drawable.baseline_more_vert_24,
+                                    SimpIcons.MoreVert,
                                 ) {
                                     showBottom = true
                                 }
@@ -397,7 +395,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.SkipPrevious,
+                                    imageVector = SimpIcons.SkipPrevious,
                                     tint = if (controllerState.isPreviousAvailable) Color.White else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
@@ -422,7 +420,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Replay5,
+                                    imageVector = SimpIcons.Replay5,
                                     tint = Color.White,
                                     contentDescription = "",
                                     modifier =
@@ -449,7 +447,7 @@ fun FullscreenPlayer(
                                 Crossfade(controllerState.isPlaying) {
                                     if (it) {
                                         Icon(
-                                            imageVector = Icons.Filled.Pause,
+                                            imageVector = SimpIcons.Pause,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =
@@ -458,7 +456,7 @@ fun FullscreenPlayer(
                                         )
                                     } else {
                                         Icon(
-                                            imageVector = Icons.Filled.PlayArrow,
+                                            imageVector = SimpIcons.PlayArrow,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =
@@ -485,7 +483,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Forward5,
+                                    imageVector = SimpIcons.Forward5,
                                     tint = Color.White,
                                     contentDescription = "",
                                     modifier =
@@ -511,7 +509,7 @@ fun FullscreenPlayer(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.SkipNext,
+                                    imageVector = SimpIcons.SkipNext,
                                     tint = if (controllerState.isNextAvailable) Color.White else Color.DarkGray,
                                     contentDescription = "",
                                     modifier =
@@ -584,10 +582,13 @@ fun FullscreenPlayer(
                                 }
                                 CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                     Slider(
-                                        value = sliderValue,
+                                        // Fraction, not 0..100 — see the note in NowPlayingScreen:
+                                        // material3 alpha25 drops valueRange on its
+                                        // binary-compatibility overload.
+                                        value = sliderValue / 100f,
                                         onValueChange = { value ->
                                             isSliding = true
-                                            sliderValue = value
+                                            sliderValue = value * 100f
                                         },
                                         onValueChangeFinished = {
                                             isSliding = false
@@ -595,7 +596,6 @@ fun FullscreenPlayer(
                                                 UIEvent.UpdateProgress(sliderValue),
                                             )
                                         },
-                                        valueRange = 0f..100f,
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
@@ -697,7 +697,7 @@ fun FullscreenPlayer(
                                         Crossfade(shouldShowSubtitle) {
                                             if (it) {
                                                 Icon(
-                                                    imageVector = Icons.Filled.SubtitlesOff,
+                                                    imageVector = SimpIcons.SubtitlesOff,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier =
@@ -706,7 +706,7 @@ fun FullscreenPlayer(
                                                 )
                                             } else {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Subtitles,
+                                                    imageVector = SimpIcons.Subtitles,
                                                     tint = Color.White,
                                                     contentDescription = "",
                                                     modifier =
@@ -734,7 +734,7 @@ fun FullscreenPlayer(
                                         },
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Filled.FullscreenExit,
+                                            imageVector = SimpIcons.FullscreenExit,
                                             tint = Color.White,
                                             contentDescription = "",
                                             modifier =

@@ -19,11 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material.icons.rounded.UnfoldLess
-import androidx.compose.material.icons.rounded.UnfoldMore
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +39,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Remove
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.UnfoldLess
+import com.maxrave.simpmusic.ui.icon.UnfoldMore
 import com.maxrave.simpmusic.ui.theme.typo
 import java.awt.MouseInfo
 import java.awt.Window
@@ -290,7 +290,7 @@ private fun WindowControlButton(
             WindowControlIcon.Minimize -> {
                 Icon(
                     modifier = iconModifier,
-                    imageVector = Icons.Rounded.Remove,
+                    imageVector = SimpIcons.Remove,
                     tint = if (isHovered) Color(0xFF3B3B3B) else Color.DarkGray.copy(alpha = 0.55f),
                     contentDescription = "Minimize",
                 )
@@ -299,7 +299,7 @@ private fun WindowControlButton(
             WindowControlIcon.Maximize -> {
                 Icon(
                     modifier = iconModifier.rotate(45f),
-                    imageVector = Icons.Rounded.UnfoldMore,
+                    imageVector = SimpIcons.UnfoldMore,
                     tint = if (isHovered) Color(0xFF3B3B3B) else Color.DarkGray.copy(alpha = 0.55f),
                     contentDescription = "Maximize",
                 )
@@ -308,7 +308,7 @@ private fun WindowControlButton(
             WindowControlIcon.Restore -> {
                 Icon(
                     modifier = iconModifier.rotate(45f),
-                    imageVector = Icons.Rounded.UnfoldLess,
+                    imageVector = SimpIcons.UnfoldLess,
                     tint = if (isHovered) Color(0xFF3B3B3B) else Color.DarkGray.copy(alpha = 0.55f),
                     contentDescription = "Restore",
                 )
@@ -317,7 +317,7 @@ private fun WindowControlButton(
             WindowControlIcon.Close -> {
                 Icon(
                     modifier = iconModifier,
-                    imageVector = Icons.Rounded.Close,
+                    imageVector = SimpIcons.Close,
                     tint = if (isHovered) Color(0xFF3B3B3B) else Color.DarkGray.copy(alpha = 0.55f),
                     contentDescription = "Close",
                 )

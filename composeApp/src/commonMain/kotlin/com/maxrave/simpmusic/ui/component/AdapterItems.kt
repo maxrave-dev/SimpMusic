@@ -71,6 +71,7 @@ import com.maxrave.domain.data.model.mood.genre.ItemsPlaylist
 import com.maxrave.domain.data.model.mood.moodmoments.Item
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.HomeContentType
 import com.maxrave.domain.mediaservice.handler.PlaylistType
@@ -82,7 +83,6 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
-import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -523,9 +523,11 @@ fun HomeItemContentPlaylist(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QuickPicksItem(
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     widthDp: Dp,
     data: Content,
 ) {
@@ -536,9 +538,10 @@ fun QuickPicksItem(
                 .wrapContentHeight()
                 .width(widthDp - 30.dp)
                 .focusable(true)
-                .clickable {
-                    onClick()
-                },
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
     ) {
         Row(
             modifier =
@@ -573,10 +576,13 @@ fun QuickPicksItem(
                     ).align(Alignment.CenterVertically),
                 verticalArrangement = Arrangement.SpaceEvenly,
             ) {
+                // One line + marquee, NOT maxLines = 2: the parent LazyHorizontalGrid uses
+                // GridCells.Fixed(4) over a fixed 256.dp, so every cell is exactly 64.dp and a
+                // second title line pushes the artist row out of the cell, where the grid clips it.
                 Text(
                     text = data.title,
                     style = typo().titleSmall,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier =
@@ -585,6 +591,11 @@ fun QuickPicksItem(
                             .wrapContentHeight(align = Alignment.CenterVertically)
                             .padding(
                                 bottom = 3.dp,
+                            ).basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                initialDelayMillis = 2000,
+                                repeatDelayMillis = 2000,
+                                velocity = 25.dp,
                             ),
                 )
                 LazyRow(verticalAlignment = Alignment.CenterVertically) {
@@ -895,6 +906,7 @@ fun HomeItemArtist(
 @Composable
 fun MoodMomentAndGenreHomeItem(
     title: String,
+    stripeColor: Long,
     onClick: () -> Unit,
 ) {
     ElevatedCard(
@@ -912,10 +924,13 @@ fun MoodMomentAndGenreHomeItem(
     ) {
         Row {
             Box(
+                // `solid.leftStripeColor` straight from the API (full ARGB). This used to be
+                // generateRandomColor(), which — being outside remember — rolled a new colour on
+                // every recomposition, so the stripes flickered while scrolling.
                 Modifier
                     .width(10.dp)
                     .height(64.dp)
-                    .background(generateRandomColor()),
+                    .background(Color(stripeColor)),
             )
             Text(
                 text = title,
@@ -1238,6 +1253,7 @@ fun ItemTrackChart(
 fun MoodAndGenresContentItem(
     data: Any?,
     navController: NavController,
+    homeViewModel: HomeViewModel = koinViewModel(),
 ) {
     Column(
         modifier = Modifier.wrapContentHeight(align = Alignment.CenterVertically, unbounded = true),
@@ -1272,16 +1288,51 @@ fun MoodAndGenresContentItem(
                 }
             items(itemList) { item ->
                 HomeItemContentPlaylist(onClick = {
-                    navController.navigate(
-                        PlaylistDestination(
-                            playlistId =
-                                if (item is com.maxrave.domain.data.model.mood.genre.Content) {
-                                    item.playlistBrowseId
-                                } else {
-                                    (item as com.maxrave.domain.data.model.mood.moodmoments.Content).playlistBrowseId
-                                },
-                        ),
-                    )
+                    // The "Songs" shelf mixes tracks into a list that is otherwise all playlists,
+                    // so route by videoId: a track starts its radio, everything else opens a page.
+                    val moodSong = item as? com.maxrave.domain.data.model.mood.moodmoments.Content
+                    val songVideoId = moodSong?.videoId
+                    if (moodSong != null && songVideoId != null) {
+                        val track =
+                            Track(
+                                album = null,
+                                artists = listOf(Artist(id = null, name = moodSong.subtitle)),
+                                duration = null,
+                                durationSeconds = null,
+                                isAvailable = true,
+                                isExplicit = false,
+                                likeStatus = null,
+                                thumbnails = moodSong.thumbnails,
+                                title = moodSong.title,
+                                videoId = songVideoId,
+                                videoType = null,
+                                category = null,
+                                feedbackTokens = null,
+                                resultType = null,
+                            )
+                        homeViewModel.setQueueData(
+                            QueueData.Data(
+                                listTracks = arrayListOf(track),
+                                firstPlayedTrack = track,
+                                playlistId = "RDAMVM$songVideoId",
+                                playlistName = "\"${moodSong.title}\" Radio",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null,
+                            ),
+                        )
+                        homeViewModel.loadMediaItem(track, type = Config.SONG_CLICK)
+                    } else {
+                        navController.navigate(
+                            PlaylistDestination(
+                                playlistId =
+                                    if (item is com.maxrave.domain.data.model.mood.genre.Content) {
+                                        item.playlistBrowseId
+                                    } else {
+                                        (item as com.maxrave.domain.data.model.mood.moodmoments.Content).playlistBrowseId
+                                    },
+                            ),
+                        )
+                    }
                 }, data = item)
             }
         }

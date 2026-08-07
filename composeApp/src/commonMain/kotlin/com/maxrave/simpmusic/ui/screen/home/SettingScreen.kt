@@ -37,9 +37,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -48,6 +45,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -73,6 +71,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -83,6 +82,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -101,6 +101,7 @@ import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
+import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
@@ -117,6 +118,12 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Error
+import com.maxrave.simpmusic.ui.icon.PeopleAlt
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
@@ -126,6 +133,7 @@ import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.viewModel.ImportViewModel
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -178,10 +186,6 @@ import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
 import simpmusic.composeapp.generated.resources.backup_frequency
 import simpmusic.composeapp.generated.resources.balance_media_loudness
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
-import simpmusic.composeapp.generated.resources.baseline_close_24
-import simpmusic.composeapp.generated.resources.baseline_people_alt_24
-import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
 import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.blog_notification_description
 import simpmusic.composeapp.generated.resources.blog_notification_title
@@ -233,6 +237,14 @@ import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database
 import simpmusic.composeapp.generated.resources.help_build_lyrics_database_description
 import simpmusic.composeapp.generated.resources.http
+import simpmusic.composeapp.generated.resources.import_data
+import simpmusic.composeapp.generated.resources.import_data_intro
+import simpmusic.composeapp.generated.resources.import_failed
+import simpmusic.composeapp.generated.resources.import_playlists_from_other_apps
+import simpmusic.composeapp.generated.resources.import_progress_songs
+import simpmusic.composeapp.generated.resources.import_reading_file
+import simpmusic.composeapp.generated.resources.import_result
+import simpmusic.composeapp.generated.resources.import_result_skipped
 import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.intro_login_to_discord
 import simpmusic.composeapp.generated.resources.intro_login_to_lastfm
@@ -278,6 +290,7 @@ import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
+import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
@@ -413,6 +426,23 @@ fun SettingScreen(
         ) { file ->
             file.firstOrNull()?.getPath(pl)?.toKmpUri()?.let {
                 viewModel.restore(it)
+            }
+        }
+
+    // Import playlists converted on the web. Unlike restore, the file is read through Calf's
+    // KmpFile rather than a Uri, so no expect/actual is needed. The type stays All because a
+    // converted .json arrives with whatever MIME its source assigned it, and an application/json
+    // filter would hide it on some hosts.
+    val importViewModel: ImportViewModel = koinViewModel()
+    val importState by importViewModel.importState.collectAsStateWithLifecycle()
+    val importLauncher =
+        rememberFilePickerLauncher(
+            type =
+                FilePickerFileType.All,
+            selectionMode = FilePickerSelectionMode.Single,
+        ) { file ->
+            file.firstOrNull()?.let {
+                importViewModel.import(it, pl)
             }
         }
 
@@ -2209,6 +2239,33 @@ fun SettingScreen(
                         }
                     },
                 )
+                SettingItem(
+                    title = stringResource(Res.string.import_data),
+                    subtitle = stringResource(Res.string.import_playlists_from_other_apps),
+                    onClick = {
+                        coroutineScope.launch {
+                            importLauncher.launch()
+                        }
+                    },
+                )
+                val beforeUrl = stringResource(Res.string.import_data_intro).substringBefore("https://www.simpmusic.org/tools")
+                val afterUrl = stringResource(Res.string.import_data_intro).substringAfter("https://www.simpmusic.org/tools")
+                Text(
+                    buildAnnotatedString {
+                        append(beforeUrl)
+                        withLink(
+                            LinkAnnotation.Url(
+                                "https://www.simpmusic.org/tools",
+                                TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                            ),
+                        ) {
+                            append("https://www.simpmusic.org/tools")
+                        }
+                        append(afterUrl)
+                    },
+                    style = typo().bodySmall,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                )
             }
         }
         item(key = "about_us") {
@@ -2313,6 +2370,12 @@ fun SettingScreen(
         item(key = "end") {
             EndOfPage()
         }
+    }
+    importState?.let { progress ->
+        ImportProgressDialog(
+            progress = progress,
+            onDismiss = importViewModel::dismiss,
+        )
     }
     val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
     if (basisAlertData != null) {
@@ -2469,7 +2532,7 @@ fun SettingScreen(
                                         .align(Alignment.CenterStart)
                                         .fillMaxHeight(),
                             ) {
-                                Icon(Icons.Outlined.Close, null, tint = MaterialTheme.colorScheme.onSurface)
+                                Icon(SimpIcons.Close, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                             Text(
                                 stringResource(Res.string.youtube_account),
@@ -2515,8 +2578,8 @@ fun SettingScreen(
                                                 .data(it.thumbnailUrl)
                                                 .crossfade(550)
                                                 .build(),
-                                        placeholder = painterResource(Res.drawable.baseline_people_alt_24),
-                                        error = painterResource(Res.drawable.baseline_people_alt_24),
+                                        placeholder = rememberVectorPainter(SimpIcons.PeopleAlt),
+                                        error = rememberVectorPainter(SimpIcons.PeopleAlt),
                                         contentDescription = it.name,
                                         modifier =
                                             Modifier
@@ -2554,14 +2617,14 @@ fun SettingScreen(
                     item {
                         Column {
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_people_alt_24),
+                                icon = SimpIcons.PeopleAlt,
                                 text = Res.string.guest,
                             ) {
                                 viewModel.setUsedAccount(null)
                                 showYouTubeAccountDialog = false
                             }
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_close_24),
+                                icon = SimpIcons.Close,
                                 text = Res.string.log_out,
                             ) {
                                 viewModel.setBasicAlertData(
@@ -2578,7 +2641,7 @@ fun SettingScreen(
                                 )
                             }
                             ActionButton(
-                                icon = painterResource(Res.drawable.baseline_playlist_add_24),
+                                icon = SimpIcons.PlaylistAdd,
                                 text = Res.string.add_an_account,
                             ) {
                                 showYouTubeAccountDialog = false
@@ -2636,7 +2699,7 @@ fun SettingScreen(
                                 },
                                 trailingIcon = {
                                     if (!verify.first) {
-                                        Icons.Outlined.Error
+                                        SimpIcons.Error
                                     }
                                 },
                                 modifier =
@@ -2850,7 +2913,7 @@ fun SettingScreen(
                             navigationIcon = {
                                 Box(Modifier.padding(horizontal = 5.dp)) {
                                     RippleIconButton(
-                                        Res.drawable.baseline_arrow_back_ios_new_24,
+                                        SimpIcons.ArrowBackIosNew,
                                         Modifier
                                             .size(32.dp),
                                         true,
@@ -2883,7 +2946,7 @@ fun SettingScreen(
         navigationIcon = {
             Box(Modifier.padding(horizontal = 5.dp)) {
                 RippleIconButton(
-                    Res.drawable.baseline_arrow_back_ios_new_24,
+                    SimpIcons.ArrowBackIosNew,
                     Modifier
                         .size(32.dp),
                     true,
@@ -2902,5 +2965,97 @@ fun SettingScreen(
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
             ),
+    )
+}
+
+/**
+ * Progress and outcome of a playlist import.
+ *
+ * Only dismissible once the import has finished — cancelling mid-write would leave the database
+ * half-populated with no way to tell the user which half.
+ */
+@Composable
+private fun ImportProgressDialog(
+    progress: ImportProgress,
+    onDismiss: () -> Unit,
+) {
+    val finished = progress is ImportProgress.Success || progress is ImportProgress.Error
+    AlertDialog(
+        onDismissRequest = { if (finished) onDismiss() },
+        properties =
+            DialogProperties(
+                dismissOnBackPress = finished,
+                dismissOnClickOutside = finished,
+            ),
+        title = {
+            Text(
+                text =
+                    stringResource(
+                        if (progress is ImportProgress.Error) Res.string.import_failed else Res.string.import_data,
+                    ),
+                style = typo().titleSmall,
+            )
+        },
+        text = {
+            Column {
+                when (progress) {
+                    is ImportProgress.Preparing -> {
+                        Text(
+                            text = stringResource(Res.string.import_reading_file),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    is ImportProgress.Importing -> {
+                        Text(
+                            text = stringResource(Res.string.import_progress_songs, progress.processed, progress.total),
+                            style = typo().bodyMedium,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(
+                            progress = {
+                                if (progress.total > 0) progress.processed.toFloat() / progress.total else 0f
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    is ImportProgress.Success -> {
+                        Text(
+                            text =
+                                stringResource(
+                                    Res.string.import_result,
+                                    progress.result.playlistsCreated,
+                                    progress.result.songsImported,
+                                ),
+                            style = typo().bodyMedium,
+                        )
+                        if (progress.result.skippedEntries > 0) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(Res.string.import_result_skipped, progress.result.skippedEntries),
+                                style = typo().bodySmall,
+                            )
+                        }
+                    }
+
+                    is ImportProgress.Error -> {
+                        Text(
+                            text = progress.message,
+                            style = typo().bodyMedium,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (finished) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = stringResource(Res.string.ok))
+                }
+            }
+        },
     )
 }

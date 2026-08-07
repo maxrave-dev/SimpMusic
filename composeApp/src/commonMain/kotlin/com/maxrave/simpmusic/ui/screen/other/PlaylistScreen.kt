@@ -39,12 +39,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -71,7 +65,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -102,6 +95,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
@@ -118,6 +112,18 @@ import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PauseCircle
+import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.PlayCircle
+import com.maxrave.simpmusic.ui.icon.Search
+import com.maxrave.simpmusic.ui.icon.Sensors
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.seed
@@ -149,14 +155,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album_length
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_downloaded
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
-import simpmusic.composeapp.generated.resources.baseline_play_circle_24
-import simpmusic.composeapp.generated.resources.baseline_sensors_24
-import simpmusic.composeapp.generated.resources.baseline_shuffle_24
-import simpmusic.composeapp.generated.resources.download_button
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.error
@@ -175,6 +174,11 @@ fun PlaylistScreen(
     isYourYouTubePlaylist: Boolean,
     navController: NavController,
 ) {
+    // Home shelves navigate with the browseEndpoint id, which is "VL" + the playlist id
+    // (HomeParser reads title.runs[0].navigationEndpoint.browseEndpoint.browseId). Every radio
+    // prefix check and the watch endpoint expect the bare id, so normalise once on the way in
+    // rather than stripping "VL" again at each consumer.
+    val id = playlistId.removePrefix("VL")
     val tag = "PlaylistScreen"
 
     val composition by rememberLottieComposition {
@@ -245,7 +249,7 @@ fun PlaylistScreen(
         Logger.d(tag, "Continuation: $continuation")
         if (shouldStartPaginate.value && tracksListState == ListState.IDLE) {
             viewModel.getContinuationTrack(
-                playlistId,
+                id,
                 continuation,
             )
         }
@@ -292,10 +296,10 @@ fun PlaylistScreen(
         playlistBottomSheetShow = true
     }
 
-    LaunchedEffect(key1 = playlistId) {
-        if (playlistId != uiState.data?.id) {
-            Logger.w(tag, "new id: $playlistId")
-            viewModel.getData(playlistId)
+    LaunchedEffect(key1 = id) {
+        if (id != uiState.data?.id) {
+            Logger.w(tag, "new id: $id")
+            viewModel.getData(id)
         }
     }
     LaunchedEffect(key1 = firstItemVisible) {
@@ -408,16 +412,7 @@ fun PlaylistScreen(
                                                     .fillMaxWidth()
                                                     .height(180.dp)
                                                     .align(Alignment.BottomCenter)
-                                                    .background(
-                                                        brush =
-                                                            Brush.verticalGradient(
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    Color(0x75000000),
-                                                                    Color.Black,
-                                                                ),
-                                                            ),
-                                                    ),
+                                                    .background(artworkScrimBrush(Color.Black)),
                                         )
                                     }
                                 }
@@ -434,7 +429,7 @@ fun PlaylistScreen(
                                                     .windowInsetsPadding(WindowInsets.statusBars),
                                         ) {
                                             RippleIconButton(
-                                                resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                                imageVector = SimpIcons.ArrowBackIosNew,
                                             ) {
                                                 navController.navigateUp()
                                             }
@@ -444,7 +439,7 @@ fun PlaylistScreen(
                                                     showSearchBar = !showSearchBar
                                                 },
                                             ) {
-                                                Icon(Icons.Rounded.Search, null, tint = Color.White)
+                                                Icon(SimpIcons.Search, null, tint = Color.White)
                                             }
                                         }
                                     }
@@ -484,22 +479,17 @@ fun PlaylistScreen(
                                                         },
                                                         modifier = Modifier.fillMaxSize(),
                                                     )
+                                                    // Scrim spans 70% of the artwork (not a fixed 200dp): the
+                                                    // shorter the ramp, the steeper the alpha, and a steep ramp
+                                                    // is what makes the fade read as an edge. See
+                                                    // artworkScrimBrush for the curve itself.
                                                     Box(
                                                         modifier =
                                                             Modifier
                                                                 .fillMaxWidth()
-                                                                .height(200.dp)
+                                                                .height((screenInfo.hDP * 0.35f).dp)
                                                                 .align(Alignment.BottomCenter)
-                                                                .background(
-                                                                    Brush.verticalGradient(
-                                                                        listOf(
-                                                                            Color.Transparent,
-                                                                            Color.Transparent,
-                                                                            mutedPaletteBg.copy(alpha = 0.5f),
-                                                                            mutedPaletteBg,
-                                                                        ),
-                                                                    ),
-                                                                ),
+                                                                .background(artworkScrimBrush(mutedPaletteBg)),
                                                     )
                                                     Column(
                                                         modifier =
@@ -572,7 +562,7 @@ fun PlaylistScreen(
                                                 ) {
                                                     LiquidGlassIconButton(
                                                         backdrop = artworkBackdrop,
-                                                        resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                                        imageVector = SimpIcons.ArrowBackIosNew,
                                                         modifier =
                                                             Modifier
                                                                 .size(48.dp),
@@ -606,13 +596,13 @@ fun PlaylistScreen(
                                                                 showSearchBar = !showSearchBar
                                                             },
                                                         ) {
-                                                            Icon(Icons.Rounded.Search, null, tint = Color.White)
+                                                            Icon(SimpIcons.Search, null, tint = Color.White)
                                                         }
                                                         IconButton(
                                                             onClick = onPlaylistMoreClick,
                                                         ) {
                                                             Icon(
-                                                                painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                                                imageVector = SimpIcons.MoreVert,
                                                                 contentDescription = "More",
                                                                 tint = Color.White,
                                                             )
@@ -727,7 +717,7 @@ fun PlaylistScreen(
                                                                 contentAlignment = Alignment.Center,
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = Icons.Rounded.Shuffle,
+                                                                    imageVector = SimpIcons.Shuffle,
                                                                     contentDescription = "Shuffle",
                                                                     tint = Color.White,
                                                                     modifier = Modifier.size(22.dp),
@@ -753,7 +743,7 @@ fun PlaylistScreen(
                                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                                 Icon(
                                                                     imageVector =
-                                                                        if (isThisPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                                                                        if (isThisPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
                                                                     contentDescription = null,
                                                                     tint = Color.Black,
                                                                     modifier = Modifier.size(22.dp),
@@ -837,7 +827,7 @@ fun PlaylistScreen(
                                                                                 contentAlignment = Alignment.Center,
                                                                             ) {
                                                                                 Icon(
-                                                                                    painter = painterResource(Res.drawable.download_button),
+                                                                                    imageVector = SimpIcons.DownloadForOffline,
                                                                                     tint = Color.White,
                                                                                     contentDescription = "Download",
                                                                                     modifier = Modifier.size(22.dp),
@@ -858,7 +848,7 @@ fun PlaylistScreen(
                                                         Crossfade(isPlaying && playingPlaylistId == data.id) { isThisPlaying ->
                                                             if (isThisPlaying) {
                                                                 RippleIconButton(
-                                                                    resId = Res.drawable.baseline_pause_circle_24,
+                                                                    imageVector = SimpIcons.PauseCircle,
                                                                     fillMaxSize = true,
                                                                     tint = seed,
                                                                     modifier = Modifier.size(48.dp),
@@ -867,7 +857,7 @@ fun PlaylistScreen(
                                                                 }
                                                             } else {
                                                                 RippleIconButton(
-                                                                    resId = Res.drawable.baseline_play_circle_24,
+                                                                    imageVector = SimpIcons.PlayCircle,
                                                                     fillMaxSize = true,
                                                                     tint = seed,
                                                                     modifier = Modifier.size(48.dp),
@@ -935,7 +925,7 @@ fun PlaylistScreen(
                                                                     else -> {
                                                                         RippleIconButton(
                                                                             fillMaxSize = true,
-                                                                            resId = Res.drawable.download_button,
+                                                                            imageVector = SimpIcons.DownloadForOffline,
                                                                             modifier = Modifier.size(36.dp),
                                                                         ) {
                                                                             Logger.w("PlaylistScreen", "downloadState: $downloadState")
@@ -950,7 +940,7 @@ fun PlaylistScreen(
                                                             RippleIconButton(
                                                                 modifier =
                                                                     Modifier.size(36.dp),
-                                                                resId = Res.drawable.baseline_sensors_24,
+                                                                imageVector = SimpIcons.Sensors,
                                                                 fillMaxSize = true,
                                                             ) {
                                                                 viewModel.onUIEvent(PlaylistUIEvent.StartRadio)
@@ -959,7 +949,7 @@ fun PlaylistScreen(
                                                             RippleIconButton(
                                                                 modifier =
                                                                     Modifier.size(36.dp),
-                                                                resId = Res.drawable.baseline_shuffle_24,
+                                                                imageVector = SimpIcons.Shuffle,
                                                                 fillMaxSize = true,
                                                             ) {
                                                                 viewModel.onUIEvent(PlaylistUIEvent.Shuffle)
@@ -969,7 +959,7 @@ fun PlaylistScreen(
                                                         RippleIconButton(
                                                             modifier =
                                                                 Modifier.size(36.dp),
-                                                            resId = Res.drawable.baseline_more_vert_24,
+                                                            imageVector = SimpIcons.MoreVert,
                                                             fillMaxSize = true,
                                                         ) {
                                                             onPlaylistMoreClick()
@@ -1165,7 +1155,7 @@ fun PlaylistScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             RippleIconButton(
-                                resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                imageVector = SimpIcons.ArrowBackIosNew,
                             ) {
                                 navController.navigateUp()
                             }
@@ -1206,7 +1196,7 @@ fun PlaylistScreen(
                                     showSearchBar = !showSearchBar
                                 },
                             ) {
-                                Icon(Icons.Rounded.Close, null, tint = Color.White)
+                                Icon(SimpIcons.Close, null, tint = Color.White)
                             }
                         }
                     }
@@ -1277,7 +1267,7 @@ fun PlaylistScreen(
                         navigationIcon = {
                             Box(Modifier.padding(horizontal = 5.dp)) {
                                 RippleIconButton(
-                                    Res.drawable.baseline_arrow_back_ios_new_24,
+                                    SimpIcons.ArrowBackIosNew,
                                     Modifier
                                         .size(32.dp),
                                     true,
@@ -1292,7 +1282,7 @@ fun PlaylistScreen(
                                     showSearchBar = !showSearchBar
                                 },
                             ) {
-                                Icon(Icons.Rounded.Search, null, tint = Color.White)
+                                Icon(SimpIcons.Search, null, tint = Color.White)
                             }
                         },
                         colors =

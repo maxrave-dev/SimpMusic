@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Song_and_artist_name">음악 • %1$s</string>
+    <string name="Song_and_artist_name">노래 • %1$s</string>
     <string name="playlist_and_author">재생목록 • %1$s</string>
     <string name="album_and_artist_name">앨범 • %1$s</string>
     <string name="subscribers">구독자 %1$s 명</string>
@@ -11,24 +11,24 @@
     <string name="liked">좋아요 표시한 음악</string>
     <string name="like">좋아요</string>
     <string name="hello_blank_fragment">안녕하세요 여기는 빈 부분이에요</string>
-    <string name="download">다운로드</string>
-    <string name="downloaded">다운로드 됨</string>
-    <string name="downloading">다운로드 중</string>
+    <string name="download">저장</string>
+    <string name="downloaded">저장됨</string>
+    <string name="downloading">저장중</string>
     <string name="preparing">준비 중</string>
-    <string name="hide">숨김</string>
-    <string name="show">표시</string>
+    <string name="hide">숨기기</string>
+    <string name="show">보아기</string>
     <string name="na_na">NA:NA</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">즐겨찾기</string>
     <string name="followed">팔로우됨</string>
-    <string name="most_played">가장 많이 재생된 노래</string>
-    <string name="Downloaded">다운로드됨</string>
-    <string name="favorite_playlists">즐겨찿는 재생목록</string>
-    <string name="no_favorite_playlists">즐겨찾는 재생목록 없음</string>
-    <string name="downloaded_playlists">다운로드한 재생목록</string>
-    <string name="no_playlists_downloaded">다운로드한 재생목록 없음</string>
+    <string name="most_played">가장 많이 재생한 노래</string>
+    <string name="Downloaded">저장됨</string>
+    <string name="favorite_playlists">즐겨찾은 재생목록</string>
+    <string name="no_favorite_playlists">즐겨찾은 재생목록 없음</string>
+    <string name="downloaded_playlists">저장한 재생목록</string>
+    <string name="no_playlists_downloaded">저장한 재생목록 없음</string>
     <string name="your_playlists">내 로컬 재생목록</string>
-    <string name="no_playlists_added">추가한 재생목록 없음</string>
+    <string name="no_playlists_added">저장된 재생목록 없음</string>
     <string name="recently_added">최근 추가한</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">음악, 아티스트, 앨범, 재생목록 등 검색</string>
     <string name="everything_you_need">당신이 원하는 모든 것</string>
@@ -349,6 +349,15 @@
     <string name="repeat_off">반복 꺼짐</string>
     <string name="youtube_transcript">YouTube 자막</string>
     <string name="user_interface">인터페이스</string>
+    <string name="theme">테마</string>
+    <string name="theme_mode_system">기기 기본 설정</string>
+    <string name="theme_mode_dark">다크 모드</string>
+    <string name="theme_mode_light">라이트 모드</string>
+    <string name="theme_color">테마 색상</string>
+    <string name="theme_color_default">기본값</string>
+    <string name="theme_color_wallpaper">배경화면</string>
+    <string name="theme_color_custom">사용자 지정</string>
+    <string name="custom_color">사용자 지정 색상</string>
     <string name="translucent_bottom_navigation_bar">반투명 하단 내비게이션 바</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">하단 바 밑에 있는 콘텐츠를 확인 가능</string>
     <string name="donation">앱이 마음에 드시면, 커피 한 잔으로 응원해주세요</string>
@@ -536,6 +545,8 @@
     <string name="quit_app">앱 종료</string>
     <string name="local_tracking_title">로컬 재생 기록 추적</string>
     <string name="local_tracking_description">로컬 데이터베이스에 나의 재생 기록 저장</string>
+    <string name="blog_notification_title">블로그 포스트 알림</string>
+    <string name="blog_notification_description">새로운 블로그가 올라오면 알림 받기</string>
     <string name="simpmusic_charts">Simpmusic 차트</string>
     <string name="crossfading">크로스페이드 중</string>
     <string name="your_320kbps_url">320kbps URL</string>
@@ -548,4 +559,6 @@
     <string name="home_offline_title">연결 할 수 없음</string>
     <string name="home_offline_subtitle">인터넷 연결을 확인하고 다시 시도하거나 다운로드한 음악을 들어보세요.</string>
     <string name="listen_to_downloaded">다운로드한 음악 듣기</string>
+    <string name="playing_on_device">%1$s에서 재생 중</string>
+    <string name="not_available_while_casting">전송중 불가능한 작업입니다</string>
 </resources>

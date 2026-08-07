@@ -27,12 +27,20 @@ class MoodViewModel(
     private var regionCode: String? = null
     private var language: String? = null
 
+    /**
+     * Params whose result is already in [_moodsMomentObject]. MoodScreen calls [getMood] from a
+     * `LaunchedEffect(params)`, which fires again every time the screen re-enters composition —
+     * i.e. on every back navigation — so without this the shelf was refetched each time.
+     */
+    private var loadedParams: String? = null
+
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
     fun getMood(params: String) {
+        if (params == loadedParams && _moodsMomentObject.value != null) return
         loading.value = true
         viewModelScope.launch {
 //            mainRepository.getMood(params, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
@@ -43,10 +51,13 @@ class MoodViewModel(
                 when (values) {
                     is Resource.Success -> {
                         _moodsMomentObject.value = values.data
+                        // Only remember it once it actually succeeded, so a failed load retries.
+                        loadedParams = params
                     }
 
                     is Resource.Error -> {
                         _moodsMomentObject.value = null
+                        loadedParams = null
                     }
                 }
             }

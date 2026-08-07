@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -34,6 +32,8 @@ import com.kmpalette.loader.rememberNetworkLoader
 import com.kmpalette.rememberDominantColorState
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.extension.rgbFactor
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import io.ktor.client.HttpClient
@@ -162,7 +162,7 @@ fun MiniPlayerRoot(
                         .size(24.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Close,
+                    imageVector = SimpIcons.Close,
                     contentDescription = "Close",
                     tint = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.size(16.dp),

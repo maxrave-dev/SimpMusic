@@ -1,0 +1,9 @@
+- Scrobble what you play to Last.fm (Full version)
+- Import playlists converted from Spotify or other apps
+- Browse categories on the empty search screen
+- Redesigned Now Playing with a new backdrop and inline lyrics
+- Seven new countries added to charts
+- Fix wrong artist and album names, and lyrics losing a character
+- Desktop: new mpv engine replaces VLC for more reliable playback
+- Desktop: fix a crash when plugging in headphones on macOS
+- Desktop: macOS 15 or newer is now required

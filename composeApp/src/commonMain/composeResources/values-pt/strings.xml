@@ -350,6 +350,12 @@
     <string name="repeat_off">Repetição desligada</string>
     <string name="youtube_transcript">Transcrição do YouTube</string>
     <string name="user_interface">Interface</string>
+    <string name="theme">Tema</string>
+    <string name="theme_mode_system">Padrão do sistema</string>
+    <string name="theme_mode_dark">Escuro</string>
+    <string name="theme_mode_light">Claro</string>
+    <string name="theme_color">Cor do tema</string>
+    <string name="theme_color_default">Padrão</string>
     <string name="translucent_bottom_navigation_bar">Barra de navegação inferior translúcida</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Você pode ver o conteúdo abaixo da barra inferior</string>
     <string name="donation">Se curtiu o meu trabalho, me paga um café</string>

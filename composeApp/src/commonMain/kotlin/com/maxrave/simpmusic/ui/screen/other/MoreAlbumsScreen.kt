@@ -35,6 +35,8 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.MoreAlbumsDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -47,7 +49,6 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -145,7 +146,7 @@ fun MoreAlbumsScreen(
                     navigationIcon = {
                         Box(Modifier.padding(horizontal = 5.dp)) {
                             RippleIconButton(
-                                Res.drawable.baseline_arrow_back_ios_new_24,
+                                SimpIcons.ArrowBackIosNew,
                                 Modifier
                                     .size(32.dp),
                                 true,

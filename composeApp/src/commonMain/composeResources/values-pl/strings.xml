@@ -74,6 +74,7 @@
     <string name="change">Zmień</string>
     <string name="quality">Jakość</string>
     <string name="prefer_320kbps_stream">Preferuj strumień 320kbps</string>
+    <string name="prefer_320kbps_stream_description">Automatycznie wyszukuj strumień audio 320kbps, jeśli jest dostępny online. Jeśli nie zostanie znaleziony, jakość powróci do wartości domyślnej.</string>
     <string name="download_quality">Jakość pobranych</string>
     <string name="video_download_quality">Jakość pobranego wideo</string>
     <string name="clear_downloaded_cache">Wyczyść pamięć podręczną pobranych</string>
@@ -122,6 +123,11 @@
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">Kup mi kawę</string>
+    <string name="developer_blog">Blog dewelopera</string>
+    <string name="developer_blog_tagline">Czytaj notatki deweloperów &amp; poradniki i materiały zza kulis</string>
+    <string name="blog_promo_title">Nowości od dewelopera</string>
+    <string name="blog_promo_message">​Właśnie wystartowałem z moim osobistym blogiem pod adresem maxrave.dev – dzielę się tam historią powstania SimpMusic, technicznymi analizami ze świata music-tech oraz notatkami inżynieryjnymi. Zajrzyj, jeśli jesteś ciekawy ✨</string>
+    <string name="visit_blog">Odwiedź blog</string>
     <string name="paypal">PayPal</string>
     <string name="title">Tytuł</string>
     <string name="custom_order">Kolejność niestandardowa</string>
@@ -345,6 +351,14 @@
     <string name="repeat_off">Nie powtarzaj</string>
     <string name="youtube_transcript">Transkrypcja YouTube</string>
     <string name="user_interface">Interfejs</string>
+    <string name="theme_mode_system">Domyślny systemowy</string>
+    <string name="theme_mode_dark">Ciemny</string>
+    <string name="theme_mode_light">Jasny</string>
+    <string name="theme_color">Kolor motywu</string>
+    <string name="theme_color_default">Domyślny</string>
+    <string name="theme_color_wallpaper">Tapeta</string>
+    <string name="theme_color_custom">Niestandardowy</string>
+    <string name="custom_color">Kolor niestandardowy</string>
     <string name="translucent_bottom_navigation_bar">Przezroczysty dolny pasek nawigacji</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Możesz zobaczyć zawartość pod dolnym paskiem</string>
     <string name="donation">Jeśli lubisz moją pracę, kup mi kawę</string>
@@ -379,6 +393,9 @@
     <string name="invalid_port">Nieprawidłowy port</string>
     <string name="proxy_host_message">Wprowadź swój host proxy</string>
     <string name="proxy_port_message">Wprowadź swój port proxy</string>
+    <string name="proxy_username">Nazwa użytkownika proxy</string>
+    <string name="proxy_password">Hasło proxy</string>
+    <string name="proxy_username_message">Wprowadź nazwę użytkownika proxy (opcjonalne)</string>
     <string name="five_seconds">Pięć sekund</string>
     <string name="lyrics_provider_lrc">Tekst dostarczony przez LRCLIB</string>
     <string name="sync_first">Najpierw synchronizuj tę playlistę z YouTube Music</string>
@@ -387,6 +404,7 @@
     <string name="auto_check_for_update">Automatyczne sprawdzanie aktualizacji</string>
     <string name="auto_check_for_update_description">Sprawdzanie aktualizacji po otwarciu aplikacji</string>
     <string name="playback_speed_pitch"><![CDATA[Prędkość odtwarzania i tonacja]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[Prędkość i tonacja odtwarzania (wyłączone, gdy płynne przejście jest włączone)]]></string>
     <string name="playback_speed">Szybkość odtwarzania</string>
     <string name="pitch">Tonacja</string>
     <string name="merging_audio_and_video">Scalanie audio i wideo</string>

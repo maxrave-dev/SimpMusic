@@ -47,11 +47,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.sharp.Sort
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -89,6 +84,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -118,6 +114,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -139,6 +136,17 @@ import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
 import com.maxrave.simpmusic.ui.component.playlistTitleGradient
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.Pause
+import com.maxrave.simpmusic.ui.icon.PauseCircle
+import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.PlayCircle
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Sort
+import com.maxrave.simpmusic.ui.icon.TipsAndUpdates
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
@@ -175,16 +183,9 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album_length
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.baseline_downloaded
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.baseline_pause_circle_24
-import simpmusic.composeapp.generated.resources.baseline_play_circle_24
-import simpmusic.composeapp.generated.resources.baseline_shuffle_24
-import simpmusic.composeapp.generated.resources.baseline_tips_and_updates_24
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.created_at
-import simpmusic.composeapp.generated.resources.download_button
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.reload
@@ -220,7 +221,7 @@ fun LocalPlaylistScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val aiPainter = painterResource(Res.drawable.baseline_tips_and_updates_24)
+    val aiPainter = rememberVectorPainter(SimpIcons.TipsAndUpdates)
     val limit = 1.5f
     val transition = rememberInfiniteTransition(label = "shimmer")
     val progressAnimated by transition.animateFloat(
@@ -522,16 +523,7 @@ fun LocalPlaylistScreen(
                                     .fillMaxWidth()
                                     .height(180.dp)
                                     .align(Alignment.BottomCenter)
-                                    .background(
-                                        brush =
-                                            Brush.verticalGradient(
-                                                listOf(
-                                                    Color.Transparent,
-                                                    Color(0x75000000),
-                                                    Color.Black,
-                                                ),
-                                            ),
-                                    ),
+                                    .background(artworkScrimBrush(Color.Black)),
                         )
                     }
                 }
@@ -548,7 +540,7 @@ fun LocalPlaylistScreen(
                                     .windowInsetsPadding(WindowInsets.statusBars),
                         ) {
                             RippleIconButton(
-                                resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                imageVector = SimpIcons.ArrowBackIosNew,
                             ) {
                                 navController.navigateUp()
                             }
@@ -591,22 +583,16 @@ fun LocalPlaylistScreen(
                                         },
                                         modifier = Modifier.fillMaxSize(),
                                     )
+                                    // Scrim spans 70% of the artwork (not a fixed 200dp): the shorter the
+                                    // ramp, the steeper the alpha, and a steep ramp is what makes the fade
+                                    // read as an edge. See artworkScrimBrush for the curve itself.
                                     Box(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .height(200.dp)
+                                                .height((screenInfo.hDP * 0.35f).dp)
                                                 .align(Alignment.BottomCenter)
-                                                .background(
-                                                    Brush.verticalGradient(
-                                                        listOf(
-                                                            Color.Transparent,
-                                                            Color.Transparent,
-                                                            mutedPaletteBg.copy(alpha = 0.5f),
-                                                            mutedPaletteBg,
-                                                        ),
-                                                    ),
-                                                ),
+                                                .background(artworkScrimBrush(mutedPaletteBg)),
                                     )
                                     Column(
                                         modifier =
@@ -670,7 +656,7 @@ fun LocalPlaylistScreen(
                                 ) {
                                     LiquidGlassIconButton(
                                         backdrop = artworkBackdrop,
-                                        resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                        imageVector = SimpIcons.ArrowBackIosNew,
                                         modifier =
                                             Modifier
                                                 .size(48.dp),
@@ -731,7 +717,7 @@ fun LocalPlaylistScreen(
                                             onClick = onPlaylistMoreClick,
                                         ) {
                                             Icon(
-                                                painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                                imageVector = SimpIcons.MoreVert,
                                                 contentDescription = "More",
                                                 tint = Color.White,
                                             )
@@ -844,7 +830,7 @@ fun LocalPlaylistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Rounded.Shuffle,
+                                                imageVector = SimpIcons.Shuffle,
                                                 contentDescription = "Shuffle",
                                                 tint = Color.White,
                                                 modifier = Modifier.size(22.dp),
@@ -870,9 +856,9 @@ fun LocalPlaylistScreen(
                                                 Icon(
                                                     imageVector =
                                                         if (isThisPlaying) {
-                                                            Icons.Rounded.Pause
+                                                            SimpIcons.Pause
                                                         } else {
-                                                            Icons.Rounded.PlayArrow
+                                                            SimpIcons.PlayArrow
                                                         },
                                                     contentDescription = null,
                                                     tint = Color.Black,
@@ -953,7 +939,7 @@ fun LocalPlaylistScreen(
                                                             contentAlignment = Alignment.Center,
                                                         ) {
                                                             Icon(
-                                                                painter = painterResource(Res.drawable.download_button),
+                                                                imageVector = SimpIcons.DownloadForOffline,
                                                                 tint = Color.White,
                                                                 contentDescription = "Download",
                                                                 modifier = Modifier.size(22.dp),
@@ -973,7 +959,7 @@ fun LocalPlaylistScreen(
                                         Crossfade(isPlaying && playingPlaylistId == LOCAL_PLAYLIST_ID + uiState.id) { isThisPlaying ->
                                             if (isThisPlaying) {
                                                 RippleIconButton(
-                                                    resId = Res.drawable.baseline_pause_circle_24,
+                                                    imageVector = SimpIcons.PauseCircle,
                                                     fillMaxSize = true,
                                                     tint = seed,
                                                     modifier = Modifier.size(48.dp),
@@ -982,7 +968,7 @@ fun LocalPlaylistScreen(
                                                 }
                                             } else {
                                                 RippleIconButton(
-                                                    resId = Res.drawable.baseline_play_circle_24,
+                                                    imageVector = SimpIcons.PlayCircle,
                                                     fillMaxSize = true,
                                                     tint = seed,
                                                     modifier = Modifier.size(48.dp),
@@ -1043,7 +1029,7 @@ fun LocalPlaylistScreen(
                                                 else -> {
                                                     RippleIconButton(
                                                         fillMaxSize = true,
-                                                        resId = Res.drawable.download_button,
+                                                        imageVector = SimpIcons.DownloadForOffline,
                                                         modifier = Modifier.size(36.dp),
                                                     ) {
                                                         Logger.w("PlaylistScreen", "downloadState: $downloadState")
@@ -1106,7 +1092,7 @@ fun LocalPlaylistScreen(
                                         RippleIconButton(
                                             modifier =
                                                 Modifier.size(36.dp),
-                                            resId = Res.drawable.baseline_shuffle_24,
+                                            imageVector = SimpIcons.Shuffle,
                                             fillMaxSize = true,
                                         ) {
                                             viewModel.onUIEvent(LocalPlaylistUIEvent.ShuffleClick)
@@ -1115,7 +1101,7 @@ fun LocalPlaylistScreen(
                                         RippleIconButton(
                                             modifier =
                                                 Modifier.size(36.dp),
-                                            resId = Res.drawable.baseline_more_vert_24,
+                                            imageVector = SimpIcons.MoreVert,
                                             fillMaxSize = true,
                                         ) {
                                             onPlaylistMoreClick()
@@ -1221,7 +1207,7 @@ fun LocalPlaylistScreen(
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                                    imageVector = SimpIcons.Sort,
                                                     contentDescription = "Sort playlist",
                                                     tint = Color.White,
                                                     modifier = Modifier.size(20.dp),
@@ -1249,7 +1235,7 @@ fun LocalPlaylistScreen(
                                             ) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(
-                                                        imageVector = Icons.AutoMirrored.Sharp.Sort,
+                                                        imageVector = SimpIcons.Sort,
                                                         contentDescription = "Sort playlist",
                                                         tint = Color.White,
                                                         modifier = Modifier.size(24.dp),
@@ -1506,7 +1492,7 @@ fun LocalPlaylistScreen(
             navigationIcon = {
                 Box(Modifier.padding(horizontal = 5.dp)) {
                     RippleIconButton(
-                        Res.drawable.baseline_arrow_back_ios_new_24,
+                        SimpIcons.ArrowBackIosNew,
                         Modifier
                             .size(32.dp),
                         true,

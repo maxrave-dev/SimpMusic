@@ -72,14 +72,6 @@ import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
-import kotlin.random.Random
-
-fun generateRandomColor(): Color {
-    val red = Random.nextInt(256)
-    val green = Random.nextInt(256)
-    val blue = Random.nextInt(256)
-    return Color(red, green, blue)
-}
 
 fun Modifier.shimmer(): Modifier =
     composed {
@@ -492,6 +484,53 @@ fun Palette?.toImmersiveBackground(): Color {
     val darkenFactor = 0.35f + 0.45f * luminance
     return androidx.compose.ui.graphics.lerp(base, Color.Black, darkenFactor)
 }
+
+/**
+ * Vertical scrim from [from] to [to] that fades without showing an edge.
+ *
+ * Two details are what make this read as smooth where a plain
+ * `verticalGradient(Transparent, bg)` does not:
+ *  - **smoothstep easing**, so the curve is flat at BOTH ends. A linear ramp has a corner where it
+ *    leaves 0, and the eye tracks the derivative of brightness — that corner IS the visible edge.
+ *  - **the colours are interpolated here, not by Skia**, so a caller can pass
+ *    `color.copy(alpha = 0f)` instead of [Color.Transparent]. Transparent is *black* with alpha 0,
+ *    and Skia interpolates stops un-premultiplied, so RGB gets dragged toward black alongside the
+ *    alpha and the middle of the scrim turns into a dirty grey band.
+ *
+ * [steps] stops (rather than the 2 the curve needs) keep the piecewise-linear approximation of the
+ * S-curve below the point where 8-bit banding becomes visible on a dark background.
+ *
+ * [startFraction]/[endFraction] confine the ramp to part of the box (the rest is held at [from] /
+ * [to] by [TileMode.Clamp]); [startY]/[endY] do the same in pixels when the caller knows them.
+ */
+fun smoothScrimBrush(
+    from: Color,
+    to: Color,
+    startFraction: Float = 0f,
+    endFraction: Float = 1f,
+    startY: Float = 0f,
+    endY: Float = Float.POSITIVE_INFINITY,
+    steps: Int = 24,
+): Brush =
+    Brush.verticalGradient(
+        colorStops =
+            Array(steps + 1) { i ->
+                val t = i / steps.toFloat()
+                val position = startFraction + (endFraction - startFraction) * t
+                position to androidx.compose.ui.graphics.lerp(from, to, t * t * (3f - 2f * t))
+            },
+        startY = startY,
+        endY = endY,
+    )
+
+/**
+ * The common case of [smoothScrimBrush]: a bottom scrim that melts artwork into the page
+ * background ([toImmersiveBackground]) by ramping [color] from invisible to opaque.
+ */
+fun artworkScrimBrush(
+    color: Color,
+    steps: Int = 24,
+): Brush = smoothScrimBrush(from = color.copy(alpha = 0f), to = color, steps = steps)
 
 fun Modifier.isElementVisible(onVisibilityChanged: (Boolean) -> Unit) =
     composed {

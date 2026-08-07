@@ -36,11 +36,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Sensors
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.PersonAddAlt1
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -96,6 +91,7 @@ import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
+import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
@@ -116,6 +112,12 @@ import com.maxrave.simpmusic.ui.component.LimitedBorderAnimationView
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Check
+import com.maxrave.simpmusic.ui.icon.PersonAdd
+import com.maxrave.simpmusic.ui.icon.Sensors
+import com.maxrave.simpmusic.ui.icon.Shuffle
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.MoreAlbumsDestination
@@ -137,7 +139,6 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.albums
-import simpmusic.composeapp.generated.resources.baseline_arrow_back_ios_new_24
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.featured_inArtist
@@ -310,8 +311,8 @@ fun ArtistScreen(
                                                     )
                                                 }
                                             } // end media layer (Haze source)
-                                            // Bottom fade — progressive blur (Haze) over the media layer plus a
-                                            // color gradient, so the canvas/artwork edge melts into the page bg.
+                                            // Bottom fade — progressive blur (Haze) over the media layer, so the
+                                            // canvas/artwork edge melts into the page bg.
                                             Box(
                                                 modifier =
                                                     Modifier
@@ -325,16 +326,19 @@ fun ArtistScreen(
                                                                     startIntensity = 0f,
                                                                     endIntensity = 1f,
                                                                 )
-                                                        }.background(
-                                                            Brush.verticalGradient(
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    Color.Transparent,
-                                                                    mutedPaletteBg.copy(alpha = 0.5f),
-                                                                    mutedPaletteBg,
-                                                                ),
-                                                            ),
-                                                        ),
+                                                        },
+                                            )
+                                            // Color scrim is a SEPARATE, taller box: the blur stays at 200dp so
+                                            // its cost doesn't grow, while the color gets 70% of the (square)
+                                            // artwork to ramp over. A short ramp means a steep alpha, and a
+                                            // steep alpha is what reads as a visible edge.
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height((screenInfo.wDP * 0.7f).dp)
+                                                        .align(Alignment.BottomCenter)
+                                                        .background(artworkScrimBrush(mutedPaletteBg)),
                                             )
                                             // Artist name (TEXT for now — logo image is roadmap) + subscriber · view
                                             Column(
@@ -389,7 +393,7 @@ fun ArtistScreen(
                                         // Back button — liquid glass, sibling of the backdrop source.
                                         LiquidGlassIconButton(
                                             backdrop = artworkBackdrop,
-                                            resId = Res.drawable.baseline_arrow_back_ios_new_24,
+                                            imageVector = SimpIcons.ArrowBackIosNew,
                                             modifier =
                                                 Modifier
                                                     .align(Alignment.TopStart)
@@ -431,7 +435,7 @@ fun ArtistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Outlined.Sensors,
+                                                imageVector = SimpIcons.Sensors,
                                                 contentDescription = "Radio",
                                                 tint = artistAccent,
                                                 modifier = Modifier.size(22.dp),
@@ -457,7 +461,7 @@ fun ArtistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Rounded.Shuffle,
+                                                imageVector = SimpIcons.Shuffle,
                                                 contentDescription = "Shuffle",
                                                 tint = mutedPaletteBg,
                                                 modifier = Modifier.size(28.dp),
@@ -482,7 +486,7 @@ fun ArtistScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                imageVector = if (isFollowed) Icons.Rounded.Check else Icons.Rounded.PersonAddAlt1,
+                                                imageVector = if (isFollowed) SimpIcons.Check else SimpIcons.PersonAdd,
                                                 contentDescription = if (isFollowed) "Followed" else "Follow",
                                                 tint = if (isFollowed) mutedPaletteBg else artistAccent,
                                                 modifier = Modifier.size(22.dp),
@@ -533,10 +537,7 @@ fun ArtistScreen(
                                     Box(Modifier.padding(horizontal = 5.dp)) {
                                         IconButton(onClick = { navController.navigateUp() }) {
                                             Icon(
-                                                painter =
-                                                    org.jetbrains.compose.resources.painterResource(
-                                                        Res.drawable.baseline_arrow_back_ios_new_24,
-                                                    ),
+                                                imageVector = SimpIcons.ArrowBackIosNew,
                                                 contentDescription = "Back",
                                                 tint = Color.White,
                                                 modifier = Modifier.size(20.dp),
@@ -691,7 +692,7 @@ fun ArtistScreen(
                                             }
                                         },
                                     ) {
-                                        Icon(Icons.Rounded.Shuffle, "Shuffle")
+                                        Icon(SimpIcons.Shuffle, "Shuffle")
                                     }
                                     Spacer(Modifier.weight(1f))
                                     TextButton(
@@ -712,7 +713,7 @@ fun ArtistScreen(
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Icon(Icons.Outlined.Sensors, "")
+                                            Icon(SimpIcons.Sensors, "")
                                             if (canvasUrl == null) {
                                                 Spacer(Modifier.width(6.dp))
                                                 Text(text = stringResource(Res.string.start_radio))

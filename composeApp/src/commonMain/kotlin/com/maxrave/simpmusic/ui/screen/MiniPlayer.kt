@@ -49,15 +49,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.outlined.OpenInNew
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -126,6 +117,12 @@ import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.RingPlayerArtwork
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.OpenInNew
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.VolumeOff
+import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -863,7 +860,10 @@ fun MiniPlayer(
                                 }
                                 CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                     Slider(
-                                        value = sliderValue,
+                                        // Fraction, not 0..100 — see the note in NowPlayingScreen:
+                                        // material3 alpha25 drops valueRange on its
+                                        // binary-compatibility overload.
+                                        value = sliderValue / 100f,
                                         onValueChangeFinished = {
                                             isSliding = false
                                             sharedViewModel.onUIEvent(
@@ -872,9 +872,8 @@ fun MiniPlayer(
                                         },
                                         onValueChange = {
                                             isSliding = true
-                                            sliderValue = it
+                                            sliderValue = it * 100f
                                         },
-                                        valueRange = 0f..100f,
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
@@ -951,7 +950,7 @@ fun MiniPlayer(
                             },
                         ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                imageVector = SimpIcons.QueueMusic,
                                 tint = textColor,
                                 contentDescription = "",
                             )
@@ -961,7 +960,7 @@ fun MiniPlayer(
                         if (getPlatform() == Platform.Desktop) {
                             IconButton(onClick = { toggleMiniPlayer() }) {
                                 Icon(
-                                    imageVector = Icons.Outlined.OpenInNew,
+                                    imageVector = SimpIcons.OpenInNew,
                                     contentDescription = "Mini Player",
                                 )
                             }
@@ -977,6 +976,17 @@ fun MiniPlayer(
                                 volumeValue = controllerState.volume
                             }
                         }
+                        // Remembers the level to come back to when unmuting, so the button restores
+                        // what the user was listening at instead of jumping to full volume.
+                        // Starting muted leaves nothing to restore, so full volume stays the fallback.
+                        var previousVolumeValue by rememberSaveable {
+                            mutableFloatStateOf(controllerState.volume.takeIf { it > 0f } ?: 1f)
+                        }
+                        LaunchedEffect(controllerState.volume) {
+                            if (controllerState.volume > 0f) {
+                                previousVolumeValue = controllerState.volume
+                            }
+                        }
                         // The slider only claims space while the pointer is over the volume cluster.
                         // `hoverable` sits on the Row wrapping both the icon and the slider so moving
                         // between them never drops the hover, and an in-progress drag keeps it open
@@ -990,16 +1000,21 @@ fun MiniPlayer(
                             IconButton(
                                 onClick = {
                                     // Toggle mute/unmute
-                                    val newVolume = if (controllerState.volume > 0f) 0f else 1f
-                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                    if (controllerState.volume > 0f) {
+                                        sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
+                                    } else {
+                                        sharedViewModel.onUIEvent(
+                                            UIEvent.UpdateVolume(previousVolumeValue.coerceIn(0.1f, 1f)),
+                                        )
+                                    }
                                 },
                             ) {
                                 Icon(
                                     imageVector =
                                         if (controllerState.volume > 0f) {
-                                            Icons.AutoMirrored.Filled.VolumeUp
+                                            SimpIcons.VolumeUp
                                         } else {
-                                            Icons.AutoMirrored.Filled.VolumeOff
+                                            SimpIcons.VolumeOff
                                         },
                                     contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                                 )
@@ -1077,7 +1092,7 @@ fun MiniPlayer(
                         }
                         Spacer(Modifier.width(4.dp))
                         IconButton(onClick = { onClose() }) {
-                            Icon(Icons.Rounded.Close, "")
+                            Icon(SimpIcons.Close, "")
                         }
                     }
                 }

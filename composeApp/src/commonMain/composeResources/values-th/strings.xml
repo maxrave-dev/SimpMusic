@@ -351,6 +351,15 @@
     <string name="repeat_off">ปิดการทำซ้ำ</string>
     <string name="youtube_transcript">บทบรรยายจาก YouTube</string>
     <string name="user_interface">อินเทอร์เฟซ</string>
+    <string name="theme">ธีม</string>
+    <string name="theme_mode_system">ธีมของอุปกรณ์</string>
+    <string name="theme_mode_dark">มืด</string>
+    <string name="theme_mode_light">สว่าง</string>
+    <string name="theme_color">สีของธีม</string>
+    <string name="theme_color_default">ค่าเริ่มต้น</string>
+    <string name="theme_color_wallpaper">วอลเปเปอร์</string>
+    <string name="theme_color_custom">กำหนดเอง</string>
+    <string name="custom_color">กำหนดสี</string>
     <string name="translucent_bottom_navigation_bar">แถบนำทางด้านล่างโปร่งแสง</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">คุณสามารถดูเนื้อหาได้ที่แถบด้านล่าง</string>
     <string name="donation">ถ้าคุณชอบแอปนี้ สามารถเลี้ยงกาแฟให้ฉันได้</string>
@@ -538,6 +547,8 @@
     <string name="quit_app">ออกจากแอป</string>
     <string name="local_tracking_title">ติดตามประวัติการฟังในเครื่อง</string>
     <string name="local_tracking_description">บันทึกประวัติการฟังไว้ในฐานข้อมูลภายในเครื่อง</string>
+    <string name="blog_notification_title">รับการแจ้งเตือนจากบล็อก</string>
+    <string name="blog_notification_description">รับการแจ้งเตือนจากบล็อกเมื่อมีบทความใหม่</string>
     <string name="simpmusic_charts">ชาร์ต SimpMusic</string>
     <string name="crossfading">Crossfading</string>
     <string name="your_320kbps_url">ลิงก์สตรีม 320 kbps ของคุณ</string>
@@ -550,4 +561,6 @@
     <string name="home_offline_title">ไม่สามารถเชื่อมต่อได้</string>
     <string name="home_offline_subtitle">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณแล้วลองใหม่อีกครั้ง หรือฟังเพลงที่คุณดาวน์โหลดไว้</string>
     <string name="listen_to_downloaded">ฟังเพลงที่ดาวน์โหลด</string>
+    <string name="playing_on_device">กำลังเล่นบน %1$s</string>
+    <string name="not_available_while_casting">ไม่สามารถใช้งานได้ในระหว่างที่ casting</string>
 </resources>

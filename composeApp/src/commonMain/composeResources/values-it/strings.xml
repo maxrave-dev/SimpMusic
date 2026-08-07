@@ -272,7 +272,7 @@
     <string name="description_and_licenses">Descrizione e licenze</string>
     <string name="author">Autore</string>
     <string name="other_app">Altre app</string>
-    <string name="database">Database applicazioni</string>
+    <string name="database">Database delle applicazioni</string>
     <string name="free_space">Spazio libero</string>
     <string name="suggest">Suggerimento</string>
     <string name="reload">Ricarica</string>
@@ -350,6 +350,15 @@
     <string name="repeat_off">Disattiva ripetizione</string>
     <string name="youtube_transcript">Trascrizione YouTube</string>
     <string name="user_interface">Interfaccia</string>
+    <string name="theme">Tema</string>
+    <string name="theme_mode_system">Impostazioni predefinite di sistema</string>
+    <string name="theme_mode_dark">Scuro</string>
+    <string name="theme_mode_light">Chiaro</string>
+    <string name="theme_color">Colore del tema</string>
+    <string name="theme_color_default">Predefinito</string>
+    <string name="theme_color_wallpaper">Sfondo</string>
+    <string name="theme_color_custom">Personalizzato</string>
+    <string name="custom_color">Colore personalizzato</string>
     <string name="translucent_bottom_navigation_bar">Barra di navigazione inferiore traslucida</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">Puoi vedere il contenuto sotto la barra inferiore</string>
     <string name="donation">Se apprezzi il mio lavoro, donami un caffè</string>
@@ -551,4 +560,6 @@
     <string name="home_offline_title">Impossibile connettersi</string>
     <string name="home_offline_subtitle">Controlla la tua connessione internet e riprova o ascolta la tua musica già scaricata.</string>
     <string name="listen_to_downloaded">Ascolta la musica scaricata</string>
+    <string name="playing_on_device">In riproduzione su %1$s</string>
+    <string name="not_available_while_casting">Non disponibile durante il casting</string>
 </resources>

@@ -286,6 +286,50 @@ Before implementing code, researching code, or answering technical questions, th
 - AI lyrics translation
 - Song recommendations
 
+### 8. Add a New Icon
+
+**Location**: `composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/icon/`
+
+All icons are **Material Symbols Rounded** generated as Compose `ImageVector`s. There is no
+`material-icons-extended` dependency and no XML icon drawable — do not add either back.
+
+**Fetch it from Google's own generator** (it returns a ready `.kt` file, gzipped):
+
+```bash
+curl -sfL --compressed \
+  "https://fonts.gstatic.com/render/v1/Material+Symbols+Rounded/24dp/<symbol_name>.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,1,0,50" \
+  -o <PascalName>.kt
+```
+
+Keep the axes identical for every icon so the set stays consistent: **Rounded, opsz 24, wght 400,
+GRAD 0, ROND 50**, `FILL=1`. Use `FILL=0` only for the "off" half of a state pair (e.g.
+`FavoriteBorder`, `AddCircleOutline`, `DownloadForOfflineOutlined`) — otherwise the empty and
+filled states render identically.
+
+**Then edit the downloaded file:**
+1. `package com.example.test` → `package com.maxrave.simpmusic.ui.icon`
+2. `public val <symbol_name>: ImageVector` → `val SimpIcons.<PascalName>: ImageVector`
+3. Rename the backing field `_<symbol_name>` → `_<PascalName>`, and `name = "<symbol_name>"` → `"<PascalName>"`
+4. For an icon that must flip in RTL, add `autoMirror = true,` to `ImageVector.Builder`
+
+**Use it:** `SimpIcons.PlayArrow` — plus a per-icon import, `import com.maxrave.simpmusic.ui.icon.PlayArrow`.
+
+#### Traps that have already cost time here
+
+- **Each icon needs its own import.** `val SimpIcons.X` is an *extension property*, so importing the
+  `SimpIcons` object alone does not bring it into scope. This is also what lets R8 drop unused icons —
+  do not "simplify" it into a map or a `when`, that would ship all of them.
+- **`ImageVector` is not a `Painter`.** `Icon`/`Image` have overloads for both, but `AsyncImage`
+  (`placeholder`/`error`), anything drawing inside a `DrawScope`, and custom composables typed
+  `Painter` do not — wrap with `rememberVectorPainter(SimpIcons.X)` there.
+- **The response is gzipped** even when the request asks for `identity`; decompress by magic bytes.
+- **Do not replace an icon whose colour carries meaning.** `baseline_downloaded.xml` (`#FF00A0CB`),
+  `baseline_favorite_24.xml` (`#D10000`), `mono.xml`, `monochrome.xml` and the `holder*.png`
+  placeholders stay as resources; a tinted neutral symbol is not equivalent.
+- Verify a name exists before assuming: the Symbols codepoint list is at
+  `google/material-design-icons` → `variablefont/MaterialSymbolsRounded[...].codepoints`. Legacy
+  names like `favorite_border` and `thumb_up_alt` do still exist; `person_add_alt_1` does not.
+
 ## 📍 Important Files and Locations
 
 ### Configuration
@@ -349,7 +393,6 @@ Before implementing code, researching code, or answering technical questions, th
   - Custom title bar (disabled in VM environments)
 - **Limitations**:
   - No offline playback
-  - No video playback
 
 ### External APIs
 - YouTube Music: Hidden/unofficial API (may change anytime)
@@ -366,14 +409,14 @@ Before implementing code, researching code, or answering technical questions, th
 
 - `MpvLibrary.kt` — JNA binding for libmpv's C client API, hand-mapped against client API 2.x. Struct layouts are read by raw offset, so a MAJOR client-API bump needs them re-verified
 - `MpvPlayer.kt` — one handle per media item; `vo=libmpv` + software render context
-- `MpvVideoSurfacePanel.kt` — mpv SW render API → `BufferedImage` → Swing, embedded in Compose via `SwingPanel`
+- `MpvVideoFrameSource.kt` — mpv SW render API → immutable `BufferedImage` snapshots published via `StateFlow`, drawn by plain Compose `Image` (`MpvVideoFrames` in `media-jvm-ui`); replaced the `SwingPanel`-embedded `MpvVideoSurfacePanel` on 2026-08-01
 - `MpvPlayerAdapter.kt` — the `MediaPlayerInterface` implementation; separate YouTube audio/video URLs are merged into ONE source with an `edl://...;!new_stream;...` URL (mpv's equivalent of Android's `MergingMediaSource`)
 - Natives bundled per platform in `mpv-natives/<os>-<arch>/`, staged by `mpvSetupAll` (Linux slice is compiled from source — `scripts/mpv-linux/`)
 - Supports crossfade transition with dual-player approach
 
 #### Crossfade Transition (Desktop)
 - Configurable duration: 1-15 seconds (default: 5 seconds)
-- Audio-only: Crossfade is skipped for video playback
+- Skipped when the NEXT track will play as video (`isVideo()` + watch-video setting on) — same rule as Android since 2026-08-01
 - Settings persisted via DataStore
 
 ### Android Player (Media3/ExoPlayer)
@@ -486,6 +529,7 @@ if (getPlatform() == Platform.Android) {
 - **SimpMusic Lyrics voting**: Vote functionality for community lyrics
 
 ### New Features (post-1.0.4, dev branch)
+- **Icons unified on Material Symbols (2026-08-03)**: `material-icons-core`/`material-icons-extended` are gone, and so are the XML icon drawables — every icon is now a generated `ImageVector` under `ui/icon/`, addressed as `SimpIcons.<Name>`. Two migrations fed into this: 59 icons replacing `Icons.*` (117 call sites), then 25 more replacing `painterResource(Res.drawable.baseline_*)` (167 call sites, 44 XML files deleted). `RippleIconButton`, `LiquidGlassIconButton` and `ActionButton` changed from taking `DrawableResource`/`Painter` to `ImageVector`. See **Common Tasks → Add a New Icon** for how to add one and which traps to avoid. Icons whose colour carries meaning (`baseline_downloaded`, `baseline_favorite_24`), the logos (`mono`, `monochrome`) and the `holder*` bitmaps deliberately stay as resources.
 - **Deep link support**: `simpmusic://` and `simpmusic.org` URL schemes
 - **Desktop Crash dialog**: Error reporting UI for desktop
 - **Playback speed/pitch controls**: Redesigned UI with improved animations
@@ -516,6 +560,15 @@ if (getPlatform() == Platform.Android) {
 - **Desktop URL schemes were never actually registered (2026-07-31)**: `url-schemes` belongs at the **top level** of `app` in `conveyor.conf`. Conveyor binds it on `AppConfig`, not on `MacConfig`/`WindowsConfig`/`LinuxConfig` — compare `MacConfigAccess.getUrlSchemes()` (reads `appConfig`) with the `getFileAssociations()` beside it (reads `mac`). It had been written as `mac.url-schemes` / `windows.url-schemes` / `linux.url-schemes` since May 2026; HOCON accepts unknown keys silently, so all three sat inert and **every packaged build shipped with no `CFBundleURLTypes` at all** — macOS never routed `simpmusic://` either, not just the Last.fm callback. Proven by diffing two `mac-app` builds that differed only in where the key was written. The same misplacement had parked `desktop-file.Categories` / `Comment[en]` / `StartupWMClass` *beside* the `"Desktop Entry"` group instead of inside it, so those never reached the generated `.desktop` either. Two more links in the same chain: the argv filter in `runDesktopApp` matched a fixed list (`simpmusic://`, `http://`, `https://`) and therefore discarded `wordbyword://lastfm-auth?token=…` on Windows and Linux — it now matches any `scheme://` — and the AppImage's own `.desktop` (written by `packageConveyorAppImage`, which is what actually reaches users since AppRun installs it into `~/.local/share/applications`) now declares `x-scheme-handler/wordbyword` alongside `simpmusic`.
 - **Bundled glib disabled `java.awt.Desktop` on Linux (2026-07-31)**: `mpv-natives/linux-x64/lib/libglib-2.0.so.0` is glib 2.72 (built on Ubuntu 22.04) and is missing from `SYSTEM_LIBS` in `scripts/mpv-linux/stage.sh`, so it ships in the bundle and claims the glib soname the moment JNA loads libmpv at startup. AWT's `XDesktopPeer.init()` can then no longer dlopen the **system** `libgio-2.0.so.0`: on a glib 2.80 host (Ubuntu 24.04) it dies with `libgobject-2.0.so.0: undefined symbol: g_dir_unref`, and the JDK reports the whole Desktop API unsupported for the rest of the process. All 23 external-link call sites broke at once — `openUrl()` was an `if` with no `else` so it silently did nothing, while Compose's `LocalUriHandler` calls `Desktop.getDesktop()` on its first line and threw `UnsupportedOperationException` straight out of the click handler, crashing the app. Arrived with the from-source Linux mpv build (2026-07-28); before that JNA quietly fell back to a system-wide libmpv, so the system glib was the only one mapped and links worked. Worked around by calling `Desktop.isDesktopSupported()` at the top of `runDesktopApp` — `XDesktopPeer` caches that probe, so running it before libmpv loads lets the system gio/gobject win the soname race. `OpenUrl.jvm.kt` additionally gained a per-OS launcher fallback (`xdg-open` → `gio open` → `$BROWSER`) and a toast, so it can no longer fail in silence. **The actual cure is to stop bundling glib** — add it to `SYSTEM_LIBS`, which needs the Linux tarball rebuilt, republished and re-pinned in `mpvNativesChecksums`.
 - **Ring player (2026-08-07)**: optional setting (Interface → Ring player, off by default) that turns the bottom player bar and the floating mini-player artwork into a **spinning vinyl with a progress ring** — tap/drag the ring to seek. In ring mode the mini player's seek/progress bar is hidden and replaced by a `current / total` time readout. Implemented by a shared `RingPlayerArtwork` composable (`composeApp/.../ui/component/RingPlayerArtwork.kt`) driven by the `ring_player_enabled` DataStore key; the bottom bar lives in `commonMain` (`MiniPlayer.kt`) so it applies to Android too, and the desktop floating mini window (`jvmMain/.../mini_player/MiniPlayerLayout.kt`) mirrors it. The Now Playing full screen keeps the normal album artwork.
+
+- **Crossfade skips video tracks (2026-08-01)**: both `CrossfadeExoPlayerAdapter` (Android) and `MpvPlayerAdapter` (Desktop) skip the crossfade path when the NEXT track will play as video (`isVideo()` + watch-video setting on — the same condition that builds a merged audio+video source). The merged two-URL source is error-prone to prepare mid-fade and used to cut the outgoing song short or jump straight to the video at 0:00; such transitions now take the normal (non-crossfade) path. **Update 2026-08-05**: the CURRENT-track check — removed on Android in commit `9da155d7` because its old shape ignored the watch-video setting — is back on both platforms as `isCurrentTrackVideo()` (`watchVideoEnabled && isVideo()`, symmetric with `isNextTrackVideo()`), so a video also plays out to its last frame instead of fading out under the incoming song.
+- **Desktop video renders through Compose, SwingPanel removed (2026-08-01)**: `MpvVideoSurfacePanel` (JPanel + `SwingPanel` embedding) became `MpvVideoFrameSource` — the mpv SW render loop is unchanged, but finished frames are published as immutable `BufferedImage` snapshots on a `StateFlow` and drawn by a plain Compose `Image` (`MpvVideoFrames` in `media-jvm-ui`, converted with `toComposeImageBitmap()` off the UI thread; the UI reports its size via `setTargetSize()`). This kills the whole SwingPanel bug class: always-on-top z-order, one-frame-late repositioning while scrolling (the flicker that exposed the transparent window), and AWT's single-parent rule that made NowPlaying/Fullscreen/Artist screens fight over the one panel (video "randomly missing until next/prev"). `MpvPlayerAdapter.currentVideoSurface: StateFlow<Component?>` is now `currentVideoFrames: StateFlow<MpvVideoFrameSource?>` and is set unconditionally during crossfade — the old null-guard kept a dead panel from a released player on screen (the "black video" bug).
+- **macOS desktop audio moved to `ao=avfoundation` (2026-08-01)**: `MpvPlayer` now pins `ao` to `"avfoundation,"` when `Platform.isMac()`, because **`ao_coreaudio` leaks a process-wide CoreAudio listener onto a freed `struct ao`** and takes the whole JVM down the next time an audio device appears or disappears — Sentry-visible as `EXC_BAD_ACCESS` on the `HALC_ProxyNotification Call Listener Queue`, reproduced by simply plugging in headphones. Windows (wasapi) and Linux (pulse/pipewire) are untouched.
+  - The chain, all upstream and **still present in mpv master as of 0.41.0**: `ao_coreaudio.c` `init()` registers `AudioObjectAddPropertyListener(kAudioObjectSystemObject, …, hotplug_cb, (void *)ao)` on the *system* object, but its failure label is bare (`coreaudio_error: return CONTROL_ERROR;`). An init that fails any later step (`ca_init_chmap`, `init_audiounit`) therefore leaves the listener registered. `ao.c` then does `goto fail` → `ao_uninit()`, and `buffer.c`'s `ao_uninit()` calls `driver->uninit()` **only when `driver_initialized` is set** — a flag `ao.c` sets only *after* a successful init. So `unregister_hotplug_cb()` never runs while `talloc_free(ao)` does, and the orphaned listener outlives the handle for the rest of the process.
+  - **Why SimpMusic hits this and plain mpv does not**: mpv initialises one ao per session; SimpMusic creates one handle per media item and runs two at once during a crossfade, so a single failed audio init anywhere in a session arms the crash. The crash then waits for an unrelated hotplug event, which is why the process can look healthy for an hour first.
+  - Diagnosing it: the faulting address decodes as ASCII (`0x65636e6174736e49` = "Instance"), the signature of a freed allocation already handed to another object. No thread was tearing an ao down at crash time, which is what ruled out a teardown race and pointed at a listener leaked much earlier.
+  - Accepted trade-offs, neither reproducible in testing on macOS 27: delayed mute (mpv#15014) and audio desync on playback-speed changes (mpv#14483). The trailing comma in `"avfoundation,"` keeps mpv's auto-probe as a fallback, so a failure degrades audio instead of silencing it. Remove the whole workaround once upstream frees the listener on the error path.
+  - Related blind spot, still open: nothing calls `mpv_request_log_messages()`, so libmpv's own warnings (including failed audio init) never surface anywhere.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 

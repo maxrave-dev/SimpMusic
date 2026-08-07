@@ -30,10 +30,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -77,6 +73,13 @@ import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
+import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.DownloadForOffline
+import com.maxrave.simpmusic.ui.icon.DragHandle
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.PushPin
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
 import com.maxrave.simpmusic.ui.theme.typo
 import io.github.alexzhirkevich.compottie.Compottie
@@ -92,9 +95,6 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.baseline_add_24
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.download_for_offline_white
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.radio
@@ -155,7 +155,7 @@ fun SongFullWidthItems(
                 ) {
                     Icon(
                         tint = contentColor,
-                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                        imageVector = SimpIcons.QueueMusic,
                         contentDescription = stringResource(Res.string.add_to_queue),
                     )
                 }
@@ -282,7 +282,7 @@ fun SongFullWidthItems(
                         ) {
                             Row {
                                 Icon(
-                                    painter = painterResource(Res.drawable.download_for_offline_white),
+                                    imageVector = SimpIcons.DownloadForOffline,
                                     tint = contentColor,
                                     contentDescription = "",
                                     modifier = Modifier.size(16.dp).padding(2.dp),
@@ -326,7 +326,7 @@ fun SongFullWidthItems(
                     rightView()
                 }
                 if (onMoreClickListener != null) {
-                    RippleIconButton(resId = Res.drawable.baseline_more_vert_24, fillMaxSize = false, tint = contentColor) {
+                    RippleIconButton(imageVector = SimpIcons.MoreVert, fillMaxSize = false, tint = contentColor) {
                         val videoId = track?.videoId ?: songEntity?.videoId
                         videoId?.let { onMoreClickListener.invoke(it) }
                     }
@@ -337,7 +337,7 @@ fun SongFullWidthItems(
                     exit = fadeOut() + shrinkHorizontally(),
                 ) {
                     Icon(
-                        Icons.Rounded.DragHandle,
+                        SimpIcons.DragHandle,
                         contentDescription = null,
                         tint = contentColor,
                         modifier = Modifier.padding(horizontal = 8.dp),
@@ -452,7 +452,7 @@ fun SuggestItems(
                 )
             }
             RippleIconButton(
-                resId = Res.drawable.baseline_add_24,
+                imageVector = SimpIcons.Add,
                 fillMaxSize = false,
                 onClick =
                     onAddClickListener ?: {
@@ -589,7 +589,7 @@ fun PlaylistFullWidthItems(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (shouldPin) {
                         Image(
-                            imageVector = Icons.Default.PushPin,
+                            imageVector = SimpIcons.PushPin,
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(if (forceDark) Color.Cyan else MaterialTheme.colorScheme.primary),
                             modifier =

@@ -63,19 +63,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.filled.SubtitlesOff
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Forward5
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.Replay5
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.ThumbsUpDown
+
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -167,6 +155,7 @@ import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
+import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
@@ -184,6 +173,20 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.AddCircleOutline
+import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.Forward5
+import com.maxrave.simpmusic.ui.icon.Fullscreen
+import com.maxrave.simpmusic.ui.icon.Info
+import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
+import com.maxrave.simpmusic.ui.icon.MoreVert
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
+import com.maxrave.simpmusic.ui.icon.QueueMusic
+import com.maxrave.simpmusic.ui.icon.Replay5
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Subtitles
+import com.maxrave.simpmusic.ui.icon.SubtitlesOff
+import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
@@ -207,9 +210,6 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.baseline_fullscreen_24
-import simpmusic.composeapp.generated.resources.baseline_more_vert_24
-import simpmusic.composeapp.generated.resources.baseline_playlist_add_24
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.endless_queue
@@ -289,7 +289,7 @@ fun NowPlayingScreen(
             sharedViewModel = sharedViewModel,
             navController = navController,
             isExpanded = sheetState.currentValue == SheetValue.Expanded,
-            dismissIcon = Icons.Rounded.KeyboardArrowDown,
+            dismissIcon = SimpIcons.KeyboardArrowDown,
             onDismiss = {
                 hideSheet()
             },
@@ -843,11 +843,13 @@ fun NowPlayingScreenContent(
                                 // arrive in one corner and leave a visible diagonal seam.
                                 drawRect(
                                     brush =
-                                        Brush.verticalGradient(
-                                            0f to Color.Transparent,
-                                            0.95f to PlayerBackdropColor,
+                                        smoothScrimBrush(
+                                            from = PlayerBackdropColor.copy(alpha = 0f),
+                                            to = PlayerBackdropColor,
                                             startY = 0f,
-                                            endY = gradientHeight,
+                                            // Reaches full opacity at 95% and is held there by Clamp,
+                                            // same as the old `0.95f to PlayerBackdropColor` stop.
+                                            endY = gradientHeight * 0.95f,
                                         ),
                                     size = area,
                                 )
@@ -1005,12 +1007,10 @@ fun NowPlayingScreenContent(
                                             Modifier
                                                 .fillMaxSize()
                                                 .background(
-                                                    Brush.verticalGradient(
-                                                        colorStops =
-                                                            arrayOf(
-                                                                0.2f to overlay,
-                                                                1f to Color.Black,
-                                                            ),
+                                                    smoothScrimBrush(
+                                                        from = overlay,
+                                                        to = Color.Black,
+                                                        startFraction = 0.2f,
                                                     ),
                                                 ),
                                     )
@@ -1032,14 +1032,11 @@ fun NowPlayingScreenContent(
                                             Modifier
                                                 .fillMaxSize()
                                                 .background(
-                                                    Brush.verticalGradient(
-                                                        colorStops =
-                                                            arrayOf(
-                                                                0f to Color.Transparent,
-                                                                0.92f to Color.Transparent,
-                                                                0.97f to Color.Black,
-                                                                1f to Color.Black,
-                                                            ),
+                                                    smoothScrimBrush(
+                                                        from = Color.Black.copy(alpha = 0f),
+                                                        to = Color.Black,
+                                                        startFraction = 0.92f,
+                                                        endFraction = 0.97f,
                                                     ),
                                                 ),
                                     )
@@ -1172,13 +1169,14 @@ fun NowPlayingScreenContent(
                                                                 Modifier
                                                                     .fillMaxSize()
                                                                     .background(
-                                                                        Brush.verticalGradient(
-                                                                            colorStops =
-                                                                                arrayOf(
-                                                                                    0.03f to blackMoreOverlay,
-                                                                                    0.15f to overlay,
-                                                                                    0.8f to Color.Transparent,
-                                                                                ),
+                                                                        // The old middle stop (0.15f to overlay)
+                                                                        // hand-approximated a convex falloff;
+                                                                        // smoothstep does that on its own.
+                                                                        smoothScrimBrush(
+                                                                            from = blackMoreOverlay,
+                                                                            to = overlay.copy(alpha = 0f),
+                                                                            startFraction = 0.03f,
+                                                                            endFraction = 0.8f,
                                                                         ),
                                                                     ),
                                                         ) {
@@ -1190,7 +1188,7 @@ fun NowPlayingScreenContent(
                                                                 Modifier.align(Alignment.TopEnd),
                                                             ) {
                                                                 Icon(
-                                                                    painter = painterResource(Res.drawable.baseline_fullscreen_24),
+                                                                    imageVector = SimpIcons.Fullscreen,
                                                                     contentDescription = "",
                                                                     tint = Color.White,
                                                                 )
@@ -1216,7 +1214,7 @@ fun NowPlayingScreenContent(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = Icons.Rounded.Replay5,
+                                                                        imageVector = SimpIcons.Replay5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -1240,7 +1238,7 @@ fun NowPlayingScreenContent(
                                                                     },
                                                                 ) {
                                                                     Icon(
-                                                                        imageVector = Icons.Rounded.Forward5,
+                                                                        imageVector = SimpIcons.Forward5,
                                                                         tint = Color.White,
                                                                         contentDescription = "",
                                                                         modifier =
@@ -1260,9 +1258,9 @@ fun NowPlayingScreenContent(
                                                                     Icon(
                                                                         imageVector =
                                                                             if (internalShowSubtitle) {
-                                                                                Icons.Filled.SubtitlesOff
+                                                                                SimpIcons.SubtitlesOff
                                                                             } else {
-                                                                                Icons.Filled.Subtitles
+                                                                                SimpIcons.Subtitles
                                                                             },
                                                                         contentDescription = "",
                                                                         tint = Color.White,
@@ -1400,7 +1398,7 @@ fun NowPlayingScreenContent(
                             showSheet = true
                         }) {
                             Icon(
-                                painter = painterResource(Res.drawable.baseline_more_vert_24),
+                                imageVector = SimpIcons.MoreVert,
                                 contentDescription = "",
                                 tint = Color.White,
                             )
@@ -1631,7 +1629,7 @@ fun NowPlayingScreenContent(
                                                             sharedViewModel.addToYouTubeLiked()
                                                         },
                                                     ) {
-                                                        Icon(imageVector = Icons.Rounded.CheckCircle, tint = Color.White, contentDescription = "")
+                                                        Icon(imageVector = SimpIcons.CheckCircle, tint = Color.White, contentDescription = "")
                                                     }
                                                 } else {
                                                     IconButton(
@@ -1647,7 +1645,7 @@ fun NowPlayingScreenContent(
                                                         },
                                                     ) {
                                                         Icon(
-                                                            imageVector = Icons.Rounded.AddCircleOutline,
+                                                            imageVector = SimpIcons.AddCircleOutline,
                                                             tint = Color.White,
                                                             contentDescription = "",
                                                         )
@@ -1723,7 +1721,16 @@ fun NowPlayingScreenContent(
                                             }
                                             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                                 Slider(
-                                                    value = sliderValue,
+                                                    // material3 1.5.0-alpha25 keeps a
+                                                    // binary-compatibility overload of Slider that
+                                                    // accepts valueRange and then forwards without
+                                                    // it, so the slider silently runs on the
+                                                    // default 0f..1f and anything larger is clamped
+                                                    // to a full track. Hand it a fraction instead;
+                                                    // sliderValue stays on the 0..100 scale that
+                                                    // UIEvent.UpdateProgress and the time labels
+                                                    // are built around.
+                                                    value = sliderValue / 100f,
                                                     onValueChangeFinished = {
                                                         isSliding = false
                                                         sharedViewModel.onUIEvent(
@@ -1732,9 +1739,8 @@ fun NowPlayingScreenContent(
                                                     },
                                                     onValueChange = {
                                                         isSliding = true
-                                                        sliderValue = it
+                                                        sliderValue = it * 100f
                                                     },
-                                                    valueRange = 0f..100f,
                                                     modifier =
                                                         Modifier
                                                             .fillMaxWidth()
@@ -1861,7 +1867,7 @@ fun NowPlayingScreenContent(
                                                     showInfoBottomSheet = true
                                                 },
                                             ) {
-                                                Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                                                Icon(imageVector = SimpIcons.Info, tint = Color.White, contentDescription = "")
                                             }
                                             // Cyan rather than colorScheme.primary: this screen is force-dark whatever
                                             // the app theme is, so a light-theme primary would sink into the black
@@ -1901,7 +1907,7 @@ fun NowPlayingScreenContent(
                                                 },
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                                                    imageVector = SimpIcons.PlaylistAdd,
                                                     tint = Color.White,
                                                     contentDescription = "Add to Playlist",
                                                 )
@@ -1921,7 +1927,7 @@ fun NowPlayingScreenContent(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                                                        imageVector = SimpIcons.QueueMusic,
                                                         tint = Color.White,
                                                         contentDescription = stringResource(Res.string.queue),
                                                     )
@@ -1964,12 +1970,9 @@ fun NowPlayingScreenContent(
                                                 Modifier
                                                     .fillMaxSize()
                                                     .background(
-                                                        Brush.verticalGradient(
-                                                            colorStops =
-                                                                arrayOf(
-                                                                    0f to Color.Transparent,
-                                                                    1f to Color.Black.copy(alpha = 0.85f),
-                                                                ),
+                                                        smoothScrimBrush(
+                                                            from = Color.Black.copy(alpha = 0f),
+                                                            to = Color.Black.copy(alpha = 0.85f),
                                                         ),
                                                     ),
                                         )
@@ -2153,7 +2156,7 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = Icons.Rounded.CheckCircle,
+                                                                    imageVector = SimpIcons.CheckCircle,
                                                                     tint = Color.White,
                                                                     contentDescription = "",
                                                                 )
@@ -2172,7 +2175,7 @@ fun NowPlayingScreenContent(
                                                                 },
                                                             ) {
                                                                 Icon(
-                                                                    imageVector = Icons.Rounded.AddCircleOutline,
+                                                                    imageVector = SimpIcons.AddCircleOutline,
                                                                     tint = Color.White,
                                                                     contentDescription = "",
                                                                 )
@@ -2261,7 +2264,7 @@ fun NowPlayingScreenContent(
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Icon(
-                                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                                        imageVector = SimpIcons.KeyboardArrowDown,
                                         contentDescription = stringResource(Res.string.queue),
                                         tint = Color.White,
                                         modifier =
@@ -2348,7 +2351,7 @@ fun NowPlayingScreenContent(
                                                     },
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Rounded.ThumbsUpDown,
+                                                        imageVector = SimpIcons.ThumbsUpDown,
                                                         contentDescription = stringResource(Res.string.rate_lyrics),
                                                         tint = Color.White,
                                                         modifier = Modifier.size(16.dp),
@@ -2507,9 +2510,10 @@ fun NowPlayingScreenContent(
                                                 Modifier
                                                     .matchParentSize()
                                                     .background(
-                                                        Brush.verticalGradient(
-                                                            0f to Color.Black.copy(alpha = 0.6f),
-                                                            0.4f to Color.Transparent,
+                                                        smoothScrimBrush(
+                                                            from = Color.Black.copy(alpha = 0.6f),
+                                                            to = Color.Black.copy(alpha = 0f),
+                                                            endFraction = 0.4f,
                                                         ),
                                                     ),
                                         )
