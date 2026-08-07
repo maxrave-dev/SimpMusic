@@ -191,6 +191,12 @@ kotlin {
             implementation(libs.sentry.jvm)
             implementation(libs.native.tray)
             implementation(projects.mediaJvmUi)
+
+            // JNA + jna-platform: native Windows window move/resize loop for the
+            // undecorated main window (WM_NCLBUTTONDOWN with HTCAPTION/HT* codes).
+            // jna-platform's User32 exposes ReleaseCapture/SendMessage.
+            implementation(libs.jna)
+            implementation(libs.jna.platform)
         }
     }
 }

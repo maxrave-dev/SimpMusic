@@ -114,6 +114,7 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
+import com.maxrave.simpmusic.ui.component.RingPlayerArtwork
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
@@ -130,6 +131,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -154,6 +156,9 @@ fun MiniPlayer(
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val ringPlayerEnabled by remember {
+        sharedViewModel.getRingPlayerEnabled().map { it == DataStoreManager.Values.TRUE }
+    }.collectAsStateWithLifecycle(initialValue = false)
 
     val layer = rememberGraphicsLayer()
     val luminanceAnimation = remember { Animatable(0f) }
@@ -408,29 +413,49 @@ fun MiniPlayer(
                                         )
                                     },
                         ) {
-                            AsyncImage(
-                                model =
-                                    ImageRequest
-                                        .Builder(LocalPlatformContext.current)
-                                        .data(songEntity?.thumbnails)
-                                        .crossfade(550)
-                                        .build(),
-                                placeholder = rememberHolderPainter(),
-                                error = rememberHolderPainter(),
-                                contentDescription = null,
-                                contentScale = ContentScale.FillWidth,
-                                onSuccess = {
-                                    bitmap =
-                                        it.result.image.toImageBitmap()
-                                },
-                                modifier =
-                                    Modifier
-                                        .size(40.dp)
-                                        .align(Alignment.CenterVertically)
-                                        .clip(
-                                            RoundedCornerShape(4.dp),
-                                        ),
-                            )
+                            if (ringPlayerEnabled) {
+                                RingPlayerArtwork(
+                                    thumbnailURL = songEntity?.thumbnails,
+                                    isPlaying = controllerState.isPlaying,
+                                    progress =
+                                        if (timelineState.total > 0L) {
+                                            timelineState.current.toFloat() / timelineState.total
+                                        } else {
+                                            0f
+                                        },
+                                    onSeek = { p ->
+                                        sharedViewModel.onUIEvent(UIEvent.UpdateProgress(p * 100f))
+                                    },
+                                    modifier =
+                                        Modifier
+                                            .size(40.dp)
+                                            .align(Alignment.CenterVertically),
+                                )
+                            } else {
+                                AsyncImage(
+                                    model =
+                                        ImageRequest
+                                            .Builder(LocalPlatformContext.current)
+                                            .data(songEntity?.thumbnails)
+                                            .crossfade(550)
+                                            .build(),
+                                    placeholder = rememberHolderPainter(),
+                                    error = rememberHolderPainter(),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.FillWidth,
+                                    onSuccess = {
+                                        bitmap =
+                                            it.result.image.toImageBitmap()
+                                    },
+                                    modifier =
+                                        Modifier
+                                            .size(40.dp)
+                                            .align(Alignment.CenterVertically)
+                                            .clip(
+                                                RoundedCornerShape(4.dp),
+                                            ),
+                                )
+                            }
                             Spacer(modifier = Modifier.width(10.dp))
                             AnimatedContent(
                                 targetState = songEntity,
@@ -540,29 +565,31 @@ fun MiniPlayer(
 
                     Spacer(modifier = Modifier.width(15.dp))
                 }
-                Box(
-                    modifier =
-                        Modifier
-                            .wrapContentSize(Alignment.Center)
-                            .padding(
-                                horizontal = 10.dp,
-                            ).align(Alignment.BottomCenter),
-                ) {
-                    LinearProgressIndicator(
-                        progress = { animatedProgress },
+                if (!ringPlayerEnabled) {
+                    Box(
                         modifier =
                             Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                                .background(
-                                    color = Color.Transparent,
-                                    shape = RoundedCornerShape(4.dp),
-                                ),
-                        color = textColor,
-                        trackColor = Color.Transparent,
-                        strokeCap = StrokeCap.Round,
-                        drawStopIndicator = {},
-                    )
+                                .wrapContentSize(Alignment.Center)
+                                .padding(
+                                    horizontal = 10.dp,
+                                ).align(Alignment.BottomCenter),
+                    ) {
+                        LinearProgressIndicator(
+                            progress = { animatedProgress },
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(
+                                        color = Color.Transparent,
+                                        shape = RoundedCornerShape(4.dp),
+                                    ),
+                            color = textColor,
+                            trackColor = Color.Transparent,
+                            strokeCap = StrokeCap.Round,
+                            drawStopIndicator = {},
+                        )
+                    }
                 }
             }
         }
@@ -640,30 +667,50 @@ fun MiniPlayer(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        AsyncImage(
-                            model =
-                                ImageRequest
-                                    .Builder(LocalPlatformContext.current)
-                                    .data(songEntity?.thumbnails)
-                                    .crossfade(550)
-                                    .build(),
-                            placeholder = rememberHolderPainter(),
-                            error = rememberHolderPainter(),
-                            contentDescription = null,
-                            contentScale = ContentScale.FillWidth,
-                            onSuccess = {
-                                bitmap =
-                                    it.result.image.toImageBitmap()
-                            },
-                            modifier =
-                                Modifier
-                                    .fillMaxHeight()
-                                    .aspectRatio(1f)
-                                    .align(Alignment.CenterVertically)
-                                    .clip(
-                                        RoundedCornerShape(4.dp),
-                                    ),
-                        )
+                        if (ringPlayerEnabled) {
+                            RingPlayerArtwork(
+                                thumbnailURL = songEntity?.thumbnails,
+                                isPlaying = controllerState.isPlaying,
+                                progress =
+                                    if (timelineState.total > 0L) {
+                                        timelineState.current.toFloat() / timelineState.total
+                                    } else {
+                                        0f
+                                    },
+                                onSeek = { p ->
+                                    sharedViewModel.onUIEvent(UIEvent.UpdateProgress(p * 100f))
+                                },
+                                modifier =
+                                    Modifier
+                                        .fillMaxHeight()
+                                        .aspectRatio(1f),
+                            )
+                        } else {
+                            AsyncImage(
+                                model =
+                                    ImageRequest
+                                        .Builder(LocalPlatformContext.current)
+                                        .data(songEntity?.thumbnails)
+                                        .crossfade(550)
+                                        .build(),
+                                placeholder = rememberHolderPainter(),
+                                error = rememberHolderPainter(),
+                                contentDescription = null,
+                                contentScale = ContentScale.FillWidth,
+                                onSuccess = {
+                                    bitmap =
+                                        it.result.image.toImageBitmap()
+                                },
+                                modifier =
+                                    Modifier
+                                        .fillMaxHeight()
+                                        .aspectRatio(1f)
+                                        .align(Alignment.CenterVertically)
+                                        .clip(
+                                            RoundedCornerShape(4.dp),
+                                        ),
+                            )
+                        }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
@@ -729,6 +776,16 @@ fun MiniPlayer(
                                 .wrapContentHeight(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            if (ringPlayerEnabled) {
+                                Text(
+                                    text = "${formatDuration(timelineState.current)} / ${formatDuration(timelineState.total)}",
+                                    style = typo().bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            } else {
                             Text(
                                 text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
                                 style = typo().bodyMedium,
@@ -876,6 +933,7 @@ fun MiniPlayer(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.width(50.dp),
                             )
+                            }
                         }
                     }
                 }

@@ -282,6 +282,20 @@ fun LyricsView(
     }
 
     Box(modifier = modifier) {
+        if (lyricsData.lyrics.lines.isNullOrEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Lyrics not found",
+                    style = typo().bodyMedium,
+                    color = DimTranslatedColor,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            return@Box
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),

@@ -842,11 +842,9 @@ private fun ArtistSections(
         }
 
         // Singles
+        val singles = state.data.singles
         AnimatedVisibility(
-            state.data.singles != null &&
-                state.data.singles!!
-                    .results
-                    .isNotEmpty(),
+            visible = singles?.results?.isNotEmpty() == true,
         ) {
             Column {
                 Row(
@@ -910,11 +908,9 @@ private fun ArtistSections(
         }
 
         // Albums
+        val albums = state.data.albums
         AnimatedVisibility(
-            state.data.albums != null &&
-                state.data.albums!!
-                    .results
-                    .isNotEmpty(),
+            visible = albums?.results?.isNotEmpty() == true,
         ) {
             Column {
                 Row(
@@ -978,11 +974,9 @@ private fun ArtistSections(
         }
 
         // Videos
+        val video = state.data.video
         AnimatedVisibility(
-            state.data.video != null &&
-                state.data.video!!
-                    .video
-                    .isNotEmpty(),
+            visible = video?.video?.isNotEmpty() == true,
         ) {
             Column {
                 Row(
@@ -1112,11 +1106,9 @@ private fun ArtistSections(
         }
 
         // Related
+        val related = state.data.related
         AnimatedVisibility(
-            state.data.related != null &&
-                state.data.related!!
-                    .results
-                    .isNotEmpty(),
+            visible = related?.results?.isNotEmpty() == true,
         ) {
             Column {
                 Row(

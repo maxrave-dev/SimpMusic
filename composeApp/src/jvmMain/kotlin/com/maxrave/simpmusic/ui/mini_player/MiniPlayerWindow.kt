@@ -18,6 +18,7 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.ui.component.WindowNative
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
@@ -33,7 +34,8 @@ import java.util.prefs.Preferences
  * Features:
  * - Always on top of other windows
  * - Frameless (no title bar)
- * - Resizable (default 400x110 dp)
+ * - Resizable (default 440x120 dp)
+ * - Collapsible compact bar / expandable to show animated synced lyrics
  * - Shares player state with main window
  * - Close-safe (doesn't close main app)
  * - Remembers window position
@@ -47,14 +49,18 @@ fun MiniPlayerWindow(
     val prefs = remember { Preferences.userRoot().node("SimpMusic/MiniPlayer") }
 
     // Minimum size constraints
-    val minWidth = 200f
-    val minHeight = 56f
+    val minWidth = 360f
+    val minHeight = 120f
+
+    // Expanded/collapsed heights for the lyrics toggle
+    val compactHeight = 120f
+    val expandedHeight = 560f
 
     // Load saved position or use default (with minimum constraints)
     val savedX = prefs.getFloat("windowX", Float.NaN)
     val savedY = prefs.getFloat("windowY", Float.NaN)
-    val savedWidth = prefs.getFloat("windowWidth", 400f).coerceAtLeast(minWidth)
-    val savedHeight = prefs.getFloat("windowHeight", 56f).coerceAtLeast(minHeight)
+    val savedWidth = prefs.getFloat("windowWidth", 440f).coerceAtLeast(minWidth)
+    val savedHeight = prefs.getFloat("windowHeight", compactHeight).coerceAtLeast(minHeight)
 
     var windowState by remember {
         mutableStateOf(
@@ -71,8 +77,19 @@ fun MiniPlayerWindow(
         )
     }
 
-    // Save position on change
-    LaunchedEffect(windowState.position, windowState.size) {
+    // Lyrics panel expand/collapse: resizes the window vertically, keeps width
+    var isExpanded by remember { mutableStateOf(false) }
+    val toggleExpand = {
+        isExpanded = !isExpanded
+        windowState.size =
+            DpSize(
+                width = windowState.size.width,
+                height = (if (isExpanded) expandedHeight else compactHeight).dp,
+            )
+    }
+
+    // Save position on change (only persist collapsed height so the window reopens compact)
+    LaunchedEffect(windowState.position, windowState.size, isExpanded) {
         val pos = windowState.position
         Logger.w("MiniPlayerWindow", "Saving position: $pos")
         if (pos is WindowPosition.Absolute) {
@@ -80,7 +97,9 @@ fun MiniPlayerWindow(
             prefs.putFloat("windowY", pos.y.value)
         }
         prefs.putFloat("windowWidth", windowState.size.width.value)
-        prefs.putFloat("windowHeight", windowState.size.height.value)
+        if (!isExpanded) {
+            prefs.putFloat("windowHeight", windowState.size.height.value)
+        }
     }
 
     Window(
@@ -117,17 +136,23 @@ fun MiniPlayerWindow(
     ) {
         // Set minimum size at AWT level to prevent flickering
         LaunchedEffect(Unit) {
-            (window as? java.awt.Window)?.minimumSize =
-                Dimension(
-                    (minWidth * window.graphicsConfiguration.defaultTransform.scaleX).toInt(),
-                    (minHeight * window.graphicsConfiguration.defaultTransform.scaleY).toInt(),
-                )
+            (window as? java.awt.Window)?.let { awtWindow ->
+                awtWindow.minimumSize =
+                    Dimension(
+                        (minWidth * window.graphicsConfiguration.defaultTransform.scaleX).toInt(),
+                        (minHeight * window.graphicsConfiguration.defaultTransform.scaleY).toInt(),
+                    )
+                // The mini player is a utility surface — hide its taskbar button.
+                WindowNative.hideFromTaskbar(awtWindow)
+            }
         }
 
         MiniPlayerRoot(
             sharedViewModel = sharedViewModel,
             onClose = onCloseRequest,
             windowState = windowState,
+            isExpanded = isExpanded,
+            onToggleExpand = toggleExpand,
         )
     }
 }

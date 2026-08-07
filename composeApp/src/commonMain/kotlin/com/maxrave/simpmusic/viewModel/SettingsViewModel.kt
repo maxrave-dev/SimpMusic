@@ -12,6 +12,7 @@ import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.data.player.GenericCastState
+import com.maxrave.domain.extension.normalizeCookieString
 import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
@@ -157,6 +158,9 @@ class SettingsViewModel(
     private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
 
+    private var _ringPlayerEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val ringPlayerEnabled: StateFlow<Boolean> = _ringPlayerEnabled
+
     private val _explicitContentEnabled = MutableStateFlow(false)
     val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
 
@@ -290,6 +294,7 @@ class SettingsViewModel(
         getBackupDownloaded()
         getUpdateChannel()
         getEnableLiquidGlass()
+        getRingPlayerEnabled()
         getExplicitContentEnabled()
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
@@ -571,6 +576,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setEnableLiquidGlass(enableLiquidGlass)
             getEnableLiquidGlass()
+        }
+    }
+
+    private fun getRingPlayerEnabled() {
+        viewModelScope.launch {
+            dataStoreManager.ringPlayerEnabled.collect { enabled ->
+                _ringPlayerEnabled.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setRingPlayerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setRingPlayerEnabled(enabled)
+            getRingPlayerEnabled()
         }
     }
 
@@ -1366,6 +1386,10 @@ class SettingsViewModel(
         cookie: String,
         netscapeCookie: String? = null,
     ): Boolean {
+        // Accept both a header-style cookie and a raw Netscape cookies.txt paste
+        // (browser extension export). The raw file format cannot go into a Cookie
+        // header — normalize it to `name=value; ...` before storing anything.
+        val cookie = normalizeCookieString(cookie) ?: return false
         val currentCookie = dataStoreManager.cookie.first()
         val currentPageId = dataStoreManager.pageId.first()
         val currentLoggedIn = dataStoreManager.loggedIn.first() == DataStoreManager.TRUE

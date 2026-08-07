@@ -2,8 +2,6 @@ package com.maxrave.simpmusic.ui.mini_player
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,11 +12,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,18 +28,27 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kmpalette.loader.rememberNetworkLoader
+import com.kmpalette.rememberDominantColorState
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.http.Url
 import java.awt.Cursor
 import java.awt.MouseInfo
+import kotlinx.coroutines.flow.map
 
 /**
  * Root composable for the mini player window content.
- * Automatically switches between layouts based on window width:
- * - < 260dp: Compact (controls only)
- * - 260-360dp: Medium (artwork + controls)
- * - > 360dp: Full (artwork + info + controls)
+ * Shows a compact bar (art + track info + controls) by default; clicking the
+ * expand chevron switches to the expanded layout with full animated synced lyrics.
+ *
+ * The background is dynamically themed from the album artwork's dominant color.
  *
  * Shows placeholder when no track is playing.
  * Includes close button and drag handle since window is frameless.
@@ -49,16 +58,30 @@ fun MiniPlayerRoot(
     sharedViewModel: SharedViewModel,
     onClose: () -> Unit,
     windowState: WindowState,
+    isExpanded: Boolean,
+    onToggleExpand: () -> Unit,
 ) {
     val nowPlayingData by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timeline by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val nowPlayingState by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
+    val queueDataState by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
+    val ringPlayerEnabled by remember {
+        sharedViewModel.getRingPlayerEnabled().map { it == DataStoreManager.Values.TRUE }
+    }.collectAsStateWithLifecycle(initialValue = false)
 
     val lyricsData by remember {
         derivedStateOf {
             nowPlayingData.lyricsData
         }
     }
+
+    // Up Next queue for the expanded panel (same source as the main app's queue sheet).
+    // Use track.videoId (prefix-stripped) to match the currently playing track.
+    val artworkQueue by remember {
+        derivedStateOf { queueDataState?.data?.listTracks ?: emptyList() }
+    }
+    val nowPlayingVideoId: String? = nowPlayingState?.track?.videoId
 
     // Track mouse position for dragging
     var dragStartMousePos by remember { mutableStateOf<Pair<Int, Int>?>(null) }
@@ -67,61 +90,66 @@ fun MiniPlayerRoot(
     // Check if there's any track playing
     val hasTrack = nowPlayingData.nowPlayingTitle.isNotBlank()
 
+    // Dynamic background color from the album artwork's dominant color
+    val defaultBg = Color(0xFF1C1C1E)
+    val networkLoader = rememberNetworkLoader(HttpClient(CIO))
+    val dominantColorState =
+        rememberDominantColorState(
+            defaultColor = defaultBg,
+            defaultOnColor = Color.White,
+            loader = networkLoader,
+        )
+    var miniPlayerBackground by remember { mutableStateOf(defaultBg) }
+    LaunchedEffect(nowPlayingData.thumbnailURL) {
+        nowPlayingData.thumbnailURL?.let { url ->
+            dominantColorState.updateFrom(Url(url))
+        }
+    }
+    LaunchedEffect(dominantColorState) {
+        snapshotFlow { dominantColorState.color }.collect { color ->
+            // Darken the artwork color so white text stays readable (same as HomeScreen)
+            miniPlayerBackground = color.rgbFactor(0.3f)
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        color = Color(0xFF1C1C1E),
+        color = miniPlayerBackground,
         shape = RoundedCornerShape(12.dp),
     ) {
         Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
             if (!hasTrack) {
                 // Show empty state
                 EmptyMiniPlayerState()
+            } else if (isExpanded) {
+                // Expanded: compact bar + Lyrics / Up Next tabs
+                LyricsExpandedMiniLayout(
+                    nowPlayingData = nowPlayingData,
+                    controllerState = controllerState,
+                    timeline = timeline,
+                    timelineFlow = sharedViewModel.timeline,
+                    lyricsData = lyricsData,
+                    queue = artworkQueue,
+                    currentVideoId = nowPlayingVideoId,
+                    background = miniPlayerBackground,
+                    ringPlayerEnabled = ringPlayerEnabled,
+                    onUIEvent = sharedViewModel::onUIEvent,
+                    onToggleExpand = onToggleExpand,
+                    onPlayQueueItem = { index ->
+                        sharedViewModel.onUIEvent(UIEvent.PlayQueueItem(index))
+                    },
+                )
             } else {
-                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    // Calculate aspect ratio to detect square/tall layout
-                    val aspectRatio = maxWidth.value / maxHeight.value
-                    val isSquareOrTall = aspectRatio <= 1.3f && maxHeight >= 200.dp
-
-                    when {
-                        isSquareOrTall -> {
-                            SquareMiniLayout(
-                                nowPlayingData = nowPlayingData,
-                                controllerState = controllerState,
-                                timeline = timeline,
-                                lyricsData = lyricsData,
-                                onUIEvent = sharedViewModel::onUIEvent,
-                            )
-                        }
-
-                        maxWidth < 260.dp -> {
-                            CompactMiniLayout(
-                                controllerState = controllerState,
-                                timeline = timeline,
-                                onUIEvent = sharedViewModel::onUIEvent,
-                            )
-                        }
-
-                        maxWidth < 360.dp -> {
-                            MediumMiniLayout(
-                                nowPlayingData = nowPlayingData,
-                                controllerState = controllerState,
-                                timeline = timeline,
-                                lyricsData = lyricsData,
-                                onUIEvent = sharedViewModel::onUIEvent,
-                            )
-                        }
-
-                        else -> {
-                            ExpandedMiniLayout(
-                                nowPlayingData = nowPlayingData,
-                                controllerState = controllerState,
-                                timeline = timeline,
-                                lyricsData = lyricsData,
-                                onUIEvent = sharedViewModel::onUIEvent,
-                            )
-                        }
-                    }
-                }
+                // Collapsed: clean art + track info bar
+                MiniPlayerBarLayout(
+                    nowPlayingData = nowPlayingData,
+                    controllerState = controllerState,
+                    timeline = timeline,
+                    background = miniPlayerBackground,
+                    ringPlayerEnabled = ringPlayerEnabled,
+                    onUIEvent = sharedViewModel::onUIEvent,
+                    onToggleExpand = onToggleExpand,
+                )
             }
 
             // Close button (top-right corner)
