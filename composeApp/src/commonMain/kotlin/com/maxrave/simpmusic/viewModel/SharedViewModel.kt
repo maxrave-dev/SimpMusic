@@ -167,6 +167,20 @@ class SharedViewModel(
 
     val castState: StateFlow<GenericCastState> get() = mediaPlayerHandler.castState
 
+    val podcastRewindSeconds =
+        dataStoreManager.podcastRewindSeconds.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            DataStoreManager.DEFAULT_PODCAST_SEEK_SECONDS,
+        )
+
+    val podcastForwardSeconds =
+        dataStoreManager.podcastForwardSeconds.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            DataStoreManager.DEFAULT_PODCAST_SEEK_SECONDS,
+        )
+
     private var _controllerState =
         MutableStateFlow<ControlState>(
             ControlState(
@@ -796,6 +810,10 @@ class SharedViewModel(
 
                 UIEvent.Forward -> {
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.Forward)
+                }
+
+                is UIEvent.SeekBy -> {
+                    mediaPlayerHandler.onPlayerEvent(PlayerEvent.SeekBy(uiEvent.offsetMs))
                 }
 
                 UIEvent.PlayPause -> {
@@ -1952,6 +1970,10 @@ sealed class UIEvent {
     data object Backward : UIEvent()
 
     data object Forward : UIEvent()
+
+    data class SeekBy(
+        val offsetMs: Long,
+    ) : UIEvent()
 
     data object Next : UIEvent()
 

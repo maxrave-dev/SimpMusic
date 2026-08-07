@@ -9,6 +9,7 @@ import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Album
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
+import com.maxrave.domain.extension.isPodcast
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.BETTER_LYRICS
 import com.maxrave.domain.manager.DataStoreManager.Values.LRCLIB
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -202,6 +204,7 @@ class NowPlayingBottomSheetViewModel(
                                         thumbnails = song.thumbnails,
                                         liked = song.liked,
                                         downloadState = song.downloadState,
+                                        isPodcast = song.isPodcast(),
                                         album =
                                             song.albumName?.takeIf { it.isNotEmpty() }?.let { name ->
                                                 Album(name = name, id = song.albumId ?: "")
@@ -353,8 +356,13 @@ class NowPlayingBottomSheetViewModel(
                 }
 
                 is NowPlayingBottomSheetUIEvent.ChangePlaybackSpeedPitch -> {
-                    dataStoreManager.setPlaybackSpeed(ev.speed)
-                    dataStoreManager.setPitch(ev.pitch)
+                    if (songUIState.isPodcast) {
+                        dataStoreManager.setPodcastPlaybackSpeed(ev.speed)
+                        dataStoreManager.setPodcastPitch(ev.pitch)
+                    } else if (dataStoreManager.crossfadeEnabled.first() != DataStoreManager.TRUE) {
+                        dataStoreManager.setPlaybackSpeed(ev.speed)
+                        dataStoreManager.setPitch(ev.pitch)
+                    }
                 }
 
                 is NowPlayingBottomSheetUIEvent.Share -> {
@@ -419,6 +427,7 @@ data class NowPlayingBottomSheetUIState(
         val liked: Boolean = false,
         val isAddedToYouTubeLiked: Boolean = false,
         val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
+        val isPodcast: Boolean = false,
         val album: Album? = null,
     )
 }

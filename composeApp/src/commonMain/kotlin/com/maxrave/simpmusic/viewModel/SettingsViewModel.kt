@@ -143,6 +143,10 @@ class SettingsViewModel(
     val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
     private val _crossfadeDjMode = MutableStateFlow<Boolean>(true)
     val crossfadeDjMode: StateFlow<Boolean> = _crossfadeDjMode
+    private val _podcastRewindSeconds = MutableStateFlow(DataStoreManager.DEFAULT_PODCAST_SEEK_SECONDS)
+    val podcastRewindSeconds: StateFlow<Int> = _podcastRewindSeconds
+    private val _podcastForwardSeconds = MutableStateFlow(DataStoreManager.DEFAULT_PODCAST_SEEK_SECONDS)
+    val podcastForwardSeconds: StateFlow<Int> = _podcastForwardSeconds
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
@@ -286,6 +290,8 @@ class SettingsViewModel(
         getCrossfadeEnabled()
         getCrossfadeDuration()
         getCrossfadeDjMode()
+        getPodcastRewindSeconds()
+        getPodcastForwardSeconds()
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
@@ -472,6 +478,34 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCrossfadeDjMode(enabled)
             getCrossfadeDjMode()
+        }
+    }
+
+    private fun getPodcastRewindSeconds() {
+        viewModelScope.launch {
+            dataStoreManager.podcastRewindSeconds.collect { seconds ->
+                _podcastRewindSeconds.value = seconds
+            }
+        }
+    }
+
+    fun setPodcastRewindSeconds(seconds: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setPodcastRewindSeconds(seconds)
+        }
+    }
+
+    private fun getPodcastForwardSeconds() {
+        viewModelScope.launch {
+            dataStoreManager.podcastForwardSeconds.collect { seconds ->
+                _podcastForwardSeconds.value = seconds
+            }
+        }
+    }
+
+    fun setPodcastForwardSeconds(seconds: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setPodcastForwardSeconds(seconds)
         }
     }
 

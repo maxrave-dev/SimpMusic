@@ -97,6 +97,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.extension.isPodcast
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
@@ -154,6 +155,8 @@ fun MiniPlayer(
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val podcastRewindSeconds by sharedViewModel.podcastRewindSeconds.collectAsStateWithLifecycle()
+    val podcastForwardSeconds by sharedViewModel.podcastForwardSeconds.collectAsStateWithLifecycle()
 
     val layer = rememberGraphicsLayer()
     val luminanceAnimation = remember { Animatable(0f) }
@@ -718,6 +721,9 @@ fun MiniPlayer(
                             PlayerControlLayout(
                                 controllerState,
                                 isSmallSize = true,
+                                isPodcast = songEntity?.isPodcast() == true,
+                                podcastRewindSeconds = podcastRewindSeconds,
+                                podcastForwardSeconds = podcastForwardSeconds,
                                 contentColor = textColor,
                             ) {
                                 sharedViewModel.onUIEvent(it)

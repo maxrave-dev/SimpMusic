@@ -122,6 +122,7 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.domain.extension.isPodcast
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
@@ -296,6 +297,8 @@ fun NowPlayingScreenContent(
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val podcastRewindSeconds by sharedViewModel.podcastRewindSeconds.collectAsStateWithLifecycle()
+    val podcastForwardSeconds by sharedViewModel.podcastForwardSeconds.collectAsStateWithLifecycle()
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
 
@@ -306,6 +309,7 @@ fun NowPlayingScreenContent(
     // Artwork Pager state — Spotify-style horizontal swipe between queue tracks.
     // The pager wraps the Canvas + Thumbnail layers. Controller layout below stays fixed.
     val nowPlayingState by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
+    val isPodcast = nowPlayingState?.track?.isPodcast() == true || nowPlayingState?.songEntity?.isPodcast() == true
     val queueDataState by sharedViewModel.getQueueDataState().collectAsStateWithLifecycle()
     val artworkQueue by remember {
         derivedStateOf { queueDataState?.data?.listTracks ?: emptyList() }
@@ -1578,7 +1582,7 @@ fun NowPlayingScreenContent(
                                                 }
                                             }
                                         }
-                                        if (sharedViewModel.isUserLoggedIn()) {
+                                        if (!isPodcast && sharedViewModel.isUserLoggedIn()) {
                                             Spacer(modifier = Modifier.size(16.dp))
                                             Crossfade(
                                                 targetState = likeStatus,
@@ -1620,9 +1624,11 @@ fun NowPlayingScreenContent(
                                                 }
                                             }
                                         }
-                                        Spacer(modifier = Modifier.size(12.dp))
-                                        HeartCheckBox(checked = controllerState.isLiked, size = 32) {
-                                            sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                                        if (!isPodcast) {
+                                            Spacer(modifier = Modifier.size(12.dp))
+                                            HeartCheckBox(checked = controllerState.isLiked, size = 32) {
+                                                sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                                            }
                                         }
                                     }
                                     if (getPlatform() == Platform.Android) {
@@ -1800,6 +1806,9 @@ fun NowPlayingScreenContent(
                                         // Control Button Layout
                                         PlayerControlLayout(
                                             controllerState,
+                                            isPodcast = isPodcast,
+                                            podcastRewindSeconds = podcastRewindSeconds,
+                                            podcastForwardSeconds = podcastForwardSeconds,
                                         ) {
                                             sharedViewModel.onUIEvent(it)
                                         }
@@ -1862,22 +1871,23 @@ fun NowPlayingScreenContent(
                                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            // NEW: Add to Playlist Button (Center-Right)
-                                            IconButton(
-                                                modifier =
-                                                    Modifier
-                                                        .size(24.dp)
-                                                        .aspectRatio(1f)
-                                                        .clip(CircleShape),
-                                                onClick = {
-                                                    showAddToPlaylistDirectly = true
-                                                },
-                                            ) {
-                                                Icon(
-                                                    imageVector = SimpIcons.PlaylistAdd,
-                                                    tint = Color.White,
-                                                    contentDescription = "Add to Playlist",
-                                                )
+                                            if (!isPodcast) {
+                                                IconButton(
+                                                    modifier =
+                                                        Modifier
+                                                            .size(24.dp)
+                                                            .aspectRatio(1f)
+                                                            .clip(CircleShape),
+                                                    onClick = {
+                                                        showAddToPlaylistDirectly = true
+                                                    },
+                                                ) {
+                                                    Icon(
+                                                        imageVector = SimpIcons.PlaylistAdd,
+                                                        tint = Color.White,
+                                                        contentDescription = "Add to Playlist",
+                                                    )
+                                                }
                                             }
 
                                             // Queue Button (Right)
@@ -2101,7 +2111,7 @@ fun NowPlayingScreenContent(
                                                         }
                                                     }
                                                 }
-                                                if (sharedViewModel.isUserLoggedIn()) {
+                                                if (!isPodcast && sharedViewModel.isUserLoggedIn()) {
                                                     Spacer(modifier = Modifier.size(16.dp))
                                                     Crossfade(
                                                         targetState = likeStatus,
@@ -2147,9 +2157,11 @@ fun NowPlayingScreenContent(
                                                         }
                                                     }
                                                 }
-                                                Spacer(modifier = Modifier.size(12.dp))
-                                                HeartCheckBox(checked = controllerState.isLiked, size = 32) {
-                                                    sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                                                if (!isPodcast) {
+                                                    Spacer(modifier = Modifier.size(12.dp))
+                                                    HeartCheckBox(checked = controllerState.isLiked, size = 32) {
+                                                        sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                                                    }
                                                 }
                                             }
                                         }
@@ -2581,8 +2593,10 @@ fun NowPlayingScreenContent(
                             }
                         }
                         Spacer(modifier = Modifier.width(15.dp))
-                        HeartCheckBox(checked = controllerState.isLiked, size = 30) {
-                            sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                        if (!isPodcast) {
+                            HeartCheckBox(checked = controllerState.isLiked, size = 30) {
+                                sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                            }
                         }
                         Spacer(modifier = Modifier.width(15.dp))
                         Crossfade(targetState = timelineState.loading, label = "") {

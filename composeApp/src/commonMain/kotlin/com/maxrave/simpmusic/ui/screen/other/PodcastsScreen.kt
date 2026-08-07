@@ -81,9 +81,9 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PodcastEpisodeFullWidthItem
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.DownloadForOfflineOutlined
 import com.maxrave.simpmusic.ui.icon.PlayCircle
 import com.maxrave.simpmusic.ui.icon.Share
-import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
@@ -97,6 +97,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album_length
+import simpmusic.composeapp.generated.resources.download_all_episodes
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.podcasts
 
@@ -109,6 +110,7 @@ fun PodcastScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
+    val episodeProgress by viewModel.episodeProgress.collectAsStateWithLifecycle()
 
     val lazyState = rememberLazyListState()
     val firstItemVisible by remember {
@@ -118,7 +120,7 @@ fun PodcastScreen(
     }
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
 
-    var currentTrack by rememberSaveable {
+    var currentTrack by remember {
         mutableStateOf<Track?>(null)
     }
     var shouldShowMoreBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -340,13 +342,14 @@ fun PodcastScreen(
 
                                                 Spacer(Modifier.weight(1f))
 
-                                                // Shuffle
+                                                // Save every episode for offline playback.
                                                 RippleIconButton(
                                                     modifier = Modifier.size(36.dp),
-                                                    imageVector = SimpIcons.Shuffle,
+                                                    imageVector = SimpIcons.DownloadForOfflineOutlined,
                                                     fillMaxSize = true,
+                                                    contentDescription = stringResource(Res.string.download_all_episodes),
                                                 ) {
-                                                    viewModel.onUIEvent(PodcastUIEvent.Shuffle(id))
+                                                    viewModel.onUIEvent(PodcastUIEvent.DownloadAll)
                                                 }
 
                                                 Spacer(Modifier.size(5.dp))
@@ -400,6 +403,7 @@ fun PodcastScreen(
                         if (episode != null) {
                             PodcastEpisodeFullWidthItem(
                                 episode = episode,
+                                progressMs = episodeProgress[episode.videoId] ?: 0L,
                                 onClick = {
                                     viewModel.onUIEvent(
                                         PodcastUIEvent.EpisodeClick(

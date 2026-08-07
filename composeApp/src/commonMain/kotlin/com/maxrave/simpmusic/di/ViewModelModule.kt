@@ -117,6 +117,9 @@ val viewModelModule =
         viewModel {
             PodcastViewModel(
                 get(),
+                get(),
+                get(),
+                get(),
             )
         }
         viewModel {

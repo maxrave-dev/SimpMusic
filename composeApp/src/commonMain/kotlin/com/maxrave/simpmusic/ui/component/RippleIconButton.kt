@@ -19,6 +19,7 @@ fun RippleIconButton(
     modifier: Modifier = Modifier,
     fillMaxSize: Boolean = false,
     tint: Color = Color.White,
+    contentDescription: String? = null,
     onClick: () -> Unit,
 ) {
     IconButton(
@@ -27,7 +28,7 @@ fun RippleIconButton(
     ) {
         Icon(
             imageVector,
-            null,
+            contentDescription,
             tint = tint,
             modifier = if (fillMaxSize) Modifier.fillMaxSize().padding(4.dp) else Modifier,
         )
