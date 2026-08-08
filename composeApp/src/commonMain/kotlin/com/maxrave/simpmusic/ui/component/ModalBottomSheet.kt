@@ -277,6 +277,7 @@ import simpmusic.composeapp.generated.resources.your_youtube_cookie
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
 import simpmusic.composeapp.generated.resources.youtube_transcript
 import simpmusic.composeapp.generated.resources.youtube_url
+import java.util.Queue
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sentinel value used by SleepTimerBottomSheet to signal "end of current song"
@@ -1212,6 +1213,8 @@ fun QueueBottomSheet(
 private enum class QueueItemAction {
     UP,
     DOWN,
+    PLAYNEXT,
+    ADDTOQUEUE,
     DELETE,
 }
 
@@ -1238,6 +1241,8 @@ fun QueueItemBottomSheet(
         listOf(
             QueueItemAction.UP,
             QueueItemAction.DOWN,
+            QueueItemAction.PLAYNEXT,
+            QueueItemAction.ADDTOQUEUE,
             QueueItemAction.DELETE,
         )
     ModalBottomSheet(
@@ -1295,6 +1300,8 @@ fun QueueItemBottomSheet(
                             when (action) {
                                 QueueItemAction.UP -> !canMoveUp
                                 QueueItemAction.DOWN -> !canMoveDown
+                                QueueItemAction.PLAYNEXT->false
+                                QueueItemAction.ADDTOQUEUE->false
                                 QueueItemAction.DELETE -> false
                             }
                         if (disable) return@items
@@ -1319,6 +1326,35 @@ fun QueueItemBottomSheet(
 
                                             QueueItemAction.DELETE -> {
                                                 musicServiceHandler.removeMediaItem(index)
+                                            }
+
+                                            QueueItemAction.PLAYNEXT -> {
+                                                val track =
+                                                    musicServiceHandler.queueData.value
+                                                        ?.data
+                                                        ?.listTracks
+                                                        ?.getOrNull(index)
+                                                if (track != null) {
+                                                    coroutineScope.launch {
+                                                        musicServiceHandler.playNext(track)
+                                                    }
+                                                }
+                                            }
+
+                                            QueueItemAction.ADDTOQUEUE -> {
+                                                val track =
+                                                    musicServiceHandler.queueData.value
+                                                        ?.data
+                                                        ?.listTracks
+                                                        ?.getOrNull(index)
+                                                if (track != null) {
+                                                    coroutineScope.launch {
+                                                        musicServiceHandler.loadMoreCatalog(
+                                                            arrayListOf(track),
+                                                            isAddToQueue = true,
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     },
@@ -1345,6 +1381,20 @@ fun QueueItemBottomSheet(
                                         )
                                     }
 
+                                    QueueItemAction.PLAYNEXT -> {
+                                        Image(
+                                            imageVector = SimpIcons.PlayCircle,
+                                            contentDescription = "Play Next"
+                                        )
+                                    }
+
+                                    QueueItemAction.ADDTOQUEUE -> {
+                                        Image(
+                                            imageVector = SimpIcons.QueueMusic,
+                                            contentDescription = "Add to Queue"
+                                        )
+                                    }
+
                                     QueueItemAction.DELETE -> {
                                         Image(
                                             imageVector = SimpIcons.Delete,
@@ -1359,6 +1409,8 @@ fun QueueItemBottomSheet(
                                             when (action) {
                                                 QueueItemAction.UP -> Res.string.move_up
                                                 QueueItemAction.DOWN -> Res.string.move_down
+                                                QueueItemAction.PLAYNEXT -> Res.string.play_next
+                                                QueueItemAction.ADDTOQUEUE -> Res.string.add_to_queue
                                                 QueueItemAction.DELETE -> Res.string.delete
                                             },
                                         ),
