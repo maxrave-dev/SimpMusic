@@ -235,6 +235,11 @@
     <string name="videos_inArtist">Videos</string>
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
     <string name="no_YouTube_playlists">No YouTube Playlists</string>
+    <string name="your_spotify_playlists">Your Spotify Playlists</string>
+    <string name="no_spotify_playlists">No Spotify playlists found</string>
+    <string name="spotify_track_unavailable">Not found on YouTube Music</string>
+    <string name="resolving_spotify_track">Finding a match…</string>
+    <string name="play_all">Play all</string>
     <string name="track">track(s)</string>
     <string name="save_to_local_playlist">Save to local playlist</string>
     <string name="added_local_playlist">Added Local Playlist</string>

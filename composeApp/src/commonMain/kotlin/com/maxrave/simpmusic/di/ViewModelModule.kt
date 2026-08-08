@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SpotifyPlaylistViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -54,6 +55,7 @@ val viewModelModule =
         }
         viewModel {
             LibraryViewModel(
+                get(),
                 get(),
                 get(),
                 get(),
@@ -116,6 +118,11 @@ val viewModelModule =
         }
         viewModel {
             PodcastViewModel(
+                get(),
+            )
+        }
+        viewModel {
+            SpotifyPlaylistViewModel(
                 get(),
             )
         }

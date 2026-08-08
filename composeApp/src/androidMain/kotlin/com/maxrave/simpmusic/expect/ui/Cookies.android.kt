@@ -17,12 +17,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 actual fun createWebViewCookieManager(): WebViewCookieManager =
     object : WebViewCookieManager {
         override fun getCookie(url: String): String {
-            val cookie = CookieManager.getInstance()
-            return if (cookie.hasCookies()) {
-                cookie.getCookie(url)
-            } else {
-                ""
-            }
+            // CookieManager.getCookie(url) can legitimately return null even when
+            // hasCookies() is true globally (e.g. no cookies set yet for this specific
+            // url, such as the very first page load) - the old hasCookies() check didn't
+            // guard against that and crashed with an NPE on the implicit non-null return.
+            return CookieManager.getInstance().getCookie(url) ?: ""
         }
 
         override fun removeAllCookies() {

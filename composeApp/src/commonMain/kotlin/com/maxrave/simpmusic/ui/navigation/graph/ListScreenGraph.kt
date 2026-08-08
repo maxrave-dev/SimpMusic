@@ -13,7 +13,9 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestina
 import com.maxrave.simpmusic.ui.navigation.destination.list.MoreAlbumsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.SpotifyPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LocalPlaylistScreen
+import com.maxrave.simpmusic.ui.screen.library.SpotifyPlaylistScreen
 import com.maxrave.simpmusic.ui.screen.other.AlbumScreen
 import com.maxrave.simpmusic.ui.screen.other.ArtistScreen
 import com.maxrave.simpmusic.ui.screen.other.MoreAlbumsScreen
@@ -78,6 +80,16 @@ fun NavGraphBuilder.listScreenGraph(
         ForceDarkContent {
             PodcastScreen(
                 podcastId = data.podcastId,
+                navController = navController,
+            )
+        }
+    }
+    composable<SpotifyPlaylistDestination> { entry ->
+        val data = entry.toRoute<SpotifyPlaylistDestination>()
+        ForceDarkContent {
+            SpotifyPlaylistScreen(
+                playlistId = data.id,
+                playlistName = data.name,
                 navController = navController,
             )
         }

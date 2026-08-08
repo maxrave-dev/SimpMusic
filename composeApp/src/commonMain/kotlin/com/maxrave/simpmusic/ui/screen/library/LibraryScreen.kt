@@ -73,6 +73,7 @@ import com.maxrave.simpmusic.ui.component.LibraryItem
 import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
+import com.maxrave.simpmusic.ui.component.SpotifyPlaylistGrid
 import com.maxrave.simpmusic.ui.icon.AutoGraph
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -110,6 +111,7 @@ import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
 import simpmusic.composeapp.generated.resources.simpmusic_charts
 import simpmusic.composeapp.generated.resources.your_library
 import simpmusic.composeapp.generated.resources.your_playlists
+import simpmusic.composeapp.generated.resources.your_spotify_playlists
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
@@ -123,6 +125,8 @@ fun LibraryScreen(
     val density = LocalDensity.current
 
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
+    val spotifyLoggedIn by viewModel.spotifyLoggedIn.collectAsStateWithLifecycle(initialValue = false)
+    val spotifyPlaylists by viewModel.spotifyPlaylists.collectAsStateWithLifecycle()
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
     val youTubeMixForYou by viewModel.youTubeMixForYou.collectAsStateWithLifecycle()
@@ -190,6 +194,12 @@ fun LibraryScreen(
             LibraryChipType.CHART -> {
                 if (chartPlaylists.data.isNullOrEmpty()) {
                     viewModel.getChartPlaylists()
+                }
+            }
+
+            LibraryChipType.SPOTIFY_PLAYLIST -> {
+                if (spotifyLoggedIn && spotifyPlaylists.data.isNullOrEmpty()) {
+                    viewModel.getSpotifyPlaylists()
                 }
             }
         }
@@ -342,6 +352,17 @@ fun LibraryScreen(
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getChartPlaylists()
+                }
+            }
+
+            LibraryChipType.SPOTIFY_PLAYLIST -> {
+                SpotifyPlaylistGrid(
+                    navController,
+                    innerPadding.copy(top = topAppBarHeight),
+                    isLoggedIn = spotifyLoggedIn,
+                    data = spotifyPlaylists,
+                ) {
+                    viewModel.getSpotifyPlaylists()
                 }
             }
         }
@@ -515,6 +536,7 @@ fun LibraryScreen(
                             LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
                             LibraryChipType.CHART -> stringResource(Res.string.simpmusic_charts)
+                            LibraryChipType.SPOTIFY_PLAYLIST -> stringResource(Res.string.your_spotify_playlists)
                         },
                 ) {
                     viewModel.setCurrentScreen(type)

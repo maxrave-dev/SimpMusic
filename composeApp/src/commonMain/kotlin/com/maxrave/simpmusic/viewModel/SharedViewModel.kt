@@ -785,6 +785,35 @@ class SharedViewModel(
         }
     }
 
+    /**
+     * Plays a list of already-resolved YouTube [Track]s (e.g. a Spotify playlist whose tracks
+     * have been matched to YouTube Music, see `SpotifyLibraryRepository.resolveTrack`) starting
+     * at [startIndex], with the same queue/continuation setup every other playlist screen uses -
+     * mirrors the `setQueueData` + `loadMediaItemFromTrack(..., PLAYLIST_CLICK, index)` pattern
+     * used by [loadSharedMediaItem] and the YouTube-playlist screens.
+     */
+    fun playResolvedTrackList(
+        tracks: List<Track>,
+        startIndex: Int,
+        playlistId: String,
+        playlistName: String,
+    ) {
+        val firstPlayedTrack = tracks.getOrNull(startIndex) ?: return
+        viewModelScope.launch {
+            mediaPlayerHandler.setQueueData(
+                QueueData.Data(
+                    listTracks = ArrayList(tracks),
+                    firstPlayedTrack = firstPlayedTrack,
+                    playlistId = playlistId,
+                    playlistName = playlistName,
+                    playlistType = PlaylistType.PLAYLIST,
+                    continuation = null,
+                ),
+            )
+            loadMediaItemFromTrack(firstPlayedTrack, PLAYLIST_CLICK, startIndex)
+        }
+    }
+
     fun onUIEvent(uiEvent: UIEvent) =
         viewModelScope.launch {
             when (uiEvent) {

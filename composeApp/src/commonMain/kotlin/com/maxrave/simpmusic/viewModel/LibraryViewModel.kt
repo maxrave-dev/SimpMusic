@@ -8,6 +8,7 @@ import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.domain.data.model.spotify.SpotifyPlaylist
 import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
@@ -18,6 +19,7 @@ import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.repository.SpotifyLibraryRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.isRadioPlaylistId
@@ -48,6 +50,7 @@ class LibraryViewModel(
     private val localPlaylistRepository: LocalPlaylistRepository,
     private val albumRepository: AlbumRepository,
     private val podcastRepository: PodcastRepository,
+    private val spotifyLibraryRepository: SpotifyLibraryRepository,
 ) : BaseViewModel() {
     private val _currentScreen: MutableStateFlow<LibraryChipType> = MutableStateFlow(LibraryChipType.YOUR_LIBRARY)
     val currentScreen: StateFlow<LibraryChipType> get() = _currentScreen.asStateFlow()
@@ -90,8 +93,14 @@ class LibraryViewModel(
     private val _accountThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
     val accountThumbnail: StateFlow<String?> get() = _accountThumbnail.asStateFlow()
 
+    private val _spotifyPlaylists: MutableStateFlow<LocalResource<List<SpotifyPlaylist>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val spotifyPlaylists: StateFlow<LocalResource<List<SpotifyPlaylist>>> get() = _spotifyPlaylists.asStateFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
+
+    val spotifyLoggedIn = spotifyLibraryRepository.isLoggedIn()
 
     init {
         viewModelScope.launch {
@@ -156,6 +165,15 @@ class LibraryViewModel(
         viewModelScope.launch {
             playlistRepository.getLibraryPlaylist().collect { data ->
                 _youTubePlaylist.value = LocalResource.Success(data ?: emptyList())
+            }
+        }
+    }
+
+    fun getSpotifyPlaylists() {
+        _spotifyPlaylists.value = LocalResource.Loading()
+        viewModelScope.launch {
+            spotifyLibraryRepository.getUserPlaylists().collect { data ->
+                _spotifyPlaylists.value = data
             }
         }
     }
