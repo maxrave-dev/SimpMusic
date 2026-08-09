@@ -48,7 +48,9 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -80,7 +82,6 @@ fun LoginScreen(
     suspend fun finishLogin(success: Boolean) {
         if (success) {
             viewModel.makeToast(getString(Res.string.login_success))
-            navController.navigateUp()
             if (removeDesktopBrowserAfterLogin) {
                 DesktopLoginBrowserManager.clear()
             }
@@ -89,6 +90,9 @@ fun LoginScreen(
         }
 
         createWebViewCookieManager().removeAllCookies()
+        if (success) {
+            navController.navigateUp()
+        }
     }
 
     LaunchedEffect(state) {
@@ -138,7 +142,11 @@ fun LoginScreen(
                             },
                             onDone = { cookie ->
                                 coroutineScope.launch {
-                                    finishLogin(settingsViewModel.addAccount(cookie))
+                                    val success =
+                                        withContext(Dispatchers.IO) {
+                                            settingsViewModel.addAccount(cookie)
+                                        }
+                                    finishLogin(success)
                                 }
                             },
                             type = DevLogInType.YouTube,
@@ -150,13 +158,15 @@ fun LoginScreen(
                 if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
                     coroutineScope.launch {
                         val success =
-                            createWebViewCookieManager()
-                                .getCookie(url)
-                                .takeIf {
-                                    it.isNotEmpty()
-                                }?.let {
-                                    settingsViewModel.addAccount(it)
-                                } ?: false
+                            withContext(Dispatchers.IO) {
+                                createWebViewCookieManager()
+                                    .getCookie(url)
+                                    .takeIf {
+                                        it.isNotEmpty()
+                                    }?.let {
+                                        settingsViewModel.addAccount(it)
+                                    } ?: false
+                            }
 
                         finishLogin(success)
                     }
