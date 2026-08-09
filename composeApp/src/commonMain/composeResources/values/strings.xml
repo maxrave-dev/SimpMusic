@@ -593,4 +593,14 @@
     <string name="import_result_skipped">%1$d entries were skipped because their song was missing from the file.</string>
     <string name="import_failed">Import failed</string>
     <string name="import_invalid_file">This file is not a valid SimpMusic import file. Convert your library at simpmusic.org first.</string>
+    <string name="desktop_login_browser">Desktop login browser</string>
+    <string name="desktop_login_browser_description">Chromium is downloaded only for signing in to YouTube Music.</string>
+    <string name="clear_desktop_login_browser">Delete desktop login browser</string>
+    <string name="clear_desktop_login_browser_message">Delete the downloaded Chromium runtime and browser data? It will download again the next time you open Login.</string>
+    <string name="desktop_login_browser_cleared">Desktop login browser deleted</string>
+    <string name="desktop_login_browser_clear_scheduled">Desktop login browser will be deleted when SimpMusic closes</string>
+    <string name="desktop_login_browser_clear_failed">Could not delete the desktop login browser</string>
+    <string name="desktop_login_browser_removal_pending">Removal pending — restart SimpMusic</string>
+    <string name="remove_desktop_login_browser_after_login">Remove after successful login</string>
+    <string name="remove_desktop_login_browser_after_login_description">Saves disk space, but the browser must download again for another login.</string>
 </resources>

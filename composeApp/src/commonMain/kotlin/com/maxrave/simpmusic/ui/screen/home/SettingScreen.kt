@@ -105,6 +105,9 @@ import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.DesktopLoginBrowserClearResult
+import com.maxrave.simpmusic.expect.ui.DesktopLoginBrowserManager
+import com.maxrave.simpmusic.expect.ui.DesktopLoginBrowserStorage
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
@@ -200,6 +203,8 @@ import simpmusic.composeapp.generated.resources.checking
 import simpmusic.composeapp.generated.resources.clear
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
+import simpmusic.composeapp.generated.resources.clear_desktop_login_browser
+import simpmusic.composeapp.generated.resources.clear_desktop_login_browser_message
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.content
@@ -221,6 +226,12 @@ import simpmusic.composeapp.generated.resources.default_models
 import simpmusic.composeapp.generated.resources.description_and_licenses
 import simpmusic.composeapp.generated.resources.developer_blog
 import simpmusic.composeapp.generated.resources.developer_blog_tagline
+import simpmusic.composeapp.generated.resources.desktop_login_browser
+import simpmusic.composeapp.generated.resources.desktop_login_browser_clear_failed
+import simpmusic.composeapp.generated.resources.desktop_login_browser_clear_scheduled
+import simpmusic.composeapp.generated.resources.desktop_login_browser_cleared
+import simpmusic.composeapp.generated.resources.desktop_login_browser_description
+import simpmusic.composeapp.generated.resources.desktop_login_browser_removal_pending
 import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
 import simpmusic.composeapp.generated.resources.download_quality
@@ -314,6 +325,8 @@ import simpmusic.composeapp.generated.resources.proxy_username_message
 import simpmusic.composeapp.generated.resources.quality
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
+import simpmusic.composeapp.generated.resources.remove_desktop_login_browser_after_login
+import simpmusic.composeapp.generated.resources.remove_desktop_login_browser_after_login_description
 import simpmusic.composeapp.generated.resources.rich_presence_info
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_all_your_playlist_data
@@ -513,6 +526,15 @@ fun SettingScreen(
     val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
     val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
+    val removeDesktopBrowserAfterLogin by
+        viewModel.removeDesktopLoginBrowserAfterLogin.collectAsStateWithLifecycle(false)
+    var desktopBrowserStorage by remember { mutableStateOf(DesktopLoginBrowserStorage()) }
+
+    LaunchedEffect(Unit) {
+        if (getPlatform() == Platform.Desktop) {
+            desktopBrowserStorage = DesktopLoginBrowserManager.getStorage()
+        }
+    }
 
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
@@ -674,10 +696,62 @@ fun SettingScreen(
                     title = stringResource(Res.string.youtube_account),
                     subtitle = stringResource(Res.string.manage_your_youtube_accounts),
                     onClick = {
+                        if (getPlatform() == Platform.Desktop &&
+                            desktopBrowserStorage.bytes > 0 &&
+                            !desktopBrowserStorage.removalPending
+                        ) {
+                            coroutineScope.launch { DesktopLoginBrowserManager.warmUp() }
+                        }
                         viewModel.getAllGoogleAccount()
                         showYouTubeAccountDialog = true
                     },
                 )
+                if (getPlatform() == Platform.Desktop) {
+                    SettingItem(
+                        title = stringResource(Res.string.desktop_login_browser),
+                        subtitle =
+                            if (desktopBrowserStorage.removalPending) {
+                                stringResource(Res.string.desktop_login_browser_removal_pending)
+                            } else {
+                                "${desktopBrowserStorage.bytes.bytesToMB()} MB · " +
+                                    stringResource(Res.string.desktop_login_browser_description)
+                            },
+                        smallSubtitle = true,
+                        onClick = {
+                            viewModel.setBasicAlertData(
+                                SettingBasicAlertState(
+                                    title = runBlocking { getString(Res.string.clear_desktop_login_browser) },
+                                    message = runBlocking { getString(Res.string.clear_desktop_login_browser_message) },
+                                    confirm =
+                                        runBlocking { getString(Res.string.clear) } to {
+                                            coroutineScope.launch {
+                                                val message =
+                                                    when (DesktopLoginBrowserManager.clear()) {
+                                                        DesktopLoginBrowserClearResult.CLEARED ->
+                                                            getString(Res.string.desktop_login_browser_cleared)
+                                                        DesktopLoginBrowserClearResult.SCHEDULED ->
+                                                            getString(Res.string.desktop_login_browser_clear_scheduled)
+                                                        else -> getString(Res.string.desktop_login_browser_clear_failed)
+                                                    }
+                                                desktopBrowserStorage = DesktopLoginBrowserManager.getStorage()
+                                                viewModel.makeToast(message)
+                                            }
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.remove_desktop_login_browser_after_login),
+                        subtitle = stringResource(Res.string.remove_desktop_login_browser_after_login_description),
+                        smallSubtitle = true,
+                        switch =
+                            removeDesktopBrowserAfterLogin to {
+                                viewModel.setRemoveDesktopLoginBrowserAfterLogin(it)
+                            },
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.language),
                     subtitle = SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US"),

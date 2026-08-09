@@ -44,6 +44,11 @@
 -dontwarn org.jetbrains.skiko.**
 -dontwarn org.jetbrains.skia.**
 
+-keep class org.cef.** { *; }
+-keep class dev.datlag.kcef.** { *; }
+-dontwarn org.cef.**
+-dontwarn dev.datlag.kcef.**
+
 # compottie (Lottie renderer) draws via skiko (PlatformShader.skiko, SkikoPathBuilder).
 # On release, proguard obfuscation mangles its internal classes so the renderer runs but
 # paints nothing — the animation stays blank with no crash. Keep them un-obfuscated.

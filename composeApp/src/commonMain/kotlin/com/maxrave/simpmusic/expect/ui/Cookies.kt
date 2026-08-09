@@ -12,6 +12,26 @@ interface WebViewCookieManager {
     fun removeAllCookies()
 }
 
+data class DesktopLoginBrowserStorage(
+    val bytes: Long = 0,
+    val removalPending: Boolean = false,
+)
+
+enum class DesktopLoginBrowserClearResult {
+    CLEARED,
+    SCHEDULED,
+    FAILED,
+    NOT_SUPPORTED,
+}
+
+expect object DesktopLoginBrowserManager {
+    suspend fun warmUp()
+
+    suspend fun getStorage(): DesktopLoginBrowserStorage
+
+    suspend fun clear(): DesktopLoginBrowserClearResult
+}
+
 expect fun createWebViewCookieManager(): WebViewCookieManager
 
 sealed class WebViewState {

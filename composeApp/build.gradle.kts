@@ -187,6 +187,7 @@ kotlin {
             // JetBrains 2026 KMP default structure. This module keeps the
             // shared JVM UI + expect/actuals and their direct dependencies.
             implementation(compose.desktop.currentOs)
+            implementation(libs.compose.webview)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sentry.jvm)
             implementation(libs.native.tray)

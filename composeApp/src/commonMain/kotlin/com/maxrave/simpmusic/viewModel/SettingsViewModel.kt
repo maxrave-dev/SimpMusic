@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -62,6 +63,11 @@ class SettingsViewModel(
     private val accountRepository: AccountRepository,
     private val cacheRepository: CacheRepository,
 ) : BaseViewModel() {
+    val removeDesktopLoginBrowserAfterLogin =
+        dataStoreManager
+            .getString(REMOVE_DESKTOP_LOGIN_BROWSER_AFTER_LOGIN)
+            .map { it == DataStoreManager.TRUE }
+
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
 
@@ -246,6 +252,15 @@ class SettingsViewModel(
     }
 
     fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
+
+    fun setRemoveDesktopLoginBrowserAfterLogin(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(
+                REMOVE_DESKTOP_LOGIN_BROWSER_AFTER_LOGIN,
+                if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE,
+            )
+        }
+    }
 
     fun getData() {
         getLocation()
@@ -1649,6 +1664,9 @@ class SettingsViewModel(
         }
     }
 }
+
+private const val REMOVE_DESKTOP_LOGIN_BROWSER_AFTER_LOGIN =
+    "remove_desktop_login_browser_after_login"
 
 data class SettingsStorageSectionFraction(
     val otherApp: Float = 0f,

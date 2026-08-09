@@ -44,7 +44,16 @@ private fun forceLinuxWmClass(appName: String = "SimpMusic") {
     }.onFailure { System.err.println("forceLinuxWmClass failed: ${it.message}") }
 }
 
+private fun configureLinuxRenderer() {
+    if (!System.getProperty("os.name").orEmpty().contains("linux", ignoreCase = true)) return
+    if (!System.getenv("SKIKO_RENDER_API").isNullOrBlank()) return
+    if (!System.getProperty("skiko.renderApi").isNullOrBlank()) return
+
+    System.setProperty("skiko.renderApi", "SOFTWARE_COMPAT")
+}
+
 fun main(args: Array<String>) {
+    configureLinuxRenderer()
     forceLinuxWmClass()
     runDesktopApp(args)
 }

@@ -26,9 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.ui.DesktopLoginBrowserManager
 import com.maxrave.simpmusic.expect.ui.PlatformWebView
 import com.maxrave.simpmusic.expect.ui.createWebViewCookieManager
 import com.maxrave.simpmusic.expect.ui.rememberWebViewState
@@ -72,6 +74,22 @@ fun LoginScreen(
     }
 
     val state = rememberWebViewState()
+    val removeDesktopBrowserAfterLogin by
+        settingsViewModel.removeDesktopLoginBrowserAfterLogin.collectAsStateWithLifecycle(false)
+
+    suspend fun finishLogin(success: Boolean) {
+        if (success) {
+            viewModel.makeToast(getString(Res.string.login_success))
+            navController.navigateUp()
+            if (removeDesktopBrowserAfterLogin) {
+                DesktopLoginBrowserManager.clear()
+            }
+        } else {
+            viewModel.makeToast(getString(Res.string.login_failed))
+        }
+
+        createWebViewCookieManager().removeAllCookies()
+    }
 
     LaunchedEffect(state) {
         snapshotFlow { state.value }.collect {
@@ -120,13 +138,7 @@ fun LoginScreen(
                             },
                             onDone = { cookie ->
                                 coroutineScope.launch {
-                                    val success = settingsViewModel.addAccount(cookie)
-                                    if (success) {
-                                        viewModel.makeToast(getString(Res.string.login_success))
-                                        navController.navigateUp()
-                                    } else {
-                                        viewModel.makeToast(getString(Res.string.login_failed))
-                                    }
+                                    finishLogin(settingsViewModel.addAccount(cookie))
                                 }
                             },
                             type = DevLogInType.YouTube,
@@ -146,14 +158,7 @@ fun LoginScreen(
                                     settingsViewModel.addAccount(it)
                                 } ?: false
 
-                        createWebViewCookieManager().removeAllCookies()
-
-                        if (success) {
-                            viewModel.makeToast(getString(Res.string.login_success))
-                            navController.navigateUp()
-                        } else {
-                            viewModel.makeToast(getString(Res.string.login_failed))
-                        }
+                        finishLogin(success)
                     }
                 }
             }

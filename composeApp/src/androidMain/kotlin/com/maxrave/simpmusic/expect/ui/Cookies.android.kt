@@ -31,6 +31,14 @@ actual fun createWebViewCookieManager(): WebViewCookieManager =
         }
     }
 
+actual object DesktopLoginBrowserManager {
+    actual suspend fun warmUp() = Unit
+
+    actual suspend fun getStorage() = DesktopLoginBrowserStorage()
+
+    actual suspend fun clear() = DesktopLoginBrowserClearResult.NOT_SUPPORTED
+}
+
 @Composable
 actual fun PlatformWebView(
     state: MutableState<WebViewState>,
@@ -74,7 +82,7 @@ actual fun PlatformWebView(
 actual fun DiscordWebView(
     state: MutableState<WebViewState>,
     aboveContent: @Composable (BoxScope.() -> Unit),
-    onLoginDone: (String) -> Unit
+    onLoginDone: (token: String) -> Unit,
 ) {
     val url = "https://discord.com/login"
     Box {
