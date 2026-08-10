@@ -217,7 +217,8 @@ fun SongFullWidthItems(
                             )
                         }
                     }.onGloballyPositioned { coordinates ->
-                        with(density) { heightDp = coordinates.size.height.toDp()
+                        with(density) {
+                            heightDp = coordinates.size.height.toDp()
                         }
                     },
         ) {
