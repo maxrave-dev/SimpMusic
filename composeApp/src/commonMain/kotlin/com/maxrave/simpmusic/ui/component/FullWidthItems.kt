@@ -143,7 +143,6 @@ fun SongFullWidthItems(
         modifier =
             modifier,
     ) {
-        // right-swipe indicator (existing, unchanged)
         Crossfade(offsetX.value >= maxOffset / 2,
             modifier = Modifier.align(Alignment.CenterStart)) { shouldShow ->
             if (shouldShow && onAddToQueue != null) {
@@ -163,7 +162,7 @@ fun SongFullWidthItems(
                 }
             }
         }
-        // left-swipe indicator (NEW)
+        // Delete
         Crossfade(offsetX.value <= -maxOffset / 2,
             modifier = Modifier.align(Alignment.CenterEnd)) { shouldShow ->
             if (shouldShow && onRemoveFromQueue != null) {
@@ -211,12 +210,15 @@ fun SongFullWidthItems(
                                         maxOffset -> onAddToQueue?.invoke(id)
                                         -maxOffset -> onRemoveFromQueue?.invoke(id)
                                     }
-                                    coroutineScope.launch { offsetX.animateTo(0f) }
+                                    coroutineScope.launch {
+                                        offsetX.animateTo(0f)
+                                    }
                                 },
                             )
                         }
                     }.onGloballyPositioned { coordinates ->
-                        with(density) { heightDp = coordinates.size.height.toDp() }
+                        with(density) { heightDp = coordinates.size.height.toDp()
+                        }
                     },
         ) {
             Row(
