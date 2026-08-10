@@ -108,6 +108,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -191,6 +192,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
+import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_downloaded
@@ -1223,6 +1225,7 @@ fun QueueItemBottomSheet(
     onDismiss: () -> Unit,
     index: Int,
     musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
+    SharedViewModel: SharedViewModel = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -1336,6 +1339,7 @@ fun QueueItemBottomSheet(
                                                 if (track != null) {
                                                     coroutineScope.launch {
                                                         musicServiceHandler.playNext(track)
+                                                        SharedViewModel.makeToast(getString(Res.string.play_next))
                                                     }
                                                 }
                                             }
@@ -1352,6 +1356,7 @@ fun QueueItemBottomSheet(
                                                             arrayListOf(track),
                                                             isAddToQueue = true,
                                                         )
+                                                        SharedViewModel.makeToast(getString(Res.string.added_to_queue))
                                                     }
                                                 }
                                             }
