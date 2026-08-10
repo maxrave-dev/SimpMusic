@@ -904,7 +904,6 @@ fun QueueBottomSheet(
     sharedViewModel: SharedViewModel = koinInject(),
     musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
     dataStoreManager: DataStoreManager = koinInject(),
-    viewModel: NowPlayingBottomSheetViewModel = koinViewModel(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
@@ -1192,7 +1191,7 @@ fun QueueBottomSheet(
                                     onRemoveFromQueue = {
                                         coroutineScope.launch {
                                             musicServiceHandler.removeMediaItem(index)
-                                            viewModel.makeToast(getString(Res.string.delete_from_queue))
+                                            sharedViewModel.makeToast(getString(Res.string.delete_from_queue))
                                         }
                                     },
                                 )
