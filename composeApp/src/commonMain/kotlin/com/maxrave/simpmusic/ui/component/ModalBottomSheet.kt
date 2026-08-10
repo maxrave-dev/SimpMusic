@@ -203,6 +203,7 @@ import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
 import simpmusic.composeapp.generated.resources.delete
+import simpmusic.composeapp.generated.resources.delete_from_queue
 import simpmusic.composeapp.generated.resources.delete_playlist
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.description
@@ -903,6 +904,7 @@ fun QueueBottomSheet(
     sharedViewModel: SharedViewModel = koinInject(),
     musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
     dataStoreManager: DataStoreManager = koinInject(),
+    viewModel: NowPlayingBottomSheetViewModel = koinViewModel(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
@@ -1078,6 +1080,7 @@ fun QueueBottomSheet(
                     songEntity = songEntity,
                     isPlaying = false,
                     onAddToQueue = null,
+                    onRemoveFromQueue = null,
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -1185,6 +1188,12 @@ fun QueueBottomSheet(
                                         sharedViewModel.addListToQueue(
                                             arrayListOf(track),
                                         )
+                                    },
+                                    onRemoveFromQueue = {
+                                        coroutineScope.launch {
+                                            musicServiceHandler.removeMediaItem(index)
+                                            viewModel.makeToast(getString(Res.string.delete_from_queue))
+                                        }
                                     },
                                 )
                             }

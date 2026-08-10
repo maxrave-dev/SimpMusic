@@ -74,6 +74,7 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DragHandle
 import com.maxrave.simpmusic.ui.icon.MoreVert
@@ -95,6 +96,7 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.delete_from_queue
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.radio
@@ -114,6 +116,7 @@ fun SongFullWidthItems(
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
+    onRemoveFromQueue: ((videoId: String) -> Unit)? = null,
     modifier: Modifier,
     rightView: @Composable (() -> Unit)? = null,
     forceDark: Boolean = LocalForceDarkText.current,
@@ -138,25 +141,44 @@ fun SongFullWidthItems(
 
     Box(
         modifier =
-        modifier,
+            modifier,
     ) {
-        Crossfade(
-            offsetX.value >= maxOffset / 2,
-        ) { shouldShowAddToQueue ->
-            if (shouldShowAddToQueue) {
+        // right-swipe indicator (existing, unchanged)
+        Crossfade(offsetX.value >= maxOffset / 2,
+            modifier = Modifier.align(Alignment.CenterStart)) { shouldShow ->
+            if (shouldShow && onAddToQueue != null) {
                 Box(
                     modifier =
                         Modifier
                             .height(heightDp)
                             .aspectRatio(1f)
-                            .padding(start = 15.dp)
-                            .align(Alignment.CenterStart),
+                            .padding(start = 15.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         tint = contentColor,
                         imageVector = SimpIcons.QueueMusic,
                         contentDescription = stringResource(Res.string.add_to_queue),
+                    )
+                }
+            }
+        }
+        // left-swipe indicator (NEW)
+        Crossfade(offsetX.value <= -maxOffset / 2,
+            modifier = Modifier.align(Alignment.CenterEnd)) { shouldShow ->
+            if (shouldShow && onRemoveFromQueue != null) {
+                Box(
+                    modifier =
+                        Modifier
+                            .height(heightDp)
+                            .aspectRatio(1f)
+                            .padding(end = 15.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        tint = MaterialTheme.colorScheme.error,
+                        imageVector = SimpIcons.Delete,
+                        contentDescription = stringResource(Res.string.delete_from_queue),
                     )
                 }
             }
@@ -169,34 +191,32 @@ fun SongFullWidthItems(
                         onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
                     }.animateContentSize()
                     .pointerInput(Unit) {
-                        if (!isPlaying && onAddToQueue != null) {
+                        if (!isPlaying && (onAddToQueue != null || onRemoveFromQueue != null)) {
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { change, dragAmount ->
-                                    if (offsetX.value + dragAmount > 0) {
+                                    val newOffset = offsetX.value + dragAmount
+                                    val allowed =
+                                        (newOffset > 0f && onAddToQueue != null) ||
+                                            (newOffset < 0f && onRemoveFromQueue != null)
+                                    if (allowed) {
                                         change.consume()
                                         coroutineScope.launch {
-                                            offsetX.snapTo(
-                                                (offsetX.value + dragAmount).coerceAtMost(maxOffset),
-                                            )
+                                            offsetX.snapTo(newOffset.coerceIn(-maxOffset, maxOffset))
                                         }
                                     }
                                 },
                                 onDragEnd = {
-                                    if (offsetX.value == maxOffset) {
-                                        onAddToQueue(
-                                            track?.videoId ?: songEntity?.videoId ?: "",
-                                        )
+                                    val id = track?.videoId ?: songEntity?.videoId ?: ""
+                                    when (offsetX.value) {
+                                        maxOffset -> onAddToQueue?.invoke(id)
+                                        -maxOffset -> onRemoveFromQueue?.invoke(id)
                                     }
-                                    coroutineScope.launch {
-                                        offsetX.animateTo(0f)
-                                    }
+                                    coroutineScope.launch { offsetX.animateTo(0f) }
                                 },
                             )
                         }
                     }.onGloballyPositioned { coordinates ->
-                        with(density) {
-                            heightDp = coordinates.size.height.toDp()
-                        }
+                        with(density) { heightDp = coordinates.size.height.toDp() }
                     },
         ) {
             Row(
@@ -307,7 +327,7 @@ fun SongFullWidthItems(
                                 (
                                     track?.artists?.toListName()?.connectArtists()
                                         ?: songEntity?.artistName?.connectArtists()
-                                ) ?: "",
+                                    ) ?: "",
                             style = typo().bodySmall,
                             maxLines = 1,
                             color = subtitleColor,
