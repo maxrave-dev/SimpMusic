@@ -71,6 +71,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -290,11 +291,13 @@ fun SearchScreen(
 
     //On search icon click while on search screen, open keyboard.
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(reloadDestination) {
         if (reloadDestination == SearchDestination::class) {
             isExpanded = true
             focusRequester.requestFocus()
+            keyboardController?.show()
             sharedViewModel.reloadDestinationDone()
         }
     }
