@@ -122,6 +122,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
+import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SearchScreenUIState
 import com.maxrave.simpmusic.viewModel.SearchType
@@ -285,6 +286,17 @@ fun SearchScreen(
             } else {
                 SearchUIType.SEARCH_RESULTS
             }
+    }
+
+    //On search icon click while on search screen, open keyboard.
+    val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
+
+    LaunchedEffect(reloadDestination) {
+        if (reloadDestination == SearchDestination::class) {
+            isExpanded = true
+            focusRequester.requestFocus()
+            sharedViewModel.reloadDestinationDone()
+        }
     }
 
     if (showBottomSheet) {
