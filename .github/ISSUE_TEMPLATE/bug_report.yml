@@ -18,6 +18,15 @@ body:
         - label: I confirm I searched for existing reports and found no duplicates.
           required: true
 
+  - type: checkboxes
+    id: latest_release
+    attributes:
+      label: Latest Release
+      description: Check the [Releases page](https://github.com/maxrave-dev/SimpMusic/releases) — this may already be fixed.
+      options:
+        - label: I confirm I am on the latest release and the problem still happens.
+          required: true
+
   - type: textarea
     id: bug_description
     attributes:
