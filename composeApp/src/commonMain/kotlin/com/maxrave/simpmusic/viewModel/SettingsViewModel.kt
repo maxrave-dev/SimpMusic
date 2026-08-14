@@ -143,6 +143,8 @@ class SettingsViewModel(
     val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
     private val _crossfadeDjMode = MutableStateFlow<Boolean>(true)
     val crossfadeDjMode: StateFlow<Boolean> = _crossfadeDjMode
+    private val _crossfadeSkipAlbum = MutableStateFlow<Boolean>(false)
+    val crossfadeSkipAlbum: StateFlow<Boolean> = _crossfadeSkipAlbum
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
@@ -286,6 +288,7 @@ class SettingsViewModel(
         getCrossfadeEnabled()
         getCrossfadeDuration()
         getCrossfadeDjMode()
+        getCrossfadeSkipAlbum()
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
@@ -472,6 +475,23 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCrossfadeDjMode(enabled)
             getCrossfadeDjMode()
+        }
+    }
+
+    private fun getCrossfadeSkipAlbum() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeSkipAlbum.collect { enabled ->
+                _crossfadeSkipAlbum.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeSkipAlbum(enabled: Boolean) {
+        viewModelScope.launch {
+            // No re-read afterwards: the collector started in init never completes, so it already
+            // picks this up. Calling the getter again would leave a second collector running for
+            // the life of the ViewModel, one more per toggle.
+            dataStoreManager.setCrossfadeSkipAlbum(enabled)
         }
     }
 

@@ -213,7 +213,7 @@ class AlbumViewModel(
                 firstPlayedTrack = track,
                 playlistId = uiState.value.browseId.replaceFirst("VL", ""),
                 playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
-                playlistType = PlaylistType.PLAYLIST,
+                playlistType = PlaylistType.ALBUM,
                 continuation = null,
             ),
         )
@@ -234,6 +234,8 @@ class AlbumViewModel(
                 firstPlayedTrack = shuffleList[randomIndex],
                 playlistId = uiState.value.browseId.replaceFirst("VL", ""),
                 playlistName = "${getString(Res.string.album)} \"${uiState.value.title}\"",
+                // Not ALBUM: shuffling has already thrown away the running order, so the reason to
+                // keep transitions gapless is gone. Crossfade behaves as it would for any playlist.
                 playlistType = PlaylistType.PLAYLIST,
                 continuation = null,
             ),

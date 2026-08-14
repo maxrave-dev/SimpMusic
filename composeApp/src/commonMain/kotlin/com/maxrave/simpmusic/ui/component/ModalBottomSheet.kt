@@ -1928,12 +1928,11 @@ fun NowPlayingBottomSheet(
                     }
                     Crossfade(targetState = setSleepTimerEnable) {
                         if (it) {
-                            val isDesktop = getPlatform() == Platform.Desktop
                             ActionButton(
                                 icon = SimpIcons.Speed,
                                 text =
                                     if (crossfadeEnabled != DataStoreManager.TRUE) {
-                                        if (isDesktop) Res.string.playback_speed else Res.string.playback_speed_pitch
+                                        Res.string.playback_speed_pitch
                                     } else {
                                         Res.string.playback_speed_pitch_disabled
                                     },
@@ -2183,8 +2182,12 @@ fun PlaybackSpeedPitchBottomSheet(
                         )
                     }
                 }
-                // Pitch row — hidden on Desktop (LibVLC doesn't support independent pitch control)
-                if (getPlatform() != Platform.Desktop) {
+                // Shown on every platform. It used to be hidden on Desktop because LibVLC had no
+                // independent pitch control, but that backend is long gone — mpv shifts pitch with
+                // its rubberband filter. The control is still locked out while crossfade is on,
+                // handled by the caller: crossfade owns mpv's filter chain and the two would fight
+                // over it.
+                run {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
