@@ -86,6 +86,7 @@ import coil3.request.crossfade
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
@@ -104,6 +105,7 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.MoodCategoryCard
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.extension.toAppDeepLinkOrNull
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -914,7 +916,15 @@ fun SearchScreen(
                         searchText = newText
                     },
                     onSearch = { query ->
-                        if (query.isNotEmpty()) {
+                        // A pasted YouTube link is a destination, not a query. Translating it into
+                        // the app's own deep link hands it to the same intent flow that handles
+                        // shared links, so it plays or opens straight away instead of being
+                        // searched for as text. Anything else falls through to a normal search.
+                        val deepLink = query.toAppDeepLinkOrNull()
+                        if (deepLink != null) {
+                            focusManager.clearFocus()
+                            sharedViewModel.setIntent(GenericIntent(data = deepLink))
+                        } else if (query.isNotEmpty()) {
                             isSearchSubmitted = true
                             focusManager.clearFocus()
                             searchViewModel.insertSearchHistory(query)
