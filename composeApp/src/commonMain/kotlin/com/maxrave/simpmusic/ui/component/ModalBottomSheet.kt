@@ -108,7 +108,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -1225,7 +1224,7 @@ fun QueueItemBottomSheet(
     onDismiss: () -> Unit,
     index: Int,
     musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
-    SharedViewModel: SharedViewModel = koinInject(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val modelBottomSheetState =
@@ -1339,7 +1338,7 @@ fun QueueItemBottomSheet(
                                                 if (track != null) {
                                                     coroutineScope.launch {
                                                         musicServiceHandler.playNext(track)
-                                                        SharedViewModel.makeToast(getString(Res.string.play_next))
+                                                        sharedViewModel.makeToast(getString(Res.string.play_next))
                                                     }
                                                 }
                                             }
@@ -1356,7 +1355,7 @@ fun QueueItemBottomSheet(
                                                             arrayListOf(track),
                                                             isAddToQueue = true,
                                                         )
-                                                        SharedViewModel.makeToast(getString(Res.string.added_to_queue))
+                                                        sharedViewModel.makeToast(getString(Res.string.added_to_queue))
                                                     }
                                                 }
                                             }
