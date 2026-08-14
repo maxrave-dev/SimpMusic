@@ -173,6 +173,8 @@ import simpmusic.composeapp.generated.resources.add_an_account
 import simpmusic.composeapp.generated.resources.ai
 import simpmusic.composeapp.generated.resources.ai_api_key
 import simpmusic.composeapp.generated.resources.ai_provider
+import simpmusic.composeapp.generated.resources.auto_download_liked_songs
+import simpmusic.composeapp.generated.resources.auto_download_liked_songs_description
 import simpmusic.composeapp.generated.resources.anonymous
 import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.audio
@@ -454,6 +456,7 @@ fun SettingScreen(
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
+    val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
     val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
@@ -789,6 +792,12 @@ fun SettingScreen(
                             ),
                         )
                     },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.auto_download_liked_songs),
+                    subtitle = stringResource(Res.string.auto_download_liked_songs_description),
+                    smallSubtitle = true,
+                    switch = (autoDownloadLikedSongs to { viewModel.setAutoDownloadLikedSongs(it) }),
                 )
                 SettingItem(
                     title = stringResource(Res.string.play_video_for_video_track_instead_of_audio_only),
