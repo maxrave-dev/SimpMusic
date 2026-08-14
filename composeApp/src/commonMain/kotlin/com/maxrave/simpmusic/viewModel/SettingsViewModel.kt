@@ -41,6 +41,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.simpmusic.lastfm.isLastfmAvailable
+import org.jetbrains.compose.resources.getString as formatString
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.backup_create_failed
 import simpmusic.composeapp.generated.resources.backup_create_success
@@ -50,6 +51,7 @@ import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
+import simpmusic.composeapp.generated.resources.downloading_liked_songs
 import simpmusic.composeapp.generated.resources.log_out_confirm_message
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
@@ -145,6 +147,8 @@ class SettingsViewModel(
     val crossfadeDjMode: StateFlow<Boolean> = _crossfadeDjMode
     private val _crossfadeSkipAlbum = MutableStateFlow<Boolean>(false)
     val crossfadeSkipAlbum: StateFlow<Boolean> = _crossfadeSkipAlbum
+    private val _autoDownloadLikedSongs = MutableStateFlow<Boolean>(false)
+    val autoDownloadLikedSongs: StateFlow<Boolean> = _autoDownloadLikedSongs
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
@@ -289,6 +293,7 @@ class SettingsViewModel(
         getCrossfadeDuration()
         getCrossfadeDjMode()
         getCrossfadeSkipAlbum()
+        getAutoDownloadLikedSongs()
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
@@ -492,6 +497,30 @@ class SettingsViewModel(
             // picks this up. Calling the getter again would leave a second collector running for
             // the life of the ViewModel, one more per toggle.
             dataStoreManager.setCrossfadeSkipAlbum(enabled)
+        }
+    }
+
+    private fun getAutoDownloadLikedSongs() {
+        viewModelScope.launch {
+            dataStoreManager.autoDownloadLikedSongs.collect { enabled ->
+                _autoDownloadLikedSongs.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setAutoDownloadLikedSongs(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoDownloadLikedSongs(enabled)
+            // Switching it on also catches up on everything liked before now. Songs already
+            // downloaded are skipped, so toggling it off and on again queues nothing.
+            if (enabled) {
+                val queued = songRepository.downloadAllLikedSongs()
+                if (queued > 0) {
+                    // Not BaseViewModel.getString: that one takes no format arguments and would
+                    // leave the placeholder in the text.
+                    makeToast(formatString(Res.string.downloading_liked_songs, queued))
+                }
+            }
         }
     }
 
