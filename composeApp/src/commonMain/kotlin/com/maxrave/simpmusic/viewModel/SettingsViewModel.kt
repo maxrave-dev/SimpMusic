@@ -27,6 +27,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,14 +49,18 @@ import simpmusic.composeapp.generated.resources.backup_create_success
 import simpmusic.composeapp.generated.resources.backup_in_progress
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
+import simpmusic.composeapp.generated.resources.clear_listening_history
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
+import simpmusic.composeapp.generated.resources.clear_listening_history_done
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.downloading_liked_songs
+import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.log_out_confirm_message
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
 import simpmusic.composeapp.generated.resources.warning
+import kotlin.coroutines.cancellation.CancellationException
 
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -1210,6 +1215,43 @@ class SettingsViewModel(
             cacheRepository.clearCache(Config.CANVAS_CACHE)
             makeToast(getString(Res.string.clear_canvas_cache))
             getCanvasCache()
+        }
+    }
+
+    fun clearListeningHistory() {
+        viewModelScope.launch {
+            // The sweep walks every container table and then the whole song table, and finishes with
+            // a VACUUM — seconds of work on a large library, and the screen would look frozen.
+            showLoadingDialog(getString(Res.string.clear_listening_history))
+            val removed =
+                try {
+                    // NonCancellable because the sweep is only coherent once it has finished: the
+                    // cached containers are deleted first and the songs they were holding alive
+                    // last, so a run stopped in between — the user leaving Settings is enough to do
+                    // it — has already dropped every cached playlist, album and artist and left the
+                    // songs behind. Nothing resumes it afterwards, so it has to run to the end.
+                    withContext(NonCancellable) { songRepository.clearHistoryAndOrphanedSongs() }
+                } catch (e: CancellationException) {
+                    // Not a failure, and it must not be swallowed: catching it breaks structured
+                    // concurrency, and it would put the generic error toast in front of a user whose
+                    // sweep had in fact just completed, inviting them to run the whole thing again.
+                    throw e
+                } catch (e: Throwable) {
+                    Logger.e(tag, "clearHistoryAndOrphanedSongs failed: ${e.stackTraceToString()}")
+                    null
+                } finally {
+                    // In a finally so a failure — or the user leaving the screen — cannot strand the
+                    // dialog on top of the app with no way to dismiss it.
+                    hideLoadingDialog()
+                }
+            if (removed == null) {
+                makeToast(getString(Res.string.error))
+                return@launch
+            }
+            makeToast(formatString(Res.string.clear_listening_history_done, removed))
+            // Only the database slice of the storage bar moved; getData() would also restart every
+            // collecting getter it owns.
+            calculateDataFraction(cacheRepository)?.let { _fraction.value = it }
         }
     }
 

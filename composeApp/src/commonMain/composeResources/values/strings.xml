@@ -386,6 +386,11 @@
     <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can't work too. You should log in to YouTube to get better experience with SimpMusic.</string>
     <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
     <string name="clear_canvas_cache">Clear canvas cache</string>
+    <string name="listening_history">Listening history</string>
+    <string name="clear_listening_history">Clear listening history</string>
+    <string name="clear_listening_history_description">Erase your local listening statistics and remove songs that nothing else in the app refers to</string>
+    <string name="clear_listening_history_confirm">Your listening statistics and unused resources will be cleaned. This cannot be undone — please back up first.</string>
+    <string name="clear_listening_history_done">Listening history cleared, %1$d songs removed</string>
     <string name="proxy">Proxy</string>
     <string name="proxy_description">Using Proxy to bypass country content blocking</string>
     <string name="proxy_type">Proxy type</string>
@@ -598,4 +603,5 @@
     <string name="import_result_skipped">%1$d entries were skipped because their song was missing from the file.</string>
     <string name="import_failed">Import failed</string>
     <string name="import_invalid_file">This file is not a valid SimpMusic import file. Convert your library at simpmusic.org first.</string>
+    <string name="analytics">Analytics</string>
 </resources>

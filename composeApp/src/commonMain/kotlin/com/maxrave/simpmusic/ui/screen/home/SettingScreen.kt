@@ -116,6 +116,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
@@ -202,6 +203,9 @@ import simpmusic.composeapp.generated.resources.checking
 import simpmusic.composeapp.generated.resources.clear
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
+import simpmusic.composeapp.generated.resources.clear_listening_history
+import simpmusic.composeapp.generated.resources.clear_listening_history_confirm
+import simpmusic.composeapp.generated.resources.clear_listening_history_description
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.content
@@ -274,6 +278,7 @@ import simpmusic.composeapp.generated.resources.language
 import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.last_checked_at
 import simpmusic.composeapp.generated.resources.limit_player_cache
+import simpmusic.composeapp.generated.resources.listening_history
 import simpmusic.composeapp.generated.resources.local_tracking_description
 import simpmusic.composeapp.generated.resources.local_tracking_title
 import simpmusic.composeapp.generated.resources.log_in_to_discord
@@ -871,11 +876,6 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.keep_your_youtube_playlist_offline_description),
                     switch = (keepYoutubePlaylistOffline to { viewModel.setKeepYouTubePlaylistOffline(it) }),
                 )
-                SettingItem(
-                    title = stringResource(Res.string.local_tracking_title),
-                    subtitle = stringResource(Res.string.local_tracking_description),
-                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
-                )
                 /*
                 SettingItem(
                     title = stringResource(Res.string.combine_local_and_youtube_liked_songs),
@@ -1229,6 +1229,41 @@ fun SettingScreen(
 //                        }
                     }
                 }
+            }
+        }
+        // Deliberately not part of "storage" further down, which is Android-only: tracking and the
+        // rows it leaves behind exist on Desktop just the same. The switch that produces the history
+        // and the button that erases it belong together.
+        item(key = "listening_history") {
+            Column {
+                Text(
+                    text = stringResource(Res.string.listening_history),
+                    style = typo().labelMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.local_tracking_title),
+                    subtitle = stringResource(Res.string.local_tracking_description),
+                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.clear_listening_history),
+                    subtitle = stringResource(Res.string.clear_listening_history_description),
+                    onClick = {
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = runBlocking { getString(Res.string.clear_listening_history) },
+                                message = runBlocking { getString(Res.string.clear_listening_history_confirm) },
+                                confirm =
+                                    runBlocking { getString(Res.string.clear) } to {
+                                        viewModel.clearListeningHistory()
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
             }
         }
         item(key = "lyrics") {
@@ -2390,6 +2425,13 @@ fun SettingScreen(
         ImportProgressDialog(
             progress = progress,
             onDismiss = importViewModel::dismiss,
+        )
+    }
+    val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
+    if (showLoadingDialog.first) {
+        LoadingDialog(
+            true,
+            showLoadingDialog.second,
         )
     }
     val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
