@@ -46,6 +46,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
@@ -70,6 +71,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
     backdrop: PlatformBackdrop,
     viewModel: SharedViewModel,
     isScrolledToTop: Boolean,
+    showAnalyticsTab: Boolean,
     onOpenNowPlaying: () -> Unit,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit,
 ) {
@@ -119,15 +121,17 @@ actual fun LiquidGlassAppBottomNavigationBar(
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val bottomNavScreens =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
             BottomNavScreen.Search,
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
         )
     // Tabs shown in the sliding bar (Apple Music style); Search lives in its own FAB.
     val barTabs =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
         )
     var selectedIndex by rememberSaveable {
@@ -136,9 +140,17 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 is HomeDestination -> BottomNavScreen.Home.ordinal
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
+                is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
+    }
+    // Tracking can be turned off while Analytics is the selected tab, and that tab then disappears
+    // from the bar. Fall back to Home so nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab) {
+        if (!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) {
+            selectedIndex = BottomNavScreen.Home.ordinal
+        }
     }
     var isExpanded by rememberSaveable {
         mutableStateOf(true)

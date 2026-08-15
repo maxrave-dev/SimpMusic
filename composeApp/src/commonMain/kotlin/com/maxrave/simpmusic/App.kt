@@ -72,6 +72,8 @@ import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -134,6 +136,9 @@ fun App(viewModel: SharedViewModel = koinInject()) {
 
     val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    // Analytics only makes sense with local tracking on, so its tab follows that setting.
+    val isLocalTrackingEnabled by viewModel.getLocalTrackingEnabled().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val showAnalyticsTab = isLocalTrackingEnabled == TRUE
 
     val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
@@ -339,6 +344,23 @@ fun App(viewModel: SharedViewModel = koinInject()) {
             it.hasRoute(FullscreenDestination::class)
         } == true
     }
+    LaunchedEffect(showAnalyticsTab) {
+        // Turning tracking off removes the Analytics tab, so leaving the user standing on it would
+        // strand them on a screen no tab points at anymore.
+        if (!showAnalyticsTab &&
+            navBackStackEntry?.destination?.hierarchy?.any {
+                it.hasRoute(AnalyticsDestination::class)
+            } == true
+        ) {
+            navController.navigate(HomeDestination) {
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
     var isScrolledToTop by rememberSaveable {
         mutableStateOf(false)
     }
@@ -396,6 +418,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                     viewModel = viewModel,
                                     onOpenNowPlaying = { isShowNowPlaylistScreen = true },
                                     isScrolledToTop = isScrolledToTop,
+                                    showAnalyticsTab = showAnalyticsTab,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
                                 }
@@ -403,6 +426,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                 AppBottomNavigationBar(
                                     navController = navController,
                                     isTranslucentBackground = isTranslucentBottomBar == TRUE,
+                                    showAnalyticsTab = showAnalyticsTab,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
                                 }
@@ -429,6 +453,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                         if (isTablet && !isInFullscreen) {
                             AppNavigationRail(
                                 navController = navController,
+                                showAnalyticsTab = showAnalyticsTab,
                             ) { klass ->
                                 viewModel.reloadDestination(klass)
                             }
