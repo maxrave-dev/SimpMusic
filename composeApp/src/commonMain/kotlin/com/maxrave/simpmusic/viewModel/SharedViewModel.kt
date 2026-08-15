@@ -362,12 +362,18 @@ class SharedViewModel(
                             }
 
                             SimpleMediaState.Ended -> {
+                                // Park at the end of the track rather than at -1. The only formatter
+                                // for these fields renders any negative as "NA:NA", and nothing here
+                                // is guaranteed to follow: at the end of the queue the player simply
+                                // stays ended, so a -1 written here stays on screen. Worse, the
+                                // Progress branch below ignores negative values and the Loading
+                                // branch restores `total` without touching `current`, which is how
+                                // the player ends up showing a correct duration next to "NA:NA".
                                 _timeline.update {
                                     it.copy(
-                                        current = -1L,
-                                        total = -1L,
+                                        current = it.total.coerceAtLeast(0L),
                                         bufferedPercent = 0,
-                                        loading = true,
+                                        loading = false,
                                     )
                                 }
                             }
@@ -1725,6 +1731,8 @@ class SharedViewModel(
     fun getTranslucentBottomBar() = dataStoreManager.translucentBottomBar
 
     fun getEnableLiquidGlass() = dataStoreManager.enableLiquidGlass
+
+    fun getLocalTrackingEnabled() = dataStoreManager.localTrackingEnabled
 
     fun getThemeMode() = dataStoreManager.themeMode
 
