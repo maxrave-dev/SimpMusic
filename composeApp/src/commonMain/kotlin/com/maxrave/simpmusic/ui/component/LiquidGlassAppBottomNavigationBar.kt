@@ -4,16 +4,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.ui.icon.AutoGraph
 import com.maxrave.simpmusic.ui.icon.Home
 import com.maxrave.simpmusic.ui.icon.LibraryMusic
 import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.jetbrains.compose.resources.StringResource
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.analytics
 import simpmusic.composeapp.generated.resources.home
 import simpmusic.composeapp.generated.resources.library
 import simpmusic.composeapp.generated.resources.search
@@ -26,6 +29,7 @@ expect fun LiquidGlassAppBottomNavigationBar(
     backdrop: PlatformBackdrop,
     viewModel: SharedViewModel,
     isScrolledToTop: Boolean = false,
+    showAnalyticsTab: Boolean = false,
     onOpenNowPlaying: () -> Unit = {},
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 )
@@ -67,6 +71,19 @@ sealed class BottomNavScreen(
         icon = {
             Icon(
                 imageVector = SimpIcons.LibraryMusic,
+                contentDescription = null,
+            )
+        },
+    )
+
+    // Only shown when local tracking is enabled, always as the last tab.
+    data object Analytics : BottomNavScreen(
+        ordinal = 3,
+        destination = AnalyticsDestination,
+        title = Res.string.analytics,
+        icon = {
+            Icon(
+                imageVector = SimpIcons.AutoGraph,
                 contentDescription = null,
             )
         },

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,6 +22,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.greyScale
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
@@ -35,13 +37,18 @@ fun AppBottomNavigationBar(
     startDestination: Any = HomeDestination,
     navController: NavController,
     isTranslucentBackground: Boolean = false,
+    showAnalyticsTab: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    // `ordinal` identifies a tab, it is NOT the position — Analytics sits before Library here while
+    // keeping the ordinal it was declared with, so that the numbering stays stable whether or not
+    // the tab is present.
     val bottomNavScreens =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
             BottomNavScreen.Search,
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
         )
     var selectedIndex by rememberSaveable {
@@ -50,9 +57,17 @@ fun AppBottomNavigationBar(
                 is HomeDestination -> BottomNavScreen.Home.ordinal
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
+                is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
+    }
+    // Tracking can be turned off while Analytics is the selected tab, and that tab then disappears
+    // from the list. Fall back to Home so nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab) {
+        if (!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) {
+            selectedIndex = BottomNavScreen.Home.ordinal
+        }
     }
     Box(
         modifier =
@@ -133,13 +148,16 @@ fun AppBottomNavigationBar(
 fun AppNavigationRail(
     startDestination: Any = HomeDestination,
     navController: NavController,
+    showAnalyticsTab: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    // See the note in AppBottomNavigationBar: `ordinal` is the tab's identity, not its position.
     val bottomNavScreens =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
             BottomNavScreen.Search,
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
         )
     var selectedIndex by rememberSaveable {
@@ -148,9 +166,17 @@ fun AppNavigationRail(
                 is HomeDestination -> BottomNavScreen.Home.ordinal
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
+                is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
+    }
+    // Tracking can be turned off while Analytics is the selected tab, and that tab then disappears
+    // from the list. Fall back to Home so nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab) {
+        if (!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) {
+            selectedIndex = BottomNavScreen.Home.ordinal
+        }
     }
     NavigationRail {
         Spacer(Modifier.height(16.dp))
@@ -173,7 +199,7 @@ fun AppNavigationRail(
             }
         }
         Spacer(Modifier.weight(1f))
-        bottomNavScreens.forEachIndexed { index, screen ->
+        bottomNavScreens.forEach { screen ->
             NavigationRailItem(
                 icon = screen.icon,
                 label = {
@@ -187,7 +213,7 @@ fun AppNavigationRail(
                             },
                     )
                 },
-                selected = selectedIndex == index,
+                selected = selectedIndex == screen.ordinal,
                 onClick = {
                     if (selectedIndex == screen.ordinal) {
                         if (currentBackStackEntry?.destination?.hierarchy?.any {

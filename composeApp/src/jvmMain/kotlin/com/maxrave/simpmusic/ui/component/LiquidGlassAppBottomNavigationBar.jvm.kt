@@ -13,6 +13,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
     backdrop: PlatformBackdrop,
     viewModel: SharedViewModel,
     isScrolledToTop: Boolean,
+    showAnalyticsTab: Boolean,
     onOpenNowPlaying: () -> Unit,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit
 ) {
