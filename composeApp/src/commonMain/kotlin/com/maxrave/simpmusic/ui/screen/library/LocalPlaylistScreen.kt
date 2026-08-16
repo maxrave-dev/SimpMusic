@@ -110,8 +110,6 @@ import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
-import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
@@ -124,7 +122,6 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.EndOfPage
-import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
@@ -132,7 +129,6 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
-import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
 import com.maxrave.simpmusic.ui.component.playlistTitleGradient
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
@@ -385,10 +381,10 @@ fun LocalPlaylistScreen(
             }
     }
 
-    // Apple Music-inspired immersive treatment: gated to mobile portrait so tablets,
-    // landscape orientation, and Desktop keep the existing layout.
+    // Apple Music-inspired immersive treatment. Both gates (platform and portrait aspect) are
+    // temporarily forced open so the layout can be judged on Desktop and in landscape.
     val screenInfo = getScreenSizeInfo()
-    val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
+    val isMobilePortrait = true
     // Apple Music-style page background. When the playlist has real artwork we pick a vivid
     // swatch from its palette (getColorFromPalette). Many local playlists have NO artwork —
     // AsyncImage shows the title placeholder and onSuccess never fires, so the palette stays
@@ -550,18 +546,85 @@ fun LocalPlaylistScreen(
                         horizontalAlignment = Alignment.Start,
                     ) {
                         if (isMobilePortrait) {
-                            // Apple Music-style: edge-to-edge artwork + liquid glass buttons.
-                            // Glass buttons MUST be siblings of the backdrop source (not children)
-                            // to avoid render feedback loop / RuntimeShader crash.
-                            val artworkBackdrop = rememberBackdrop(Color.Black)
-                            Box(
+                            // Apple Music desktop header: back and the overlay actions on their own
+                            // top row, then a square artwork with the text column and the action
+                            // cluster laid out beside it rather than under it.
+                            Column(
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()
-                                        .height((screenInfo.hDP / 2).dp),
+                                        .windowInsetsPadding(WindowInsets.statusBars)
+                                        .padding(horizontal = 32.dp, vertical = 16.dp),
                             ) {
-                                // Inner Box — backdrop SOURCE (artwork + overlays only, NO glass)
-                                Box(modifier = Modifier.fillMaxSize().layerBackdrop(artworkBackdrop)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    RippleIconButton(
+                                        imageVector = SimpIcons.ArrowBackIosNew,
+                                        modifier = Modifier.size(40.dp),
+                                    ) {
+                                        navController.navigateUp()
+                                    }
+                                    Spacer(Modifier.weight(1f))
+                                    // AI Suggest — only when synced with YouTube
+                                    if (shouldShowSuggestButton) {
+                                        IconButton(
+                                            onClick = {
+                                                shouldShowSuggestions = !shouldShowSuggestions
+                                            },
+                                        ) {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .graphicsLayer {
+                                                            compositingStrategy = CompositingStrategy.Offscreen
+                                                        }.drawWithContent {
+                                                            val width = size.width
+                                                            val height = size.height
+                                                            val offsetDraw = width * progressAnimated
+                                                            val brush =
+                                                                Brush.linearGradient(
+                                                                    colors =
+                                                                        listOf(
+                                                                            Color(0xFF4C82EF),
+                                                                            Color(0xFFD96570),
+                                                                        ),
+                                                                    start = Offset(offsetDraw, 0f),
+                                                                    end =
+                                                                        Offset(
+                                                                            offsetDraw + width,
+                                                                            height,
+                                                                        ),
+                                                                )
+                                                            with(aiPainter) {
+                                                                draw(size = Size(width, height))
+                                                            }
+                                                            drawRect(
+                                                                brush = brush,
+                                                                blendMode = BlendMode.SrcIn,
+                                                            )
+                                                        },
+                                            )
+                                        }
+                                    }
+                                    IconButton(
+                                        onClick = onPlaylistMoreClick,
+                                    ) {
+                                        Icon(
+                                            imageVector = SimpIcons.MoreVert,
+                                            contentDescription = "More",
+                                            tint = Color.White,
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                    verticalAlignment = Alignment.Top,
+                                ) {
                                     AsyncImage(
                                         model =
                                             ImageRequest
@@ -581,43 +644,28 @@ fun LocalPlaylistScreen(
                                         onSuccess = {
                                             bitmap = it.result.image.toImageBitmap()
                                         },
-                                        modifier = Modifier.fillMaxSize(),
-                                    )
-                                    // Scrim spans 70% of the artwork (not a fixed 200dp): the shorter the
-                                    // ramp, the steeper the alpha, and a steep ramp is what makes the fade
-                                    // read as an edge. See artworkScrimBrush for the curve itself.
-                                    Box(
                                         modifier =
                                             Modifier
-                                                .fillMaxWidth()
-                                                .height((screenInfo.hDP * 0.35f).dp)
-                                                .align(Alignment.BottomCenter)
-                                                .background(artworkScrimBrush(mutedPaletteBg)),
+                                                .size(280.dp)
+                                                .clip(RoundedCornerShape(8.dp)),
                                     )
                                     Column(
-                                        modifier =
-                                            Modifier
-                                                .align(Alignment.BottomCenter)
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 20.dp)
-                                                .padding(bottom = 16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.weight(1f),
                                     ) {
                                         Text(
                                             text = uiState.title,
-                                            style = typo().titleLarge,
+                                            style = typo().headlineSmall,
                                             color = Color.White,
                                             maxLines = 2,
-                                            textAlign = TextAlign.Center,
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = stringResource(Res.string.your_playlist),
-                                            style = typo().titleSmall,
-                                            color = Color.White,
-                                            textAlign = TextAlign.Center,
+                                            style = typo().titleMedium,
+                                            // The app accent, standing in for the brand red Apple uses here.
+                                            color = seed,
                                         )
-                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Spacer(modifier = Modifier.height(6.dp))
                                         Text(
                                             text =
                                                 stringResource(
@@ -642,85 +690,154 @@ fun LocalPlaylistScreen(
                                             color = Color(0xC4FFFFFF),
                                             textAlign = TextAlign.Center,
                                         )
-                                    }
-                                }
-                                // Back button + right pill (More only) overlays — liquid glass, siblings of source
-                                Row(
-                                    modifier =
-                                        Modifier
-                                            .align(Alignment.TopCenter)
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 12.dp, vertical = 4.dp)
-                                            .windowInsetsPadding(WindowInsets.statusBars),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    LiquidGlassIconButton(
-                                        backdrop = artworkBackdrop,
-                                        imageVector = SimpIcons.ArrowBackIosNew,
-                                        modifier =
-                                            Modifier
-                                                .size(48.dp),
-                                    ) {
-                                        navController.navigateUp()
-                                    }
-                                    Spacer(Modifier.weight(1f))
-                                    Row(
-                                        modifier =
-                                            Modifier
-                                                .height(48.dp)
-                                                .liquidGlass(artworkBackdrop, RoundedCornerShape(24.dp)),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        // AI Suggest — only when synced with YouTube
-                                        if (shouldShowSuggestButton) {
-                                            IconButton(
-                                                onClick = {
-                                                    shouldShowSuggestions = !shouldShowSuggestions
-                                                },
+                                        Spacer(modifier = Modifier.height(20.dp))
+                                        // Apple Music-style action row: [Shuffle][Play pill][Download][Suggest]
+                                        // centered cluster. Suggest (AI) only shows when synced with YouTube.
+                                        val isThisPlaying =
+                                            isPlaying && playingPlaylistId == LOCAL_PLAYLIST_ID + uiState.id
+                                        Row(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 8.dp),
+                                            horizontalArrangement =
+                                                Arrangement.spacedBy(
+                                                    12.dp,
+                                                    Alignment.Start,
+                                                ),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .size(48.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color.White.copy(alpha = 0.12f))
+                                                        .clickable {
+                                                            viewModel.onUIEvent(LocalPlaylistUIEvent.ShuffleClick)
+                                                        },
+                                                contentAlignment = Alignment.Center,
                                             ) {
-                                                Box(
-                                                    modifier =
-                                                        Modifier
-                                                            .size(24.dp)
-                                                            .graphicsLayer {
-                                                                compositingStrategy = CompositingStrategy.Offscreen
-                                                            }.drawWithContent {
-                                                                val width = size.width
-                                                                val height = size.height
-                                                                val offsetDraw = width * progressAnimated
-                                                                val brush =
-                                                                    Brush.linearGradient(
-                                                                        colors =
-                                                                            listOf(
-                                                                                Color(0xFF4C82EF),
-                                                                                Color(0xFFD96570),
-                                                                            ),
-                                                                        start = Offset(offsetDraw, 0f),
-                                                                        end =
-                                                                            Offset(
-                                                                                offsetDraw + width,
-                                                                                height,
-                                                                            ),
-                                                                    )
-                                                                with(aiPainter) {
-                                                                    draw(size = Size(width, height))
-                                                                }
-                                                                drawRect(
-                                                                    brush = brush,
-                                                                    blendMode = BlendMode.SrcIn,
-                                                                )
-                                                            },
+                                                Icon(
+                                                    imageVector = SimpIcons.Shuffle,
+                                                    contentDescription = "Shuffle",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(22.dp),
                                                 )
                                             }
-                                        }
-                                        IconButton(
-                                            onClick = onPlaylistMoreClick,
-                                        ) {
-                                            Icon(
-                                                imageVector = SimpIcons.MoreVert,
-                                                contentDescription = "More",
-                                                tint = Color.White,
-                                            )
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .height(48.dp)
+                                                        .widthIn(min = 110.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color.White)
+                                                        .clickable {
+                                                            if (isThisPlaying) {
+                                                                sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                            } else {
+                                                                viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick)
+                                                            }
+                                                        }.padding(horizontal = 20.dp),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        imageVector =
+                                                            if (isThisPlaying) {
+                                                                SimpIcons.Pause
+                                                            } else {
+                                                                SimpIcons.PlayArrow
+                                                            },
+                                                        contentDescription = null,
+                                                        tint = Color.Black,
+                                                        modifier = Modifier.size(22.dp),
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = if (isThisPlaying) "Pause" else "Play",
+                                                        color = Color.Black,
+                                                        style = typo().labelLarge,
+                                                    )
+                                                }
+                                            }
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .size(48.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color.White.copy(alpha = 0.12f)),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Crossfade(targetState = downloadState) { state ->
+                                                    when (state) {
+                                                        DownloadState.STATE_DOWNLOADED -> {
+                                                            Box(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .fillMaxSize()
+                                                                        .clickable {
+                                                                            viewModel.makeToast(
+                                                                                runBlocking { getString(Res.string.downloaded) },
+                                                                            )
+                                                                        },
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                Icon(
+                                                                    painter = painterResource(Res.drawable.baseline_downloaded),
+                                                                    tint = Color(0xFF00A0CB),
+                                                                    contentDescription = "",
+                                                                    modifier = Modifier.size(22.dp),
+                                                                )
+                                                            }
+                                                        }
+
+                                                        DownloadState.STATE_DOWNLOADING -> {
+                                                            Box(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .fillMaxSize()
+                                                                        .clickable {
+                                                                            viewModel.makeToast(
+                                                                                runBlocking { getString(Res.string.downloading) },
+                                                                            )
+                                                                        },
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                Image(
+                                                                    painter =
+                                                                        rememberLottiePainter(
+                                                                            composition = composition,
+                                                                            iterations = Compottie.IterateForever,
+                                                                        ),
+                                                                    contentDescription = "Lottie animation",
+                                                                    modifier = Modifier.size(28.dp),
+                                                                )
+                                                            }
+                                                        }
+
+                                                        else -> {
+                                                            Box(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .fillMaxSize()
+                                                                        .clickable {
+                                                                            Logger.w("PlaylistScreen", "downloadState: $downloadState")
+                                                                            viewModel.downloadFullPlaylist()
+                                                                        },
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = SimpIcons.DownloadForOffline,
+                                                                    tint = Color.White,
+                                                                    contentDescription = "Download",
+                                                                    modifier = Modifier.size(22.dp),
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -801,156 +918,7 @@ fun LocalPlaylistScreen(
                                         )
                                     }
                                 }
-                                if (isMobilePortrait) {
-                                    // Apple Music-style action row: [Shuffle][Play pill][Download][Suggest]
-                                    // centered cluster. Suggest (AI) only shows when synced with YouTube.
-                                    val isThisPlaying =
-                                        isPlaying && playingPlaylistId == LOCAL_PLAYLIST_ID + uiState.id
-                                    Row(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 8.dp),
-                                        horizontalArrangement =
-                                            Arrangement.spacedBy(
-                                                12.dp,
-                                                Alignment.CenterHorizontally,
-                                            ),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .size(48.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color.White.copy(alpha = 0.12f))
-                                                    .clickable {
-                                                        viewModel.onUIEvent(LocalPlaylistUIEvent.ShuffleClick)
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                imageVector = SimpIcons.Shuffle,
-                                                contentDescription = "Shuffle",
-                                                tint = Color.White,
-                                                modifier = Modifier.size(22.dp),
-                                            )
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .height(48.dp)
-                                                    .widthIn(min = 110.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color.White)
-                                                    .clickable {
-                                                        if (isThisPlaying) {
-                                                            sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                                        } else {
-                                                            viewModel.onUIEvent(LocalPlaylistUIEvent.PlayClick)
-                                                        }
-                                                    }.padding(horizontal = 20.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(
-                                                    imageVector =
-                                                        if (isThisPlaying) {
-                                                            SimpIcons.Pause
-                                                        } else {
-                                                            SimpIcons.PlayArrow
-                                                        },
-                                                    contentDescription = null,
-                                                    tint = Color.Black,
-                                                    modifier = Modifier.size(22.dp),
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text(
-                                                    text = if (isThisPlaying) "Pause" else "Play",
-                                                    color = Color.Black,
-                                                    style = typo().labelLarge,
-                                                )
-                                            }
-                                        }
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .size(48.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color.White.copy(alpha = 0.12f)),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Crossfade(targetState = downloadState) { state ->
-                                                when (state) {
-                                                    DownloadState.STATE_DOWNLOADED -> {
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .fillMaxSize()
-                                                                    .clickable {
-                                                                        viewModel.makeToast(
-                                                                            runBlocking { getString(Res.string.downloaded) },
-                                                                        )
-                                                                    },
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            Icon(
-                                                                painter = painterResource(Res.drawable.baseline_downloaded),
-                                                                tint = Color(0xFF00A0CB),
-                                                                contentDescription = "",
-                                                                modifier = Modifier.size(22.dp),
-                                                            )
-                                                        }
-                                                    }
-
-                                                    DownloadState.STATE_DOWNLOADING -> {
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .fillMaxSize()
-                                                                    .clickable {
-                                                                        viewModel.makeToast(
-                                                                            runBlocking { getString(Res.string.downloading) },
-                                                                        )
-                                                                    },
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            Image(
-                                                                painter =
-                                                                    rememberLottiePainter(
-                                                                        composition = composition,
-                                                                        iterations = Compottie.IterateForever,
-                                                                    ),
-                                                                contentDescription = "Lottie animation",
-                                                                modifier = Modifier.size(28.dp),
-                                                            )
-                                                        }
-                                                    }
-
-                                                    else -> {
-                                                        Box(
-                                                            modifier =
-                                                                Modifier
-                                                                    .fillMaxSize()
-                                                                    .clickable {
-                                                                        Logger.w("PlaylistScreen", "downloadState: $downloadState")
-                                                                        viewModel.downloadFullPlaylist()
-                                                                    },
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            Icon(
-                                                                imageVector = SimpIcons.DownloadForOffline,
-                                                                tint = Color.White,
-                                                                contentDescription = "Download",
-                                                                modifier = Modifier.size(22.dp),
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
+                                if (!isMobilePortrait) {
                                     Row(
                                         modifier =
                                             Modifier.fillMaxWidth(),
