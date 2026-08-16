@@ -321,6 +321,8 @@ import simpmusic.composeapp.generated.resources.proxy_type
 import simpmusic.composeapp.generated.resources.proxy_username
 import simpmusic.composeapp.generated.resources.proxy_username_message
 import simpmusic.composeapp.generated.resources.quality
+import simpmusic.composeapp.generated.resources.radio_audio_only
+import simpmusic.composeapp.generated.resources.radio_audio_only_description
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
 import simpmusic.composeapp.generated.resources.rich_presence_info
@@ -468,6 +470,7 @@ fun SettingScreen(
     val blogNotificationEnabled by viewModel.blogNotificationEnabled.collectAsStateWithLifecycle()
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
     val playVideo by remember { viewModel.playVideoInsteadOfAudio.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val radioAudioOnly by remember { viewModel.radioAudioOnly.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val videoQuality by viewModel.videoQuality.collectAsStateWithLifecycle()
     val sendData by remember { viewModel.sendBackToGoogle.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val normalizeVolume by remember { viewModel.normalizeVolume.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
@@ -809,6 +812,12 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
                     smallSubtitle = true,
                     switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.radio_audio_only),
+                    subtitle = stringResource(Res.string.radio_audio_only_description),
+                    smallSubtitle = true,
+                    switch = (radioAudioOnly to { viewModel.setRadioAudioOnly(it) }),
                 )
                 SettingItem(
                     title = stringResource(Res.string.video_quality),

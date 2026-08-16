@@ -1057,7 +1057,7 @@ private fun ArtistSections(
                                     thumbnails = video.thumbnails ?: emptyList(),
                                     title = video.title,
                                     videoId = video.videoId,
-                                    views = video.videoType,
+                                    views = video.views,
                                 ),
                         )
                     }
