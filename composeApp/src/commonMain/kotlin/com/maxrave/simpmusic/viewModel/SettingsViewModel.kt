@@ -108,6 +108,9 @@ class SettingsViewModel(
     val playerCacheLimit: StateFlow<Int?> = _playerCacheLimit
     private var _playVideoInsteadOfAudio: MutableStateFlow<String?> = MutableStateFlow(null)
     val playVideoInsteadOfAudio: StateFlow<String?> = _playVideoInsteadOfAudio
+
+    private var _radioAudioOnly: MutableStateFlow<String?> = MutableStateFlow(null)
+    val radioAudioOnly: StateFlow<String?> = _radioAudioOnly
     private var _videoQuality: MutableStateFlow<String?> = MutableStateFlow(null)
     val videoQuality: StateFlow<String?> = _videoQuality
     private var _thumbCacheSize = MutableStateFlow<Long?>(null)
@@ -279,6 +282,7 @@ class SettingsViewModel(
         getLyricsProvider()
         getUseTranslation()
         getPlayVideoInsteadOfAudio()
+        getRadioAudioOnly()
         getVideoQuality()
         getSpotifyLogIn()
         getSpotifyLyrics()
@@ -1116,6 +1120,25 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setWatchVideoInsteadOfPlayingAudio(playVideoInsteadOfAudio)
             getPlayVideoInsteadOfAudio()
+        }
+    }
+
+    fun getRadioAudioOnly() {
+        viewModelScope.launch {
+            dataStoreManager.radioAudioOnly.collect { radioAudioOnly ->
+                _radioAudioOnly.emit(radioAudioOnly)
+            }
+        }
+    }
+
+    /**
+     * No re-collect after writing, unlike the settings above: [getRadioAudioOnly] already collects
+     * the DataStore flow, which emits again on every write. Calling the getter here would only
+     * stack a second collector on each toggle.
+     */
+    fun setRadioAudioOnly(audioOnly: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setRadioAudioOnly(audioOnly)
         }
     }
 

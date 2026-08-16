@@ -292,6 +292,8 @@
     <string name="audio_quality">Audio quality</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Play video for video track instead of audio only</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Such as Music Video, Lyrics Video, Podcasts, and more</string>
+    <string name="radio_audio_only">Keep radio audio-only</string>
+    <string name="radio_audio_only_description">Skip music videos, remixes and mashups that YouTube mixes into a radio. Playlists and albums are not affected</string>
     <string name="video_quality">Video Quality</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
