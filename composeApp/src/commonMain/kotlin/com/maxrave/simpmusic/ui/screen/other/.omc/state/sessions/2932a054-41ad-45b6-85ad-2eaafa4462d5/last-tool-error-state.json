@@ -1,0 +1,7 @@
+{
+  "tool_name": "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics",
+  "tool_input_preview": "{\"file\":\"/Users/nguyenductuanminh/StudioProjects/SimpMusic/SimpMusic/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/component/AppleMusicWideHeader.kt\",\"severity\":\"error\"}",
+  "error": "Language server 'kotlin-lsp' not found.\nInstall with: Install from https://github.com/Kotlin/kotlin-lsp (brew install JetBrains/utils/kotlin-lsp)",
+  "timestamp": "2026-08-16T16:29:31.864Z",
+  "retry_count": 1
+}

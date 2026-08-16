@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -184,10 +183,10 @@ fun ArtistScreen(
         }
     }
 
-    // Apple Music-inspired immersive treatment: gated to mobile portrait so tablets,
-    // foldable open state, landscape orientation, and Desktop keep the existing layout.
+    // Apple Music-inspired immersive treatment. Both gates (platform and portrait aspect) are
+    // temporarily forced open so the layout can be judged on Desktop and in landscape.
     val screenInfo = getScreenSizeInfo()
-    val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
+    val isMobilePortrait = true
 
     // Palette extraction from the artist artwork (portrait Apple-style only).
     val paletteState = com.kmpalette.rememberPaletteState()
@@ -259,13 +258,18 @@ fun ArtistScreen(
                                     // Haze state for the bottom progressive-blur fade (source = media layer).
                                     val headerHaze = rememberHazeState(blurEnabled = true)
                                     // Clamp the artist thumbnail URL to a square size (logic from
-                                    // commit 5e596c5b) so it fills the square frame with FillWidth.
+                                    // commit 5e596c5b) so a square source fills the frame under Crop.
                                     val headerImageUrl = state.data.imageUrl?.toSquareThumbnailUrl()
                                     Box(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .aspectRatio(1f),
+                                                // Half the viewport, matching Album/Playlist/LocalPlaylist.
+                                                // A square frame only works while the frame is roughly as
+                                                // wide as a phone; on a desktop window aspectRatio(1f) makes
+                                                // this as tall as the window is wide and the artwork (or a
+                                                // playing canvas) swallows the entire page.
+                                                .height((screenInfo.hDP / 2).dp),
                                     ) {
                                         // Inner Box — backdrop SOURCE (artwork + canvas + overlays, NO glass)
                                         Box(modifier = Modifier.fillMaxSize().clipToBounds().layerBackdrop(artworkBackdrop)) {
@@ -285,7 +289,10 @@ fun ArtistScreen(
                                                     placeholder = rememberHolderPainter(),
                                                     error = rememberHolderPainter(),
                                                     contentDescription = null,
-                                                    contentScale = ContentScale.FillWidth,
+                                                    // Crop, not FillWidth: the frame is no longer square, and
+                                                    // FillWidth would scale a square source to the frame's
+                                                    // width and show only its top slice.
+                                                    contentScale = ContentScale.Crop,
                                                     // Always decoded so the page background color can be extracted
                                                     // from the artwork palette, even when a canvas is playing.
                                                     onSuccess = {
@@ -302,7 +309,7 @@ fun ArtistScreen(
                                                 // otherwise the static artwork above is the fallback.
                                                 canvasUrl?.let { canvas ->
                                                     // Canvas is a tall/portrait video. cropToBounds center
-                                                    // scale-to-covers it into the square frame (ContentScale.Crop):
+                                                    // scale-to-covers it into the header frame (ContentScale.Crop):
                                                     // true video aspect ratio, no stretch, overflow clipped.
                                                     MediaPlayerView(
                                                         url = canvas.first,
@@ -313,30 +320,44 @@ fun ArtistScreen(
                                             } // end media layer (Haze source)
                                             // Bottom fade — progressive blur (Haze) over the media layer, so the
                                             // canvas/artwork edge melts into the page bg.
-                                            Box(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height(200.dp)
-                                                        .align(Alignment.BottomCenter)
-                                                        .hazeEffect(headerHaze) {
-                                                            blurRadius = 32.dp
-                                                            progressive =
-                                                                HazeProgressive.verticalGradient(
-                                                                    startIntensity = 0f,
-                                                                    endIntensity = 1f,
-                                                                )
-                                                        },
-                                            )
+                                            // ANDROID ONLY. On skiko this kills the process: haze 1.7.2's
+                                            // progressive path calls ShaderBrush.createShader(Size), whose
+                                            // mangled signature does not match the Compose this build pins
+                                            // (material3-multiplatform 1.12.0-alpha01 / skiko 0.148.1), so it
+                                            // throws NoSuchMethodError from inside the draw pass —
+                                            // RenderEffect.skiko.kt:234. Only the progressive path is affected;
+                                            // plain hazeEffect is used on Desktop elsewhere and is fine.
+                                            // Dropping it costs Desktop only the blur: the colour scrim below
+                                            // is a separate box and still fades the artwork edge.
+                                            if (getPlatform() == Platform.Android) {
+                                                Box(
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(200.dp)
+                                                            .align(Alignment.BottomCenter)
+                                                            .hazeEffect(headerHaze) {
+                                                                blurRadius = 32.dp
+                                                                progressive =
+                                                                    HazeProgressive.verticalGradient(
+                                                                        startIntensity = 0f,
+                                                                        endIntensity = 1f,
+                                                                    )
+                                                            },
+                                                )
+                                            }
                                             // Color scrim is a SEPARATE, taller box: the blur stays at 200dp so
-                                            // its cost doesn't grow, while the color gets 70% of the (square)
-                                            // artwork to ramp over. A short ramp means a steep alpha, and a
-                                            // steep alpha is what reads as a visible edge.
+                                            // its cost doesn't grow, while the color gets 70% of the artwork
+                                            // to ramp over. A short ramp means a steep alpha, and a steep
+                                            // alpha is what reads as a visible edge. Measured off the frame's
+                                            // own height (70% of hDP/2), not the width — the frame stopped
+                                            // being square, and on a wide window 70% of the width is taller
+                                            // than the artwork itself.
                                             Box(
                                                 modifier =
                                                     Modifier
                                                         .fillMaxWidth()
-                                                        .height((screenInfo.wDP * 0.7f).dp)
+                                                        .height((screenInfo.hDP * 0.35f).dp)
                                                         .align(Alignment.BottomCenter)
                                                         .background(artworkScrimBrush(mutedPaletteBg)),
                                             )
