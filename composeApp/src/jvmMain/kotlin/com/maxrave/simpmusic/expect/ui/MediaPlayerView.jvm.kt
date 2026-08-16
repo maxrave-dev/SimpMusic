@@ -13,13 +13,12 @@ import com.maxrave.simpmusic.ui.theme.typo
 actual fun MediaPlayerView(
     url: String,
     modifier: Modifier,
-    // Desktop never renders the portrait artist-header canvas, so cropToBounds is
-    // accepted for signature parity but intentionally unused here.
-    @Suppress("UNUSED_PARAMETER") cropToBounds: Boolean,
+    cropToBounds: Boolean,
 ) {
     MediaPlayerViewWithUrl(
         url = url,
         modifier = modifier,
+        cropToBounds = cropToBounds,
     )
 }
 
