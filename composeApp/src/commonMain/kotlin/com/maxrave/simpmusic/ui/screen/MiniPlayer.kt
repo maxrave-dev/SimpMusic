@@ -32,6 +32,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,6 +48,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -62,6 +64,7 @@ import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -80,16 +83,24 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -117,7 +128,7 @@ import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
-import com.maxrave.simpmusic.ui.icon.OpenInNew
+import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
@@ -126,6 +137,9 @@ import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -136,9 +150,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "MiniPlayer"
 
@@ -158,12 +169,19 @@ fun MiniPlayer(
     val layer = rememberGraphicsLayer()
     val luminanceAnimation = remember { Animatable(0f) }
 
+    // The Desktop capsule is always liquid glass, so it needs the glass code paths whatever the
+    // setting says — both the luminance sampling loop that drives the glass and the theme-following
+    // text colour. Leaving them gated left the capsule with luminance stuck at 0: a 2dp blur and a
+    // 0.12 darken, which is why it looked like a smear rather than glass. The setting still governs
+    // the Android card below.
+    val useGlassSurface = isLiquidGlassEnabled == DataStoreManager.TRUE || getPlatform() == Platform.Desktop
+
     val isDarkTheme = LocalIsDarkTheme.current
     val textColor by animateColorAsState(
         // With liquid glass the surface follows the theme (light = frosted white → black text);
         // without it, the surface is the artwork colour, so follow the backdrop luminance.
         targetValue =
-            if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
+            if (useGlassSurface) {
                 if (isDarkTheme) Color.White else Color.Black
             } else if (luminanceAnimation.value > 0.6f) {
                 Color.Black
@@ -174,13 +192,9 @@ fun MiniPlayer(
         animationSpec = tween(500),
     )
 
-    LaunchedEffect(luminanceAnimation.value) {
-        Logger.w("GlassDbg", "luminanceAnimation: ${luminanceAnimation.value}")
-    }
-
-    LaunchedEffect(layer, isLiquidGlassEnabled) {
+    LaunchedEffect(layer, useGlassSurface) {
         val buffer = IntArray(25)
-        while (isActive && isLiquidGlassEnabled == DataStoreManager.TRUE) {
+        while (isActive && useGlassSurface) {
             try {
                 withContext(Dispatchers.Main) {
                     val imageBitmap = layer.toImageBitmap()
@@ -621,424 +635,508 @@ fun MiniPlayer(
                 },
             )
         }
+        // Apple Music-style floating capsule: transport on the left, the track and its slim
+        // progress slider in the middle, the action cluster on the right. Size and placement come
+        // from the caller (App.kt), so the capsule keeps a fixed width and floats over content.
+        // Always liquid glass, not gated on the setting: the capsule IS the glass shape here, and
+        // falling back to a haze blur gives a dark smear instead of a floating pill.
+        val capsuleShape = RoundedCornerShape(50)
+        val density = LocalDensity.current
         Box(
-            modifier.then(
-                Modifier.clickable {
+            modifier
+                .liquidGlass(backdrop, layer, luminanceAnimation.value, capsuleShape)
+                .clip(capsuleShape)
+                .clickable {
                     onClick()
                 },
-            ),
             contentAlignment = Alignment.Center,
         ) {
             Row(
                 Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                    .fillMaxHeight()
+                    // vertical 6, not 8: the info column stacks title(~17) + artist(~15) + 2 + progress(16)
+                    // = 50px, and 8dp padding left only 48 — measured overflow pushed the slider box
+                    // 2px past the capsule's padded bottom (tree: slider bottom 834 vs padded 832).
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Part 1
-                Box(modifier = Modifier.weight(1f).padding(vertical = 16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                // PlayerControlLayout is a fillMaxWidth Row with SpaceEvenly and weight(1f) on every
+                // button, so it consumes whatever width it is handed. The old layout kept it in check
+                // with Column(width = 600.dp); inside a capsule it must be boxed to a fixed width or
+                // it spreads across the whole bar and pushes the other two clusters out of view.
+                Box(Modifier.width(200.dp)) {
+                    PlayerControlLayout(
+                        controllerState,
+                        isSmallSize = true,
+                        plainPlayPause = true,
+                        horizontalPadding = 0.dp,
+                        // Dark keeps the familiar seed; light needs the darker seed-derived
+                        // primary or the active state washes out on the light glass.
+                        activeColor = if (isDarkTheme) com.maxrave.simpmusic.ui.theme.seed else MaterialTheme.colorScheme.primary,
+                        contentColor = textColor,
                     ) {
-                        AsyncImage(
-                            model =
-                                ImageRequest
-                                    .Builder(LocalPlatformContext.current)
-                                    .data(songEntity?.thumbnails)
-                                    .crossfade(550)
-                                    .build(),
-                            placeholder = rememberHolderPainter(),
-                            error = rememberHolderPainter(),
-                            contentDescription = null,
-                            contentScale = ContentScale.FillWidth,
-                            onSuccess = {
-                                bitmap =
-                                    it.result.image.toImageBitmap()
-                            },
+                        sharedViewModel.onUIEvent(it)
+                    }
+                }
+                VerticalDivider(
+                    modifier = Modifier.height(28.dp).padding(horizontal = 14.dp),
+                    color = textColor.copy(alpha = 0.2f),
+                )
+                // The whole track cluster is the hover target, not the progress line itself:
+                // pointing anywhere near the title thickens the slider and reveals the
+                // timestamps, so a 2dp line never has to be hit precisely. Apple hides the
+                // times behind a much smaller hover area and it is the single most complained
+                // about part of their Tahoe player.
+                val trackInteraction = remember { MutableInteractionSource() }
+                val isTrackHovered by trackInteraction.collectIsHoveredAsState()
+                val showScrubber = isTrackHovered || isSliding
+                Row(
+                    modifier =
+                        Modifier
+                            .width(300.dp)
+                            .hoverable(trackInteraction),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AsyncImage(
+                        model =
+                            ImageRequest
+                                .Builder(LocalPlatformContext.current)
+                                .data(songEntity?.thumbnails)
+                                .crossfade(550)
+                                .build(),
+                        placeholder = rememberHolderPainter(),
+                        error = rememberHolderPainter(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        onSuccess = {
+                            bitmap =
+                                it.result.image.toImageBitmap()
+                        },
+                        modifier =
+                            Modifier
+                                .size(40.dp)
+                                .clip(
+                                    RoundedCornerShape(6.dp),
+                                ),
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = (songEntity?.title ?: "").toString(),
+                            // labelSmall is 14sp — oversized against a 40dp artwork; keep its
+                            // weight, drop the size a notch.
+                            style = typo().labelSmall.copy(fontSize = 12.sp),
+                            color = textColor,
+                            maxLines = 1,
                             modifier =
                                 Modifier
-                                    .fillMaxHeight()
-                                    .aspectRatio(1f)
-                                    .align(Alignment.CenterVertically)
-                                    .clip(
-                                        RoundedCornerShape(4.dp),
-                                    ),
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(
+                                        align = Alignment.CenterVertically,
+                                    ).basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                    ).focusable(),
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
+                        // The artist line is ALWAYS visible — hovering only reshapes the progress row
+                        // below it. An earlier Crossfade swapped the artist out for the scrubber, which
+                        // read as the app hiding data the user never asked to lose.
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            androidx.compose.animation.AnimatedVisibility(visible = songEntity?.isExplicit == true) {
+                                ExplicitBadge(
+                                    modifier =
+                                        Modifier
+                                            .size(16.dp)
+                                            .padding(end = 4.dp),
+                                )
+                            }
                             Text(
-                                text = (songEntity?.title ?: "").toString(),
-                                style = typo().labelSmall,
-                                color = textColor,
+                                text = (songEntity?.artistName?.connectArtists() ?: ""),
+                                style = typo().bodySmall,
+                                color = textColor.copy(alpha = 0.7f),
                                 maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        Spacer(Modifier.height(2.dp))
+                        // A Box, not a Row: every child anchors to the vertical centre of the SAME box
+                        // (CenterStart / Center / CenterEnd), so the digits and the track share one axis
+                        // by construction. Centering a Text box against a slider box through a Row kept
+                        // drifting, because a Text is as tall as its line box — font metrics, not 16dp.
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CapsuleProgress(
+                                sliderValue = sliderValue,
+                                trackHeight = if (showScrubber) 4.dp else 2.dp,
+                                thumbSize = 0.dp,
+                                textColor = textColor,
+                                progressColor = progressColor,
+                                // Insets appear with the timestamps so the track never runs under them.
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()
-                                        .wrapContentHeight(
-                                            align = Alignment.CenterVertically,
-                                        ).basicMarquee(
-                                            iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
-                            )
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                androidx.compose.animation.AnimatedVisibility(visible = songEntity?.isExplicit == true) {
-                                    ExplicitBadge(
-                                        modifier =
-                                            Modifier
-                                                .size(20.dp)
-                                                .padding(end = 4.dp)
-                                                .weight(1f),
+                                        .padding(horizontal = if (showScrubber) 46.dp else 0.dp),
+                                onValueChange = {
+                                    isSliding = true
+                                    sliderValue = it * 100f
+                                },
+                                onValueChangeFinished = {
+                                    isSliding = false
+                                    sharedViewModel.onUIEvent(
+                                        UIEvent.UpdateProgress(sliderValue),
                                     )
-                                }
+                                },
+                            )
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = showScrubber,
+                                modifier = Modifier.align(Alignment.CenterStart),
+                            ) {
                                 Text(
-                                    text = (songEntity?.artistName?.connectArtists() ?: ""),
-                                    style = typo().bodySmall,
+                                    text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
+                                    // Trim.Both + Alignment.Center: the app font carries most of its slack under
+                                    // the baseline, so glyphs ride low inside their own line box — the box was
+                                    // centred all along, the DIGITS were not. This centres and hugs the glyphs.
+                                    style =
+                                        typo().bodySmall.copy(
+                                            lineHeight = 11.sp,
+                                            lineHeightStyle =
+                                                LineHeightStyle(
+                                                    alignment = LineHeightStyle.Alignment.Center,
+                                                    trim = LineHeightStyle.Trim.Both,
+                                                ),
+                                        ),
+                                    color = textColor.copy(alpha = 0.7f),
                                     maxLines = 1,
-                                    modifier =
-                                        Modifier
-                                            .weight(1f)
-                                            .wrapContentHeight(
-                                                align = Alignment.CenterVertically,
-                                            ).basicMarquee(
-                                                iterations = Int.MAX_VALUE,
-                                                animationMode = MarqueeAnimationMode.Immediately,
-                                            ).focusable(),
+                                )
+                            }
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = showScrubber,
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                            ) {
+                                Text(
+                                    text = formatDuration(timelineState.total),
+                                    // Trim.Both + Alignment.Center: the app font carries most of its slack under
+                                    // the baseline, so glyphs ride low inside their own line box — the box was
+                                    // centred all along, the DIGITS were not. This centres and hugs the glyphs.
+                                    style =
+                                        typo().bodySmall.copy(
+                                            lineHeight = 11.sp,
+                                            lineHeightStyle =
+                                                LineHeightStyle(
+                                                    alignment = LineHeightStyle.Alignment.Center,
+                                                    trim = LineHeightStyle.Trim.Both,
+                                                ),
+                                        ),
+                                    color = textColor.copy(alpha = 0.7f),
+                                    maxLines = 1,
                                 )
                             }
                         }
                     }
                 }
-                // Part 2
-                Box(modifier = Modifier.weight(1f)) {
-                    Column(Modifier.width(600.dp).padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            PlayerControlLayout(
-                                controllerState,
-                                isSmallSize = true,
-                                contentColor = textColor,
-                            ) {
-                                sharedViewModel.onUIEvent(it)
-                            }
+                VerticalDivider(
+                    modifier = Modifier.height(28.dp).padding(horizontal = 14.dp),
+                    color = textColor.copy(alpha = 0.2f),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // 40dp cell to sit on the IconButton grid, and size 32 on purpose:
+                    // HeartCheckBox pads 4dp per side internally, so 32 yields the same 24dp
+                    // glyph the neighbouring icons draw at — 26 left an 18dp heart that read
+                    // as extra padding around a smaller icon.
+                    Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                        HeartCheckBox(checked = controllerState.isLiked, size = 32) {
+                            sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                         }
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
-                                style = typo().bodyMedium,
-                                textAlign = TextAlign.Left,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.width(50.dp),
-                            )
-                            // Real Slider
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .weight(1f)
-                                        .padding(horizontal = 8.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(24.dp),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Crossfade(timelineState.loading) {
-                                        if (it) {
-                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                                LinearProgressIndicator(
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(4.dp)
-                                                            .padding(
-                                                                horizontal = 3.dp,
-                                                            ).clip(
-                                                                RoundedCornerShape(8.dp),
-                                                            ),
-                                                    color = textColor,
-                                                    trackColor = textColor.copy(alpha = 0.3f),
-                                                    strokeCap = StrokeCap.Round,
-                                                )
-                                            }
-                                        } else {
-                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                                LinearProgressIndicator(
-                                                    progress = { timelineState.bufferedPercent.toFloat() / 100 },
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(4.dp)
-                                                            .padding(
-                                                                horizontal = 3.dp,
-                                                            ).clip(
-                                                                RoundedCornerShape(8.dp),
-                                                            ),
-                                                    // Three levels have to stay apart on one bar: the
-                                                    // slider above draws played position solid, so
-                                                    // buffered-but-unplayed must be dimmed and the
-                                                    // unbuffered remainder dimmer still. At full
-                                                    // buffer a solid colour here would blend into the
-                                                    // played part and the bar would look uniform.
-                                                    color = textColor.copy(alpha = 0.35f),
-                                                    trackColor =
-                                                        textColor.copy(
-                                                            alpha = 0.15f,
-                                                        ),
-                                                    strokeCap = StrokeCap.Round,
-                                                    drawStopIndicator = {},
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                    Slider(
-                                        // Fraction, not 0..100 — see the note in NowPlayingScreen:
-                                        // material3 alpha25 drops valueRange on its
-                                        // binary-compatibility overload.
-                                        value = sliderValue / 100f,
-                                        onValueChangeFinished = {
-                                            isSliding = false
-                                            sharedViewModel.onUIEvent(
-                                                UIEvent.UpdateProgress(sliderValue),
-                                            )
-                                        },
-                                        onValueChange = {
-                                            isSliding = true
-                                            sliderValue = it * 100f
-                                        },
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 3.dp)
-                                                .align(
-                                                    Alignment.TopCenter,
-                                                ),
-                                        track = { sliderState ->
-                                            SliderDefaults.Track(
-                                                modifier =
-                                                    Modifier
-                                                        .height(5.dp),
-                                                enabled = true,
-                                                sliderState = sliderState,
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = progressColor,
-                                                        activeTrackColor = progressColor,
-                                                        inactiveTrackColor = Color.Transparent,
-                                                    ),
-                                                thumbTrackGapSize = 0.dp,
-                                                drawTick = { _, _ -> },
-                                                drawStopIndicator = null,
-                                            )
-                                        },
-                                        thumb = {
-                                            SliderDefaults.Thumb(
-                                                modifier =
-                                                    Modifier
-                                                        .height(18.dp)
-                                                        .width(8.dp)
-                                                        .padding(
-                                                            vertical = 4.dp,
-                                                        ),
-                                                thumbSize = DpSize(8.dp, 8.dp),
-                                                interactionSource =
-                                                    remember {
-                                                        MutableInteractionSource()
-                                                    },
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = progressColor,
-                                                        activeTrackColor = progressColor,
-                                                        inactiveTrackColor = Color.Transparent,
-                                                    ),
-                                                enabled = true,
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-                            Text(
-                                text = formatDuration(timelineState.total),
-                                style = typo().bodyMedium,
-                                textAlign = TextAlign.Right,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.width(50.dp),
+                    }
+                    IconButton(
+                        onClick = {
+                            showQueueBottomSheet = true
+                        },
+                    ) {
+                        Icon(
+                            imageVector = SimpIcons.QueueMusic,
+                            tint = textColor,
+                            contentDescription = "",
+                        )
+                    }
+                    // Desktop mini player button (JVM only)
+                    if (getPlatform() == Platform.Desktop) {
+                        IconButton(onClick = { toggleMiniPlayer() }) {
+                            Icon(
+                                imageVector = SimpIcons.PictureInPictureAlt,
+                                tint = textColor,
+                                contentDescription = "Mini Player",
                             )
                         }
                     }
-                }
-                Box(Modifier.weight(1f)) {
-                    Row(Modifier.fillMaxHeight().align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
-                        HeartCheckBox(checked = controllerState.isLiked, size = 30) {
-                            sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+                    var isVolumeSliding by rememberSaveable {
+                        mutableStateOf(false)
+                    }
+                    var volumeValue by rememberSaveable {
+                        mutableFloatStateOf(0f)
+                    }
+                    LaunchedEffect(key1 = controllerState, key2 = isVolumeSliding) {
+                        if (!isVolumeSliding) {
+                            volumeValue = controllerState.volume
                         }
-                        Spacer(Modifier.width(4.dp))
-                        // Queue Button
+                    }
+                    // Remembers the level to come back to when unmuting, so the button restores
+                    // what the user was listening at instead of jumping to full volume.
+                    // Starting muted leaves nothing to restore, so full volume stays the fallback.
+                    var previousVolumeValue by rememberSaveable {
+                        mutableFloatStateOf(controllerState.volume.takeIf { it > 0f } ?: 1f)
+                    }
+                    LaunchedEffect(controllerState.volume) {
+                        if (controllerState.volume > 0f) {
+                            previousVolumeValue = controllerState.volume
+                        }
+                    }
+                    // Vertical volume popup anchored on the speaker icon, the way a context menu
+                    // opens: a Popup draws outside the capsule's bounds, so the capsule keeps its
+                    // width instead of expanding sideways as it used to. `hoverable` sits on the
+                    // anchor Box AND on the popup body, otherwise the popup closes the moment the
+                    // pointer leaves the icon and the slider becomes impossible to reach.
+                    val volumeInteraction = remember { MutableInteractionSource() }
+                    val isVolumeHovered by volumeInteraction.collectIsHoveredAsState()
+                    val popupInteraction = remember { MutableInteractionSource() }
+                    val isPopupHovered by popupInteraction.collectIsHoveredAsState()
+                    Box(modifier = Modifier.hoverable(volumeInteraction)) {
                         IconButton(
                             onClick = {
-                                showQueueBottomSheet = true
+                                // Toggle mute/unmute
+                                if (controllerState.volume > 0f) {
+                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
+                                } else {
+                                    sharedViewModel.onUIEvent(
+                                        UIEvent.UpdateVolume(previousVolumeValue.coerceIn(0.1f, 1f)),
+                                    )
+                                }
                             },
                         ) {
                             Icon(
-                                imageVector = SimpIcons.QueueMusic,
+                                imageVector =
+                                    if (controllerState.volume > 0f) {
+                                        SimpIcons.VolumeUp
+                                    } else {
+                                        SimpIcons.VolumeOff
+                                    },
                                 tint = textColor,
-                                contentDescription = "",
+                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
                             )
                         }
-                        Spacer(Modifier.width(2.dp))
-                        // Desktop mini player button (JVM only)
-                        if (getPlatform() == Platform.Desktop) {
-                            IconButton(onClick = { toggleMiniPlayer() }) {
-                                Icon(
-                                    imageVector = SimpIcons.OpenInNew,
-                                    contentDescription = "Mini Player",
-                                )
+                        // Releasing the mouse above the popup — which is what happens when you drag
+                        // the thumb to the top — drops the hover and `isVolumeSliding` in the same
+                        // frame, so the popup used to vanish right under the user's hand. Hold it
+                        // open for a beat instead: moving back in cancels this effect before the
+                        // delay elapses, so the popup stays.
+                        var isVolumePopupVisible by remember { mutableStateOf(false) }
+                        LaunchedEffect(isVolumeHovered, isPopupHovered, isVolumeSliding) {
+                            if (isVolumeHovered || isPopupHovered || isVolumeSliding) {
+                                isVolumePopupVisible = true
+                            } else {
+                                delay(400)
+                                isVolumePopupVisible = false
                             }
                         }
-                        var isVolumeSliding by rememberSaveable {
-                            mutableStateOf(false)
-                        }
-                        var volumeValue by rememberSaveable {
-                            mutableFloatStateOf(0f)
-                        }
-                        LaunchedEffect(key1 = controllerState, key2 = isVolumeSliding) {
-                            if (!isVolumeSliding) {
-                                volumeValue = controllerState.volume
-                            }
-                        }
-                        // Remembers the level to come back to when unmuting, so the button restores
-                        // what the user was listening at instead of jumping to full volume.
-                        // Starting muted leaves nothing to restore, so full volume stays the fallback.
-                        var previousVolumeValue by rememberSaveable {
-                            mutableFloatStateOf(controllerState.volume.takeIf { it > 0f } ?: 1f)
-                        }
-                        LaunchedEffect(controllerState.volume) {
-                            if (controllerState.volume > 0f) {
-                                previousVolumeValue = controllerState.volume
-                            }
-                        }
-                        // The slider only claims space while the pointer is over the volume cluster.
-                        // `hoverable` sits on the Row wrapping both the icon and the slider so moving
-                        // between them never drops the hover, and an in-progress drag keeps it open
-                        // even when the pointer slips outside.
-                        val volumeInteractionSource = remember { MutableInteractionSource() }
-                        val isVolumeHovered by volumeInteractionSource.collectIsHoveredAsState()
-                        Row(
-                            modifier = Modifier.hoverable(volumeInteractionSource),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            IconButton(
-                                onClick = {
-                                    // Toggle mute/unmute
-                                    if (controllerState.volume > 0f) {
-                                        sharedViewModel.onUIEvent(UIEvent.UpdateVolume(0f))
-                                    } else {
-                                        sharedViewModel.onUIEvent(
-                                            UIEvent.UpdateVolume(previousVolumeValue.coerceIn(0.1f, 1f)),
-                                        )
-                                    }
-                                },
+                        if (isVolumePopupVisible) {
+                            Popup(
+                                alignment = Alignment.TopCenter,
+                                offset = IntOffset(0, with(density) { -(VOLUME_POPUP_HEIGHT + 4.dp).roundToPx() }),
                             ) {
-                                Icon(
-                                    imageVector =
-                                        if (controllerState.volume > 0f) {
-                                            SimpIcons.VolumeUp
-                                        } else {
-                                            SimpIcons.VolumeOff
-                                        },
-                                    contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                                )
-                            }
-                            AnimatedVisibility(
-                                visible = isVolumeHovered || isVolumeSliding,
-                                enter = expandHorizontally() + fadeIn(),
-                                exit = shrinkHorizontally() + fadeOut(),
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Spacer(Modifier.width(2.dp))
-                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                        Slider(
-                                            value = volumeValue,
-                                            onValueChangeFinished = {
-                                                isVolumeSliding = false
-                                                sharedViewModel.onUIEvent(
-                                                    UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
-                                                )
-                                            },
-                                            onValueChange = {
-                                                isVolumeSliding = true
-                                                volumeValue = it
-                                            },
-                                            valueRange = 0f..1f,
-                                            modifier =
-                                                Modifier
-                                                    .padding(top = 3.dp)
-                                                    .width(64.dp),
-                                            track = { sliderState ->
-                                                SliderDefaults.Track(
-                                                    modifier =
-                                                        Modifier
-                                                            .height(5.dp),
-                                                    enabled = true,
-                                                    sliderState = sliderState,
-                                                    colors =
-                                                        SliderDefaults.colors().copy(
-                                                            thumbColor = textColor,
-                                                            activeTrackColor = textColor,
-                                                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                                                        ),
-                                                    thumbTrackGapSize = 0.dp,
-                                                    drawTick = { _, _ -> },
-                                                    drawStopIndicator = null,
-                                                )
-                                            },
-                                            thumb = {
-                                                SliderDefaults.Thumb(
-                                                    modifier =
-                                                        Modifier
-                                                            .height(18.dp)
-                                                            .width(8.dp)
-                                                            .padding(
-                                                                vertical = 4.dp,
+                                Column(
+                                    modifier =
+                                        Modifier
+                                            .hoverable(popupInteraction)
+                                            .width(44.dp)
+                                            .height(VOLUME_POPUP_HEIGHT)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            // Theme surface, not `background` — that one animates to the
+                                            // artwork's palette colour, which turned the popup olive green
+                                            // for one cover and pink for the next.
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f))
+                                            .padding(vertical = 10.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Text(
+                                        text = (volumeValue * 100).roundToInt().toString(),
+                                        style = typo().bodySmall,
+                                        color = textColor.copy(alpha = 0.7f),
+                                        maxLines = 1,
+                                    )
+                                    // Weighted box: whatever height is left after the label and the icon, the slider
+                                    // centres inside it. A fixed-height popup used to overflow — 96dp of slider plus
+                                    // label, icon, spacing and padding came to 164dp in a 148dp popup, so the icon
+                                    // was swallowed and the track sat glued to the bottom edge.
+                                    Box(
+                                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                            // A vertical Slider is a horizontal one rotated a quarter
+                                            // turn: graphicsLayer rotates the drawing AND the pointer
+                                            // input, so drag direction follows the visual.
+                                            Slider(
+                                                value = volumeValue,
+                                                onValueChangeFinished = {
+                                                    isVolumeSliding = false
+                                                    sharedViewModel.onUIEvent(
+                                                        UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
+                                                    )
+                                                },
+                                                onValueChange = {
+                                                    isVolumeSliding = true
+                                                    volumeValue = it
+                                                },
+                                                valueRange = 0f..1f,
+                                                modifier =
+                                                    Modifier
+                                                        .graphicsLayer {
+                                                            // transformOrigin(0, 0) and place(-width, 0) below are
+                                                            // a pair — they only work together. Dropping the origin
+                                                            // and centring the rotation leaves the slider drawn
+                                                            // outside its own node, where the popup's clip() eats
+                                                            // it and nothing shows at all.
+                                                            rotationZ = 270f
+                                                            transformOrigin = TransformOrigin(0f, 0f)
+                                                        }.layout { measurable, constraints ->
+                                                            val placeable =
+                                                                measurable.measure(
+                                                                    Constraints(
+                                                                        minWidth = constraints.minHeight,
+                                                                        maxWidth = constraints.maxHeight,
+                                                                        minHeight = constraints.minWidth,
+                                                                        maxHeight = constraints.maxWidth,
+                                                                    ),
+                                                                )
+                                                            layout(placeable.height, placeable.width) {
+                                                                placeable.place(-placeable.width, 0)
+                                                            }
+                                                        }.width(VOLUME_SLIDER_LENGTH),
+                                                track = { sliderState ->
+                                                    SliderDefaults.Track(
+                                                        modifier =
+                                                            Modifier
+                                                                .height(4.dp),
+                                                        enabled = true,
+                                                        sliderState = sliderState,
+                                                        colors =
+                                                            SliderDefaults.colors().copy(
+                                                                thumbColor = textColor,
+                                                                activeTrackColor = textColor,
+                                                                inactiveTrackColor = textColor.copy(alpha = 0.3f),
                                                             ),
-                                                    thumbSize = DpSize(8.dp, 8.dp),
-                                                    interactionSource =
-                                                        remember {
-                                                            MutableInteractionSource()
-                                                        },
-                                                    colors =
-                                                        SliderDefaults.colors().copy(
-                                                            thumbColor = textColor,
-                                                            activeTrackColor = textColor,
-                                                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                                                        ),
-                                                    enabled = true,
-                                                )
-                                            },
-                                        )
+                                                        thumbTrackGapSize = 0.dp,
+                                                        drawTick = { _, _ -> },
+                                                        drawStopIndicator = null,
+                                                    )
+                                                },
+                                                thumb = {
+                                                    // No thumb: it never sat visually centred on the rotated track, and the
+                                                    // slider drags the same without one — the active/inactive split marks the level.
+                                                    Spacer(Modifier.size(0.dp))
+                                                },
+                                            )
+                                        }
                                     }
+                                    Icon(
+                                        imageVector =
+                                            if (controllerState.volume > 0f) {
+                                                SimpIcons.VolumeUp
+                                            } else {
+                                                SimpIcons.VolumeOff
+                                            },
+                                        tint = textColor.copy(alpha = 0.7f),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(15.dp),
+                                    )
                                 }
                             }
                         }
-                        Spacer(Modifier.width(4.dp))
-                        IconButton(onClick = { onClose() }) {
-                            Icon(SimpIcons.Close, "")
-                        }
+                    }
+                    IconButton(onClick = { onClose() }) {
+                        Icon(SimpIcons.Close, "", tint = textColor)
                     }
                 }
             }
+        }
+    }
+}
+
+private val VOLUME_POPUP_HEIGHT = 180.dp
+private val VOLUME_SLIDER_LENGTH = 96.dp
+
+/**
+ * The capsule player's progress bar: a real [Slider] so it can be dragged, drawn over a
+ * buffered-position indicator. [trackHeight] and [thumbSize] are what make it read as a
+ * hairline at rest and as a scrubber on hover — pass `thumbSize = 0.dp` to hide the thumb
+ * without losing the drag target, which stays the full 16dp row height either way.
+ */
+@Composable
+private fun CapsuleProgress(
+    sliderValue: Float,
+    trackHeight: Dp,
+    thumbSize: Dp,
+    textColor: Color,
+    progressColor: Color,
+    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.height(16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+            // One Slider only. A LinearProgressIndicator underneath used to draw the buffered
+            // position, but Slider reserves room for its thumb at both ends while the indicator
+            // ran fillMaxWidth edge to edge — the two tracks were different lengths and visibly
+            // out of line. Buffered position is not worth that; the inactive track carries it.
+            Slider(
+                // Fraction, not 0..100 — see the note in NowPlayingScreen: material3 alpha25
+                // drops valueRange on its binary-compatibility overload.
+                value = sliderValue / 100f,
+                onValueChange = onValueChange,
+                onValueChangeFinished = onValueChangeFinished,
+                modifier = Modifier.fillMaxWidth(),
+                track = { sliderState ->
+                    SliderDefaults.Track(
+                        modifier = Modifier.height(trackHeight),
+                        enabled = true,
+                        sliderState = sliderState,
+                        colors =
+                            SliderDefaults.colors().copy(
+                                thumbColor = progressColor,
+                                activeTrackColor = progressColor,
+                                inactiveTrackColor = textColor.copy(alpha = 0.25f),
+                            ),
+                        thumbTrackGapSize = 0.dp,
+                        drawTick = { _, _ -> },
+                        drawStopIndicator = null,
+                    )
+                },
+                thumb = {
+                    if (thumbSize > 0.dp) {
+                        SliderDefaults.Thumb(
+                            modifier = Modifier.size(thumbSize),
+                            thumbSize = DpSize(thumbSize, thumbSize),
+                            interactionSource = remember { MutableInteractionSource() },
+                            colors =
+                                SliderDefaults.colors().copy(
+                                    thumbColor = progressColor,
+                                    activeTrackColor = progressColor,
+                                    inactiveTrackColor = textColor.copy(alpha = 0.25f),
+                                ),
+                            enabled = true,
+                        )
+                    } else {
+                        Spacer(Modifier.size(0.dp))
+                    }
+                },
+            )
         }
     }
 }
