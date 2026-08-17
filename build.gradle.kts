@@ -20,6 +20,7 @@ plugins {
     alias(libs.plugins.build.config) apply false
     alias(libs.plugins.osdetector) apply false
     alias(libs.plugins.conveyor) apply false
+    alias(libs.plugins.compose.hotReload) apply false
 }
 
 tasks.register<Delete>("Clean") {
