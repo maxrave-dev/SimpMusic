@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -467,7 +468,15 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                 Modifier
                                     .fillMaxSize()
                                     .then(
-                                        if (isLiquidGlassEnabled == TRUE && isTablet && !isInFullscreen) {
+                                        // Desktop is unconditional: the floating capsule player is ALWAYS
+                                        // liquid glass there, and glass with no recorded source draws as
+                                        // plain transparency. Gating the source on the setting while the
+                                        // capsule ignored it was exactly the nested-flag split that kept
+                                        // the capsule see-through.
+                                        if ((isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop) &&
+                                            isTablet &&
+                                            !isInFullscreen
+                                        ) {
                                             Modifier.layerBackdrop(backdrop)
                                         } else {
                                             Modifier
@@ -511,13 +520,16 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                 bottom = 4.dp,
                                             )
                                     } else {
+                                        // Floating capsule, Apple Music style: a fixed size so it never
+                                        // stretches to the window width, and no haze at all — the capsule
+                                        // paints its own liquid glass. Layering haze underneath blurs the
+                                        // same pixels twice and reads as a dark smear, not glass.
+                                        // padding BEFORE height: the other way round the bottom margin
+                                        // eats into the 72dp and the capsule ends up 52dp tall.
                                         Modifier
-                                            .fillMaxWidth()
-                                            .height(84.dp)
-                                            .background(Color.Transparent)
-                                            .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                                                blurEnabled = true
-                                            }
+                                            .wrapContentWidth()
+                                            .padding(bottom = 20.dp)
+                                            .height(64.dp)
                                     },
                                     backdrop = backdrop,
                                     onClick = {
