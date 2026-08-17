@@ -137,9 +137,6 @@ import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -150,6 +147,9 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "MiniPlayer"
 
@@ -644,7 +644,7 @@ fun MiniPlayer(
         val density = LocalDensity.current
         Box(
             modifier
-                .liquidGlass(backdrop, layer, luminanceAnimation.value, capsuleShape)
+                .liquidGlass(backdrop, layer, luminanceAnimation.value, capsuleShape, blurScale = 1.2f)
                 .clip(capsuleShape)
                 .clickable {
                     onClick()
@@ -654,10 +654,11 @@ fun MiniPlayer(
             Row(
                 Modifier
                     .fillMaxHeight()
-                    // vertical 6, not 8: the info column stacks title(~17) + artist(~15) + 2 + progress(16)
-                    // = 50px, and 8dp padding left only 48 — measured overflow pushed the slider box
-                    // 2px past the capsule's padded bottom (tree: slider bottom 834 vs padded 832).
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                    // No vertical padding: the progress line is bottom-aligned inside its own 16dp
+                    // touch box, so the line already floats 8dp above whatever the bottom edge is.
+                    // Padding on top of that pushed it back up against the artwork. Everything else
+                    // in this row is centred, so losing the inset costs them nothing.
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // PlayerControlLayout is a fillMaxWidth Row with SpaceEvenly and weight(1f) on every
@@ -690,152 +691,167 @@ fun MiniPlayer(
                 val trackInteraction = remember { MutableInteractionSource() }
                 val isTrackHovered by trackInteraction.collectIsHoveredAsState()
                 val showScrubber = isTrackHovered || isSliding
-                Row(
+                // A Box, not a Column: the [artwork -> text] content is centred on the capsule's own
+                // vertical axis and the progress line hangs off the bottom edge. Stacking them in a
+                // Column instead centres the PAIR, which pushes the content above the axis by half
+                // the slider's height. Across the 60dp capsule that lands the ~33dp content at 13-46
+                // and the line at 52, clear of the content by ~6dp. The old stacked layout could not
+                // fit its 56dp of children in a padded 52dp box at all, and overlapped by 4dp.
+                Box(
                     modifier =
                         Modifier
                             .width(300.dp)
+                            .fillMaxHeight()
                             .hoverable(trackInteraction),
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AsyncImage(
-                        model =
-                            ImageRequest
-                                .Builder(LocalPlatformContext.current)
-                                .data(songEntity?.thumbnails)
-                                .crossfade(550)
-                                .build(),
-                        placeholder = rememberHolderPainter(),
-                        error = rememberHolderPainter(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        onSuccess = {
-                            bitmap =
-                                it.result.image.toImageBitmap()
-                        },
+                    // Trim.Both + Alignment.Center: the app font carries most of its slack under
+                    // the baseline, so glyphs ride low inside their own line box — the box was
+                    // centred all along, the DIGITS were not. This centres and hugs the glyphs.
+                    val scrubberDigits =
+                        typo().bodySmall.copy(
+                            lineHeight = 11.sp,
+                            lineHeightStyle =
+                                LineHeightStyle(
+                                    alignment = LineHeightStyle.Alignment.Center,
+                                    trim = LineHeightStyle.Trim.Both,
+                                ),
+                        )
+                    // Hovering swaps the WHOLE content block — artwork included — out for the
+                    // timestamps, the way Apple's capsule does. The two cross-fade through alpha
+                    // rather than AnimatedVisibility, because an alpha of 0 is still MEASURED: the
+                    // content keeps donating its height, so nothing around it reflows as the pointer
+                    // arrives, and the swap area needs no hardcoded height.
+                    val infoAlpha by animateFloatAsState(
+                        targetValue = if (showScrubber) 0f else 1f,
+                        animationSpec = tween(200),
+                        label = "CapsuleInfoAlpha",
+                    )
+                    Row(
                         modifier =
                             Modifier
-                                .size(40.dp)
-                                .clip(
-                                    RoundedCornerShape(6.dp),
-                                ),
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = (songEntity?.title ?: "").toString(),
-                            // labelSmall is 14sp — oversized against a 40dp artwork; keep its
-                            // weight, drop the size a notch.
-                            style = typo().labelSmall.copy(fontSize = 12.sp),
-                            color = textColor,
-                            maxLines = 1,
+                                .align(Alignment.Center)
+                                .graphicsLayer { alpha = infoAlpha },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AsyncImage(
+                            model =
+                                ImageRequest
+                                    .Builder(LocalPlatformContext.current)
+                                    .data(songEntity?.thumbnails)
+                                    .crossfade(550)
+                                    .build(),
+                            placeholder = rememberHolderPainter(),
+                            error = rememberHolderPainter(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            onSuccess = {
+                                bitmap =
+                                    it.result.image.toImageBitmap()
+                            },
+                            // 32dp, not 40: the artwork is the tallest thing in the content row, so it
+                            // sets the floor under the capsule's own height once the progress box is
+                            // hung below it. At 40 the shortest capsule that still cleared the line
+                            // was 72dp, which read as a slab rather than a floating pill.
                             modifier =
                                 Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(
-                                        align = Alignment.CenterVertically,
-                                    ).basicMarquee(
-                                        iterations = Int.MAX_VALUE,
-                                        animationMode = MarqueeAnimationMode.Immediately,
-                                    ).focusable(),
+                                    .size(32.dp)
+                                    .clip(
+                                        RoundedCornerShape(6.dp),
+                                    ),
                         )
-                        // The artist line is ALWAYS visible — hovering only reshapes the progress row
-                        // below it. An earlier Crossfade swapped the artist out for the scrubber, which
-                        // read as the app hiding data the user never asked to lose.
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            androidx.compose.animation.AnimatedVisibility(visible = songEntity?.isExplicit == true) {
-                                ExplicitBadge(
-                                    modifier =
-                                        Modifier
-                                            .size(16.dp)
-                                            .padding(end = 4.dp),
-                                )
-                            }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
                             Text(
-                                text = (songEntity?.artistName?.connectArtists() ?: ""),
-                                style = typo().bodySmall,
-                                color = textColor.copy(alpha = 0.7f),
+                                text = (songEntity?.title ?: "").toString(),
+                                // labelSmall is 14sp — oversized against a 40dp artwork; keep its
+                                // weight, drop the size a notch.
+                                style = typo().labelSmall.copy(fontSize = 12.sp),
+                                color = textColor,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        Spacer(Modifier.height(2.dp))
-                        // A Box, not a Row: every child anchors to the vertical centre of the SAME box
-                        // (CenterStart / Center / CenterEnd), so the digits and the track share one axis
-                        // by construction. Centering a Text box against a slider box through a Row kept
-                        // drifting, because a Text is as tall as its line box — font metrics, not 16dp.
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            CapsuleProgress(
-                                sliderValue = sliderValue,
-                                trackHeight = if (showScrubber) 4.dp else 2.dp,
-                                thumbSize = 0.dp,
-                                textColor = textColor,
-                                progressColor = progressColor,
-                                // Insets appear with the timestamps so the track never runs under them.
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = if (showScrubber) 46.dp else 0.dp),
-                                onValueChange = {
-                                    isSliding = true
-                                    sliderValue = it * 100f
-                                },
-                                onValueChangeFinished = {
-                                    isSliding = false
-                                    sharedViewModel.onUIEvent(
-                                        UIEvent.UpdateProgress(sliderValue),
-                                    )
-                                },
+                                        .wrapContentHeight(
+                                            align = Alignment.CenterVertically,
+                                        ).basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
                             )
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = showScrubber,
-                                modifier = Modifier.align(Alignment.CenterStart),
-                            ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                androidx.compose.animation.AnimatedVisibility(visible = songEntity?.isExplicit == true) {
+                                    ExplicitBadge(
+                                        modifier =
+                                            Modifier
+                                                .size(16.dp)
+                                                .padding(end = 4.dp),
+                                    )
+                                }
                                 Text(
-                                    text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
-                                    // Trim.Both + Alignment.Center: the app font carries most of its slack under
-                                    // the baseline, so glyphs ride low inside their own line box — the box was
-                                    // centred all along, the DIGITS were not. This centres and hugs the glyphs.
-                                    style =
-                                        typo().bodySmall.copy(
-                                            lineHeight = 11.sp,
-                                            lineHeightStyle =
-                                                LineHeightStyle(
-                                                    alignment = LineHeightStyle.Alignment.Center,
-                                                    trim = LineHeightStyle.Trim.Both,
-                                                ),
-                                        ),
+                                    text = (songEntity?.artistName?.connectArtists() ?: ""),
+                                    style = typo().bodySmall,
                                     color = textColor.copy(alpha = 0.7f),
                                     maxLines = 1,
-                                )
-                            }
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = showScrubber,
-                                modifier = Modifier.align(Alignment.CenterEnd),
-                            ) {
-                                Text(
-                                    text = formatDuration(timelineState.total),
-                                    // Trim.Both + Alignment.Center: the app font carries most of its slack under
-                                    // the baseline, so glyphs ride low inside their own line box — the box was
-                                    // centred all along, the DIGITS were not. This centres and hugs the glyphs.
-                                    style =
-                                        typo().bodySmall.copy(
-                                            lineHeight = 11.sp,
-                                            lineHeightStyle =
-                                                LineHeightStyle(
-                                                    alignment = LineHeightStyle.Alignment.Center,
-                                                    trim = LineHeightStyle.Trim.Both,
-                                                ),
-                                        ),
-                                    color = textColor.copy(alpha = 0.7f),
-                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
                                 )
                             }
                         }
                     }
+                    // The timestamps take the content's place on the same axis, spanning the whole
+                    // cluster rather than only the text column — so the elapsed digit starts where the
+                    // artwork was, which is what makes the swap read as one block being replaced.
+                    Row(
+                        modifier =
+                            Modifier
+                                .align(Alignment.Center)
+                                .fillMaxWidth()
+                                .graphicsLayer { alpha = 1f - infoAlpha },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
+                            style = scrubberDigits,
+                            color = textColor.copy(alpha = 0.7f),
+                            maxLines = 1,
+                        )
+                        Text(
+                            // Time REMAINING, signed, which is what Apple's capsule reports on the
+                            // right — not the track's total length.
+                            text =
+                                "−" +
+                                    formatDuration(
+                                        (timelineState.total * (1f - sliderValue / 100f)).roundToLong(),
+                                    ),
+                            style = scrubberDigits,
+                            color = textColor.copy(alpha = 0.7f),
+                            maxLines = 1,
+                        )
+                    }
+                    // The timestamps now sit on the content line, so the track no longer has to
+                    // inset itself to keep clear of them.
+                    CapsuleProgress(
+                        sliderValue = sliderValue,
+                        trackHeight = if (showScrubber) 4.dp else 2.dp,
+                        thumbSize = 0.dp,
+                        textColor = textColor,
+                        progressColor = progressColor,
+                        modifier =
+                            Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth(),
+                        onValueChange = {
+                            isSliding = true
+                            sliderValue = it * 100f
+                        },
+                        onValueChangeFinished = {
+                            isSliding = false
+                            sharedViewModel.onUIEvent(
+                                UIEvent.UpdateProgress(sliderValue),
+                            )
+                        },
+                    )
                 }
                 VerticalDivider(
                     modifier = Modifier.height(28.dp).padding(horizontal = 14.dp),

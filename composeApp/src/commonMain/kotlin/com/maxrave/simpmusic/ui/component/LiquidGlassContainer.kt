@@ -94,6 +94,10 @@ fun Modifier.liquidGlass(
  * glass records into and drives [luminanceAnimation], so the glass keeps adapting to
  * the content behind it — unlike the [liquidGlass] above, which uses a fixed
  * mid-luminance.
+ *
+ * [blurScale], [minScrim] and [maxScrim] forward to [drawInteractiveGlass]; their
+ * defaults reproduce the shared look, so only a caller that wants a denser pane
+ * (the Desktop capsule) has to name them.
  */
 @Composable
 fun Modifier.liquidGlass(
@@ -102,6 +106,9 @@ fun Modifier.liquidGlass(
     luminanceAnimation: Float,
     shape: Shape = CircleShape,
     interactive: Boolean = true,
+    blurScale: Float = 1f,
+    minScrim: Float = 0.12f,
+    maxScrim: Float = 0.5f,
 ): Modifier {
     val isDark = LocalIsDarkTheme.current
     val interaction = rememberGlassInteraction()
@@ -115,6 +122,9 @@ fun Modifier.liquidGlass(
         // MiniPlayer (the only caller of this layer + luminance overload) is a wide surface, so the
         // shared 1.12 press scale bulges too hard; use a gentler scale here.
         pressedScale = 1.04f,
+        blurScale = blurScale,
+        minScrim = minScrim,
+        maxScrim = maxScrim,
     )
 }
 
@@ -221,6 +231,12 @@ fun rememberGlassInteraction(): GlassInteraction {
  *
  * [luminanceAnimation] keeps the brightness/contrast curve of the original
  * wrapper (the bottom navigation bar animates it; static surfaces pass `0.5f`).
+ *
+ * [blurScale] multiplies the luminance-driven blur radius and [minScrim]/[maxScrim]
+ * are the ends of the darkening ramp. The defaults are the values this surface has
+ * always drawn with, so every existing caller is unaffected; the Desktop capsule
+ * raises both because at the shared settings (7–11dp of blur over a 0.12 scrim floor)
+ * the artwork behind it stays legible instead of dissolving the way Apple's does.
  */
 fun Modifier.drawInteractiveGlass(
     isDark: Boolean,
@@ -231,6 +247,9 @@ fun Modifier.drawInteractiveGlass(
     interaction: GlassInteraction?,
     pressedScale: Float = 1.12f,
     highlight: Highlight = Highlight.Default,
+    blurScale: Float = 1f,
+    minScrim: Float = 0.12f,
+    maxScrim: Float = 0.5f,
 ): Modifier =
     this
         .drawBackdrop(
@@ -260,7 +279,7 @@ fun Modifier.drawInteractiveGlass(
                         } else {
                             lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)
                         }
-                    ) + 2f.dp.toPx() * press,
+                    ) * blurScale + 2f.dp.toPx() * press,
                 )
                 // refractionHeight stays below the stadium inradius (minDimension / 2) so the
                 // top and bottom refraction never meet at the medial axis — that meeting point on
@@ -275,7 +294,7 @@ fun Modifier.drawInteractiveGlass(
             onDrawSurface = {
                 // Stay "đục đen": darken more as the background brightens so the glass never washes
                 // out to white (shared by the bottom bar capsule, search FAB and detail-screen pills).
-                val darken = lerp(0.12f, 0.5f, ((luminanceAnimation - 0.3f) / 0.5f).coerceIn(0f, 1f))
+                val darken = lerp(minScrim, maxScrim, ((luminanceAnimation - 0.3f) / 0.5f).coerceIn(0f, 1f))
                 drawRect((if (isDark) Color.Black else Color.White).copy(alpha = darken))
                 val press = interaction?.pressProgress ?: 0f
                 if (press > 0f) {

@@ -526,10 +526,15 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                         // same pixels twice and reads as a dark smear, not glass.
                                         // padding BEFORE height: the other way round the bottom margin
                                         // eats into the 72dp and the capsule ends up 52dp tall.
+                                        // 60dp is the floor for this layout: the content row is centred
+                                        // on the capsule's axis and the 16dp progress box hangs off the
+                                        // bottom, so the height has to cover the taller of the artwork
+                                        // (32dp) and the two text lines (~33dp), plus that 16dp, plus a
+                                        // gap. Going lower means shrinking the artwork again.
                                         Modifier
                                             .wrapContentWidth()
                                             .padding(bottom = 20.dp)
-                                            .height(64.dp)
+                                            .height(60.dp)
                                     },
                                     backdrop = backdrop,
                                     onClick = {
