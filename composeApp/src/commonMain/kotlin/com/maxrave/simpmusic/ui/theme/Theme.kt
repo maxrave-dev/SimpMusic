@@ -72,15 +72,19 @@ fun parseThemeColorHex(hex: String): Color? {
 }
 
 /**
- * Neutral surfaces for the light theme. Mirrors the dark theme's pure-black AMOLED base: dark pins
- * background/surface to #000000, so light pins them to #FFFFFF, with a pure neutral-grey ramp
- * (R=G=B, no seed tint) for the container tiers. Primary/secondary/tertiary stay seed-derived.
+ * Neutral surfaces for the light theme, on a pure neutral-grey ramp (R=G=B, no seed tint);
+ * primary/secondary/tertiary stay seed-derived. The page background is #FAFAFA (neutral tone 98,
+ * the Material 3 stance) rather than pure white: a full-bleed #FFFFFF expanse glares on a large
+ * desktop window, and even Apple — who pins systemBackground to white — puts #F2F2F7 behind
+ * list pages. Pure white is kept for surfaceBright/surfaceContainerLowest so cards and sheets
+ * still have a brighter-than-page tier to lift onto. Dark stays pure-black AMOLED: black does
+ * not glare and saves OLED.
  */
 private fun ColorScheme.withNeutralLightSurfaces(): ColorScheme =
     copy(
-        background = Color(0xFFFFFFFF),
+        background = Color(0xFFFAFAFA),
         onBackground = Color(0xFF1B1B1B),
-        surface = Color(0xFFFFFFFF),
+        surface = Color(0xFFFAFAFA),
         onSurface = Color(0xFF1B1B1B),
         surfaceVariant = Color(0xFFE2E2E2),
         onSurfaceVariant = Color(0xFF474747),
