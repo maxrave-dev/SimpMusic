@@ -520,6 +520,7 @@
     <string name="play_explicit_content_description">Enable to play explicit content</string>
     <string name="explicit_content_blocked">Explicit content is skipped</string>
     <string name="mix_for_you">Mix for you</string>
+    <string name="mix">Mix</string>
     <string name="no_mixes_found">No mixes found</string>
     <string name="no_charts_found">No charts found</string>
     <string name="desktop_webview_description">Because of the limitations of Compose Multiplatform, I can not implement WebView on desktop.\nRead this to learn more how to log in in desktop:\n</string>

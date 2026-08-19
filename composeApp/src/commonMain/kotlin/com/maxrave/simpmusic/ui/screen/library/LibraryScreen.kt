@@ -104,7 +104,6 @@ import simpmusic.composeapp.generated.resources.no_YouTube_playlists
 import simpmusic.composeapp.generated.resources.no_charts_found
 import simpmusic.composeapp.generated.resources.no_favorite_playlists
 import simpmusic.composeapp.generated.resources.no_favorite_podcasts
-import simpmusic.composeapp.generated.resources.no_mixes_found
 import simpmusic.composeapp.generated.resources.no_playlists_added
 import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlist_name
@@ -127,7 +126,6 @@ fun LibraryScreen(
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
-    val youTubeMixForYou by viewModel.youTubeMixForYou.collectAsStateWithLifecycle()
     val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
     val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsStateWithLifecycle()
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
@@ -167,10 +165,11 @@ fun LibraryScreen(
                 }
             }
 
+            // Mix for you has its own nav tab now. The filter is persisted, so a build upgraded
+            // while it was selected would land here with no chip to match — send it back to the
+            // default. The enum value itself stays so older persisted values still parse.
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
-                if (youTubeMixForYou.data.isNullOrEmpty()) {
-                    viewModel.getYouTubeMixedForYou()
-                }
+                viewModel.setCurrentScreen(LibraryChipType.YOUR_LIBRARY)
             }
 
             LibraryChipType.YOUR_LIBRARY -> {
@@ -278,17 +277,9 @@ fun LibraryScreen(
                 }
             }
 
-            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> {
-                GridLibraryPlaylist(
-                    navController,
-                    innerPadding.copy(top = topAppBarHeight),
-                    youTubeMixForYou,
-                    emptyText = Res.string.no_mixes_found,
-                    onScrolling = onScrolling,
-                ) {
-                    viewModel.getYouTubeMixedForYou()
-                }
-            }
+            // Nothing to draw: MixForYouScreen owns this content now, and the effect above bounces
+            // the filter back to YOUR_LIBRARY the moment it lands here.
+            LibraryChipType.YOUTUBE_MIX_FOR_YOU -> Unit
 
             LibraryChipType.LOCAL_PLAYLIST -> {
                 GridLibraryPlaylist(
@@ -503,7 +494,11 @@ fun LibraryScreen(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             LibraryChipType.entries.forEach { type ->
-                if ((type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST || type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) && !loggedIn) {
+                // Mix for you left this row for a tab of its own.
+                if (type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) {
+                    return@forEach
+                }
+                if (type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST && !loggedIn) {
                     return@forEach
                 }
                 Chip(

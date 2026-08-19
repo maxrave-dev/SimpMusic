@@ -1734,6 +1734,9 @@ class SharedViewModel(
 
     fun getLocalTrackingEnabled() = dataStoreManager.localTrackingEnabled
 
+    // Drives the Mix for you tab: YouTube hands an anonymous session no mixes at all.
+    fun getYouTubeLoggedIn() = dataStoreManager.loggedIn
+
     fun getThemeMode() = dataStoreManager.themeMode
 
     fun getThemeColorSource() = dataStoreManager.themeColorSource
