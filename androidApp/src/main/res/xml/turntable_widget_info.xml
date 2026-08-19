@@ -7,5 +7,5 @@
     android:targetCellHeight="2"
     android:minWidth="110dp"
     android:minHeight="110dp"
-    android:updatePeriodMillis="0"
+    android:updatePeriodMillis="30000"
     android:widgetCategory="home_screen" />
