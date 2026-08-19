@@ -26,7 +26,6 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.components.CircleIconButton
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -188,7 +187,7 @@ class MainAppWidget :
                     GlanceModifier
                         .fillMaxSize()
                         .background(ColorProvider(bgColor))
-                        .clickable(actionStartActivity<MainActivity>()),
+                        .clickable(actionStartActivity<MainActivity>(), rippleOverride = R.drawable.no_ripple),
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(
@@ -265,88 +264,55 @@ class MainAppWidget :
                                         .wrapContentSize()
                                         .fillMaxWidth(),
                             ) {
-                                CircleIconButton(
-                                    modifier =
-                                        GlanceModifier
-                                            .background(Color.Transparent)
-                                            .size(32.dp),
-                                    imageProvider = ImageProvider(R.drawable.baseline_shuffle_24),
+                                WidgetIconButton(
+                                    provider = ImageProvider(R.drawable.rounded_shuffle_24),
                                     contentDescription = "Shuffle",
-                                    contentColor = if (controllerState.isShuffle) ColorProvider(seed) else ColorProvider(Color.White),
-                                    backgroundColor = ColorProvider(Color.Transparent),
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                                    },
-                                )
+                                    tint = if (controllerState.isShuffle) seed else Color.White,
+                                    background = bgColor,
+                                    size = 32.dp,
+                                ) { sharedViewModel.onUIEvent(UIEvent.Shuffle) }
                                 Spacer(GlanceModifier.size(8.dp))
-                                CircleIconButton(
-                                    modifier =
-                                        GlanceModifier
-                                            .size(32.dp),
-                                    imageProvider = ImageProvider(R.drawable.baseline_skip_previous_24),
+                                WidgetIconButton(
+                                    provider = ImageProvider(R.drawable.rounded_skip_previous_24),
                                     contentDescription = "Previous",
-                                    contentColor = ColorProvider(if (controllerState.isPreviousAvailable) Color.White else Color.Gray),
-                                    backgroundColor = ColorProvider(Color.Transparent),
-                                    enabled = controllerState.isPreviousAvailable,
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.Previous)
-                                    },
-                                )
+                                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                                    background = bgColor,
+                                    size = 32.dp,
+                                ) { sharedViewModel.onUIEvent(UIEvent.Previous) }
                                 Spacer(GlanceModifier.size(8.dp))
-                                CircleIconButton(
-                                    modifier =
-                                        GlanceModifier
-                                            .size(48.dp),
-                                    imageProvider =
+                                WidgetIconButton(
+                                    provider =
                                         if (controllerState.isPlaying) {
-                                            ImageProvider(R.drawable.baseline_pause_circle_24)
+                                            ImageProvider(R.drawable.rounded_pause_24)
                                         } else {
-                                            ImageProvider(R.drawable.baseline_play_circle_24)
+                                            ImageProvider(R.drawable.rounded_play_arrow_24)
                                         },
                                     contentDescription = if (controllerState.isPlaying) "Pause" else "Play",
-                                    contentColor = ColorProvider(Color.White),
-                                    backgroundColor = ColorProvider(Color.Transparent),
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                    },
-                                )
+                                    tint = Color.Black,
+                                    background = Color.White,
+                                    size = 48.dp,
+                                ) { sharedViewModel.onUIEvent(UIEvent.PlayPause) }
                                 Spacer(GlanceModifier.size(8.dp))
-                                CircleIconButton(
-                                    modifier =
-                                        GlanceModifier
-                                            .size(32.dp),
-                                    imageProvider = ImageProvider(R.drawable.baseline_skip_next_24),
+                                WidgetIconButton(
+                                    provider = ImageProvider(R.drawable.rounded_skip_next_24),
                                     contentDescription = "Next",
-                                    contentColor = ColorProvider(if (controllerState.isNextAvailable) Color.White else Color.Gray),
-                                    backgroundColor = ColorProvider(Color.Transparent),
-                                    enabled = controllerState.isNextAvailable,
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.Next)
-                                    },
-                                )
+                                    tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                                    background = bgColor,
+                                    size = 32.dp,
+                                ) { sharedViewModel.onUIEvent(UIEvent.Next) }
                                 Spacer(GlanceModifier.size(8.dp))
-                                CircleIconButton(
-                                    modifier =
-                                        GlanceModifier
-                                            .size(32.dp),
-                                    imageProvider =
+                                WidgetIconButton(
+                                    provider =
                                         when (controllerState.repeatState) {
-                                            RepeatState.None -> ImageProvider(R.drawable.baseline_repeat_24)
-                                            RepeatState.All -> ImageProvider(R.drawable.baseline_repeat_24_enable)
-                                            RepeatState.One -> ImageProvider(R.drawable.baseline_repeat_one_24)
+                                            RepeatState.None -> ImageProvider(R.drawable.rounded_repeat_24)
+                                            RepeatState.All -> ImageProvider(R.drawable.rounded_repeat_24)
+                                            RepeatState.One -> ImageProvider(R.drawable.rounded_repeat_one_24)
                                         },
                                     contentDescription = "REPEAT",
-                                    contentColor =
-                                        if (controllerState.repeatState is RepeatState.None) {
-                                            ColorProvider(Color.White)
-                                        } else {
-                                            ColorProvider(seed)
-                                        },
-                                    backgroundColor = ColorProvider(Color.Transparent),
-                                    onClick = {
-                                        sharedViewModel.onUIEvent(UIEvent.Repeat)
-                                    },
-                                )
+                                    tint = if (controllerState.repeatState is RepeatState.None) Color.White else seed,
+                                    background = bgColor,
+                                    size = 32.dp,
+                                ) { sharedViewModel.onUIEvent(UIEvent.Repeat) }
                             }
                         }
                         Box(
