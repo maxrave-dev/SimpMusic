@@ -25,6 +25,7 @@ import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.painterResource
@@ -38,18 +39,20 @@ fun AppBottomNavigationBar(
     navController: NavController,
     isTranslucentBackground: Boolean = false,
     showAnalyticsTab: Boolean = false,
+    showMixForYouTab: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    // `ordinal` identifies a tab, it is NOT the position — Analytics sits before Library here while
-    // keeping the ordinal it was declared with, so that the numbering stays stable whether or not
-    // the tab is present.
+    // `ordinal` identifies a tab, it is NOT the position — Mix for you and Analytics sit before
+    // Library here while keeping the ordinal they were declared with, so that the numbering stays
+    // stable whether or not those tabs are present.
     val bottomNavScreens =
         listOfNotNull(
             BottomNavScreen.Home,
-            BottomNavScreen.Search,
+            BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
             BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
+            BottomNavScreen.Search,
         )
     var selectedIndex by rememberSaveable {
         mutableIntStateOf(
@@ -58,14 +61,18 @@ fun AppBottomNavigationBar(
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
                 is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
+                is MixForYouDestination -> BottomNavScreen.MixForYou.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
     }
-    // Tracking can be turned off while Analytics is the selected tab, and that tab then disappears
-    // from the list. Fall back to Home so nothing is left highlighted.
-    LaunchedEffect(showAnalyticsTab) {
-        if (!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) {
+    // A tab can disappear from the list under the user: tracking gets turned off while Analytics is
+    // selected, or the YouTube session ends while Mix for you is. Fall back to Home in both cases so
+    // nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab, showMixForYouTab) {
+        if ((!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) ||
+            (!showMixForYouTab && selectedIndex == BottomNavScreen.MixForYou.ordinal)
+        ) {
             selectedIndex = BottomNavScreen.Home.ordinal
         }
     }
@@ -149,6 +156,7 @@ fun AppNavigationRail(
     startDestination: Any = HomeDestination,
     navController: NavController,
     showAnalyticsTab: Boolean = false,
+    showMixForYouTab: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -156,9 +164,10 @@ fun AppNavigationRail(
     val bottomNavScreens =
         listOfNotNull(
             BottomNavScreen.Home,
-            BottomNavScreen.Search,
+            BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
             BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
+            BottomNavScreen.Search,
         )
     var selectedIndex by rememberSaveable {
         mutableIntStateOf(
@@ -167,14 +176,18 @@ fun AppNavigationRail(
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
                 is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
+                is MixForYouDestination -> BottomNavScreen.MixForYou.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
     }
-    // Tracking can be turned off while Analytics is the selected tab, and that tab then disappears
-    // from the list. Fall back to Home so nothing is left highlighted.
-    LaunchedEffect(showAnalyticsTab) {
-        if (!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) {
+    // A tab can disappear from the list under the user: tracking gets turned off while Analytics is
+    // selected, or the YouTube session ends while Mix for you is. Fall back to Home in both cases so
+    // nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab, showMixForYouTab) {
+        if ((!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) ||
+            (!showMixForYouTab && selectedIndex == BottomNavScreen.MixForYou.ordinal)
+        ) {
             selectedIndex = BottomNavScreen.Home.ordinal
         }
     }

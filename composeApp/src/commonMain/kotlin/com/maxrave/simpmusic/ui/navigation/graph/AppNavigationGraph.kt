@@ -15,11 +15,13 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.theme.ForceDarkContent
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.screen.home.HomeScreen
 import com.maxrave.simpmusic.ui.screen.home.analytics.AnalyticsScreen
 import com.maxrave.simpmusic.ui.screen.library.LibraryScreen
+import com.maxrave.simpmusic.ui.screen.library.MixForYouScreen
 import com.maxrave.simpmusic.ui.screen.other.SearchScreen
 import com.maxrave.simpmusic.ui.screen.player.FullscreenPlayer
 
@@ -65,6 +67,14 @@ fun AppNavigationGraph(
         }
         composable<LibraryDestination> {
             LibraryScreen(
+                innerPadding = innerPadding,
+                navController = navController,
+                onScrolling = onScrolling,
+            )
+        }
+        // Only reachable as a tab while signed in to YouTube
+        composable<MixForYouDestination> {
+            MixForYouScreen(
                 innerPadding = innerPadding,
                 navController = navController,
                 onScrolling = onScrolling,

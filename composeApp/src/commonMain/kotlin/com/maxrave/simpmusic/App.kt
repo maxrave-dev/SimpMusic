@@ -78,6 +78,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
@@ -140,6 +141,10 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     // Analytics only makes sense with local tracking on, so its tab follows that setting.
     val isLocalTrackingEnabled by viewModel.getLocalTrackingEnabled().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val showAnalyticsTab = isLocalTrackingEnabled == TRUE
+    // Mix for you comes from the signed-in YouTube account, so its tab follows the session — the
+    // same condition that used to hide the chip inside Library.
+    val isYouTubeLoggedIn by viewModel.getYouTubeLoggedIn().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val showMixForYouTab = isYouTubeLoggedIn == TRUE
 
     val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
@@ -362,6 +367,23 @@ fun App(viewModel: SharedViewModel = koinInject()) {
             }
         }
     }
+    LaunchedEffect(showMixForYouTab) {
+        // Same for signing out of YouTube: the Mix for you tab goes away, so nobody may be left
+        // standing on a screen that has no mixes to show and no tab pointing at it.
+        if (!showMixForYouTab &&
+            navBackStackEntry?.destination?.hierarchy?.any {
+                it.hasRoute(MixForYouDestination::class)
+            } == true
+        ) {
+            navController.navigate(HomeDestination) {
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
     var isScrolledToTop by rememberSaveable {
         mutableStateOf(false)
     }
@@ -420,6 +442,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                     onOpenNowPlaying = { isShowNowPlaylistScreen = true },
                                     isScrolledToTop = isScrolledToTop,
                                     showAnalyticsTab = showAnalyticsTab,
+                                    showMixForYouTab = showMixForYouTab,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
                                 }
@@ -428,6 +451,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                     navController = navController,
                                     isTranslucentBackground = isTranslucentBottomBar == TRUE,
                                     showAnalyticsTab = showAnalyticsTab,
+                                    showMixForYouTab = showMixForYouTab,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
                                 }
@@ -455,6 +479,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                             AppNavigationRail(
                                 navController = navController,
                                 showAnalyticsTab = showAnalyticsTab,
+                                showMixForYouTab = showMixForYouTab,
                             ) { klass ->
                                 viewModel.reloadDestination(klass)
                             }
