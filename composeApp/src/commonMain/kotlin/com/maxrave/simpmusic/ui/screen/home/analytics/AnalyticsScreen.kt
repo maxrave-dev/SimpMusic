@@ -67,12 +67,16 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.FiveImagesComponent
 import com.maxrave.simpmusic.ui.component.ImageData
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.CalendarToday
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -85,6 +89,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AnalyticsUiState
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
@@ -134,6 +139,11 @@ fun AnalyticsScreen(
         mutableStateOf(false)
     }
 
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+
     val onItemMoreClick: (song: SongEntity) -> Unit = {
         currentItem = it
         itemBottomSheetShow = true
@@ -155,6 +165,45 @@ fun AnalyticsScreen(
         )
     }
 
+    if (showSelectionSheet) {
+        val selectedIds = selectionState.selected.toList()
+        SelectedSongsBottomSheet(
+            count = selectedIds.size,
+            onDismiss = { showSelectionSheet = false },
+            onPlayNext = {
+                selectionViewModel.playNext(selectedIds)
+                selectionState.exit()
+            },
+            onAddToQueue = {
+                selectionViewModel.addToQueue(selectedIds)
+                selectionState.exit()
+            },
+            onAddToPlaylist = { showSelectionAddToPlaylist = true },
+            onDownload = {
+                selectionViewModel.download(selectedIds)
+                selectionState.exit()
+            },
+            onAddToFavorite = {
+                selectionViewModel.addToFavorite(selectedIds)
+                selectionState.exit()
+            },
+        )
+    }
+    if (showSelectionAddToPlaylist) {
+        val selectedIds = selectionState.selected.toList()
+        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = localPlaylists,
+            listYouTubePlaylist = emptyList(),
+            onDismiss = { showSelectionAddToPlaylist = false },
+            onClick = { playlist ->
+                selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                selectionState.exit()
+            },
+            onYTPlaylistClick = {},
+        )
+    }
     if (itemBottomSheetShow && currentItem != null) {
         val track = currentItem ?: return
         NowPlayingBottomSheet(
@@ -449,6 +498,10 @@ fun AnalyticsScreen(
                                             arrayListOf(song),
                                         )
                                     },
+                                    selectionMode = selectionState.isActive,
+                                    isSelected = selectionState.isSelected(song.videoId),
+                                    onLongClick = { selectionState.start(it) },
+                                    onSelectToggle = { selectionState.toggle(it) },
                                     rightView = {
                                         Text(
                                             text =
@@ -685,6 +738,10 @@ fun AnalyticsScreen(
                                             arrayListOf(song),
                                         )
                                     },
+                                    selectionMode = selectionState.isActive,
+                                    isSelected = selectionState.isSelected(song.videoId),
+                                    onLongClick = { selectionState.start(it) },
+                                    onSelectToggle = { selectionState.toggle(it) },
                                     rightView = {
                                         Column(
                                             modifier = Modifier.fillMaxWidth(0.4f),
@@ -842,6 +899,24 @@ fun AnalyticsScreen(
             }
         }
 
+        if (selectionState.isActive) {
+            SongSelectionTopAppBar(
+                state = selectionState,
+                onSelectAll = {
+                    // Two lists are on screen at once here, so both feed select-all; the cap
+                    // trims whatever does not fit.
+                    selectionState.toggleSelectAll(
+                        (
+                            (uiState.recentlyRecord.data ?: emptyList()).map { it.second.videoId } +
+                                (uiState.topTracks.data ?: emptyList()).map { it.second.videoId }
+                        ).distinct(),
+                    )
+                },
+                onOpenActions = { showSelectionSheet = true },
+                modifier = Modifier.align(Alignment.TopCenter),
+                containerColor = Color.Black,
+            )
+        }
         var dayRangeMenuExpanded by rememberSaveable { mutableStateOf(false) }
         // Top App Bar with haze effect
         TopAppBar(

@@ -37,6 +37,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,10 +60,12 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.LibraryChipType
+import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.GridLibraryPlaylist
@@ -70,10 +73,14 @@ import com.maxrave.simpmusic.ui.component.LibraryItem
 import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -128,6 +135,11 @@ fun LibraryScreen(
     val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
     val chartPlaylists by viewModel.chartPlaylists.collectAsStateWithLifecycle()
     val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
+
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
     val accountThumbnail by viewModel.accountThumbnail.collectAsStateWithLifecycle()
     val hazeState =
         rememberHazeState(
@@ -245,6 +257,7 @@ fun LibraryScreen(
                                     isLoading = recentlyAdded is LocalResource.Loading,
                                 ),
                             navController = navController,
+                            selectionState = selectionState,
                         )
                     }
                     item {
@@ -465,6 +478,21 @@ fun LibraryScreen(
                 }
             },
         )
+        AnimatedVisibility(visible = selectionState.isActive) {
+            SongSelectionTopAppBar(
+                state = selectionState,
+                onSelectAll = {
+                    selectionState.toggleSelectAll(
+                        (recentlyAdded.data ?: emptyList())
+                            .filterIsInstance<SongEntity>()
+                            .map { it.videoId },
+                    )
+                },
+                onOpenActions = { showSelectionSheet = true },
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+            )
+        }
         Row(
             modifier =
                 Modifier
@@ -496,6 +524,45 @@ fun LibraryScreen(
                     viewModel.setCurrentScreen(type)
                 }
             }
+        }
+        if (showSelectionSheet) {
+            val selectedIds = selectionState.selected.toList()
+            SelectedSongsBottomSheet(
+                count = selectedIds.size,
+                onDismiss = { showSelectionSheet = false },
+                onPlayNext = {
+                    selectionViewModel.playNext(selectedIds)
+                    selectionState.exit()
+                },
+                onAddToQueue = {
+                    selectionViewModel.addToQueue(selectedIds)
+                    selectionState.exit()
+                },
+                onAddToPlaylist = { showSelectionAddToPlaylist = true },
+                onDownload = {
+                    selectionViewModel.download(selectedIds)
+                    selectionState.exit()
+                },
+                onAddToFavorite = {
+                    selectionViewModel.addToFavorite(selectedIds)
+                    selectionState.exit()
+                },
+            )
+        }
+        if (showSelectionAddToPlaylist) {
+            val selectedIds = selectionState.selected.toList()
+            val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+            AddToPlaylistModalBottomSheet(
+                isBottomSheetVisible = true,
+                listLocalPlaylist = localPlaylists,
+                listYouTubePlaylist = emptyList(),
+                onDismiss = { showSelectionAddToPlaylist = false },
+                onClick = { playlist ->
+                    selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                    selectionState.exit()
+                },
+                onYTPlaylistClick = {},
+            )
         }
     }
 }

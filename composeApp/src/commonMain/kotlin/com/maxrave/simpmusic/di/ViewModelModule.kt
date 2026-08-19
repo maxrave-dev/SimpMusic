@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -40,6 +41,12 @@ val viewModelModule =
         single {
             SearchViewModel(
                 get(),
+                get(),
+                get(),
+            )
+        }
+        viewModel {
+            SongSelectionViewModel(
                 get(),
                 get(),
             )
