@@ -50,12 +50,16 @@ import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.PlayCircle
@@ -67,6 +71,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -108,6 +113,11 @@ fun LibraryDynamicPlaylistScreen(
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showSearchBar by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
+
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
 
     val favorite by viewModel.listFavoriteSong.collectAsStateWithLifecycle()
     var tempFavorite by remember { mutableStateOf(emptyList<SongEntity>()) }
@@ -302,6 +312,10 @@ fun LibraryDynamicPlaylistScreen(
                                     arrayListOf(song.second.toTrack()),
                                 )
                             },
+                            selectionMode = selectionState.isActive,
+                            isSelected = selectionState.isSelected(song.second.videoId),
+                            onLongClick = { selectionState.start(it) },
+                            onSelectToggle = { selectionState.toggle(it) },
                             rightView = {
                                 Column(
                                     modifier = Modifier.wrapContentWidth(),
@@ -368,12 +382,55 @@ fun LibraryDynamicPlaylistScreen(
                             arrayListOf(song.toTrack()),
                         )
                     },
+                    selectionMode = selectionState.isActive,
+                    isSelected = selectionState.isSelected(song.videoId),
+                    onLongClick = { selectionState.start(it) },
+                    onSelectToggle = { selectionState.toggle(it) },
                 )
             }
         }
         item {
             EndOfPage()
         }
+    }
+    if (showSelectionSheet) {
+        val selectedIds = selectionState.selected.toList()
+        SelectedSongsBottomSheet(
+            count = selectedIds.size,
+            onDismiss = { showSelectionSheet = false },
+            onPlayNext = {
+                selectionViewModel.playNext(selectedIds)
+                selectionState.exit()
+            },
+            onAddToQueue = {
+                selectionViewModel.addToQueue(selectedIds)
+                selectionState.exit()
+            },
+            onAddToPlaylist = { showSelectionAddToPlaylist = true },
+            onDownload = {
+                selectionViewModel.download(selectedIds)
+                selectionState.exit()
+            },
+            onAddToFavorite = {
+                selectionViewModel.addToFavorite(selectedIds)
+                selectionState.exit()
+            },
+        )
+    }
+    if (showSelectionAddToPlaylist) {
+        val selectedIds = selectionState.selected.toList()
+        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = localPlaylists,
+            listYouTubePlaylist = emptyList(),
+            onDismiss = { showSelectionAddToPlaylist = false },
+            onClick = { playlist ->
+                selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                selectionState.exit()
+            },
+            onYTPlaylistClick = {},
+        )
     }
     if (showBottomSheet) {
         NowPlayingBottomSheet(
@@ -531,6 +588,43 @@ fun LibraryDynamicPlaylistScreen(
                         containerColor = Color.Transparent,
                     ),
             )
+            // Drawn last inside the same Box, with an opaque colour, so it covers the normal bar
+            // instead of pushing it around — the search bar below keeps its position either way.
+            if (selectionState.isActive) {
+                SongSelectionTopAppBar(
+                    state = selectionState,
+                    onSelectAll = {
+                        val visible =
+                            when (type) {
+                                LibraryDynamicPlaylistType.TopTracks ->
+                                    (
+                                        if (query.isNotEmpty() && showSearchBar) {
+                                            tempTopTracks
+                                        } else {
+                                            analyticsUIState.topTracks.data ?: emptyList()
+                                        }
+                                    ).map { it.second.videoId }
+
+                                LibraryDynamicPlaylistType.Downloaded ->
+                                    (if (query.isNotEmpty() && showSearchBar) tempDownloaded else downloaded)
+                                        .map { it.videoId }
+
+                                LibraryDynamicPlaylistType.Favorite ->
+                                    (if (query.isNotEmpty() && showSearchBar) tempFavorite else favorite)
+                                        .map { it.videoId }
+
+                                LibraryDynamicPlaylistType.MostPlayed ->
+                                    (if (query.isNotEmpty() && showSearchBar) tempMostPlayed else mostPlayed)
+                                        .map { it.videoId }
+
+                                else -> emptyList()
+                            }
+                        selectionState.toggleSelectAll(visible)
+                    },
+                    onOpenActions = { showSelectionSheet = true },
+                    containerColor = Color.Black,
+                )
+            }
         }
         androidx.compose.animation.AnimatedVisibility(visible = showSearchBar) {
             SearchBar(

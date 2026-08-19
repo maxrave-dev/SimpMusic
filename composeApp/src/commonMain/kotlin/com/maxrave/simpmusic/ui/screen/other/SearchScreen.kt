@@ -101,6 +101,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.MoodCategoryCard
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -114,6 +115,9 @@ import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.ShimmerSearchItem
 import com.maxrave.simpmusic.ui.component.SimpMusicChartButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowOutward
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.History
@@ -129,6 +133,7 @@ import com.maxrave.simpmusic.viewModel.SearchScreenUIState
 import com.maxrave.simpmusic.viewModel.SearchType
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.toStringRes
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -139,6 +144,7 @@ import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.albums
 import simpmusic.composeapp.generated.resources.artists
@@ -245,6 +251,11 @@ fun SearchScreen(
 
     var sheetSong by remember { mutableStateOf<SongEntity?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
     val currentVideoId by searchViewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val chipRowState = rememberScrollState()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -289,6 +300,45 @@ fun SearchScreen(
             }
     }
 
+    if (showSelectionSheet) {
+        val selectedIds = selectionState.selected.toList()
+        SelectedSongsBottomSheet(
+            count = selectedIds.size,
+            onDismiss = { showSelectionSheet = false },
+            onPlayNext = {
+                selectionViewModel.playNext(selectedIds)
+                selectionState.exit()
+            },
+            onAddToQueue = {
+                selectionViewModel.addToQueue(selectedIds)
+                selectionState.exit()
+            },
+            onAddToPlaylist = { showSelectionAddToPlaylist = true },
+            onDownload = {
+                selectionViewModel.download(selectedIds)
+                selectionState.exit()
+            },
+            onAddToFavorite = {
+                selectionViewModel.addToFavorite(selectedIds)
+                selectionState.exit()
+            },
+        )
+    }
+    if (showSelectionAddToPlaylist) {
+        val selectedIds = selectionState.selected.toList()
+        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = localPlaylists,
+            listYouTubePlaylist = emptyList(),
+            onDismiss = { showSelectionAddToPlaylist = false },
+            onClick = { playlist ->
+                selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                selectionState.exit()
+            },
+            onYTPlaylistClick = {},
+        )
+    }
     if (showBottomSheet) {
         NowPlayingBottomSheet(
             onDismiss = {
@@ -729,6 +779,10 @@ fun SearchScreen(
                                                                                 arrayListOf(result.toTrack()),
                                                                             )
                                                                         },
+                                                                        selectionMode = selectionState.isActive,
+                                                                        isSelected = selectionState.isSelected(result.videoId),
+                                                                        onLongClick = { selectionState.start(it) },
+                                                                        onSelectToggle = { selectionState.toggle(it) },
                                                                     )
                                                                 }
 
@@ -764,6 +818,10 @@ fun SearchScreen(
                                                                                 arrayListOf(result.toTrack()),
                                                                             )
                                                                         },
+                                                                        selectionMode = selectionState.isActive,
+                                                                        isSelected = selectionState.isSelected(result.videoId),
+                                                                        onLongClick = { selectionState.start(it) },
+                                                                        onSelectToggle = { selectionState.toggle(it) },
                                                                     )
                                                                 }
 
@@ -907,6 +965,26 @@ fun SearchScreen(
                             },
                         ).padding(vertical = 10.dp),
             ) {
+        AnimatedVisibility(visible = selectionState.isActive) {
+            SongSelectionTopAppBar(
+                state = selectionState,
+                onSelectAll = {
+                    val visible =
+                        when (searchScreenState.searchType) {
+                            SearchType.SONGS -> searchScreenState.searchSongsResult.map { it.videoId }
+                            SearchType.VIDEOS -> searchScreenState.searchVideosResult.map { it.videoId }
+                            SearchType.ALL ->
+                                searchScreenState.searchAllResult.mapNotNull {
+                                    (it as? SongsResult)?.videoId ?: (it as? VideosResult)?.videoId
+                                }
+                            else -> emptyList()
+                        }
+                    selectionState.toggleSelectAll(visible)
+                },
+                onOpenActions = { showSelectionSheet = true },
+                containerColor = Color.Transparent,
+            )
+        }
         // Search Bar with Animated Placeholder
         SearchBar(
             inputField = {

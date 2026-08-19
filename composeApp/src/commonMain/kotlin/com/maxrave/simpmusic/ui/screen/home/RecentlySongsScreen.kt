@@ -16,10 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -31,12 +35,16 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -45,6 +53,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -67,6 +76,11 @@ fun RecentlySongsScreen(
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val hazeState = rememberHazeState()
+
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
 
     val recentlyItems = viewModel.recentlySongs.collectAsLazyPagingItems()
     val playingTrack by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(initial = null)
@@ -130,6 +144,10 @@ fun RecentlySongsScreen(
                                     arrayListOf(item.toTrack()),
                                 )
                             },
+                            selectionMode = selectionState.isActive,
+                            isSelected = selectionState.isSelected(item.videoId),
+                            onLongClick = { selectionState.start(it) },
+                            onSelectToggle = { selectionState.toggle(it) },
                             modifier = Modifier.animateItem(),
                         )
                     }
@@ -242,6 +260,60 @@ fun RecentlySongsScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                 ),
+        )
+        if (selectionState.isActive) {
+            SongSelectionTopAppBar(
+                state = selectionState,
+                onSelectAll = {
+                    selectionState.toggleSelectAll(
+                        (0 until recentlyItems.itemCount).mapNotNull {
+                            (recentlyItems.peek(it) as? SongEntity)?.videoId
+                        },
+                    )
+                },
+                onOpenActions = { showSelectionSheet = true },
+                modifier = Modifier.align(Alignment.TopCenter),
+                containerColor = Color.Black,
+            )
+        }
+    }
+    if (showSelectionSheet) {
+        val selectedIds = selectionState.selected.toList()
+        SelectedSongsBottomSheet(
+            count = selectedIds.size,
+            onDismiss = { showSelectionSheet = false },
+            onPlayNext = {
+                selectionViewModel.playNext(selectedIds)
+                selectionState.exit()
+            },
+            onAddToQueue = {
+                selectionViewModel.addToQueue(selectedIds)
+                selectionState.exit()
+            },
+            onAddToPlaylist = { showSelectionAddToPlaylist = true },
+            onDownload = {
+                selectionViewModel.download(selectedIds)
+                selectionState.exit()
+            },
+            onAddToFavorite = {
+                selectionViewModel.addToFavorite(selectedIds)
+                selectionState.exit()
+            },
+        )
+    }
+    if (showSelectionAddToPlaylist) {
+        val selectedIds = selectionState.selected.toList()
+        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = localPlaylists,
+            listYouTubePlaylist = emptyList(),
+            onDismiss = { showSelectionAddToPlaylist = false },
+            onClick = { playlist ->
+                selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                selectionState.exit()
+            },
+            onYTPlaylistClick = {},
         )
     }
 }

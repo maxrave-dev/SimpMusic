@@ -98,6 +98,7 @@ import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.toImmersiveBackground
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -109,6 +110,9 @@ import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
@@ -127,6 +131,7 @@ import com.maxrave.simpmusic.viewModel.PlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.PlaylistUIState
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -199,6 +204,11 @@ fun PlaylistScreen(
     }
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
+
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
 
     val filteredTrack by remember {
         derivedStateOf {
@@ -1085,6 +1095,10 @@ fun PlaylistScreen(
                                                 arrayListOf(item),
                                             )
                                         },
+                                        selectionMode = selectionState.isActive,
+                                        isSelected = selectionState.isSelected(item.videoId),
+                                        onLongClick = { selectionState.start(it) },
+                                        onSelectToggle = { selectionState.toggle(it) },
                                         modifier = Modifier,
                                     )
                                 } else {
@@ -1102,6 +1116,10 @@ fun PlaylistScreen(
                                                 arrayListOf(item),
                                             )
                                         },
+                                        selectionMode = selectionState.isActive,
+                                        isSelected = selectionState.isSelected(item.videoId),
+                                        onLongClick = { selectionState.start(it) },
+                                        onSelectToggle = { selectionState.toggle(it) },
                                         modifier = Modifier,
                                     )
                                 }
@@ -1241,6 +1259,65 @@ fun PlaylistScreen(
                     }
                 }
 
+                AnimatedVisibility(
+                    visible = selectionState.isActive,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically(),
+                ) {
+                    SongSelectionTopAppBar(
+                        state = selectionState,
+                        onSelectAll = {
+                            selectionState.toggleSelectAll(filteredTrack.map { it.videoId })
+                        },
+                        onOpenActions = { showSelectionSheet = true },
+                        modifier =
+                            Modifier.hazeEffect(hazeState) {
+                                blurEnabled = true
+                                blurRadius = 24.dp
+                                backgroundColor = mutedPaletteBg
+                                tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
+                            },
+                    )
+                }
+                if (showSelectionSheet) {
+                    val selectedIds = selectionState.selected.toList()
+                    SelectedSongsBottomSheet(
+                        count = selectedIds.size,
+                        onDismiss = { showSelectionSheet = false },
+                        onPlayNext = {
+                            selectionViewModel.playNext(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToQueue = {
+                            selectionViewModel.addToQueue(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToPlaylist = { showSelectionAddToPlaylist = true },
+                        onDownload = {
+                            selectionViewModel.download(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToFavorite = {
+                            selectionViewModel.addToFavorite(selectedIds)
+                            selectionState.exit()
+                        },
+                    )
+                }
+                if (showSelectionAddToPlaylist) {
+                    val selectedIds = selectionState.selected.toList()
+                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+                    AddToPlaylistModalBottomSheet(
+                        isBottomSheetVisible = true,
+                        listLocalPlaylist = localPlaylists,
+                        listYouTubePlaylist = emptyList(),
+                        onDismiss = { showSelectionAddToPlaylist = false },
+                        onClick = { playlist ->
+                            selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                            selectionState.exit()
+                        },
+                        onYTPlaylistClick = {},
+                    )
+                }
                 if (itemBottomSheetShow && currentItem != null) {
                     val track = currentItem?.toSongEntity() ?: return@Crossfade
                     NowPlayingBottomSheet(
@@ -1278,7 +1355,7 @@ fun PlaylistScreen(
                     )
                 }
                 AnimatedVisibility(
-                    visible = shouldHideTopBar && !showSearchBar,
+                    visible = shouldHideTopBar && !showSearchBar && !selectionState.isActive,
                     enter = fadeIn() + slideInVertically(),
                     exit = fadeOut() + slideOutVertically(),
                 ) {

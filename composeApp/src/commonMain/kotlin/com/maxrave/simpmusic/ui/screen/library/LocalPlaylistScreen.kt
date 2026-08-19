@@ -118,6 +118,7 @@ import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.component.DraggableItem
@@ -128,6 +129,10 @@ import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionAction
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.component.SortPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.component.liquidGlass
@@ -135,6 +140,7 @@ import com.maxrave.simpmusic.ui.component.painterPlaylistThumbnail
 import com.maxrave.simpmusic.ui.component.playlistTitleGradient
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
+import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
@@ -149,6 +155,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -185,6 +192,7 @@ import simpmusic.composeapp.generated.resources.created_at
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.reload
+import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.sort_by
 import simpmusic.composeapp.generated.resources.suggest
 import simpmusic.composeapp.generated.resources.sync_playlist_warning
@@ -253,6 +261,11 @@ fun LocalPlaylistScreen(
     )
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestions by rememberSaveable { mutableStateOf(false) }
+
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestButton by rememberSaveable { mutableStateOf(false) }
 
     val playingTrack by sharedViewModel.nowPlayingState
@@ -1339,6 +1352,11 @@ fun LocalPlaylistScreen(
                                     arrayListOf(item.toTrack()),
                                 )
                             },
+                            selectionMode = selectionState.isActive,
+                            isSelected = selectionState.isSelected(item.videoId),
+                            // No long press while reordering: that gesture already belongs to drag.
+                            onLongClick = if (changingOrder) null else ({ selectionState.start(it) }),
+                            onSelectToggle = { selectionState.toggle(it) },
                             modifier = mod,
                         )
                     } else {
@@ -1357,6 +1375,11 @@ fun LocalPlaylistScreen(
                                     arrayListOf(item.toTrack()),
                                 )
                             },
+                            selectionMode = selectionState.isActive,
+                            isSelected = selectionState.isSelected(item.videoId),
+                            // No long press while reordering: that gesture already belongs to drag.
+                            onLongClick = if (changingOrder) null else ({ selectionState.start(it) }),
+                            onSelectToggle = { selectionState.toggle(it) },
                             modifier = mod,
                         )
                     }
@@ -1397,6 +1420,83 @@ fun LocalPlaylistScreen(
         item {
             EndOfPage()
         }
+    }
+    AnimatedVisibility(
+        visible = selectionState.isActive,
+        enter = fadeIn() + slideInVertically(),
+        exit = fadeOut() + slideOutVertically(),
+    ) {
+        SongSelectionTopAppBar(
+            state = selectionState,
+            onSelectAll = {
+                // peek() rather than get(): reading an item is what asks Paging to load its page,
+                // and select-all must not drag the whole playlist into memory.
+                selectionState.toggleSelectAll(
+                    (0 until trackPagingItems.itemCount).mapNotNull {
+                        trackPagingItems.peek(it)?.first?.videoId
+                    },
+                )
+            },
+            onOpenActions = { showSelectionSheet = true },
+            modifier =
+                Modifier.hazeEffect(hazeState) {
+                    blurEnabled = true
+                    blurRadius = 24.dp
+                    backgroundColor = mutedPaletteBg
+                    tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
+                },
+        )
+    }
+    if (showSelectionSheet) {
+        val selectedIds = selectionState.selected.toList()
+        val removeLabel = stringResource(Res.string.remove_from_playlist)
+        SelectedSongsBottomSheet(
+            count = selectedIds.size,
+            onDismiss = { showSelectionSheet = false },
+            onPlayNext = {
+                selectionViewModel.playNext(selectedIds)
+                selectionState.exit()
+            },
+            onAddToQueue = {
+                selectionViewModel.addToQueue(selectedIds)
+                selectionState.exit()
+            },
+            onAddToPlaylist = { showSelectionAddToPlaylist = true },
+            onDownload = {
+                selectionViewModel.download(selectedIds)
+                selectionState.exit()
+            },
+            onAddToFavorite = {
+                selectionViewModel.addToFavorite(selectedIds)
+                selectionState.exit()
+            },
+            extraActions =
+                listOf(
+                    SongSelectionAction(
+                        icon = SimpIcons.Delete,
+                        label = removeLabel,
+                        tint = Color.Red,
+                    ) {
+                        selectionViewModel.removeFromLocalPlaylist(uiState.id, selectedIds)
+                        selectionState.exit()
+                    },
+                ),
+        )
+    }
+    if (showSelectionAddToPlaylist) {
+        val selectedIds = selectionState.selected.toList()
+        val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = localPlaylists,
+            listYouTubePlaylist = emptyList(),
+            onDismiss = { showSelectionAddToPlaylist = false },
+            onClick = { playlist ->
+                selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                selectionState.exit()
+            },
+            onYTPlaylistClick = {},
+        )
     }
     if (itemBottomSheetShow && currentItem != null) {
         val track = currentItem ?: return
@@ -1505,7 +1605,7 @@ fun LocalPlaylistScreen(
         )
     }
     AnimatedVisibility(
-        visible = shouldHideTopBar,
+        visible = shouldHideTopBar && !selectionState.isActive,
         enter = fadeIn() + slideInVertically(),
         exit = fadeOut() + slideOutVertically(),
     ) {

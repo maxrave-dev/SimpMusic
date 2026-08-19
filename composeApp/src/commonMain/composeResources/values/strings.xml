@@ -606,4 +606,10 @@
     <string name="import_failed">Import failed</string>
     <string name="import_invalid_file">This file is not a valid SimpMusic import file. Convert your library at simpmusic.org first.</string>
     <string name="analytics">Analytics</string>
+    <string name="select_all">Select all</string>
+    <string name="n_selected">%1$d selected</string>
+    <string name="n_songs_selected">%1$d songs selected</string>
+    <string name="max_selection_reached">You can select up to %1$d songs at a time</string>
+    <string name="exit_selection">Exit selection</string>
+    <string name="remove_from_playlist">Remove from playlist</string>
 </resources>

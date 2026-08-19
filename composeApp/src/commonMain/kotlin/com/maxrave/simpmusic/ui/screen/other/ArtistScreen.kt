@@ -94,6 +94,7 @@ import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -104,6 +105,10 @@ import com.maxrave.simpmusic.ui.component.HomeItemVideo
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.PersonAdd
@@ -118,6 +123,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ArtistScreenState
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -166,6 +172,11 @@ fun ArtistScreen(
     var showBottomSheet by remember {
         mutableStateOf(false)
     }
+
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(channelId) {
         if (channelId != artistScreenState.data.channelId) {
@@ -528,6 +539,7 @@ fun ArtistScreen(
                         item(contentType = "sections") {
                             ArtistSections(
                                 state = state,
+                                selectionState = selectionState,
                                 playingTrack = playingTrack,
                                 descriptionTint = sectionTint,
                                 navController = navController,
@@ -543,7 +555,7 @@ fun ArtistScreen(
 
                     // Haze top bar appears once the header scrolls away.
                     AnimatedVisibility(
-                        visible = shouldHideTopBar,
+                        visible = shouldHideTopBar && !selectionState.isActive,
                         enter = fadeIn() + slideInVertically(),
                         exit = fadeOut() + slideOutVertically(),
                     ) {
@@ -590,6 +602,65 @@ fun ArtistScreen(
                     }
                 }
 
+                AnimatedVisibility(
+                    visible = selectionState.isActive,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically(),
+                ) {
+                    SongSelectionTopAppBar(
+                        state = selectionState,
+                        onSelectAll = {
+                            selectionState.toggleSelectAll(
+                                (artistScreenState as? ArtistScreenState.Success)
+                                    ?.data
+                                    ?.popularSongs
+                                    ?.map { it.videoId }
+                                    ?: emptyList(),
+                            )
+                        },
+                        onOpenActions = { showSelectionSheet = true },
+                        containerColor = Color.Black,
+                    )
+                }
+                if (showSelectionSheet) {
+                    val selectedIds = selectionState.selected.toList()
+                    SelectedSongsBottomSheet(
+                        count = selectedIds.size,
+                        onDismiss = { showSelectionSheet = false },
+                        onPlayNext = {
+                            selectionViewModel.playNext(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToQueue = {
+                            selectionViewModel.addToQueue(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToPlaylist = { showSelectionAddToPlaylist = true },
+                        onDownload = {
+                            selectionViewModel.download(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToFavorite = {
+                            selectionViewModel.addToFavorite(selectedIds)
+                            selectionState.exit()
+                        },
+                    )
+                }
+                if (showSelectionAddToPlaylist) {
+                    val selectedIds = selectionState.selected.toList()
+                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+                    AddToPlaylistModalBottomSheet(
+                        isBottomSheetVisible = true,
+                        listLocalPlaylist = localPlaylists,
+                        listYouTubePlaylist = emptyList(),
+                        onDismiss = { showSelectionAddToPlaylist = false },
+                        onClick = { playlist ->
+                            selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                            selectionState.exit()
+                        },
+                        onYTPlaylistClick = {},
+                    )
+                }
                 if (showBottomSheet && choosingTrack != null) {
                     NowPlayingBottomSheet(
                         onDismiss = {
@@ -617,6 +688,7 @@ fun ArtistScreen(
 @Composable
 private fun ArtistSections(
     state: ArtistScreenState.Success,
+    selectionState: SongSelectionState,
     playingTrack: String?,
     descriptionTint: Color,
     navController: NavController,
@@ -687,6 +759,10 @@ private fun ArtistSections(
                                 arrayListOf(song),
                             )
                         },
+                        selectionMode = selectionState.isActive,
+                        isSelected = selectionState.isSelected(song.videoId),
+                        onLongClick = { selectionState.start(it) },
+                        onSelectToggle = { selectionState.toggle(it) },
                     )
                 }
             }
