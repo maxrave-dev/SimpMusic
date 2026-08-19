@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Passed as clickable(rippleOverride = …) on widget controls. Glance has no "ripple off" flag:
+  NoRippleOverride (0) means "do not override", i.e. keep the default ripple. Overriding it with
+  a fully transparent shape is what actually removes the highlight.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+</shape>
