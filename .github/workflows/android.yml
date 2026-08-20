@@ -40,28 +40,21 @@ jobs:
         run: |
           echo "" >> ./gradle.properties
           echo "isFullBuild=true" >> ./gradle.properties
-
-      - name: Update Sentry Secrets
-        env:
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
-          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
-
       - name: Update Last.fm secrets
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
         run: |
-          echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> ./local.properties
+          echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" > ./local.properties
           echo "LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}" >> ./local.properties
 
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Build release APK
-        run: ./gradlew androidApp:assembleRelease
+      -name: Build release APK
+      env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          run: ./gradlew androidApp: assembleRelease 
 
       - name: Check build-tools version
         shell: bash
