@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  previewImage for launchers below API 31, which do not read previewLayout. All three widgets
+  used to point at preview_widget.png — the artwork of the Now Playing widget that has since been
+  deleted — so on those launchers every entry in the picker showed the same wrong image.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#1C1B1F" />
+            <corners android:radius="18dp" />
+            <size android:width="150dp" android:height="150dp" />
+        </shape>
+    </item>
+    <item
+        android:width="60dp"
+        android:height="12dp"
+        android:bottom="18dp"
+        android:gravity="center_horizontal|bottom">
+        <shape android:shape="rectangle">
+            <solid android:color="#472E2E2E" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+</layer-list>
