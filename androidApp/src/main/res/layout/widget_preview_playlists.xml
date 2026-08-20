@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Picker preview for the Playlists widget. Two bands, matching the real layout: the player on a
+  lighter surface over a darker strip of recently added covers.
+
+  Only views RemoteViews accepts may appear here — the launcher inflates this through
+  RemoteViews, and a bare <View> makes it fail and print "Couldn't add widget." in the preview
+  slot. Placeholders are therefore ImageViews with a background and no src.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/widget_preview_surface"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/widget_preview_band"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/widget_preview_art"
+            android:contentDescription="@null" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="96dp"
+                android:layout_height="10dp"
+                android:background="@drawable/widget_preview_line"
+                android:contentDescription="@null" />
+
+            <ImageView
+                android:layout_width="62dp"
+                android:layout_height="8dp"
+                android:layout_marginTop="5dp"
+                android:alpha="0.55"
+                android:background="@drawable/widget_preview_line"
+                android:contentDescription="@null" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/rounded_skip_previous_24"
+                    android:tint="#FFFFFF" />
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginStart="14dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/rounded_play_arrow_24"
+                    android:tint="#FFFFFF" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="14dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/rounded_skip_next_24"
+                    android:tint="#FFFFFF" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="10dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp">
+
+        <ImageView
+            android:layout_width="76dp"
+            android:layout_height="9dp"
+            android:background="@drawable/widget_preview_line"
+            android:contentDescription="@null" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="@drawable/widget_shortcut_tile"
+                android:contentDescription="@null" />
+
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/widget_shortcut_tile"
+                android:contentDescription="@null" />
+
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/widget_shortcut_tile"
+                android:contentDescription="@null" />
+
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/widget_shortcut_tile"
+                android:contentDescription="@null" />
+
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/widget_shortcut_tile"
+                android:contentDescription="@null" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

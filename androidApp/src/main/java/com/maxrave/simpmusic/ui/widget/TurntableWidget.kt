@@ -101,10 +101,9 @@ class TurntableWidget :
                 val paletteState = rememberPaletteState()
                 var artwork by remember { mutableStateOf<Bitmap?>(null) }
 
-                // Kept apart from [artwork] on purpose. The palette has to come from the
-                // untouched cover, the same bitmap MainAppWidget feeds its own palette; running
-                // it on the cropped, round-cornered copy reads the transparent corners as part
-                // of the image and lands on a different colour, so the two widgets drift apart.
+                // Kept apart from [artwork] on purpose: the palette has to come from the
+                // untouched cover. Running it on a cropped or round-cornered copy reads the
+                // transparent corners as part of the image and lands on a different colour.
                 var rawArtwork by remember { mutableStateOf<Bitmap?>(null) }
                 var bgColor by remember { mutableStateOf(Color.Black) }
 
@@ -128,7 +127,7 @@ class TurntableWidget :
                             .Builder(context)
                             .data(thumbUrl)
                             .diskCachePolicy(CachePolicy.ENABLED)
-                            // Same cache key as MainAppWidget so both widgets read the identical
+                            // Shared cache key across the widgets so they all read the identical
                             // decoded bitmap; a separate key can hand back a differently scaled
                             // copy, which is enough for the palette to pick another colour.
                             .diskCacheKey(thumbUrl + "BIGGER")
@@ -158,7 +157,14 @@ class TurntableWidget :
                             provider = ImageProvider(it),
                             contentDescription = screenDataState.nowPlayingTitle,
                             contentScale = ContentScale.Crop,
-                            modifier = GlanceModifier.fillMaxSize().cornerRadius(16.dp),
+                            modifier =
+                                GlanceModifier
+                                    .fillMaxSize()
+                                    // The launcher rounds the widget itself by this system dimen,
+                                    // so the artwork uses the same one instead of a number picked
+                                    // by eye — the two curves then match on every launcher, which
+                                    // a fixed dp cannot do since each one rounds differently.
+                                    .cornerRadius(android.R.dimen.system_app_widget_background_radius),
                         )
                     }
                     // The pill is a drawable background rather than a shape drawn into the
