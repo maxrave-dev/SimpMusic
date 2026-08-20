@@ -40,6 +40,7 @@ jobs:
         run: |
           echo "" >> ./gradle.properties
           echo "isFullBuild=true" >> ./gradle.properties
+
       - name: Update Last.fm secrets
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
@@ -51,10 +52,10 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
-      -name: Build release APK
-      env:
+      - name: Build release APK
+        env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          run: ./gradlew androidApp: assembleRelease 
+        run: ./gradlew androidApp:assembleRelease
 
       - name: Check build-tools version
         shell: bash
