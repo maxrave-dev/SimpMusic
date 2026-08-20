@@ -180,9 +180,10 @@ sentry {
     ignoredBuildTypes.set(setOf("debug"))
     autoInstallation.enabled = false
     if (isFullBuild) {
-        val token =
+        // Priority order: Environment variable > local.properties > empty string
+        val token = System.getenv("SENTRY_AUTH_TOKEN") ?: 
             try {
-                println("Full build detected, enabling Sentry Auth Token")
+                println("Full build detected, loading Sentry Auth Token from local.properties")
                 val properties = Properties()
                 properties.load(rootProject.file("local.properties").inputStream())
                 properties.getProperty("SENTRY_AUTH_TOKEN")
@@ -190,6 +191,12 @@ sentry {
                 println("Failed to load SENTRY_AUTH_TOKEN from local.properties: ${e.message}")
                 null
             }
+        
+        if (token.isNullOrBlank()) {
+            println("⚠️  WARNING: SENTRY_AUTH_TOKEN is empty or not set. Sentry ProGuard mapping upload will fail.")
+            println("   Please ensure SENTRY_AUTH_TOKEN environment variable is set during the build.")
+        }
+        
         authToken.set(token ?: "")
         includeProguardMapping.set(true)
         autoUploadProguardMapping.set(true)
