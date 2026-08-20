@@ -79,7 +79,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
@@ -318,8 +317,13 @@ fun MiniPlayer(
     }
 
     if (getPlatform() == Platform.Android) {
+        // One shape for both the Card and the clip below. They must not diverge: the clip wraps
+        // the Card's own background draw, so the larger radius wins and silently becomes the
+        // visible one.
+        val miniPlayerShape =
+            if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(12.dp)
         Card(
-            shape = if (isLiquidGlassEnabled == DataStoreManager.TRUE) CircleShape else RoundedCornerShape(12.dp),
+            shape = miniPlayerShape,
             colors =
                 CardDefaults.cardColors(
                     containerColor = if (isLiquidGlassEnabled == DataStoreManager.TRUE) Color.Transparent else background.value,
@@ -335,7 +339,7 @@ fun MiniPlayer(
                         },
                     ).then(
                         Modifier
-                            .clipToBounds()
+                            .clip(miniPlayerShape)
                             .offset { IntOffset(0, offsetY.value.roundToInt()) }
                             .clickable(
                                 onClick = onClick,
