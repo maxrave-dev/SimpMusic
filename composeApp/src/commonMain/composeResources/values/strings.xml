@@ -314,7 +314,16 @@
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Shape the sound with a ten-band curve</string>
     <string name="equalizer_preamp">Preamp</string>
+    <string name="equalizer_presets">Presets</string>
+    <string name="equalizer_preset_custom">Custom</string>
     <string name="equalizer_reset">Reset</string>
+    <string name="equalizer_autoeq">AutoEq</string>
+    <string name="equalizer_autoeq_choose">Choose headphone</string>
+    <string name="equalizer_autoeq_search">Headphone model</string>
+    <string name="equalizer_autoeq_downloading">Downloading the AutoEq profile list…</string>
+    <string name="equalizer_autoeq_unavailable">Couldn't reach AutoEq. Check your connection and try again.</string>
+    <string name="equalizer_autoeq_empty">No headphone matches that name</string>
+    <string name="equalizer_autoeq_failed">Couldn't load that profile — it needs a connection the first time</string>
     <string name="sync_follow_to_youtube_description">Following an artist in SimpMusic also subscribes to their channel on your YouTube account</string>
     <string name="sync_follow_failed">Couldn't update your YouTube subscription</string>
     <string name="subscribed_on_youtube">Subscribed on YouTube</string>

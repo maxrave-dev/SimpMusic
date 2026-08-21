@@ -17,6 +17,7 @@ import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.PodcastViewModel
 import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SearchViewModel
+import com.maxrave.simpmusic.viewModel.AutoEqViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
@@ -89,6 +90,12 @@ val viewModelModule =
         }
         viewModel {
             HomeViewModel(
+                get(),
+                get(),
+            )
+        }
+        viewModel {
+            AutoEqViewModel(
                 get(),
                 get(),
             )
