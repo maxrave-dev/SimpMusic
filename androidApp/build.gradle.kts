@@ -201,6 +201,7 @@ sentry {
         includeProguardMapping.set(true)
         autoUploadProguardMapping.set(true)
     } else {
+        authToken.set("")
         includeProguardMapping.set(false)
         autoUploadProguardMapping.set(false)
         uploadNativeSymbols.set(false)
