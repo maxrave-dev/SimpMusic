@@ -42,14 +42,7 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -204,37 +197,6 @@ class LocalPlaylistViewModel(
             PagingData.empty(),
         )
     val tracksPagingState: StateFlow<PagingData<Pair<SongEntity, PairSongLocalPlaylist>>> get() = _tracksPagingState
-
-    private val _searchQuery: MutableStateFlow<String> = MutableStateFlow("")
-    val searchQuery: StateFlow<String> get() = _searchQuery
-
-    fun setSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    /**
-     * Results for the search box, entirely separate from [tracksPagingState].
-     *
-     * Deliberately not a filter over the paged list: PagingData.filter only sees pages already
-     * loaded, so on a long playlist a track would be findable or not depending on how far the
-     * user had scrolled. This queries the database instead and returns a plain list.
-     *
-     * Below two characters it emits nothing — a single letter matches most of a playlist, which
-     * is neither useful to read nor cheap to fetch.
-     */
-    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    val searchResults: StateFlow<List<Pair<SongEntity, PairSongLocalPlaylist>>> =
-        _searchQuery
-            .debounce(250)
-            .distinctUntilChanged()
-            .flatMapLatest { raw ->
-                val query = raw.trim()
-                if (query.length < 2) {
-                    flowOf(emptyList())
-                } else {
-                    localPlaylistRepository.searchTracks(uiState.value.id, query)
-                }
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     private val lazyTrackPagingItems: MutableStateFlow<LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>?> = MutableStateFlow(null)
 
     fun setLazyTrackPagingItems(lazyPagingItems: LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>>) {

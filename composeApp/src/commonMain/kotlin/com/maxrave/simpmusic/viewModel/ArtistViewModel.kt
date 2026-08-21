@@ -33,10 +33,6 @@ import kotlinx.coroutines.launch
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.shuffle
-import simpmusic.composeapp.generated.resources.sync_follow_failed
-import simpmusic.composeapp.generated.resources.subscribed_on_youtube
-import simpmusic.composeapp.generated.resources.unsubscribed_on_youtube
-import org.jetbrains.compose.resources.getString
 
 class ArtistViewModel(
     private val artistRepository: ArtistRepository,
@@ -153,26 +149,8 @@ class ArtistViewModel(
     ) {
         viewModelScope.launch {
             _followed.value = (followed == 1)
-            // Both outcomes are reported; only null stays quiet, because that means mirroring
-            // is switched off and nothing was attempted. The local follow above stands either
-            // way — these toasts speak for the account, not for the follow itself.
-            val synced = artistRepository.updateFollowedStatus(channelId, followed)
-            when (synced) {
-                true ->
-                    makeToast(
-                        getString(
-                            if (followed == 1) {
-                                Res.string.subscribed_on_youtube
-                            } else {
-                                Res.string.unsubscribed_on_youtube
-                            },
-                        ),
-                    )
-
-                false -> makeToast(getString(Res.string.sync_follow_failed))
-                null -> Unit
-            }
-            log("updateFollowed: ${_followed.value}, synced: $synced")
+            artistRepository.updateFollowedStatus(channelId, followed)
+            log("updateFollowed: ${_followed.value}")
         }
     }
 
