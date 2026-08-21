@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="androidx.car.app.MEDIA_TEMPLATES" />
+    <uses-permission android:name="android.car.permission.CAR_SPEED" />
 
     <uses-feature
         android:name="android.hardware.type.automotive"

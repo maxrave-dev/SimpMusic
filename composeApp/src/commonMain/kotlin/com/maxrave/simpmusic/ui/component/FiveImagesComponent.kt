@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.ui.component
 
+
+
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee

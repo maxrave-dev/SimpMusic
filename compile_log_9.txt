@@ -1,0 +1,165 @@
+Reusing configuration cache.
+> Task :common:kmpPartiallyResolvedDependenciesChecker
+> Task :common:jvmProcessResources NO-SOURCE
+> Task :common:processJvmMainResources SKIPPED
+> Task :common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :composeApp:checkJvmMainComposeLibrariesCompatibility
+w: Compose Multiplatform runtime dependencies' versions don't match with plugin version.
+    expected: 'org.jetbrains.compose.foundation:foundation:1.11.1'
+    actual:   'org.jetbrains.compose.foundation:foundation:1.12.0-alpha01'
+
+    expected: 'org.jetbrains.compose.ui:ui:1.11.1'
+    actual:   'org.jetbrains.compose.ui:ui:1.12.0-alpha01'
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Please update Compose Multiplatform Gradle plugin's version or align dependencies' versions to match the current plugin version.
+
+w: Skiko dependencies' versions are incompatible.
+    io.coil-kt.coil3:coil-core-jvm:3.5.0
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.148.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :common:compileKotlinJvm UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :common:compileJvmMainJava NO-SOURCE
+> Task :common:jvmMainClasses UP-TO-DATE
+> Task :composeApp:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :common:jvmJar UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :composeApp:generateBuildKonfig UP-TO-DATE
+> Task :composeApp:generateComposeResClass UP-TO-DATE
+> Task :composeApp:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForJvmMain NO-SOURCE
+> Task :aiService:kmpPartiallyResolvedDependenciesChecker
+> Task :aiService:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:kspKotlinJvm SKIPPED
+> Task :domain:kmpPartiallyResolvedDependenciesChecker
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :domain:jvmProcessResources NO-SOURCE
+> Task :domain:processJvmMainResources SKIPPED
+> Task :aiService:jvmProcessResources NO-SOURCE
+> Task :aiService:processJvmMainResources SKIPPED
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :kizzy:kmpPartiallyResolvedDependenciesChecker
+> Task :data:kmpPartiallyResolvedDependenciesChecker
+> Task :data:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :ktorExt:kmpPartiallyResolvedDependenciesChecker
+> Task :ktorExt:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :ktorExt:jvmProcessResources NO-SOURCE
+> Task :ktorExt:processJvmMainResources SKIPPED
+> Task :composeApp:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :kizzy:jvmProcessResources NO-SOURCE
+> Task :kizzy:processJvmMainResources SKIPPED
+> Task :kotlinYtmusicScraper:kmpPartiallyResolvedDependenciesChecker
+> Task :kotlinYtmusicScraper:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:generateActualResourceCollectorsForJvmMain UP-TO-DATE
+> Task :lastfm:kmpPartiallyResolvedDependenciesChecker
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:jvmProcessResources NO-SOURCE
+> Task :kotlinYtmusicScraper:jvmProcessResources NO-SOURCE
+> Task :lastfm:processJvmMainResources SKIPPED
+> Task :kotlinYtmusicScraper:processJvmMainResources SKIPPED
+> Task :lyricsService:jvmProcessResources NO-SOURCE
+> Task :lyricsService:kmpPartiallyResolvedDependenciesChecker
+> Task :lyricsService:processJvmMainResources SKIPPED
+> Task :lyricsService:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :media-jvm:processResources NO-SOURCE
+> Task :media-jvm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:compileKotlinJvm UP-TO-DATE
+> Task :spotify:kmpPartiallyResolvedDependenciesChecker
+> Task :spotify:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :media-jvm-ui:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :media-jvm-ui:processResources NO-SOURCE
+> Task :domain:compileJvmMainJava NO-SOURCE
+> Task :spotify:jvmProcessResources NO-SOURCE
+> Task :domain:jvmMainClasses UP-TO-DATE
+> Task :spotify:processJvmMainResources SKIPPED
+> Task :domain:jvmJar UP-TO-DATE
+> Task :ktorExt:compileKotlinJvm UP-TO-DATE
+> Task :ktorExt:compileJvmMainJava NO-SOURCE
+> Task :ktorExt:jvmMainClasses UP-TO-DATE
+> Task :aiService:compileKotlinJvm UP-TO-DATE
+> Task :aiService:compileJvmMainJava NO-SOURCE
+> Task :ktorExt:jvmJar UP-TO-DATE
+> Task :aiService:jvmMainClasses UP-TO-DATE
+> Task :aiService:jvmJar UP-TO-DATE
+> Task :media-jvm:compileKotlin UP-TO-DATE
+> Task :lastfm:compileKotlinJvm UP-TO-DATE
+> Task :lastfm:compileJvmMainJava NO-SOURCE
+> Task :lastfm:jvmMainClasses UP-TO-DATE
+> Task :lastfm:jvmJar UP-TO-DATE
+> Task :kotlinYtmusicScraper:compileKotlinJvm UP-TO-DATE
+> Task :media-jvm:compileJava NO-SOURCE
+> Task :kizzy:compileKotlinJvm UP-TO-DATE
+> Task :media-jvm:classes UP-TO-DATE
+> Task :kotlinYtmusicScraper:compileJvmMainJava NO-SOURCE
+> Task :lyricsService:compileKotlinJvm UP-TO-DATE
+> Task :kotlinYtmusicScraper:jvmMainClasses UP-TO-DATE
+> Task :kizzy:compileJvmMainJava NO-SOURCE
+> Task :kizzy:jvmMainClasses UP-TO-DATE
+> Task :media-jvm:jar UP-TO-DATE
+> Task :kotlinYtmusicScraper:jvmJar UP-TO-DATE
+> Task :kizzy:jvmJar UP-TO-DATE
+> Task :lyricsService:compileJvmMainJava NO-SOURCE
+> Task :lyricsService:jvmMainClasses UP-TO-DATE
+> Task :lyricsService:jvmJar UP-TO-DATE
+> Task :media-jvm-ui:compileKotlin UP-TO-DATE
+> Task :media-jvm-ui:compileJava NO-SOURCE
+> Task :media-jvm-ui:classes UP-TO-DATE
+> Task :spotify:compileKotlinJvm UP-TO-DATE
+> Task :media-jvm-ui:jar UP-TO-DATE
+> Task :spotify:compileJvmMainJava NO-SOURCE
+> Task :spotify:jvmMainClasses UP-TO-DATE
+> Task :spotify:jvmJar UP-TO-DATE
+> Task :data:kspKotlinJvm UP-TO-DATE
+> Task :data:copyRoomSchemas NO-SOURCE
+> Task :data:jvmProcessResources NO-SOURCE
+> Task :data:processJvmMainResources SKIPPED
+> Task :data:compileKotlinJvm UP-TO-DATE
+> Task :data:compileJvmMainJava NO-SOURCE
+> Task :data:jvmMainClasses UP-TO-DATE
+> Task :data:jvmJar UP-TO-DATE
+> Task :composeApp:compileKotlinJvm
+w: The argument '-Xcontext-parameters' is redundant for the current language version 2.4.
+w: The argument '-Xmulti-dollar-interpolation' is redundant for the current language version 2.4.
+w: The argument '-Xwhen-guards' is redundant for the current language version 2.4.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/component/LibraryItem.kt:108:13 'when' is exhaustive so 'else' is redundant here.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/MiniPlayer.kt:491:78 Redundant call of conversion method.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/MiniPlayer.kt:767:66 Redundant call of conversion method.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/home/SettingScreen.kt:1985:49 'val md_theme_dark_primary: Color' is deprecated. Legacy storage bar color only — use MaterialTheme.colorScheme.primary in new code.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/home/SettingScreen.kt:2066:37 'val md_theme_dark_primary: Color' is deprecated. Legacy storage bar color only — use MaterialTheme.colorScheme.primary in new code.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/ArtistScreen.kt:776:35 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Singles'.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/ArtistScreen.kt:844:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Albums'.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/ArtistScreen.kt:912:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ArtistBrowse.Videos'.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/ArtistScreen.kt:1046:35 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Related'.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/player/NowPlayingScreen.kt:1446:45 Unnecessary safe call on a non-null receiver of type 'Lyrics'.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/player/NowPlayingScreen.kt:1905:37 There is more than one label with such a name in this scope.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/player/NowPlayingScreen.kt:1952:49 There is more than one label with such a name in this scope.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/viewModel/LocalPlaylistViewModel.kt:1000:43 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/viewModel/SharedViewModel.kt:1306:40 Redundant call of conversion method.
+w: file:///app/composeApp/src/jvmMain/kotlin/com/maxrave/simpmusic/expect/ui/Cookies.jvm.kt:81:1 Annotation `@ParameterName(name = "token")` is missing on actual declaration.
+All annotations from expect `com.maxrave.simpmusic.expect.ui.DiscordWebView` must be present with the same arguments on actual `com.maxrave.simpmusic.expect.ui.DiscordWebView`, otherwise they might behave incorrectly.
+
+[Incubating] Problems report is available at: file:///app/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 49s
+46 actionable tasks: 13 executed, 33 up-to-date
+Configuration cache entry reused.

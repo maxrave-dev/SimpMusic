@@ -1,5 +1,8 @@
 package com.maxrave.simpmusic.ui.screen.other
 
+
+
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -17,7 +20,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -161,6 +163,9 @@ import simpmusic.composeapp.generated.resources.search_for_songs_artists_albums_
 import simpmusic.composeapp.generated.resources.song
 import simpmusic.composeapp.generated.resources.videos
 import simpmusic.composeapp.generated.resources.what_do_you_want_to_listen_to
+import com.maxrave.simpmusic.expect.ui.rememberVoiceSearchLauncher
+import androidx.compose.foundation.layout.Row
+import com.maxrave.simpmusic.ui.icon.Mic
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -169,6 +174,7 @@ fun SearchScreen(
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
 ) {
+
     val uriHandler = LocalUriHandler.current
     val focusManager = LocalFocusManager.current
     val searchScreenState by searchViewModel.searchScreenState.collectAsStateWithLifecycle()
@@ -180,6 +186,23 @@ fun SearchScreen(
     var searchUIType by rememberSaveable { mutableStateOf(SearchUIType.EMPTY) }
     var searchText by rememberSaveable { mutableStateOf("") }
     var isSearchSubmitted by rememberSaveable { mutableStateOf(false) }
+    val voiceSearchLauncher = rememberVoiceSearchLauncher { query ->
+        searchText = query
+        isSearchSubmitted = true
+        focusManager.clearFocus()
+        searchViewModel.insertSearchHistory(query)
+        when (searchScreenState.searchType) {
+            SearchType.ALL -> searchViewModel.searchAll(query)
+            SearchType.SONGS -> searchViewModel.searchSongs(query)
+            SearchType.VIDEOS -> searchViewModel.searchVideos(query)
+            SearchType.ALBUMS -> searchViewModel.searchAlbums(query)
+            SearchType.ARTISTS -> searchViewModel.searchArtists(query)
+            SearchType.PLAYLISTS -> searchViewModel.searchPlaylists(query)
+            SearchType.FEATURED_PLAYLISTS -> searchViewModel.searchFeaturedPlaylist(query)
+            SearchType.PODCASTS -> searchViewModel.searchPodcast(query)
+        }
+    }
+
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
@@ -1049,19 +1072,31 @@ fun SearchScreen(
                         )
                     },
                     trailingIcon = {
-                        // X button only shows when there's text
-                        if (searchText.isNotEmpty()) {
-                            IconButton(
-                                modifier = Modifier.clip(CircleShape),
-                                onClick = {
-                                    searchText = ""
-                                    isSearchSubmitted = false
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = SimpIcons.Close,
-                                    contentDescription = "Clear search",
-                                )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (searchText.isNotEmpty()) {
+                                IconButton(
+                                    modifier = Modifier.clip(CircleShape),
+                                    onClick = {
+                                        searchText = ""
+                                        isSearchSubmitted = false
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = SimpIcons.Close,
+                                        contentDescription = "Clear search",
+                                    )
+                                }
+                            }
+                            if (searchText.isEmpty() || !isFocused) {
+                                IconButton(
+                                    onClick = voiceSearchLauncher,
+                                    modifier = Modifier.clip(CircleShape)
+                                ) {
+                                    Icon(
+                                        imageVector = SimpIcons.Mic,
+                                        contentDescription = "Voice search",
+                                    )
+                                }
                             }
                         }
                     },

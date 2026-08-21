@@ -1,0 +1,180 @@
+Reusing configuration cache.
+> Task :composeApp:kmpPartiallyResolvedDependenciesChecker
+> Task :common:jvmProcessResources NO-SOURCE
+
+> Task :composeApp:checkJvmMainComposeLibrariesCompatibility
+w: Compose Multiplatform runtime dependencies' versions don't match with plugin version.
+    expected: 'org.jetbrains.compose.foundation:foundation:1.11.1'
+    actual:   'org.jetbrains.compose.foundation:foundation:1.12.0-alpha01'
+
+    expected: 'org.jetbrains.compose.ui:ui:1.11.1'
+    actual:   'org.jetbrains.compose.ui:ui:1.12.0-alpha01'
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Please update Compose Multiplatform Gradle plugin's version or align dependencies' versions to match the current plugin version.
+
+w: Skiko dependencies' versions are incompatible.
+    io.coil-kt.coil3:coil-core-jvm:3.5.0
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.148.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :common:kmpPartiallyResolvedDependenciesChecker
+> Task :common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :common:processJvmMainResources SKIPPED
+> Task :composeApp:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :composeApp:generateBuildKonfig UP-TO-DATE
+> Task :composeApp:generateResourceAccessorsForJvmMain NO-SOURCE
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :aiService:kmpPartiallyResolvedDependenciesChecker
+> Task :aiService:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:generateComposeResClass UP-TO-DATE
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :aiService:jvmProcessResources NO-SOURCE
+> Task :data:kmpPartiallyResolvedDependenciesChecker
+> Task :data:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :aiService:processJvmMainResources SKIPPED
+> Task :composeApp:convertXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :ktorExt:kmpPartiallyResolvedDependenciesChecker
+> Task :kizzy:kmpPartiallyResolvedDependenciesChecker
+> Task :ktorExt:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :common:compileKotlinJvm UP-TO-DATE
+> Task :common:compileJvmMainJava NO-SOURCE
+> Task :common:jvmMainClasses UP-TO-DATE
+> Task :common:jvmJar UP-TO-DATE
+> Task :ktorExt:jvmProcessResources NO-SOURCE
+> Task :domain:kspKotlinJvm SKIPPED
+> Task :ktorExt:processJvmMainResources SKIPPED
+> Task :domain:jvmProcessResources NO-SOURCE
+> Task :domain:processJvmMainResources SKIPPED
+> Task :kizzy:jvmProcessResources NO-SOURCE
+> Task :kizzy:processJvmMainResources SKIPPED
+> Task :kotlinYtmusicScraper:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :kotlinYtmusicScraper:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kotlinYtmusicScraper:jvmProcessResources NO-SOURCE
+> Task :kotlinYtmusicScraper:processJvmMainResources SKIPPED
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :composeApp:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :composeApp:generateActualResourceCollectorsForJvmMain UP-TO-DATE
+> Task :ktorExt:compileKotlinJvm UP-TO-DATE
+> Task :ktorExt:compileJvmMainJava NO-SOURCE
+> Task :lastfm:kmpPartiallyResolvedDependenciesChecker
+> Task :lastfm:jvmProcessResources NO-SOURCE
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:processJvmMainResources SKIPPED
+> Task :ktorExt:jvmMainClasses UP-TO-DATE
+> Task :lyricsService:kmpPartiallyResolvedDependenciesChecker
+> Task :lyricsService:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :media-jvm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lyricsService:jvmProcessResources NO-SOURCE
+> Task :lyricsService:processJvmMainResources SKIPPED
+> Task :ktorExt:jvmJar UP-TO-DATE
+> Task :domain:compileKotlinJvm UP-TO-DATE
+> Task :media-jvm:processResources NO-SOURCE
+> Task :domain:compileJvmMainJava NO-SOURCE
+> Task :spotify:kmpPartiallyResolvedDependenciesChecker
+> Task :domain:jvmMainClasses UP-TO-DATE
+> Task :spotify:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :spotify:jvmProcessResources NO-SOURCE
+> Task :spotify:processJvmMainResources SKIPPED
+> Task :media-jvm-ui:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :media-jvm-ui:processResources NO-SOURCE
+> Task :domain:jvmJar UP-TO-DATE
+> Task :lastfm:compileKotlinJvm UP-TO-DATE
+> Task :aiService:compileKotlinJvm UP-TO-DATE
+> Task :spotify:compileKotlinJvm UP-TO-DATE
+> Task :lastfm:compileJvmMainJava NO-SOURCE
+> Task :lastfm:jvmMainClasses UP-TO-DATE
+> Task :kizzy:compileKotlinJvm UP-TO-DATE
+> Task :kizzy:compileJvmMainJava NO-SOURCE
+> Task :kizzy:jvmMainClasses UP-TO-DATE
+> Task :aiService:compileJvmMainJava NO-SOURCE
+> Task :aiService:jvmMainClasses UP-TO-DATE
+> Task :aiService:jvmJar UP-TO-DATE
+> Task :kizzy:jvmJar UP-TO-DATE
+> Task :lyricsService:compileKotlinJvm UP-TO-DATE
+> Task :lastfm:jvmJar UP-TO-DATE
+> Task :lyricsService:compileJvmMainJava NO-SOURCE
+> Task :lyricsService:jvmMainClasses UP-TO-DATE
+> Task :spotify:compileJvmMainJava NO-SOURCE
+> Task :spotify:jvmMainClasses UP-TO-DATE
+> Task :lyricsService:jvmJar UP-TO-DATE
+> Task :kotlinYtmusicScraper:compileKotlinJvm UP-TO-DATE
+> Task :spotify:jvmJar UP-TO-DATE
+> Task :kotlinYtmusicScraper:compileJvmMainJava NO-SOURCE
+> Task :media-jvm:compileKotlin UP-TO-DATE
+> Task :kotlinYtmusicScraper:jvmMainClasses UP-TO-DATE
+> Task :media-jvm:compileJava NO-SOURCE
+> Task :media-jvm:classes UP-TO-DATE
+> Task :media-jvm:jar UP-TO-DATE
+> Task :kotlinYtmusicScraper:jvmJar UP-TO-DATE
+> Task :data:kspKotlinJvm UP-TO-DATE
+> Task :data:jvmProcessResources NO-SOURCE
+> Task :media-jvm-ui:compileKotlin UP-TO-DATE
+> Task :data:processJvmMainResources SKIPPED
+> Task :data:copyRoomSchemas NO-SOURCE
+> Task :media-jvm-ui:compileJava NO-SOURCE
+> Task :media-jvm-ui:classes UP-TO-DATE
+> Task :media-jvm-ui:jar UP-TO-DATE
+> Task :data:compileKotlinJvm UP-TO-DATE
+> Task :data:compileJvmMainJava NO-SOURCE
+> Task :data:jvmMainClasses UP-TO-DATE
+> Task :data:jvmJar UP-TO-DATE
+
+> Task :composeApp:compileKotlinJvm FAILED
+w: The argument '-Xcontext-parameters' is redundant for the current language version 2.4.
+w: The argument '-Xmulti-dollar-interpolation' is redundant for the current language version 2.4.
+w: The argument '-Xwhen-guards' is redundant for the current language version 2.4.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:3:34 Unresolved reference 'icons'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:169:34 Unresolved reference 'icons'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:180:9 Conflicting declarations:
+local val voiceSearchLauncher: () -> Unit
+local val voiceSearchLauncher: () -> Unit
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:181:9 Unresolved reference 'searchText'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:182:9 Unresolved reference 'isSearchSubmitted'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:183:9 Unresolved reference 'focusManager'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:185:15 Unresolved reference 'searchScreenState'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:197:9 Conflicting declarations:
+local val voiceSearchLauncher: () -> Unit
+local val voiceSearchLauncher: () -> Unit
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:198:9 Unresolved reference 'searchText'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:199:9 Unresolved reference 'isSearchSubmitted'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:200:9 Unresolved reference 'focusManager'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:202:15 Unresolved reference 'searchScreenState'.
+e: file:///app/composeApp/src/commonMain/kotlin/com/maxrave/simpmusic/ui/screen/other/SearchScreen.kt:1115:55 Unresolved reference 'Icons'.
+
+[Incubating] Problems report is available at: file:///app/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':composeApp:compileKotlinJvm' (registered in build file 'composeApp/build.gradle.kts').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 24s
+46 actionable tasks: 13 executed, 33 up-to-date
+Configuration cache entry reused.
