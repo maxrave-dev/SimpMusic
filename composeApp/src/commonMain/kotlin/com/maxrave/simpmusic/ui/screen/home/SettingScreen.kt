@@ -382,6 +382,8 @@ import simpmusic.composeapp.generated.resources.youtube_subtitle_language_messag
 import simpmusic.composeapp.generated.resources.youtube_transcript
 import simpmusic.composeapp.generated.resources.sync_follow_to_youtube
 import simpmusic.composeapp.generated.resources.sync_follow_to_youtube_description
+import simpmusic.composeapp.generated.resources.equalizer
+import simpmusic.composeapp.generated.resources.equalizer_description
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -525,6 +527,7 @@ fun SettingScreen(
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
     val syncFollowToYouTube by viewModel.syncFollowToYouTube.collectAsStateWithLifecycle()
+    val equalizerEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
     val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
     val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
     val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
@@ -1123,6 +1126,25 @@ fun SettingScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
+                // Desktop only for now: the shared interface ships a no-op default, so on Android
+                // these controls would move nothing. It lives under Playback rather than Audio
+                // because that whole group is inside an Android-only branch — "Open system
+                // equalizer" is an Android feature — so a Desktop check nested there can never
+                // be true.
+                if (getPlatform() == Platform.Desktop) {
+                    SettingItem(
+                        title = stringResource(Res.string.equalizer),
+                        subtitle = stringResource(Res.string.equalizer_description),
+                        smallSubtitle = true,
+                        switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
+                    )
+                    // Only while on. A curve that visibly does nothing is worse than no curve —
+                    // and the stored bands survive the switch, so turning it back on returns to
+                    // the shape the user built rather than to flat.
+                    AnimatedVisibility(visible = equalizerEnabled) {
+                        EqualizerSection()
+                    }
+                }
                 SettingItem(
                     title = stringResource(Res.string.save_playback_state),
                     subtitle = stringResource(Res.string.save_shuffle_and_repeat_mode),

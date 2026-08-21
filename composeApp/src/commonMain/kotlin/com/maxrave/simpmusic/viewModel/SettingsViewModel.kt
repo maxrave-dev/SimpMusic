@@ -289,6 +289,7 @@ class SettingsViewModel(
         getSpotifyLogIn()
         getSpotifyLyrics()
         getSyncFollowToYouTube()
+        getEqualizer()
         getSpotifyCanvas()
         getUsingProxy()
         getCanvasCache()
@@ -1675,6 +1676,69 @@ class SettingsViewModel(
         }
     }
 
+    private var _equalizerEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val equalizerEnabled: StateFlow<Boolean> = _equalizerEnabled
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerEnabled(enabled)
+        }
+    }
+
+    private var _equalizerBands: MutableStateFlow<List<Float>> = MutableStateFlow(List(EQUALIZER_BAND_COUNT) { 0f })
+    val equalizerBands: StateFlow<List<Float>> = _equalizerBands
+
+    private var _equalizerPreamp: MutableStateFlow<Float> = MutableStateFlow(0f)
+    val equalizerPreamp: StateFlow<Float> = _equalizerPreamp
+
+    fun getEqualizer() {
+        viewModelScope.launch {
+            launch {
+                dataStoreManager.equalizerEnabled.collect {
+                    _equalizerEnabled.emit(it == DataStoreManager.TRUE)
+                }
+            }
+            launch {
+                dataStoreManager.equalizerBands.collect { stored ->
+                    // Stored blank means flat. Short or malformed input is padded rather than
+                    // rejected, so a curve saved by a future build with more bands still loads.
+                    val parsed = stored.split(",").mapNotNull { it.trim().toFloatOrNull() }
+                    _equalizerBands.emit(
+                        List(EQUALIZER_BAND_COUNT) { parsed.getOrElse(it) { 0f } },
+                    )
+                }
+            }
+            launch {
+                dataStoreManager.equalizerPreamp.collect { _equalizerPreamp.emit(it) }
+            }
+        }
+    }
+
+    fun setEqualizerBand(
+        index: Int,
+        gainDb: Float,
+    ) {
+        viewModelScope.launch {
+            val next = _equalizerBands.value.toMutableList()
+            if (index !in next.indices) return@launch
+            next[index] = gainDb
+            dataStoreManager.setEqualizerBands(next)
+        }
+    }
+
+    fun setEqualizerPreamp(preampDb: Float) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerPreamp(preampDb)
+        }
+    }
+
+    fun resetEqualizer() {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerBands(List(EQUALIZER_BAND_COUNT) { 0f })
+            dataStoreManager.setEqualizerPreamp(0f)
+        }
+    }
+
     private var _syncFollowToYouTube: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val syncFollowToYouTube: StateFlow<Boolean> = _syncFollowToYouTube
 
@@ -1858,3 +1922,9 @@ expect fun getPackageName(): String
 expect fun getFileDir(): String
 
 expect fun changeLanguageNative(code: String)
+
+/** Number of equalizer bands, matching the ISO centres the desktop backend installs. */
+const val EQUALIZER_BAND_COUNT = 10
+
+/** Band centre labels, for display only — the backend owns the actual frequencies. */
+val EQUALIZER_BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")
