@@ -18,7 +18,8 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 
 > SimpMusic is available on Desktop now!
   
-## Features ✨️    
+## Features
+- Double tap to skip 10s backward/forward in the player ✨️
 - Play music from YouTube Music or YouTube for free, without ads and in the background
 - High quality up-to 256kbps stream for YouTube Music Premium users (NEW)
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    

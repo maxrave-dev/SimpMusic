@@ -48,9 +48,8 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.extension.getStringBlocking
-import com.maxrave.simpmusic.ui.component.SearchBarExit
-import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -138,22 +137,30 @@ fun LibraryDynamicPlaylistScreen(
         )
 
     LaunchedEffect(query) {
-        tempFavorite = favorite.filter { it.matches(query) }
+        Logger.w("LibraryDynamicPlaylistScreen", "Check query: $query")
+        tempFavorite = favorite.filter { it.title.contains(query, ignoreCase = true) }
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempFavorite: $tempFavorite")
         tempFollowed = followed.filter { it.name.contains(query, ignoreCase = true) }
-        tempMostPlayed = mostPlayed.filter { it.matches(query) }
-        tempDownloaded = downloaded.filter { it.matches(query) }
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempFollowed: $tempFollowed")
+        tempMostPlayed = mostPlayed.filter { it.title.contains(query, ignoreCase = true) }
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempMostPlayed: $tempMostPlayed")
+        tempDownloaded = downloaded.filter { it.title.contains(query, ignoreCase = true) }
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempDownloaded: $tempDownloaded")
         tempTopTracks =
             analyticsUIState.topTracks.data
-                ?.filter { it.second.matches(query) }
+                ?.filter { it.second.title.contains(query, ignoreCase = true) }
                 ?: emptyList()
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempTopTracks: $tempTopTracks")
         tempTopArtists =
             analyticsUIState.topArtists.data
                 ?.filter { it.second.name.contains(query, ignoreCase = true) }
                 ?: emptyList()
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempTopArtists: $tempTopArtists")
         tempTopAlbums =
             analyticsUIState.topAlbums.data
-                ?.filter { matchesQuery(it.second.title, it.second.artistName, query) }
+                ?.filter { it.second.title.contains(query, ignoreCase = true) }
                 ?: emptyList()
+        Logger.w("LibraryDynamicPlaylistScreen", "Check tempTopAlbums: $tempTopAlbums")
     }
 
     LazyColumn(
@@ -619,11 +626,7 @@ fun LibraryDynamicPlaylistScreen(
                 )
             }
         }
-        androidx.compose.animation.AnimatedVisibility(
-            visible = showSearchBar,
-            enter = SearchBarEnter,
-            exit = SearchBarExit,
-        ) {
+        androidx.compose.animation.AnimatedVisibility(visible = showSearchBar) {
             SearchBar(
                 modifier =
                     Modifier
@@ -709,22 +712,3 @@ sealed class LibraryDynamicPlaylistType {
             }
     }
 }
-
-/**
- * Whether a title or any of its artists contains [query].
- *
- * Artist names count as well as the title: people look for "everything by X" at least as often as
- * for one track, and typing an artist into a search box that only reads titles looks broken.
- *
- * [artists] is a converted `List<String>`, so every entry is checked — a featured artist matches
- * as readily as the lead.
- */
-private fun matchesQuery(
-    title: String,
-    artists: List<String>?,
-    query: String,
-): Boolean =
-    title.contains(query, ignoreCase = true) ||
-        artists?.any { it.contains(query, ignoreCase = true) } == true
-
-private fun SongEntity.matches(query: String): Boolean = matchesQuery(title, artistName, query)

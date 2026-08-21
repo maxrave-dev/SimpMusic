@@ -1335,7 +1335,6 @@ fun QueueItemBottomSheet(
                                         Image(
                                             imageVector = SimpIcons.KeyboardDoubleArrowUp,
                                             contentDescription = "Move up",
-                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                         )
                                     }
 
@@ -1343,7 +1342,6 @@ fun QueueItemBottomSheet(
                                         Image(
                                             imageVector = SimpIcons.KeyboardDoubleArrowDown,
                                             contentDescription = "Move down",
-                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                         )
                                     }
 
@@ -1351,7 +1349,6 @@ fun QueueItemBottomSheet(
                                         Image(
                                             imageVector = SimpIcons.Delete,
                                             contentDescription = "Delete",
-                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                         )
                                     }
                                 }
@@ -2593,7 +2590,6 @@ fun AddToPlaylistModalBottomSheet(
                                                 Image(
                                                     imageVector = SimpIcons.PlaylistAdd,
                                                     contentDescription = "",
-                                                    colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                                 )
                                                 Spacer(modifier = Modifier.width(10.dp))
                                                 Text(
@@ -2627,16 +2623,11 @@ fun AddToPlaylistModalBottomSheet(
                                             ) {
                                                 Crossfade(targetState = playlist.tracks?.contains(videoId) == true) {
                                                     if (it) {
-                                                        Image(
-                                                            imageVector = SimpIcons.Done,
-                                                            contentDescription = "",
-                                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
-                                                        )
+                                                        Image(imageVector = SimpIcons.Done, contentDescription = "")
                                                     } else {
                                                         Image(
                                                             imageVector = SimpIcons.PlaylistAdd,
                                                             contentDescription = "",
-                                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                                         )
                                                     }
                                                 }
@@ -2723,7 +2714,6 @@ fun ArtistModalBottomSheet(
                                     Image(
                                         imageVector = SimpIcons.PeopleAlt,
                                         contentDescription = "",
-                                        colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                     )
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(text = artist.name, style = typo().labelSmall)

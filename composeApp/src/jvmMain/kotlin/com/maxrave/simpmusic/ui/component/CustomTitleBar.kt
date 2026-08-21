@@ -40,12 +40,6 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.UnfoldLess
 import com.maxrave.simpmusic.ui.icon.UnfoldMore
 import com.maxrave.simpmusic.ui.theme.typo
-import com.maxrave.simpmusic.ui.theme.windowCloseButton
-import com.maxrave.simpmusic.ui.theme.windowCloseButtonHover
-import com.maxrave.simpmusic.ui.theme.windowMaximiseButton
-import com.maxrave.simpmusic.ui.theme.windowMaximiseButtonHover
-import com.maxrave.simpmusic.ui.theme.windowMinimiseButton
-import com.maxrave.simpmusic.ui.theme.windowMinimiseButtonHover
 import java.awt.MouseInfo
 import java.awt.Window
 
@@ -61,10 +55,6 @@ fun CustomTitleBar(
     window: Window,
     onCloseRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    // Passed in rather than read from MaterialTheme: this bar is drawn outside AppTheme, so
-    // MaterialTheme here would hand back the default light scheme no matter what the user picked.
-    containerColor: Color = Color.Black,
-    titleColor: Color = Color.White,
 ) {
     var isMaximized by remember { mutableStateOf(windowState.placement == WindowPlacement.Maximized) }
 
@@ -82,7 +72,7 @@ fun CustomTitleBar(
             modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .background(containerColor)
+                .background(Color.Black)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
@@ -134,8 +124,8 @@ fun CustomTitleBar(
                 // Close button
                 WindowControlButton(
                     onClick = onCloseRequest,
-                    backgroundColor = windowCloseButton,
-                    hoverColor = windowCloseButtonHover,
+                    backgroundColor = Color(0xFFFF605C),
+                    hoverColor = Color(0xFFE54942),
                     icon = WindowControlIcon.Close,
                 )
                 
@@ -146,8 +136,8 @@ fun CustomTitleBar(
                     onClick = {
                         windowState.isMinimized = true
                     },
-                    backgroundColor = windowMinimiseButton,
-                    hoverColor = windowMinimiseButtonHover,
+                    backgroundColor = Color(0xFFFFBD44),
+                    hoverColor = Color(0xFFE5A93D),
                     icon = WindowControlIcon.Minimize,
                 )
 
@@ -162,8 +152,8 @@ fun CustomTitleBar(
                             windowState.placement = WindowPlacement.Maximized
                         }
                     },
-                    backgroundColor = windowMaximiseButton,
-                    hoverColor = windowMaximiseButtonHover,
+                    backgroundColor = Color(0xFF00CA4E),
+                    hoverColor = Color(0xFF00B344),
                     icon = if (isMaximized) WindowControlIcon.Restore else WindowControlIcon.Maximize,
                 )
             }
@@ -172,7 +162,7 @@ fun CustomTitleBar(
             Text(
                 text = title,
                 style = typo().labelSmall,
-                color = titleColor,
+                color = Color.White,
             )
             Spacer(modifier = Modifier.weight(1f))
         }
