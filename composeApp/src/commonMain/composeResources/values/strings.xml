@@ -310,6 +310,11 @@
     <string name="your_music_is_always_up_to_date">YOUR MUSIC IS ALWAYS UP-TO-DATE</string>
     <string name="youtube_account">YouTube Account</string>
     <string name="manage_your_youtube_accounts">Manage your YouTube Accounts</string>
+    <string name="sync_follow_to_youtube">Sync Follow with YouTube</string>
+    <string name="sync_follow_to_youtube_description">Following an artist in SimpMusic also subscribes to their channel on your YouTube account</string>
+    <string name="sync_follow_failed">Couldn't update your YouTube subscription</string>
+    <string name="subscribed_on_youtube">Subscribed on YouTube</string>
+    <string name="unsubscribed_on_youtube">Unsubscribed on YouTube</string>
     <string name="no_account">No account</string>
     <string name="add_an_account">Add an account</string>
     <string name="signed_in">Signed in</string>
