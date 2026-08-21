@@ -76,11 +76,9 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
-import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
-import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
-import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
@@ -89,11 +87,8 @@ import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.ui.theme.ForceDarkContent
-import com.maxrave.simpmusic.ui.theme.desktopPanelDark
-import com.maxrave.simpmusic.ui.theme.desktopWindowDark
-import com.maxrave.simpmusic.ui.theme.desktopWindowLight
-import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
+import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -134,7 +129,6 @@ import kotlin.time.ExperimentalTime
 fun App(viewModel: SharedViewModel = koinInject()) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
-    val isDesktopShell = getPlatform() == Platform.Desktop
 
     val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
@@ -267,19 +261,6 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                     "album" -> {
                         data.getQueryParameter("id")?.let { albumId ->
                             navController.navigate(AlbumDestination(browseId = albumId))
-                        }
-                    }
-
-                    // simpmusic://library                     → the Library tab
-                    // simpmusic://library?type=favorite       → one of its collections
-                    // Added for the Playlists widget, whose shortcuts have to reach these
-                    // screens from the home screen without the app already running.
-                    "library" -> {
-                        val type = data.getQueryParameter("type")
-                        if (type.isNullOrBlank()) {
-                            navController.navigate(LibraryDestination)
-                        } else {
-                            navController.navigate(LibraryDynamicPlaylistDestination(type = type))
                         }
                     }
 
@@ -416,18 +397,11 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     ) {
         // Backdrop base must match the theme: white page → white glass, dark/AMOLED → black glass.
         // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
-        val isLightScheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
-        val backdrop = rememberBackdrop(if (isLightScheme) Color.White else Color.Black)
-
-        // The desktop shell is a window colour with panels floating on it. The two schemes mirror
-        // each other: the window takes the extreme (pure black / pure white) and the panel steps
-        // one shade back towards the middle, so the panels read as raised either way.
-        val desktopWindow = if (isLightScheme) desktopWindowLight else desktopWindowDark
-        val desktopPanel =
-            if (isLightScheme) MaterialTheme.colorScheme.surfaceContainer else desktopPanelDark
+        val backdrop =
+            rememberBackdrop(
+                if (MaterialTheme.colorScheme.background.luminance() > 0.5f) Color.White else Color.Black,
+            )
         Scaffold(
-            containerColor =
-                if (isDesktopShell) desktopWindow else MaterialTheme.colorScheme.background,
             bottomBar = {
                 if (!isTablet) {
                     AnimatedVisibility(
@@ -510,24 +484,10 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                 viewModel.reloadDestination(klass)
                             }
                         }
-                        // Desktop only: the content sits in its own rounded panel floating on a
-                        // pure black window, Spotify style, while the rail stays flat black
-                        // outside it. Phones keep one continuous surface — the inset only reads
-                        // as deliberate when there is a window frame around it.
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .weight(1f)
-                                .then(
-                                    if (isDesktopShell) {
-                                        Modifier
-                                            .padding(8.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(desktopPanel)
-                                    } else {
-                                        Modifier
-                                    },
-                                ),
+                                .weight(1f),
                         ) {
                             Box(
                                 Modifier
@@ -632,23 +592,8 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                     top = 0.dp,
                                                     bottom = 0.dp,
                                                 ),
-                                            ).then(
-                                                // Matches the inset of the content panel so the two
-                                                // read as a pair of floating cards, not one panel
-                                                // with a seam down the middle.
-                                                if (isDesktopShell) {
-                                                    Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp)
-                                                } else {
-                                                    Modifier
-                                                },
                                             ).clip(
                                                 RoundedCornerShape(12.dp),
-                                            ).then(
-                                                if (isDesktopShell) {
-                                                    Modifier.background(desktopPanel)
-                                                } else {
-                                                    Modifier
-                                                },
                                             ),
                                     ) {
                                         ForceDarkContent {

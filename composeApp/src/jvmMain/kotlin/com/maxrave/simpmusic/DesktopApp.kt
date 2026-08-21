@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -35,7 +34,6 @@ import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
-import com.maxrave.simpmusic.ui.theme.isDarkTheme
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
@@ -55,9 +53,9 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
+import org.simpmusic.lastfm.configLastfm
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.mp.KoinPlatform.getKoin
-import org.simpmusic.lastfm.configLastfm
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.circle_app_icon
@@ -387,13 +385,6 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                         ),
             ) {
                 if (!isVM) {
-                    // The bar sits outside AppTheme, so the colours are resolved here from the
-                    // same stored setting AppTheme uses and handed down. Pure black / pure white
-                    // to match the window colour the shell paints behind the panels.
-                    val themeMode by sharedViewModel
-                        .getThemeMode()
-                        .collectAsState(DataStoreManager.THEME_MODE_DARK)
-                    val isDark = isDarkTheme(themeMode)
                     CustomTitleBar(
                         title = stringResource(Res.string.app_name),
                         windowState = windowState,
@@ -401,8 +392,6 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                         onCloseRequest = {
                             isVisible = false
                         },
-                        containerColor = if (isDark) Color.Black else Color.White,
-                        titleColor = if (isDark) Color.White else Color.Black,
                     )
                 }
 

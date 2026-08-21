@@ -68,7 +68,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -445,7 +444,6 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier =
                             Modifier
-                                .clip(RoundedCornerShape(8.dp))
                                 .clickable {
                                     doNotShowAgain = !doNotShowAgain
                                 }.fillMaxWidth(),
@@ -526,7 +524,7 @@ fun HomeScreen(
                     }
                     LazyColumn(
                         state = scrollState,
-                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(28.dp),
                     ) {
                         itemsIndexed(homeData, key = { _, item ->
                             item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
