@@ -16,6 +16,7 @@ import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
+import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.SongRepository
@@ -68,6 +69,7 @@ class SettingsViewModel(
     private val songRepository: SongRepository,
     private val accountRepository: AccountRepository,
     private val cacheRepository: CacheRepository,
+    private val artistRepository: ArtistRepository,
 ) : BaseViewModel() {
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
@@ -286,6 +288,8 @@ class SettingsViewModel(
         getVideoQuality()
         getSpotifyLogIn()
         getSpotifyLyrics()
+        getSyncFollowToYouTube()
+        getEqualizer()
         getSpotifyCanvas()
         getUsingProxy()
         getCanvasCache()
@@ -1672,6 +1676,96 @@ class SettingsViewModel(
         }
     }
 
+    private var _equalizerEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val equalizerEnabled: StateFlow<Boolean> = _equalizerEnabled
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerEnabled(enabled)
+        }
+    }
+
+    private var _equalizerBands: MutableStateFlow<List<Float>> = MutableStateFlow(List(EQUALIZER_BAND_COUNT) { 0f })
+    val equalizerBands: StateFlow<List<Float>> = _equalizerBands
+
+    private var _equalizerPreamp: MutableStateFlow<Float> = MutableStateFlow(0f)
+    val equalizerPreamp: StateFlow<Float> = _equalizerPreamp
+
+    fun getEqualizer() {
+        viewModelScope.launch {
+            launch {
+                dataStoreManager.equalizerEnabled.collect {
+                    _equalizerEnabled.emit(it == DataStoreManager.TRUE)
+                }
+            }
+            launch {
+                dataStoreManager.equalizerBands.collect { stored ->
+                    // Stored blank means flat. Short or malformed input is padded rather than
+                    // rejected, so a curve saved by a future build with more bands still loads.
+                    val parsed = stored.split(",").mapNotNull { it.trim().toFloatOrNull() }
+                    _equalizerBands.emit(
+                        List(EQUALIZER_BAND_COUNT) { parsed.getOrElse(it) { 0f } },
+                    )
+                }
+            }
+            launch {
+                dataStoreManager.equalizerPreamp.collect { _equalizerPreamp.emit(it) }
+            }
+        }
+    }
+
+    fun setEqualizerBand(
+        index: Int,
+        gainDb: Float,
+    ) {
+        viewModelScope.launch {
+            val next = _equalizerBands.value.toMutableList()
+            if (index !in next.indices) return@launch
+            next[index] = gainDb
+            dataStoreManager.setEqualizerBands(next)
+        }
+    }
+
+    fun setEqualizerPreamp(preampDb: Float) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerPreamp(preampDb)
+        }
+    }
+
+    fun resetEqualizer() {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerBands(List(EQUALIZER_BAND_COUNT) { 0f })
+            dataStoreManager.setEqualizerPreamp(0f)
+        }
+    }
+
+    private var _syncFollowToYouTube: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val syncFollowToYouTube: StateFlow<Boolean> = _syncFollowToYouTube
+
+    fun getSyncFollowToYouTube() {
+        viewModelScope.launch {
+            dataStoreManager.syncFollowToYouTube.collect {
+                _syncFollowToYouTube.emit(it == DataStoreManager.TRUE)
+            }
+        }
+    }
+
+    fun setSyncFollowToYouTube(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSyncFollowToYouTube(enabled)
+            // Turning it on is a statement about the whole library: artists followed before the
+            // switch would otherwise never reach the account. Turning it off deliberately does
+            // NOT unsubscribe — stopping the mirroring is not the same as asking us to undo it.
+            if (enabled) {
+                // Runs silently. The only toast in this feature belongs to the Follow button on
+                // the artist screen, where the user performed the action and is waiting to see it
+                // take effect; a switch in Settings is not the place to report on a background
+                // sweep the user is not watching.
+                artistRepository.syncFollowedArtistsToYouTube().collect { }
+            }
+        }
+    }
+
     private var _spotifyLyrics: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val spotifyLyrics: StateFlow<Boolean> = _spotifyLyrics
 
@@ -1828,3 +1922,9 @@ expect fun getPackageName(): String
 expect fun getFileDir(): String
 
 expect fun changeLanguageNative(code: String)
+
+/** Number of equalizer bands, matching the ISO centres the desktop backend installs. */
+const val EQUALIZER_BAND_COUNT = 10
+
+/** Band centre labels, for display only — the backend owns the actual frequencies. */
+val EQUALIZER_BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")
