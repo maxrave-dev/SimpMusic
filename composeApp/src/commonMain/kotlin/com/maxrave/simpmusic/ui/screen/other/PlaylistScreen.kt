@@ -89,6 +89,8 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.ui.component.SearchBarExit
+import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
@@ -1189,8 +1191,8 @@ fun PlaylistScreen(
 
                 AnimatedVisibility(
                     visible = showSearchBar,
-                    enter = fadeIn() + slideInVertically(),
-                    exit = fadeOut() + slideOutVertically(),
+                    enter = SearchBarEnter,
+                    exit = SearchBarExit,
                 ) {
                     Box(
                         Modifier
