@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- See widget_preview_img_turntable. Neutral surface: the live widget uses the track palette. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#1C1B1F" />
+            <corners android:radius="18dp" />
+            <size android:width="250dp" android:height="200dp" />
+        </shape>
+    </item>
+    <item
+        android:width="100dp"
+        android:height="38dp"
+        android:left="14dp"
+        android:top="34dp"
+        android:gravity="top|left">
+        <shape android:shape="rectangle">
+            <solid android:color="#26FFFFFF" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item
+        android:width="100dp"
+        android:height="38dp"
+        android:right="14dp"
+        android:top="34dp"
+        android:gravity="top|right">
+        <shape android:shape="rectangle">
+            <solid android:color="#26FFFFFF" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</layer-list>
