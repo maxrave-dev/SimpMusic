@@ -49,6 +49,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import com.maxrave.simpmusic.ui.icon.Search
+import com.maxrave.simpmusic.ui.icon.Close
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -118,6 +125,8 @@ import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.SearchBarExit
+import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
@@ -201,6 +210,7 @@ import simpmusic.composeapp.generated.resources.unsync_playlist_warning
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.yes
 import simpmusic.composeapp.generated.resources.your_playlist
+import simpmusic.composeapp.generated.resources.search
 
 private const val TAG = "LocalPlaylistScreen"
 
@@ -441,6 +451,9 @@ fun LocalPlaylistScreen(
             }
         }
     var overscrollJob by remember { mutableStateOf<Job?>(null) }
+    var showSearchBar by rememberSaveable { mutableStateOf(false) }
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
 //    Box {
     LazyColumn(
         modifier =
@@ -684,6 +697,15 @@ fun LocalPlaylistScreen(
                                                             },
                                                 )
                                             }
+                                        }
+                                        IconButton(
+                                            onClick = { showSearchBar = true },
+                                        ) {
+                                            Icon(
+                                                imageVector = SimpIcons.Search,
+                                                contentDescription = "Search in playlist",
+                                                tint = Color.White,
+                                            )
                                         }
                                         IconButton(
                                             onClick = onPlaylistMoreClick,
@@ -1013,6 +1035,15 @@ fun LocalPlaylistScreen(
                                                         },
                                             )
                                         }
+                                    }
+                                    IconButton(
+                                        onClick = { showSearchBar = true },
+                                    ) {
+                                        Icon(
+                                            imageVector = SimpIcons.Search,
+                                            contentDescription = "Search in playlist",
+                                            tint = Color.White,
+                                        )
                                     }
                                     IconButton(
                                         onClick = onPlaylistMoreClick,
@@ -1593,6 +1624,115 @@ fun LocalPlaylistScreen(
                 }
             },
         )
+    }
+    // A sibling of the paged list, not a branch inside it. The paged reader carries drag
+    // reordering, in-place removal and its own scroll state; searching has none of that, and
+    // threading a second data source through it would put all of that at risk for a feature that
+    // only needs a flat list. This draws over it instead and leaves it untouched.
+    //
+    // Results come from LocalPlaylistViewModel.searchResults, which queries the database —
+    // filtering trackPagingItems would only ever search the pages already scrolled through.
+    AnimatedVisibility(
+        visible = showSearchBar,
+        enter = SearchBarEnter,
+        exit = SearchBarExit,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(mutedPaletteBg),
+        ) {
+            // Same bar as the one on Playlist and Album: blurred over the content behind it,
+            // back on the left, clear on the right.
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .hazeEffect(hazeState) {
+                        blurEnabled = true
+                        blurRadius = 24.dp
+                        backgroundColor = mutedPaletteBg
+                        tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
+                    },
+            ) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .windowInsetsPadding(WindowInsets.statusBars),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RippleIconButton(
+                        imageVector = SimpIcons.ArrowBackIosNew,
+                    ) {
+                        navController.navigateUp()
+                    }
+                    SearchBar(
+                        modifier =
+                            Modifier
+                                .height(50.dp)
+                                .padding(horizontal = 12.dp)
+                                .weight(1f),
+                        colors =
+                            SearchBarDefaults.colors().copy(
+                                containerColor = Color.Transparent,
+                            ),
+                        inputField = {
+                            CompositionLocalProvider(LocalTextStyle provides typo().bodySmall) {
+                                SearchBarDefaults.InputField(
+                                    query = searchQuery,
+                                    onQueryChange = { viewModel.setSearchQuery(it) },
+                                    onSearch = {},
+                                    expanded = showSearchBar,
+                                    onExpandedChange = { showSearchBar = it },
+                                    placeholder = {
+                                        Text(
+                                            stringResource(Res.string.search),
+                                            style = typo().bodyMedium,
+                                        )
+                                    },
+                                )
+                            }
+                        },
+                        expanded = false,
+                        onExpandedChange = {},
+                        windowInsets = WindowInsets(0, 0, 0, 0),
+                    ) {
+                    }
+                    IconButton(
+                        onClick = {
+                            showSearchBar = false
+                            viewModel.setSearchQuery("")
+                        },
+                    ) {
+                        Icon(SimpIcons.Close, null, tint = Color.White)
+                    }
+                }
+            }
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(
+                    searchResults,
+                    key = { (song, pair) -> song.videoId + "_" + pair.position },
+                ) { (song, _) ->
+                    SongFullWidthItems(
+                        forceDark = true,
+                        isPlaying = playingTrack?.videoId == song.videoId && isPlaying,
+                        songEntity = song,
+                        onMoreClickListener = { onItemMoreClick(it) },
+                        onClickListener = { onPlaylistItemClick(it) },
+                        onAddToQueue = { sharedViewModel.addListToQueue(arrayListOf(song.toTrack())) },
+                        selectionMode = selectionState.isActive,
+                        isSelected = selectionState.isSelected(song.videoId),
+                        onLongClick = { selectionState.start(it) },
+                        onSelectToggle = { selectionState.toggle(it) },
+                        // Required, no default — the paged list passes it down through `mod`.
+                        modifier = Modifier,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(start = 72.dp, end = 16.dp))
+                }
+            }
+        }
     }
     if (sortBottomSheetShow) {
         SortPlaylistBottomSheet(
