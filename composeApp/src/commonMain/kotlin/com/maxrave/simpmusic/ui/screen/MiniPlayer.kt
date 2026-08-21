@@ -7,10 +7,10 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -79,7 +79,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
@@ -116,7 +118,6 @@ import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.toResizedBitmap
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
@@ -144,8 +145,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.crossfading
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.seconds
@@ -589,29 +592,24 @@ fun MiniPlayer(
         // use the theme foreground token instead of the artwork-luminance colour.
         val textColor = MaterialTheme.colorScheme.onBackground
 
-        // Crossfade: RGB rainbow color cycling while transitioning between tracks, mirroring the
-        // Now Playing screen so the desktop bar signals a crossfade the same way.
-        val crossfadeTransition = rememberInfiniteTransition(label = "miniPlayerCrossfadeRainbow")
-        val rainbowHue by crossfadeTransition.animateFloat(
+        // Crossfade cue: a label on the artist line, nothing on the bar itself. The Now Playing
+        // screen cycles the track through hues for this, which on a 2dp hairline reads as a
+        // rendering fault rather than as a transition.
+        // Head of the highlight that travels through the "Crossfading" label, 0..1. Runs
+        // unconditionally: putting it behind the crossfade check would restart the animation from
+        // zero each time the label appears, so the sweep would jump rather than continue.
+        val sweepTransition = rememberInfiniteTransition(label = "miniPlayerCrossfadeSweep")
+        val crossfadeSweep by sweepTransition.animateFloat(
             initialValue = 0f,
-            targetValue = 360f,
+            targetValue = 1f,
             animationSpec =
                 infiniteRepeatable(
-                    animation = tween(1000, easing = LinearEasing),
+                    animation = tween(3200, easing = LinearEasing),
                     repeatMode = RepeatMode.Restart,
                 ),
-            label = "miniPlayerRainbowHue",
+            label = "miniPlayerSweepHead",
         )
-        val progressColor by animateColorAsState(
-            targetValue =
-                if (timelineState.isCrossfading) {
-                    hsvToColor(rainbowHue, 1f, 1f)
-                } else {
-                    textColor
-                },
-            animationSpec = tween(300),
-            label = "miniPlayerCrossfadeColor",
-        )
+        val progressColor = textColor
 
         var isSliding by rememberSaveable {
             mutableStateOf(false)
@@ -797,8 +795,42 @@ fun MiniPlayer(
                                     color = textColor.copy(alpha = 0.7f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f),
+                                    // fill = false so the artist name gives the label room instead
+                                    // of claiming the whole row and pushing it out of view.
+                                    modifier = Modifier.weight(1f, fill = false),
                                 )
+                                // On the artist line rather than with the timestamps: that row
+                                // rides `alpha = 1f - infoAlpha`, so it only exists while the
+                                // pointer is over the capsule — a crossfade cue nobody sees
+                                // unless they happen to be hovering is no cue at all.
+                                AnimatedVisibility(
+                                    visible = timelineState.isCrossfading,
+                                    enter = fadeIn(),
+                                    exit = fadeOut(),
+                                ) {
+                                    // The label is what travels: a highlight sweeping left to
+                                    // right through the glyphs. TextStyle takes a brush directly,
+                                    // so the gradient paints the text itself — no overlay, no
+                                    // clipping, and it keeps working whatever the label's width.
+                                    val shimmerSpan = 140f
+                                    val shimmerHead = crossfadeSweep * (shimmerSpan * 3f) - shimmerSpan
+                                    Text(
+                                        text = " · " + stringResource(Res.string.crossfading),
+                                        style =
+                                            typo().bodySmall.copy(
+                                                brush =
+                                                    Brush.horizontalGradient(
+                                                        0f to textColor.copy(alpha = 0.45f),
+                                                        0.5f to textColor,
+                                                        1f to textColor.copy(alpha = 0.45f),
+                                                        startX = shimmerHead,
+                                                        endX = shimmerHead + shimmerSpan,
+                                                        tileMode = TileMode.Clamp,
+                                                    ),
+                                            ),
+                                        maxLines = 1,
+                                    )
+                                }
                             }
                         }
                     }
