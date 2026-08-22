@@ -2,6 +2,9 @@ workflows:
   android-release:
     name: SimpMusic Release Build
     max_build_duration: 60
+    environment:
+      android_signing:
+        - Simp
     scripts:
       - name: Build Release APK
         script: |
