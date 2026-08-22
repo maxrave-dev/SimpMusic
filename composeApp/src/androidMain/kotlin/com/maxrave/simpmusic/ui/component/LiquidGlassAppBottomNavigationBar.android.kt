@@ -21,6 +21,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Mic
 import androidx.compose.runtime.Composable
 import com.maxrave.simpmusic.expect.ui.rememberVoiceSearchLauncher
 import android.app.UiModeManager
@@ -53,7 +56,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
-import com.maxrave.simpmusic.expect.ui.hapticClickable
+import com.maxrave.simpmusic.ui.ext.hapticClickable
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
@@ -320,7 +323,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                     contentAlignment = Alignment.Center,
                 ) {
                     if (isInSearchDestination) {
-                        Icon(com.maxrave.simpmusic.ui.icon.SimpIcons.Mic, contentDescription = "Voice Search")
+                        androidx.compose.material3.Icon(com.maxrave.simpmusic.ui.icon.SimpIcons.Mic, contentDescription = "Voice Search")
                     } else {
                         BottomNavScreen.Search.icon()
                     }
