@@ -111,6 +111,7 @@ Service modules:
 - **aiService/**: AI features (OpenAI, Gemini integration)
 - **autoEqService/**: AutoEq headphone correction profiles (index + fixed-band curves)
 - **lyricsService/**: Lyrics fetching (LRCLIB, SimpMusic Lyrics, BetterLyrics)
+- **listenTogether/**: shared listening rooms, wire-compatible with Metrolist (`MetrolistGroup/metroproto`)
 - **kizzy/**: Discord Rich Presence
 - **ktorExt/**: Ktor extensions for networking
 
@@ -625,6 +626,21 @@ if (getPlatform() == Platform.Android) {
   - **Unproven on skiko as of this writing.** Kyant's desktop path goes through `SkikoRuntimeShader`, the same neighbourhood where haze 1.7.2's `HazeProgressive` throws `NoSuchMethodError` against the pinned Compose. If Desktop glass crashes, that is the first thing to suspect.
   - `LiquidGlassAppBottomNavigationBar` still has an **empty** JVM actual — Desktop navigates with the rail, not the bottom bar. It is unrelated to the above and was not touched.
 
+- **Listen Together (2026-08-23)**: shared rooms where every client plays the same track at the same position, in the rooms **Metrolist already uses** — a SimpMusic client and a Metrolist client can sit in the same one. New KMP module `core/service/listenTogether` (android + jvm + iosArm64 + iosSimulatorArm64) speaking `MetrolistGroup/metroproto` over a Ktor WebSocket to `metroserver`. Nothing in the protocol layer may be "improved": the wire format is not ours.
+  - **protobuf without protoc.** Messages are `kotlinx-serialization-protobuf` classes with `@ProtoNumber`; a protoc-generated Java layer would be JVM-only and strand Desktop and iOS.
+  - **`encodeDefaults` must be `false`.** With it on, any payload carrying a null message field throws `'null' is not supported for optional properties in ProtoBuf` — and `PlaybackActionPayload.trackInfo` is null on *every* play, pause, seek and volume command. Matches proto3, protoc and the Go server.
+  - **The capability handshake type names are not in the .proto.** `client_capabilities` / `server_capabilities` were read off metroserver's `protocol.go` and are pinned by a test.
+  - **The server forces `IsPlaying=false` on EVERY `change_track`** — protocol default, not the host pausing. A guest that obeys it pauses the track it just loaded, which is the same bug on next, prev and end-of-song alike. The guest carries the room's previous intent across the change; a real pause arrives as its own command with the track unchanged.
+  - **Play intent is decided BEFORE loading** and passed into `addMediaItem`, never corrected afterwards. Loading with a hardcoded `playWhenReady = true` and letting the transport pause it is a race the guest wins — it starts playing in a room the host has paused.
+  - **`playWhenReady`, not `isPlaying`, everywhere intent is meant.** A buffering track reports `isPlaying = false` while already committed to playing, so comparing against it made the host publish PAUSE to the whole room on its own network hiccup, and made the track-change PLAY never fire.
+  - **A joiner starts at the room's position, not at zero.** The state pushed on join carries the position as of the host's *last command*, which can be minutes old, so the guest also sends `request_sync` the moment it is in.
+  - **Loading gaps are absorbed by position, not by waiting.** Each client resolves its own stream; the host publishes `position` with every command and `ServerClock` compensates the flight time, with a seek past `SEEK_TOLERANCE_MS = 750` (Metrolist's `HARD_SYNC_THRESHOLD_MS`). The buffer barrier only runs when someone stalls **mid-track** — `change_track` clears `BufferingUsers` server-side, so it never gates a track change.
+  - **Guests may pause, and stay paused.** Forcing them back to room state makes pause impossible; pressing play calls `request_sync` so resuming lands where the room is now, not where this device stopped. Matches Metrolist's manager.
+  - **`MediaPlayerInterface.crossfadeSuppressed`** turns crossfade off inside a room without touching the user's setting — a fade overlaps two tracks for seconds and drifts the room apart. Writing the DataStore value instead would lose the real preference on a process death mid-room.
+  - `Track.toGenericMediaItem()` guesses song-vs-video from artwork aspect ratio and reads its own `maxresdefault.jpg` fallback as video, so room tracks are built from the room's own `TrackInfo` with `MERGING_DATA_TYPE.SONG` forced — otherwise the guest gets video with no sound where the host has audio.
+  - **UI never sees the protocol.** `composeApp` talks to `ListenTogetherRepository` in `domain`; `ListenTogetherRepositoryImpl` in `data` is the only place that knows the service module exists.
+  - Entry point is a top-bar icon on Home and Library carrying a dot while a room is live. Reconnects are capped at 5 attempts, then reported.
+
 - **Compose Hot Reload + MCP (2026-08-17)**: `org.jetbrains.compose.hot-reload` 1.2.0 is applied in `desktopApp` (root has `apply false`; `foojay-resolver-convention` in settings provisions the JBR). Run with `./gradlew :desktopApp:hotRunJvm --auto` — plain `jvmRun` does NOT hot-reload; the plugin creates separate tasks. `mainClass` resolves automatically from `compose.desktop.application.mainClass`, and the existing `tasks.withType<JavaExec>` block already covers `ComposeHotRun` (it extends JavaExec), so `mpv.bundled.path` reaches hot runs. The MCP server (`:desktopApp:hotMcpServerJvm`, registered in Claude Code local scope) exposes `status`/`reload`/`await_reload`/`take_screenshot`/`get_semantic_tree`/`click`/… — **measure UI with the semantic tree instead of guessing**: it returns exact bounds (it is how the capsule's 2px column overflow was found), while `take_screenshot` captures the window's screen rect, so an occluded window photographs whatever covers it. No hover tool exists: to see hover-only UI, temporarily force the state in code, reload, measure, revert. CHR cannot invalidate global state (Koin singletons, player adapters) — restart the app after touching those.
 
 - **Ten-band equalizer on both platforms (2026-08-22)**: one stored curve — `equalizer_bands` (CSV), `equalizer_preamp`, `equalizer_enabled` in DataStore — drives two entirely different backends. Desktop writes mpv's `af`; Android runs `EqualizerAudioProcessor` (a Media3 `BaseAudioProcessor`) in the sink chain, ahead of the crossfade filter and the sleep fade. Both are Audio-EQ-Cookbook **peaking** biquads on the same ISO centres (31, 62, 125, 250, 500 Hz, 1, 2, 4, 8, 16 kHz) at Q 1.41, measured against ffmpeg's own `equalizer` filter at ±0.0000 dB from 125 Hz up — which is what makes one curve, and one AutoEq profile, mean the same thing on both. UI is embedded in Settings → Playback (`EqualizerSection`), not a separate screen: a draggable curve rather than ten sliders, because the thing being edited is a shape.
@@ -689,6 +705,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-08-22
+**Last updated**: 2026-08-23
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
