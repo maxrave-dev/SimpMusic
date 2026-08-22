@@ -71,6 +71,7 @@ composeMultiplatform = "1.11.1"
 datetime = "0.8.0"
 sqlite = "2.7.0"
 okio = "3.18.1"
+atomicfu = "0.30.0"
 material3-multiplatform = "1.12.0-alpha01" # alpha01 = skiko 0.148.1 (has Matrix33.makeTranslate) to match compottie 1.12 snapshot; alpha02 bumps skiko 0.148.2 which removed it → compottie crash
 adaptive = "1.2.0"
 componentsResources = "1.11.1"
@@ -167,6 +168,7 @@ ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-conte
 ktor-serialization-kotlinx-xml = { group = "io.ktor", name = "ktor-serialization-kotlinx-xml", version.ref = "ktor" }
 ktor-serialization-kotlinx-protobuf = { group = "io.ktor", name = "ktor-serialization-kotlinx-protobuf", version.ref = "ktor" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "json" }
+kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "json" }
 brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib" }
@@ -199,6 +201,7 @@ ffmpeg-kit-audio = { module = "io.github.maxrave-dev:ffmpeg-kit-audio", version.
 # KMP
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 uri = { module = "com.eygraber:uri-kmp", version.ref = "uri" }
 
 #CMP
