@@ -80,12 +80,17 @@ fun AppNavigationGraph(
                 onScrolling = onScrolling,
             )
         }
-        // Only reachable as a tab while local tracking is enabled
+        // Only reachable as a tab while local tracking is enabled.
+        // ForceDarkContent for the same reason as album/playlist/artist: the page background comes
+        // from the artwork via toImmersiveBackground(), which always lands dark, so the light
+        // theme's dark-on-light text and icons would be unreadable on it.
         composable<AnalyticsDestination> {
-            AnalyticsScreen(
-                navController = navController,
-                innerPadding = innerPadding,
-            )
+            ForceDarkContent {
+                AnalyticsScreen(
+                    navController = navController,
+                    innerPadding = innerPadding,
+                )
+            }
         }
         composable<FullscreenDestination> {
             ForceDarkContent {
