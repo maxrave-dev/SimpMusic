@@ -261,8 +261,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
-
     fun getData() {
         getLocation()
         getLanguage()
@@ -1695,7 +1693,21 @@ class SettingsViewModel(
     private var _equalizerAutoEqProfile: MutableStateFlow<String> = MutableStateFlow("")
     val equalizerAutoEqProfile: StateFlow<String> = _equalizerAutoEqProfile
 
+    /**
+     * Guards the collectors below against being started twice.
+     *
+     * Two callers ask for them: [getData], which every visit to the settings screen runs, and the
+     * equalizer block itself, which asks on its own so it keeps working if it is ever hosted
+     * anywhere else. Both land on this same view model, and the collectors live in
+     * [viewModelScope] rather than in a composition — so without this, toggling the switch off and
+     * on left another four behind every time, each re-reading the preference file for a value
+     * three others were already publishing.
+     */
+    private var equalizerCollectorsStarted = false
+
     fun getEqualizer() {
+        if (equalizerCollectorsStarted) return
+        equalizerCollectorsStarted = true
         viewModelScope.launch {
             launch {
                 dataStoreManager.equalizerEnabled.collect {

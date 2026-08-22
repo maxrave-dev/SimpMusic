@@ -60,8 +60,16 @@ import kotlin.math.roundToInt
 /** Gain limits, in dB. Past this it stops being tone shaping and starts being distortion. */
 private const val BAND_RANGE_DB = 12f
 
-/** The preamp only cuts — see the note where it is drawn. */
-private const val PREAMP_MIN_DB = -12f
+/**
+ * The preamp only cuts — see the note where it is drawn.
+ *
+ * Deeper than the ±12 dB the bands span, because an AutoEq profile's own preamp is computed from
+ * the summed response rather than from its tallest band, and so goes past −12: the lowest across a
+ * sample of sixty published profiles was −12.1 dB. A stored value outside a [Slider]'s range is
+ * pinned to the end of the track, which would have shown those profiles sitting at the limit while
+ * holding a different number.
+ */
+private const val PREAMP_MIN_DB = -15f
 
 private val CURVE_HEIGHT = 240.dp
 

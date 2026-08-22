@@ -98,7 +98,7 @@ Contains core modules organized by functionality:
 - Data mappers
 
 ##### **core/media/**
-- **media3/**: Media3 ExoPlayer integration (includes `CrossfadeExoPlayerAdapter` for DJ-style crossfade on Android)
+- **media3/**: Media3 ExoPlayer integration (includes `CrossfadeExoPlayerAdapter` for DJ-style crossfade on Android, and `audio/EqualizerAudioProcessor` for the ten-band equalizer)
 - **media3-ui/**: Media3 UI components
 - **media-jvm/**: JVM media playback (libmpv via JNA — replaced VLCJ, which replaced GStreamer post-1.0.4)
 - **media-jvm-ui/**: JVM media UI components
@@ -109,6 +109,7 @@ Service modules:
 - **kotlinYtmusicScraper/**: YouTube Music API scraper
 - **spotify/**: Spotify Web API integration (Canvas, Lyrics)
 - **aiService/**: AI features (OpenAI, Gemini integration)
+- **autoEqService/**: AutoEq headphone correction profiles (index + fixed-band curves)
 - **lyricsService/**: Lyrics fetching (LRCLIB, SimpMusic Lyrics, BetterLyrics)
 - **kizzy/**: Discord Rich Presence
 - **ktorExt/**: Ktor extensions for networking
@@ -626,6 +627,17 @@ if (getPlatform() == Platform.Android) {
 
 - **Compose Hot Reload + MCP (2026-08-17)**: `org.jetbrains.compose.hot-reload` 1.2.0 is applied in `desktopApp` (root has `apply false`; `foojay-resolver-convention` in settings provisions the JBR). Run with `./gradlew :desktopApp:hotRunJvm --auto` — plain `jvmRun` does NOT hot-reload; the plugin creates separate tasks. `mainClass` resolves automatically from `compose.desktop.application.mainClass`, and the existing `tasks.withType<JavaExec>` block already covers `ComposeHotRun` (it extends JavaExec), so `mpv.bundled.path` reaches hot runs. The MCP server (`:desktopApp:hotMcpServerJvm`, registered in Claude Code local scope) exposes `status`/`reload`/`await_reload`/`take_screenshot`/`get_semantic_tree`/`click`/… — **measure UI with the semantic tree instead of guessing**: it returns exact bounds (it is how the capsule's 2px column overflow was found), while `take_screenshot` captures the window's screen rect, so an occluded window photographs whatever covers it. No hover tool exists: to see hover-only UI, temporarily force the state in code, reload, measure, revert. CHR cannot invalidate global state (Koin singletons, player adapters) — restart the app after touching those.
 
+- **Ten-band equalizer on both platforms (2026-08-22)**: one stored curve — `equalizer_bands` (CSV), `equalizer_preamp`, `equalizer_enabled` in DataStore — drives two entirely different backends. Desktop writes mpv's `af`; Android runs `EqualizerAudioProcessor` (a Media3 `BaseAudioProcessor`) in the sink chain, ahead of the crossfade filter and the sleep fade. Both are Audio-EQ-Cookbook **peaking** biquads on the same ISO centres (31, 62, 125, 250, 500 Hz, 1, 2, 4, 8, 16 kHz) at Q 1.41, measured against ffmpeg's own `equalizer` filter at ±0.0000 dB from 125 Hz up — which is what makes one curve, and one AutoEq profile, mean the same thing on both. UI is embedded in Settings → Playback (`EqualizerSection`), not a separate screen: a draggable curve rather than ten sliders, because the thing being edited is a shape.
+  - **mpv's `af` has two owners, and neither may write it directly.** Crossfade installs its own entries and clears them at the end of *every* transition, so anything else parked in `af` used to vanish with them. `MpvPlayer` now keeps `eqEntry` and `crossfadeEntries` apart and `applyAudioFilters()` is the single writer; `clearAudioFilters()` drops the crossfade tier alone. The symptom this prevents is "EQ works, then randomly doesn't" — the same shape as the crossfade guard that was dead on one of two trigger paths.
+  - **Android needs no re-apply; Desktop does.** The processor reads the curve through a supplier bound to a `@Volatile` field on **every buffer**, and `ExoPlayer.Builder` appears in exactly one factory, so any player — initial, next-track, crossfade, precache — is already correct with no push. mpv is the opposite: a fresh handle starts with an empty `af`, so `applyPlaybackLevels()` re-asserts the curve on all four creation sites. **`secondaryPlayer` is the one to miss**: while being promoted it belongs to neither `currentPlayer` nor `precachedPlayers`.
+  - **Never override `isActive()` to `true` in a `BaseAudioProcessor`.** The base answers it from `pendingOutputAudioFormat`, which `configure()` assigns immediately *before* the call — so the default already means "active iff `onConfigure` accepted the format", and it stays active across curve changes because activity is only reconsidered on configure. Forcing `true` claims the processor is in the chain while handing back `NOT_SET` for a format it cannot read. `SleepFadeAudioProcessor` still does this; harmless only while `enableFloatOutput` stays off.
+  - Every band keeps a stage even at 0 dB. With `A = 1` the numerator equals the denominator exactly, so the stage is a bit-identical pass-through — which fixes the array sizes, so dragging a band never resizes the filter state and never clicks.
+  - Presets follow Spotify's **names**; the gains are ours, because neither Spotify nor Apple has published theirs and both run six bands. The active preset — and an imported AutoEq label — are read back **off the curve** rather than stored, so dragging a band drops the label by itself and a preset re-selects itself if the curve returns to it.
+- **AutoEq profile import (2026-08-22)**: new `core/service/autoEqService` plus three Room tables at **v25** (`autoeq_entry`, `autoeq_index_meta`, `autoeq_curve`; three added tables and nothing else, so Room writes the migration itself). `results/INDEX.md` is read straight off raw.githubusercontent — 851 kB, 8850 profiles — parsed to rows so a search is an indexed `LIKE` rather than a re-parse. Its ETag is **weak** (`W/"…"`) and still answers 304, which keeps a routine freshness check to a couple of hundred bytes; curves are fetched per profile and cached, so a headphone used once works offline afterwards.
+  - It drops in untouched because AutoEq's fixed-band output is generated at `31.25 * 2**i` with `q = math.sqrt(2)` bounded to ±12 dB — the same centres, Q and range this equalizer runs. Its written centres are rounded (31.25 → "31"), so the parser matches by frequency **within a tolerance**, and places gains by frequency rather than by filter number.
+  - **Its `Preamp:` is computed from the summed response, not the tallest band, so it goes past −12 dB** (−12.1 observed across a 60-profile sample). The preamp slider floor is therefore −15: a value outside a `Slider`'s range is pinned to the end of the track while holding a different number.
+- **System equalizer removed entirely (2026-08-22)**: the `ACTION_OPEN/CLOSE_AUDIO_EFFECT_CONTROL_SESSION` broadcasts, `MediaPlayerListener.shouldOpenOrCloseEqualizerIntent` and every `notifyEqualizerIntent` call site, the `OpenEq` expect/actual trio and the Settings row are all gone — two equalizers on one audio session multiply, and the in-app one is now the answer. On Desktop that whole chain had been firing into empty stubs anyway. **`MediaPlayerInterface.audioSessionId` stays**: it looks like part of this, but `LoudnessEnhancer` (volume normalisation) is its real user. An equalizer app already attached to the session survives until the process dies, so force-stop before judging whether the removal worked.
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -650,6 +662,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-08-17
+**Last updated**: 2026-08-22
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

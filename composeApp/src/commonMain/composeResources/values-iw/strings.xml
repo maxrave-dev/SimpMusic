@@ -151,9 +151,6 @@
     <string name="balance_media_loudness">איזון עוצמת מדיה</string>
     <string name="normalize_volume">נרמל את עוצמת הקול</string>
     <string name="audio">אודיו</string>
-    <string name="no_equalizer">למכשיר שלך אין אקולייזר</string>
-    <string name="open_system_equalizer">אקולייזר מערכת פתוחה</string>
-    <string name="use_your_system_equalizer">השתמש באקולייזר המערכת שלך</string>
     <string name="streaming_data_provider_piped">ספק נתונים בסטרימינג (Piped)</string>
     <string name="itag">יציב</string>
     <string name="mime_type">סוג Mime</string>

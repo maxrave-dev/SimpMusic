@@ -155,9 +155,6 @@
     <string name="balance_media_loudness">メディアの音の大きさの均衡をとる</string>
     <string name="normalize_volume">音量を均一化</string>
     <string name="audio">音声</string>
-    <string name="no_equalizer">端末にイコライザがありません</string>
-    <string name="open_system_equalizer">システムのイコライザを開く</string>
-    <string name="use_your_system_equalizer">システムのイコライザを使う</string>
     <string name="streaming_data_provider_piped">ストリーミングデータの提供元 (Piped)</string>
     <string name="itag">iタグ</string>
     <string name="mime_type">MIME 種別</string>

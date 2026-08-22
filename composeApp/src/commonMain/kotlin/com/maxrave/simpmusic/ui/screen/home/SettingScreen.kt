@@ -107,7 +107,6 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
-import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
@@ -300,7 +299,6 @@ import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
 import simpmusic.composeapp.generated.resources.ok
-import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
 import simpmusic.composeapp.generated.resources.other_app
@@ -366,7 +364,6 @@ import simpmusic.composeapp.generated.resources.update_channel
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
 import simpmusic.composeapp.generated.resources.use_ai_translation
 import simpmusic.composeapp.generated.resources.use_ai_translation_description
-import simpmusic.composeapp.generated.resources.use_your_system_equalizer
 import simpmusic.composeapp.generated.resources.user_interface
 import simpmusic.composeapp.generated.resources.version
 import simpmusic.composeapp.generated.resources.version_format
@@ -458,9 +455,6 @@ fun SettingScreen(
                 importViewModel.import(it, pl)
             }
         }
-
-    // Open equalizer
-    val resultLauncher = openEqResult(viewModel.getAudioSessionId())
 
     val enableTranslucentNavBar by remember { viewModel.translucentBottomBar.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
@@ -1100,21 +1094,6 @@ fun SettingScreen(
                         subtitle = stringResource(Res.string.skip_no_music_part),
                         switch = (skipSilent to { viewModel.setSkipSilent(it) }),
                     )
-                    SettingItem(
-                        title = stringResource(Res.string.open_system_equalizer),
-                        subtitle =
-                            if (castState.isRemote) {
-                                stringResource(Res.string.not_available_while_casting)
-                            } else {
-                                stringResource(Res.string.use_your_system_equalizer)
-                            },
-                        isEnable = !castState.isRemote,
-                        onClick = {
-                            coroutineScope.launch {
-                                resultLauncher.launch()
-                            }
-                        },
-                    )
                 }
             }
         }
@@ -1126,24 +1105,21 @@ fun SettingScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
-                // Desktop only for now: the shared interface ships a no-op default, so on Android
-                // these controls would move nothing. It lives under Playback rather than Audio
-                // because that whole group is inside an Android-only branch — "Open system
-                // equalizer" is an Android feature — so a Desktop check nested there can never
-                // be true.
-                if (getPlatform() == Platform.Desktop) {
-                    SettingItem(
-                        title = stringResource(Res.string.equalizer),
-                        subtitle = stringResource(Res.string.equalizer_description),
-                        smallSubtitle = true,
-                        switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
-                    )
-                    // Only while on. A curve that visibly does nothing is worse than no curve —
-                    // and the stored bands survive the switch, so turning it back on returns to
-                    // the shape the user built rather than to flat.
-                    AnimatedVisibility(visible = equalizerEnabled) {
-                        EqualizerSection()
-                    }
+                // Under Playback rather than Audio because that whole group sits inside an
+                // Android-only branch — "Open system equalizer" is an Android feature — and this
+                // one is on both platforms: mpv's `af` chain on Desktop, an AudioProcessor in the
+                // Media3 sink on Android, driven from the same stored curve.
+                SettingItem(
+                    title = stringResource(Res.string.equalizer),
+                    subtitle = stringResource(Res.string.equalizer_description),
+                    smallSubtitle = true,
+                    switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
+                )
+                // Only while on. A curve that visibly does nothing is worse than no curve —
+                // and the stored bands survive the switch, so turning it back on returns to
+                // the shape the user built rather than to flat.
+                AnimatedVisibility(visible = equalizerEnabled) {
+                    EqualizerSection()
                 }
                 SettingItem(
                     title = stringResource(Res.string.save_playback_state),
