@@ -14,6 +14,19 @@ plugins {
 }
 
 android {
+signingConfigs {
+    create("release") {
+        val keystorePropertiesFile = rootProject.file("androidApp/keystore.properties")
+        if (keystorePropertiesFile.exists()) {
+            val keystoreProperties = Properties()
+            keystoreProperties.load(keystorePropertiesFile.inputStream())
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+    }
+}
     val abis = arrayOf("armeabi-v7a", "arm64-v8a", "x86_64")
 
     namespace = "com.maxrave.simpmusic"
@@ -83,6 +96,7 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
