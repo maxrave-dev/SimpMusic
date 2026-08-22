@@ -1,1 +1,10 @@
-
+workflows:
+  android-release:
+    name: SimpMusic Release Build
+    max_build_duration: 60
+    scripts:
+      - name: Build Release APK
+        script: |
+          ./gradlew :androidApp:assembleRelease -x :androidApp:uploadSentryProguardMappingsRelease
+    artifacts:
+      - androidApp/build/outputs/apk/**/*.apk
