@@ -59,6 +59,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -407,6 +411,29 @@ fun NowPlayingScreenContent(
     val isInPipMode = rememberIsInPipMode()
 
     val mainScrollState = rememberScrollState()
+
+    val density = LocalDensity.current
+    val nestedScrollConnection = remember(mainScrollState, density) {
+        object : NestedScrollConnection {
+            var accumulatedDrag = 0f
+            val threshold = with(density) { 50.dp.toPx() } // Require 50dp of drag before scrolling
+
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // Only intercept downward drags (which scroll the view up) when we are at the top
+                if (source == NestedScrollSource.UserInput && mainScrollState.value == 0 && available.y < 0) {
+                    accumulatedDrag += -available.y
+                    if (accumulatedDrag < threshold) {
+                        // Consume the scroll event to prevent it from reaching the scrollState
+                        return Offset(0f, available.y)
+                    }
+                } else if (mainScrollState.value != 0 || available.y > 0) {
+                    // Reset accumulated drag when we scroll back up or are not at top
+                    accumulatedDrag = 0f
+                }
+                return Offset.Zero
+            }
+        }
+    }
 
     var showHideMiddleLayout by rememberSaveable {
         mutableStateOf(true)
@@ -773,6 +800,7 @@ fun NowPlayingScreenContent(
     Box {
         Column(
             Modifier
+                .nestedScroll(nestedScrollConnection)
                 .verticalScroll(
                     mainScrollState,
                     enabled = isExpanded,
