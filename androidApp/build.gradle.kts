@@ -192,8 +192,9 @@ sentry {
             }
         authToken.set(token ?: "")
         includeProguardMapping.set(true)
-        autoUploadProguardMapping.set(true)
+        autoUploadProguardMapping.set(!token.isNullOrBlank())
     } else {
+        authToken.set("")
         includeProguardMapping.set(false)
         autoUploadProguardMapping.set(false)
         uploadNativeSymbols.set(false)
