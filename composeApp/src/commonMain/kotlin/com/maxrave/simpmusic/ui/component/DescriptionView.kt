@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.ui.component
 
+
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.clickable
