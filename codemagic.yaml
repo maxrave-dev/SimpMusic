@@ -6,6 +6,12 @@ workflows:
       android_signing:
         - Simp
     scripts:
+      - name: Create keystore.properties
+        script: |
+          echo "storeFile=$CM_KEYSTORE_PATH" > androidApp/keystore.properties
+          echo "storePassword=$CM_KEYSTORE_PASSWORD" >> androidApp/keystore.properties
+          echo "keyAlias=$CM_KEY_ALIAS" >> androidApp/keystore.properties
+          echo "keyPassword=$CM_KEY_PASSWORD" >> androidApp/keystore.properties
       - name: Build Release APK
         script: |
           ./gradlew :androidApp:assembleRelease -x :androidApp:uploadSentryProguardMappingsRelease
