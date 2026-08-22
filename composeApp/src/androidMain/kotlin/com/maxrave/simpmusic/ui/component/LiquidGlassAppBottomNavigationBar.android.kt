@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Mic
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +50,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+<<<<<<< HEAD
+=======
+import com.maxrave.simpmusic.ui.ext.hapticClickable
+>>>>>>> 9c993a74 (feat: Implement voice search & haptics)
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
@@ -299,8 +306,14 @@ actual fun LiquidGlassAppBottomNavigationBar(
                             ).clickable { selectTab(BottomNavScreen.Search.ordinal) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    BottomNavScreen.Search.icon()
-                }
+
+                   
+
+                    if (isInSearchDestination) {
+                        androidx.compose.material3.Icon(com.maxrave.simpmusic.ui.icon.SimpIcons.Mic, contentDescription = "Voice Search")
+                    } else {
+                        BottomNavScreen.Search.icon()
+                    }
             } else {
                 val selectedScreen =
                     bottomNavScreens.find { it.ordinal == selectedIndex } ?: BottomNavScreen.Home
