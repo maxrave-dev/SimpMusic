@@ -44,13 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.kyant.backdrop.highlight.Highlight
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
-import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.ui.component.EndOfPage
-import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Check
+import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ListenTogetherSettingsViewModel
@@ -98,20 +95,8 @@ fun ListenTogetherSettingsScreen(
     var draftUrl by remember(serverUrl) { mutableStateOf(serverUrl) }
 
     // See ListenTogetherScreen: measure the space actually given, not the window.
-    // The glass refracts this, and it must stay a SIBLING of the button — a backdrop layer that
-    // contains the widget refracting it recurses in skiko until the thread stack is gone.
-    val backdrop = rememberBackdrop(MaterialTheme.colorScheme.background)
-
     BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val contentWidth = minOf(maxWidth.value, CONTENT_MAX_WIDTH_DP.toFloat()).dp
-
-        Box(
-            modifier =
-                Modifier
-                    .matchParentSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .layerBackdrop(backdrop),
-        )
 
         Column(
             modifier =
@@ -126,17 +111,15 @@ fun ListenTogetherSettingsScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            LiquidGlassIconButton(
-                backdrop = backdrop,
-                imageVector = SimpIcons.ArrowBackIosNew,
-                shape = CircleShape,
-                // Follows the theme here, unlike the ForceDarkContent screens whose white default
-                // tint is always over a dark page.
-                tint = MaterialTheme.colorScheme.onBackground,
-                highlight = Highlight(width = 1.dp),
-                modifier = Modifier.size(48.dp),
-                onClick = { navController.navigateUp() },
-            )
+            // The app's flat-page back (SettingScreen's navigationIcon), not glass: glass over a
+            // flat background renders as a grey coin.
+            // No size modifier: a 32dp IconButton clips its own ripple into a cropped square.
+            RippleIconButton(
+                SimpIcons.ArrowBackIosNew,
+                tint = MaterialTheme.colorScheme.onSurface,
+            ) {
+                navController.navigateUp()
+            }
             Text(
                 text = stringResource(Res.string.listen_together),
                 style = typo().titleMedium,

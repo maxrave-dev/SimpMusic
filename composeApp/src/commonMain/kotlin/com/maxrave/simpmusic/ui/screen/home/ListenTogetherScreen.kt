@@ -66,18 +66,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.domain.data.model.listentogether.ListenTogetherRoom
 import com.maxrave.domain.data.model.listentogether.RoomConnection
 import com.maxrave.domain.data.model.listentogether.RoomJoinRequest
 import com.maxrave.domain.data.model.listentogether.RoomMember
 import com.maxrave.domain.data.model.listentogether.RoomSuggestion
 import com.maxrave.simpmusic.expect.shareUrl
-import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
-import com.maxrave.simpmusic.expect.ui.layerBackdrop
-import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.ui.component.EndOfPage
-import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
+import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.Check
@@ -179,11 +175,6 @@ fun ListenTogetherScreen(
     val clipboard = LocalClipboardManager.current
     var managing by remember { mutableStateOf<RoomMember?>(null) }
 
-    // The backdrop source is a SIBLING of the glass, never its parent. A layer that contains the
-    // widget refracting it draws itself, and skiko recurses until the thread stack is gone
-    // (SkDrawable::draw ~10k deep). Same rule as AlbumScreen's landscape header.
-    val backdrop = rememberBackdrop(MaterialTheme.colorScheme.background)
-
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
@@ -191,15 +182,6 @@ fun ListenTogetherScreen(
         // navigation rail. Two columns only once there is room for two REAL columns — a 560dp
         // ribbon centred in a 2000dp window is what made this read as a form rather than a page.
         val wide = maxWidth >= TWO_COLUMN_MIN_DP.dp
-
-        // Takes part in no measurement and holds no content — it exists only to be refracted.
-        Box(
-            modifier =
-                Modifier
-                    .matchParentSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .layerBackdrop(backdrop),
-        )
 
         val copyCode: () -> Unit = { state.roomCode?.let { clipboard.setText(AnnotatedString(it)) } }
         val shareTitle = stringResource(Res.string.listen_together)
@@ -221,7 +203,7 @@ fun ListenTogetherScreen(
                             .padding(start = 24.dp, end = 28.dp, top = 14.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
-                    BackButton(backdrop) { navController.navigateUp() }
+                    BackButton { navController.navigateUp() }
                     TitleBlock(inRoom = state.inRoom)
                     ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
                     AnimatedVisibility(visible = state.inRoom) {
@@ -253,7 +235,7 @@ fun ListenTogetherScreen(
                         .animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
-                BackButton(backdrop) { navController.navigateUp() }
+                BackButton { navController.navigateUp() }
                 TitleBlock(inRoom = state.inRoom)
                 ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
                 AnimatedVisibility(visible = state.inRoom) {
@@ -401,24 +383,18 @@ private const val SHARE_PREFIX = "Join my SimpMusic room with code "
 // ───────────────────────────────── structure ─────────────────────────────────
 
 @Composable
-private fun BackButton(
-    backdrop: PlatformBackdrop,
-    onBack: () -> Unit,
-) {
-    LiquidGlassIconButton(
-        backdrop = backdrop,
-        imageVector = SimpIcons.ArrowBackIosNew,
-        shape = CircleShape,
-        // The glass screens this borrows from (Album, Playlist, Artist, Analytics) all sit inside
-        // ForceDarkContent, so their white default tint is always over a dark page. This screen
-        // follows the theme, so the arrow has to as well or it is white on white.
-        tint = MaterialTheme.colorScheme.onBackground,
-        // A 48dp circle catches only a short arc of the default directional sweep and reads as
-        // rimless; 1.dp is the smallest step that stays visible without looking like a border.
-        highlight = Highlight(width = 1.dp),
-        modifier = Modifier.size(48.dp),
-        onClick = onBack,
-    )
+private fun BackButton(onBack: () -> Unit) {
+    // The app's own flat-page back (see SettingScreen's navigationIcon): a bare RippleIconButton.
+    // Glass needs something behind it to refract; over this screen's flat background it rendered
+    // as a grey coin, worse than no chrome at all.
+    // No size modifier: shrinking the IconButton shrinks its ripple bounds with it, and the
+    // pressed state renders as a cropped square. Default 48dp button, intrinsic icon.
+    RippleIconButton(
+        SimpIcons.ArrowBackIosNew,
+        tint = MaterialTheme.colorScheme.onSurface,
+    ) {
+        onBack()
+    }
 }
 
 /**
