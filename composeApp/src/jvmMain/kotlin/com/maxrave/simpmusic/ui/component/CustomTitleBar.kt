@@ -34,6 +34,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
+import com.maxrave.simpmusic.extension.DesktopWindowChrome
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Remove
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -81,7 +82,7 @@ fun CustomTitleBar(
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(40.dp)
+                .height(DesktopWindowChrome.TITLE_BAR_HEIGHT_DP.dp)
                 .background(containerColor)
                 .pointerInput(Unit) {
                     detectTapGestures(

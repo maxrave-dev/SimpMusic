@@ -32,6 +32,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.extension.DesktopWindowChrome
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
@@ -355,6 +356,11 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 vmTokens.any { sysInfo.contains(it, ignoreCase = true) } ||
                     System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
             }
+        // Publish whether the custom title bar will be mounted so getScreenSizeInfo() can
+        // subtract the 40dp strip it occupies above the content (see DesktopWindowChrome).
+        LaunchedEffect(isVM) {
+            DesktopWindowChrome.customTitleBarVisible = !isVM
+        }
         Window(
             onCloseRequest = {
                 isVisible = false
