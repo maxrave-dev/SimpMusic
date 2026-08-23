@@ -466,6 +466,7 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                 Box(
                     Modifier
                         .fillMaxSize()
+                        .padding(innerPadding)
                         .then(
                             if (isLiquidGlassEnabled == TRUE && !isTablet) {
                                 Modifier.layerBackdrop(backdrop)

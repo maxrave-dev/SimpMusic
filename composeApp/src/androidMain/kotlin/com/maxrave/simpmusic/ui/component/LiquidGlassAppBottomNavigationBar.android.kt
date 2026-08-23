@@ -7,6 +7,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -200,28 +203,6 @@ actual fun LiquidGlassAppBottomNavigationBar(
         isExpanded = !isInSearchDestination
     }
 
-    var updateConstraints by remember {
-        mutableStateOf(true)
-    }
-
-    var constraintSet by remember {
-        mutableStateOf(
-            decoupledConstraints(isShowMiniPlayer, isExpanded),
-        )
-    }
-
-    LaunchedEffect(isShowMiniPlayer, isExpanded) {
-        constraintSet = decoupledConstraints(isShowMiniPlayer, isExpanded)
-        updateConstraints = false
-    }
-
-    LaunchedEffect(updateConstraints) {
-        if (updateConstraints) {
-            constraintSet = decoupledConstraints(isShowMiniPlayer, isExpanded)
-            updateConstraints = false
-        }
-    }
-
     LaunchedEffect(isScrolledToTop) {
         Logger.d(TAG, "isScrolledToTop: $isScrolledToTop")
         if (!isInSearchDestination) {
@@ -252,8 +233,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
         }
     }
 
-    ConstraintLayout(
-        constraintSet = constraintSet,
+    Box(
         modifier =
             Modifier
                 .fillMaxWidth()
@@ -262,151 +242,108 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 ).padding(
                     bottom = 8.dp,
                 ).imePadding(),
-        animateChangesSpec = tween(300),
+        contentAlignment = Alignment.BottomCenter,
     ) {
-        /**
-         * LTR: HOME -> MIX FOR YOU -> LIBRARY | SEARCH
-         */
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier =
-                Modifier
-                    .then(
-                        // Expanded: the row spans the screen so the capsule can be told how much
-                        // room is left once the FAB has taken its 56dp. Collapsed it is just a
-                        // single pill sitting next to the mini player, so it stays wrap-content.
-                        if (isExpanded) {
-                            Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                        } else {
-                            Modifier.padding(start = 16.dp).wrapContentSize()
-                        },
-                    ).layoutId("toolbar")
-                    .onGloballyPositioned { updateConstraints = true },
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isExpanded) {
-                // The FAB keeps its own slot beside the capsule — overlapping it reads fine on a
-                // bar whose last item is decorative, but here the last item is the Library tab and
-                // the FAB covered it. weight(1f) hands the capsule exactly what is left after the
-                // gap and the FAB, and BoxWithConstraints reports that as its budget.
-                BoxWithConstraints(Modifier.weight(1f)) {
-                    LiquidGlassTabBar(
-                        tabs = barTabs,
-                        selectedTab = barTabs.indexOfFirst { it.ordinal == selectedIndex },
-                        backdrop = backdrop,
-                        layer = layer,
-                        luminance = luminanceAnimation.value,
-                        availableWidth = maxWidth,
-                        onTabSelected = { position -> selectTab(barTabs[position].ordinal) },
-                    )
-                }
-                Spacer(Modifier.size(12.dp))
-                // Search lives in its own circular glass FAB (Apple Music style).
-                Box(
-                    modifier =
-                        Modifier
-                            .size(56.dp)
-                            .drawInteractiveGlass(
-                                LocalIsDarkTheme.current,
-                                backdrop,
-                                layer,
-                                luminanceAnimation.value,
-                                CircleShape,
-                                searchFabInteraction,
-                            ).hapticClickable {
-                                if (isInSearchDestination) {
-                                    voiceSearchLauncher()
-                                } else {
-                                    selectTab(BottomNavScreen.Search.ordinal)
-                                }
+            if (isShowMiniPlayer) {
+                MiniPlayer(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .height(56.dp)
+                        .layoutId("miniPlayer"),
+                    backdrop = backdrop,
+                    onClick = {
+                        onOpenNowPlaying()
+                    },
+                    onClose = {
+                        viewModel.stopPlayer()
+                        viewModel.isServiceRunning = false
+                    },
+                )
+            }
+            /**
+             * LTR: HOME -> MIX FOR YOU -> LIBRARY | SEARCH
+             */
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier =
+                    Modifier
+                        .then(
+                            if (isExpanded) {
+                                Modifier
+                                    .widthIn(min = 200.dp, max = 360.dp)
+                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                                    .padding(horizontal = 16.dp)
+                            } else {
+                                Modifier.wrapContentSize(Alignment.Center).padding(start = 16.dp)
                             },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (isInSearchDestination) {
-                        androidx.compose.material3.Icon(com.maxrave.simpmusic.ui.icon.SimpIcons.Mic, contentDescription = "Voice Search")
-                    } else {
-                        BottomNavScreen.Search.icon()
+                        ).layoutId("toolbar"),
+            ) {
+                if (isExpanded) {
+                    BoxWithConstraints(Modifier.weight(1f)) {
+                        LiquidGlassTabBar(
+                            tabs = barTabs,
+                            selectedTab = barTabs.indexOfFirst { it.ordinal == selectedIndex },
+                            backdrop = backdrop,
+                            layer = layer,
+                            luminance = luminanceAnimation.value,
+                            availableWidth = maxWidth,
+                            onTabSelected = { position -> selectTab(barTabs[position].ordinal) },
+                        )
+                    }
+                    Spacer(Modifier.size(12.dp))
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(56.dp)
+                                .drawInteractiveGlass(
+                                    LocalIsDarkTheme.current,
+                                    backdrop,
+                                    layer,
+                                    luminanceAnimation.value,
+                                    CircleShape,
+                                    searchFabInteraction,
+                                ).hapticClickable {
+                                    if (isInSearchDestination) {
+                                        voiceSearchLauncher()
+                                    } else {
+                                        selectTab(BottomNavScreen.Search.ordinal)
+                                    }
+                                },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (isInSearchDestination) {
+                            androidx.compose.material3.Icon(com.maxrave.simpmusic.ui.icon.SimpIcons.Mic, contentDescription = "Voice Search")
+                        } else {
+                            BottomNavScreen.Search.icon()
+                        }
+                    }
+                } else {
+                    val selectedScreen =
+                        bottomNavScreens.find { it.ordinal == selectedIndex } ?: BottomNavScreen.Home
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(48.dp)
+                                .drawInteractiveGlass(
+                                    LocalIsDarkTheme.current,
+                                    backdrop,
+                                    layer,
+                                    luminanceAnimation.value,
+                                    CircleShape,
+                                    toolbarInteraction,
+                                ).hapticClickable { isExpanded = true },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        selectedScreen.icon()
                     }
                 }
-            } else {
-                val selectedScreen =
-                    bottomNavScreens.find { it.ordinal == selectedIndex } ?: BottomNavScreen.Home
-                Box(
-                    modifier =
-                        Modifier
-                            .size(48.dp)
-                            .drawInteractiveGlass(
-                                LocalIsDarkTheme.current,
-                                backdrop,
-                                layer,
-                                luminanceAnimation.value,
-                                CircleShape,
-                                toolbarInteraction,
-                            ).hapticClickable { isExpanded = true },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    selectedScreen.icon()
-                }
             }
         }
-        MiniPlayer(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp)
-                .height(56.dp)
-                .layoutId("miniPlayer"),
-            backdrop = backdrop,
-            onClick = {
-                onOpenNowPlaying()
-            },
-            onClose = {
-                viewModel.stopPlayer()
-                viewModel.isServiceRunning = false
-            },
-        )
     }
 }
-
-private fun decoupledConstraints(
-    isMiniplayerShow: Boolean = true,
-    isExpanded: Boolean,
-): ConstraintSet =
-    ConstraintSet {
-        val toolbar = createRefFor("toolbar")
-        constrain(toolbar) {
-            bottom.linkTo(parent.bottom)
-            height = Dimension.wrapContent
-            if (!isExpanded) {
-                width = Dimension.wrapContent
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            } else {
-                // fillToConstraints, not wrapContent: wrap let the row size itself to its content
-                // and simply overflow the screen when a tab was added, taking the FAB with it.
-                width = Dimension.fillToConstraints
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }
-        }
-        val miniPlayer = createRefFor("miniPlayer")
-        constrain(miniPlayer) {
-            if (!isExpanded) {
-                start.linkTo(toolbar.end)
-                end.linkTo(parent.end)
-                top.linkTo(toolbar.top)
-                bottom.linkTo(toolbar.bottom)
-                width = if (isMiniplayerShow) Dimension.fillToConstraints else Dimension.wrapContent
-            } else {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(toolbar.top, margin = 12.dp)
-                width = if (isMiniplayerShow) Dimension.matchParent else Dimension.wrapContent
-            }
-            visibility =
-                if (isMiniplayerShow) {
-                    Visibility.Visible
-                } else {
-                    Visibility.Gone
-                }
-        }
-    }
