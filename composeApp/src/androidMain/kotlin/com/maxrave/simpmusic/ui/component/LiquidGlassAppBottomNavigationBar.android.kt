@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,7 +27,6 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Mic
 import androidx.compose.runtime.Composable
 import com.maxrave.simpmusic.expect.ui.rememberVoiceSearchLauncher
-import android.app.UiModeManager
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.LaunchedEffect
@@ -270,6 +270,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
          */
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
             modifier =
                 Modifier
                     .then(
@@ -379,6 +380,7 @@ private fun decoupledConstraints(
             if (!isExpanded) {
                 width = Dimension.wrapContent
                 start.linkTo(parent.start)
+                end.linkTo(parent.end)
             } else {
                 // fillToConstraints, not wrapContent: wrap let the row size itself to its content
                 // and simply overflow the screen when a tab was added, taking the FAB with it.
