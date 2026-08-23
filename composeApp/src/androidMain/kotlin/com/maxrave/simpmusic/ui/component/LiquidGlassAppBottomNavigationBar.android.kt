@@ -143,12 +143,11 @@ actual fun LiquidGlassAppBottomNavigationBar(
         )
     // Tabs shown in the sliding bar (Apple Music style); Search lives in its own FAB.
     val barTabs =
-        listOfNotNull(
-            BottomNavScreen.Home,
-            BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
-            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
-            BottomNavScreen.Library,
-        )
+    listOfNotNull(
+        BottomNavScreen.Home,
+        BottomNavScreen.Library,
+        BottomNavScreen.Search,
+    )
     var selectedIndex by rememberSaveable {
         mutableIntStateOf(
             when (startDestination) {
