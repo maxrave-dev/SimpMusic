@@ -5,6 +5,7 @@ package com.maxrave.simpmusic.ui.component
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import com.maxrave.simpmusic.ui.ext.hapticClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -77,7 +78,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .hapticClickable {
                             onUIEvent(UIEvent.Shuffle)
                         },
                 contentAlignment = Alignment.Center,
@@ -111,7 +112,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .hapticClickable {
                             if (controllerState.isPreviousAvailable) {
                                 onUIEvent(UIEvent.Previous)
                             }
@@ -136,7 +137,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .hapticClickable {
                             onUIEvent(UIEvent.PlayPause)
                         },
                 contentAlignment = Alignment.Center,
@@ -170,7 +171,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .hapticClickable {
                             if (controllerState.isNextAvailable) {
                                 onUIEvent(UIEvent.Next)
                             }
@@ -194,7 +195,7 @@ fun PlayerControlLayout(
                         .clip(
                             CircleShape,
                         )
-                        .clickable {
+                        .hapticClickable {
                             onUIEvent(UIEvent.Repeat)
                         },
                 contentAlignment = Alignment.Center,

@@ -28,6 +28,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import com.maxrave.simpmusic.ui.ext.hapticClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.input.pointer.pointerInput
@@ -1741,7 +1742,8 @@ fun NowPlayingScreenContent(
                                                             .padding(top = 3.dp)
                                                             .align(
                                                                 Alignment.TopCenter,
-                                                            ),
+                                                            )
+                                                            .hapticClickable {},
                                                     track = { sliderState ->
                                                         SliderDefaults.Track(
                                                             modifier =
