@@ -295,27 +295,31 @@ fun AnalyticsScreen(
             verticalArrangement = Arrangement.spacedBy(SECTION_GAP),
         ) {
             item {
-                AnalyticsHeader(
-                    uiState = uiState,
-                    isPortrait = isPortrait,
-                    onStep = analyticsViewModel::stepPeriod,
-                    headerHeight = (screenSizeInfo.hDP / 2.5).dp,
-                    scrimStartY = (screenSizeInfo.hPX / 2.5f) / 2,
-                    scrimColor = pageBackground,
-                    onBitmap = { bitmap = it },
-                )
+                // Portrait folds the period navigator + headline count into the SAME item as the
+                // header: as separate items the list's 32dp SECTION_GAP (on top of the header
+                // text's own 24dp bottom inset) left a 56dp dead band over the navigator — the
+                // owner flagged it. 8dp here keeps the trio reading as one unit.
+                Column {
+                    AnalyticsHeader(
+                        uiState = uiState,
+                        isPortrait = isPortrait,
+                        onStep = analyticsViewModel::stepPeriod,
+                        headerHeight = (screenSizeInfo.hDP / 2.5).dp,
+                        scrimStartY = (screenSizeInfo.hPX / 2.5f) / 2,
+                        scrimColor = pageBackground,
+                        onBitmap = { bitmap = it },
+                    )
+                    if (isPortrait) {
+                        Spacer(Modifier.height(8.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                            PeriodNavigator(uiState, analyticsViewModel::stepPeriod, CONTENT_INSET)
+                            HeadlineCount(uiState, CONTENT_INSET)
+                        }
+                    }
+                }
             }
 
             if (isPortrait) {
-                // One unit — "which period" then "how many plays in it" — so they share an item
-                // and the tight 20dp LandscapeHeader gives the same pair. As two items the list's
-                // 32dp SECTION_GAP sat on both sides and the navigator read as adrift.
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        PeriodNavigator(uiState, analyticsViewModel::stepPeriod, CONTENT_INSET)
-                        HeadlineCount(uiState, CONTENT_INSET)
-                    }
-                }
                 item { QuickFactsSection(uiState, CONTENT_INSET, 2) }
                 item {
                     RecentlyPlayedSection(
