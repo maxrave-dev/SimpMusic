@@ -30,6 +30,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -909,20 +911,18 @@ fun NowPlayingScreenContent(
                                 // Tap toggles controls only when the canvas is covering this page;
                                 // otherwise no-op (matches the legacy behaviour where the touch
                                 // overlay only appeared in canvas mode).
-                                .clickable(
-                                    enabled = pageHasCanvas,
-                                    onClick = {
-                                        if (mainScrollState.value == 0) {
-                                            showHideJob = true
-                                            showHideControlLayout = !showHideControlLayout
-                                        }
-                                    },
-                                    indication = null,
-                                    interactionSource =
-                                        remember {
-                                            MutableInteractionSource()
-                                        },
-                                ),
+                                .pointerInput(pageHasCanvas) {
+                                    detectTapGestures(
+                                        onTap = if (pageHasCanvas) {
+                                            {
+                                                if (mainScrollState.value == 0) {
+                                                    showHideJob = true
+                                                    showHideControlLayout = !showHideControlLayout
+                                                }
+                                            }
+                                        } else null
+                                    )
+                                },
                     ) {
                         // ── Layer 0: per-page backdrop (adjacent pages only) ──
                         // Palette gradient (startColor → endColor) so the adjacent page never
@@ -1150,14 +1150,11 @@ fun NowPlayingScreenContent(
                                                 modifier =
                                                     Modifier
                                                         .fillMaxSize()
-                                                        .clickable(
-                                                            onClick = { showHideFullscreenOverlay = !showHideFullscreenOverlay },
-                                                            indication = null,
-                                                            interactionSource =
-                                                                remember {
-                                                                    MutableInteractionSource()
-                                                                },
-                                                        ),
+                                                        .pointerInput(Unit) {
+                                                            detectTapGestures(
+                                                                onTap = { showHideFullscreenOverlay = !showHideFullscreenOverlay }
+                                                            )
+                                                        },
                                             ) {
                                                 Crossfade(targetState = showHideFullscreenOverlay) {
                                                     if (it) {
@@ -1941,19 +1938,16 @@ fun NowPlayingScreenContent(
                                                 .height(
                                                     infoLayoutHeightDp.dp,
                                                 ).fillMaxWidth()
-                                                .clickable(
-                                                    onClick = {
-                                                        if (mainScrollState.value == 0) {
-                                                            showHideJob = true
-                                                            showHideControlLayout = !showHideControlLayout
+                                                .pointerInput(Unit) {
+                                                    detectTapGestures(
+                                                        onTap = {
+                                                            if (mainScrollState.value == 0) {
+                                                                showHideJob = true
+                                                                showHideControlLayout = !showHideControlLayout
+                                                            }
                                                         }
-                                                    },
-                                                    indication = null,
-                                                    interactionSource =
-                                                        remember {
-                                                            MutableInteractionSource()
-                                                        },
-                                                ),
+                                                    )
+                                                },
                                         contentAlignment = Alignment.BottomStart,
                                     ) {
                                         // Gradient backdrop — transparent at top so Canvas shows
