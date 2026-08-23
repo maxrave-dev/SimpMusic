@@ -375,6 +375,9 @@
     <string name="theme_mode_system">System default</string>
     <string name="theme_mode_dark">Dark</string>
     <string name="theme_mode_light">Light</string>
+    <string name="now_playing_style">Now Playing style</string>
+    <string name="now_playing_style_spotify">Classic</string>
+    <string name="now_playing_style_m3_expressive">Material 3 Expressive</string>
     <string name="theme_color">Theme color</string>
     <string name="theme_color_default">Default</string>
     <string name="theme_color_wallpaper">Wallpaper</string>

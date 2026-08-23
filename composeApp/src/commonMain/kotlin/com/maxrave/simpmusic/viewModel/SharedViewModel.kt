@@ -70,6 +70,7 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -1743,6 +1744,8 @@ class SharedViewModel(
 
     fun getCustomThemeColor() = dataStoreManager.customThemeColor
 
+    fun getNowPlayingStyle() = dataStoreManager.nowPlayingStyle
+
     fun setThemeMode(mode: String) {
         viewModelScope.launch {
             dataStoreManager.setThemeMode(mode)
@@ -1758,6 +1761,12 @@ class SharedViewModel(
     fun setCustomThemeColor(argbHex: String) {
         viewModelScope.launch {
             dataStoreManager.setCustomThemeColor(argbHex)
+        }
+    }
+
+    fun setNowPlayingStyle(style: String) {
+        viewModelScope.launch {
+            dataStoreManager.setNowPlayingStyle(style)
         }
     }
 
@@ -1953,6 +1962,10 @@ class SharedViewModel(
     fun shouldStopMusicService(): Boolean = runBlocking { dataStoreManager.killServiceOnExit.first() == TRUE }
 
     fun isUserLoggedIn(): Boolean = runBlocking { dataStoreManager.cookie.first().isNotEmpty() }
+
+    // Flow-based variant of [isUserLoggedIn] so composables can collect login state once
+    // instead of calling runBlocking inside composition (used by NowPlayingScreenContent).
+    fun isUserLoggedInFlow(): Flow<Boolean> = dataStoreManager.cookie.map { it.isNotEmpty() }
 
     fun isCombineFavoriteAndYTLiked(): Boolean = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
 }
