@@ -58,7 +58,7 @@ newpipe = "v0.26.1"
 brave-newpipe = "fa5d4a8b4c"
 # org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
 org-json = "20231013" # pin version
-pipepipe = "208e43b184"
+pipepipe = "f8982ca9e7"
 webkit = "1.17.0"
 kermit = "2.1.0"
 paging-common = "3.5.1"
