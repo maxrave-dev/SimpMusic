@@ -14,6 +14,15 @@
 #      OPEN, gets `needs-template` and one comment asking to complete it. Real
 #      first-time contributors get a nudge, not a door in the face.
 #
+# STRIKES: every hard-tier close counts one strike against the author (counted live
+# from their `ai-slop`-labelled PRs, so it survives workflow restarts). At
+# STRIKE_LIMIT the author is blocked from the whole account — IF the
+# BLOCK_USERS_TOKEN secret exists. GITHUB_TOKEN cannot block users (that API is
+# account-scoped); mint a fine-grained PAT whose ONLY permission is
+# "Block another user: write" (no repository access) and store it as the
+# BLOCK_USERS_TOKEN Actions secret. Without the secret the workflow still counts
+# and announces strikes; blocking just stays manual.
+#
 # SECURITY: this workflow runs on pull_request_target, which executes with write
 # credentials against the BASE repository. It must therefore NEVER check out or
 # execute anything from the PR's head — no actions/checkout, no build steps. It
@@ -28,17 +37,47 @@ permissions:
   pull-requests: write
   issues: write
 
+env:
+  STRIKE_LIMIT: 2
+
 jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
       - name: Triage untrusted PRs
+        id: triage
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
             const trusted = ['OWNER', 'MEMBER', 'COLLABORATOR', 'CONTRIBUTOR'];
             if (trusted.includes(pr.author_association)) return;
+
+            const strikeLimit = parseInt(process.env.STRIKE_LIMIT, 10);
+            // Counted from the label, not from workflow memory: issues.listForRepo is live
+            // (no search-index lag), and the count survives re-runs and workflow edits.
+            const countStrikes = async (login) => {
+              const labelled = await github.paginate(github.rest.issues.listForRepo, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: 'ai-slop',
+                state: 'all',
+                per_page: 100,
+              });
+              return labelled.filter((i) => i.pull_request && i.user?.login === login).length;
+            };
+            const closeAsSlop = async (reason) => {
+              await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop'] });
+              const strikes = await countStrikes(pr.user.login);
+              await github.rest.issues.createComment({ ...issue, body:
+                reason + `\n\n_Strike ${strikes}/${strikeLimit} for this account — at ` +
+                `${strikeLimit} it is blocked from this repository automatically._` });
+              await github.rest.issues.update({ ...issue, state: 'closed' });
+              if (strikes >= strikeLimit) {
+                core.setOutput('block_login', pr.user.login);
+                core.setOutput('block_strikes', String(strikes));
+              }
+            };
 
             const title = pr.title || '';
             const body = pr.body || '';
@@ -54,13 +93,11 @@ jobs:
             const looksUnattended = agentName.test(title) || sessionId.test(title) || bareHash.test(title);
 
             if (looksUnattended) {
-              await github.rest.issues.createComment({ ...issue, body:
+              await closeAsSlop(
                 'This looks like an unattended AI-agent submission (see the title), which this ' +
                 'project does not accept — every change needs a human who wrote or personally ' +
                 'reviewed it and an accepted issue behind it. See CONTRIBUTING.md. If a person is ' +
-                'actually behind this work, please open an issue describing the change first.' });
-              await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop'] });
-              await github.rest.issues.update({ ...issue, state: 'closed' });
+                'actually behind this work, please open an issue describing the change first.');
               return;
             }
 
@@ -88,14 +125,12 @@ jobs:
               return aiCoauthor.test(message) || generatedWith.test(message) || agentAccount.test(identities);
             });
             if (marked) {
-              await github.rest.issues.createComment({ ...issue, body:
+              await closeAsSlop(
                 'One or more commits in this PR carry an AI co-author trailer or agent marker ' +
                 '(e.g. `Co-Authored-By: Claude/Copilot/…`), which this project does not accept — ' +
                 'a leftover trailer usually means the output was never personally reviewed. If a ' +
                 'human does stand behind this change: squash your commits without the AI trailers, ' +
-                'force-push, complete the PR template, and reopen. See CONTRIBUTING.md.' });
-              await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop'] });
-              await github.rest.issues.update({ ...issue, state: 'closed' });
+                'force-push, complete the PR template, and reopen. See CONTRIBUTING.md.');
               return;
             }
 
@@ -109,3 +144,26 @@ jobs:
                 'auto-generated ones. Edit your PR description; no need to open a new PR.' });
               await github.rest.issues.addLabels({ ...issue, labels: ['needs-template'] });
             }
+
+      # Blocking needs an account-scoped token — GITHUB_TOKEN cannot do it. This step is
+      # skipped entirely until the BLOCK_USERS_TOKEN secret exists (fine-grained PAT,
+      # only permission: "Block another user: write", no repository access).
+      - name: Block repeat offender
+        if: steps.triage.outputs.block_login != ''
+        env:
+          BLOCK_USERS_TOKEN: ${{ secrets.BLOCK_USERS_TOKEN }}
+          BLOCK_LOGIN: ${{ steps.triage.outputs.block_login }}
+          BLOCK_STRIKES: ${{ steps.triage.outputs.block_strikes }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.BLOCK_USERS_TOKEN || secrets.GITHUB_TOKEN }}
+          # Values cross into the script via env, never via inline ${{ }} interpolation —
+          # interpolating into JS source is the classic script-injection foot-gun.
+          script: |
+            if (!process.env.BLOCK_USERS_TOKEN) {
+              core.notice('BLOCK_USERS_TOKEN secret not set — strike limit reached but blocking stays manual.');
+              return;
+            }
+            const login = process.env.BLOCK_LOGIN;
+            await github.request('PUT /user/blocks/{username}', { username: login });
+            core.notice(`Blocked ${login} after ${process.env.BLOCK_STRIKES} ai-slop strikes.`);
