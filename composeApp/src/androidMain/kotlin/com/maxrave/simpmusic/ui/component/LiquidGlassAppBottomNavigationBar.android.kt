@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -253,6 +254,11 @@ actual fun LiquidGlassAppBottomNavigationBar(
          */
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            // Center the WHOLE cluster — capsule, gap, FAB — as one unit. With four tabs the
+            // capsule fills every dp it is offered and this is a no-op; with two it is the
+            // difference between one centred cluster and a capsule floating mid-screen while the
+            // search FAB clings to the right edge on its own.
+            horizontalArrangement = Arrangement.Center,
             modifier =
                 Modifier
                     .then(
@@ -272,7 +278,14 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 // bar whose last item is decorative, but here the last item is the Library tab and
                 // the FAB covered it. weight(1f) hands the capsule exactly what is left after the
                 // gap and the FAB, and BoxWithConstraints reports that as its budget.
-                BoxWithConstraints(Modifier.weight(1f)) {
+                //
+                // fill = false is what keeps the FAB NEXT TO the capsule instead of pinned to the
+                // right edge: tab width is capped at TabWidth, so with two tabs (Mix and Analytics
+                // both gated off) the capsule measures far narrower than its budget — a filled
+                // slot would still swallow the leftover and hold the FAB at the corner, while a
+                // wrapped one lets the Row's Arrangement.Center treat capsule + gap + FAB as one
+                // cluster.
+                BoxWithConstraints(Modifier.weight(1f, fill = false)) {
                     LiquidGlassTabBar(
                         tabs = barTabs,
                         selectedTab = barTabs.indexOfFirst { it.ordinal == selectedIndex },
