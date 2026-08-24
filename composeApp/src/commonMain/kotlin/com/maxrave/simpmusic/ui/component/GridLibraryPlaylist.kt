@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,12 +72,15 @@ internal inline fun <reified T> GridLibraryPlaylist(
     contentPadding: PaddingValues,
     data: LocalResource<List<T>>,
     emptyText: StringResource,
+    // Hoisted so a caller can read the scroll position itself — Mix for you derives its
+    // top-bar frost from `index == 0 && offset == 0`, which the coarse onScrolling below
+    // cannot say.
+    state: LazyGridState = rememberLazyGridState(),
     noinline onScrolling: (onTop: Boolean) -> Unit = { _ -> },
     noinline createNewPlaylist: (() -> Unit)? = null,
     noinline onReload: () -> Unit,
 ) {
     Logger.w("GridLibraryPlaylist", "Generic Type: ${T::class.simpleName}")
-    val state = rememberLazyGridState()
     val isScrollingUp by state.isScrollingUp()
 
     LaunchedEffect(state) {
