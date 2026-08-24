@@ -5,17 +5,19 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherSettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
+import com.maxrave.simpmusic.ui.screen.home.ListenTogetherScreen
+import com.maxrave.simpmusic.ui.screen.home.ListenTogetherSettingsScreen
 import com.maxrave.simpmusic.ui.screen.home.MoodScreen
 import com.maxrave.simpmusic.ui.screen.home.NotificationScreen
 import com.maxrave.simpmusic.ui.screen.home.RecentlySongsScreen
 import com.maxrave.simpmusic.ui.screen.home.SettingScreen
-import com.maxrave.simpmusic.ui.screen.home.analytics.AnalyticsScreen
 import com.maxrave.simpmusic.ui.screen.other.CreditScreen
 
 fun NavGraphBuilder.homeScreenGraph(
@@ -35,6 +37,18 @@ fun NavGraphBuilder.homeScreenGraph(
             params = params,
         )
     }
+    composable<ListenTogetherDestination> {
+        ListenTogetherScreen(
+            navController = navController,
+            innerPadding = innerPadding,
+        )
+    }
+    composable<ListenTogetherSettingsDestination> {
+        ListenTogetherSettingsScreen(
+            navController = navController,
+            innerPadding = innerPadding,
+        )
+    }
     composable<NotificationDestination> {
         NotificationScreen(
             navController = navController,
@@ -48,12 +62,6 @@ fun NavGraphBuilder.homeScreenGraph(
     }
     composable<SettingsDestination> {
         SettingScreen(
-            navController = navController,
-            innerPadding = innerPadding,
-        )
-    }
-    composable<AnalyticsDestination> {
-        AnalyticsScreen(
             navController = navController,
             innerPadding = innerPadding,
         )

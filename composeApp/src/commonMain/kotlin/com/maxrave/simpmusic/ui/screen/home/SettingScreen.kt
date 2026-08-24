@@ -107,7 +107,6 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
-import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
@@ -116,6 +115,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
@@ -173,6 +173,8 @@ import simpmusic.composeapp.generated.resources.add_an_account
 import simpmusic.composeapp.generated.resources.ai
 import simpmusic.composeapp.generated.resources.ai_api_key
 import simpmusic.composeapp.generated.resources.ai_provider
+import simpmusic.composeapp.generated.resources.auto_download_liked_songs
+import simpmusic.composeapp.generated.resources.auto_download_liked_songs_description
 import simpmusic.composeapp.generated.resources.anonymous
 import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.audio
@@ -200,6 +202,9 @@ import simpmusic.composeapp.generated.resources.checking
 import simpmusic.composeapp.generated.resources.clear
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
+import simpmusic.composeapp.generated.resources.clear_listening_history
+import simpmusic.composeapp.generated.resources.clear_listening_history_confirm
+import simpmusic.composeapp.generated.resources.clear_listening_history_description
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.content
@@ -212,6 +217,8 @@ import simpmusic.composeapp.generated.resources.crossfade_description
 import simpmusic.composeapp.generated.resources.crossfade_dj_mode
 import simpmusic.composeapp.generated.resources.crossfade_dj_mode_description
 import simpmusic.composeapp.generated.resources.crossfade_duration
+import simpmusic.composeapp.generated.resources.crossfade_skip_album
+import simpmusic.composeapp.generated.resources.crossfade_skip_album_description
 import simpmusic.composeapp.generated.resources.custom_ai_model_id
 import simpmusic.composeapp.generated.resources.custom_color
 import simpmusic.composeapp.generated.resources.custom_model_id_messages
@@ -270,6 +277,7 @@ import simpmusic.composeapp.generated.resources.language
 import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.last_checked_at
 import simpmusic.composeapp.generated.resources.limit_player_cache
+import simpmusic.composeapp.generated.resources.listening_history
 import simpmusic.composeapp.generated.resources.local_tracking_description
 import simpmusic.composeapp.generated.resources.local_tracking_title
 import simpmusic.composeapp.generated.resources.log_in_to_discord
@@ -290,8 +298,10 @@ import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
+import simpmusic.composeapp.generated.resources.now_playing_style
+import simpmusic.composeapp.generated.resources.now_playing_style_m3_expressive
+import simpmusic.composeapp.generated.resources.now_playing_style_spotify
 import simpmusic.composeapp.generated.resources.ok
-import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
 import simpmusic.composeapp.generated.resources.other_app
@@ -312,6 +322,8 @@ import simpmusic.composeapp.generated.resources.proxy_type
 import simpmusic.composeapp.generated.resources.proxy_username
 import simpmusic.composeapp.generated.resources.proxy_username_message
 import simpmusic.composeapp.generated.resources.quality
+import simpmusic.composeapp.generated.resources.radio_audio_only
+import simpmusic.composeapp.generated.resources.radio_audio_only_description
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
 import simpmusic.composeapp.generated.resources.rich_presence_info
@@ -355,7 +367,6 @@ import simpmusic.composeapp.generated.resources.update_channel
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
 import simpmusic.composeapp.generated.resources.use_ai_translation
 import simpmusic.composeapp.generated.resources.use_ai_translation_description
-import simpmusic.composeapp.generated.resources.use_your_system_equalizer
 import simpmusic.composeapp.generated.resources.user_interface
 import simpmusic.composeapp.generated.resources.version
 import simpmusic.composeapp.generated.resources.version_format
@@ -369,6 +380,10 @@ import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
 import simpmusic.composeapp.generated.resources.youtube_transcript
+import simpmusic.composeapp.generated.resources.sync_follow_to_youtube
+import simpmusic.composeapp.generated.resources.sync_follow_to_youtube_description
+import simpmusic.composeapp.generated.resources.equalizer
+import simpmusic.composeapp.generated.resources.equalizer_description
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -444,20 +459,19 @@ fun SettingScreen(
             }
         }
 
-    // Open equalizer
-    val resultLauncher = openEqResult(viewModel.getAudioSessionId())
-
     val enableTranslucentNavBar by remember { viewModel.translucentBottomBar.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
+    val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
     val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
     val blogNotificationEnabled by viewModel.blogNotificationEnabled.collectAsStateWithLifecycle()
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
     val playVideo by remember { viewModel.playVideoInsteadOfAudio.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val radioAudioOnly by remember { viewModel.radioAudioOnly.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val videoQuality by viewModel.videoQuality.collectAsStateWithLifecycle()
     val sendData by remember { viewModel.sendBackToGoogle.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val normalizeVolume by remember { viewModel.normalizeVolume.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
@@ -506,8 +520,12 @@ fun SettingScreen(
     val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
     var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
+    val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
+    val syncFollowToYouTube by viewModel.syncFollowToYouTube.collectAsStateWithLifecycle()
+    val equalizerEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
     val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
     val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
     val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
@@ -517,6 +535,7 @@ fun SettingScreen(
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
     val crossfadeDjMode by viewModel.crossfadeDjMode.collectAsStateWithLifecycle()
+    val crossfadeSkipAlbum by viewModel.crossfadeSkipAlbum.collectAsStateWithLifecycle()
     val castState by viewModel.castState.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
@@ -596,6 +615,34 @@ fun SettingScreen(
                                         val selected = state.selectOne?.getSelected()
                                         themeModeLabels.firstOrNull { it.second == selected }?.first?.let {
                                             sharedViewModel.setThemeMode(it)
+                                        }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                val nowPlayingStyleLabels =
+                    listOf(
+                        DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY to stringResource(Res.string.now_playing_style_spotify),
+                        DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
+                    )
+                SettingItem(
+                    title = stringResource(Res.string.now_playing_style),
+                    subtitle = nowPlayingStyleLabels.firstOrNull { it.first == nowPlayingStyle }?.second ?: "",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.now_playing_style) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect = nowPlayingStyleLabels.map { (it.first == nowPlayingStyle) to it.second },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        val selected = state.selectOne?.getSelected()
+                                        nowPlayingStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                            sharedViewModel.setNowPlayingStyle(it)
                                         }
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
@@ -788,12 +835,6 @@ fun SettingScreen(
                     },
                 )
                 SettingItem(
-                    title = stringResource(Res.string.play_video_for_video_track_instead_of_audio_only),
-                    subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
-                    smallSubtitle = true,
-                    switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
-                )
-                SettingItem(
                     title = stringResource(Res.string.video_quality),
                     subtitle = videoQuality ?: "",
                     onClick = {
@@ -840,6 +881,36 @@ fun SettingScreen(
                     },
                 )
                 SettingItem(
+                    title = stringResource(Res.string.auto_download_liked_songs),
+                    subtitle = stringResource(Res.string.auto_download_liked_songs_description),
+                    smallSubtitle = true,
+                    switch = (autoDownloadLikedSongs to { viewModel.setAutoDownloadLikedSongs(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.play_video_for_video_track_instead_of_audio_only),
+                    subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
+                    smallSubtitle = true,
+                    switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.radio_audio_only),
+                    subtitle = stringResource(Res.string.radio_audio_only_description),
+                    smallSubtitle = true,
+                    switch = (radioAudioOnly to { viewModel.setRadioAudioOnly(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.sync_follow_to_youtube),
+                    subtitle = stringResource(Res.string.sync_follow_to_youtube_description),
+                    smallSubtitle = true,
+                    switch = (syncFollowToYouTube to { viewModel.setSyncFollowToYouTube(it) }),
+                    // Writing to someone's YouTube account needs a session, so the row is dead
+                    // while signed out. onDisable turns the stored flag back off when that
+                    // happens: SettingItem keys its LaunchedEffect on isEnable, so signing out
+                    // mid-session clears it too, not just a cold start in the signed-out state.
+                    isEnable = loggedIn == DataStoreManager.TRUE,
+                    onDisable = { viewModel.setSyncFollowToYouTube(false) },
+                )
+                SettingItem(
                     title = stringResource(Res.string.send_back_listening_data_to_google),
                     subtitle =
                         stringResource(
@@ -858,11 +929,6 @@ fun SettingScreen(
                     title = stringResource(Res.string.keep_your_youtube_playlist_offline),
                     subtitle = stringResource(Res.string.keep_your_youtube_playlist_offline_description),
                     switch = (keepYoutubePlaylistOffline to { viewModel.setKeepYouTubePlaylistOffline(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.local_tracking_title),
-                    subtitle = stringResource(Res.string.local_tracking_description),
-                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
                 )
                 /*
                 SettingItem(
@@ -1060,21 +1126,6 @@ fun SettingScreen(
                         subtitle = stringResource(Res.string.skip_no_music_part),
                         switch = (skipSilent to { viewModel.setSkipSilent(it) }),
                     )
-                    SettingItem(
-                        title = stringResource(Res.string.open_system_equalizer),
-                        subtitle =
-                            if (castState.isRemote) {
-                                stringResource(Res.string.not_available_while_casting)
-                            } else {
-                                stringResource(Res.string.use_your_system_equalizer)
-                            },
-                        isEnable = !castState.isRemote,
-                        onClick = {
-                            coroutineScope.launch {
-                                resultLauncher.launch()
-                            }
-                        },
-                    )
                 }
             }
         }
@@ -1086,6 +1137,22 @@ fun SettingScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
+                // Under Playback rather than Audio because that whole group sits inside an
+                // Android-only branch — "Open system equalizer" is an Android feature — and this
+                // one is on both platforms: mpv's `af` chain on Desktop, an AudioProcessor in the
+                // Media3 sink on Android, driven from the same stored curve.
+                SettingItem(
+                    title = stringResource(Res.string.equalizer),
+                    subtitle = stringResource(Res.string.equalizer_description),
+                    smallSubtitle = true,
+                    switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
+                )
+                // Only while on. A curve that visibly does nothing is worse than no curve —
+                // and the stored bands survive the switch, so turning it back on returns to
+                // the shape the user built rather than to flat.
+                AnimatedVisibility(visible = equalizerEnabled) {
+                    EqualizerSection()
+                }
                 SettingItem(
                     title = stringResource(Res.string.save_playback_state),
                     subtitle = stringResource(Res.string.save_shuffle_and_repeat_mode),
@@ -1202,9 +1269,56 @@ fun SettingScreen(
                             switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
                             isEnable = !castState.isRemote,
                         )
+                        SettingItem(
+                            title = stringResource(Res.string.crossfade_skip_album),
+                            subtitle =
+                                if (castState.isRemote) {
+                                    stringResource(Res.string.not_available_while_casting)
+                                } else {
+                                    stringResource(Res.string.crossfade_skip_album_description)
+                                },
+                            smallSubtitle = true,
+                            switch = ((crossfadeSkipAlbum) to { viewModel.setCrossfadeSkipAlbum(it) }),
+                            isEnable = !castState.isRemote,
+                        )
 //                        }
                     }
                 }
+            }
+        }
+        // Deliberately not part of "storage" further down, which is Android-only: tracking and the
+        // rows it leaves behind exist on Desktop just the same. The switch that produces the history
+        // and the button that erases it belong together.
+        item(key = "listening_history") {
+            Column {
+                Text(
+                    text = stringResource(Res.string.listening_history),
+                    style = typo().labelMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.local_tracking_title),
+                    subtitle = stringResource(Res.string.local_tracking_description),
+                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.clear_listening_history),
+                    subtitle = stringResource(Res.string.clear_listening_history_description),
+                    onClick = {
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = runBlocking { getString(Res.string.clear_listening_history) },
+                                message = runBlocking { getString(Res.string.clear_listening_history_confirm) },
+                                confirm =
+                                    runBlocking { getString(Res.string.clear) } to {
+                                        viewModel.clearListeningHistory()
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
             }
         }
         item(key = "lyrics") {
@@ -2366,6 +2480,13 @@ fun SettingScreen(
         ImportProgressDialog(
             progress = progress,
             onDismiss = importViewModel::dismiss,
+        )
+    }
+    val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
+    if (showLoadingDialog.first) {
+        LoadingDialog(
+            true,
+            showLoadingDialog.second,
         )
     }
     val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,8 +22,10 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.greyScale
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.painterResource
@@ -35,14 +38,21 @@ fun AppBottomNavigationBar(
     startDestination: Any = HomeDestination,
     navController: NavController,
     isTranslucentBackground: Boolean = false,
+    showAnalyticsTab: Boolean = false,
+    showMixForYouTab: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    // `ordinal` identifies a tab, it is NOT the position — Mix for you and Analytics sit before
+    // Library here while keeping the ordinal they were declared with, so that the numbering stays
+    // stable whether or not those tabs are present.
     val bottomNavScreens =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
-            BottomNavScreen.Search,
+            BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
+            BottomNavScreen.Search,
         )
     var selectedIndex by rememberSaveable {
         mutableIntStateOf(
@@ -50,9 +60,21 @@ fun AppBottomNavigationBar(
                 is HomeDestination -> BottomNavScreen.Home.ordinal
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
+                is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
+                is MixForYouDestination -> BottomNavScreen.MixForYou.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
+    }
+    // A tab can disappear from the list under the user: tracking gets turned off while Analytics is
+    // selected, or the YouTube session ends while Mix for you is. Fall back to Home in both cases so
+    // nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab, showMixForYouTab) {
+        if ((!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) ||
+            (!showMixForYouTab && selectedIndex == BottomNavScreen.MixForYou.ordinal)
+        ) {
+            selectedIndex = BottomNavScreen.Home.ordinal
+        }
     }
     Box(
         modifier =
@@ -133,14 +155,19 @@ fun AppBottomNavigationBar(
 fun AppNavigationRail(
     startDestination: Any = HomeDestination,
     navController: NavController,
+    showAnalyticsTab: Boolean = false,
+    showMixForYouTab: Boolean = false,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    // See the note in AppBottomNavigationBar: `ordinal` is the tab's identity, not its position.
     val bottomNavScreens =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
-            BottomNavScreen.Search,
+            BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
+            BottomNavScreen.Search,
         )
     var selectedIndex by rememberSaveable {
         mutableIntStateOf(
@@ -148,9 +175,21 @@ fun AppNavigationRail(
                 is HomeDestination -> BottomNavScreen.Home.ordinal
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
+                is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
+                is MixForYouDestination -> BottomNavScreen.MixForYou.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
+    }
+    // A tab can disappear from the list under the user: tracking gets turned off while Analytics is
+    // selected, or the YouTube session ends while Mix for you is. Fall back to Home in both cases so
+    // nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab, showMixForYouTab) {
+        if ((!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) ||
+            (!showMixForYouTab && selectedIndex == BottomNavScreen.MixForYou.ordinal)
+        ) {
+            selectedIndex = BottomNavScreen.Home.ordinal
+        }
     }
     NavigationRail {
         Spacer(Modifier.height(16.dp))
@@ -173,7 +212,7 @@ fun AppNavigationRail(
             }
         }
         Spacer(Modifier.weight(1f))
-        bottomNavScreens.forEachIndexed { index, screen ->
+        bottomNavScreens.forEach { screen ->
             NavigationRailItem(
                 icon = screen.icon,
                 label = {
@@ -187,7 +226,7 @@ fun AppNavigationRail(
                             },
                     )
                 },
-                selected = selectedIndex == index,
+                selected = selectedIndex == screen.ordinal,
                 onClick = {
                     if (selectedIndex == screen.ordinal) {
                         if (currentBackStackEntry?.destination?.hierarchy?.any {

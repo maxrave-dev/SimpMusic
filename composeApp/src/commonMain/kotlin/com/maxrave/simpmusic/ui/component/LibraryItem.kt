@@ -55,6 +55,7 @@ import com.maxrave.domain.data.type.RecentlyType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionState
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
@@ -84,6 +85,9 @@ fun LibraryItem(
     viewModel: LibraryViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
+    // Null means this row does not take part in multi-selection; the selection bar lives on the
+    // hosting screen, so only a screen that shows one passes a state down.
+    selectionState: SongSelectionState? = null,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var songEntity by remember { mutableStateOf<SongEntity?>(null) }
@@ -169,6 +173,12 @@ fun LibraryItem(
                                                     index = 0,
                                                 )
                                             },
+                                            selectionMode = selectionState?.isActive == true,
+                                            isSelected = selectionState?.isSelected(item.videoId) == true,
+                                            onLongClick =
+                                                selectionState?.let { sel -> { id: String -> sel.start(id) } },
+                                            onSelectToggle =
+                                                selectionState?.let { sel -> { id: String -> sel.toggle(id) } },
                                             onAddToQueue = { videoId ->
                                                 sharedViewModel.addListToQueue(
                                                     arrayListOf(item.toTrack()),

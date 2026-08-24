@@ -16,6 +16,7 @@ import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
+import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.SongRepository
@@ -27,6 +28,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,19 +43,25 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.simpmusic.lastfm.isLastfmAvailable
+import org.jetbrains.compose.resources.getString as formatString
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.backup_create_failed
 import simpmusic.composeapp.generated.resources.backup_create_success
 import simpmusic.composeapp.generated.resources.backup_in_progress
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
+import simpmusic.composeapp.generated.resources.clear_listening_history
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
+import simpmusic.composeapp.generated.resources.clear_listening_history_done
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
+import simpmusic.composeapp.generated.resources.downloading_liked_songs
+import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.log_out_confirm_message
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
 import simpmusic.composeapp.generated.resources.warning
+import kotlin.coroutines.cancellation.CancellationException
 
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -61,6 +69,7 @@ class SettingsViewModel(
     private val songRepository: SongRepository,
     private val accountRepository: AccountRepository,
     private val cacheRepository: CacheRepository,
+    private val artistRepository: ArtistRepository,
 ) : BaseViewModel() {
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
@@ -101,6 +110,9 @@ class SettingsViewModel(
     val playerCacheLimit: StateFlow<Int?> = _playerCacheLimit
     private var _playVideoInsteadOfAudio: MutableStateFlow<String?> = MutableStateFlow(null)
     val playVideoInsteadOfAudio: StateFlow<String?> = _playVideoInsteadOfAudio
+
+    private var _radioAudioOnly: MutableStateFlow<String?> = MutableStateFlow(null)
+    val radioAudioOnly: StateFlow<String?> = _radioAudioOnly
     private var _videoQuality: MutableStateFlow<String?> = MutableStateFlow(null)
     val videoQuality: StateFlow<String?> = _videoQuality
     private var _thumbCacheSize = MutableStateFlow<Long?>(null)
@@ -143,6 +155,10 @@ class SettingsViewModel(
     val crossfadeDuration: StateFlow<Int> = _crossfadeDuration
     private val _crossfadeDjMode = MutableStateFlow<Boolean>(true)
     val crossfadeDjMode: StateFlow<Boolean> = _crossfadeDjMode
+    private val _crossfadeSkipAlbum = MutableStateFlow<Boolean>(false)
+    val crossfadeSkipAlbum: StateFlow<Boolean> = _crossfadeSkipAlbum
+    private val _autoDownloadLikedSongs = MutableStateFlow<Boolean>(false)
+    val autoDownloadLikedSongs: StateFlow<Boolean> = _autoDownloadLikedSongs
     private val _youtubeSubtitleLanguage = MutableStateFlow<String>("")
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
 
@@ -245,8 +261,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
-
     fun getData() {
         getLocation()
         getLanguage()
@@ -268,9 +282,12 @@ class SettingsViewModel(
         getLyricsProvider()
         getUseTranslation()
         getPlayVideoInsteadOfAudio()
+        getRadioAudioOnly()
         getVideoQuality()
         getSpotifyLogIn()
         getSpotifyLyrics()
+        getSyncFollowToYouTube()
+        getEqualizer()
         getSpotifyCanvas()
         getUsingProxy()
         getCanvasCache()
@@ -286,6 +303,8 @@ class SettingsViewModel(
         getCrossfadeEnabled()
         getCrossfadeDuration()
         getCrossfadeDjMode()
+        getCrossfadeSkipAlbum()
+        getAutoDownloadLikedSongs()
         getContributorNameAndEmail()
         getBackupDownloaded()
         getUpdateChannel()
@@ -472,6 +491,47 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCrossfadeDjMode(enabled)
             getCrossfadeDjMode()
+        }
+    }
+
+    private fun getCrossfadeSkipAlbum() {
+        viewModelScope.launch {
+            dataStoreManager.crossfadeSkipAlbum.collect { enabled ->
+                _crossfadeSkipAlbum.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setCrossfadeSkipAlbum(enabled: Boolean) {
+        viewModelScope.launch {
+            // No re-read afterwards: the collector started in init never completes, so it already
+            // picks this up. Calling the getter again would leave a second collector running for
+            // the life of the ViewModel, one more per toggle.
+            dataStoreManager.setCrossfadeSkipAlbum(enabled)
+        }
+    }
+
+    private fun getAutoDownloadLikedSongs() {
+        viewModelScope.launch {
+            dataStoreManager.autoDownloadLikedSongs.collect { enabled ->
+                _autoDownloadLikedSongs.value = enabled == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setAutoDownloadLikedSongs(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setAutoDownloadLikedSongs(enabled)
+            // Switching it on also catches up on everything liked before now. Songs already
+            // downloaded are skipped, so toggling it off and on again queues nothing.
+            if (enabled) {
+                val queued = songRepository.downloadAllLikedSongs()
+                if (queued > 0) {
+                    // Not BaseViewModel.getString: that one takes no format arguments and would
+                    // leave the placeholder in the text.
+                    makeToast(formatString(Res.string.downloading_liked_songs, queued))
+                }
+            }
         }
     }
 
@@ -1065,6 +1125,25 @@ class SettingsViewModel(
         }
     }
 
+    fun getRadioAudioOnly() {
+        viewModelScope.launch {
+            dataStoreManager.radioAudioOnly.collect { radioAudioOnly ->
+                _radioAudioOnly.emit(radioAudioOnly)
+            }
+        }
+    }
+
+    /**
+     * No re-collect after writing, unlike the settings above: [getRadioAudioOnly] already collects
+     * the DataStore flow, which emits again on every write. Calling the getter here would only
+     * stack a second collector on each toggle.
+     */
+    fun setRadioAudioOnly(audioOnly: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setRadioAudioOnly(audioOnly)
+        }
+    }
+
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
             dataStoreManager.getSponsorBlockCategories().let {
@@ -1161,6 +1240,43 @@ class SettingsViewModel(
             cacheRepository.clearCache(Config.CANVAS_CACHE)
             makeToast(getString(Res.string.clear_canvas_cache))
             getCanvasCache()
+        }
+    }
+
+    fun clearListeningHistory() {
+        viewModelScope.launch {
+            // The sweep walks every container table and then the whole song table, and finishes with
+            // a VACUUM — seconds of work on a large library, and the screen would look frozen.
+            showLoadingDialog(getString(Res.string.clear_listening_history))
+            val removed =
+                try {
+                    // NonCancellable because the sweep is only coherent once it has finished: the
+                    // cached containers are deleted first and the songs they were holding alive
+                    // last, so a run stopped in between — the user leaving Settings is enough to do
+                    // it — has already dropped every cached playlist, album and artist and left the
+                    // songs behind. Nothing resumes it afterwards, so it has to run to the end.
+                    withContext(NonCancellable) { songRepository.clearHistoryAndOrphanedSongs() }
+                } catch (e: CancellationException) {
+                    // Not a failure, and it must not be swallowed: catching it breaks structured
+                    // concurrency, and it would put the generic error toast in front of a user whose
+                    // sweep had in fact just completed, inviting them to run the whole thing again.
+                    throw e
+                } catch (e: Throwable) {
+                    Logger.e(tag, "clearHistoryAndOrphanedSongs failed: ${e.stackTraceToString()}")
+                    null
+                } finally {
+                    // In a finally so a failure — or the user leaving the screen — cannot strand the
+                    // dialog on top of the app with no way to dismiss it.
+                    hideLoadingDialog()
+                }
+            if (removed == null) {
+                makeToast(getString(Res.string.error))
+                return@launch
+            }
+            makeToast(formatString(Res.string.clear_listening_history_done, removed))
+            // Only the database slice of the storage bar moved; getData() would also restart every
+            // collecting getter it owns.
+            calculateDataFraction(cacheRepository)?.let { _fraction.value = it }
         }
     }
 
@@ -1558,6 +1674,137 @@ class SettingsViewModel(
         }
     }
 
+    private var _equalizerEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val equalizerEnabled: StateFlow<Boolean> = _equalizerEnabled
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerEnabled(enabled)
+        }
+    }
+
+    private var _equalizerBands: MutableStateFlow<List<Float>> = MutableStateFlow(List(EQUALIZER_BAND_COUNT) { 0f })
+    val equalizerBands: StateFlow<List<Float>> = _equalizerBands
+
+    private var _equalizerPreamp: MutableStateFlow<Float> = MutableStateFlow(0f)
+    val equalizerPreamp: StateFlow<Float> = _equalizerPreamp
+
+    /** Raw `"<label>\n<gains>"` of the last imported AutoEq profile; the UI decides if it still applies. */
+    private var _equalizerAutoEqProfile: MutableStateFlow<String> = MutableStateFlow("")
+    val equalizerAutoEqProfile: StateFlow<String> = _equalizerAutoEqProfile
+
+    /**
+     * Guards the collectors below against being started twice.
+     *
+     * Two callers ask for them: [getData], which every visit to the settings screen runs, and the
+     * equalizer block itself, which asks on its own so it keeps working if it is ever hosted
+     * anywhere else. Both land on this same view model, and the collectors live in
+     * [viewModelScope] rather than in a composition — so without this, toggling the switch off and
+     * on left another four behind every time, each re-reading the preference file for a value
+     * three others were already publishing.
+     */
+    private var equalizerCollectorsStarted = false
+
+    fun getEqualizer() {
+        if (equalizerCollectorsStarted) return
+        equalizerCollectorsStarted = true
+        viewModelScope.launch {
+            launch {
+                dataStoreManager.equalizerEnabled.collect {
+                    _equalizerEnabled.emit(it == DataStoreManager.TRUE)
+                }
+            }
+            launch {
+                dataStoreManager.equalizerBands.collect { stored ->
+                    // Stored blank means flat. Short or malformed input is padded rather than
+                    // rejected, so a curve saved by a future build with more bands still loads.
+                    val parsed = stored.split(",").mapNotNull { it.trim().toFloatOrNull() }
+                    _equalizerBands.emit(
+                        List(EQUALIZER_BAND_COUNT) { parsed.getOrElse(it) { 0f } },
+                    )
+                }
+            }
+            launch {
+                dataStoreManager.equalizerPreamp.collect { _equalizerPreamp.emit(it) }
+            }
+            launch {
+                dataStoreManager.equalizerAutoEqProfile.collect { _equalizerAutoEqProfile.emit(it) }
+            }
+        }
+    }
+
+    /**
+     * Store a whole curve at once.
+     *
+     * The whole list rather than one band at a time because a single drag sweeps across several
+     * bands, and because the per-band version had to read [_equalizerBands] to rebuild the list —
+     * a value that only updates once the write has been through storage, so two edits in quick
+     * succession could reinstate the first band's old gain.
+     */
+    fun setEqualizerBands(bandsDb: List<Float>) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerBands(bandsDb)
+        }
+    }
+
+    /**
+     * Move the curve and its preamp together.
+     *
+     * These are two separate preference keys, so the player does briefly see one of them applied
+     * against the other's old value. The preamp goes first deliberately: that way the moment in
+     * between is the new headroom under the old curve — quieter — rather than a freshly boosted
+     * curve still running on the previous preset's headroom, which is the direction that clips.
+     */
+    fun applyEqualizerPreset(
+        bandsDb: List<Float>,
+        preampDb: Float,
+    ) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerPreamp(preampDb)
+            dataStoreManager.setEqualizerBands(bandsDb)
+        }
+    }
+
+    fun setEqualizerPreamp(preampDb: Float) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerPreamp(preampDb)
+        }
+    }
+
+    fun resetEqualizer() {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerBands(List(EQUALIZER_BAND_COUNT) { 0f })
+            dataStoreManager.setEqualizerPreamp(0f)
+        }
+    }
+
+    private var _syncFollowToYouTube: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val syncFollowToYouTube: StateFlow<Boolean> = _syncFollowToYouTube
+
+    fun getSyncFollowToYouTube() {
+        viewModelScope.launch {
+            dataStoreManager.syncFollowToYouTube.collect {
+                _syncFollowToYouTube.emit(it == DataStoreManager.TRUE)
+            }
+        }
+    }
+
+    fun setSyncFollowToYouTube(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSyncFollowToYouTube(enabled)
+            // Turning it on is a statement about the whole library: artists followed before the
+            // switch would otherwise never reach the account. Turning it off deliberately does
+            // NOT unsubscribe — stopping the mirroring is not the same as asking us to undo it.
+            if (enabled) {
+                // Runs silently. The only toast in this feature belongs to the Follow button on
+                // the artist screen, where the user performed the action and is waiting to see it
+                // take effect; a switch in Settings is not the place to report on a background
+                // sweep the user is not watching.
+                artistRepository.syncFollowedArtistsToYouTube().collect { }
+            }
+        }
+    }
+
     private var _spotifyLyrics: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val spotifyLyrics: StateFlow<Boolean> = _spotifyLyrics
 
@@ -1714,3 +1961,9 @@ expect fun getPackageName(): String
 expect fun getFileDir(): String
 
 expect fun changeLanguageNative(code: String)
+
+/** Number of equalizer bands, matching the ISO centres the desktop backend installs. */
+const val EQUALIZER_BAND_COUNT = 10
+
+/** Band centre labels, for display only — the backend owns the actual frequencies. */
+val EQUALIZER_BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")

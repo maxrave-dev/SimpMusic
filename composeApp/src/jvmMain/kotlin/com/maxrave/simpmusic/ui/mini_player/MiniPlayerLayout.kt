@@ -38,6 +38,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -360,10 +364,11 @@ fun MediumMiniLayout(
                             enter = scaleIn() + fadeIn(),
                             exit = scaleOut() + fadeOut(),
                         ) {
+                            val previousVolume = rememberPreviousVolume(controllerState.volume)
                             IconButton(
                                 onClick = {
                                     // Toggle mute/unmute
-                                    val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                                    val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
                                     onUIEvent(UIEvent.UpdateVolume(newVolume))
                                 },
                                 modifier = Modifier.size(28.dp),
@@ -661,10 +666,11 @@ fun SquareMiniLayout(
                 )
 
                 // Volume/Mute button
+                val previousVolume = rememberPreviousVolume(controllerState.volume)
                 IconButton(
                     onClick = {
                         // Toggle mute/unmute
-                        val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                        val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
                         onUIEvent(UIEvent.UpdateVolume(newVolume))
                     },
                     modifier = Modifier.size(32.dp),
@@ -858,10 +864,11 @@ fun ExpandedMiniLayout(
                         )
 
                         // Volume button
+                        val previousVolume = rememberPreviousVolume(controllerState.volume)
                         IconButton(
                             onClick = {
                                 // Toggle mute/unmute
-                                val newVolume = if (controllerState.volume > 0f) 0f else 1f
+                                val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
                                 onUIEvent(UIEvent.UpdateVolume(newVolume))
                             },
                             modifier = Modifier.size(28.dp),
@@ -952,4 +959,19 @@ fun ExpandedMiniLayout(
             }
         }
     }
+}
+
+/**
+ * The volume to come back to when unmuting. The in-app player got this fix first
+ * (MiniPlayer.kt); the detached window kept a raw 0f/1f toggle, so unmuting from
+ * 60% jumped to 100%. Muted-from-the-start has nothing to restore, so full volume
+ * stays the fallback.
+ */
+@Composable
+private fun rememberPreviousVolume(volume: Float): Float {
+    var previous by rememberSaveable { mutableFloatStateOf(volume.takeIf { it > 0f } ?: 1f) }
+    LaunchedEffect(volume) {
+        if (volume > 0f) previous = volume
+    }
+    return previous
 }

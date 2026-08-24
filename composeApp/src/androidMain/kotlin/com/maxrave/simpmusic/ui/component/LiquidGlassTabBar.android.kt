@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
@@ -39,6 +41,8 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -70,6 +74,9 @@ private val CapsuleShape = RoundedCornerShape(percent = 50)
 private val TabWidth = 96.dp
 private val BarHeight = 64.dp
 private val BlobHeight = 56.dp
+// Breathing room between the capsule edge and the pill on the first/last tab. The pill is a full
+// tab wide, so without this it sits flush against the capsule's rounded end.
+private val BarInset = 6.dp
 
 /**
  * iOS 26 / Kyant-style liquid sliding tab bar.
@@ -97,11 +104,27 @@ fun LiquidGlassTabBar(
     layer: GraphicsLayer,
     luminance: Float,
     modifier: Modifier = Modifier,
+    availableWidth: Dp = Dp.Unspecified,
     onTabSelected: (Int) -> Unit,
 ) {
     val density = LocalDensity.current
     val tabsCount = tabs.size
-    val tabWidthPx = with(density) { TabWidth.toPx() }
+    // Every tab must be the same width — the blob's position is `index * tabWidth` and the drag
+    // gesture divides by it, so uneven tabs would put the blob off its icon. What must NOT be
+    // fixed is the number itself: with a hardcoded TabWidth the capsule simply grew past the
+    // screen once a fourth tab appeared, and what fell off the right edge was the search FAB.
+    // [availableWidth] is the space the row actually hands this capsule, so the tabs divide up
+    // what exists instead of a guess. TabWidth stays as the cap, so 2 tabs on a tablet do not
+    // stretch into slabs.
+    val tabWidth =
+        if (availableWidth.isSpecified && availableWidth > 0.dp) {
+            ((availableWidth - BarInset * 2) / tabsCount).coerceAtMost(TabWidth)
+        } else {
+            TabWidth
+        }
+    val tabWidthPx = with(density) { tabWidth.toPx() }
+    // The lambdas below are remembered; without this they would keep the width from first layout.
+    val currentTabWidthPx by rememberUpdatedState(tabWidthPx)
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
     val animationScope = rememberCoroutineScope()
     val barInteraction = rememberGlassInteraction()
@@ -136,7 +159,7 @@ fun LiquidGlassTabBar(
                 onDrag = { _, dragAmount ->
                     if (dragAmount.x != 0f) draggedFlag[0] = true
                     updateValue(
-                        (targetValue + dragAmount.x / tabWidthPx * if (isLtr) 1f else -1f)
+                        (targetValue + dragAmount.x / currentTabWidthPx * if (isLtr) 1f else -1f)
                             .coerceIn(0f, (tabsCount - 1).toFloat()),
                     )
                 },
@@ -163,7 +186,7 @@ fun LiquidGlassTabBar(
         modifier =
             modifier
                 .height(BarHeight)
-                .width(TabWidth * tabsCount)
+                .width(tabWidth * tabsCount + BarInset * 2)
                 // Press detection for the whole capsule lives on the outer Box — it's the common
                 // ancestor of the glass, blob and tab Row, so it sees the touch on the Initial pass
                 // before the children. The capsule glass sits underneath the Row and would never get
@@ -181,11 +204,12 @@ fun LiquidGlassTabBar(
         Box(
             Modifier
                 .graphicsLayer {
-                    // Per-tab slot start + a symmetric 4dp inset, so the pill keeps equal padding on
-                    // both the first and last tab (the last tab used to sit flush to the edge).
+                    // Per-tab slot start, no inset: the pill is exactly one tab wide, so any bias
+                    // here shifts it off its own tab (it used to be inset 4dp to match a pill that
+                    // was 8dp narrower than the slot).
                     translationX =
                         (if (isLtr) dampedDrag.value else (tabsCount - 1) - dampedDrag.value) * tabWidthPx +
-                        4.dp.toPx()
+                        BarInset.toPx()
                 }.drawBackdrop(
                     backdrop = backdrop,
                     shape = { CapsuleShape },
@@ -230,16 +254,17 @@ fun LiquidGlassTabBar(
                             if (isDark) lerp(0.22f, 0.55f, lumNorm) else lerp(0.06f, 0.14f, lumNorm)
                         drawRect(Color.Black.copy(alpha = darken))
                     },
-                ).width(TabWidth - 8.dp)
+                ).width(tabWidth)
                 .height(BlobHeight),
         )
 
         // 3) Crisp icons + labels on top, carrying the blob drag gesture.
         Row(
-            // No horizontal padding here: tabs tile exactly [0..TabWidth..] so each icon's centre
-            // lines up with the blob's per-tab slot (the Home icon used to sit 4dp off).
+            // Tabs tile exactly [BarInset..+tabWidth..], the same origin the blob uses above — any
+            // mismatch here puts the icon off the centre of its own pill.
             Modifier
                 .matchParentSize()
+                .padding(horizontal = BarInset)
                 .then(dampedDrag.modifier),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -247,6 +272,7 @@ fun LiquidGlassTabBar(
                 LiquidGlassTab(
                     screen = screen,
                     selected = currentIndex == position,
+                    width = tabWidth,
                 ) {
                     if (position == currentIndex) {
                         // Re-tapping the active tab: snapshotFlow won't fire (state unchanged),
@@ -269,12 +295,13 @@ fun LiquidGlassTabBar(
 private fun LiquidGlassTab(
     screen: BottomNavScreen,
     selected: Boolean,
+    width: Dp,
     onClick: () -> Unit,
 ) {
     val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
     Column(
         Modifier
-            .width(TabWidth)
+            .width(width)
             .fillMaxHeight()
             .clip(CapsuleShape)
             .clickable(

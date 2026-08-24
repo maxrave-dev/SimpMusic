@@ -1335,6 +1335,7 @@ fun QueueItemBottomSheet(
                                         Image(
                                             imageVector = SimpIcons.KeyboardDoubleArrowUp,
                                             contentDescription = "Move up",
+                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                         )
                                     }
 
@@ -1342,6 +1343,7 @@ fun QueueItemBottomSheet(
                                         Image(
                                             imageVector = SimpIcons.KeyboardDoubleArrowDown,
                                             contentDescription = "Move down",
+                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                         )
                                     }
 
@@ -1349,6 +1351,7 @@ fun QueueItemBottomSheet(
                                         Image(
                                             imageVector = SimpIcons.Delete,
                                             contentDescription = "Delete",
+                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                         )
                                     }
                                 }
@@ -1873,12 +1876,11 @@ fun NowPlayingBottomSheet(
                     }
                     Crossfade(targetState = setSleepTimerEnable) {
                         if (it) {
-                            val isDesktop = getPlatform() == Platform.Desktop
                             ActionButton(
                                 icon = SimpIcons.Speed,
                                 text =
                                     if (crossfadeEnabled != DataStoreManager.TRUE) {
-                                        if (isDesktop) Res.string.playback_speed else Res.string.playback_speed_pitch
+                                        Res.string.playback_speed_pitch
                                     } else {
                                         Res.string.playback_speed_pitch_disabled
                                     },
@@ -2020,6 +2022,9 @@ fun HeartCheckBox(
         modifier =
             Modifier
                 .size(size.dp)
+                // Before .clip: the burst draws outside the button bounds and the circle clip
+                // would trim it to the heart's own circle.
+                .heartBurst(checked)
                 .clip(CircleShape)
                 .clickable {
                     onStateChange?.invoke()
@@ -2128,8 +2133,12 @@ fun PlaybackSpeedPitchBottomSheet(
                         )
                     }
                 }
-                // Pitch row — hidden on Desktop (LibVLC doesn't support independent pitch control)
-                if (getPlatform() != Platform.Desktop) {
+                // Shown on every platform. It used to be hidden on Desktop because LibVLC had no
+                // independent pitch control, but that backend is long gone — mpv shifts pitch with
+                // its rubberband filter. The control is still locked out while crossfade is on,
+                // handled by the caller: crossfade owns mpv's filter chain and the two would fight
+                // over it.
+                run {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -2587,6 +2596,7 @@ fun AddToPlaylistModalBottomSheet(
                                                 Image(
                                                     imageVector = SimpIcons.PlaylistAdd,
                                                     contentDescription = "",
+                                                    colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                                 )
                                                 Spacer(modifier = Modifier.width(10.dp))
                                                 Text(
@@ -2620,11 +2630,16 @@ fun AddToPlaylistModalBottomSheet(
                                             ) {
                                                 Crossfade(targetState = playlist.tracks?.contains(videoId) == true) {
                                                     if (it) {
-                                                        Image(imageVector = SimpIcons.Done, contentDescription = "")
+                                                        Image(
+                                                            imageVector = SimpIcons.Done,
+                                                            contentDescription = "",
+                                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
+                                                        )
                                                     } else {
                                                         Image(
                                                             imageVector = SimpIcons.PlaylistAdd,
                                                             contentDescription = "",
+                                                            colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                                         )
                                                     }
                                                 }
@@ -2711,6 +2726,7 @@ fun ArtistModalBottomSheet(
                                     Image(
                                         imageVector = SimpIcons.PeopleAlt,
                                         contentDescription = "",
+                                        colorFilter = ColorFilter.tint(rememberSurfaceDarkColors().content),
                                     )
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(text = artist.name, style = typo().labelSmall)

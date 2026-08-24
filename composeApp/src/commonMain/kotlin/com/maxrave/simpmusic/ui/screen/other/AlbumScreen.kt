@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +28,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -57,8 +55,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
@@ -70,22 +66,19 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
+import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
-import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.toImmersiveBackground
-import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -97,13 +90,15 @@ import com.maxrave.simpmusic.ui.component.PlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.Pause
-import com.maxrave.simpmusic.ui.icon.PauseCircle
 import com.maxrave.simpmusic.ui.icon.PlayArrow
-import com.maxrave.simpmusic.ui.icon.PlayCircle
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -113,6 +108,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -165,6 +161,11 @@ fun AlbumScreen(
     var albumBottomSheetShow by rememberSaveable { mutableStateOf(false) }
     var chosenSong: Track? by remember { mutableStateOf(null) }
 
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+
     val composition by rememberLottieComposition {
         LottieCompositionSpec.JsonString(
             Res.readBytes("files/downloading_animation.json").decodeToString(),
@@ -216,19 +217,16 @@ fun AlbumScreen(
             }
     }
 
-    // Apple Music-inspired immersive treatment: gated to mobile portrait so tablets,
-    // foldable open state, landscape orientation, and Desktop keep the existing layout.
+    // Apple Music-inspired immersive treatment. Which header is used depends on the window's
+    // aspect ratio alone, not on the platform: a portrait window (a phone held upright, or a
+    // narrow desktop window) gets the edge-to-edge artwork header, a landscape one gets the
+    // side-by-side header. Everything else on the page — the palette background, the row
+    // dividers, the blurred top bar — is shared by both.
     val screenInfo = getScreenSizeInfo()
-    val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
+    val isPortrait = screenInfo.wDP < screenInfo.hDP
     val dominantColor = uiState.colors.firstOrNull() ?: Color.Black
     // Apple Music-style page background from the artwork's dominant tone (see UIExt.toImmersiveBackground).
     val mutedPaletteBg = paletteState.palette.toImmersiveBackground()
-    val artworkSizeDp =
-        if (isMobilePortrait) {
-            (screenInfo.wDP * 0.85f).coerceIn(280f, 380f).toInt()
-        } else {
-            250
-        }
 
     Crossfade(uiState.loadState) {
         when (it) {
@@ -237,7 +235,7 @@ fun AlbumScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .background(if (isMobilePortrait) mutedPaletteBg else Color.Black)
+                            .background(mutedPaletteBg)
                             .hazeSource(hazeState),
                     state = lazyState,
                 ) {
@@ -249,54 +247,14 @@ fun AlbumScreen(
                                     .wrapContentHeight()
                                     .background(Color.Transparent),
                         ) {
-                            if (!isMobilePortrait) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth(),
-                                ) {
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(260.dp)
-                                                .clip(
-                                                    RoundedCornerShape(8.dp),
-                                                ).angledGradientBackground(uiState.colors, 25f),
-                                    )
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(180.dp)
-                                                .align(Alignment.BottomCenter)
-                                                .background(artworkScrimBrush(Color.Black)),
-                                    )
-                                }
-                            }
                             Column(
                                 Modifier
                                     .background(Color.Transparent),
                             ) {
-                                if (!isMobilePortrait) {
-                                    Row(
-                                        modifier =
-                                            Modifier
-                                                .wrapContentWidth()
-                                                .padding(16.dp)
-                                                .windowInsetsPadding(WindowInsets.statusBars),
-                                    ) {
-                                        RippleIconButton(
-                                            imageVector = SimpIcons.ArrowBackIosNew,
-                                        ) {
-                                            navController.navigateUp()
-                                        }
-                                    }
-                                }
                                 Column(
                                     horizontalAlignment = Alignment.Start,
                                 ) {
-                                    if (isMobilePortrait) {
+                                    if (isPortrait) {
                                         // Apple Music-style: edge-to-edge artwork (taller than square,
                                         // ~half screen height) with title overlay + liquid glass buttons.
                                         // Glass buttons MUST be siblings of the backdrop source (not children)
@@ -440,29 +398,293 @@ fun AlbumScreen(
                                             }
                                         }
                                     } else {
-                                        AsyncImage(
-                                            model =
-                                                ImageRequest
-                                                    .Builder(LocalPlatformContext.current)
-                                                    .data(uiState.thumbnail)
-                                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                                    .diskCacheKey(uiState.thumbnail)
-                                                    .crossfade(true)
-                                                    .build(),
-                                            placeholder = rememberHolderPainter(),
-                                            error = rememberHolderPainter(),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.FillHeight,
-                                            onSuccess = {
-                                                bitmap = it.result.image.toImageBitmap()
-                                            },
-                                            modifier =
-                                                Modifier
-                                                    .height(artworkSizeDp.dp)
-                                                    .wrapContentWidth()
-                                                    .align(Alignment.CenterHorizontally)
-                                                    .clip(RoundedCornerShape(8.dp)),
-                                        )
+                                        // Apple Music desktop header: back and the like/more pair on
+                                        // their own top row, then a square artwork with the text column
+                                        // and the action cluster laid out beside it rather than under it.
+                                        // Built exactly like the portrait branch, which renders correctly on both
+                                        // platforms: the backdrop SOURCE is the content column — artwork included,
+                                        // so the recorded layer holds something to refract — and the glass buttons
+                                        // are SIBLINGS placed with align(), never children of the source (that
+                                        // nesting is the render-feedback loop that kills the RuntimeShader).
+                                        val headerBackdrop = rememberBackdrop(Color.Black)
+                                        Box(modifier = Modifier.fillMaxWidth()) {
+                                            Column(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .layerBackdrop(headerBackdrop)
+                                                        .windowInsetsPadding(WindowInsets.statusBars)
+                                                        .padding(horizontal = 32.dp, vertical = 16.dp),
+                                            ) {
+                                                // Reserves the strip the sibling glass buttons are drawn over.
+                                                Spacer(modifier = Modifier.height(48.dp))
+                                                Spacer(modifier = Modifier.height(16.dp))
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                                    verticalAlignment = Alignment.Top,
+                                                ) {
+                                                    AsyncImage(
+                                                        model =
+                                                            ImageRequest
+                                                                .Builder(LocalPlatformContext.current)
+                                                                .data(uiState.thumbnail)
+                                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                                                .diskCacheKey(uiState.thumbnail)
+                                                                .memoryCacheKey(uiState.thumbnail)
+                                                                .crossfade(false)
+                                                                .build(),
+                                                        placeholder = rememberHolderPainter(),
+                                                        error = rememberHolderPainter(),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        onSuccess = {
+                                                            bitmap = it.result.image.toImageBitmap()
+                                                        },
+                                                        modifier =
+                                                            Modifier
+                                                                .size(280.dp)
+                                                                .clip(RoundedCornerShape(8.dp)),
+                                                    )
+                                                    Column(
+                                                        modifier = Modifier.weight(1f),
+                                                    ) {
+                                                        Text(
+                                                            text = uiState.title,
+                                                            style = typo().headlineSmall,
+                                                            color = Color.White,
+                                                            maxLines = 2,
+                                                        )
+                                                        Spacer(modifier = Modifier.height(4.dp))
+                                                        Text(
+                                                            text = uiState.artist.name,
+                                                            style = typo().titleMedium,
+                                                            // The app accent, standing in for the brand red
+                                                            // Apple uses on this line.
+                                                            color = seed,
+                                                            modifier =
+                                                                Modifier.clickable {
+                                                                    uiState.artist.id?.let { channelId ->
+                                                                        navController.navigate(
+                                                                            ArtistDestination(
+                                                                                channelId = channelId,
+                                                                            ),
+                                                                        )
+                                                                    }
+                                                                },
+                                                        )
+                                                        Spacer(modifier = Modifier.height(6.dp))
+                                                        Text(
+                                                            text =
+                                                                stringResource(
+                                                                    Res.string.year_and_category,
+                                                                    uiState.year,
+                                                                    stringResource(Res.string.album),
+                                                                ),
+                                                            style = typo().labelMedium,
+                                                            color = Color(0xC4FFFFFF),
+                                                        )
+                                                        Spacer(modifier = Modifier.height(20.dp))
+                                                        // Apple Music-style action row:
+                                                        // [Shuffle][Play pill][Download] (cluster centered, all 48dp matching size)
+                                                        val isThisPlaying =
+                                                            playingVideoId.isNotEmpty() &&
+                                                                playingPlaylistId == browseId.replaceFirst("VL", "")
+                                                        Row(
+                                                            modifier =
+                                                                Modifier
+                                                                    .fillMaxWidth()
+                                                                    .padding(vertical = 8.dp),
+                                                            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.Start),
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                        ) {
+                                                            Box(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(48.dp)
+                                                                        .clip(CircleShape)
+                                                                        .background(Color.White.copy(alpha = 0.12f))
+                                                                        .clickable { viewModel.shuffle() },
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = SimpIcons.Shuffle,
+                                                                    contentDescription = "Shuffle",
+                                                                    tint = Color.White,
+                                                                    modifier = Modifier.size(22.dp),
+                                                                )
+                                                            }
+                                                            Box(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .height(48.dp)
+                                                                        .widthIn(min = 110.dp)
+                                                                        .clip(CircleShape)
+                                                                        .background(Color.White)
+                                                                        .clickable {
+                                                                            if (isThisPlaying) {
+                                                                                sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                                                            } else {
+                                                                                uiState.listTrack.firstOrNull()?.let {
+                                                                                    viewModel.playTrack(it)
+                                                                                }
+                                                                            }
+                                                                        }.padding(horizontal = 20.dp),
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                                    Icon(
+                                                                        imageVector =
+                                                                            if (isThisPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
+                                                                        contentDescription = null,
+                                                                        tint = Color.Black,
+                                                                        modifier = Modifier.size(22.dp),
+                                                                    )
+                                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                                    Text(
+                                                                        text = if (isThisPlaying) "Pause" else "Play",
+                                                                        color = Color.Black,
+                                                                        style = typo().labelLarge,
+                                                                    )
+                                                                }
+                                                            }
+                                                            Box(
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(48.dp)
+                                                                        .clip(CircleShape)
+                                                                        .background(Color.White.copy(alpha = 0.12f)),
+                                                                contentAlignment = Alignment.Center,
+                                                            ) {
+                                                                Crossfade(targetState = uiState.downloadState) { state ->
+                                                                    when (state) {
+                                                                        DownloadState.STATE_DOWNLOADED -> {
+                                                                            Box(
+                                                                                modifier =
+                                                                                    Modifier
+                                                                                        .fillMaxSize()
+                                                                                        .clickable {
+                                                                                            viewModel.makeToast(
+                                                                                                runBlocking {
+                                                                                                    getString(Res.string.downloaded)
+                                                                                                },
+                                                                                            )
+                                                                                        },
+                                                                                contentAlignment = Alignment.Center,
+                                                                            ) {
+                                                                                Icon(
+                                                                                    painter = painterResource(Res.drawable.baseline_downloaded),
+                                                                                    tint = Color(0xFF00A0CB),
+                                                                                    contentDescription = "",
+                                                                                    modifier = Modifier.size(22.dp),
+                                                                                )
+                                                                            }
+                                                                        }
+
+                                                                        DownloadState.STATE_DOWNLOADING -> {
+                                                                            Box(
+                                                                                modifier =
+                                                                                    Modifier
+                                                                                        .fillMaxSize()
+                                                                                        .clickable {
+                                                                                            viewModel.makeToast(
+                                                                                                runBlocking {
+                                                                                                    getString(Res.string.downloading)
+                                                                                                },
+                                                                                            )
+                                                                                        },
+                                                                                contentAlignment = Alignment.Center,
+                                                                            ) {
+                                                                                Image(
+                                                                                    painter =
+                                                                                        rememberLottiePainter(
+                                                                                            composition = composition,
+                                                                                            iterations = Compottie.IterateForever,
+                                                                                        ),
+                                                                                    contentDescription = "Lottie animation",
+                                                                                    modifier = Modifier.size(28.dp),
+                                                                                )
+                                                                            }
+                                                                        }
+
+                                                                        else -> {
+                                                                            Box(
+                                                                                modifier =
+                                                                                    Modifier
+                                                                                        .fillMaxSize()
+                                                                                        .clickable { viewModel.downloadFullAlbum() },
+                                                                                contentAlignment = Alignment.Center,
+                                                                            ) {
+                                                                                Icon(
+                                                                                    imageVector = SimpIcons.DownloadForOffline,
+                                                                                    tint = Color.White,
+                                                                                    contentDescription = "Download",
+                                                                                    modifier = Modifier.size(22.dp),
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            // Glass overlays — siblings of the source, over the strip the column reserved.
+                                            Box(Modifier.padding(start = 12.dp)) {
+                                                LiquidGlassIconButton(
+                                                    backdrop = headerBackdrop,
+                                                    imageVector = SimpIcons.ArrowBackIosNew,
+                                                    shape = RoundedCornerShape(24.dp),
+                                                    // Same directional style as the like/⋯ pill, a touch thicker. The default
+                                                    // width of 0.5.dp becomes a ~2px stroke (HighlightModifier: ceil(width.toPx()) * 2),
+                                                    // which reads along the pill's long edge but vanishes around a 48dp circle. 1.dp
+                                                    // is the smallest step up that stays visible without looking like a border.
+                                                    highlight = Highlight(width = 1.dp),
+                                                    modifier =
+                                                        Modifier
+                                                            .align(Alignment.TopStart)
+                                                            .padding(12.dp)
+                                                            .windowInsetsPadding(WindowInsets.statusBars)
+                                                            .size(48.dp),
+                                                ) {
+                                                    navController.navigateUp()
+                                                }
+                                            }
+                                            Row(
+                                                modifier =
+                                                    Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .windowInsetsPadding(WindowInsets.statusBars)
+                                                        .padding(end = 32.dp, top = 16.dp)
+                                                        .height(48.dp)
+                                                        .liquidGlass(headerBackdrop, RoundedCornerShape(24.dp)),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier.size(48.dp),
+                                                    contentAlignment = Alignment.Center,
+                                                ) {
+                                                    HeartCheckBox(
+                                                        size = 28,
+                                                        checked = uiState.liked,
+                                                        onStateChange = {
+                                                            viewModel.setAlbumLike()
+                                                        },
+                                                    )
+                                                }
+                                                IconButton(
+                                                    onClick = { albumBottomSheetShow = true },
+                                                ) {
+                                                    Icon(
+                                                        imageVector = SimpIcons.MoreVert,
+                                                        contentDescription = "More",
+                                                        tint = Color.White,
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
                                     Box(
                                         modifier =
@@ -471,49 +693,11 @@ fun AlbumScreen(
                                                 .wrapContentHeight(),
                                     ) {
                                         Column(Modifier.padding(horizontal = 32.dp)) {
-                                            if (!isMobilePortrait) {
-                                                Spacer(modifier = Modifier.size(25.dp))
-                                                Text(
-                                                    text = uiState.title,
-                                                    style = typo().titleLarge,
-                                                    color = Color.White,
-                                                    maxLines = 2,
-                                                )
-                                                Column(
-                                                    modifier = Modifier.padding(vertical = 8.dp),
-                                                ) {
-                                                    // Author clickable
-                                                    Text(
-                                                        text = uiState.artist.name,
-                                                        style = typo().titleSmall,
-                                                        color = Color.White,
-                                                        modifier =
-                                                            Modifier.clickable {
-                                                                uiState.artist.id?.let { channelId ->
-                                                                    navController.navigate(
-                                                                        ArtistDestination(
-                                                                            channelId = channelId,
-                                                                        ),
-                                                                    )
-                                                                }
-                                                            },
-                                                    )
-                                                    Spacer(modifier = Modifier.height(8.dp))
-                                                    Text(
-                                                        text =
-                                                            stringResource(
-                                                                Res.string.year_and_category,
-                                                                uiState.year,
-                                                                stringResource(Res.string.album),
-                                                            ),
-                                                        style = typo().bodyMedium,
-                                                        color = Color(0xC4FFFFFF),
-                                                    )
-                                                }
-                                            }
-                                            if (isMobilePortrait) {
-                                                // Apple Music-style action row:
-                                                // [Shuffle][Play pill][Download] (cluster centered, all 48dp matching size)
+                                            // Apple Music-style action row:
+                                            // [Shuffle][Play pill][Download] (cluster centered, all 48dp matching size).
+                                            // The landscape header carries its own copy of this cluster beside the
+                                            // artwork, so it only belongs here in portrait.
+                                            if (isPortrait) {
                                                 val isThisPlaying =
                                                     playingVideoId.isNotEmpty() &&
                                                         playingPlaylistId == browseId.replaceFirst("VL", "")
@@ -654,123 +838,6 @@ fun AlbumScreen(
                                                         }
                                                     }
                                                 }
-                                            } else {
-                                                Row(
-                                                    modifier =
-                                                        Modifier.fillMaxWidth(),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    Crossfade(
-                                                        playingVideoId.isNotEmpty() &&
-                                                            playingPlaylistId == browseId.replaceFirst("VL", ""),
-                                                    ) { isThisPlaying ->
-                                                        if (isThisPlaying) {
-                                                            RippleIconButton(
-                                                                imageVector = SimpIcons.PauseCircle,
-                                                                fillMaxSize = true,
-                                                                tint = seed,
-                                                                modifier = Modifier.size(48.dp),
-                                                            ) {
-                                                                sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                                            }
-                                                        } else {
-                                                            RippleIconButton(
-                                                                imageVector = SimpIcons.PlayCircle,
-                                                                fillMaxSize = true,
-                                                                tint = seed,
-                                                                modifier = Modifier.size(48.dp),
-                                                            ) {
-                                                                viewModel.playTrack(uiState.listTrack.firstOrNull() ?: return@RippleIconButton)
-                                                            }
-                                                        }
-                                                    }
-                                                    Spacer(modifier = Modifier.size(5.dp))
-                                                    Crossfade(targetState = uiState.downloadState) {
-                                                        when (it) {
-                                                            DownloadState.STATE_DOWNLOADED -> {
-                                                                Box(
-                                                                    modifier =
-                                                                        Modifier
-                                                                            .size(36.dp)
-                                                                            .clip(
-                                                                                CircleShape,
-                                                                            ).clickable {
-                                                                                viewModel.makeToast(
-                                                                                    runBlocking {
-                                                                                        getString(Res.string.downloaded)
-                                                                                    },
-                                                                                )
-                                                                            },
-                                                                ) {
-                                                                    Icon(
-                                                                        painter = painterResource(Res.drawable.baseline_downloaded),
-                                                                        tint = Color(0xFF00A0CB),
-                                                                        contentDescription = "",
-                                                                        modifier =
-                                                                            Modifier
-                                                                                .size(36.dp)
-                                                                                .padding(2.dp),
-                                                                    )
-                                                                }
-                                                            }
-
-                                                            DownloadState.STATE_DOWNLOADING -> {
-                                                                Box(
-                                                                    modifier =
-                                                                        Modifier
-                                                                            .size(36.dp)
-                                                                            .clip(
-                                                                                CircleShape,
-                                                                            ).clickable {
-                                                                                viewModel.makeToast(
-                                                                                    runBlocking {
-                                                                                        getString(Res.string.downloading)
-                                                                                    },
-                                                                                )
-                                                                            },
-                                                                ) {
-                                                                    Image(
-                                                                        painter =
-                                                                            rememberLottiePainter(
-                                                                                composition = composition,
-                                                                                iterations = Compottie.IterateForever,
-                                                                            ),
-                                                                        contentDescription = "Lottie animation",
-                                                                        modifier = Modifier.fillMaxSize(),
-                                                                    )
-                                                                }
-                                                            }
-
-                                                            else -> {
-                                                                RippleIconButton(
-                                                                    fillMaxSize = true,
-                                                                    imageVector = SimpIcons.DownloadForOffline,
-                                                                    modifier = Modifier.size(36.dp),
-                                                                ) {
-                                                                    viewModel.downloadFullAlbum()
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    Spacer(modifier = Modifier.size(5.dp))
-                                                    HeartCheckBox(
-                                                        size = 36,
-                                                        checked = uiState.liked,
-                                                        onStateChange = {
-                                                            viewModel.setAlbumLike()
-                                                        },
-                                                    )
-                                                    Spacer(Modifier.weight(1f))
-                                                    Spacer(Modifier.size(5.dp))
-                                                    RippleIconButton(
-                                                        modifier =
-                                                            Modifier.size(36.dp),
-                                                        imageVector = SimpIcons.Shuffle,
-                                                        fillMaxSize = true,
-                                                    ) {
-                                                        viewModel.shuffle()
-                                                    }
-                                                }
                                             }
                                             DescriptionView(
                                                 text =
@@ -828,9 +895,13 @@ fun AlbumScreen(
                                             arrayListOf(item),
                                         )
                                     },
+                                    selectionMode = selectionState.isActive,
+                                    isSelected = selectionState.isSelected(item.videoId),
+                                    onLongClick = { selectionState.start(it) },
+                                    onSelectToggle = { selectionState.toggle(it) },
                                     modifier = Modifier,
                                 )
-                                if (isMobilePortrait && index < uiState.trackCount - 1) {
+                                if (index < uiState.trackCount - 1) {
                                     HorizontalDivider(
                                         modifier = Modifier.padding(start = 72.dp, end = 16.dp),
                                         thickness = 0.5.dp,
@@ -880,7 +951,7 @@ fun AlbumScreen(
                     }
                 }
                 AnimatedVisibility(
-                    visible = shouldHideTopBar,
+                    visible = shouldHideTopBar && !selectionState.isActive,
                     enter = fadeIn() + slideInVertically(),
                     exit = fadeOut() + slideOutVertically(),
                 ) {
@@ -918,16 +989,73 @@ fun AlbumScreen(
                                 containerColor = Color.Transparent,
                             ),
                         modifier =
-                            if (isMobilePortrait) {
-                                Modifier.hazeEffect(hazeState) {
-                                    blurEnabled = true
-                                    blurRadius = 24.dp
-                                    backgroundColor = mutedPaletteBg
-                                    tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
-                                }
-                            } else {
-                                Modifier.angledGradientBackground(uiState.colors, 90f)
+                            Modifier.hazeEffect(hazeState) {
+                                blurEnabled = true
+                                blurRadius = 24.dp
+                                backgroundColor = mutedPaletteBg
+                                tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
                             },
+                    )
+                }
+                AnimatedVisibility(
+                    visible = selectionState.isActive,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically(),
+                ) {
+                    SongSelectionTopAppBar(
+                        state = selectionState,
+                        onSelectAll = {
+                            selectionState.toggleSelectAll(uiState.listTrack.map { it.videoId })
+                        },
+                        onOpenActions = { showSelectionSheet = true },
+                        modifier =
+                            Modifier.hazeEffect(hazeState) {
+                                blurEnabled = true
+                                blurRadius = 24.dp
+                                backgroundColor = mutedPaletteBg
+                                tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
+                            },
+                    )
+                }
+                if (showSelectionSheet) {
+                    val selectedIds = selectionState.selected.toList()
+                    SelectedSongsBottomSheet(
+                        count = selectedIds.size,
+                        onDismiss = { showSelectionSheet = false },
+                        onPlayNext = {
+                            selectionViewModel.playNext(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToQueue = {
+                            selectionViewModel.addToQueue(selectedIds)
+                            selectionState.exit()
+                        },
+                        // Deliberately does not exit yet: the playlist picker opens next and
+                        // still needs the selection alive.
+                        onAddToPlaylist = { showSelectionAddToPlaylist = true },
+                        onDownload = {
+                            selectionViewModel.download(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToFavorite = {
+                            selectionViewModel.addToFavorite(selectedIds)
+                            selectionState.exit()
+                        },
+                    )
+                }
+                if (showSelectionAddToPlaylist) {
+                    val selectedIds = selectionState.selected.toList()
+                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+                    AddToPlaylistModalBottomSheet(
+                        isBottomSheetVisible = true,
+                        listLocalPlaylist = localPlaylists,
+                        listYouTubePlaylist = emptyList(),
+                        onDismiss = { showSelectionAddToPlaylist = false },
+                        onClick = { playlist ->
+                            selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                            selectionState.exit()
+                        },
+                        onYTPlaylistClick = {},
                     )
                 }
                 if (showBottomSheet) {

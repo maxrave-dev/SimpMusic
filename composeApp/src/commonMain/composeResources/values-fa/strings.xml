@@ -160,9 +160,6 @@
     <string name="balance_media_loudness">تعادل بلندی صدا</string>
     <string name="normalize_volume">نرمال‌سازی صدا</string>
     <string name="audio">صدا</string>
-    <string name="no_equalizer">دستگاه شما اکولایزر ندارد</string>
-    <string name="open_system_equalizer">اکولایزر سامانه را باز کنید</string>
-    <string name="use_your_system_equalizer">از اکولایزر سامانه خود استفاده کنید</string>
     <string name="streaming_data_provider_piped">تأمین‌کننده داده‌های استریم (Piped)</string>
     <string name="itag">آی‌تگ</string>
     <string name="mime_type">نوع MIME</string>

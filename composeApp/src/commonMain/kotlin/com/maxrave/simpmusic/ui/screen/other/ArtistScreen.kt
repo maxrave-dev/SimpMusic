@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,14 +41,11 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -63,13 +59,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -78,6 +72,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.common.Config
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.home.Content
@@ -85,7 +80,6 @@ import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
@@ -100,18 +94,21 @@ import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
-import com.maxrave.simpmusic.ui.component.CollapsingToolbarParallaxEffect
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItemArtist
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeItemVideo
-import com.maxrave.simpmusic.ui.component.LimitedBorderAnimationView
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionState
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
+import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.PersonAdd
@@ -126,6 +123,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ArtistScreenState
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -142,14 +140,11 @@ import simpmusic.composeapp.generated.resources.albums
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.featured_inArtist
-import simpmusic.composeapp.generated.resources.follow
-import simpmusic.composeapp.generated.resources.followed
 import simpmusic.composeapp.generated.resources.more
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.popular
 import simpmusic.composeapp.generated.resources.related_artists
 import simpmusic.composeapp.generated.resources.singles
-import simpmusic.composeapp.generated.resources.start_radio
 import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.videos
 
@@ -178,16 +173,22 @@ fun ArtistScreen(
         mutableStateOf(false)
     }
 
+    val selectionState = rememberSongSelectionState()
+    val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(channelId) {
         if (channelId != artistScreenState.data.channelId) {
             viewModel.browseArtist(channelId)
         }
     }
 
-    // Apple Music-inspired immersive treatment: gated to mobile portrait so tablets,
-    // foldable open state, landscape orientation, and Desktop keep the existing layout.
+    // Apple Music-inspired immersive treatment. The header adapts to the window's aspect ratio
+    // alone, not to the platform: a portrait window keeps the square artwork frame, a landscape
+    // one (including every desktop window) uses a half-viewport-tall frame instead.
     val screenInfo = getScreenSizeInfo()
-    val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
+    val isPortrait = screenInfo.wDP < screenInfo.hDP
 
     // Palette extraction from the artist artwork (portrait Apple-style only).
     val paletteState = com.kmpalette.rememberPaletteState()
@@ -234,85 +235,110 @@ fun ArtistScreen(
             }
 
             is ArtistScreenState.Success -> {
-                if (isMobilePortrait) {
-                    // ---- Apple Music style (mobile portrait only) ----
-                    Box(Modifier.fillMaxSize()) {
-                        LazyColumn(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .background(mutedPaletteBg)
-                                    .hazeSource(hazeState),
-                            state = lazyState,
-                        ) {
-                            item(contentType = "header") {
-                                Column(
-                                    // Negative spacing pulls the action row up into the header AND
-                                    // shrinks the layout, so there's no leftover gap before "Popular"
-                                    // (unlike Modifier.offset, which only moves pixels, not layout).
-                                    verticalArrangement = Arrangement.spacedBy((-36).dp),
+                // ---- Apple Music style (mobile portrait only) ----
+                Box(Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .background(mutedPaletteBg)
+                                .hazeSource(hazeState),
+                        state = lazyState,
+                    ) {
+                        item(contentType = "header") {
+                            Column(
+                                // Negative spacing pulls the action row up into the header AND
+                                // shrinks the layout, so there's no leftover gap before "Popular"
+                                // (unlike Modifier.offset, which only moves pixels, not layout).
+                                verticalArrangement = Arrangement.spacedBy((-36).dp),
+                            ) {
+                                // Edge-to-edge artwork (canvas plays on top of it when available).
+                                // Glass back button MUST be a sibling of the backdrop source
+                                // (not a child) to avoid render feedback loop / RuntimeShader crash.
+                                val artworkBackdrop = rememberBackdrop(Color.Black)
+                                // Haze state for the bottom progressive-blur fade (source = media layer).
+                                val headerHaze = rememberHazeState(blurEnabled = true)
+                                // Clamp the artist thumbnail URL to a square size (logic from
+                                // commit 5e596c5b) so it fills the square frame with FillWidth.
+                                val headerImageUrl = state.data.imageUrl?.toSquareThumbnailUrl()
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .then(
+                                                if (isPortrait) {
+                                                    Modifier.aspectRatio(1f)
+                                                } else {
+                                                    // Half the viewport, matching Album/Playlist/LocalPlaylist.
+                                                    // A square frame only works while the frame is roughly as
+                                                    // wide as a phone; on a landscape window aspectRatio(1f)
+                                                    // makes this as tall as the window is wide and the artwork
+                                                    // (or a playing canvas) swallows the entire page.
+                                                    Modifier.height((screenInfo.hDP / 2).dp)
+                                                },
+                                            ),
                                 ) {
-                                    // Edge-to-edge artwork (canvas plays on top of it when available).
-                                    // Glass back button MUST be a sibling of the backdrop source
-                                    // (not a child) to avoid render feedback loop / RuntimeShader crash.
-                                    val artworkBackdrop = rememberBackdrop(Color.Black)
-                                    // Haze state for the bottom progressive-blur fade (source = media layer).
-                                    val headerHaze = rememberHazeState(blurEnabled = true)
-                                    // Clamp the artist thumbnail URL to a square size (logic from
-                                    // commit 5e596c5b) so it fills the square frame with FillWidth.
-                                    val headerImageUrl = state.data.imageUrl?.toSquareThumbnailUrl()
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .aspectRatio(1f),
-                                    ) {
-                                        // Inner Box — backdrop SOURCE (artwork + canvas + overlays, NO glass)
-                                        Box(modifier = Modifier.fillMaxSize().clipToBounds().layerBackdrop(artworkBackdrop)) {
-                                            // Media layer (artwork + canvas) — Haze SOURCE for the bottom blur.
-                                            Box(modifier = Modifier.fillMaxSize().hazeSource(headerHaze)) {
-                                                AsyncImage(
-                                                    model =
-                                                        ImageRequest
-                                                            .Builder(LocalPlatformContext.current)
-                                                            .data(headerImageUrl)
-                                                            .diskCachePolicy(CachePolicy.ENABLED)
-                                                            .memoryCachePolicy(CachePolicy.ENABLED)
-                                                            .diskCacheKey(headerImageUrl)
-                                                            .memoryCacheKey(headerImageUrl)
-                                                            .crossfade(false)
-                                                            .build(),
-                                                    placeholder = rememberHolderPainter(),
-                                                    error = rememberHolderPainter(),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.FillWidth,
-                                                    // Always decoded so the page background color can be extracted
-                                                    // from the artwork palette, even when a canvas is playing.
-                                                    onSuccess = {
-                                                        bitmap = it.result.image.toImageBitmap()
-                                                    },
-                                                    // Hidden (but still decoded above) while a canvas is present —
-                                                    // the canvas is shown instead. No canvas -> artwork is shown.
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxSize()
-                                                            .alpha(if (canvasUrl != null) 0f else 1f),
+                                    // Inner Box — backdrop SOURCE (artwork + canvas + overlays, NO glass)
+                                    Box(modifier = Modifier.fillMaxSize().clipToBounds().layerBackdrop(artworkBackdrop)) {
+                                        // Media layer (artwork + canvas) — Haze SOURCE for the bottom blur.
+                                        Box(modifier = Modifier.fillMaxSize().hazeSource(headerHaze)) {
+                                            AsyncImage(
+                                                model =
+                                                    ImageRequest
+                                                        .Builder(LocalPlatformContext.current)
+                                                        .data(headerImageUrl)
+                                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                                        .memoryCachePolicy(CachePolicy.ENABLED)
+                                                        .diskCacheKey(headerImageUrl)
+                                                        .memoryCacheKey(headerImageUrl)
+                                                        .crossfade(false)
+                                                        .build(),
+                                                placeholder = rememberHolderPainter(),
+                                                error = rememberHolderPainter(),
+                                                contentDescription = null,
+                                                // FillWidth fits the square source into the square portrait
+                                                // frame. In landscape the frame is no longer square, and
+                                                // FillWidth would scale the source to the frame's width and
+                                                // show only its top slice — so Crop takes over there.
+                                                contentScale =
+                                                    if (isPortrait) ContentScale.FillWidth else ContentScale.Crop,
+                                                // Always decoded so the page background color can be extracted
+                                                // from the artwork palette, even when a canvas is playing.
+                                                onSuccess = {
+                                                    bitmap = it.result.image.toImageBitmap()
+                                                },
+                                                // Hidden (but still decoded above) while a canvas is present —
+                                                // the canvas is shown instead. No canvas -> artwork is shown.
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .alpha(if (canvasUrl != null) 0f else 1f),
+                                            )
+                                            // Canvas (Spotify) plays AS the background when present;
+                                            // otherwise the static artwork above is the fallback.
+                                            canvasUrl?.let { canvas ->
+                                                // Canvas is a tall/portrait video. cropToBounds center
+                                                // scale-to-covers it into the header frame (ContentScale.Crop):
+                                                // true video aspect ratio, no stretch, overflow clipped.
+                                                MediaPlayerView(
+                                                    url = canvas.first,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    cropToBounds = true,
                                                 )
-                                                // Canvas (Spotify) plays AS the background when present;
-                                                // otherwise the static artwork above is the fallback.
-                                                canvasUrl?.let { canvas ->
-                                                    // Canvas is a tall/portrait video. cropToBounds center
-                                                    // scale-to-covers it into the square frame (ContentScale.Crop):
-                                                    // true video aspect ratio, no stretch, overflow clipped.
-                                                    MediaPlayerView(
-                                                        url = canvas.first,
-                                                        modifier = Modifier.fillMaxSize(),
-                                                        cropToBounds = true,
-                                                    )
-                                                }
-                                            } // end media layer (Haze source)
-                                            // Bottom fade — progressive blur (Haze) over the media layer, so the
-                                            // canvas/artwork edge melts into the page bg.
+                                            }
+                                        } // end media layer (Haze source)
+                                        // Bottom fade — progressive blur (Haze) over the media layer, so the
+                                        // canvas/artwork edge melts into the page bg.
+                                        // ANDROID ONLY. On skiko this kills the process: haze 1.7.2's
+                                        // progressive path calls ShaderBrush.createShader(Size), whose
+                                        // mangled signature does not match the Compose this build pins
+                                        // (material3-multiplatform 1.12.0-alpha01 / skiko 0.148.1), so it
+                                        // throws NoSuchMethodError from inside the draw pass —
+                                        // RenderEffect.skiko.kt:234. Only the progressive path is affected;
+                                        // plain hazeEffect is used on Desktop elsewhere and is fine.
+                                        // Dropping it costs Desktop only the blur: the colour scrim below
+                                        // is a separate box and still fades the artwork edge.
+                                        if (getPlatform() == Platform.Android) {
                                             Box(
                                                 modifier =
                                                     Modifier
@@ -328,405 +354,194 @@ fun ArtistScreen(
                                                                 )
                                                         },
                                             )
-                                            // Color scrim is a SEPARATE, taller box: the blur stays at 200dp so
-                                            // its cost doesn't grow, while the color gets 70% of the (square)
-                                            // artwork to ramp over. A short ramp means a steep alpha, and a
-                                            // steep alpha is what reads as a visible edge.
-                                            Box(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height((screenInfo.wDP * 0.7f).dp)
-                                                        .align(Alignment.BottomCenter)
-                                                        .background(artworkScrimBrush(mutedPaletteBg)),
-                                            )
-                                            // Artist name (TEXT for now — logo image is roadmap) + subscriber · view
-                                            Column(
-                                                modifier =
-                                                    Modifier
-                                                        .align(Alignment.BottomCenter)
-                                                        // Lift the name + subtitle together with the action row.
-                                                        .offset(y = (-36).dp)
-                                                        .fillMaxWidth()
-                                                        .padding(horizontal = 20.dp)
-                                                        .padding(bottom = 16.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                            ) {
-                                                val logo = artistLogo
-                                                if (logo != null) {
-                                                    // Artist name rendered as a logo image (hidden catalog),
-                                                    // in place of the plain-text title.
-                                                    AsyncImage(
-                                                        model = logo.logoUrl,
-                                                        contentDescription = state.data.title,
-                                                        contentScale = ContentScale.Fit,
-                                                        modifier =
-                                                            Modifier
-                                                                .fillMaxWidth(0.7f)
-                                                                .heightIn(max = 84.dp),
-                                                    )
-                                                } else {
-                                                    Text(
-                                                        text = state.data.title ?: stringResource(Res.string.unknown),
-                                                        style = typo().titleLarge,
-                                                        color = Color.White,
-                                                        maxLines = 2,
-                                                        textAlign = TextAlign.Center,
-                                                    )
-                                                }
-                                                val meta =
-                                                    listOfNotNull(
-                                                        state.data.subscribers?.takeIf { it.isNotBlank() },
-                                                        state.data.playCount?.takeIf { it.isNotBlank() },
-                                                    ).joinToString(" · ")
-                                                if (meta.isNotBlank()) {
-                                                    Spacer(modifier = Modifier.height(4.dp))
-                                                    Text(
-                                                        text = meta,
-                                                        style = typo().bodyMedium,
-                                                        color = Color(0xC4FFFFFF),
-                                                        textAlign = TextAlign.Center,
-                                                    )
-                                                }
-                                            }
                                         }
-                                        // Back button — liquid glass, sibling of the backdrop source.
-                                        LiquidGlassIconButton(
-                                            backdrop = artworkBackdrop,
-                                            imageVector = SimpIcons.ArrowBackIosNew,
-                                            modifier =
-                                                Modifier
-                                                    .align(Alignment.TopStart)
-                                                    .padding(12.dp)
-                                                    .windowInsetsPadding(WindowInsets.statusBars)
-                                                    .size(48.dp),
-                                        ) {
-                                            navController.navigateUp()
-                                        }
-                                    }
-
-                                    // Apple Music-style action row: [Radio][Shuffle pill][Follow] centered.
-                                    // In SimpMusic "play" an artist == shuffle, so the big middle button is Shuffle.
-                                    Row(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 32.dp)
-                                                .padding(vertical = 8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        // Radio — side button: outlined accent (yellow) circle with an
-                                        // accent-tinted icon over a transparent fill, matching the reference.
+                                        // Color scrim is a SEPARATE, taller box: the blur stays at 200dp so
+                                        // its cost doesn't grow, while the color gets 70% of the artwork
+                                        // to ramp over. A short ramp means a steep alpha, and a steep
+                                        // alpha is what reads as a visible edge. Both figures are 70% of
+                                        // the frame's own height: the portrait frame is square so that is
+                                        // 70% of the width, the landscape one is hDP/2 so it is 35% of hDP.
+                                        // Measuring off the width in landscape would make the scrim taller
+                                        // than the artwork itself.
                                         Box(
                                             modifier =
                                                 Modifier
-                                                    .size(48.dp)
-                                                    .clip(CircleShape)
-                                                    .border(1.5.dp, artistAccent, CircleShape)
-                                                    .clickable {
-                                                        val param = state.data.radioParam
-                                                        if (param != null) {
-                                                            viewModel.onRadioClick(param)
+                                                    .fillMaxWidth()
+                                                    .height(
+                                                        if (isPortrait) {
+                                                            (screenInfo.wDP * 0.7f).dp
                                                         } else {
-                                                            viewModel.makeToast(runBlocking { getString(Res.string.error) })
-                                                        }
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                imageVector = SimpIcons.Sensors,
-                                                contentDescription = "Radio",
-                                                tint = artistAccent,
-                                                modifier = Modifier.size(22.dp),
-                                            )
-                                        }
-                                        // Shuffle — primary "play" for an artist. Circular icon button filled
-                                        // with the artist accent (white fallback); icon uses the dark page
-                                        // background color so it stays legible on a bright accent.
-                                        Box(
+                                                            (screenInfo.hDP * 0.35f).dp
+                                                        },
+                                                    )
+                                                    .align(Alignment.BottomCenter)
+                                                    .background(artworkScrimBrush(mutedPaletteBg)),
+                                        )
+                                        // Artist name (TEXT for now — logo image is roadmap) + subscriber · view
+                                        Column(
                                             modifier =
                                                 Modifier
-                                                    .size(64.dp)
-                                                    .clip(CircleShape)
-                                                    .background(artistAccent)
-                                                    .clickable {
-                                                        val param = state.data.shuffleParam
-                                                        if (param != null) {
-                                                            viewModel.onShuffleClick(param)
-                                                        } else {
-                                                            viewModel.makeToast(runBlocking { getString(Res.string.error) })
-                                                        }
-                                                    },
-                                            contentAlignment = Alignment.Center,
+                                                    .align(Alignment.BottomCenter)
+                                                    // Lift the name + subtitle together with the action row.
+                                                    .offset(y = (-36).dp)
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 20.dp)
+                                                    .padding(bottom = 16.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
                                         ) {
-                                            Icon(
-                                                imageVector = SimpIcons.Shuffle,
-                                                contentDescription = "Shuffle",
-                                                tint = mutedPaletteBg,
-                                                modifier = Modifier.size(28.dp),
-                                            )
-                                        }
-                                        // Follow — side button matching Radio: outlined accent (yellow)
-                                        // circle when not following; fills with the accent (icon flips to
-                                        // the dark page bg) once followed, so the state reads at a glance.
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .size(48.dp)
-                                                    .clip(CircleShape)
-                                                    .background(if (isFollowed) artistAccent else Color.Transparent)
-                                                    .border(1.5.dp, artistAccent, CircleShape)
-                                                    .clickable {
-                                                        viewModel.updateFollowed(
-                                                            if (isFollowed) 0 else 1,
-                                                            state.data.channelId ?: return@clickable,
-                                                        )
-                                                    },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                imageVector = if (isFollowed) SimpIcons.Check else SimpIcons.PersonAdd,
-                                                contentDescription = if (isFollowed) "Followed" else "Follow",
-                                                tint = if (isFollowed) mutedPaletteBg else artistAccent,
-                                                modifier = Modifier.size(22.dp),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            item(contentType = "sections") {
-                                ArtistSections(
-                                    state = state,
-                                    playingTrack = playingTrack,
-                                    descriptionTint = sectionTint,
-                                    navController = navController,
-                                    viewModel = viewModel,
-                                    sharedViewModel = sharedViewModel,
-                                    onTrackMore = { track ->
-                                        choosingTrack = track
-                                        showBottomSheet = true
-                                    },
-                                )
-                            }
-                        }
-
-                        // Haze top bar appears once the header scrolls away.
-                        AnimatedVisibility(
-                            visible = shouldHideTopBar,
-                            enter = fadeIn() + slideInVertically(),
-                            exit = fadeOut() + slideOutVertically(),
-                        ) {
-                            TopAppBar(
-                                title = {
-                                    Text(
-                                        text = state.data.title ?: "",
-                                        style = typo().titleMedium,
-                                        maxLines = 1,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                                .basicMarquee(
-                                                    iterations = Int.MAX_VALUE,
-                                                    animationMode = MarqueeAnimationMode.Immediately,
-                                                ).focusable(),
-                                    )
-                                },
-                                navigationIcon = {
-                                    Box(Modifier.padding(horizontal = 5.dp)) {
-                                        IconButton(onClick = { navController.navigateUp() }) {
-                                            Icon(
-                                                imageVector = SimpIcons.ArrowBackIosNew,
-                                                contentDescription = "Back",
-                                                tint = Color.White,
-                                                modifier = Modifier.size(20.dp),
-                                            )
-                                        }
-                                    }
-                                },
-                                colors =
-                                    TopAppBarDefaults.topAppBarColors(
-                                        containerColor = Color.Transparent,
-                                    ),
-                                modifier =
-                                    Modifier.hazeEffect(hazeState) {
-                                        blurEnabled = true
-                                        blurRadius = 24.dp
-                                        backgroundColor = mutedPaletteBg
-                                        tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
-                                    },
-                            )
-                        }
-                    }
-                } else {
-                    // ---- Existing layout (tablet / landscape / Desktop) ----
-                    CollapsingToolbarParallaxEffect(
-                        modifier = Modifier.fillMaxSize(),
-                        title = state.data.title ?: "",
-                        imageUrl = state.data.imageUrl,
-                        onBack = {
-                            navController.navigateUp()
-                        },
-                    ) { color ->
-                        Column {
-                            Column(
-                                Modifier
-                                    .padding(horizontal = 20.dp)
-                                    .padding(top = 16.dp)
-                                    .padding(bottom = 8.dp),
-                            ) {
-                                Row {
-                                    Text(
-                                        text = state.data.subscribers ?: stringResource(Res.string.unknown),
-                                        style = typo().bodySmall,
-                                        color = Color.White,
-                                        textAlign = TextAlign.Start,
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                    Text(
-                                        text = state.data.playCount ?: stringResource(Res.string.unknown),
-                                        style = typo().bodySmall,
-                                        color = Color.White,
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                }
-                                Spacer(Modifier.height(8.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    AnimatedVisibility(canvasUrl != null) {
-                                        Row {
-                                            val canvas = canvasUrl ?: return@Row
-                                            LimitedBorderAnimationView(
-                                                isAnimated = true,
-                                                brush = Brush.sweepGradient(listOf(Color.Transparent, Color.White)),
-                                                backgroundColor = Color.Transparent,
-                                                contentPadding = 2.dp,
-                                                borderWidth = 1.dp,
-                                                shape = RoundedCornerShape(4.dp),
-                                                oneCircleDurationMillis = 3000,
-                                                interactionNumber = 1,
-                                            ) {
-                                                MediaPlayerView(
-                                                    url = canvas.first,
+                                            val logo = artistLogo
+                                            if (logo != null) {
+                                                // Artist name rendered as a logo image (hidden catalog),
+                                                // in place of the plain-text title.
+                                                AsyncImage(
+                                                    model = logo.logoUrl,
+                                                    contentDescription = state.data.title,
+                                                    contentScale = ContentScale.Fit,
                                                     modifier =
                                                         Modifier
-                                                            .width(28.dp)
-                                                            .height(ButtonDefaults.MinHeight)
-                                                            .align(Alignment.CenterVertically)
-                                                            .border(
-                                                                width = 0.5.dp,
-                                                                color =
-                                                                    Color.White.copy(
-                                                                        alpha = 0.8f,
-                                                                    ),
-                                                                shape = RoundedCornerShape(4.dp),
-                                                            ).clip(RoundedCornerShape(4.dp))
-                                                            .clickable {
-                                                                val firstQueue: Track = canvas.second.toTrack()
-                                                                viewModel.setQueueData(
-                                                                    QueueData.Data(
-                                                                        listTracks = arrayListOf(firstQueue),
-                                                                        firstPlayedTrack = firstQueue,
-                                                                        playlistId = "RDAMVM${firstQueue.videoId}",
-                                                                        playlistName = "\"${(state.data.title ?: "")}\" ${
-                                                                            getStringBlocking(
-                                                                                Res.string.popular,
-                                                                            )
-                                                                        }",
-                                                                        playlistType = PlaylistType.RADIO,
-                                                                        continuation = null,
-                                                                    ),
-                                                                )
-                                                                viewModel.loadMediaItem(
-                                                                    firstQueue,
-                                                                    type = Config.SONG_CLICK,
-                                                                )
-                                                            },
+                                                            .fillMaxWidth(0.7f)
+                                                            .heightIn(max = 84.dp),
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = state.data.title ?: stringResource(Res.string.unknown),
+                                                    style = typo().titleLarge,
+                                                    color = Color.White,
+                                                    maxLines = 2,
+                                                    textAlign = TextAlign.Center,
                                                 )
                                             }
-                                            Spacer(Modifier.width(12.dp))
+                                            val meta =
+                                                listOfNotNull(
+                                                    state.data.subscribers?.takeIf { it.isNotBlank() },
+                                                    state.data.playCount?.takeIf { it.isNotBlank() },
+                                                ).joinToString(" · ")
+                                            if (meta.isNotBlank()) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = meta,
+                                                    style = typo().bodyMedium,
+                                                    color = Color(0xC4FFFFFF),
+                                                    textAlign = TextAlign.Center,
+                                                )
+                                            }
                                         }
                                     }
-                                    LimitedBorderAnimationView(
-                                        isAnimated = !isFollowed,
-                                        brush = Brush.sweepGradient(listOf(Color.Gray, Color.White)),
-                                        backgroundColor = Color.Transparent,
-                                        contentPadding = 0.dp,
-                                        borderWidth = 2.dp,
-                                        shape = ButtonDefaults.outlinedShape,
-                                        oneCircleDurationMillis = 3000,
-                                        interactionNumber = 1,
+                                    // Back button — liquid glass, sibling of the backdrop source.
+                                    LiquidGlassIconButton(
+                                        backdrop = artworkBackdrop,
+                                        imageVector = SimpIcons.ArrowBackIosNew,
+                                        shape = RoundedCornerShape(24.dp),
+                                        // Matching the other three headers: the pill-style directional rim, thickened
+                                        // from the 0.5.dp default so it stays visible around a 48dp circle.
+                                        highlight = Highlight(width = 1.dp),
+                                        modifier =
+                                            Modifier
+                                                .align(Alignment.TopStart)
+                                                .padding(12.dp)
+                                                .windowInsetsPadding(WindowInsets.statusBars)
+                                                .size(48.dp),
                                     ) {
-                                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                            OutlinedButton(
-                                                onClick = {
+                                        navController.navigateUp()
+                                    }
+                                }
+
+                                // Apple Music-style action row: [Radio][Shuffle pill][Follow] centered.
+                                // In SimpMusic "play" an artist == shuffle, so the big middle button is Shuffle.
+                                Row(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 32.dp)
+                                            .padding(vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    // Radio — side button: outlined accent (yellow) circle with an
+                                    // accent-tinted icon over a transparent fill, matching the reference.
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape)
+                                                .border(1.5.dp, artistAccent, CircleShape)
+                                                .clickable {
+                                                    val param = state.data.radioParam
+                                                    if (param != null) {
+                                                        viewModel.onRadioClick(param)
+                                                    } else {
+                                                        viewModel.makeToast(runBlocking { getString(Res.string.error) })
+                                                    }
+                                                },
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = SimpIcons.Sensors,
+                                            contentDescription = "Radio",
+                                            tint = artistAccent,
+                                            modifier = Modifier.size(22.dp),
+                                        )
+                                    }
+                                    // Shuffle — primary "play" for an artist. Circular icon button filled
+                                    // with the artist accent (white fallback); icon uses the dark page
+                                    // background color so it stays legible on a bright accent.
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .size(64.dp)
+                                                .clip(CircleShape)
+                                                .background(artistAccent)
+                                                .clickable {
+                                                    val param = state.data.shuffleParam
+                                                    if (param != null) {
+                                                        viewModel.onShuffleClick(param)
+                                                    } else {
+                                                        viewModel.makeToast(runBlocking { getString(Res.string.error) })
+                                                    }
+                                                },
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = SimpIcons.Shuffle,
+                                            contentDescription = "Shuffle",
+                                            tint = mutedPaletteBg,
+                                            modifier = Modifier.size(28.dp),
+                                        )
+                                    }
+                                    // Follow — side button matching Radio: outlined accent (yellow)
+                                    // circle when not following; fills with the accent (icon flips to
+                                    // the dark page bg) once followed, so the state reads at a glance.
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape)
+                                                .background(if (isFollowed) artistAccent else Color.Transparent)
+                                                .border(1.5.dp, artistAccent, CircleShape)
+                                                .clickable {
                                                     viewModel.updateFollowed(
                                                         if (isFollowed) 0 else 1,
-                                                        state.data.channelId ?: return@OutlinedButton,
+                                                        state.data.channelId ?: return@clickable,
                                                     )
                                                 },
-                                                colors =
-                                                    ButtonDefaults.outlinedButtonColors().copy(
-                                                        contentColor = Color.White,
-                                                        containerColor = Color.Transparent,
-                                                    ),
-                                            ) {
-                                                if (isFollowed) {
-                                                    Text(text = stringResource(Res.string.followed), color = Color.White)
-                                                } else {
-                                                    Text(text = stringResource(Res.string.follow), color = Color.White)
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Spacer(Modifier.width(4.dp))
-                                    IconButton(
-                                        onClick = {
-                                            if (state.data.shuffleParam != null) {
-                                                viewModel.onShuffleClick(state.data.shuffleParam)
-                                            } else {
-                                                viewModel.makeToast(runBlocking { getString(Res.string.error) })
-                                            }
-                                        },
+                                        contentAlignment = Alignment.Center,
                                     ) {
-                                        Icon(SimpIcons.Shuffle, "Shuffle")
-                                    }
-                                    Spacer(Modifier.weight(1f))
-                                    TextButton(
-                                        onClick = {
-                                            if (state.data.radioParam != null) {
-                                                viewModel.onRadioClick(state.data.radioParam)
-                                            } else {
-                                                viewModel.makeToast(runBlocking { getString(Res.string.error) })
-                                            }
-                                        },
-                                        colors =
-                                            ButtonDefaults
-                                                .textButtonColors()
-                                                .copy(
-                                                    contentColor = Color.White,
-                                                ),
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Icon(SimpIcons.Sensors, "")
-                                            if (canvasUrl == null) {
-                                                Spacer(Modifier.width(6.dp))
-                                                Text(text = stringResource(Res.string.start_radio))
-                                            }
-                                        }
+                                        Icon(
+                                            imageVector = if (isFollowed) SimpIcons.Check else SimpIcons.PersonAdd,
+                                            contentDescription = if (isFollowed) "Followed" else "Follow",
+                                            tint = if (isFollowed) mutedPaletteBg else artistAccent,
+                                            modifier = Modifier.size(22.dp),
+                                        )
                                     }
                                 }
                             }
-
+                        }
+                        item(contentType = "sections") {
                             ArtistSections(
                                 state = state,
+                                selectionState = selectionState,
                                 playingTrack = playingTrack,
-                                descriptionTint = color,
+                                descriptionTint = sectionTint,
                                 navController = navController,
                                 viewModel = viewModel,
                                 sharedViewModel = sharedViewModel,
@@ -737,8 +552,115 @@ fun ArtistScreen(
                             )
                         }
                     }
+
+                    // Haze top bar appears once the header scrolls away.
+                    AnimatedVisibility(
+                        visible = shouldHideTopBar && !selectionState.isActive,
+                        enter = fadeIn() + slideInVertically(),
+                        exit = fadeOut() + slideOutVertically(),
+                    ) {
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    text = state.data.title ?: "",
+                                    style = typo().titleMedium,
+                                    maxLines = 1,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
+                                                animationMode = MarqueeAnimationMode.Immediately,
+                                            ).focusable(),
+                                )
+                            },
+                            navigationIcon = {
+                                Box(Modifier.padding(horizontal = 5.dp)) {
+                                    IconButton(onClick = { navController.navigateUp() }) {
+                                        Icon(
+                                            imageVector = SimpIcons.ArrowBackIosNew,
+                                            contentDescription = "Back",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp),
+                                        )
+                                    }
+                                }
+                            },
+                            colors =
+                                TopAppBarDefaults.topAppBarColors(
+                                    containerColor = Color.Transparent,
+                                ),
+                            modifier =
+                                Modifier.hazeEffect(hazeState) {
+                                    blurEnabled = true
+                                    blurRadius = 24.dp
+                                    backgroundColor = mutedPaletteBg
+                                    tints = listOf(HazeTint(mutedPaletteBg.copy(alpha = 0.55f)))
+                                },
+                        )
+                    }
                 }
 
+                AnimatedVisibility(
+                    visible = selectionState.isActive,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically(),
+                ) {
+                    SongSelectionTopAppBar(
+                        state = selectionState,
+                        onSelectAll = {
+                            selectionState.toggleSelectAll(
+                                (artistScreenState as? ArtistScreenState.Success)
+                                    ?.data
+                                    ?.popularSongs
+                                    ?.map { it.videoId }
+                                    ?: emptyList(),
+                            )
+                        },
+                        onOpenActions = { showSelectionSheet = true },
+                        containerColor = Color.Black,
+                    )
+                }
+                if (showSelectionSheet) {
+                    val selectedIds = selectionState.selected.toList()
+                    SelectedSongsBottomSheet(
+                        count = selectedIds.size,
+                        onDismiss = { showSelectionSheet = false },
+                        onPlayNext = {
+                            selectionViewModel.playNext(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToQueue = {
+                            selectionViewModel.addToQueue(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToPlaylist = { showSelectionAddToPlaylist = true },
+                        onDownload = {
+                            selectionViewModel.download(selectedIds)
+                            selectionState.exit()
+                        },
+                        onAddToFavorite = {
+                            selectionViewModel.addToFavorite(selectedIds)
+                            selectionState.exit()
+                        },
+                    )
+                }
+                if (showSelectionAddToPlaylist) {
+                    val selectedIds = selectionState.selected.toList()
+                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+                    AddToPlaylistModalBottomSheet(
+                        isBottomSheetVisible = true,
+                        listLocalPlaylist = localPlaylists,
+                        listYouTubePlaylist = emptyList(),
+                        onDismiss = { showSelectionAddToPlaylist = false },
+                        onClick = { playlist ->
+                            selectionViewModel.addToPlaylist(playlist.id, selectedIds)
+                            selectionState.exit()
+                        },
+                        onYTPlaylistClick = {},
+                    )
+                }
                 if (showBottomSheet && choosingTrack != null) {
                     NowPlayingBottomSheet(
                         onDismiss = {
@@ -766,6 +688,7 @@ fun ArtistScreen(
 @Composable
 private fun ArtistSections(
     state: ArtistScreenState.Success,
+    selectionState: SongSelectionState,
     playingTrack: String?,
     descriptionTint: Color,
     navController: NavController,
@@ -836,6 +759,10 @@ private fun ArtistSections(
                                 arrayListOf(song),
                             )
                         },
+                        selectionMode = selectionState.isActive,
+                        isSelected = selectionState.isSelected(song.videoId),
+                        onLongClick = { selectionState.start(it) },
+                        onSelectToggle = { selectionState.toggle(it) },
                     )
                 }
             }
@@ -1057,7 +984,7 @@ private fun ArtistSections(
                                     thumbnails = video.thumbnails ?: emptyList(),
                                     title = video.title,
                                     videoId = video.videoId,
-                                    views = video.videoType,
+                                    views = video.views,
                                 ),
                         )
                     }

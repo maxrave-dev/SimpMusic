@@ -70,6 +70,7 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -362,12 +363,18 @@ class SharedViewModel(
                             }
 
                             SimpleMediaState.Ended -> {
+                                // Park at the end of the track rather than at -1. The only formatter
+                                // for these fields renders any negative as "NA:NA", and nothing here
+                                // is guaranteed to follow: at the end of the queue the player simply
+                                // stays ended, so a -1 written here stays on screen. Worse, the
+                                // Progress branch below ignores negative values and the Loading
+                                // branch restores `total` without touching `current`, which is how
+                                // the player ends up showing a correct duration next to "NA:NA".
                                 _timeline.update {
                                     it.copy(
-                                        current = -1L,
-                                        total = -1L,
+                                        current = it.total.coerceAtLeast(0L),
                                         bufferedPercent = 0,
-                                        loading = true,
+                                        loading = false,
                                     )
                                 }
                             }
@@ -1726,11 +1733,18 @@ class SharedViewModel(
 
     fun getEnableLiquidGlass() = dataStoreManager.enableLiquidGlass
 
+    fun getLocalTrackingEnabled() = dataStoreManager.localTrackingEnabled
+
+    // Drives the Mix for you tab: YouTube hands an anonymous session no mixes at all.
+    fun getYouTubeLoggedIn() = dataStoreManager.loggedIn
+
     fun getThemeMode() = dataStoreManager.themeMode
 
     fun getThemeColorSource() = dataStoreManager.themeColorSource
 
     fun getCustomThemeColor() = dataStoreManager.customThemeColor
+
+    fun getNowPlayingStyle() = dataStoreManager.nowPlayingStyle
 
     fun setThemeMode(mode: String) {
         viewModelScope.launch {
@@ -1747,6 +1761,12 @@ class SharedViewModel(
     fun setCustomThemeColor(argbHex: String) {
         viewModelScope.launch {
             dataStoreManager.setCustomThemeColor(argbHex)
+        }
+    }
+
+    fun setNowPlayingStyle(style: String) {
+        viewModelScope.launch {
+            dataStoreManager.setNowPlayingStyle(style)
         }
     }
 
@@ -1942,6 +1962,10 @@ class SharedViewModel(
     fun shouldStopMusicService(): Boolean = runBlocking { dataStoreManager.killServiceOnExit.first() == TRUE }
 
     fun isUserLoggedIn(): Boolean = runBlocking { dataStoreManager.cookie.first().isNotEmpty() }
+
+    // Flow-based variant of [isUserLoggedIn] so composables can collect login state once
+    // instead of calling runBlocking inside composition (used by NowPlayingScreenContent).
+    fun isUserLoggedInFlow(): Flow<Boolean> = dataStoreManager.cookie.map { it.isNotEmpty() }
 
     fun isCombineFavoriteAndYTLiked(): Boolean = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
 }

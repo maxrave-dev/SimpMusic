@@ -8,10 +8,14 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -74,6 +78,7 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DragHandle
 import com.maxrave.simpmusic.ui.icon.MoreVert
@@ -81,6 +86,7 @@ import com.maxrave.simpmusic.ui.icon.PushPin
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -103,7 +109,12 @@ import kotlin.math.roundToInt
 
 /**
  * This is the song item in the playlist or other places.
+ *
+ * Multi-selection is opt-in per screen: pass [onLongClick] to let a long press start it, then
+ * drive [selectionMode] and [isSelected] from the screen's
+ * [com.maxrave.simpmusic.ui.component.selection.SongSelectionState].
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongFullWidthItems(
     track: Track? = null,
@@ -114,6 +125,10 @@ fun SongFullWidthItems(
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
+    selectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onLongClick: ((videoId: String) -> Unit)? = null,
+    onSelectToggle: ((videoId: String) -> Unit)? = null,
     modifier: Modifier,
     rightView: @Composable (() -> Unit)? = null,
     forceDark: Boolean = LocalForceDarkText.current,
@@ -161,15 +176,32 @@ fun SongFullWidthItems(
                 }
             }
         }
+        val itemVideoId = track?.videoId ?: songEntity?.videoId ?: ""
         Box(
             modifier =
                 modifier
                     .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                    .clickable {
-                        onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
-                    }.animateContentSize()
-                    .pointerInput(Unit) {
-                        if (!isPlaying && onAddToQueue != null) {
+                    .background(
+                        if (isSelected) seed.copy(alpha = 0.18f) else Color.Transparent,
+                    ).combinedClickable(
+                        onClick = {
+                            if (selectionMode) {
+                                onSelectToggle?.invoke(itemVideoId)
+                            } else {
+                                onClickListener?.invoke(itemVideoId)
+                            }
+                        },
+                        onLongClick =
+                            if (onLongClick != null) {
+                                { onLongClick(itemVideoId) }
+                            } else {
+                                null
+                            },
+                    ).animateContentSize()
+                    // Keyed on selectionMode so the swipe detector is torn down when selection
+                    // starts — keyed on Unit it would keep running with the stale flag captured.
+                    .pointerInput(selectionMode) {
+                        if (!isPlaying && onAddToQueue != null && !selectionMode) {
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { change, dragAmount ->
                                     if (offsetX.value + dragAmount > 0) {
@@ -206,6 +238,37 @@ fun SongFullWidthItems(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Spacer(modifier = Modifier.width(8.dp))
+                AnimatedVisibility(
+                    visible = selectionMode,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally(),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) seed else Color.Transparent)
+                                    .border(
+                                        width = 1.5.dp,
+                                        color = if (isSelected) seed else contentColor.copy(alpha = 0.6f),
+                                        shape = CircleShape,
+                                    ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = SimpIcons.Check,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
+                }
                 Box(
                     modifier = Modifier.size(48.dp),
                     contentAlignment = Alignment.Center,
@@ -325,10 +388,11 @@ fun SongFullWidthItems(
                 if (rightView != null) {
                     rightView()
                 }
-                if (onMoreClickListener != null) {
+                // Hidden while selecting: the per-item menu moves up to the selection app bar,
+                // so one tap cannot mean both "act on this song" and "pick this song".
+                if (onMoreClickListener != null && !selectionMode) {
                     RippleIconButton(imageVector = SimpIcons.MoreVert, fillMaxSize = false, tint = contentColor) {
-                        val videoId = track?.videoId ?: songEntity?.videoId
-                        videoId?.let { onMoreClickListener.invoke(it) }
+                        if (itemVideoId.isNotBlank()) onMoreClickListener.invoke(itemVideoId)
                     }
                 }
                 AnimatedVisibility(

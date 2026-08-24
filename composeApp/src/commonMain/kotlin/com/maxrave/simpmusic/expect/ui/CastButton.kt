@@ -15,3 +15,10 @@ expect fun PlatformCastButton(
     modifier: Modifier = Modifier,
     tint: Color = Color.White,
 )
+
+/**
+ * Whether [PlatformCastButton] would actually render anything. Layouts that give the button its
+ * own container (e.g. a slot in a connected button group) must hide the container too when this
+ * is false — the button hides itself, but it cannot hide a wrapper it doesn't own.
+ */
+expect fun isPlatformCastAvailable(): Boolean

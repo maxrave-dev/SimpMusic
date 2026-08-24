@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Background for the widget control row. A drawable rather than background(ColorProvider(…)):
+  Glance turns a colour background into an opaque shape and drops the alpha, but a drawable is
+  rendered as authored, so the translucency survives. Living in the layout also means it
+  stretches with the row instead of with the artwork bitmap.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Dark grey rather than white: the glyphs on top are white, so the bar has to darken
+         the artwork behind them, not lighten it. -->
+    <solid android:color="#472E2E2E" />
+    <corners android:radius="999dp" />
+</shape>

@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">Equilibrar som da música</string>
     <string name="normalize_volume">Normalizar Volume</string>
     <string name="audio">Áudio</string>
-    <string name="no_equalizer">O seu dispositivo não possui um equalizador</string>
-    <string name="open_system_equalizer">Abrir equalizador do sistema</string>
-    <string name="use_your_system_equalizer">Usar o equalizador do sistema</string>
     <string name="streaming_data_provider_piped">Transmitindo provedor de dados (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Tipo Mime</string>
