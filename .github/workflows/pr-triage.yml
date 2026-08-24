@@ -1,0 +1,72 @@
+# Auto-triage for unattended AI-generated pull requests.
+#
+# Two tiers, both applying ONLY to authors with no history here (everyone but
+# OWNER / MEMBER / COLLABORATOR / CONTRIBUTOR):
+#
+#   1. HARD: the title carries an unattended-agent fingerprint — an agent's name, a
+#      12+ digit session id, or a bare commit-hash — the PR is closed on sight,
+#      labelled `ai-slop`, and pointed at CONTRIBUTING.md.
+#   2. SOFT: the PR template's personal-review checkbox is not ticked — the PR stays
+#      OPEN, gets `needs-template` and one comment asking to complete it. Real
+#      first-time contributors get a nudge, not a door in the face.
+#
+# SECURITY: this workflow runs on pull_request_target, which executes with write
+# credentials against the BASE repository. It must therefore NEVER check out or
+# execute anything from the PR's head — no actions/checkout, no build steps. It
+# only ever reads PR metadata and calls the API. Keep it that way.
+name: PR triage
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Triage untrusted PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const trusted = ['OWNER', 'MEMBER', 'COLLABORATOR', 'CONTRIBUTOR'];
+            if (trusted.includes(pr.author_association)) return;
+
+            const title = pr.title || '';
+            const body = pr.body || '';
+            const issue = { owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number };
+
+            // Fingerprints unattended agents leave in titles they generate for themselves:
+            // their own product name, the huge numeric session id, or a bare commit hash
+            // ("Jules 11113139057786323252 fc35410c"). The hex pattern requires at least one
+            // digit so ordinary words spelled in a-f letters can never match.
+            const agentName = /\b(jules|devin|openhands|sweep[- ]?bot|codegen|gpt[- ]?engineer|auto[- ]?coder)\b/i;
+            const sessionId = /\b\d{12,}\b/;
+            const bareHash = /\b(?=[0-9a-f]*\d)[0-9a-f]{8,40}\b/i;
+            const looksUnattended = agentName.test(title) || sessionId.test(title) || bareHash.test(title);
+
+            if (looksUnattended) {
+              await github.rest.issues.createComment({ ...issue, body:
+                'This looks like an unattended AI-agent submission (see the title), which this ' +
+                'project does not accept — every change needs a human who wrote or personally ' +
+                'reviewed it and an accepted issue behind it. See CONTRIBUTING.md. If a person is ' +
+                'actually behind this work, please open an issue describing the change first.' });
+              await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop'] });
+              await github.rest.issues.update({ ...issue, state: 'closed' });
+              return;
+            }
+
+            // Must match the checkbox text in .github/PULL_REQUEST_TEMPLATE.md verbatim.
+            const reviewedByHuman = /-\s*\[x\]\s*I wrote or personally reviewed every line/i.test(body);
+            if (!reviewedByHuman) {
+              await github.rest.issues.createComment({ ...issue, body:
+                'Thanks for the PR! Please complete the pull request template — in particular the ' +
+                'checkbox confirming you wrote or personally reviewed every line, and the issue ' +
+                'this change addresses. It helps us tell real contributions from the flood of ' +
+                'auto-generated ones. Edit your PR description; no need to open a new PR.' });
+              await github.rest.issues.addLabels({ ...issue, labels: ['needs-template'] });
+            }
