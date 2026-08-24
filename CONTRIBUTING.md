@@ -25,6 +25,9 @@ AI-assisted contributions are welcome. AI-*driven* ones are not:
   result — are **closed automatically** by the triage workflow, on sight, without
   individual discussion. Their fingerprints (agent names, session ids, or bare commit
   hashes in the title) are matched by `.github/workflows/pr-triage.yml`.
+- **Commits carrying AI co-author trailers** (`Co-Authored-By: Claude/Copilot/…`) or
+  "Generated with …" markers are rejected the same way — a leftover trailer is the tell
+  that nobody proofread the output. Squash them out before opening the PR.
 - Repeat offenders get blocked from the repository.
 
 This is not hostility toward AI tooling — half this project is built with it. It is the

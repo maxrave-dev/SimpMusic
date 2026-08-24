@@ -1,12 +1,16 @@
 # Auto-triage for unattended AI-generated pull requests.
 #
-# Two tiers, both applying ONLY to authors with no history here (everyone but
+# Three tiers, all applying ONLY to authors with no history here (everyone but
 # OWNER / MEMBER / COLLABORATOR / CONTRIBUTOR):
 #
 #   1. HARD: the title carries an unattended-agent fingerprint — an agent's name, a
 #      12+ digit session id, or a bare commit-hash — the PR is closed on sight,
 #      labelled `ai-slop`, and pointed at CONTRIBUTING.md.
-#   2. SOFT: the PR template's personal-review checkbox is not ticked — the PR stays
+#   2. HARD: any commit in the PR carries an AI co-author trailer ("Co-Authored-By:
+#      Claude/Copilot/…"), a "Generated with …" marker, or is authored by a known
+#      coding-agent bot account. A leftover trailer is the tell that nobody proofread
+#      the output before shipping it. Closed with instructions to squash and reopen.
+#   3. SOFT: the PR template's personal-review checkbox is not ticked — the PR stays
 #      OPEN, gets `needs-template` and one comment asking to complete it. Real
 #      first-time contributors get a nudge, not a door in the face.
 #
@@ -55,6 +59,41 @@ jobs:
                 'project does not accept — every change needs a human who wrote or personally ' +
                 'reviewed it and an accepted issue behind it. See CONTRIBUTING.md. If a person is ' +
                 'actually behind this work, please open an issue describing the change first.' });
+              await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop'] });
+              await github.rest.issues.update({ ...issue, state: 'closed' });
+              return;
+            }
+
+            // AI marks inside the COMMITS. Named agents only — a plain `[bot]` match would
+            // also shoot dependabot/renovate, which are welcome here. "gpt" alone is left
+            // out on purpose (it substring-matches human names); chatgpt/codex cover it.
+            const aiNames = '(claude|copilot|chatgpt|openai|gemini|jules|devin|cursor|windsurf|aider|codex|sweep|openhands|codegen|anthropic)';
+            const aiCoauthor = new RegExp('co-authored-by:[^\\n]*\\b' + aiNames + '\\b', 'i');
+            const generatedWith = new RegExp('generated (with|by)[^\\n]*\\b' + aiNames + '\\b', 'i');
+            const agentAccount = new RegExp('\\b' + aiNames + '[^\\s]*\\[bot\\]', 'i');
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const marked = commits.find((c) => {
+              const message = c.commit?.message || '';
+              const identities = [
+                c.commit?.author?.name, c.commit?.author?.email,
+                c.commit?.committer?.name, c.commit?.committer?.email,
+                c.author?.login, c.committer?.login,
+              ].filter(Boolean).join(' ');
+              return aiCoauthor.test(message) || generatedWith.test(message) || agentAccount.test(identities);
+            });
+            if (marked) {
+              await github.rest.issues.createComment({ ...issue, body:
+                'One or more commits in this PR carry an AI co-author trailer or agent marker ' +
+                '(e.g. `Co-Authored-By: Claude/Copilot/…`), which this project does not accept — ' +
+                'a leftover trailer usually means the output was never personally reviewed. If a ' +
+                'human does stand behind this change: squash your commits without the AI trailers, ' +
+                'force-push, complete the PR template, and reopen. See CONTRIBUTING.md.' });
               await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop'] });
               await github.rest.issues.update({ ...issue, state: 'closed' });
               return;
