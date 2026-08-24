@@ -269,6 +269,7 @@ fun LiquidGlassTabBar(
                 .padding(horizontal = BarInset)
                 .then(dampedDrag.modifier),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             tabs.forEachIndexed { position, screen ->
                 LiquidGlassTab(
