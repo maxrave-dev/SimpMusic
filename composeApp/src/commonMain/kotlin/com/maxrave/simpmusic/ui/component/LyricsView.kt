@@ -242,6 +242,10 @@ fun LyricsView(
     modifier: Modifier = Modifier,
     showScrollShadows: Boolean = false,
     backgroundColor: Color = Color(0xFF242424),
+    // Optional trailing slot rendered as the LAST list item, so a caller's caption scrolls with
+    // the lyrics instead of sitting anchored below them. Null by default: every existing caller
+    // renders exactly as before.
+    footerContent: (@Composable () -> Unit)? = null,
 ) {
     val listState = rememberLazyListState()
     val current by timeLine.collectAsStateWithLifecycle()
@@ -354,6 +358,9 @@ fun LyricsView(
                         }
                     }
                 }
+            }
+            footerContent?.let { footer ->
+                item { footer() }
             }
         }
     }

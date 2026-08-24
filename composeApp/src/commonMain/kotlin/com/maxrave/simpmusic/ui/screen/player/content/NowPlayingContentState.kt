@@ -34,6 +34,19 @@ internal fun String.stripRichSyncTimestamps(): String =
         .replace(WHITESPACE_REGEX, " ")
         .trim()
 
+// Codec label for the Apple Music style's progress-bar badge. Derived from the stream's
+// mimeType (e.g. `audio/webm; codecs="opus"`, `audio/mp4; codecs="mp4a.40.2"`) rather than the
+// itag, which the two YouTube audio families always encode as one of these two codecs. Returns
+// null for anything else so the badge hides instead of showing a guess.
+internal fun String?.toAudioCodecLabel(): String? {
+    val mime = this ?: return null
+    return when {
+        mime.contains("opus", ignoreCase = true) -> "OPUS"
+        mime.contains("mp4a", ignoreCase = true) -> "AAC"
+        else -> null
+    }
+}
+
 /**
  * Everything a Now Playing content layer reads. The shell ([com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent])
  * owns the ViewModel collection, palette animation, sheets/dialogs and gesture state machines;
@@ -67,6 +80,8 @@ class NowPlayingContentState(
     val mainScrollState: ScrollState,
     val isExpanded: Boolean,
     val dismissIcon: ImageVector,
+    /** Current track's audio codec ("OPUS"/"AAC"), or null while unknown — see [toAudioCodecLabel]. */
+    val audioCodecLabel: String? = null,
 )
 
 /**
@@ -92,4 +107,8 @@ class NowPlayingContentActions(
     val onEnterFullscreenVideo: () -> Unit,
     val onDismiss: () -> Unit,
     val onToolbarVisibilityChange: (Boolean) -> Unit,
+    /** Reorders the queue. `from`/`to` are absolute indices into [NowPlayingContentState.artworkQueue]. */
+    val onMoveQueueItem: (from: Int, to: Int) -> Unit,
+    /** Removes one queue entry. `index` is an absolute index into [NowPlayingContentState.artworkQueue]. */
+    val onRemoveQueueItem: (index: Int) -> Unit,
 )

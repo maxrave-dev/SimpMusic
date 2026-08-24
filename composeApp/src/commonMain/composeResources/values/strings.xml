@@ -378,6 +378,7 @@
     <string name="now_playing_style">Now Playing style</string>
     <string name="now_playing_style_spotify">Classic</string>
     <string name="now_playing_style_m3_expressive">Material 3 Expressive</string>
+    <string name="now_playing_style_apple_music">Apple Music</string>
     <string name="theme_color">Theme color</string>
     <string name="theme_color_default">Default</string>
     <string name="theme_color_wallpaper">Wallpaper</string>
@@ -432,6 +433,9 @@
     <string name="lyrics_provider_lrc">Lyrics provided by LRCLIB</string>
     <string name="sync_first">Sync this playlist to YouTube Music first</string>
     <string name="endless_queue">Endless queue</string>
+    <string name="continue_playing">Continue Playing</string>
+    <string name="continue_playing_endless_subtitle">Automatically adds similar songs when the queue ends</string>
+    <string name="lyrics_sync_provider_footer">%1$s • %2$s</string>
     <string name="do_not_show_again">Do not show again</string>
     <string name="auto_check_for_update">Automatic check for update</string>
     <string name="auto_check_for_update_description">Checking for update when you open app</string>

@@ -59,10 +59,12 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentAppleMusic
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentM3Expressive
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentSpotify
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.PlayerBackdropColor
+import com.maxrave.simpmusic.ui.screen.player.content.toAudioCodecLabel
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
@@ -136,6 +138,7 @@ fun NowPlayingScreenContent(
     dismissIcon: ImageVector,
     onDismiss: () -> Unit = {},
 ) {
+    val coroutineScope = rememberCoroutineScope()
 
     // ViewModel State
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -143,6 +146,8 @@ fun NowPlayingScreenContent(
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
+    // Apple Music style's progress-bar codec badge — see NowPlayingContentState.toAudioCodecLabel.
+    val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
     val translatedVoteState by sharedViewModel.translatedVoteState.collectAsStateWithLifecycle()
@@ -612,6 +617,7 @@ fun NowPlayingScreenContent(
             mainScrollState = mainScrollState,
             isExpanded = isExpanded,
             dismissIcon = dismissIcon,
+            audioCodecLabel = formatState?.mimeType.toAudioCodecLabel(),
         )
     val actions =
         NowPlayingContentActions(
@@ -661,10 +667,24 @@ fun NowPlayingScreenContent(
             },
             onDismiss = onDismiss,
             onToolbarVisibilityChange = { shouldShowToolbar = it },
+            onMoveQueueItem = { from, to ->
+                coroutineScope.launch {
+                    mediaPlayerHandler.swap(from, to)
+                }
+            },
+            onRemoveQueueItem = { index ->
+                mediaPlayerHandler.removeMediaItem(index)
+            },
         )
     when (nowPlayingStyle) {
         DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE ->
             NowPlayingContentM3Expressive(
+                state = state,
+                actions = actions,
+            )
+
+        DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC ->
+            NowPlayingContentAppleMusic(
                 state = state,
                 actions = actions,
             )
