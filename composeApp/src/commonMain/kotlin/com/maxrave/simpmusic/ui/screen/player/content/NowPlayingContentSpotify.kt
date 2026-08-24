@@ -87,10 +87,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -146,6 +146,7 @@ import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.UIEvent
+import kotlin.math.roundToLong
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -172,7 +173,6 @@ import simpmusic.composeapp.generated.resources.show
 import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
 import simpmusic.composeapp.generated.resources.unsynced
 import simpmusic.composeapp.generated.resources.view_count
-import kotlin.math.roundToLong
 
 // stripRichSyncTimestamps() lives in NowPlayingContentState.kt (same package) so both
 // content styles share one copy.
@@ -508,6 +508,17 @@ fun NowPlayingContentSpotify(
                             ) {
                                 if (isCurrentArtworkPage) {
                                     // Live artwork (drives palette extraction via setBitmap).
+                                    // The artwork URL that is actually loading. `maxresdefault.jpg` —
+                                    // the fallback artworkUri many video tracks carry — only EXISTS
+                                    // for videos with an HD thumbnail; everything else 404s,
+                                    // onSuccess never fires, the palette never generates, and the
+                                    // gradient sits on its fallback for a grey song. On error we
+                                    // retry once with `hqdefault.jpg`, which YouTube guarantees for
+                                    // every video. Song artwork (googleusercontent) never matches
+                                    // the replace, so this is a no-op for it.
+                                    var artworkUrl by remember(state.screenData.thumbnailURL) {
+                                        mutableStateOf(state.screenData.thumbnailURL)
+                                    }
                                     Box(
                                         contentAlignment = Alignment.Center,
                                         modifier =
@@ -528,9 +539,9 @@ fun NowPlayingContentSpotify(
                                             model =
                                                 ImageRequest
                                                     .Builder(LocalPlatformContext.current)
-                                                    .data(state.screenData.thumbnailURL)
+                                                    .data(artworkUrl)
                                                     .diskCachePolicy(CachePolicy.ENABLED)
-                                                    .diskCacheKey(state.screenData.thumbnailURL + "BIGGER")
+                                                    .diskCacheKey(artworkUrl + "BIGGER")
                                                     .crossfade(550)
                                                     .build(),
                                             contentDescription = "",
@@ -538,6 +549,10 @@ fun NowPlayingContentSpotify(
                                                 actions.onArtworkBitmap(
                                                     it.result.image.toImageBitmap(),
                                                 )
+                                            },
+                                            onError = {
+                                                val fallback = artworkUrl?.replace("maxresdefault", "hqdefault")
+                                                if (fallback != null && fallback != artworkUrl) artworkUrl = fallback
                                             },
                                             contentScale = ContentScale.Crop,
                                             placeholder = rememberHolderPainter(),
@@ -1135,7 +1150,9 @@ fun NowPlayingContentSpotify(
                                                             brush =
                                                                 Brush.horizontalGradient(
                                                                     0f to labelColor.copy(alpha = 0.45f),
-                                                                    0.5f to labelColor,
+                                                                    // The sweep head is PURE white, not the resting label colour — the label
+                                                                    // colour is an adaptive grey, and a grey gleam reads as no gleam at all.
+                                                                    0.5f to Color.White,
                                                                     1f to labelColor.copy(alpha = 0.45f),
                                                                     startX = shimmerHead,
                                                                     endX = shimmerHead + shimmerSpan,

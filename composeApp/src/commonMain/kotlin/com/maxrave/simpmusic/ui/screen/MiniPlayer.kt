@@ -821,7 +821,9 @@ fun MiniPlayer(
                                                 brush =
                                                     Brush.horizontalGradient(
                                                         0f to textColor.copy(alpha = 0.45f),
-                                                        0.5f to textColor,
+                                                        // The sweep head is PURE white, not the resting label colour — the label
+                                                        // colour is an adaptive grey, and a grey gleam reads as no gleam at all.
+                                                        0.5f to Color.White,
                                                         1f to textColor.copy(alpha = 0.45f),
                                                         startX = shimmerHead,
                                                         endX = shimmerHead + shimmerSpan,

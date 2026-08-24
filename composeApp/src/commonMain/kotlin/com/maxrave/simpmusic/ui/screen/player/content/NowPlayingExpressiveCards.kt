@@ -288,13 +288,23 @@ internal fun ExpressiveArtworkCardPage(
                 if (isCurrentArtworkPage) {
                     // Live artwork — kept composed even under canvas/video (alpha 0) so
                     // onSuccess keeps feeding the palette that drives the whole scheme.
+                    // The artwork URL that is actually loading. `maxresdefault.jpg` — the fallback
+                    // artworkUri many video tracks carry — only EXISTS for videos with an HD
+                    // thumbnail; everything else 404s, onSuccess never fires, the palette never
+                    // generates, and the whole M3E scheme sits on the app-seed cyan for a grey
+                    // song. On error we retry once with `hqdefault.jpg`, which YouTube guarantees
+                    // for every video. Song artwork (googleusercontent) never matches the replace,
+                    // so this is a no-op for it.
+                    var artworkUrl by remember(state.screenData.thumbnailURL) {
+                        mutableStateOf(state.screenData.thumbnailURL)
+                    }
                     AsyncImage(
                         model =
                             ImageRequest
                                 .Builder(LocalPlatformContext.current)
-                                .data(state.screenData.thumbnailURL)
+                                .data(artworkUrl)
                                 .diskCachePolicy(CachePolicy.ENABLED)
-                                .diskCacheKey(state.screenData.thumbnailURL + "BIGGER")
+                                .diskCacheKey(artworkUrl + "BIGGER")
                                 .crossfade(550)
                                 .build(),
                         contentDescription = "",
@@ -302,6 +312,10 @@ internal fun ExpressiveArtworkCardPage(
                             actions.onArtworkBitmap(
                                 it.result.image.toImageBitmap(),
                             )
+                        },
+                        onError = {
+                            val fallback = artworkUrl?.replace("maxresdefault", "hqdefault")
+                            if (fallback != null && fallback != artworkUrl) artworkUrl = fallback
                         },
                         contentScale = ContentScale.Crop,
                         placeholder = rememberHolderPainter(),
