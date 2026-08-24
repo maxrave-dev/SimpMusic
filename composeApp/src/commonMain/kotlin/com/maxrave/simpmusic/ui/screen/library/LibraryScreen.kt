@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -481,6 +482,12 @@ fun LibraryScreen(
         AnimatedVisibility(visible = selectionState.isActive) {
             SongSelectionTopAppBar(
                 state = selectionState,
+                // Stacked BELOW the Library TopAppBar in the same Column, which already consumed
+                // the status-bar inset — leaving the default here reserved it twice and opened a
+                // status-bar-sized band of dead blur between the two bars. Same fix as Search;
+                // the overlay-style call sites (Album, Artist, Recently…) keep the default because
+                // they COVER their normal bar instead of standing under it.
+                windowInsets = WindowInsets(0),
                 onSelectAll = {
                     selectionState.toggleSelectAll(
                         (recentlyAdded.data ?: emptyList())
