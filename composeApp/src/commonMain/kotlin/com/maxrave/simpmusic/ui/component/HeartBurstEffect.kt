@@ -4,13 +4,10 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -18,15 +15,52 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.withTransform
-import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /**
- * Celebration burst for like buttons: stars and glitter shards shoot upward from the button
- * when [checked] flips false → true (a burst per like; unliking fires nothing).
+ * Owns the live bursts and fires new ones — from the LIKE TAP, never from state.
+ *
+ * The first version of this effect watched `checked` for a false → true edge, which cannot tell a
+ * tap from a track change: skipping from an unliked song to an already-liked one flips the same
+ * boolean (the like status lands from the DB a beat after the track does), and the button
+ * celebrated a like nobody gave. Only the click handler knows a human acted, so the click handler
+ * is the only thing allowed to call [fire].
+ */
+@Stable
+class HeartBurstState internal constructor(
+    private val scope: CoroutineScope,
+) {
+    internal val bursts = mutableStateListOf<HeartBurst>()
+    internal var colors: List<Color> = HeartBurstDefaults.colors
+
+    /** One burst, now. Call from the tap that LIKES (i.e. while the heart is still unchecked). */
+    fun fire() {
+        val burst = HeartBurst(List(PARTICLES_PER_BURST) { randomSpark(colors) })
+        bursts += burst
+        scope.launch {
+            burst.progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(BURST_DURATION_MS, easing = LinearEasing),
+            )
+            bursts.remove(burst)
+        }
+    }
+}
+
+@Composable
+fun rememberHeartBurstState(): HeartBurstState {
+    val scope = rememberCoroutineScope()
+    return remember { HeartBurstState(scope) }
+}
+
+/**
+ * Celebration burst for like buttons: stars and glitter shards shoot upward from the button when
+ * [state]'s [HeartBurstState.fire] is called.
  *
  * Pure Compose drawing — no Lottie/compottie, no platform APIs — so it behaves identically on
  * Android and Desktop. The particles are drawn OUTSIDE the button bounds, which works because
@@ -36,38 +70,20 @@ import kotlin.random.Random
  */
 @Composable
 fun Modifier.heartBurst(
-    checked: Boolean,
+    state: HeartBurstState,
     colors: List<Color> = HeartBurstDefaults.colors,
 ): Modifier {
-    val bursts = remember { mutableStateListOf<HeartBurst>() }
-    val scope = rememberCoroutineScope()
-    var previousChecked by remember { mutableStateOf(checked) }
-
-    LaunchedEffect(checked) {
-        if (checked && !previousChecked) {
-            val burst = HeartBurst(List(PARTICLES_PER_BURST) { randomSpark(colors) })
-            bursts += burst
-            scope.launch {
-                burst.progress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(BURST_DURATION_MS, easing = LinearEasing),
-                )
-                bursts.remove(burst)
-            }
-        }
-        previousChecked = checked
-    }
-
+    state.colors = colors
     val starPath = remember { buildUnitStarPath() }
 
     return this.drawWithContent {
         drawContent()
-        if (bursts.isEmpty()) return@drawWithContent
+        if (state.bursts.isEmpty()) return@drawWithContent
         // Launch point sits slightly above the button centre; travel distance scales with the
         // button so the effect reads the same on a 24dp list heart and a 48dp player heart.
         val origin = Offset(size.width / 2f, size.height * 0.3f)
         val reach = size.height * 2.2f
-        bursts.forEach { burst ->
+        state.bursts.forEach { burst ->
             val progress = burst.progress.value
             if (progress <= 0f) return@forEach
             // Decelerating flight + quadratic gravity pulling the sparks back down.
@@ -118,9 +134,9 @@ object HeartBurstDefaults {
 private const val BURST_DURATION_MS = 750
 private const val PARTICLES_PER_BURST = 16
 
-private enum class HeartSparkShape { STAR, GLITTER }
+internal enum class HeartSparkShape { STAR, GLITTER }
 
-private class HeartSpark(
+internal class HeartSpark(
     val angleRad: Float,
     val speed: Float,
     val relativeSize: Float,
@@ -129,7 +145,7 @@ private class HeartSpark(
     val color: Color,
 )
 
-private class HeartBurst(
+internal class HeartBurst(
     val sparks: List<HeartSpark>,
 ) {
     val progress = Animatable(0f)

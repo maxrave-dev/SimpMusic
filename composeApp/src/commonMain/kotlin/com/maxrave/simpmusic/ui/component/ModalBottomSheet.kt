@@ -2018,15 +2018,20 @@ fun HeartCheckBox(
     tint: Color = rememberSurfaceDarkColors().content,
     onStateChange: (() -> Unit)? = null,
 ) {
+    val burstState = rememberHeartBurstState()
     Box(
         modifier =
             Modifier
                 .size(size.dp)
                 // Before .clip: the burst draws outside the button bounds and the circle clip
                 // would trim it to the heart's own circle.
-                .heartBurst(checked)
+                .heartBurst(burstState)
                 .clip(CircleShape)
                 .clickable {
+                    // Judged at TAP time: tapping an unchecked heart is a like. Firing from the
+                    // tap — not from watching `checked` — is what keeps a track change onto an
+                    // already-liked song from celebrating a like nobody gave.
+                    if (!checked) burstState.fire()
                     onStateChange?.invoke()
                 },
     ) {

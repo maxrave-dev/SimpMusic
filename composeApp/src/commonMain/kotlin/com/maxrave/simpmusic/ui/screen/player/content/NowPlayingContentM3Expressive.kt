@@ -5,9 +5,9 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -92,6 +92,7 @@ import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.heartBurst
+import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.CheckCircle
@@ -110,12 +111,12 @@ import com.maxrave.simpmusic.ui.screen.player.content.expressive.WavySeekBar
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.UIEvent
+import kotlin.math.roundToLong
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.now_playing_upper
-import kotlin.math.roundToLong
 
 /**
  * The Material 3 Expressive ("Tonal pills") Now Playing style.
@@ -555,7 +556,9 @@ private fun NowPlayingM3ExpressiveLayout(
                                                         brush =
                                                             Brush.horizontalGradient(
                                                                 0f to labelColor.copy(alpha = 0.45f),
-                                                                0.5f to labelColor,
+                                                                // The sweep head is PURE white, not the resting label colour — the label
+                                                                // colour is an adaptive grey, and a grey gleam reads as no gleam at all.
+                                                                0.5f to Color.White,
                                                                 1f to labelColor.copy(alpha = 0.45f),
                                                                 startX = shimmerHead,
                                                                 endX = shimmerHead + shimmerSpan,
@@ -827,9 +830,14 @@ private fun ExpressiveTrackInfoRow(
             }
         }
         Spacer(modifier = Modifier.size(8.dp))
+        val likeBurst = rememberHeartBurstState()
         FilledIconToggleButton(
             checked = state.controllerState.isLiked,
-            onCheckedChange = { actions.onUIEvent(UIEvent.ToggleLike) },
+            onCheckedChange = {
+                // Fire on the TAP that likes, never on the state — see HeartBurstState's doc.
+                if (!state.controllerState.isLiked) likeBurst.fire()
+                actions.onUIEvent(UIEvent.ToggleLike)
+            },
             shape = CircleShape,
             colors =
                 IconButtonDefaults.filledIconToggleButtonColors(
@@ -840,7 +848,7 @@ private fun ExpressiveTrackInfoRow(
                 ),
             // The burst draws outside the 48dp bounds; the button's own shape clip is internal
             // (on its Surface), so sparks fired from this outer modifier are not trimmed.
-            modifier = Modifier.size(48.dp).heartBurst(state.controllerState.isLiked),
+            modifier = Modifier.size(48.dp).heartBurst(likeBurst),
         ) {
             Crossfade(targetState = state.controllerState.isLiked) { liked ->
                 Icon(
