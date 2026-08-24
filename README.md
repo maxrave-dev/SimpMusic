@@ -125,6 +125,19 @@ You can help me translate this app into your language by using Crowdin [SimpMusi
   
 #### More FAQ, join [my Discord channel](https://discord.com/channels/1136988323819298856/1349800418745778196)  
 
+## Contributing
+
+Contributions are welcome — the full guide lives in [CONTRIBUTING.md](CONTRIBUTING.md). The short version:
+
+1. **Start from an issue.** Every PR needs an accepted issue behind it — open one first so the change is agreed before the code exists.
+2. **Fork and branch from `dev`** (`main` tracks releases), and fill in the whole PR template — one checkbox is machine-checked.
+3. **AI policy.** AI-*assisted* work is welcome; AI-*driven* work is not:
+   - A human must have written or personally reviewed **every line** and be able to answer review comments about it.
+   - Unattended agent submissions (Jules, Devin, and friends) are **closed automatically** by the triage bot, on sight.
+   - Commits carrying AI co-author trailers (`Co-Authored-By: Claude/Copilot/…`) or "Generated with …" markers are rejected the same way — squash them out first.
+   - Repeat offenders are blocked.
+4. **Translations** go through [Crowdin](https://crowdin.com/project/simpmusic), never PRs editing the string files directly.
+
 ## Legal Disclaimer & Terms of Use
 
 ### 1. 100% Free, Open-Source & Strictly Non-Commercial
@@ -184,9 +197,6 @@ src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets
 </a>
 <br />
 <br />
-<a href="https://www.digitalocean.com/?refcode=d7f6eedfb9a9&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" width="300" alt="DigitalOcean Referral Badge" /></a>
-<br>
-<br>
 <a href="https://crowdin.com">
 <img src="https://support.crowdin.com/assets/logos/plate/png/crowdin-logo-with-plate.png" width="300"/>
 </a>
@@ -196,8 +206,6 @@ src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets
 </a>
 <br>
 <br>
-
-Get a free $200 credit over 60 days on DigitalOcean: [GET NOW](https://www.digitalocean.com/?refcode=d7f6eedfb9a9&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
 Crowdin and Sentry both have a free enterprise plan for Open-source projects. Follow the URLs: 
 - [Open Source License Request Form | Crowdin](https://crowdin.com/page/open-source-project-setup-request)
