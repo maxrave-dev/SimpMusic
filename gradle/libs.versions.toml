@@ -55,7 +55,7 @@ sentry-android = "8.53.0"
 sentry-gradle-android = "6.19.0"
 sentry-jvm = "8.53.0"
 newpipe = "v0.26.1"
-brave-newpipe = "fa5d4a8b4c"
+brave-newpipe = "0fcaf19ecc"
 # org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
 org-json = "20231013" # pin version
 pipepipe = "f8982ca9e7"
