@@ -11,14 +11,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,17 +39,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.rememberBackdrop
+import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Check
-import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.ListenTogetherSettingsViewModel
@@ -67,8 +74,6 @@ import simpmusic.composeapp.generated.resources.lt_default_server_name
 import simpmusic.composeapp.generated.resources.lt_save_server
 import simpmusic.composeapp.generated.resources.lt_server
 import simpmusic.composeapp.generated.resources.lt_unblock
-
-
 
 /** Matches ListenTogetherScreen — a phone-width column, centred in a wide window. */
 private const val CONTENT_MAX_WIDTH_DP = 560
@@ -94,9 +99,40 @@ fun ListenTogetherSettingsScreen(
 
     var draftUrl by remember(serverUrl) { mutableStateOf(serverUrl) }
 
+    val backdrop = rememberBackdrop(MaterialTheme.colorScheme.background)
+
     // See ListenTogetherScreen: measure the space actually given, not the window.
     BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val contentWidth = minOf(maxWidth.value, CONTENT_MAX_WIDTH_DP.toFloat()).dp
+
+        // The same ambient ground as the main Listen Together page — theme-primary glow painted
+        // inside the backdrop source, so the glass back button has something to refract. See the
+        // long note there for why the source is a matchParentSize sibling and the button must
+        // stay outside it.
+        val bg = MaterialTheme.colorScheme.background
+        val glow =
+            if (bg.luminance() > 0.5f) {
+                lerp(MaterialTheme.colorScheme.primary, Color.White, 0.85f)
+            } else {
+                MaterialTheme.colorScheme.primary.rgbFactor(0.3f)
+            }
+        Box(Modifier.matchParentSize().layerBackdrop(backdrop)) {
+            Box(Modifier.matchParentSize().background(bg))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(360.dp)
+                    .angledGradientBackground(listOf(glow, bg), 25f),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(artworkScrimBrush(bg)),
+                )
+            }
+        }
 
         Column(
             modifier =
@@ -108,138 +144,160 @@ fun ListenTogetherSettingsScreen(
         ) {
             // Full-width header — see ListenTogetherScreen; only the content below is capped.
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // The app's flat-page back (SettingScreen's navigationIcon), not glass: glass over a
-            // flat background renders as a grey coin.
-            // No size modifier: a 32dp IconButton clips its own ripple into a cropped square.
-            RippleIconButton(
-                SimpIcons.ArrowBackIosNew,
-                tint = MaterialTheme.colorScheme.onSurface,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(48.dp)
+                        .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                navController.navigateUp()
+                // The back button FLOATS over this strip (end of BoxWithConstraints) so it stays
+                // put while the page scrolls — in this row it scrolled away with the page. This
+                // spacer and its twin below only keep the title centred over the hole it leaves.
+                Spacer(Modifier.width(48.dp))
+                Text(
+                    text = stringResource(Res.string.listen_together),
+                    style = typo().titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(48.dp))
             }
-            Text(
-                text = stringResource(Res.string.listen_together),
-                style = typo().titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f),
-            )
-            Spacer(Modifier.width(48.dp))
-        }
 
             // Only the content is capped; the header above stays full width.
             Column(
                 modifier = Modifier.width(contentWidth).padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 28.dp),
                 verticalArrangement = Arrangement.spacedBy(26.dp),
             ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                SectionTitle(stringResource(Res.string.lt_server))
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    SectionTitle(stringResource(Res.string.lt_server))
 
-                ServerOption(
-                    title = stringResource(Res.string.lt_default_server_name),
-                    subtitle = stringResource(Res.string.lt_default_server_location),
-                    selected = !usingCustom,
-                    onClick = { viewModel.useDefaultServer() },
-                )
-                ServerOption(
-                    title = stringResource(Res.string.lt_custom_server),
-                    subtitle = stringResource(Res.string.lt_custom_server_desc),
-                    selected = usingCustom,
-                    onClick = { if (!usingCustom) viewModel.setServerUrl(draftUrl.ifBlank { "wss://" }) },
-                )
-
-                BasicTextField(
-                    value = draftUrl,
-                    onValueChange = { draftUrl = it },
-                    singleLine = true,
-                    textStyle = typo().bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.20f), RoundedCornerShape(14.dp)),
-                    decorationBox = { inner ->
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            if (draftUrl.isEmpty()) {
-                                Text("wss://…", style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            inner()
-                        }
-                    },
-                )
-                // Committing on focus loss would silently store a half-typed address, so the value
-                // is only written when the user asks for it.
-                if (draftUrl != serverUrl) {
-                    SmallAction(text = stringResource(Res.string.lt_save_server)) { viewModel.setServerUrl(draftUrl) }
-                }
-            }
-
-            HLine()
-
-            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                SectionTitle(stringResource(Res.string.lt_as_host))
-                ToggleRow(
-                    title = stringResource(Res.string.lt_auto_approve_joins),
-                    subtitle = stringResource(Res.string.lt_auto_approve_joins_desc),
-                    checked = autoJoins,
-                    onCheckedChange = { viewModel.setAutoApproveJoins(it) },
-                )
-            }
-
-            HLine()
-
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    SectionTitle(stringResource(Res.string.lt_blocked))
-                    Text("${blocked.size}", style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                if (blocked.isEmpty()) {
-                    Text(
-                        stringResource(Res.string.lt_blocked_empty),
-                        style = typo().bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ServerOption(
+                        title = stringResource(Res.string.lt_default_server_name),
+                        subtitle = stringResource(Res.string.lt_default_server_location),
+                        selected = !usingCustom,
+                        onClick = { viewModel.useDefaultServer() },
                     )
-                } else {
-                    blocked.forEach { name ->
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ServerOption(
+                        title = stringResource(Res.string.lt_custom_server),
+                        subtitle = stringResource(Res.string.lt_custom_server_desc),
+                        selected = usingCustom,
+                        onClick = { if (!usingCustom) viewModel.setServerUrl(draftUrl.ifBlank { "wss://" }) },
+                    )
+
+                    BasicTextField(
+                        value = draftUrl,
+                        onValueChange = { draftUrl = it },
+                        singleLine = true,
+                        textStyle = typo().bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.20f), RoundedCornerShape(14.dp)),
+                        decorationBox = { inner ->
                             Box(
-                                modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
-                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp),
+                                contentAlignment = Alignment.CenterStart,
                             ) {
-                                Text(
-                                    name.trim().firstOrNull()?.uppercase() ?: "?",
-                                    style = typo().titleSmall,
-                                    color = MaterialTheme.colorScheme.surface,
-                                )
+                                if (draftUrl.isEmpty()) {
+                                    Text("wss://…", style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                inner()
                             }
-                            Text(
-                                name,
-                                style = typo().bodyMedium,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                            SmallAction(text = stringResource(Res.string.lt_unblock)) { viewModel.unblock(name) }
+                        },
+                    )
+                    // Committing on focus loss would silently store a half-typed address, so the value
+                    // is only written when the user asks for it.
+                    if (draftUrl != serverUrl) {
+                        SmallAction(text = stringResource(Res.string.lt_save_server)) { viewModel.setServerUrl(draftUrl) }
+                    }
+                }
+
+                HLine()
+
+                Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                    SectionTitle(stringResource(Res.string.lt_as_host))
+                    ToggleRow(
+                        title = stringResource(Res.string.lt_auto_approve_joins),
+                        subtitle = stringResource(Res.string.lt_auto_approve_joins_desc),
+                        checked = autoJoins,
+                        onCheckedChange = { viewModel.setAutoApproveJoins(it) },
+                    )
+                }
+
+                HLine()
+
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        SectionTitle(stringResource(Res.string.lt_blocked))
+                        Text("${blocked.size}", style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    if (blocked.isEmpty()) {
+                        Text(
+                            stringResource(Res.string.lt_blocked_empty),
+                            style = typo().bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        blocked.forEach { name ->
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .size(
+                                                40.dp,
+                                            ).clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        name.trim().firstOrNull()?.uppercase() ?: "?",
+                                        style = typo().titleSmall,
+                                        color = MaterialTheme.colorScheme.surface,
+                                    )
+                                }
+                                Text(
+                                    name,
+                                    style = typo().bodyMedium,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                SmallAction(text = stringResource(Res.string.lt_unblock)) { viewModel.unblock(name) }
+                            }
                         }
                     }
                 }
-            }
 
                 EndOfPage()
             }
+        }
+
+        // Floats over the strip the header row reserves — a sibling of both the scroll column and
+        // the backdrop source, exactly the arrangement the main Listen Together page uses.
+        LiquidGlassIconButton(
+            backdrop = backdrop,
+            imageVector = SimpIcons.ArrowBackIosNew,
+            tint = MaterialTheme.colorScheme.onSurface,
+            shape = RoundedCornerShape(24.dp),
+            modifier =
+                Modifier
+                    .align(Alignment.TopStart)
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(start = 12.dp, top = 8.dp)
+                    .size(48.dp),
+        ) {
+            navController.navigateUp()
         }
     }
 }
@@ -264,7 +322,13 @@ private fun ServerOption(
                 .then(if (selected) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)) else Modifier)
                 .border(
                     1.dp,
-                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.40f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.20f),
+                    if (selected) {
+                        MaterialTheme.colorScheme.primary.copy(
+                            alpha = 0.40f,
+                        )
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.20f)
+                    },
                     RoundedCornerShape(16.dp),
                 ).clickable { onClick() }
                 .padding(15.dp),
@@ -290,7 +354,11 @@ private fun ServerOption(
             }
         }
         Column(Modifier.weight(1f)) {
-            Text(title, style = typo().bodyMedium, color = if (selected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                title,
+                style = typo().bodyMedium,
+                color = if (selected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(3.dp))
             Text(subtitle, style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

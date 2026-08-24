@@ -13,19 +13,23 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,6 +54,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -72,14 +78,19 @@ import com.maxrave.domain.data.model.listentogether.RoomJoinRequest
 import com.maxrave.domain.data.model.listentogether.RoomMember
 import com.maxrave.domain.data.model.listentogether.RoomSuggestion
 import com.maxrave.simpmusic.expect.shareUrl
+import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.rememberBackdrop
+import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.ui.component.EndOfPage
-import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.ContentCopy
-import com.maxrave.simpmusic.ui.icon.Groups
 import com.maxrave.simpmusic.ui.icon.Logout
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.Share
@@ -116,7 +127,6 @@ import simpmusic.composeapp.generated.resources.lt_leave_room
 import simpmusic.composeapp.generated.resources.lt_not_connected
 import simpmusic.composeapp.generated.resources.lt_or_join_with_code
 import simpmusic.composeapp.generated.resources.lt_room_code
-import simpmusic.composeapp.generated.resources.lt_settings_subtitle
 import simpmusic.composeapp.generated.resources.lt_suggestions
 import simpmusic.composeapp.generated.resources.lt_tagline
 import simpmusic.composeapp.generated.resources.lt_transfer_host
@@ -136,6 +146,7 @@ import simpmusic.composeapp.generated.resources.settings
  */
 private val CARD_SHAPE = RoundedCornerShape(24.dp)
 private val ROW_SHAPE = RoundedCornerShape(18.dp)
+
 /**
  * Below this the screen is one column. Two columns need room for two REAL columns — splitting a
  * 700dp window just makes two cramped ones.
@@ -175,6 +186,11 @@ fun ListenTogetherScreen(
     val clipboard = LocalClipboardManager.current
     var managing by remember { mutableStateOf<RoomMember?>(null) }
 
+    // The back button refracts whatever the page has drawn, so the CONTENT is the backdrop source
+    // and the button is its SIBLING — the same arrangement Album/Playlist/Analytics use. Nesting the
+    // button inside the source is the render-feedback loop that kills the RuntimeShader.
+    val backdrop = rememberBackdrop(MaterialTheme.colorScheme.background)
+
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
@@ -190,6 +206,43 @@ fun ListenTogetherScreen(
         }
         val openSettings: () -> Unit = { navController.navigate(ListenTogetherSettingsDestination) }
 
+        // Home's ambient top glow, tinted from the THEME rather than artwork — this page has none.
+        // Same recipe as HomeScreen's first item: an angled two-stop gradient with a scrim easing
+        // its tail into the background so there is no seam. Static, since the theme colour does not
+        // move. Drawn first, so both layout branches scroll over it; deliberately NOT inside the
+        // glass backdrop source — the back button is a sibling of that source and nesting order is
+        // what keeps the RuntimeShader from feeding back into itself.
+        val bg = MaterialTheme.colorScheme.background
+        val glow =
+            if (bg.luminance() > 0.5f) {
+                lerp(MaterialTheme.colorScheme.primary, Color.White, 0.85f)
+            } else {
+                MaterialTheme.colorScheme.primary.rgbFactor(0.3f)
+            }
+        // The backdrop SOURCE is this ground box — page colour plus the glow — not the content
+        // columns: glass shows whatever its source recorded, and with the source on the (mostly
+        // transparent) content the back button rendered as a solid black coin over a tinted page.
+        // Same arrangement as AlbumScreen's landscape header: a matchParentSize sibling that takes
+        // part in no measurement, with the button kept OUTSIDE it — nesting the button inside the
+        // source is the render-feedback loop that kills the RuntimeShader.
+        Box(Modifier.matchParentSize().layerBackdrop(backdrop)) {
+            Box(Modifier.matchParentSize().background(bg))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(360.dp)
+                    .angledGradientBackground(listOf(glow, bg), 25f),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(artworkScrimBrush(bg)),
+                )
+            }
+        }
+
         if (wide) {
             Row(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                 // The identity side scrolls separately and normally does not move at all: the room
@@ -203,7 +256,9 @@ fun ListenTogetherScreen(
                             .padding(start = 24.dp, end = 28.dp, top = 14.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
-                    BackButton { navController.navigateUp() }
+                    // Reserves the strip the floating back button is drawn over — it is a sibling of
+                    // this column and takes part in no measurement, so nothing else pushes down for it.
+                    Spacer(Modifier.height(BACK_BUTTON_STRIP))
                     TitleBlock(inRoom = state.inRoom)
                     ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
                     AnimatedVisibility(visible = state.inRoom) {
@@ -235,7 +290,7 @@ fun ListenTogetherScreen(
                         .animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
-                BackButton { navController.navigateUp() }
+                Spacer(Modifier.height(BACK_BUTTON_STRIP))
                 TitleBlock(inRoom = state.inRoom)
                 ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
                 AnimatedVisibility(visible = state.inRoom) {
@@ -244,6 +299,8 @@ fun ListenTogetherScreen(
                 WorkArea(state, displayName, codeInput, viewModel, { managing = it }, openSettings)
             }
         }
+
+        BackButton(backdrop) { navController.navigateUp() }
     }
 
     managing?.let { member ->
@@ -382,19 +439,34 @@ private const val SHARE_PREFIX = "Join my SimpMusic room with code "
 
 // ───────────────────────────────── structure ─────────────────────────────────
 
+/** Status-bar inset + the 8.dp above the button + its own 48.dp. */
+private val BACK_BUTTON_STRIP = 56.dp
+
 @Composable
-private fun BackButton(onBack: () -> Unit) {
-    // The app's own flat-page back (see SettingScreen's navigationIcon): a bare RippleIconButton.
-    // Glass needs something behind it to refract; over this screen's flat background it rendered
-    // as a grey coin, worse than no chrome at all.
-    // No size modifier: shrinking the IconButton shrinks its ripple bounds with it, and the
-    // pressed state renders as a cropped square. Default 48dp button, intrinsic icon.
-    RippleIconButton(
-        SimpIcons.ArrowBackIosNew,
+private fun BoxScope.BackButton(
+    backdrop: PlatformBackdrop,
+    onBack: () -> Unit,
+) {
+    // Glass, like every other back button in the app. It only works as an OVERLAY: in the scrolling
+    // column it used to sit in, what is behind it is the flat page background, and glass with
+    // nothing to refract renders as a grey coin. Floating it over the content gives it the page to
+    // refract — and keeps it reachable once the page has scrolled, which the in-flow one did not.
+    LiquidGlassIconButton(
+        backdrop = backdrop,
+        imageVector = SimpIcons.ArrowBackIosNew,
+        // NOT the default Color.White: every other caller sits on a ForceDark screen, but this page
+        // follows the theme — at light theme a white glyph sits on light glass (or on the light
+        // fallback pill) and disappears. onSurface flips with the scheme.
         tint = MaterialTheme.colorScheme.onSurface,
-    ) {
-        onBack()
-    }
+        shape = RoundedCornerShape(24.dp),
+        modifier =
+            Modifier
+                .align(Alignment.TopStart)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(start = 12.dp, top = 8.dp)
+                .size(48.dp),
+        onClick = onBack,
+    )
 }
 
 /**
@@ -522,7 +594,11 @@ private fun RoomCodePoster(
             color = MaterialTheme.colorScheme.primary,
         )
         Text(
-            text = state.roomCode?.chunked(4)?.joinToString(" ").orEmpty(),
+            text =
+                state.roomCode
+                    ?.chunked(4)
+                    ?.joinToString(" ")
+                    .orEmpty(),
             // The app's scale stops at 25sp because nothing else has to carry across a room. Sized
             // so eight monospace characters still fit a 390dp phone once padding is taken out.
             style =
@@ -741,60 +817,64 @@ private fun Members(
                         .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.10f)),
                 )
             }
-                val manageable = canManage && member.userId != selfId
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .then(if (manageable) Modifier.clickable { onManage(member) } else Modifier)
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Avatar(initialOf(member.username), tintFor(member.userId), 40.dp)
-                    Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(
-                                member.username,
-                                style = typo().bodyMedium,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            if (member.isHost) {
-                                Box(
-                                    Modifier
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f))
-                                        .padding(horizontal = 8.dp, vertical = 2.dp),
-                                ) {
-                                    Text(stringResource(Res.string.lt_host_badge), style = typo().labelSmall, color = MaterialTheme.colorScheme.primary)
-                                }
+            val manageable = canManage && member.userId != selfId
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .then(if (manageable) Modifier.clickable { onManage(member) } else Modifier)
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Avatar(initialOf(member.username), tintFor(member.userId), 40.dp)
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            member.username,
+                            style = typo().bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (member.isHost) {
+                            Box(
+                                Modifier
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                            ) {
+                                Text(
+                                    stringResource(Res.string.lt_host_badge),
+                                    style = typo().labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
                             }
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Box(
-                                Modifier.size(6.dp).clip(CircleShape).background(
-                                    when {
-                                        member.isBuffering -> MaterialTheme.colorScheme.tertiary
-                                        member.isConnected -> MaterialTheme.colorScheme.primary
-                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                    },
-                                ),
-                            )
-                            Text(
-                                text =
-                                    when {
-                                        member.userId == selfId -> stringResource(Res.string.lt_you)
-                                        member.isBuffering -> "loading…"
-                                        member.isConnected -> "in sync"
-                                        else -> "disconnected"
-                                    },
-                                style = typo().bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
                     }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Box(
+                            Modifier.size(6.dp).clip(CircleShape).background(
+                                when {
+                                    member.isBuffering -> MaterialTheme.colorScheme.tertiary
+                                    member.isConnected -> MaterialTheme.colorScheme.primary
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            ),
+                        )
+                        Text(
+                            text =
+                                when {
+                                    member.userId == selfId -> stringResource(Res.string.lt_you)
+                                    member.isBuffering -> "loading…"
+                                    member.isConnected -> "in sync"
+                                    else -> "disconnected"
+                                },
+                            style = typo().bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
                 if (manageable) {
                     Icon(
                         SimpIcons.ArrowForwardIos,
@@ -1030,7 +1110,12 @@ private fun ActionGlyph(
     onClick: () -> Unit,
 ) {
     Box(
-        modifier = Modifier.size(32.dp).clip(CircleShape).background(tint.copy(alpha = 0.16f)).clickable { onClick() },
+        modifier =
+            Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(tint.copy(alpha = 0.16f))
+                .clickable { onClick() },
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
