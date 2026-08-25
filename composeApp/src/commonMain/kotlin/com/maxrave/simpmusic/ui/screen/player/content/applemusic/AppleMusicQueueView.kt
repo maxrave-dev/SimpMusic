@@ -113,9 +113,19 @@ internal fun AppleMusicQueueView(
     // shuffle/display order", i.e. exactly artworkQueue's own order. `offset` converts a position
     // within this UPCOMING-ONLY sublist back to that absolute space.
     val offset = state.currentOrderIndex + 1
+    // withIndex() BEFORE drop(), so every row carries the index it had in the full queue.
+    //
+    // This used to be a plain drop() with `offset + localIndex` added back at click time, and that
+    // is exactly where the Apple Music queue diverged from QueueBottomSheet — which never computes
+    // an index at all, it reads the one itemsIndexed hands it over the whole list. Adding the
+    // offset back makes every row's identity depend on state.currentOrderIndex, a value DERIVED in
+    // the shell; the moment that derivation is off by anything, the row the user tapped and the
+    // index sent to the player are two different songs. Carrying the original index removes the
+    // arithmetic, so a wrong currentOrderIndex can now only cut the list in the wrong PLACE — it
+    // can no longer play the wrong song, because the index travels with the track it belongs to.
     val upcoming =
         remember(state.artworkQueue, state.currentOrderIndex) {
-            if (state.currentOrderIndex < 0) emptyList() else state.artworkQueue.drop(offset)
+            if (state.currentOrderIndex < 0) emptyList() else state.artworkQueue.withIndex().drop(offset)
         }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -244,11 +254,16 @@ internal fun AppleMusicQueueView(
                     upcoming,
                     // Absolute index in the key: `upcoming` is a sublist, so a bare local index
                     // shifts on every track change and invalidates every row.
-                    key = { i, t -> (i + offset).toString() + t.videoId },
-                ) { index, track ->
+                    key = { _, item -> item.index.toString() + item.value.videoId },
+                ) { localIndex, item ->
+                    val track = item.value
+                    // The queue-wide index this row actually has. Everything the PLAYER is told
+                    // uses this; only the drag gesture below uses localIndex, because that one is
+                    // genuinely about position within the visible list.
+                    val queueIndex = item.index
                     DraggableItem(
                         dragDropState = dragDropState,
-                        index = index,
+                        index = localIndex,
                         modifier = Modifier,
                     ) { _ ->
                         // Owner's call: the OLD queue sheet's row component, verbatim — no bespoke
@@ -259,9 +274,9 @@ internal fun AppleMusicQueueView(
                             isPlaying = false,
                             modifier = Modifier.fillMaxWidth(),
                             onClickListener = { videoId ->
-                                if (videoId == track.videoId) actions.onSeekToQueueIndex(offset + index)
+                                if (videoId == track.videoId) actions.onSeekToQueueIndex(queueIndex)
                             },
-                            onMoreClickListener = { queueItemSheetIndex = offset + index },
+                            onMoreClickListener = { queueItemSheetIndex = queueIndex },
                         )
                     }
                 }

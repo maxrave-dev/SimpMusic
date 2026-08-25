@@ -196,6 +196,8 @@ fun NowPlayingScreenContent(
         )
     var isAnimatingFromPlayer by remember { mutableStateOf(false) }
     var isUserDraggingActive by remember { mutableStateOf(false) }
+    // Whether a real finger-drag is waiting to be turned into a seek. See the latch below.
+    var pendingUserSwipe by remember { mutableStateOf(false) }
 
     // Drag detection — `isScrollInProgress` is `true` for both user drags (forwarded
     // by the outer Modifier.scrollable on the Column) and programmatic
@@ -206,6 +208,13 @@ fun NowPlayingScreenContent(
             artworkPagerState.isScrollInProgress to isAnimatingFromPlayer
         }.collect { (scrolling, animating) ->
             isUserDraggingActive = scrolling && !animating
+            // Latched, and cleared only once a seek has been dispatched for it. settledPage can
+            // move for reasons that are NOT a swipe — the pager being composed for the first time,
+            // or re-composed after the Apple Music style spent a while on its Queue/Lyrics tab,
+            // where the pager does not exist at all and its settledPage stays frozen on the track
+            // that was playing when the user left MAIN. Without this latch, coming back from that
+            // tab replays a stale page as though it had just been swiped to.
+            if (isUserDraggingActive) pendingUserSwipe = true
         }
     }
 
@@ -250,6 +259,12 @@ fun NowPlayingScreenContent(
             .distinctUntilChanged()
             .collect { settled ->
                 if (isAnimatingFromPlayer) return@collect
+                // The seek is a response to a SWIPE, so there must have been one. This is what
+                // stops the Apple Music queue from being overruled: tapping a row seeks correctly,
+                // the track changes, and then this effect would otherwise notice the pager sitting
+                // on the old page and "correct" it right back.
+                if (!pendingUserSwipe) return@collect
+                pendingUserSwipe = false
                 val queueSize = latestQueueSize
                 val orderIndex = latestOrderIndex
                 if (queueSize == 0) return@collect
