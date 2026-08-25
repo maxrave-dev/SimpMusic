@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -51,10 +52,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -154,16 +156,53 @@ fun NowPlayingContentAppleMusic(
 
     val deviceVolumeController = rememberDeviceVolumeController()
     val typography = rememberAppleMusicTypography()
+    val localDensity = LocalDensity.current
 
-    Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                // Flat black only for a CANVAS (it fills the screen). A video letterboxes, so a
-                // black page turns the bars above and below it into dead black slabs — keep the
-                // artwork-tinted gradient there.
-                .background(if (showCanvasBackdrop && !isVideoBackdropTop) SolidColor(Color.Black) else backdropBrush),
-    ) {
+    // The canvas page is black and every other state is the artwork gradient — but the swap must
+    // NOT be instant. viewState flips the moment a tab is tapped, while the Crossfade below still
+    // spends 300ms fading MAIN out: a hard swap repaints the page bright underneath a canvas that
+    // is still on screen, which is the flicker when leaving MAIN for Queue/Lyrics and again on the
+    // way back. Fading the black layer on the SAME 300ms curve keeps the two in step.
+    val canvasBackdropAlpha by animateFloatAsState(
+        targetValue = if (showCanvasBackdrop && !isVideoBackdropTop) 1f else 0f,
+        animationSpec = tween(300),
+        label = "appleMusicCanvasBackdrop",
+    )
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        // Apple frosts the COVER ART into the page background — the colour and the soft blotches of
+        // the artwork stay visible through it. A flat tinted gradient, which is what this used to
+        // be, gets the hue right and loses everything else: the page reads as a solid colour swatch
+        // rather than as the record it belongs to.
+        //
+        // The heavy radius is safe here because the whole style is gated behind Android 12 for
+        // exactly this reason (isLyricsBlurSupported), and Crop + fillMaxSize means the artwork is
+        // scaled up far past its own resolution — at this blur that costs nothing visually.
+        // The SAME bitmap the palette is generated from (NowPlayingScreen feeds
+        // screenDataState.bitmap into paletteState.generate). That is the whole point of using it
+        // here rather than thumbnailURL: the url updates the moment the track changes, the bitmap
+        // arrives later, and the tint on top of this is derived from the bitmap — so sourcing the
+        // two differently meant the frosted art was already the new record while the colour over
+        // it still belonged to the old one. An orange cover came up tinted the previous track's
+        // blue. Sharing one source makes them incapable of disagreeing.
+        state.screenData.bitmap?.let { artworkBitmap ->
+            Image(
+                bitmap = artworkBitmap,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
+            )
+        }
+        // The tint still rides on top, but as a translucent wash rather than the whole background:
+        // it keeps the vertical darkening that makes the controls readable at the bottom, while the
+        // frosted artwork shows through it.
+        Box(modifier = Modifier.fillMaxSize().alpha(BACKDROP_TINT_ALPHA).background(backdropBrush))
+        // Flat black only for a CANVAS (it fills the screen). A video letterboxes, so a black page
+        // turns the bars above and below it into dead black slabs — keep the artwork-tinted
+        // gradient there.
+        if (canvasBackdropAlpha > 0f) {
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = canvasBackdropAlpha)))
+        }
         Crossfade(targetState = viewState, animationSpec = tween(300), label = "appleMusicView") { view ->
             when (view) {
                 AppleMusicView.MAIN ->
@@ -203,6 +242,30 @@ fun NowPlayingContentAppleMusic(
                         deviceVolumeController = deviceVolumeController,
                     )
             }
+        }
+
+        // Grabber. It sits ABOVE the Crossfade, not inside a view, so it stays put across a tab
+        // switch instead of fading with the body — and so Queue/Lyrics get it too. The shell's
+        // ModalBottomSheet passes dragHandle = {} for every style, so nothing above this draws one.
+        Box(
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() })
+                    .size(width = 64.dp, height = 28.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) { actions.onDismiss() },
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(width = 36.dp, height = 5.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.White.copy(alpha = 0.35f)),
+            )
         }
     }
 }
@@ -309,20 +372,6 @@ private fun AppleMusicMainView(
             )
         }
 
-        // Dismiss target where the grabber pill used to be drawn: the tap area stays (this style
-        // has no top app bar), the visible bar is gone at the owner's request.
-        Box(
-            modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() })
-                    .size(width = 64.dp, height = 28.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                    ) { actions.onDismiss() },
-        )
-
         // Owner's spec, verbatim: a BLACK→TRANSPARENT gradient under the title row + cluster
         // while canvas/video plays — solid black at the very bottom, fading out upward.
         // Height is a FRACTION of this Box, never a dp computed from screenInfo: a zero/stale
@@ -399,14 +448,25 @@ private fun AppleMusicMainView(
                                 ),
                         contentAlignment = Alignment.BottomStart,
                     ) {
+                        // The page's OWN colour, not black. This scrim is what the artwork fades
+                        // INTO, so it has to be the same tone the page is painted with below it —
+                        // appleMusicGradientColorAt(seed, 1f), i.e. the thumbnail's colour darkened,
+                        // exactly like the bottom stop of backdropBrush. Fading to black instead
+                        // laid a dark slab over a tinted page and left a visible seam where the two
+                        // met, which read as "black smudge into transparent".
+                        //
+                        // Fully opaque at the bottom for the same reason: at 0.85 the artwork still
+                        // showed through the last few pixels and tinted the seam a different colour
+                        // than the page continuing beneath it.
+                        val pageScrimColor = appleMusicGradientColorAt(seedColor, 1f)
                         Box(
                             modifier =
                                 Modifier
                                     .fillMaxSize()
                                     .background(
                                         smoothScrimBrush(
-                                            from = Color.Black.copy(alpha = 0f),
-                                            to = Color.Black.copy(alpha = 0.85f),
+                                            from = pageScrimColor.copy(alpha = 0f),
+                                            to = pageScrimColor,
                                         ),
                                     ),
                         )
@@ -471,9 +531,10 @@ private fun AppleMusicMainView(
                                 }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
-                            // The DEFAULT style shows its full NowPlayingTrackInfoRow here — 55dp thumbnail,
-                            // titleMedium over bodyMedium, and the ⊕ / ☆ / ⋯ actions. This is that row, not a
-                            // stripped-down copy of it.
+                            // The DEFAULT style shows its full NowPlayingTrackInfoRow here — 55dp thumbnail
+                            // and the ⊕ / ☆ / ⋯ actions. This is that row, not a stripped-down copy of it.
+                            // It types with the COMPACT slots, not the main ones: this is a track header
+                            // floating over a canvas, the same job the Lyrics/Queue header does.
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
@@ -497,7 +558,7 @@ private fun AppleMusicMainView(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = state.screenData.nowPlayingTitle,
-                                        style = typography.mainTitle,
+                                        style = typography.compactTitle,
                                         maxLines = 1,
                                         modifier =
                                             Modifier
@@ -508,7 +569,7 @@ private fun AppleMusicMainView(
                                     Spacer(modifier = Modifier.height(3.dp))
                                     Text(
                                         text = state.screenData.artistName,
-                                        style = typography.mainArtist,
+                                        style = typography.compactArtist,
                                         maxLines = 1,
                                         modifier =
                                             Modifier
@@ -825,3 +886,12 @@ private fun AppleMusicArtworkPage(
         }
     }
 }
+
+// Radius of the frosted cover art behind the page. Large enough that no detail of the artwork
+// survives as a shape — what is left is its colour and its broad light and dark areas, which is
+// precisely what Apple's background is.
+private val BACKDROP_BLUR_RADIUS = 80.dp
+
+// How much of the artwork-derived gradient sits over the frosted art. Enough to darken the page
+// towards the bottom so the transport stays readable; not so much that it hides the art again.
+private const val BACKDROP_TINT_ALPHA = 0.62f

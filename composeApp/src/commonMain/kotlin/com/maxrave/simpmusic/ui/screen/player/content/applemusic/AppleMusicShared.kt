@@ -1,9 +1,17 @@
 package com.maxrave.simpmusic.ui.screen.player.content.applemusic
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -18,6 +26,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,12 +35,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -48,6 +55,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -94,6 +102,9 @@ import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.UIEvent
+import org.jetbrains.compose.resources.stringResource
+import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.crossfading
 import kotlin.math.roundToLong
 
 /** Which body the dock is currently showing. Held by the top-level Apple Music composable. */
@@ -154,10 +165,15 @@ internal fun rememberAppleMusicTypography(): AppleMusicTypography {
     return AppleMusicTypography(
         mainTitle = t.titleMedium,
         mainArtist = t.bodyMedium,
-        // Compact header sits directly over the queue list, so it types like those rows
-        // (SongFullWidthItems: titleSmall over bodySmall) instead of shouting at 18sp.
-        compactTitle = t.titleMedium,
-        compactArtist = t.bodyMedium,
+        // The compact header — Lyrics, Queue, and the row under a running canvas — carries the
+        // SIZES FullscreenLyricsSheet uses for the same job (LyricsView.kt: labelSmall over
+        // bodySmall), while mainTitle/mainArtist stay 18/13 because they head the controller
+        // layout. Borrow the size from labelSmall but keep the titleMedium ROLE: typo() bakes a
+        // color into every role — title* carry titleColor, body*/label* carry bodyColor — so
+        // switching the title to labelSmall outright would also switch it to the subtitle's grey.
+        // The artist was already a body role, so bodySmall changes its size and nothing else.
+        compactTitle = t.titleMedium.copy(fontSize = t.labelSmall.fontSize),
+        compactArtist = t.bodySmall,
         queueSectionHeader = t.titleMedium,
         queueSectionSubtitle = t.bodySmall,
         times = t.bodyMedium,
@@ -268,7 +284,12 @@ internal fun AppleMusicHeaderActions(
             // 40dp target around a 22dp glyph: a bare 22dp clickable is under half the Material
             // minimum, on the row that gets tapped most.
             Box(
-                modifier = Modifier.appleMusicPressInflate().size(24.dp).clip(CircleShape).clickable { actions.onAddToYouTubeLiked() },
+                modifier =
+                    Modifier
+                        .appleMusicPressInflate()
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .clickable { actions.onAddToYouTubeLiked() },
                 contentAlignment = Alignment.Center,
             ) {
                 Crossfade(targetState = state.likeStatus, label = "appleMusicYtLiked") { liked ->
@@ -366,7 +387,7 @@ internal fun AppleMusicCompactHeader(
     }
 }
 
-/** Thin 4dp track shared by the progress bar and the volume row — same visual language, only the color and callbacks differ. */
+/** 7dp track shared by the progress bar and the volume row — same visual language, only the color and callbacks differ. */
 @Composable
 internal fun AppleMusicThinSlider(
     value: Float,
@@ -381,7 +402,7 @@ internal fun AppleMusicThinSlider(
     val pressed by interactionSource.collectIsPressedAsState()
     val dragged by interactionSource.collectIsDraggedAsState()
     val trackHeight by animateDpAsState(
-        targetValue = if (pressed || dragged) 11.dp else 5.dp,
+        targetValue = if (pressed || dragged) 14.dp else 7.dp,
         animationSpec = spring(dampingRatio = 0.5f, stiffness = 300f),
         label = "appleMusicSliderInflate",
     )
@@ -392,21 +413,32 @@ internal fun AppleMusicThinSlider(
             onValueChangeFinished = onValueChangeFinished,
             modifier = modifier,
             interactionSource = interactionSource,
-            track = { sliderState ->
-                SliderDefaults.Track(
-                    modifier = Modifier.fillMaxWidth().height(trackHeight),
-                    enabled = true,
-                    sliderState = sliderState,
-                    colors =
-                        SliderDefaults.colors().copy(
-                            activeTrackColor = activeColor,
-                            inactiveTrackColor = AppleMusicTrackInactive,
-                            thumbColor = activeColor,
-                        ),
-                    thumbTrackGapSize = 0.dp,
-                    drawTick = { _, _ -> },
-                    drawStopIndicator = null,
-                )
+            track = {
+                // Hand-drawn instead of SliderDefaults.Track. M3 rounds each half of the track with
+                // TWO different radii: the OUTER end with trackCornerSize (height/2 — fully round)
+                // and the INNER end, where the two halves meet, with trackInsideCornerSize (2dp —
+                // reads as square). At value 0 the inactive half owns the entire bar, so its square
+                // inner end lands on the LEFT while its round outer end sits on the right — the
+                // mismatched bar. Clipping ONE container and drawing the played portion inside it
+                // keeps both ends of the bar equally round, and gives the played portion the flat
+                // right edge Apple's own bar has.
+                val fraction = value.coerceIn(0f, 1f)
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(trackHeight)
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(AppleMusicTrackInactive),
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(fraction)
+                                .background(activeColor),
+                    )
+                }
             },
             thumb = {
                 // No thumb — the approved mock and Apple's own bars are track-only; the
@@ -424,10 +456,24 @@ internal fun AppleMusicTimesRow(
     typography: AppleMusicTypography,
     modifier: Modifier = Modifier,
 ) {
-    val elapsedMs = (state.timelineState.total * (state.sliderValue / 100f)).roundToLong()
+    // `total` stays -1 until the player reports a duration, and SimpleMediaState.Ready carries
+    // ONLY the duration — never a position. After a queue restore nothing is playing, and the
+    // position poll only runs while isPlaying, so no later event arrives to correct it. Deriving
+    // elapsed from total therefore zeroed BOTH numbers at once, which is why a restored queue read
+    // 00:00 / -00:00: the played time was never actually unknown, TimeLine.current held it.
+    val knownTotal = state.timelineState.total.takeIf { it > 0L }
+    val elapsedMs =
+        if (knownTotal != null) {
+            // Still derived from the slider while the duration IS known, so this number tracks the
+            // finger while scrubbing instead of waiting for the player to report the seek back.
+            (knownTotal * (state.sliderValue / 100f)).roundToLong()
+        } else {
+            state.timelineState.current.coerceAtLeast(0L)
+        }
     // Clamp BEFORE formatDuration — it renders any negative as "NA:NA", and the remaining time
-    // must never show that even at the very end of the track.
-    val remainingMs = (state.timelineState.total - elapsedMs).coerceAtLeast(0L)
+    // must never show that at the end of a track whose length IS known. An UNKNOWN length is
+    // exactly what that string is for, so null deliberately takes the negative path below.
+    val remainingMs = knownTotal?.let { (it - elapsedMs).coerceAtLeast(0L) }
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = formatDuration(elapsedMs),
@@ -436,8 +482,57 @@ internal fun AppleMusicTimesRow(
             textAlign = TextAlign.Left,
         )
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            // Sweep head for the "Crossfading" shimmer, 0..1. Runs UNCONDITIONALLY — put behind the
+            // crossfade check it would restart from zero every time the label appears, which is the
+            // same reason the other two styles declare it outside their own visibility gate.
+            val sweepTransition = rememberInfiniteTransition(label = "appleMusicCrossfadeSweep")
+            val crossfadeSweep by sweepTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(3200, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart,
+                    ),
+                label = "appleMusicSweepHead",
+            )
+            androidx.compose.animation.AnimatedVisibility(
+                enter = fadeIn(),
+                exit = fadeOut(),
+                visible = state.timelineState.isCrossfading,
+            ) {
+                // Identical treatment to Classic and M3 Expressive: a highlight swept through the
+                // glyphs with a text brush — no overlay, no clipping.
+                val shimmerSpan = 140f
+                val shimmerHead = crossfadeSweep * (shimmerSpan * 3f) - shimmerSpan
+                val labelColor = typography.times.color
+                Text(
+                    text = stringResource(Res.string.crossfading),
+                    style =
+                        typography.times.copy(
+                            brush =
+                                Brush.horizontalGradient(
+                                    0f to labelColor.copy(alpha = 0.45f),
+                                    // The sweep head is PURE white, not the resting label colour — that
+                                    // colour is an adaptive grey, and a grey gleam reads as no gleam.
+                                    0.5f to Color.White,
+                                    1f to labelColor.copy(alpha = 0.45f),
+                                    startX = shimmerHead,
+                                    endX = shimmerHead + shimmerSpan,
+                                    tileMode = TileMode.Clamp,
+                                ),
+                        ),
+                    textAlign = TextAlign.Center,
+                )
+            }
             val codec = state.audioCodecLabel
-            if (codec != null) {
+            // The badge and the label share one slot, so the badge steps aside rather than stacking
+            // under it. AnimatedVisibility on both makes the handover a cross-fade instead of a cut.
+            androidx.compose.animation.AnimatedVisibility(
+                enter = fadeIn(),
+                exit = fadeOut(),
+                visible = !state.timelineState.isCrossfading && codec != null,
+            ) {
                 // A PILL, like the mock's badge (and Apple's "Lossless"): translucent rounded
                 // background, not bare text floating between the two times.
                 Row(
@@ -455,12 +550,17 @@ internal fun AppleMusicTimesRow(
                         modifier = Modifier.size(15.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = codec, style = typography.badge.copy(color = Color.White.copy(alpha = 0.9f)))
+                    // orEmpty(), not codec!!: the null check lives in `visible` above, which is an
+                    // argument rather than a branch, so the compiler cannot smart-cast it here.
+                    Text(text = codec.orEmpty(), style = typography.badge.copy(color = Color.White.copy(alpha = 0.9f)))
                 }
             }
         }
         Text(
-            text = "-" + formatDuration(remainingMs),
+            // No leading "-" when the length is unknown: "-NA:NA" reads as a negative amount of
+            // nothing. formatDuration's own out-of-range string is the app's established way to
+            // say "no value here".
+            text = remainingMs?.let { "-" + formatDuration(it) } ?: formatDuration(-1L),
             style = typography.times,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Right,
@@ -472,7 +572,6 @@ internal fun AppleMusicTimesRow(
 @Composable
 internal fun AppleMusicTransportRow(
     controllerState: ControlState,
-    loading: Boolean,
     onUIEvent: (UIEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -494,32 +593,25 @@ internal fun AppleMusicTransportRow(
                 modifier = Modifier.size(46.dp),
             )
         }
+        // No loading state on this button. It is play/pause and nothing else: it stays pressable
+        // and keeps showing the transport glyph even while the player is buffering, so the control
+        // never disappears out from under a finger reaching for it.
         Box(
             modifier =
                 Modifier
                     .appleMusicPressInflate()
                     .size(76.dp)
                     .clip(CircleShape)
-                    .clickable(enabled = !loading) { onUIEvent(UIEvent.PlayPause) },
+                    .clickable { onUIEvent(UIEvent.PlayPause) },
             contentAlignment = Alignment.Center,
         ) {
-            Crossfade(targetState = loading, label = "appleMusicPlayLoading") { isLoading ->
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(26.dp),
-                        color = Color.White,
-                        strokeWidth = 3.dp,
-                    )
-                } else {
-                    Crossfade(targetState = controllerState.isPlaying, label = "appleMusicPlayPauseIcon") { isPlaying ->
-                        Icon(
-                            imageVector = if (isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
-                            contentDescription = "",
-                            tint = Color.White,
-                            modifier = Modifier.size(66.dp),
-                        )
-                    }
-                }
+            Crossfade(targetState = controllerState.isPlaying, label = "appleMusicPlayPauseIcon") { isPlaying ->
+                Icon(
+                    imageVector = if (isPlaying) SimpIcons.Pause else SimpIcons.PlayArrow,
+                    contentDescription = "",
+                    tint = Color.White,
+                    modifier = Modifier.size(66.dp),
+                )
             }
         }
         IconButton(
@@ -549,7 +641,7 @@ internal fun AppleMusicVolumeRow(
             modifier = Modifier.size(18.dp),
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Box(modifier = Modifier.weight(1f).height(14.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.weight(1f).height(18.dp), contentAlignment = Alignment.Center) {
             AppleMusicThinSlider(
                 value = controller.volumeFraction,
                 activeColor = AppleMusicTrackActive,
@@ -673,10 +765,10 @@ internal fun AppleMusicBottomCluster(
     val localDensity = LocalDensity.current
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 8.dp)) {
         if (getPlatform() == Platform.Android) {
-            // Fixed 14dp shell: the track swells on touch, but inside a CONSTANT footprint —
+            // Fixed 18dp shell: the track swells on touch, but inside a CONSTANT footprint —
             // otherwise the growing slider re-measures this whole column and the artwork above
-            // it visibly jumps. It also gives the bar a real 14dp touch target instead of 4dp.
-            Box(modifier = Modifier.fillMaxWidth().height(14.dp), contentAlignment = Alignment.Center) {
+            // it visibly jumps. It also gives the bar a real 18dp touch target instead of 7dp.
+            Box(modifier = Modifier.fillMaxWidth().height(18.dp), contentAlignment = Alignment.Center) {
                 AppleMusicThinSlider(
                     value = state.sliderValue / 100f,
                     activeColor = if (state.timelineState.isCrossfading) state.sliderTrackColor else AppleMusicTrackActive,
@@ -689,7 +781,6 @@ internal fun AppleMusicBottomCluster(
             Spacer(modifier = Modifier.height(12.dp))
             AppleMusicTransportRow(
                 controllerState = state.controllerState,
-                loading = state.timelineState.loading,
                 onUIEvent = actions.onUIEvent,
             )
             Spacer(modifier = Modifier.height(14.dp))

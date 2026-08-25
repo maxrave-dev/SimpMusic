@@ -2,7 +2,6 @@
 
 package com.maxrave.simpmusic.ui.screen.player.content.applemusic
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.manager.DataStoreManager
@@ -76,8 +77,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.continue_playing
-import simpmusic.composeapp.generated.resources.continue_playing_endless_subtitle
 import simpmusic.composeapp.generated.resources.endless_queue
+import simpmusic.composeapp.generated.resources.now_playing
 
 /**
  * The QUEUE body: compact header, [Info][PlaylistAdd][Shuffle][Repeat] pills, a "Continue
@@ -118,7 +119,15 @@ internal fun AppleMusicQueueView(
         }
 
     Column(modifier = modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.height(with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() }))
+        // statusBars + 20dp, not a bare status-bar offset: the grabber that
+        // NowPlayingContentAppleMusic draws above the view Crossfade floats over this column, and
+        // without the extra room the header's title slides underneath it.
+        Spacer(
+            modifier =
+                Modifier.height(
+                    with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() } + 20.dp,
+                ),
+        )
         AppleMusicCompactHeader(state = state, actions = actions, typography = typography)
         AppleMusicQueuePillsRow(
             state = state,
@@ -128,8 +137,11 @@ internal fun AppleMusicQueueView(
             modifier = Modifier.padding(top = 4.dp, bottom = 20.dp),
         )
         AppleMusicContinuePlayingHeader(
+            state = state,
             dataStoreManager = dataStoreManager,
             typography = typography,
+            activePillContainer = activePillContainer,
+            activePillContent = activePillContent,
             modifier = Modifier.padding(bottom = 8.dp),
         )
 
@@ -142,6 +154,17 @@ internal fun AppleMusicQueueView(
             rememberDragDropState(lazyListState) { from, to ->
                 actions.onMoveQueueItem(from + currentOffset, to + currentOffset)
             }
+
+        // Follow the track change. The list holds only what is still to come, so every time the
+        // player advances the row that was at the top leaves it and everything shifts up by one —
+        // but the scroll offset does not move, so a queue the user had scrolled through stays
+        // parked mid-list with the track that is actually next off-screen. Re-anchoring to the top
+        // is what "showing the current position" means for an upcoming-only list.
+        LaunchedEffect(state.currentOrderIndex) {
+            if (state.currentOrderIndex >= 0) {
+                lazyListState.animateScrollToItem(0)
+            }
+        }
 
         // Endless/radio queues page in as you scroll — same trigger QueueBottomSheet uses.
         val loadMoreState by remember {
@@ -169,12 +192,18 @@ internal fun AppleMusicQueueView(
             )
         }
 
-        Box(modifier = Modifier.weight(1f).appleMusicVerticalFadeEdges(topFade = 24.dp, bottomFade = 48.dp)) {
+        Box(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .appleMusicVerticalFadeEdges(topFade = QUEUE_TOP_FADE, bottomFade = QUEUE_BOTTOM_FADE),
+        ) {
             LazyColumn(
                 state = lazyListState,
-                // Trailing space equal to the bottom fade, so the fade lands on blank space
-                // instead of dissolving the last real row.
-                contentPadding = PaddingValues(bottom = 48.dp),
+                // Space at BOTH ends equal to the fade at that end, so each fade lands on blank
+                // space instead of dissolving a real row. Only the bottom had it, which is why the
+                // first upcoming track — the one you most want to read — came up half faded out.
+                contentPadding = PaddingValues(top = QUEUE_TOP_FADE, bottom = QUEUE_BOTTOM_FADE),
                 modifier =
                     Modifier
                         .fillMaxSize()
@@ -333,8 +362,11 @@ private fun AppleMusicQueuePill(
 
 @Composable
 private fun AppleMusicContinuePlayingHeader(
+    state: NowPlayingContentState,
     dataStoreManager: DataStoreManager,
     typography: AppleMusicTypography,
+    activePillContainer: Color,
+    activePillContent: Color,
     modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -347,11 +379,25 @@ private fun AppleMusicContinuePlayingHeader(
     val endlessQueueEnabled by endlessQueueFlow.collectAsStateWithLifecycle(initialValue = false)
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(Res.string.continue_playing),
-                style = typography.queueSectionHeader,
-                modifier = Modifier.weight(1f),
-            )
+            // Two stacked lines instead of one "Continue Playing": the small label says WHAT this
+            // section is, the line under it says WHERE the queue came from. A queue with no source
+            // name (a bare radio, a restored session) simply drops the second line rather than
+            // printing an empty one.
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(Res.string.now_playing),
+                    style = typography.queueSectionSubtitle,
+                )
+                val source = state.screenData.playlistName
+                if (source.isNotBlank()) {
+                    Text(
+                        text = source,
+                        style = typography.queueSectionHeader,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
             // The switch needs its own label, exactly like the queue sheet's — unlabelled it
             // reads as a mystery toggle.
             Text(
@@ -364,15 +410,29 @@ private fun AppleMusicContinuePlayingHeader(
                 onCheckedChange = { checked ->
                     coroutineScope.launch { dataStoreManager.setEndlessQueue(checked) }
                 },
+                colors =
+                    SwitchDefaults.colors(
+                        // On state takes the artwork-derived pair this style already uses for its
+                        // active pills, instead of the theme's green — on a page painted from the
+                        // cover art, a fixed accent is the one element that does not belong to the
+                        // record playing.
+                        checkedTrackColor = activePillContainer,
+                        checkedThumbColor = activePillContent,
+                        checkedBorderColor = Color.Transparent,
+                        // Transparent when off, so the control reads as an outline sitting on the
+                        // page rather than a grey slab: this row has no surface of its own, and
+                        // Material's default unchecked track paints one.
+                        uncheckedTrackColor = Color.Transparent,
+                        uncheckedBorderColor = Color.White.copy(alpha = 0.45f),
+                        uncheckedThumbColor = Color.White.copy(alpha = 0.75f),
+                    ),
                 modifier = Modifier.appleMusicPressInflate(pressedScale = 1.08f),
-            )
-        }
-        AnimatedVisibility(visible = endlessQueueEnabled) {
-            Text(
-                text = stringResource(Res.string.continue_playing_endless_subtitle),
-                style = typography.queueSectionSubtitle,
-                modifier = Modifier.padding(top = 2.dp),
             )
         }
     }
 }
+
+// The fade at each edge of the queue list, and the content padding that matches it — declared
+// once so the two can never drift apart.
+private val QUEUE_TOP_FADE = 24.dp
+private val QUEUE_BOTTOM_FADE = 48.dp
