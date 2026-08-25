@@ -42,6 +42,11 @@ aboutlibraries = "15.0.2" # BUG Can not upgrade version
 ktor = "3.5.2"
 brotli = "0.1.2"
 ksoup = "0.6.0"
+# Lyrics romanization. Both are plain Java, so one dependency covers Android AND the JVM desktop
+# build; iOS gets a no-op actual instead. Versions match what Metrolist ships, which is the
+# reference implementation for this feature.
+kuromoji-ipadic = "0.9.0"
+pinyin4j = "2.5.1"
 desugaring = "2.1.5"
 koin-bom = "4.2.2"
 md = "0.44.0"
@@ -174,6 +179,8 @@ brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test"}
+kuromoji-ipadic = { module = "com.atilika.kuromoji:kuromoji-ipadic", version.ref = "kuromoji-ipadic" }
+pinyin4j = { module = "com.belerweb:pinyin4j", version.ref = "pinyin4j" }
 ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup" }
 ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
 markdown = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "md" }

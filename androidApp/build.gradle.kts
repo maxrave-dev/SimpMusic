@@ -133,6 +133,12 @@ android {
             )
         resources {
             excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            // kuromoji ships the SAME META-INF/CONTRIBUTORS.md and META-INF/LICENSE.md in both
+            // kuromoji-ipadic and the kuromoji-core it depends on, and mergeDebugJavaResource
+            // refuses to pick between two files at one path. Excluded by pattern rather than by
+            // name: dropping only CONTRIBUTORS.md moves the failure to LICENSE.md on the next
+            // build. Nothing here is code — these are documentation files.
+            excludes += "META-INF/*.md"
         }
     }
     compileOptions {

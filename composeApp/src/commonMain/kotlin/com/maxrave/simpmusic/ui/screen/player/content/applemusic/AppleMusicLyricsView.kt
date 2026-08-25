@@ -41,18 +41,24 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
+import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
+import com.maxrave.simpmusic.ui.component.AppleMusicLyricPaddingX
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
+import com.maxrave.simpmusic.ui.screen.player.content.canVote
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.ai_translated
 import simpmusic.composeapp.generated.resources.line_synced
@@ -82,9 +88,18 @@ internal fun AppleMusicLyricsView(
     activePillContent: Color,
     deviceVolumeController: DeviceVolumeController?,
     modifier: Modifier = Modifier,
+    dataStoreManager: DataStoreManager = koinInject(),
 ) {
     val localDensity = LocalDensity.current
     val lyricsData = state.screenData.lyricsData
+
+    // LyricsView applies AppleMusicLyricPaddingX ITSELF, but only on its Apple Music branch — its
+    // Classic branch renders LyricsLineItem, which has no horizontal padding of its own. So this
+    // tab, which contributes no gutter, left Classic lyrics flush against the screen edge while
+    // the header right above them sits at 20dp. Same split the fullscreen sheet already does:
+    // the caller contributes whatever the renderer does not, so the TOTAL is the same either way.
+    val lyricsStyle by dataStoreManager.lyricsStyle.collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
+    val rendererOwnsGutter = lyricsStyle == DataStoreManager.LYRICS_STYLE_APPLE_MUSIC && isLyricsBlurSupported()
 
     // Apple hands the whole page to the lyrics once you stop touching it, and brings the transport
     // back the moment you touch it again. rememberSaveable so a rotation does not yank the
@@ -164,14 +179,16 @@ internal fun AppleMusicLyricsView(
                     modifier =
                         Modifier
                             .fillMaxSize()
-                            // No horizontal padding here: LyricsView applies the style's own gutter
-                            // now, so both this tab and the fullscreen sheet get it. Keeping one
-                            // here as well would double it on this screen only.
                             // The lines dissolve at both edges instead of being guillotined by
                             // the header/cluster — applied from OUTSIDE the component.
                             // Softer bottom fade than the top: a lyric line is ~54dp tall, and a
                             // 44dp fade dissolved most of the last visible line.
-                            .appleMusicVerticalFadeEdges(topFade = 28.dp, bottomFade = 18.dp),
+                            .appleMusicVerticalFadeEdges(topFade = 28.dp, bottomFade = 18.dp)
+                            // Zero under the Apple Music renderer, which insets its own lines so
+                            // its blur has margin to spill into; the full gutter under Classic,
+                            // which insets nothing. Applied AFTER the fade so the fade still spans
+                            // the full width.
+                            .padding(horizontal = if (rendererOwnsGutter) 0.dp else AppleMusicLyricPaddingX),
                     backgroundColor = Color.Transparent,
                     footerContent = {
                         // Right-aligned, and stacked: plain text rather than the AIBadge pill the
@@ -229,7 +246,13 @@ internal fun AppleMusicLyricsView(
                         modifier = Modifier.padding(end = 20.dp, bottom = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        AppleMusicFloatingCircleButton(icon = SimpIcons.ThumbsUpDown, onClick = { actions.onShowVoteDialog() })
+                        // Only when the lyrics (or the translation) actually came from SimpMusic
+                        // Lyrics — the sole provider that accepts a vote. Classic and M3E have
+                        // always gated theirs; this one did not, so it invited a rating on
+                        // YouTube/LRCLIB/Spotify lyrics that had nowhere to go.
+                        if (lyricsData.canVote()) {
+                            AppleMusicFloatingCircleButton(icon = SimpIcons.ThumbsUpDown, onClick = { actions.onShowVoteDialog() })
+                        }
                         AppleMusicFloatingCircleButton(icon = SimpIcons.OpenInFull, onClick = { actions.onShowFullscreenLyrics() })
                     }
                 }

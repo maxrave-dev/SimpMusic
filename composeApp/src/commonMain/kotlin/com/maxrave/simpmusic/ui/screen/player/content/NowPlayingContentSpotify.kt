@@ -1427,19 +1427,11 @@ fun NowPlayingContentSpotify(
                                             AIBadge()
                                         }
                                         Spacer(modifier = Modifier.weight(1f))
-                                        // Vote button - only show if lyrics or translated lyrics from SimpMusic
-                                        val canVoteLyrics =
-                                            state.screenData.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
-                                                state.screenData.lyricsData
-                                                    ?.lyrics
-                                                    ?.simpMusicLyrics != null
-                                        val canVoteTranslatedLyrics =
-                                            state.screenData.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
-                                                state.screenData.lyricsData
-                                                    ?.translatedLyrics
-                                                    ?.first
-                                                    ?.simpMusicLyrics != null
-                                        if (canVoteLyrics || canVoteTranslatedLyrics) {
+                                        // Vote button — only when the lyrics or the translation came from
+                                        // SimpMusic Lyrics. The rule itself lives on the shared contract
+                                        // (canVote), so a style cannot ship without it the way the Apple
+                                        // Music tab did.
+                                        if (state.screenData.lyricsData.canVote()) {
                                             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                                 IconButton(
                                                     onClick = {

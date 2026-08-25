@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -171,8 +172,19 @@ fun NowPlayingScreenContent(
     // ⚠️ Use track.videoId (already prefix-stripped at MediaServiceHandlerImpl.kt:386).
     // Do NOT use mediaItem.mediaId — it carries the "Video" prefix for video items.
     val nowPlayingVideoId: String? = nowPlayingState?.track?.videoId
+    // currentOrderIndex() is a plain getter over the player, NOT Compose state, so it is read
+    // inside this remember block — whose keys (the queue, and the track now playing) are exactly
+    // the two things that can move the player's position. nowPlayingState is published FROM the
+    // player's own transition callback, so by the time nowPlayingVideoId changes here the player
+    // index has already moved; reading it any earlier would sample the outgoing track.
     val currentOrderIndex by remember(artworkQueue, nowPlayingVideoId) {
-        derivedStateOf { deriveOrderIndex(artworkQueue, nowPlayingVideoId) }
+        derivedStateOf {
+            deriveOrderIndex(
+                queue = artworkQueue,
+                nowPlayingVideoId = nowPlayingVideoId,
+                playerOrderIndex = mediaPlayerHandler.currentOrderIndex(),
+            )
+        }
     }
     // Single PagerState — the unified ArtworkPager renders BOTH the fullscreen canvas
     // background and the centered square thumbnail in each page, so we don't need two
@@ -217,17 +229,35 @@ fun NowPlayingScreenContent(
     // ② Pager → Player: seek when user settles on a different page.
     // Adjacent (±1) → Next/Previous (preserves crossfade flow on Android).
     // Far skip → playMediaItemInMediaSource (handles unshuffling internally).
-    LaunchedEffect(artworkPagerState, currentOrderIndex, artworkQueue.size) {
+    //
+    // Keyed on artworkPagerState ALONE — deliberately NOT on currentOrderIndex/queue size, which
+    // are read through rememberUpdatedState instead. This effect exists to catch a user SWIPE, and
+    // the only thing that moves settledPage is the pager. Re-keying it on the track built a NEW
+    // snapshotFlow on every track change, and a new flow's FIRST emission is whatever settledPage
+    // happens to hold — distinctUntilChanged has no previous value to suppress it against — so a
+    // STALE page was dispatched as though the user had just swiped to it.
+    //
+    // That is what broke the Apple Music queue: its pager lives inside MAIN, so while QUEUE is on
+    // screen the pager is not composed at all and settledPage still points at the previous track.
+    // Tapping a row seeked correctly, the track changed, this effect was rebuilt, and it
+    // immediately read the stale page — computeSeekAction(previous, current) == Previous — which
+    // sent the player straight back to the song that had just been playing.
+    // AppleMusicQueueView already uses rememberUpdatedState for exactly this hazard (its offset).
+    val latestOrderIndex by rememberUpdatedState(currentOrderIndex)
+    val latestQueueSize by rememberUpdatedState(artworkQueue.size)
+    LaunchedEffect(artworkPagerState) {
         snapshotFlow { artworkPagerState.settledPage }
             .distinctUntilChanged()
             .collect { settled ->
                 if (isAnimatingFromPlayer) return@collect
-                if (artworkQueue.isEmpty()) return@collect
-                if (settled !in 0 until artworkQueue.size) return@collect
-                if (settled == currentOrderIndex) return@collect
+                val queueSize = latestQueueSize
+                val orderIndex = latestOrderIndex
+                if (queueSize == 0) return@collect
+                if (settled !in 0 until queueSize) return@collect
+                if (settled == orderIndex) return@collect
 
                 runCatching {
-                    when (val action = computeSeekAction(settled, currentOrderIndex)) {
+                    when (val action = computeSeekAction(settled, orderIndex)) {
                         ArtworkSeekAction.Next -> {
                             sharedViewModel.onUIEvent(UIEvent.Next)
                         }
