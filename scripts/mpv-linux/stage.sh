@@ -21,7 +21,7 @@ ldconfig
 SYSTEM_LIBS="
 libc.so.6 libm.so.6 libdl.so.2 libpthread.so.0 librt.so.1 libutil.so.1
 ld-linux-x86-64.so.2 libgcc_s.so.1 libstdc++.so.6 libresolv.so.2
-libz.so.1 libbz2.so.1.0 liblzma.so.5
+libz.so.1 libbz2.so.1.0 liblzma.so.5 libglib-2.0.so.0
 "
 
 is_system() {
